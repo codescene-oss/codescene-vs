@@ -21,7 +21,7 @@ public class ProblemsWindow : BaseToolWindow<ProblemsWindow>
     {
         public Pane()
         {
-            BitmapImageMoniker = KnownMonikers.PasteAppend;
+            BitmapImageMoniker = KnownMonikers.ToolWindow;
         }
     }
 }

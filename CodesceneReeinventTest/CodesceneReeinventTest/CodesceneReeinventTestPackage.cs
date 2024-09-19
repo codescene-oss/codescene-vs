@@ -10,10 +10,12 @@ namespace CodesceneReeinventTest;
 [InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Version)]
 [ProvideMenuResource("Menus.ctmenu", 1)]
 [Guid(PackageGuids.CodesceneReeinventTestString)]
+[ProvideToolWindow(typeof(ProblemsWindow.Pane))]
 public sealed class CodesceneReeinventTestPackage : ToolkitPackage
 {
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
         await this.RegisterCommandsAsync();
+        this.RegisterToolWindows();
     }
 }
