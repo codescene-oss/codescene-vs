@@ -7,8 +7,9 @@ internal sealed class OpenCodesceneSiteCommand : BaseCommand<OpenCodesceneSiteCo
 {
     protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
     {
-        //await VS.MessageBox.ShowWarningAsync("CodesceneReeinventTest", "Button clicked");
-        await OpenUrlAsync("https://codescene.com/");
+        var options = await General.GetLiveInstanceAsync();
+        var url = string.IsNullOrEmpty(options.ServerUrl) ? General.DEFAULT_SERVER_URL : options.ServerUrl;
+        await OpenUrlAsync(url);
     }
 
     private async Task OpenUrlAsync(string url)

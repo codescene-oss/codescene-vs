@@ -11,6 +11,7 @@ namespace CodesceneReeinventTest;
 [ProvideMenuResource("Menus.ctmenu", 1)]
 [Guid(PackageGuids.CodesceneReeinventTestString)]
 [ProvideToolWindow(typeof(ProblemsWindow.Pane))]
+[ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
 public sealed class CodesceneReeinventTestPackage : ToolkitPackage
 {
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)

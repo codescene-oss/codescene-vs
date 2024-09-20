@@ -49,6 +49,7 @@
     <Compile Include="Models\CodeModel.cs" />
     <Compile Include="Models\ItemModel.cs" />
     <Compile Include="Models\TargetModel.cs" />
+    <Compile Include="Options\General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\OpenCodesceneSiteCommand.cs" />
     <Compile Include="CodesceneReeinventTestPackage.cs" />
@@ -109,9 +110,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Resources\App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="ToolWindows\ProblemsWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
