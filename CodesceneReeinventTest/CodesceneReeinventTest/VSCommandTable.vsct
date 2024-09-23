@@ -21,7 +21,7 @@
 				<Icon guid="ImageCatalogGuid" id="CodeMetrics" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
 				<Strings>
-					<ButtonText>Codescene</ButtonText>
+					<ButtonText>Open URL from configuration</ButtonText>
 					<LocCanonicalName>.CodesceneReeinventTest.OpenCodesceneSiteCommand</LocCanonicalName>
 				</Strings>
 			</Button>
@@ -34,6 +34,15 @@
 					<LocCanonicalName>.View.OpenProblemsWindowCommand</LocCanonicalName>
 				</Strings>
 			</Button>
+			<Button guid="CodesceneReeinventTest" id="OpenErrorListWindowCommand" priority="0x0300" type="Button">
+				<Parent guid="CodesceneReeinventTest" id="CodesceneMenuGroup" />
+				<Icon guid="ImageCatalogGuid" id="AddLayoutItem" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>Add one test issue</ButtonText>
+					<LocCanonicalName>.View.OpenProblemsWindowCommand</LocCanonicalName>
+				</Strings>
+			</Button>
 		</Buttons>
 	</Commands>
 
@@ -42,6 +51,7 @@
 			<IDSymbol name="CodesceneMenuGroup" value="0x0001" />
 			<IDSymbol name="OpenCodesceneSiteCommand" value="0x0100" />
 			<IDSymbol name="OpenProblemsWindowCommand" value="0x0200" />
+			<IDSymbol name="OpenErrorListWindowCommand" value="0x0300" />
 		</GuidSymbol>
 	</Symbols>
 </CommandTable>
