@@ -1,10 +1,19 @@
-﻿using System.Diagnostics;
+﻿using CodesceneReeinventTest.Application;
+using Community.VisualStudio.Toolkit.DependencyInjection;
+using Community.VisualStudio.Toolkit.DependencyInjection.Core;
+using System.Diagnostics;
 
 namespace CodesceneReeinventTest;
 
 [Command(PackageIds.OpenCodesceneSiteCommand)]
-internal sealed class OpenCodesceneSiteCommand : BaseCommand<OpenCodesceneSiteCommand>
+internal sealed class OpenCodesceneSiteCommand : BaseDICommand
 {
+    private readonly IIssuesHandler _service;
+    public OpenCodesceneSiteCommand(DIToolkitPackage package, IIssuesHandler service) : base(package)
+    {
+        _service = service;
+    }
+
     protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
     {
         var options = await General.GetLiveInstanceAsync();

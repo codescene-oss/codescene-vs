@@ -1,6 +1,6 @@
 ﻿namespace CodesceneReeinventTest.Models;
 
-public class ItemModel
+public class IssueModel
 {
     public string Resource { get; set; }
     public string Owner { get; set; }
