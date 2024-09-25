@@ -1,5 +1,6 @@
 ﻿using Community.VisualStudio.Toolkit.DependencyInjection;
 using Community.VisualStudio.Toolkit.DependencyInjection.Core;
+using EnvDTE;
 
 namespace CodesceneReeinventTest
 {

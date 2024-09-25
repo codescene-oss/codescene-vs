@@ -8,7 +8,7 @@
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d" 
              HorizontalAlignment="Stretch"
-             Name="MyToolWindow" Height="339" d:DesignWidth="352.782">
+             Name="MyToolWindow">
     <Grid HorizontalAlignment="Stretch">
         
         <StackPanel Orientation="Vertical">
@@ -23,16 +23,16 @@
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Image Source="/Resources/StatusInformation.png" Width="16" Height="16" Margin="0,0,5,0"/>
+                    <Image Source="/CodesceneReeinventTest;component/Resources/StatusInformation.png" Width="16" Height="16" Margin="0,0,5,0"/>
                     <TextBlock FontSize="10" Text="Not signed in" Foreground="{x:Static SystemColors.ControlLightBrush}"/>
                 </StackPanel>
                
                 <StackPanel Orientation="Horizontal">
-                    <Image Source="/Resources/StatusOK.png" Width="16" Height="16" Margin="0,0,5,0"/>
+                    <Image Source="/CodesceneReeinventTest;component/Resources/StatusOK.png" Width="16" Height="16" Margin="0,0,5,0"/>
                     <TextBlock FontSize="10" Text="Code health analysis activated" Foreground="{x:Static SystemColors.ControlLightBrush}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Image Source="/Resources/StatusError.png" Width="16" Height="16" Margin="0,0,5,0"/>
+                    <Image Source="/CodesceneReeinventTest;component/Resources/StatusError.png" Width="16" Height="16" Margin="0,0,5,0"/>
                     <TextBlock FontSize="10" Foreground="{x:Static SystemColors.ControlLightBrush}">
                     Agumented Code Engineering (ACE) inactive
                     </TextBlock>
@@ -64,7 +64,7 @@
             <TextBlock FontSize="10" Margin="5,0,0,5"
                        TextWrapping="Wrap" Foreground="{x:Static SystemColors.ControlLightBrush}">
                 If you're part of the preview release program for ACE, the refactoring features will be available as soon as you 
-                <Run FontWeight="Bold">sign in using the accounts menu</Run>    <Image Source="/Resources/User.png" Width="10" Height="10" Margin="0,0,0,-2"/>
+                <Run FontWeight="Bold">sign in using the accounts menu</Run>    <Image Source="/CodesceneReeinventTest;component/Resources/User.png" Width="10" Height="10" Margin="0,0,0,-2"/>
                
             </TextBlock>
             <TextBlock FontSize="10" Margin="5,0,0,5"
@@ -79,7 +79,7 @@
                  to join the waiting list.
             </TextBlock>
             <TextBlock Margin="5,0,0,0" FontSize="10" Foreground="{x:Static SystemColors.ControlLightBrush}">
-                 <Image Source="/Resources/StatusHelp.png" Width="10" Height="10" Margin="0,0,0,-2"/>
+                 <Image Source="/CodesceneReeinventTest;component/Resources/StatusHelp.png" Width="10" Height="10" Margin="0,0,0,-2"/>
                 <Hyperlink NavigateUri="https://codescene.io/docs/auto-refactor/index.html" RequestNavigate="Hyperlink_RequestNavigate" TextDecorations="{x:Null}">
                     Documentation on codescene.io
                 </Hyperlink>        

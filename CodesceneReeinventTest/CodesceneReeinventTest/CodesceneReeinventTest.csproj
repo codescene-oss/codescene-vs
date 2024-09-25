@@ -77,26 +77,22 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\StatusError.png">
-      <IncludeInVSIX>true</IncludeInVSIX>
+    <Resource Include="Resources\StatusError.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\StatusHelp.png">
-      <IncludeInVSIX>true</IncludeInVSIX>
+    </Resource>
+    <Resource Include="Resources\StatusHelp.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\StatusInformation.png">
-      <IncludeInVSIX>true</IncludeInVSIX>
+    </Resource>
+    <Resource Include="Resources\StatusInformation.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\StatusOK.png">
-      <IncludeInVSIX>true</IncludeInVSIX>
+    </Resource>
+    <Resource Include="Resources\StatusOK.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\User.png">
-      <IncludeInVSIX>true</IncludeInVSIX>
+    </Resource>
+    <Resource Include="Resources\User.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    </Resource>
+    <Content Include="ToolWindows\Status\User.png" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
       <Generator>VsixManifestGenerator</Generator>

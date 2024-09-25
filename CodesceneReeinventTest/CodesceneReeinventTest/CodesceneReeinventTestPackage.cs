@@ -15,7 +15,7 @@ namespace CodesceneReeinventTest;
 [Guid(PackageGuids.CodesceneReeinventTestString)]
 [ProvideToolWindow(typeof(ProblemsWindow.Pane))]
 [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
-[ProvideToolWindow(typeof(StatusWindow.Pane))]
+[ProvideToolWindow(typeof(StatusWindow.Pane), Window = WindowGuids.SolutionExplorer, Style = VsDockStyle.Tabbed)]
 public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<CodesceneReeinventTestPackage>
 {
     protected override void InitializeServices(IServiceCollection services)
