@@ -3,6 +3,7 @@ global using Microsoft.VisualStudio.Shell;
 global using System;
 global using Task = System.Threading.Tasks.Task;
 using CodesceneReeinventTest.Application;
+using CodesceneReeinventTest.Application.Services.Authentication;
 using Community.VisualStudio.Toolkit.DependencyInjection.Microsoft;
 using Microsoft.Extensions.DependencyInjection;
 using System.Runtime.InteropServices;
@@ -23,16 +24,14 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
         RegisterServices(services);
         services.RegisterCommands(ServiceLifetime.Singleton);
     }
-
-
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
         await base.InitializeAsync(cancellationToken, progress);
         this.RegisterToolWindows();
     }
-
     void RegisterServices(IServiceCollection services)
     {
         services.AddSingleton<IIssuesHandler, IssuesHandler>();
+        services.AddSingleton<IAuthenticationService, AuthenticationService>();
     }
 }

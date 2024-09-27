@@ -45,7 +45,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Application\Helpers\BooleanToVisibilityConverter.cs" />
     <Compile Include="Application\IssuesHandler.cs" />
+    <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
+    <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Commands\OpenErrorListWindowCommand.cs" />
     <Compile Include="Commands\OpenProblemsWindowCommand.cs" />
     <Compile Include="Application\IIssuesHandler.cs" />
@@ -70,6 +73,7 @@
     <Compile Include="ToolWindows\Problems\ProblemsWindowControl.xaml.cs">
       <DependentUpon>ProblemsWindowControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ToolWindows\Status\StatusWIndowModel.cs" />
     <Compile Include="VSCommandTable.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
