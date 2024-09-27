@@ -10,19 +10,21 @@ namespace CodesceneReeinventTest
 {
     public partial class StatusWindowControl : UserControl
     {
-        private static IAuthenticationService _authenticationService;
+        private readonly IAuthenticationService _authenticationService;
         public StatusWindowModel ViewModel { get; set; }
        
-        public static void SetAuthenticationService(IAuthenticationService authenticationService)
+        //public static void SetAuthenticationService(IAuthenticationService authenticationService)
+        //{
+        //    _authenticationService = authenticationService;
+        //}
+        public StatusWindowControl(IAuthenticationService authenticationService)
         {
             _authenticationService = authenticationService;
-        }
-        public StatusWindowControl()
-        {
             //fire event on settings change
             General.Saved += OnSettingsSaved;
             this.InitializeComponent();
-            //initačize view model of control
+            //initalize view model of control
+            var i = _authenticationService.IsLoggedIn();
             ViewModel = new StatusWindowModel
             { 
                 CodeHealthActivated = General.Instance.PreviewCodeHealthGate,
