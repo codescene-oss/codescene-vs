@@ -12,7 +12,8 @@ namespace CodesceneReeinventTest
         private readonly IAuthenticationService _authenticationService = authenticationService;
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            StatusWindowControl.SetAuthenticationService(_authenticationService);
+            //ovo rješenje nije ok jer šta ako je tool window docked od ranije a ne pozvan sa komandom
+            //StatusWindowControl.SetAuthenticationService(_authenticationService);
             await StatusWindow.ShowAsync();
         }
     }

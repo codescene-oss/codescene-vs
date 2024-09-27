@@ -97,6 +97,42 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Content Include="ToolWindows\Status\User.png" />
+    <None Include="Resources\docs\code-health-monitor.md" />
+    <None Include="Resources\docs\general-code-health.md" />
+    <None Include="Resources\docs\improvement-guides\bumpy-road-ahead-guide.md" />
+    <None Include="Resources\docs\improvement-guides\complex-conditional-guide.md" />
+    <None Include="Resources\docs\improvement-guides\complex-method-guide.md" />
+    <None Include="Resources\docs\improvement-guides\deep-nested-complexity-guide.md" />
+    <None Include="Resources\docs\improvement-guides\large-method-guide.md" />
+    <None Include="Resources\docs\improvement-guides\modularity-improvement-guide.md" />
+    <None Include="Resources\docs\issues\brain-class.md" />
+    <None Include="Resources\docs\issues\brain-method.md" />
+    <None Include="Resources\docs\issues\bumpy-road-ahead.md" />
+    <None Include="Resources\docs\issues\code-duplication.md" />
+    <None Include="Resources\docs\issues\complex-conditional.md" />
+    <None Include="Resources\docs\issues\complex-method.md" />
+    <None Include="Resources\docs\issues\constructor-over-injection.md" />
+    <None Include="Resources\docs\issues\deep-global-nested-complexity.md" />
+    <None Include="Resources\docs\issues\deep-nested-complexity.md" />
+    <None Include="Resources\docs\issues\duplicated-assertion-blocks.md" />
+    <None Include="Resources\docs\issues\duplicated-function-blocks.md" />
+    <None Include="Resources\docs\issues\excess-number-of-function-arguments.md" />
+    <None Include="Resources\docs\issues\file-size-issue.md" />
+    <None Include="Resources\docs\issues\global-conditionals.md" />
+    <None Include="Resources\docs\issues\high-degree-of-code-duplication.md" />
+    <None Include="Resources\docs\issues\large-assertion-blocks.md" />
+    <None Include="Resources\docs\issues\large-embedded-code-block.md" />
+    <None Include="Resources\docs\issues\large-method.md" />
+    <None Include="Resources\docs\issues\lines-of-code-in-a-single-file.md" />
+    <None Include="Resources\docs\issues\lines-of-declarations-in-a-single-file.md" />
+    <None Include="Resources\docs\issues\low-cohesion.md" />
+    <None Include="Resources\docs\issues\missing-arguments-abstractions.md" />
+    <None Include="Resources\docs\issues\modularity-issue.md" />
+    <None Include="Resources\docs\issues\number-of-functions-in-a-single-module.md" />
+    <None Include="Resources\docs\issues\overall-code-complexity.md" />
+    <None Include="Resources\docs\issues\potentially-low-cohesion.md" />
+    <None Include="Resources\docs\issues\primitive-obsession.md" />
+    <None Include="Resources\docs\issues\string-heavy-function-arguments.md" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
       <Generator>VsixManifestGenerator</Generator>
@@ -161,6 +197,7 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
