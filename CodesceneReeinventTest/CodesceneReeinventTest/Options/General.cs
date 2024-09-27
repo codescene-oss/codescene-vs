@@ -23,7 +23,7 @@ public class General : BaseOptionModel<General>
     [Category("General")]
     [DisplayName("Preview Code Health Gate")]
     [Description("Preview the experimental Code Health Gate (beta)")]
-    public bool PreviewCodeHealthGate { get; set; } = false;
+    public bool PreviewCodeHealthGate { get; set; } = true;
 
     [Category("General")]
     [DisplayName("Gitignore")]

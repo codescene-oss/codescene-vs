@@ -45,7 +45,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Application\Helpers\BooleanToVisibilityConverter.cs" />
     <Compile Include="Application\IssuesHandler.cs" />
+    <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
+    <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Commands\OpenErrorListWindowCommand.cs" />
     <Compile Include="Commands\OpenProblemsWindowCommand.cs" />
     <Compile Include="Application\IIssuesHandler.cs" />
@@ -61,10 +64,16 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>
     </Compile>
-    <Compile Include="ToolWindows\ProblemsWindow.cs" />
-    <Compile Include="ToolWindows\ProblemsWindowControl.xaml.cs">
+    <Compile Include="ToolWindows\Status\StatusWindow.cs" />
+    <Compile Include="Commands\OpenStatusWindowCommand.cs" />
+    <Compile Include="ToolWindows\Status\StatusWindowControl.xaml.cs">
+      <DependentUpon>StatusWindowControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ToolWindows\Problems\ProblemsWindow.cs" />
+    <Compile Include="ToolWindows\Problems\ProblemsWindowControl.xaml.cs">
       <DependentUpon>ProblemsWindowControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ToolWindows\Status\StatusWIndowModel.cs" />
     <Compile Include="VSCommandTable.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -72,6 +81,22 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\StatusError.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\StatusHelp.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\StatusInformation.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\StatusOK.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\User.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Content Include="ToolWindows\Status\User.png" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
       <Generator>VsixManifestGenerator</Generator>
@@ -94,12 +119,17 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Design" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -114,7 +144,7 @@
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection">
-      <Version>8.0.0</Version>
+      <Version>5.0.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.11.435">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -122,7 +152,11 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="ToolWindows\ProblemsWindowControl.xaml">
+    <Page Include="ToolWindows\Status\StatusWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ToolWindows\Problems\ProblemsWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

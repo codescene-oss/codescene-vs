@@ -24,5 +24,6 @@ namespace CodesceneReeinventTest
         public const int OpenCodesceneSiteCommand = 0x0100;
         public const int OpenProblemsWindowCommand = 0x0200;
         public const int OpenErrorListWindowCommand = 0x0300;
+        public const int OpenStatusWindowCommand = 0x0400;
     }
 }
