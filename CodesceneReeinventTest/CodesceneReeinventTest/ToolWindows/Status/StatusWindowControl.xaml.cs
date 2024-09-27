@@ -1,6 +1,5 @@
 ﻿using CodesceneReeinventTest.Application.Services.Authentication;
 using CodesceneReeinventTest.ToolWindows.Status;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Windows;
@@ -12,7 +11,7 @@ namespace CodesceneReeinventTest
     {
         private static IAuthenticationService _authenticationService;
         public StatusWindowModel ViewModel { get; set; }
-       
+
         public static void SetAuthenticationService(IAuthenticationService authenticationService)
         {
             _authenticationService = authenticationService;
@@ -24,9 +23,9 @@ namespace CodesceneReeinventTest
             this.InitializeComponent();
             //initačize view model of control
             ViewModel = new StatusWindowModel
-            { 
+            {
                 CodeHealthActivated = General.Instance.PreviewCodeHealthGate,
-                IsLoggedIn = _authenticationService.IsLoggedIn()
+                IsLoggedIn = true// _authenticationService.IsLoggedIn()
             };
             this.DataContext = ViewModel;
         }
