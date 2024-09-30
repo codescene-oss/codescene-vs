@@ -46,14 +46,33 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Application\Helpers\BooleanToVisibilityConverter.cs" />
-    <Compile Include="Application\IssuesHandler.cs" />
+    <Compile Include="Application\Services\Mapper\IModelMapper.cs" />
+    <Compile Include="Application\Services\IssueHandler\IssuesHandler.cs" />
+    <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
     <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
+    <Compile Include="Application\Services\FileReviewer\FileReviewer.cs" />
+    <Compile Include="Application\Services\FileReviewer\IFileReviewer.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\Bumps.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\BumpsBySeverity.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\Congestion.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\CsReview.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\Details.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\FnArgs.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\Function.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\Nested.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\NestedComplexityOfInterest.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\RawScore.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\Review.cs" />
+    <Compile Include="Application\Services\FileReviewer\ReviewResult\WorstBump.cs" />
     <Compile Include="Commands\OpenErrorListWindowCommand.cs" />
     <Compile Include="Commands\OpenProblemsWindowCommand.cs" />
-    <Compile Include="Application\IIssuesHandler.cs" />
+    <Compile Include="Application\Services\IssueHandler\IIssuesHandler.cs" />
+    <Compile Include="Commands\ReviewActiveFileCommand.cs" />
+    <Compile Include="Commands\ShowReviewResultInErrorListCommand.cs" />
     <Compile Include="Models\CodeModel.cs" />
     <Compile Include="Models\IssueModel.cs" />
+    <Compile Include="Models\ReviewModel.cs" />
     <Compile Include="Models\TargetModel.cs" />
     <Compile Include="Options\General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
