@@ -1,6 +1,7 @@
 ﻿using CodesceneReeinventTest.Application.Services.FileReviewer.ReviewResult;
 using CodesceneReeinventTest.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.Shell.Interop;
 using System.Collections.Generic;
 
 using System.Linq;
@@ -11,11 +12,12 @@ internal class IssuesHandler : IIssuesHandler
 {
     private readonly ErrorListProvider _errorListProvider;
     private readonly IModelMapper _modelMapper;
+    private readonly CodesceneReeinventTestPackage _package;
     public IssuesHandler(IServiceProvider serviceProvider, IModelMapper mapper)
     {
         // Retrieve it as your package type
-        var package = serviceProvider.GetRequiredService<CodesceneReeinventTestPackage>();
-        _errorListProvider = new ErrorListProvider(package);
+        _package = serviceProvider.GetRequiredService<CodesceneReeinventTestPackage>();
+        _errorListProvider = new ErrorListProvider(_package);
         _modelMapper = mapper;
     }
     public string GetUrl()
@@ -51,6 +53,13 @@ internal class IssuesHandler : IIssuesHandler
             Line = issue.StartLine,
             Column = issue.EndLine
         };
+        errorTask.Navigate += (sender, e) =>
+       {
+           Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
+           IVsWindowFrame windowFrame;
+           VsShellUtilities.OpenDocument(_package, issue.Path, Guid.Empty, out _, out _, out windowFrame);
+           windowFrame?.Show();
+       };
         _errorListProvider.Tasks.Add(errorTask);
         _errorListProvider.Show();
     }
