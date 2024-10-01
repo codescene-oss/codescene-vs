@@ -11,10 +11,7 @@ public class ProblemsWindow : BaseToolWindow<ProblemsWindow>
 
     public override Type PaneType => typeof(Pane);
 
-    public override Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
-    {
-        return Task.FromResult<FrameworkElement>(new ProblemsWindowControl());
-    }
+    public override Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken) => Task.FromResult<FrameworkElement>(new ProblemsWindowControl());
 
     [Guid("b529151b-4cd9-402c-afac-ae59112c4e2b")]
     internal class Pane : ToolkitToolWindowPane

@@ -1,19 +1,12 @@
-﻿using CodesceneReeinventTest.Application;
-using Community.VisualStudio.Toolkit.DependencyInjection;
+﻿using Community.VisualStudio.Toolkit.DependencyInjection;
 using Community.VisualStudio.Toolkit.DependencyInjection.Core;
 using System.Diagnostics;
 
 namespace CodesceneReeinventTest;
 
 [Command(PackageIds.OpenCodesceneSiteCommand)]
-internal sealed class OpenCodesceneSiteCommand : BaseDICommand
+internal sealed class OpenCodesceneSiteCommand(DIToolkitPackage package) : BaseDICommand(package)
 {
-    private readonly IIssuesHandler _service;
-    public OpenCodesceneSiteCommand(DIToolkitPackage package, IIssuesHandler service) : base(package)
-    {
-        _service = service;
-    }
-
     protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
     {
         var options = await General.GetLiveInstanceAsync();
@@ -36,5 +29,4 @@ internal sealed class OpenCodesceneSiteCommand : BaseDICommand
             await VS.MessageBox.ShowWarningAsync("Error", $"Error: {ex.Message}");
         }
     }
-
 }

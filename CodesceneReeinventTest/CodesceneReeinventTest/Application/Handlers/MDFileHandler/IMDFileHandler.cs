@@ -1,9 +1,9 @@
 ﻿
 
-namespace CodesceneReeinventTest.Application.Handlers
+namespace CodesceneReeinventTest.Application.Handlers;
+
+public interface IMDFileHandler
 {
-    public interface IMDFileHandler
-    {
-        public string GetContent(string fileName, string path, string subPath);
-    }
+    string GetContent(string path, string subPath);
+    void SetFileName(string fileName);
 }

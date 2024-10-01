@@ -85,7 +85,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>
     </Compile>
-    <Compile Include="Commands\OpenMarkdownWindowCommand.cs" />
     <Compile Include="ToolWindows\Markdown\MarkdownWindow.cs" />
     <Compile Include="ToolWindows\Markdown\MarkdownWindowControl.xaml.cs">
       <DependentUpon>MarkdownWindowControl.xaml</DependentUpon>
