@@ -1,14 +1,11 @@
-﻿using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Shell;
-using System;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Windows;
-using CodesceneReeinventTest.Application.Services.Authentication;
+﻿using CodesceneReeinventTest.Application.Handlers;
 using Community.VisualStudio.Toolkit.DependencyInjection.Core;
 using Microsoft.Extensions.DependencyInjection;
-using CodesceneReeinventTest.Application.Handlers;
+using Microsoft.VisualStudio.Imaging;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 
 namespace CodesceneReeinventTest.ToolWindows.Markdown
 {

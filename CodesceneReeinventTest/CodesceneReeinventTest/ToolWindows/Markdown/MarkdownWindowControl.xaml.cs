@@ -1,8 +1,5 @@
 ﻿using CodesceneReeinventTest.Application.Handlers;
-using CodesceneReeinventTest.Application.Services.Authentication;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.Windows;
 using System.Windows.Controls;
 
 
@@ -12,7 +9,7 @@ namespace CodesceneReeinventTest.ToolWindows.Markdown
     {
         private readonly IMDFileHandler _mdFileHandler;
         public MarkdownWindowControl(IMDFileHandler mdFileHandler, string fileName)
-        { 
+        {
             this.InitializeComponent();
             _mdFileHandler = mdFileHandler;
             string htmlContent = _mdFileHandler.GetContent(fileName, "Resources", null);
