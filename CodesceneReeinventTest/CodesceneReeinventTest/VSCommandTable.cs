@@ -30,7 +30,7 @@ namespace CodesceneReeinventTest
         public const int OpenErrorListWindowCommand = 0x0300;
         public const int ReviewActiveFileCommand = 0x0500;
         public const int ShowReviewResultInErrorListCommand = 0x0600;
-        public const int OpenStatusWindowCommand = 0x0400;
+        public const int OpenStatusWindowCommand = 0x0800;
         public const int OpenMarkdownWindowCommand = 0x0700;
     }
 }
