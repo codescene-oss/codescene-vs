@@ -5,6 +5,7 @@ global using Task = System.Threading.Tasks.Task;
 using CodesceneReeinventTest.Application;
 using CodesceneReeinventTest.Application.Handlers;
 using CodesceneReeinventTest.Application.Services.Authentication;
+using CodesceneReeinventTest.Application.Services.FileReviewer;
 using CodesceneReeinventTest.ToolWindows.Markdown;
 using Community.VisualStudio.Toolkit.DependencyInjection.Microsoft;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,5 +41,7 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
         services.AddSingleton<IIssuesHandler, IssuesHandler>();
         services.AddSingleton<IAuthenticationService, AuthenticationService>();
         services.AddSingleton<IMDFileHandler, MDFileHandler>();
+        services.AddSingleton<IFileReviewer, FileReviewer>();
+        services.AddSingleton<IModelMapper, ModelMapper>();
     }
 }

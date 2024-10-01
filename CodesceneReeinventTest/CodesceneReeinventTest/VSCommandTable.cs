@@ -14,6 +14,9 @@ namespace CodesceneReeinventTest
     {
         public const string CodesceneReeinventTestString = "ae74efe3-821a-45ca-9f67-9172d4f5adc1";
         public static Guid CodesceneReeinventTest = new Guid(CodesceneReeinventTestString);
+
+        public const string guidCodesceneReeinventTestPackageCmdSetString = "d28f1087-bb0a-40f9-b526-2514fa9e95a2";
+        public static Guid guidCodesceneReeinventTestPackageCmdSet = new Guid(guidCodesceneReeinventTestPackageCmdSetString);
     }
     /// <summary>
     /// Helper class that encapsulates all CommandIDs uses across VS Package.
@@ -21,10 +24,13 @@ namespace CodesceneReeinventTest
     internal sealed partial class PackageIds
     {
         public const int CodesceneMenuGroup = 0x0001;
-        public const int OpenCodesceneSiteCommand = 0x0100;
+        public const int CodesceneMenuGroupEdit = 0x0002;
+        public const int OpenCodesceneSiteCommand = 0x0400;
         public const int OpenProblemsWindowCommand = 0x0200;
         public const int OpenErrorListWindowCommand = 0x0300;
+        public const int ReviewActiveFileCommand = 0x0500;
+        public const int ShowReviewResultInErrorListCommand = 0x0600;
         public const int OpenStatusWindowCommand = 0x0400;
-        public const int OpenMarkdownWindowCommand = 0x0500;
+        public const int OpenMarkdownWindowCommand = 0x0700;
     }
 }
