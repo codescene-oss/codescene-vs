@@ -98,6 +98,9 @@
                     Documentation on codescene.io
                 </Hyperlink>        
             </TextBlock>
+            <Button Margin="5" Content="Open Bumpy Road File" Width="150" Height="30"
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                Click="OpenMarkdownButton_Click"/>
         </StackPanel>
     </Grid>
 </UserControl>

@@ -63,16 +63,13 @@
 	<Symbols>
 		<GuidSymbol name="CodesceneReeinventTest" value="{ae74efe3-821a-45ca-9f67-9172d4f5adc1}">
 			<IDSymbol name="CodesceneMenuGroup" value="0x0001" />
-			<IDSymbol name ="OpenStatusWindowCommand" value="0x0400"  />
+			<IDSymbol name="OpenStatusWindowCommand" value="0x0400" />
 			<IDSymbol name="CodesceneMenuGroupEdit" value="0x0002" />
 			<IDSymbol name="OpenCodesceneSiteCommand" value="0x0100" />
 			<IDSymbol name="OpenProblemsWindowCommand" value="0x0200" />
-			<IDSymbol name="OpenErrorListWindowCommand" value="0x0300" />>
+			<IDSymbol name="OpenErrorListWindowCommand" value="0x0300" />
+			<IDSymbol name="OpenMarkdownWindowCommand" value="0x0500"/>
 		</GuidSymbol>
-	
-    <GuidSymbol value="{d28f1087-bb0a-40f9-b526-2514fa9e95a2}" name="guidCodesceneReeinventTestPackageCmdSet">
-      <IDSymbol value="256" name="cmdidStatusWindowCommand" />
-    </GuidSymbol>
-  
   </Symbols>
+	
 </CommandTable>

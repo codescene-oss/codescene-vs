@@ -45,6 +45,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Application\Handlers\MDFileHandler\IMDFileHandler.cs" />
+    <Compile Include="Application\Handlers\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Application\Helpers\BooleanToVisibilityConverter.cs" />
     <Compile Include="Application\IssuesHandler.cs" />
     <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
@@ -63,6 +65,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>
+    </Compile>
+    <Compile Include="Commands\OpenMarkdownWindowCommand.cs" />
+    <Compile Include="ToolWindows\Markdown\MarkdownWindow.cs" />
+    <Compile Include="ToolWindows\Markdown\MarkdownWindowControl.xaml.cs">
+      <DependentUpon>MarkdownWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="ToolWindows\Status\StatusWindow.cs" />
     <Compile Include="Commands\OpenStatusWindowCommand.cs" />
@@ -107,7 +114,9 @@
     <None Include="Resources\docs\improvement-guides\modularity-improvement-guide.md" />
     <None Include="Resources\docs\issues\brain-class.md" />
     <None Include="Resources\docs\issues\brain-method.md" />
-    <None Include="Resources\docs\issues\bumpy-road-ahead.md" />
+    <Content Include="Resources\bumpy-road-ahead.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Resources\docs\issues\code-duplication.md" />
     <None Include="Resources\docs\issues\complex-conditional.md" />
     <None Include="Resources\docs\issues\complex-method.md" />
@@ -179,6 +188,9 @@
     <PackageReference Include="Community.VisualStudio.Toolkit.17" Version="17.0.522" ExcludeAssets="Runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Markdig">
+      <Version>0.37.0</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection">
       <Version>5.0.2</Version>
     </PackageReference>
@@ -188,6 +200,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="ToolWindows\Markdown\MarkdownWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ToolWindows\Status\StatusWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

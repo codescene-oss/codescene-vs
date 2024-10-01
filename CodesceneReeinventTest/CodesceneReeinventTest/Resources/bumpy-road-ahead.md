@@ -4,6 +4,10 @@ Fundamentally, a bumpy code road represents a lack of encapsulation which become
 
 ## Example
 
+
+### Example 2
+
+
 Here is an example of code that uses multiple chunks of nested conditional logic:
 ```java
 public class BumpyRoadExample {

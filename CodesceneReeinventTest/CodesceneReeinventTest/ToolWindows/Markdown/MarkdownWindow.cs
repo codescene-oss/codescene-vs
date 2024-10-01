@@ -1,29 +1,32 @@
-﻿using System.Runtime.InteropServices;
+﻿using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Shell;
+using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Windows;
-using Microsoft.VisualStudio.Imaging;
 using CodesceneReeinventTest.Application.Services.Authentication;
 using Community.VisualStudio.Toolkit.DependencyInjection.Core;
 using Microsoft.Extensions.DependencyInjection;
-using Community.VisualStudio.Toolkit.DependencyInjection;
+using CodesceneReeinventTest.Application.Handlers;
 
-namespace CodesceneReeinventTest
+namespace CodesceneReeinventTest.ToolWindows.Markdown
 {
-    public class StatusWindow : BaseToolWindow<StatusWindow>
+    public class MarkdownWindow : BaseToolWindow<MarkdownWindow>
     {
-        public IAuthenticationService _authenticationService;
-        public override string GetTitle(int toolWindowId) => "CodeScene: Status";
+        public IMDFileHandler _mdFileHandler;
+        public static string FileName { get; set; }
+        public override string GetTitle(int toolWindowId) => "CodeScene: Markdown";
 
         public override Type PaneType => typeof(Pane);
+
         public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
         {
             IToolkitServiceProvider<CodesceneReeinventTestPackage> serviceProvider = await VS.GetServiceAsync<SToolkitServiceProvider<CodesceneReeinventTestPackage>, IToolkitServiceProvider<CodesceneReeinventTestPackage>>();
-            _authenticationService = serviceProvider.GetService<IAuthenticationService>();
-            var package = serviceProvider.GetService(typeof(DIToolkitPackage)) as DIToolkitPackage;
-            return (new StatusWindowControl(_authenticationService, package));
+            _mdFileHandler = serviceProvider.GetService<IMDFileHandler>();
+            return (new MarkdownWindowControl(_mdFileHandler, FileName));
         }
-        [Guid("6d1318d4-a780-4942-b4c7-dc785bc1662d")]
+        [Guid("282d9eff-5009-4652-aacc-a86e89b9cf2f")]
         internal class Pane : ToolkitToolWindowPane
         {
             public Pane()
