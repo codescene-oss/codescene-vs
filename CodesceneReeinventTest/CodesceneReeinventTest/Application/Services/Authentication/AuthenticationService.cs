@@ -1,11 +1,10 @@
 ﻿
-namespace CodesceneReeinventTest.Application.Services.Authentication
+namespace CodesceneReeinventTest.Application.Services.Authentication;
+
+public class AuthenticationService : IAuthenticationService
 {
-    public class AuthenticationService : IAuthenticationService
+    public bool IsLoggedIn()
     {
-        public bool IsLoggedIn()
-        {
-            return true;
-        }
+        return true;
     }
 }
