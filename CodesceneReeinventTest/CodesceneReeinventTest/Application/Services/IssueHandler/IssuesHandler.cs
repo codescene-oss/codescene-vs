@@ -41,23 +41,21 @@ internal class IssuesHandler : IIssuesHandler
         }
     }
 
-    private string FormatMessage(ReviewModel i) => $"{i.Category} ({i.Details}) Codescene({i.Category})";
+    private string FormatMessage(ReviewModel i) => $"Codescene - {i.Category} ({i.Details})";
     private void Add(ReviewModel issue)
     {
         var errorTask = new ErrorTask()
         {
             ErrorCategory = TaskErrorCategory.Warning,
-            Category = TaskCategory.BuildCompile,
+            Category = TaskCategory.CodeSense,
             Text = FormatMessage(issue),
             Document = issue.Path,
-            Line = issue.StartLine,
-            Column = issue.EndLine
+            Line = issue.StartLine
         };
         errorTask.Navigate += (sender, e) =>
        {
-           Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
-           IVsWindowFrame windowFrame;
-           VsShellUtilities.OpenDocument(_package, issue.Path, Guid.Empty, out _, out _, out windowFrame);
+           ThreadHelper.ThrowIfNotOnUIThread();
+           VsShellUtilities.OpenDocument(_package, issue.Path, Guid.Empty, out _, out _, out IVsWindowFrame windowFrame);
            windowFrame?.Show();
        };
         _errorListProvider.Tasks.Add(errorTask);
@@ -108,10 +106,7 @@ internal class IssuesHandler : IIssuesHandler
     public void Handle(string filePath, CsReview review)
     {
         Delete(filePath);
-        if (string.IsNullOrWhiteSpace(review.RawScore?.Name))
-        {
-            review.RawScore = new Application.Services.FileReviewer.ReviewResult.RawScore { Name = filePath };
-        }
+
         var issues = _modelMapper.Map(review);
         if (!issues.Any())
         {
@@ -120,5 +115,98 @@ internal class IssuesHandler : IIssuesHandler
         }
 
         Add(issues);
+    }
+}
+
+public class Test : IVsHierarchy
+{
+    public int SetSite(Microsoft.VisualStudio.OLE.Interop.IServiceProvider psp)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int GetSite(out Microsoft.VisualStudio.OLE.Interop.IServiceProvider ppSP)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int QueryClose(out int pfCanClose)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int Close()
+    {
+        throw new NotImplementedException();
+    }
+
+    public int GetGuidProperty(uint itemid, int propid, out Guid pguid)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int SetGuidProperty(uint itemid, int propid, ref Guid rguid)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int GetProperty(uint itemid, int propid, out object pvar)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int SetProperty(uint itemid, int propid, object var)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int GetNestedHierarchy(uint itemid, ref Guid iidHierarchyNested, out IntPtr ppHierarchyNested, out uint pitemidNested)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int GetCanonicalName(uint itemid, out string pbstrName)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int ParseCanonicalName(string pszName, out uint pitemid)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int Unused0()
+    {
+        throw new NotImplementedException();
+    }
+
+    public int AdviseHierarchyEvents(IVsHierarchyEvents pEventSink, out uint pdwCookie)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int UnadviseHierarchyEvents(uint dwCookie)
+    {
+        throw new NotImplementedException();
+    }
+
+    public int Unused1()
+    {
+        throw new NotImplementedException();
+    }
+
+    public int Unused2()
+    {
+        throw new NotImplementedException();
+    }
+
+    public int Unused3()
+    {
+        throw new NotImplementedException();
+    }
+
+    public int Unused4()
+    {
+        throw new NotImplementedException();
     }
 }
