@@ -1,8 +1,5 @@
 ﻿using CodesceneReeinventTest.Application.Handlers;
-using CodesceneReeinventTest.Application.Services.Authentication;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.Windows;
 using System.Windows.Controls;
 
 
@@ -11,11 +8,11 @@ namespace CodesceneReeinventTest.ToolWindows.Markdown
     public partial class MarkdownWindowControl : UserControl
     {
         private readonly IMDFileHandler _mdFileHandler;
-        public MarkdownWindowControl(IMDFileHandler mdFileHandler, string fileName)
-        { 
+        public MarkdownWindowControl()
+        {
             this.InitializeComponent();
-            _mdFileHandler = mdFileHandler;
-            string htmlContent = _mdFileHandler.GetContent(fileName, "Resources", null);
+            _mdFileHandler = CodesceneReeinventTestPackage.GetService<IMDFileHandler>();
+            string htmlContent = _mdFileHandler.GetContent("Resources", null);
 
             SetWebBrowserContent(htmlContent);
         }
@@ -25,8 +22,8 @@ namespace CodesceneReeinventTest.ToolWindows.Markdown
             var backgroundBrush = (System.Windows.Media.SolidColorBrush)FindResource(VsBrushes.WindowKey);
             var foregroundBrush = (System.Windows.Media.SolidColorBrush)FindResource(VsBrushes.WindowTextKey);
 
-            var backgroundColor = ColorTranslator.ToHtml(System.Drawing.Color.FromArgb(backgroundBrush.Color.A, backgroundBrush.Color.R, backgroundBrush.Color.G, backgroundBrush.Color.B));
-            var textColor = ColorTranslator.ToHtml(System.Drawing.Color.FromArgb(foregroundBrush.Color.A, foregroundBrush.Color.R, foregroundBrush.Color.G, foregroundBrush.Color.B));
+            var backgroundColor = ColorTranslator.ToHtml(Color.FromArgb(backgroundBrush.Color.A, backgroundBrush.Color.R, backgroundBrush.Color.G, backgroundBrush.Color.B));
+            var textColor = ColorTranslator.ToHtml(Color.FromArgb(foregroundBrush.Color.A, foregroundBrush.Color.R, foregroundBrush.Color.G, foregroundBrush.Color.B));
             //needed for ' 
             string meta = "<meta charset=\"UTF-8\">";
             // Inject CSS to match the VS theme

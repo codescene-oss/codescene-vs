@@ -9,7 +9,6 @@ using CodesceneReeinventTest.Application.Services.FileReviewer;
 using CodesceneReeinventTest.ToolWindows.Markdown;
 using Community.VisualStudio.Toolkit.DependencyInjection.Microsoft;
 using Microsoft.Extensions.DependencyInjection;
-using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -25,15 +24,25 @@ namespace CodesceneReeinventTest;
 
 public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<CodesceneReeinventTestPackage>
 {
+    private static IServiceProvider _serviceProvider;
+    public static T GetService<T>()
+    {
+        if (_serviceProvider == null)
+        {
+            throw new ArgumentNullException("_serviceProvider");
+        }
+
+        return (T)_serviceProvider.GetService(typeof(T));
+    }
     protected override void InitializeServices(IServiceCollection services)
     {
         RegisterServices(services);
         services.RegisterCommands(ServiceLifetime.Singleton);
+        _serviceProvider = services.BuildServiceProvider();
     }
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
         await base.InitializeAsync(cancellationToken, progress);
-        
         this.RegisterToolWindows();
     }
     void RegisterServices(IServiceCollection services)
