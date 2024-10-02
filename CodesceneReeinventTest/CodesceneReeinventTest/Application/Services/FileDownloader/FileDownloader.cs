@@ -15,10 +15,13 @@ namespace CodesceneReeinventTest.Application.Services.FileDownloader
         {
             try
             {
-                await DownloadAsync();
-                UnzipFile();
-                RenameFile();
-                DeleteFile();
+                if (!File.Exists(_artifactInfo.AbsoluteBinaryPath))
+                {
+                    await DownloadAsync();
+                    UnzipFile();
+                    RenameFile();
+                    DeleteFile();
+                }
             }
             catch (Exception ex)
             {
