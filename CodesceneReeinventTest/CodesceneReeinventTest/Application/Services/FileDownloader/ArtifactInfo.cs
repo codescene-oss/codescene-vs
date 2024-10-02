@@ -4,22 +4,35 @@ namespace CodesceneReeinventTest.Application.Services.FileDownloader
 {
     public class ArtifactInfo
     {
-        private readonly string _extensionPath;
-        const string REQUIRED_DEVTOOLS_VERSION = "7788d46b2a8c65062d79f790444e52b0dd12cfb8";
-        const string Platform = "win32";
-        const string Arch = "x64";
-        string ArtifactName = "codescene-cli-ide-windows-amd64-" + REQUIRED_DEVTOOLS_VERSION + ".zip";
-        public ArtifactInfo(string extensionPath)
+        public readonly string ExtensionPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+        private const string RequiredDevToolsVersion = "7788d46b2a8c65062d79f790444e52b0dd12cfb8";
+        private const string Platform = "win32";
+        private const string Arch = "x64";
+
+        private string BinaryName => $"cs-{Platform}-{Arch}.exe";
+        public string ArtifactName => $"codescene-cli-ide-windows-amd64-{RequiredDevToolsVersion}.zip";
+
+        public string AbsoluteDownloadPath
         {
-            _extensionPath = extensionPath;
+            get
+            {
+                return Path.Combine(ExtensionPath, ArtifactName);
+            }
         }
-        public string getAbsoluteDownloadPath()
+        public string AbsoluteBinaryPath
         {
-            return Path.Combine(_extensionPath, ArtifactName);
+            get
+            {
+                return Path.Combine(ExtensionPath, BinaryName);
+            }
         }
-        public string getAbsoluteBinaryPath()
+        public string ExecFromZipPath
         {
-            return Path.Combine(_extensionPath);
+            get
+            {
+                return Path.Combine(ExtensionPath, "cs.exe");
+            }
         }
     }
 }

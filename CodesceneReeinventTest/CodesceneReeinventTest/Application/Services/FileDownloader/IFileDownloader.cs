@@ -2,6 +2,6 @@
 {
     public interface IFileDownloader
     {
-        void Download();
+        Task HandleAsync();
     }
 }
