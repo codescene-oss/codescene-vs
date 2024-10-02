@@ -18,7 +18,7 @@ internal class ModelMapper : IModelMapper
         return list;
     }
 
-    private ReviewModel Map(string path, CodesceneReeinventTest.Application.Services.FileReviewer.ReviewResult.Review review)
+    private ReviewModel Map(string path, Review review)
     {
         return new ReviewModel
         {
