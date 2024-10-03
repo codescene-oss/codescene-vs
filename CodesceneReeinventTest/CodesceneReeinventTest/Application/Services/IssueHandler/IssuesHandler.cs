@@ -55,9 +55,8 @@ internal class IssuesHandler : IIssuesHandler
         };
         errorTask.Navigate += (sender, e) =>
        {
-           Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
-           IVsWindowFrame windowFrame;
-           VsShellUtilities.OpenDocument(_package, issue.Path, Guid.Empty, out _, out _, out windowFrame);
+           ThreadHelper.ThrowIfNotOnUIThread();
+           VsShellUtilities.OpenDocument(_package, issue.Path, Guid.Empty, out _, out _, out IVsWindowFrame windowFrame);
            windowFrame?.Show();
        };
         _errorListProvider.Tasks.Add(errorTask);

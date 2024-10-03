@@ -1,7 +1,6 @@
-﻿namespace CodesceneReeinventTest.Application.Services.FileDownloader
+﻿namespace CodesceneReeinventTest.Application.Services.FileDownloader;
+
+public interface IFileDownloader
 {
-    public interface IFileDownloader
-    {
-        Task HandleAsync();
-    }
+    Task HandleAsync();
 }
