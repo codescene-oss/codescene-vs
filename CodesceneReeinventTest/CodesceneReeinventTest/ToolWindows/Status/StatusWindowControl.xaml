@@ -101,6 +101,10 @@
             <Button Margin="5" Content="Open Bumpy Road File" Width="150" Height="30"
                 HorizontalAlignment="Left" VerticalAlignment="Top"
                 Click="OpenMarkdownButton_Click"/>
+
+            <Button Margin="5" Content="Handle EXE File" Width="150" Height="30"
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                Click="OpenFileDownloadButton_Click"/>      
         </StackPanel>
     </Grid>
 </UserControl>

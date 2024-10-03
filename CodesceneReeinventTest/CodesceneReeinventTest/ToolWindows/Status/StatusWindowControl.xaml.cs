@@ -1,5 +1,6 @@
 ﻿using CodesceneReeinventTest.Application.Handlers;
 using CodesceneReeinventTest.Application.Services.Authentication;
+using CodesceneReeinventTest.Application.Services.FileDownloader;
 using CodesceneReeinventTest.ToolWindows.Markdown;
 using CodesceneReeinventTest.ToolWindows.Status;
 using System.Diagnostics;
@@ -12,12 +13,14 @@ namespace CodesceneReeinventTest
     {
         private readonly IAuthenticationService _authenticationService;
         private readonly IMDFileHandler _mDFileHandler;
+        private readonly IFileDownloader _fileDownloader;
         public StatusWindowModel ViewModel { get; set; }
 
         public StatusWindowControl()
         {
             _authenticationService = CodesceneReeinventTestPackage.GetService<IAuthenticationService>();
             _mDFileHandler = CodesceneReeinventTestPackage.GetService<IMDFileHandler>();
+            _fileDownloader = CodesceneReeinventTestPackage.GetService<IFileDownloader>();
 
             //fire event on settings change
             General.Saved += OnSettingsSaved;
@@ -31,6 +34,7 @@ namespace CodesceneReeinventTest
                 IsLoggedIn = _authenticationService.IsLoggedIn()
             };
             DataContext = ViewModel;
+
         }
 
         private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
@@ -49,6 +53,11 @@ namespace CodesceneReeinventTest
         {
             _mDFileHandler.SetFileName("bumpy-road-ahead");
             await MarkdownWindow.ShowAsync();
+        }
+
+        private async void OpenFileDownloadButton_Click(object sender, RoutedEventArgs e)
+        {
+            await _fileDownloader.HandleAsync();
         }
     }
 }
