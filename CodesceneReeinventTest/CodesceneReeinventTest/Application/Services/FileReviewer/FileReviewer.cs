@@ -2,9 +2,12 @@
 
 using CodesceneReeinventTest.Application.Services.FileReviewer.ReviewResult;
 using Newtonsoft.Json;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 
+[Export(typeof(IFileReviewer))] // MEF export attribute
+[PartCreationPolicy(CreationPolicy.Shared)] // Ensures a single instance
 internal class FileReviewer : IFileReviewer
 {
     const string EXECUTABLE_FILE = "cs-win32-x64.exe";
@@ -15,7 +18,7 @@ internal class FileReviewer : IFileReviewer
             throw new FileNotFoundException($"File not found!\n{path}");
         }
 
-        var executionPath = "c:\\"; //Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        var executionPath = "C:\\"; //Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         var exePath = $"{executionPath}\\{EXECUTABLE_FILE}";
         if (!File.Exists(exePath))
         {

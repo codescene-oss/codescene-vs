@@ -1,7 +1,4 @@
-﻿using CodesceneReeinventTest.Application.Handlers;
-using Community.VisualStudio.Toolkit.DependencyInjection.Core;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.Imaging;
+﻿using Microsoft.VisualStudio.Imaging;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +8,7 @@ namespace CodesceneReeinventTest.ToolWindows.Markdown
 {
     public class MarkdownWindow : BaseToolWindow<MarkdownWindow>
     {
+        public static string FileName { get; set; }
         public override string GetTitle(int toolWindowId) => "CodeScene: Markdown";
         public override Type PaneType => typeof(Pane);
         public override Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken) => Task.FromResult<FrameworkElement>(new MarkdownWindowControl());

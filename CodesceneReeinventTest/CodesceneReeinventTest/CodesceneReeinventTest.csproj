@@ -48,6 +48,9 @@
     <Compile Include="Application\Handlers\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Handlers\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Application\Helpers\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Application\Services\CodeLens\CodeLensConnection.cs" />
+    <Compile Include="Application\Services\CodeLens\CodeLensPackage.cs" />
+    <Compile Include="Application\Services\CodeLens\CodeLevelMetricsCallbackService.cs" />
     <Compile Include="Application\Services\FileDownloader\ArtifactInfo.cs" />
     <Compile Include="Application\Services\FileDownloader\FileDownloader.cs" />
     <Compile Include="Application\Services\FileDownloader\IFileDownloader.cs" />
@@ -234,7 +237,16 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\CodeLensProvider\CodeLensProvider.csproj">
+      <Project>{f9f38cfc-6b77-4e6d-8511-9f201135af97}</Project>
+      <Name>CodeLensProvider</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CodeLensShared\CodeLensShared.csproj">
+      <Project>{d59642e5-a52c-4ffc-8228-21e7f3554dfe}</Project>
+      <Name>CodeLensShared</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
