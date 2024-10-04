@@ -2,95 +2,87 @@
 using System.IO.Compression;
 using System.Net.Http;
 
-namespace CodesceneReeinventTest.Application.Services.FileDownloader
+namespace CodesceneReeinventTest.Application.Services.FileDownloader;
+
+public class FileDownloader : IFileDownloader
 {
-    public class FileDownloader : IFileDownloader
+    public async Task HandleAsync()
     {
-        private ArtifactInfo _artifactInfo;
-        public FileDownloader()
+        try
         {
-            _artifactInfo = new ArtifactInfo();
-        }
-        public async Task HandleAsync()
-        {
-            try
+            if (!File.Exists(ArtifactInfo.AbsoluteBinaryPath))
             {
                 await DownloadAsync();
                 UnzipFile();
                 RenameFile();
                 DeleteFile();
             }
-            catch (Exception ex)
-            {
-                throw new Exception("Error while handling extension file:" + ex);
-            }
         }
-        private async Task DownloadAsync()
+        catch (Exception ex)
         {
-            var url = $"https://downloads.codescene.io/enterprise/cli/{_artifactInfo.ArtifactName}";
-            using (HttpClient client = new HttpClient())
-            {
-                try
-                {
-                    byte[] fileBytes = await client.GetByteArrayAsync(url);
-
-                    string directoryPath = Path.GetDirectoryName(_artifactInfo.ExtensionPath);
-                    if (!Directory.Exists(directoryPath))
-                    {
-                        Directory.CreateDirectory(directoryPath);
-                    }
-                    File.WriteAllBytes(_artifactInfo.AbsoluteDownloadPath, fileBytes);
-
-                    Console.WriteLine($"File downloaded to {_artifactInfo.ExtensionPath}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error downloading file: {ex.Message}");
-                }
-            }
-
+            throw new Exception("Error while handling extension file:" + ex);
         }
-
-        private void UnzipFile()
+    }
+    private async Task DownloadAsync()
+    {
+        using var client = new HttpClient();
+        try
         {
-            if (File.Exists(_artifactInfo.AbsoluteDownloadPath))
+            var fileBytes = await client.GetByteArrayAsync(ArtifactInfo.ArtifactURL);
+
+            var directoryPath = Path.GetDirectoryName(ArtifactInfo.ExtensionPath);
+            if (!Directory.Exists(directoryPath))
             {
-                if (!Directory.Exists(_artifactInfo.ExtensionPath))
-                {
-                    Directory.CreateDirectory(_artifactInfo.ExtensionPath);
-                }
-                ZipFile.ExtractToDirectory(_artifactInfo.AbsoluteDownloadPath, _artifactInfo.ExtensionPath);
-                Console.WriteLine($"File extracted to {_artifactInfo.ExtensionPath}");
+                Directory.CreateDirectory(directoryPath);
             }
-            else
-            {
-                Console.WriteLine($"The file {_artifactInfo.AbsoluteDownloadPath} was not found.");
-            }
+            File.WriteAllBytes(ArtifactInfo.AbsoluteDownloadPath, fileBytes);
+
+            Console.WriteLine($"File downloaded to {ArtifactInfo.ExtensionPath}");
         }
-        private void RenameFile()
+        catch (Exception ex)
         {
-            if (File.Exists(_artifactInfo.ExecFromZipPath))
-            {
-                if (!File.Exists(_artifactInfo.AbsoluteBinaryPath))
-                {
-                    File.Move(_artifactInfo.ExecFromZipPath, _artifactInfo.AbsoluteBinaryPath);
-                }
-            }
-            else
-            {
-                Console.WriteLine($"The file {_artifactInfo.ExecFromZipPath} was not found.");
-            }
+            Console.WriteLine($"Error downloading file: {ex.Message}");
         }
-        private void DeleteFile()
+    }
+
+    private void UnzipFile()
+    {
+        if (File.Exists(ArtifactInfo.AbsoluteDownloadPath))
         {
-            if (File.Exists(_artifactInfo.AbsoluteDownloadPath))
+            if (!Directory.Exists(ArtifactInfo.ExtensionPath))
             {
-                File.Delete(_artifactInfo.AbsoluteDownloadPath);
+                Directory.CreateDirectory(ArtifactInfo.ExtensionPath);
             }
-            else
-            {
-                Console.WriteLine($"The file at {_artifactInfo.AbsoluteDownloadPath} was not found.");
-            }
+            ZipFile.ExtractToDirectory(ArtifactInfo.AbsoluteDownloadPath, ArtifactInfo.ExtensionPath);
+            Console.WriteLine($"File extracted to {ArtifactInfo.ExtensionPath}");
+            return;
         }
+
+        Console.WriteLine($"The file {ArtifactInfo.AbsoluteDownloadPath} was not found.");
+    }
+
+    private void RenameFile()
+    {
+        if (File.Exists(ArtifactInfo.ExecFromZipPath))
+        {
+            if (!File.Exists(ArtifactInfo.AbsoluteBinaryPath))
+            {
+                File.Move(ArtifactInfo.ExecFromZipPath, ArtifactInfo.AbsoluteBinaryPath);
+            }
+            return;
+        }
+
+        Console.WriteLine($"The file {ArtifactInfo.ExecFromZipPath} was not found.");
+    }
+
+    private void DeleteFile()
+    {
+        if (File.Exists(ArtifactInfo.AbsoluteDownloadPath))
+        {
+            File.Delete(ArtifactInfo.AbsoluteDownloadPath);
+            return;
+        }
+
+        Console.WriteLine($"The file at {ArtifactInfo.AbsoluteDownloadPath} was not found.");
     }
 }

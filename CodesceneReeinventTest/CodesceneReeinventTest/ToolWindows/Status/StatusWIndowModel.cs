@@ -1,57 +1,56 @@
 ﻿using System.ComponentModel;
 
-namespace CodesceneReeinventTest.ToolWindows.Status
+namespace CodesceneReeinventTest.ToolWindows.Status;
+
+public class StatusWindowModel : INotifyPropertyChanged
 {
-    public class StatusWindowModel : INotifyPropertyChanged
+    private bool _codeHealthActivated;
+    private bool _aceActive;
+    private bool _isLoggedIn;
+
+    public bool IsLoggedIn
     {
-        private bool _codeHealthActivated;
-        private bool _aceActive;
-        private bool _isLoggedIn;
-
-        public bool IsLoggedIn
+        get => _isLoggedIn;
+        set
         {
-            get => _isLoggedIn;
-            set
+            if (_isLoggedIn != value)
             {
-                if (_isLoggedIn != value)
-                {
-                    _isLoggedIn = value;
-                    OnPropertyChanged(nameof(IsLoggedIn));
-                }
+                _isLoggedIn = value;
+                OnPropertyChanged(nameof(IsLoggedIn));
             }
         }
+    }
 
-        public bool CodeHealthActivated
+    public bool CodeHealthActivated
+    {
+        get => _codeHealthActivated;
+        set
         {
-            get => _codeHealthActivated;
-            set
+            if (_codeHealthActivated != value)
             {
-                if (_codeHealthActivated != value)
-                {
-                    _codeHealthActivated = value;
-                    OnPropertyChanged(nameof(CodeHealthActivated));
-                }
+                _codeHealthActivated = value;
+                OnPropertyChanged(nameof(CodeHealthActivated));
             }
         }
+    }
 
-        public bool ACEActive
+    public bool ACEActive
+    {
+        get => _aceActive;
+        set
         {
-            get => _aceActive;
-            set
+            if (_aceActive != value)
             {
-                if (_aceActive != value)
-                {
-                    _aceActive = value;
-                    OnPropertyChanged(nameof(ACEActive));
-                }
+                _aceActive = value;
+                OnPropertyChanged(nameof(ACEActive));
             }
         }
+    }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler PropertyChanged;
 
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+    protected virtual void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
