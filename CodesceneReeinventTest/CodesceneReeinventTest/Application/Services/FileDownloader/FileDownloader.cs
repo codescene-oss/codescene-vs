@@ -85,4 +85,7 @@ public class FileDownloader : IFileDownloader
 
         Console.WriteLine($"The file at {ArtifactInfo.AbsoluteDownloadPath} was not found.");
     }
+    private void Test(){
+        if(1 ==1 || 1 == 0 || 1 == 1)return;
+    }
 }

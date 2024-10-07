@@ -10,6 +10,8 @@ using CodesceneReeinventTest.Application.Services.FileReviewer;
 using CodesceneReeinventTest.ToolWindows.Markdown;
 using Community.VisualStudio.Toolkit.DependencyInjection.Microsoft;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.ComponentModelHost;
+using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -44,6 +46,8 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
         await base.InitializeAsync(cancellationToken, progress);
+        var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel));
+        componentModel.DefaultCompositionService.SatisfyImportsOnce(this);
         this.RegisterToolWindows();
     }
     void RegisterServices(IServiceCollection services)

@@ -1,4 +1,6 @@
 ﻿using CodesceneReeinventTest.Application.Handlers;
+using Microsoft.VisualStudio.ComponentModelHost;
+using System.ComponentModel.Composition;
 using System.Drawing;
 using System.Windows.Controls;
 
@@ -7,15 +9,34 @@ namespace CodesceneReeinventTest.ToolWindows.Markdown
 {
     public partial class MarkdownWindowControl : UserControl
     {
-        private readonly IMDFileHandler _mdFileHandler;
-        public MarkdownWindowControl()
+        [Import(typeof(IMDFileHandler))]
+        private IMDFileHandler _mdFileHandler;
+
+        private string _fileName;
+        public MarkdownWindowControl(string fileName)
         {
+            //ovdje da se proslijedi naziv file-a
             this.InitializeComponent();
-            _mdFileHandler = CodesceneReeinventTestPackage.GetService<IMDFileHandler>();
-            string htmlContent = _mdFileHandler.GetContent("Resources", null);
+            _fileName = fileName;
+            SatisfyImports();
+            InitializeFileHandler();
+        }
+        private void SatisfyImports()
+        {
+            var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
+            componentModel?.DefaultCompositionService.SatisfyImportsOnce(this);
+        }
+        public void InitializeFileHandler()
+        {
+            if (_fileName != "")
+            {
+                _mdFileHandler.SetFileName(_fileName);
+            }
+            string htmlContent = _mdFileHandler.GetContent("Resources", "docs");
 
             SetWebBrowserContent(htmlContent);
         }
+
         private void SetWebBrowserContent(string htmlContent)
         {
             // Get Visual Studio theme colors

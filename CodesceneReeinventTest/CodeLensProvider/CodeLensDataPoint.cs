@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Threading;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,7 +51,13 @@ namespace CodeLensProvider
         )
         {
             //open markdown here
-            return Task.FromResult<CodeLensDetailsDescriptor>(null);
+            var result = new CodeLensDetailsDescriptor()
+            {
+                CustomData = new List<CustomDetailsData>{
+                    new CustomDetailsData { FileName = "general-code-health", Title = "General Code Health"}
+                }
+            };
+            return Task.FromResult(result);
         }
 
         public CodeLensDescriptor Descriptor { get; }
