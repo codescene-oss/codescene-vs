@@ -3,7 +3,6 @@ using CodesceneReeinventTest.Application.Services.Authentication;
 using CodesceneReeinventTest.Application.Services.FileDownloader;
 using CodesceneReeinventTest.ToolWindows.Markdown;
 using CodesceneReeinventTest.ToolWindows.Status;
-using Community.VisualStudio.Toolkit.DependencyInjection;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,7 +14,6 @@ namespace CodesceneReeinventTest
         private readonly IAuthenticationService _authenticationService;
         private readonly IMDFileHandler _mDFileHandler;
         private readonly IFileDownloader _fileDownloader;
-        private readonly DIToolkitPackage _toolkitPackage;
         public StatusWindowModel ViewModel { get; set; }
 
         public StatusWindowControl()
@@ -23,7 +21,6 @@ namespace CodesceneReeinventTest
             _authenticationService = CodesceneReeinventTestPackage.GetService<IAuthenticationService>();
             _mDFileHandler = CodesceneReeinventTestPackage.GetService<IMDFileHandler>();
             _fileDownloader = CodesceneReeinventTestPackage.GetService<IFileDownloader>();
-            _toolkitPackage = CodesceneReeinventTestPackage.GetService<DIToolkitPackage>();
 
             //fire event on settings change
             General.Saved += OnSettingsSaved;

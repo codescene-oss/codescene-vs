@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -45,7 +48,22 @@
     <Compile Include="ICodeLevelMetricsCallbackService.cs" />
     <Compile Include="IRemoteCodeLens.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReviewResult\Bumps.cs" />
+    <Compile Include="ReviewResult\BumpsBySeverity.cs" />
+    <Compile Include="ReviewResult\Congestion.cs" />
+    <Compile Include="ReviewResult\CsReview.cs" />
+    <Compile Include="ReviewResult\Details.cs" />
+    <Compile Include="ReviewResult\FnArgs.cs" />
+    <Compile Include="ReviewResult\Function.cs" />
+    <Compile Include="ReviewResult\Nested.cs" />
+    <Compile Include="ReviewResult\NestedComplexityOfInterest.cs" />
+    <Compile Include="ReviewResult\RawScore.cs" />
+    <Compile Include="ReviewResult\Review.cs" />
+    <Compile Include="ReviewResult\WorstBump.cs" />
     <Compile Include="RpcPipeNames.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

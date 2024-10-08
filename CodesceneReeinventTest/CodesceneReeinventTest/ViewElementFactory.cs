@@ -23,9 +23,17 @@ namespace CodesceneReeinventTest
 
             if (model is CustomDetailsData detailsData)
             {
-                var detailsUI = new GeneralCodeHealth();
+                if (detailsData.FileName == "general-code-health")
+                {
+                    var detailsUI = new GeneralCodeHealth();
+                    return detailsUI as TView;
+                }
+                else
+                {
+                    var detailsUI = new ComplexConditional();
+                    return detailsUI as TView;
+                }
                 //detailsUI.DataContext = detailsData;
-                return detailsUI as TView;
             }
 
             return null;

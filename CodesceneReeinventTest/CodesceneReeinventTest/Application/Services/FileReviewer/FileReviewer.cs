@@ -1,6 +1,6 @@
 ﻿namespace CodesceneReeinventTest.Application.Services.FileReviewer;
 
-using CodesceneReeinventTest.Application.Services.FileReviewer.ReviewResult;
+using CodeLensShared;
 using Newtonsoft.Json;
 using System.ComponentModel.Composition;
 using System.Diagnostics;

@@ -20,14 +20,14 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
            new ConcurrentDictionary<string, CodeLensConnection>();
     [Import(typeof(IFileReviewer))]
     private IFileReviewer _fileReviewer;
-    public async Task<string> GetFileCodeHealth()
+    public async Task<CsReview> GetFileReviewData()
     {
         DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
 
         var filePath = docView.FilePath;
 
         var review = _fileReviewer.Review(filePath);
-        return (review.Score == 0 ? "No application code detected for scoring" : review.Score.ToString() + "/10");
+        return review;
 
     }
 

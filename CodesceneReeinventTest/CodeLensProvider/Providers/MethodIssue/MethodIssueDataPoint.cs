@@ -4,44 +4,41 @@ using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CodeLensProvider
+namespace CodeLensProvider.Providers.MethodIssue
 {
-    public class CodeLensDataPoint : IAsyncCodeLensDataPoint
+    public class MethodIssueDataPoint : IAsyncCodeLensDataPoint
     {
         private readonly ICodeLensCallbackService _callbackService;
         public readonly string DataPointId = Guid.NewGuid().ToString();
 
-        public VisualStudioConnection VsConnection;
 
-        public CodeLensDataPoint(
-            CodeLensDescriptor descriptor,
-            ICodeLensCallbackService callbackService
+        public MethodIssueDataPoint(
+           CodeLensDescriptor descriptor,
+           ICodeLensCallbackService callbackService
         )
         {
             _callbackService = callbackService;
             Descriptor = descriptor;
         }
-
         public async Task<CodeLensDataPointDescriptor> GetDataAsync(
             CodeLensDescriptorContext descriptorContext,
             CancellationToken token
         )
         {
-            var fileCodeHealth = await _callbackService
-                .InvokeAsync<string>(
+            var fileReview = await _callbackService
+                .InvokeAsync<CsReview>(
                     this,
-                    nameof(ICodeLevelMetricsCallbackService.GetFileCodeHealth),
+                    nameof(ICodeLevelMetricsCallbackService.GetFileReviewData),
                     cancellationToken: token
                 )
                 .ConfigureAwait(false);
-
             return new CodeLensDataPointDescriptor
             {
-                Description = $"Code health score: {fileCodeHealth}!",
-                TooltipText = $"Code health score: {fileCodeHealth}",
+                Description = $"{fileReview.Review.FirstOrDefault().Category}",
             };
         }
 
@@ -50,11 +47,10 @@ namespace CodeLensProvider
             CancellationToken token
         )
         {
-            //open markdown here
             var result = new CodeLensDetailsDescriptor()
             {
                 CustomData = new List<CustomDetailsData>{
-                    new CustomDetailsData { FileName = "general-code-health", Title = "General Code Health"}
+                    new CustomDetailsData { FileName = "complex-conditional", Title = "Complex Conditional"}
                 }
             };
             return Task.FromResult(result);

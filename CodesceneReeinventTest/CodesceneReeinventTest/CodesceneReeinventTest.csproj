@@ -45,6 +45,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Application\Controls\ComplexConditional.xaml.cs">
+      <DependentUpon>ComplexConditional.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Application\Controls\GeneralCodeHealth.xaml.cs">
       <DependentUpon>GeneralCodeHealth.xaml</DependentUpon>
     </Compile>
@@ -64,18 +67,6 @@
     <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Application\Services\FileReviewer\FileReviewer.cs" />
     <Compile Include="Application\Services\FileReviewer\IFileReviewer.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Bumps.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\BumpsBySeverity.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Congestion.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\CsReview.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Details.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\FnArgs.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Function.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Nested.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\NestedComplexityOfInterest.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\RawScore.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Review.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\WorstBump.cs" />
     <Compile Include="Commands\OpenErrorListWindowCommand.cs" />
     <Compile Include="Commands\OpenProblemsWindowCommand.cs" />
     <Compile Include="Application\Services\IssueHandler\IIssuesHandler.cs" />
@@ -227,6 +218,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Application\Controls\ComplexConditional.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Application\Controls\GeneralCodeHealth.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

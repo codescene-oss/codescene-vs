@@ -1,4 +1,4 @@
-﻿using CodesceneReeinventTest.Application.Services.FileReviewer.ReviewResult;
+﻿using CodeLensShared;
 
 namespace CodesceneReeinventTest.Application.Services.FileReviewer;
 
