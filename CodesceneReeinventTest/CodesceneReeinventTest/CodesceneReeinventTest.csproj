@@ -48,6 +48,9 @@
     <Compile Include="Application\Controls\ComplexConditional.xaml.cs">
       <DependentUpon>ComplexConditional.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Application\Controls\ExcessNumberOfFunctionArguments.xaml.cs">
+      <DependentUpon>ExcessNumberOfFunctionArguments.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Application\Controls\GeneralCodeHealth.xaml.cs">
       <DependentUpon>GeneralCodeHealth.xaml</DependentUpon>
     </Compile>
@@ -222,6 +225,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Application\Controls\ExcessNumberOfFunctionArguments.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Application\Controls\GeneralCodeHealth.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -243,6 +250,7 @@
     <ProjectReference Include="..\CodeLensProvider\CodeLensProvider.csproj">
       <Project>{f9f38cfc-6b77-4e6d-8511-9f201135af97}</Project>
       <Name>CodeLensProvider</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\CodeLensShared\CodeLensShared.csproj">
       <Project>{d59642e5-a52c-4ffc-8228-21e7f3554dfe}</Project>

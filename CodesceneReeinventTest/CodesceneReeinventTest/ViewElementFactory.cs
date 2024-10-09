@@ -28,9 +28,14 @@ namespace CodesceneReeinventTest
                     var detailsUI = new GeneralCodeHealth();
                     return detailsUI as TView;
                 }
-                else
+                else if (detailsData.FileName == "complex-conditional")
                 {
                     var detailsUI = new ComplexConditional();
+                    return detailsUI as TView;
+                }
+                else
+                {
+                    var detailsUI = new ExcessNumberOfFunctionArguments();
                     return detailsUI as TView;
                 }
                 //detailsUI.DataContext = detailsData;

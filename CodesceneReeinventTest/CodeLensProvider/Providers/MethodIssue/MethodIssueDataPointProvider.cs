@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Language.CodeLens;
+﻿using CodeLensShared;
+using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Utilities;
@@ -28,10 +29,28 @@ namespace CodeLensProvider.Providers.MethodIssue
             CancellationToken token
         )
         {
+            var fileReview = await _callbackService.Value
+               .InvokeAsync<bool>(
+                   this,
+                   nameof(ICodeLevelMetricsCallbackService.HasComplexConditionalIssue),
+                   new object[]
+                   {
+                       descriptor.ProjectGuid,
+                       descriptor.ElementDescription,
+                       descriptor.FilePath,
+                       descriptorContext.ApplicableSpan.Value.Start,
+                       descriptorContext.ApplicableSpan.Value.End,
+                       descriptorContext.Properties.Values
+                   },
+                   cancellationToken: token
+               )
+               .ConfigureAwait(false);
             var methodsOnly = descriptor.Kind == CodeElementKinds.Method;
-            if (!methodsOnly) return false;
 
-            return true;
+            return (methodsOnly
+                && fileReview
+ && await _callbackService.Value.InvokeAsync<bool>(this, nameof(ICodeLevelMetricsCallbackService.IsCodeSceneLensesEnabled))
+                );
         }
         public async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(
             CodeLensDescriptor descriptor,
@@ -40,7 +59,31 @@ namespace CodeLensProvider.Providers.MethodIssue
         )
         {
             var dataPoint = new MethodIssueDataPoint(descriptor, _callbackService.Value);
+
+            var vsPid = await _callbackService
+               .Value.InvokeAsync<int>(
+                   this,
+                   nameof(ICodeLevelMetricsCallbackService.GetVisualStudioPid),
+                   cancellationToken: token
+               )
+               .ConfigureAwait(false);
+
+            _ = _callbackService
+                .Value.InvokeAsync(
+                    this,
+                    nameof(ICodeLevelMetricsCallbackService.InitializeRpcAsync),
+                    new[] { dataPoint.DataPointId },
+                    token
+                )
+                .ConfigureAwait(false);
+
+            var connection = new VisualStudioConnection(dataPoint, vsPid);
+            await connection.ConnectAsync(token);
+            dataPoint.VsConnection = connection;
+
+
             return dataPoint;
         }
+
     }
 }

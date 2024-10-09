@@ -14,7 +14,7 @@ namespace CodeLensProvider.Providers.MethodIssue
     {
         private readonly ICodeLensCallbackService _callbackService;
         public readonly string DataPointId = Guid.NewGuid().ToString();
-
+        public VisualStudioConnection VsConnection;
 
         public MethodIssueDataPoint(
            CodeLensDescriptor descriptor,
@@ -38,7 +38,7 @@ namespace CodeLensProvider.Providers.MethodIssue
                 .ConfigureAwait(false);
             return new CodeLensDataPointDescriptor
             {
-                Description = $"{fileReview.Review.FirstOrDefault().Category}",
+                Description = $"{fileReview.Review.FirstOrDefault().Category}"
             };
         }
 
@@ -50,7 +50,7 @@ namespace CodeLensProvider.Providers.MethodIssue
             var result = new CodeLensDetailsDescriptor()
             {
                 CustomData = new List<CustomDetailsData>{
-                    new CustomDetailsData { FileName = "complex-conditional", Title = "Complex Conditional"}
+                    new CustomDetailsData { FileName = "excess-number-of-function-arguments", Title = "Excess Number od Function Arguments"}
                 }
             };
             return Task.FromResult(result);
@@ -61,5 +61,6 @@ namespace CodeLensProvider.Providers.MethodIssue
 
         public void Refresh() =>
             _ = InvalidatedAsync?.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
+
     }
 }

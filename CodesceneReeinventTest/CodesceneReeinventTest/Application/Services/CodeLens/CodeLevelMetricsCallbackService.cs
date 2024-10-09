@@ -30,7 +30,27 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
         return review;
 
     }
+    public async Task<bool> HasComplexConditionalIssue(Guid projectGuid, string elementDescription, string FilePath, int start, int end, dynamic obj)
+    {
+        DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
 
+        var filePath = docView.FilePath;
+
+        var review = _fileReviewer.Review(filePath);
+
+        var listOfFunctions = review.Review.Where(x => x.Category == "Excess Number of Function Arguments").FirstOrDefault().Functions;
+        var line = (int)obj[3] + 1;
+
+        if (listOfFunctions.Any(x => x.Startline == line)) return true;
+
+        return false;
+
+    }
+    public async Task<bool> IsCodeSceneLensesEnabled()
+    {
+        var opts = await General.GetLiveInstanceAsync();
+        return opts.EnableCodeLenses;
+    }
     public int GetVisualStudioPid()
     {
         return Process.GetCurrentProcess().Id;

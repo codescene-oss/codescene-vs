@@ -24,14 +24,14 @@ namespace CodeLensProvider
             _callbackService = callbackService;
         }
 
-        public Task<bool> CanCreateDataPointAsync(
+        public async Task<bool> CanCreateDataPointAsync(
             CodeLensDescriptor descriptor,
             CodeLensDescriptorContext descriptorContext,
             CancellationToken token
         )
         {
             var methodsOnly = descriptor.Kind == CodeElementKinds.Type;
-            return Task.FromResult(methodsOnly);
+            return (methodsOnly && await _callbackService.Value.InvokeAsync<bool>(this, nameof(ICodeLevelMetricsCallbackService.IsCodeSceneLensesEnabled)));
         }
 
         /// <summary>
