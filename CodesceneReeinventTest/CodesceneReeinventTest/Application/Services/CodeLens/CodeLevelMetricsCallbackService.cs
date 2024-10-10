@@ -19,8 +19,10 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
 {
     public static readonly ConcurrentDictionary<string, CodeLensConnection> Connections =
            new ConcurrentDictionary<string, CodeLensConnection>();
+    public static bool CodeSceneLensesEnabled;
     [Import(typeof(IFileReviewer))]
     private IFileReviewer _fileReviewer;
+
     public async Task<CsReview> GetFileReviewData()
     {
         DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
@@ -31,7 +33,7 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
         return review;
 
     }
-    public bool ShowCodeLensForIssue(string issue, string filePath, int startLine)
+    public bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj)
     {
         var review = _fileReviewer.Review(filePath);
 
@@ -44,10 +46,9 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
         return true;
 
     }
-    public async Task<bool> IsCodeSceneLensesEnabled()
+    public bool IsCodeSceneLensesEnabled()
     {
-        var opts = await General.GetLiveInstanceAsync();
-        return opts.EnableCodeLenses;
+        return General.Instance.EnableCodeLenses;
     }
     public int GetVisualStudioPid()
     {

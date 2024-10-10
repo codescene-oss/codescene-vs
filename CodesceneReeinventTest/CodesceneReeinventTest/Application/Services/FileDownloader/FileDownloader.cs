@@ -86,6 +86,8 @@ public class FileDownloader : IFileDownloader
         Console.WriteLine($"The file at {ArtifactInfo.AbsoluteDownloadPath} was not found.");
     }
     private void Test3(string v, string c, string d, string e, string f){
-
+        if(1 == 2 || 2 == 2 || 3 == 2) {
+            
+        }
     }
 }

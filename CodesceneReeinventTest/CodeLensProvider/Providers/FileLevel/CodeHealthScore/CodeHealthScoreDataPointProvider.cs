@@ -14,12 +14,12 @@ namespace CodeLensProvider
     [Name("CodeLensDataPointProvider")]
     [ContentType("csharp")]
     [Priority(200)]
-    internal class CodeLensDataPointProvider : IAsyncCodeLensDataPointProvider
+    internal class CodeHealthScoreDataPointProvider : IAsyncCodeLensDataPointProvider
     {
         private readonly Lazy<ICodeLensCallbackService> _callbackService;
 
         [ImportingConstructor]
-        public CodeLensDataPointProvider(Lazy<ICodeLensCallbackService> callbackService)
+        public CodeHealthScoreDataPointProvider(Lazy<ICodeLensCallbackService> callbackService)
         {
             _callbackService = callbackService;
         }
@@ -43,7 +43,7 @@ namespace CodeLensProvider
             CancellationToken token
         )
         {
-            var dataPoint = new CodeLensDataPoint(descriptor, _callbackService.Value);
+            var dataPoint = new CodeHealthScoreDataPoint(descriptor, _callbackService.Value);
 
             var vsPid = await _callbackService
                 .Value.InvokeAsync<int>(

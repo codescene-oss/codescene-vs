@@ -7,20 +7,17 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CodeLensProvider.Providers.MethodIssue
+namespace CodeLensProvider.Providers.FunctionLevel
 {
-    public class MethodIssueDataPoint : IAsyncCodeLensDataPoint
+    public class ExcessNumberOfFunctionArgumentsDataPoint : IAsyncCodeLensDataPoint
     {
-        private readonly ICodeLensCallbackService _callbackService;
         public readonly string DataPointId = Guid.NewGuid().ToString();
         public VisualStudioConnection VsConnection;
 
-        public MethodIssueDataPoint(
-           CodeLensDescriptor descriptor,
-           ICodeLensCallbackService callbackService
+        public ExcessNumberOfFunctionArgumentsDataPoint(
+           CodeLensDescriptor descriptor
         )
         {
-            _callbackService = callbackService;
             Descriptor = descriptor;
         }
         public async Task<CodeLensDataPointDescriptor> GetDataAsync(

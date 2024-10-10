@@ -8,18 +8,18 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CodeLensProvider.Providers.MethodIssue
+namespace CodeLensProvider.Providers.FunctionLevel
 {
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
-    [Name("MethodIssueDataPointProvider")]
+    [Name("ExcessNumberOfFunctionArgumentsDataPointProvider")]
     [ContentType("csharp")]
     [Priority(100)]
-    internal class MethodIssueDataPointProvider : IAsyncCodeLensDataPointProvider
+    internal class ExcessNumberOfFunctionArgumentsDataPointProvider : IAsyncCodeLensDataPointProvider
     {
         private readonly Lazy<ICodeLensCallbackService> _callbackService;
 
         [ImportingConstructor]
-        public MethodIssueDataPointProvider(Lazy<ICodeLensCallbackService> callbackService)
+        public ExcessNumberOfFunctionArgumentsDataPointProvider(Lazy<ICodeLensCallbackService> callbackService)
         {
             _callbackService = callbackService;
         }
@@ -48,7 +48,8 @@ namespace CodeLensProvider.Providers.MethodIssue
                    {
                        "Excess Number of Function Arguments",
                        descriptor.FilePath,
-                       (int)startLineObject + 1
+                       (int)startLineObject + 1,
+                       descriptorContext.Properties
                    },
                    cancellationToken: token
                )
@@ -62,7 +63,7 @@ namespace CodeLensProvider.Providers.MethodIssue
             CancellationToken token
         )
         {
-            var dataPoint = new MethodIssueDataPoint(descriptor, _callbackService.Value);
+            var dataPoint = new ExcessNumberOfFunctionArgumentsDataPoint(descriptor);
 
             var vsPid = await _callbackService
                .Value.InvokeAsync<int>(
@@ -84,7 +85,6 @@ namespace CodeLensProvider.Providers.MethodIssue
             var connection = new VisualStudioConnection(dataPoint, vsPid);
             await connection.ConnectAsync(token);
             dataPoint.VsConnection = connection;
-
 
             return dataPoint;
         }

@@ -4,15 +4,15 @@ using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CodeLensProvider
+namespace CodeLensProvider.Providers.ExpressionLevel
 {
     public class VisualStudioConnection : IRemoteCodeLens
     {
         private readonly NamedPipeClientStream _stream;
-        private readonly CodeHealthScoreDataPoint _owner;
+        private readonly ComplexConditionalDataPoint _owner;
         public JsonRpc Rpc;
 
-        public VisualStudioConnection(CodeHealthScoreDataPoint owner, int vsPid)
+        public VisualStudioConnection(ComplexConditionalDataPoint owner, int vsPid)
         {
             _owner = owner;
             _stream = new NamedPipeClientStream(
@@ -31,7 +31,7 @@ namespace CodeLensProvider
 
         public void Refresh()
         {
-            _owner.Refresh();   
+            _owner.Refresh();
         }
     }
 }

@@ -5,9 +5,9 @@ namespace CodeLensShared
     public interface ICodeLevelMetricsCallbackService
     {
         Task<CsReview> GetFileReviewData();
-        bool ShowCodeLensForIssue(string issue, string filePath, int startLine);
+        bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj);
         int GetVisualStudioPid();
         Task InitializeRpcAsync(string dataPointId);
-        Task<bool> IsCodeSceneLensesEnabled();
+        bool IsCodeSceneLensesEnabled();
     }
 }

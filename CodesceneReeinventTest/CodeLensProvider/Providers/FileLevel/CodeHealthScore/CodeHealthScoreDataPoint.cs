@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace CodeLensProvider
 {
-    public class CodeLensDataPoint : IAsyncCodeLensDataPoint
+    public class CodeHealthScoreDataPoint : IAsyncCodeLensDataPoint
     {
         private readonly ICodeLensCallbackService _callbackService;
         public readonly string DataPointId = Guid.NewGuid().ToString();
 
         public VisualStudioConnection VsConnection;
 
-        public CodeLensDataPoint(
+        public CodeHealthScoreDataPoint(
             CodeLensDescriptor descriptor,
             ICodeLensCallbackService callbackService
         )
