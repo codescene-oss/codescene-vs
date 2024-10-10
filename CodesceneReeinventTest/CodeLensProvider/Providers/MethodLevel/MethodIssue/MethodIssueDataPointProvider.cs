@@ -29,28 +29,32 @@ namespace CodeLensProvider.Providers.MethodIssue
             CancellationToken token
         )
         {
-            var fileReview = await _callbackService.Value
+            var methodsOnly = descriptor.Kind == CodeElementKinds.Method;
+            if (!methodsOnly) return false;
+
+            var codeSceneLensesEnabled = await _callbackService.Value
+                .InvokeAsync<bool>(
+                this,
+                nameof(ICodeLevelMetricsCallbackService.IsCodeSceneLensesEnabled));
+            if (!codeSceneLensesEnabled) return false;
+
+            descriptorContext.Properties.TryGetValue("StartLine", out dynamic startLineObject);
+
+            var showCodeLens = await _callbackService.Value
                .InvokeAsync<bool>(
                    this,
-                   nameof(ICodeLevelMetricsCallbackService.HasComplexConditionalIssue),
+                   nameof(ICodeLevelMetricsCallbackService.ShowCodeLensForIssue),
                    new object[]
                    {
-                       descriptor.ProjectGuid,
-                       descriptor.ElementDescription,
+                       "Excess Number of Function Arguments",
                        descriptor.FilePath,
-                       descriptorContext.ApplicableSpan.Value.Start,
-                       descriptorContext.ApplicableSpan.Value.End,
-                       descriptorContext.Properties.Values
+                       (int)startLineObject + 1
                    },
                    cancellationToken: token
                )
                .ConfigureAwait(false);
-            var methodsOnly = descriptor.Kind == CodeElementKinds.Method;
 
-            return (methodsOnly
-                && fileReview
- && await _callbackService.Value.InvokeAsync<bool>(this, nameof(ICodeLevelMetricsCallbackService.IsCodeSceneLensesEnabled))
-                );
+            return (showCodeLens);
         }
         public async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(
             CodeLensDescriptor descriptor,

@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,16 +28,9 @@ namespace CodeLensProvider.Providers.MethodIssue
             CancellationToken token
         )
         {
-            var fileReview = await _callbackService
-                .InvokeAsync<CsReview>(
-                    this,
-                    nameof(ICodeLevelMetricsCallbackService.GetFileReviewData),
-                    cancellationToken: token
-                )
-                .ConfigureAwait(false);
             return new CodeLensDataPointDescriptor
             {
-                Description = $"{fileReview.Review.FirstOrDefault().Category}"
+                Description = $"Excess Number od Function Arguments"
             };
         }
 
@@ -50,7 +42,11 @@ namespace CodeLensProvider.Providers.MethodIssue
             var result = new CodeLensDetailsDescriptor()
             {
                 CustomData = new List<CustomDetailsData>{
-                    new CustomDetailsData { FileName = "excess-number-of-function-arguments", Title = "Excess Number od Function Arguments"}
+                    new CustomDetailsData
+                    {
+                        FileName = "excess-number-of-function-arguments",
+                        Title = "Excess Number od Function Arguments"
+                    }
                 }
             };
             return Task.FromResult(result);

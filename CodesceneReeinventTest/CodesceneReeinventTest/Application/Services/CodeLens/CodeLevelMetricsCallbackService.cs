@@ -1,5 +1,6 @@
 ﻿using CodeLensShared;
 using CodesceneReeinventTest.Application.Services.FileReviewer;
+using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Utilities;
 using System.Collections.Concurrent;
@@ -30,20 +31,17 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
         return review;
 
     }
-    public async Task<bool> HasComplexConditionalIssue(Guid projectGuid, string elementDescription, string FilePath, int start, int end, dynamic obj)
+    public bool ShowCodeLensForIssue(string issue, string filePath, int startLine)
     {
-        DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
-
-        var filePath = docView.FilePath;
-
         var review = _fileReviewer.Review(filePath);
 
-        var listOfFunctions = review.Review.Where(x => x.Category == "Excess Number of Function Arguments").FirstOrDefault().Functions;
-        var line = (int)obj[3] + 1;
+        if (!review.Review.Any(x => x.Category == issue)) return false;
 
-        if (listOfFunctions.Any(x => x.Startline == line)) return true;
+        var listOfFunctions = review.Review.Where(x => x.Category == issue).FirstOrDefault().Functions;
 
-        return false;
+        if (!listOfFunctions.Any(x => x.Startline == startLine)) return false;
+
+        return true;
 
     }
     public async Task<bool> IsCodeSceneLensesEnabled()
