@@ -1,7 +1,5 @@
 ﻿using CodeLensShared;
 using CodesceneReeinventTest.Application.Services.FileReviewer;
-using EnvDTE;
-using EnvDTE80;
 using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Utilities;
@@ -23,33 +21,32 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
     [Import(typeof(IFileReviewer))]
     private readonly IFileReviewer _fileReviewer;
 
-    private readonly DTE2 _dte;
-    private readonly EnvDTE.DocumentEvents _documentEvents;
+    private readonly DocumentEvents _documentEvents;
 
     private static readonly Dictionary<string, CsReview> ActiveReviewList = [];
 
     public CodeLevelMetricsCallbackService()
     {
-        _dte = (DTE2)ServiceProvider.GlobalProvider.GetService(typeof(DTE));
         //listen to events
-        _documentEvents = _dte.Events.DocumentEvents;
-        _documentEvents.DocumentClosing += OnDocumentClosed;
-        _documentEvents.DocumentOpening += OnDocumentsOpened;
-        _documentEvents.DocumentSaved += OnDocumentsSaved;
+        _documentEvents = VS.Events.DocumentEvents;
+        _documentEvents.Closed += OnDocumentClosed;
+        _documentEvents.Opened += OnDocumentsOpened;
+        _documentEvents.Saved += OnDocumentsSaved;
     }
-    private void OnDocumentsSaved(Document document)
-    {
-        RemoveFromActiveReviewList(document.FullName);
 
-        AddToActiveReviewList(document.FullName);
-    }
-    private void OnDocumentsOpened(string documentPath, bool readOnly)
+    private void OnDocumentsSaved(string filePath)
     {
-        AddToActiveReviewList(documentPath);
+        RemoveFromActiveReviewList(filePath);
+
+        AddToActiveReviewList(filePath);
     }
-    private void OnDocumentClosed(Document document)
+    private void OnDocumentsOpened(string filePath)
     {
-        RemoveFromActiveReviewList(document.FullName);
+        AddToActiveReviewList(filePath);
+    }
+    private void OnDocumentClosed(string filePath)
+    {
+        RemoveFromActiveReviewList(filePath);
     }
     private void AddToActiveReviewList(string documentPath)
     {
@@ -60,7 +57,7 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
     {
         ActiveReviewList.Remove(documentPath);
     }
-    public float GetFileReviewScore(string filePath)
+    private CsReview GetReviewObject(string filePath)
     {
         ActiveReviewList.TryGetValue(filePath, out var review);
 
@@ -70,19 +67,18 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
             AddToActiveReviewList(filePath);
             ActiveReviewList.TryGetValue(filePath, out review);
         }
+        return review;
+    }
+    public float GetFileReviewScore(string filePath)
+    {
+        var review = GetReviewObject(filePath);
 
         return review.Score;
     }
     public bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj)
     {
-        ActiveReviewList.TryGetValue(filePath, out var review);
+        var review = GetReviewObject(filePath);
 
-        //for already opened files on IDE load
-        if (review == null)
-        {
-            AddToActiveReviewList(filePath);
-            ActiveReviewList.TryGetValue(filePath, out review);
-        }
         if (!review.Review.Any(x => x.Category == issue)) return false;
 
         var listOfFunctions = review.Review.Where(x => x.Category == issue).FirstOrDefault().Functions;
