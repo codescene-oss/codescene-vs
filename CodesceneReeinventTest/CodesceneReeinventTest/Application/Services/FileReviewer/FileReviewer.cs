@@ -38,6 +38,7 @@ internal class FileReviewer : IFileReviewer
         using Process process = Process.Start(processInfo);
         string result = process.StandardOutput.ReadToEnd();
         process.WaitForExit();
+
         return JsonConvert.DeserializeObject<CsReview>(result);
     }
 }

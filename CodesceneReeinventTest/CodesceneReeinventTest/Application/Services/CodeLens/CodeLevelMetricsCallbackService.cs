@@ -1,14 +1,15 @@
 ﻿using CodeLensShared;
 using CodesceneReeinventTest.Application.Services.FileReviewer;
+using EnvDTE;
+using EnvDTE80;
 using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Utilities;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO.Pipes;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace CodesceneReeinventTest.Application.Services.CodeLens;
 
@@ -17,26 +18,71 @@ namespace CodesceneReeinventTest.Application.Services.CodeLens;
 [ContentType("CSharp")]
 internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICodeLevelMetricsCallbackService
 {
-    public static readonly ConcurrentDictionary<string, CodeLensConnection> Connections =
-           new ConcurrentDictionary<string, CodeLensConnection>();
+    public static readonly ConcurrentDictionary<string, CodeLensConnection> Connections = new();
     public static bool CodeSceneLensesEnabled;
     [Import(typeof(IFileReviewer))]
-    private IFileReviewer _fileReviewer;
+    private readonly IFileReviewer _fileReviewer;
 
-    public async Task<CsReview> GetFileReviewData()
+    private readonly DTE2 _dte;
+    private readonly EnvDTE.DocumentEvents _documentEvents;
+
+    private static readonly Dictionary<string, CsReview> ActiveReviewList = [];
+
+    public CodeLevelMetricsCallbackService()
     {
-        DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
+        _dte = (DTE2)ServiceProvider.GlobalProvider.GetService(typeof(DTE));
+        //listen to events
+        _documentEvents = _dte.Events.DocumentEvents;
+        _documentEvents.DocumentClosing += OnDocumentClosed;
+        _documentEvents.DocumentOpening += OnDocumentsOpened;
+        _documentEvents.DocumentSaved += OnDocumentsSaved;
+    }
+    private void OnDocumentsSaved(Document document)
+    {
+        RemoveFromActiveReviewList(document.FullName);
 
-        var filePath = docView.FilePath;
+        AddToActiveReviewList(document.FullName);
+    }
+    private void OnDocumentsOpened(string documentPath, bool readOnly)
+    {
+        AddToActiveReviewList(documentPath);
+    }
+    private void OnDocumentClosed(Document document)
+    {
+        RemoveFromActiveReviewList(document.FullName);
+    }
+    private void AddToActiveReviewList(string documentPath)
+    {
+        var review = _fileReviewer.Review(documentPath);
+        ActiveReviewList.Add(documentPath, review);
+    }
+    private void RemoveFromActiveReviewList(string documentPath)
+    {
+        ActiveReviewList.Remove(documentPath);
+    }
+    public float GetFileReviewScore(string filePath)
+    {
+        ActiveReviewList.TryGetValue(filePath, out var review);
 
-        var review = _fileReviewer.Review(filePath);
-        return review;
+        //for already opened files on IDE load
+        if (review == null)
+        {
+            AddToActiveReviewList(filePath);
+            ActiveReviewList.TryGetValue(filePath, out review);
+        }
 
+        return review.Score;
     }
     public bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj)
     {
-        var review = _fileReviewer.Review(filePath);
+        ActiveReviewList.TryGetValue(filePath, out var review);
 
+        //for already opened files on IDE load
+        if (review == null)
+        {
+            AddToActiveReviewList(filePath);
+            ActiveReviewList.TryGetValue(filePath, out review);
+        }
         if (!review.Review.Any(x => x.Category == issue)) return false;
 
         var listOfFunctions = review.Review.Where(x => x.Category == issue).FirstOrDefault().Functions;
@@ -52,13 +98,13 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
     }
     public int GetVisualStudioPid()
     {
-        return Process.GetCurrentProcess().Id;
+        return System.Diagnostics.Process.GetCurrentProcess().Id;
     }
 
     public async Task InitializeRpcAsync(string dataPointId)
     {
         var stream = new NamedPipeServerStream(
-            RpcPipeNames.ForCodeLens(Process.GetCurrentProcess().Id),
+            RpcPipeNames.ForCodeLens(System.Diagnostics.Process.GetCurrentProcess().Id),
             PipeDirection.InOut,
             NamedPipeServerStream.MaxAllowedServerInstances,
             PipeTransmissionMode.Byte,

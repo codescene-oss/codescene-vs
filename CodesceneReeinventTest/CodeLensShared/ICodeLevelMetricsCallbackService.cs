@@ -4,7 +4,7 @@ namespace CodeLensShared
 {
     public interface ICodeLevelMetricsCallbackService
     {
-        Task<CsReview> GetFileReviewData();
+        float GetFileReviewScore(string filePath);
         bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj);
         int GetVisualStudioPid();
         Task InitializeRpcAsync(string dataPointId);

@@ -31,17 +31,21 @@ namespace CodeLensProvider
         )
         {
             var fileCodeHealth = await _callbackService
-                .InvokeAsync<CsReview>(
+                .InvokeAsync<float>(
                     this,
-                    nameof(ICodeLevelMetricsCallbackService.GetFileReviewData),
+                    nameof(ICodeLevelMetricsCallbackService.GetFileReviewScore),
+                    new object[]
+                    {
+                        Descriptor.FilePath
+                    },
                     cancellationToken: token
                 )
                 .ConfigureAwait(false);
 
             return new CodeLensDataPointDescriptor
             {
-                Description = $"Code health score: {(fileCodeHealth.Score != 0 ? fileCodeHealth.Score.ToString() + "/10" : "No application code detected for scoring")}",
-                TooltipText = $"Code health score: {(fileCodeHealth.Score != 0 ? fileCodeHealth.Score.ToString() + "/10" : "No application code detected for scoring")}",
+                Description = $"Code health score: {(fileCodeHealth != 0 ? fileCodeHealth.ToString() + "/10" : "No application code detected for scoring")}",
+                TooltipText = $"Code health score: {(fileCodeHealth != 0 ? fileCodeHealth.ToString() + "/10" : "No application code detected for scoring")}",
             };
         }
 
