@@ -34,11 +34,12 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
         _documentEvents.Saved += OnDocumentsSaved;
     }
 
-    private void OnDocumentsSaved(string filePath)
+    private async void OnDocumentsSaved(string filePath)
     {
         RemoveFromActiveReviewList(filePath);
 
         AddToActiveReviewList(filePath);
+        await RefreshAllCodeLensDataPointsAsync();
     }
     private void OnDocumentsOpened(string filePath)
     {
