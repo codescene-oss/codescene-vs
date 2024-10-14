@@ -1,15 +1,15 @@
-﻿using Community.VisualStudio.Toolkit.DependencyInjection;
-using Community.VisualStudio.Toolkit.DependencyInjection.Core;
+﻿using CodesceneReeinventTest.Commands;
 using System.Diagnostics;
 
 namespace CodesceneReeinventTest;
 
-[Command(PackageIds.OpenCodesceneSiteCommand)]
-internal sealed class OpenCodesceneSiteCommand(DIToolkitPackage package) : BaseDICommand(package)
+internal class OpenCodesceneSiteCommand : VsCommandBase
 {
-    protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
+    internal const int Id = PackageIds.OpenCodesceneSiteCommand;
+
+    protected override async void InvokeInternal()
     {
-        var options = await General.GetLiveInstanceAsync();
+        var options = General.Instance;
         var url = string.IsNullOrEmpty(options.ServerUrl) ? General.DEFAULT_SERVER_URL : options.ServerUrl;
         await OpenUrlAsync(url);
     }

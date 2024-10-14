@@ -73,8 +73,11 @@
     <Compile Include="Commands\OpenErrorListWindowCommand.cs" />
     <Compile Include="Commands\OpenProblemsWindowCommand.cs" />
     <Compile Include="Application\Services\IssueHandler\IIssuesHandler.cs" />
+    <Compile Include="Commands\OptionsCommand.cs" />
+    <Compile Include="Commands\Base\PackageCommandManager.cs" />
     <Compile Include="Commands\ReviewActiveFileCommand.cs" />
     <Compile Include="Commands\ShowReviewResultInErrorListCommand.cs" />
+    <Compile Include="Commands\Base\VsCommandBase.cs" />
     <Compile Include="Models\CodeModel.cs" />
     <Compile Include="Models\IssueModel.cs" />
     <Compile Include="Models\ReviewModel.cs" />

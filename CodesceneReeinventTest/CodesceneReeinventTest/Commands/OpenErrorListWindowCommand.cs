@@ -1,17 +1,15 @@
 ﻿using CodesceneReeinventTest.Application;
+using CodesceneReeinventTest.Commands;
 using CodesceneReeinventTest.Models;
-using Community.VisualStudio.Toolkit.DependencyInjection;
-using Community.VisualStudio.Toolkit.DependencyInjection.Core;
 using System.Collections.Generic;
 
 namespace CodesceneReeinventTest;
 
-[Command(PackageIds.OpenErrorListWindowCommand)]
-internal sealed class OpenErrorListWindowCommand(DIToolkitPackage package, IIssuesHandler handler) : BaseDICommand(package)
+internal sealed class OpenErrorListWindowCommand(IIssuesHandler issuesHandler) : VsCommandBase
 {
-    private readonly IIssuesHandler _issuesHandler = handler;
+    internal const int Id = PackageIds.OpenErrorListWindowCommand;
 
-    protected override Task ExecuteAsync(OleMenuCmdEventArgs e)
+    protected override async void InvokeInternal()
     {
         var issues = new List<IssueModel> {
              new() {
@@ -37,8 +35,6 @@ internal sealed class OpenErrorListWindowCommand(DIToolkitPackage package, IIssu
                     EndColumn = 43
                 }};
 
-        _issuesHandler.Handle(issues);
-
-        return Task.CompletedTask;
+        issuesHandler.Handle(issues);
     }
 }

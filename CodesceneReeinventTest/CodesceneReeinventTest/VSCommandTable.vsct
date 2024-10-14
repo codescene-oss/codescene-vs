@@ -6,40 +6,43 @@
 	<Include href="KnownImageIds.vsct" />
 	<Include href="VSGlobals.vsct" />
 
-	<Commands package="CodesceneReeinventTest">
-		
+	<Commands package="guidVsPackagePkgString">
+
 		<Groups>
-			<Group guid="CodesceneReeinventTest" id="CodesceneMenuGroup" priority="0x0600">
-				<Parent guid="VSMainMenu" id="View" />
+			<Group guid="CodeSceneCmdSet" id="CodeSceneOuterGroup" priority="0x0100">
+				<Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EXTENSIONS" />
 			</Group>
-			<Group guid="CodesceneReeinventTest" id="CodesceneMenuGroupEdit" priority="0x0700">
+			<Group guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" priority="0x0101">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneMenu" />
+			</Group>
+			<Group guid="CodeSceneCmdSet" id="CodesceneMenuGroupEdit" priority="0x0700">
 				<Parent guid="VSMainMenu" id="Edit" />
 			</Group>
 		</Groups>
 
-		<!--This section defines the elements the user can interact with, like a menu command or a button
-        or combo box in a toolbar. -->
+		<Menus>
+			<Menu guid="CodeSceneCmdSet" id="CodeSceneMenu" type="Menu" priority="0x0100">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneOuterGroup" />
+				<Strings>
+					<ButtonText>CodeScene</ButtonText>
+				</Strings>
+			</Menu>
+
+
+		</Menus>
+
 		<Buttons>
-			<Button guid="CodesceneReeinventTest" id="OpenCodesceneSiteCommand" priority="0x0100" type="Button">
-				<Parent guid="CodesceneReeinventTest" id="CodesceneMenuGroupEdit" />
-				<Icon guid="ImageCatalogGuid" id="CodeMetrics" />
+			<Button guid="CodeSceneCmdSet" id="ShowReviewResultInErrorListCommand" priority="0x0500" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodesceneMenuGroupEdit" />
+				<Icon guid="ImageCatalogGuid" id="CodeReviewDashboard" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
 				<Strings>
-					<ButtonText>Open URL from configuration</ButtonText>
-					<LocCanonicalName>.CodesceneReeinventTest.OpenCodesceneSiteCommand</LocCanonicalName>
+					<ButtonText>Show active file review result in Error list</ButtonText>
+					<LocCanonicalName>.View.ShowReviewResultInErrorListCommand</LocCanonicalName>
 				</Strings>
 			</Button>
-			<Button guid="CodesceneReeinventTest" id="OpenProblemsWindowCommand" priority="0x0200" type="Button">
-				<Parent guid="CodesceneReeinventTest" id="CodesceneMenuGroupEdit" />
-					  <Icon guid="ImageCatalogGuid" id="AnalyzeTrace" />
-				<CommandFlag>IconIsMoniker</CommandFlag>
-				<Strings>
-					<ButtonText>Problems</ButtonText>
-					<LocCanonicalName>.View.OpenProblemsWindowCommand</LocCanonicalName>
-				</Strings>
-			</Button>
-			<Button guid="CodesceneReeinventTest" id="OpenErrorListWindowCommand" priority="0x0300" type="Button">
-				<Parent guid="CodesceneReeinventTest" id="CodesceneMenuGroupEdit" />
+			<Button guid="CodeSceneCmdSet" id="OpenErrorListWindowCommand" priority="0x0300" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodesceneMenuGroupEdit" />
 				<Icon guid="ImageCatalogGuid" id="AddLayoutItem" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
 				<Strings>
@@ -47,19 +50,8 @@
 					<LocCanonicalName>.View.OpenProblemsWindowCommand</LocCanonicalName>
 				</Strings>
 			</Button>
-			
-			<Button guid="CodesceneReeinventTest" id="OpenStatusWindowCommand" priority="0x0100" type="Button">
-				<Parent guid="CodesceneReeinventTest" id="CodesceneMenuGroup" />
-				<Icon guid="ImageCatalogGuid" id="AddLayoutItem" />
-				<CommandFlag>IconIsMoniker</CommandFlag>
-				<Strings>
-					<ButtonText>CodeScene: Status</ButtonText>
-					<LocCanonicalName>.View.OpenStatusWindowCommand</LocCanonicalName>
-				</Strings>
-			</Button>
-
-			<Button guid="CodesceneReeinventTest" id="ReviewActiveFileCommand" priority="0x0400" type="Button">
-				<Parent guid="CodesceneReeinventTest" id="CodesceneMenuGroupEdit" />
+			<Button guid="CodeSceneCmdSet" id="ReviewActiveFileCommand" priority="0x0400" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodesceneMenuGroupEdit" />
 				<Icon guid="ImageCatalogGuid" id="CodeReviewWizard" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
 				<Strings>
@@ -67,30 +59,66 @@
 					<LocCanonicalName>.View.ReviewActiveFileCommand</LocCanonicalName>
 				</Strings>
 			</Button>
-			<Button guid="CodesceneReeinventTest" id="ShowReviewResultInErrorListCommand" priority="0x0500" type="Button">
-				<Parent guid="CodesceneReeinventTest" id="CodesceneMenuGroupEdit" />
-					  <Icon guid="ImageCatalogGuid" id="CodeReviewDashboard" />
+			<Button guid="CodeSceneCmdSet" id="OpenProblemsWindowCommand" priority="0x0200" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodesceneMenuGroupEdit" />
+				<Icon guid="ImageCatalogGuid" id="AnalyzeTrace" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
 				<Strings>
-					<ButtonText>Show active file review result in Error list</ButtonText>
-					<LocCanonicalName>.View.ShowReviewResultInErrorListCommand</LocCanonicalName>
+					<ButtonText>Problems</ButtonText>
+					<LocCanonicalName>.View.OpenProblemsWindowCommand</LocCanonicalName>
 				</Strings>
 			</Button>
-    </Buttons>
-  </Commands>
+			<Button guid="CodeSceneCmdSet" id="OpenCodesceneSiteCommand" priority="0x0100" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
+				<Icon guid="ImageCatalogGuid" id="User" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>Sign in with CodeScene Tools to use CodeScene</ButtonText>
+				</Strings>
+			</Button>
+			<Button guid="CodeSceneCmdSet" id="OpenStatusWindowCommand" priority="0x0100" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
+				<Icon guid="ImageCatalogGuid" id="StatusInformation" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>CodeScene: Status</ButtonText>
+				</Strings>
+			</Button>
+			<Button guid="CodeSceneCmdSet" id="OptionsCommand" priority="0x9999">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
+				<Icon guid="ImageCatalogGuid" id="Settings" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>Options...</ButtonText>
+				</Strings>
+			</Button>
+		</Buttons>
 
+	</Commands>
 	<Symbols>
-		<GuidSymbol name="CodesceneReeinventTest" value="{ae74efe3-821a-45ca-9f67-9172d4f5adc1}">
-			<IDSymbol name="CodesceneMenuGroup" value="0x0001" />
-			<IDSymbol name="OpenStatusWindowCommand" value="0x0800" />
-			<IDSymbol name="CodesceneMenuGroupEdit" value="0x0002" />
+		<!-- This is the package guid for the package. -->
+		<GuidSymbol name="guidVsPackagePkgString" value="{68D6A325-11E8-4790-A4BA-0EDD001FB080}" />
+
+		<!-- This is the guid used to group the menu commands together -->
+		<GuidSymbol name="CodeSceneCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
+			<IDSymbol name="CodeSceneOuterGroup" value="0x1020" />
+			<IDSymbol name="CodeSceneMenu" value="0x1021" />
+			<IDSymbol name="CodeSceneCommandsGroup" value="0x1022" />
+			<IDSymbol name="OptionsCommand" value="0x1025"/>
 			<IDSymbol name="OpenCodesceneSiteCommand" value="0x0400" />
+			<IDSymbol name="OpenStatusWindowCommand" value="0x0800" />
+
+			<IDSymbol name="CodesceneMenuGroupEdit" value="0x0002" />
 			<IDSymbol name="OpenProblemsWindowCommand" value="0x0200" />
-			<IDSymbol name="OpenErrorListWindowCommand" value="0x0300" />
-			<IDSymbol name="OpenMarkdownWindowCommand" value="0x0700"/>
 			<IDSymbol name="ReviewActiveFileCommand" value="0x0500" />
+			<IDSymbol name="OpenErrorListWindowCommand" value="0x0300" />
 			<IDSymbol name="ShowReviewResultInErrorListCommand" value="0x0600" />
 		</GuidSymbol>
-  </Symbols>
-	
+		<!-- External Symbols -->
+		<GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">
+			<IDSymbol name="IDM_VS_MENU_EXTENSIONS" value="0x0091" />
+		</GuidSymbol>
+	</Symbols>
+
+
 </CommandTable>

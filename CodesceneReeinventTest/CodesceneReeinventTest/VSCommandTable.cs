@@ -12,11 +12,9 @@ namespace CodesceneReeinventTest
     /// </summary>
     internal sealed partial class PackageGuids
     {
-        public const string CodesceneReeinventTestString = "ae74efe3-821a-45ca-9f67-9172d4f5adc1";
-        public static Guid CodesceneReeinventTest = new Guid(CodesceneReeinventTestString);
-
-        public const string guidCodesceneReeinventTestPackageCmdSetString = "d28f1087-bb0a-40f9-b526-2514fa9e95a2";
-        public static Guid guidCodesceneReeinventTestPackageCmdSet = new Guid(guidCodesceneReeinventTestPackageCmdSetString);
+        public const string Package = "68D6A325-11E8-4790-A4BA-0EDD001FB080";
+        public const string PackageActivation = "063BA845-A14B-40A1-97B7-33BFD00272E2";
+        public const string CodeSceneMenuCommandSet = "DB0701CC-1E44-41F7-97D6-29B160A70BCB";
     }
     /// <summary>
     /// Helper class that encapsulates all CommandIDs uses across VS Package.
@@ -31,6 +29,7 @@ namespace CodesceneReeinventTest
         public const int ReviewActiveFileCommand = 0x0500;
         public const int ShowReviewResultInErrorListCommand = 0x0600;
         public const int OpenStatusWindowCommand = 0x0800;
+        public const int OptionsCommand = 0x1025;
 
     }
 }

@@ -1,13 +1,13 @@
 ﻿using CodesceneReeinventTest.Application.Services.FileReviewer;
-using Community.VisualStudio.Toolkit.DependencyInjection;
-using Community.VisualStudio.Toolkit.DependencyInjection.Core;
+using CodesceneReeinventTest.Commands;
 
 namespace CodesceneReeinventTest;
 
-[Command(PackageIds.ReviewActiveFileCommand)]
-internal sealed class ReviewActiveFileCommand(DIToolkitPackage package, IFileReviewer fileReviewer) : BaseDICommand(package)
+internal sealed class ReviewActiveFileCommand(IFileReviewer fileReviewer) : VsCommandBase
 {
-    protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
+    internal const int Id = PackageIds.ReviewActiveFileCommand;
+
+    protected override async void InvokeInternal()
     {
         DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
         if (docView?.TextView == null)

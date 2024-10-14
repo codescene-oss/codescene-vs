@@ -7,11 +7,13 @@ using CodesceneReeinventTest.Application.Handlers;
 using CodesceneReeinventTest.Application.Services.Authentication;
 using CodesceneReeinventTest.Application.Services.FileDownloader;
 using CodesceneReeinventTest.Application.Services.FileReviewer;
+using CodesceneReeinventTest.Commands;
 using CodesceneReeinventTest.ToolWindows.Markdown;
 using Community.VisualStudio.Toolkit.DependencyInjection.Microsoft;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.ComponentModelHost;
 using System.ComponentModel.Composition;
+using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -19,7 +21,8 @@ namespace CodesceneReeinventTest;
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 [InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Version)]
 [ProvideMenuResource("Menus.ctmenu", 1)]
-[Guid(PackageGuids.CodesceneReeinventTestString)]
+[ProvideAutoLoad(PackageGuids.PackageActivation, PackageAutoLoadFlags.BackgroundLoad)]
+[Guid(PackageGuids.Package)]
 [ProvideToolWindow(typeof(ProblemsWindow.Pane))]
 [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
 [ProvideToolWindow(typeof(StatusWindow.Pane), Window = WindowGuids.SolutionExplorer, Style = VsDockStyle.Tabbed)]
@@ -28,6 +31,7 @@ namespace CodesceneReeinventTest;
 public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<CodesceneReeinventTestPackage>
 {
     private static IServiceProvider _serviceProvider;
+    private PackageCommandManager commandManager;
     public static T GetService<T>()
     {
         if (_serviceProvider == null)
@@ -49,6 +53,7 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
         var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel));
         componentModel.DefaultCompositionService.SatisfyImportsOnce(this);
         this.RegisterToolWindows();
+        await InitOnUIThreadAsync();
     }
     void RegisterServices(IServiceCollection services)
     {
@@ -58,5 +63,12 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
         services.AddSingleton<IFileReviewer, FileReviewer>();
         services.AddSingleton<IModelMapper, ModelMapper>();
         services.AddSingleton<IFileDownloader, FileDownloader>();
+    }
+    private async Task InitOnUIThreadAsync()
+    {
+        this.commandManager = new PackageCommandManager(_serviceProvider.GetService<IMenuCommandService>(), _serviceProvider.GetService<IFileReviewer>(), _serviceProvider.GetService<IIssuesHandler>());
+
+        this.commandManager.Initialize(
+            ShowOptionPage);
     }
 }
