@@ -1,5 +1,5 @@
 ﻿using CodeLensShared;
-using CodesceneReeinventTest.Application.Controls;
+using CodesceneReeinventTest.Controls;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;

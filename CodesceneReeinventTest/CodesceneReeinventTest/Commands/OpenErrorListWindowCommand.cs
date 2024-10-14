@@ -1,7 +1,7 @@
-﻿using CodesceneReeinventTest.Application;
-using CodesceneReeinventTest.Models;
-using Community.VisualStudio.Toolkit.DependencyInjection;
+﻿using Community.VisualStudio.Toolkit.DependencyInjection;
 using Community.VisualStudio.Toolkit.DependencyInjection.Core;
+using Core.Application.Services.IssueHandler;
+using Core.Models;
 using System.Collections.Generic;
 
 namespace CodesceneReeinventTest;

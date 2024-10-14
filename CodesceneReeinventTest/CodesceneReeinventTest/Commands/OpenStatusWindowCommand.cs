@@ -1,4 +1,5 @@
-﻿using Community.VisualStudio.Toolkit.DependencyInjection;
+﻿using CodesceneReeinventTest.ToolWindows.Status;
+using Community.VisualStudio.Toolkit.DependencyInjection;
 using Community.VisualStudio.Toolkit.DependencyInjection.Core;
 using EnvDTE;
 

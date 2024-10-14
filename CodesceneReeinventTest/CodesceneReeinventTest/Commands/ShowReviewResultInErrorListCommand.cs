@@ -1,7 +1,7 @@
-﻿using CodesceneReeinventTest.Application;
-using CodesceneReeinventTest.Application.Services.FileReviewer;
-using Community.VisualStudio.Toolkit.DependencyInjection;
+﻿using Community.VisualStudio.Toolkit.DependencyInjection;
 using Community.VisualStudio.Toolkit.DependencyInjection.Core;
+using Core.Application.Services.FileReviewer;
+using Core.Application.Services.IssueHandler;
 
 namespace CodesceneReeinventTest;
 

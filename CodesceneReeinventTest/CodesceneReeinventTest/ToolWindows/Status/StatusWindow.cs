@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace CodesceneReeinventTest;
+namespace CodesceneReeinventTest.ToolWindows.Status;
 
 public class StatusWindow : BaseToolWindow<StatusWindow>
 {

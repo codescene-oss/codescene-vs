@@ -1,13 +1,12 @@
-﻿using CodesceneReeinventTest.Application.Handlers;
-using CodesceneReeinventTest.Application.Services.Authentication;
-using CodesceneReeinventTest.Application.Services.FileDownloader;
+﻿using CodesceneReeinventTest.Application.MDFileHandler;
 using CodesceneReeinventTest.ToolWindows.Markdown;
-using CodesceneReeinventTest.ToolWindows.Status;
+using Core.Application.Services.Authentication;
+using Core.Application.Services.FileDownloader;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace CodesceneReeinventTest
+namespace CodesceneReeinventTest.ToolWindows.Status
 {
     public partial class StatusWindowControl : UserControl
     {

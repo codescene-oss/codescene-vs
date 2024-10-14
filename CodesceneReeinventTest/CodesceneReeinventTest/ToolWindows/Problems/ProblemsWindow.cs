@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace CodesceneReeinventTest;
+namespace CodesceneReeinventTest.ToolWindows.Problems;
 public class ProblemsWindow : BaseToolWindow<ProblemsWindow>
 {
     public override string GetTitle(int toolWindowId) => "Problems";
