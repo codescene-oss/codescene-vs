@@ -1,7 +1,6 @@
 ﻿
-using Core.Application.Services.FileReviewer;
-using CodesceneReeinventTest.Application.Services.FileReviewer;
 using CodesceneReeinventTest.Commands;
+using Core.Application.Services.FileReviewer;
 
 namespace CodesceneReeinventTest;
 

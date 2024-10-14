@@ -69,10 +69,6 @@
     <Compile Include="Application\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Commands\Base\VsCommandBase.cs" />
-    <Compile Include="Models\CodeModel.cs" />
-    <Compile Include="Models\IssueModel.cs" />
-    <Compile Include="Models\ReviewModel.cs" />
-    <Compile Include="Models\TargetModel.cs" />
     <Compile Include="Options\General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\OpenCodesceneSiteCommand.cs" />
