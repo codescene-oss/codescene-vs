@@ -4,15 +4,15 @@ using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CodeLensProvider.Providers.FunctionLevel
+namespace CodeLensProvider.Providers.Base
 {
     public class VisualStudioConnection : IRemoteCodeLens
     {
         private readonly NamedPipeClientStream _stream;
-        private readonly ExcessNumberOfFunctionArgumentsDataPoint _owner;
+        private readonly IBaseDataPoint _owner;
         public JsonRpc Rpc;
 
-        public VisualStudioConnection(ExcessNumberOfFunctionArgumentsDataPoint owner, int vsPid)
+        public VisualStudioConnection(IBaseDataPoint owner, int vsPid)
         {
             _owner = owner;
             _stream = new NamedPipeClientStream(
@@ -29,9 +29,6 @@ namespace CodeLensProvider.Providers.FunctionLevel
             Rpc = JsonRpc.Attach(_stream, this);
         }
 
-        public void Refresh()
-        {
-            _owner.Refresh();
-        }
+        public void Refresh() => _owner.Refresh();
     }
 }
