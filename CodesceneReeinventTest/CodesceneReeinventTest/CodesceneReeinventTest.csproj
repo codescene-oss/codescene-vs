@@ -45,38 +45,29 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Application\Controls\ComplexConditional.xaml.cs">
+    <Compile Include="Application\FileReviewer\FileReviewer.cs" />
+    <Compile Include="Application\IssueHandler\IssuesHandler.cs" />
+    <Compile Include="CodeLens\CodeLensConnection.cs" />
+    <Compile Include="CodeLens\CodeLensPackage.cs" />
+    <Compile Include="CodeLens\CodeLevelMetricsCallbackService.cs" />
+    <Compile Include="Controls\ComplexConditional.xaml.cs">
       <DependentUpon>ComplexConditional.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Application\Controls\ExcessNumberOfFunctionArguments.xaml.cs">
+    <Compile Include="Controls\ExcessNumberOfFunctionArguments.xaml.cs">
       <DependentUpon>ExcessNumberOfFunctionArguments.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Application\Controls\GeneralCodeHealth.xaml.cs">
+    <Compile Include="Controls\GeneralCodeHealth.xaml.cs">
       <DependentUpon>GeneralCodeHealth.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Application\Handlers\MDFileHandler\IMDFileHandler.cs" />
-    <Compile Include="Application\Handlers\MDFileHandler\MDFileHandler.cs" />
-    <Compile Include="Application\Helpers\BooleanToVisibilityConverter.cs" />
-    <Compile Include="Application\Services\CodeLens\CodeLensConnection.cs" />
-    <Compile Include="Application\Services\CodeLens\CodeLensPackage.cs" />
-    <Compile Include="Application\Services\CodeLens\CodeLevelMetricsCallbackService.cs" />
-    <Compile Include="Application\Services\FileDownloader\ArtifactInfo.cs" />
-    <Compile Include="Application\Services\FileDownloader\FileDownloader.cs" />
-    <Compile Include="Application\Services\FileDownloader\IFileDownloader.cs" />
-    <Compile Include="Application\Services\Mapper\IModelMapper.cs" />
-    <Compile Include="Application\Services\IssueHandler\IssuesHandler.cs" />
-    <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
-    <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
-    <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
-    <Compile Include="Application\Services\FileReviewer\FileReviewer.cs" />
-    <Compile Include="Application\Services\FileReviewer\IFileReviewer.cs" />
     <Compile Include="Commands\OpenErrorListWindowCommand.cs" />
     <Compile Include="Commands\OpenProblemsWindowCommand.cs" />
-    <Compile Include="Application\Services\IssueHandler\IIssuesHandler.cs" />
     <Compile Include="Commands\OptionsCommand.cs" />
     <Compile Include="Commands\Base\PackageCommandManager.cs" />
     <Compile Include="Commands\ReviewActiveFileCommand.cs" />
     <Compile Include="Commands\ShowReviewResultInErrorListCommand.cs" />
+    <Compile Include="Helpers\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Application\MDFileHandler\IMDFileHandler.cs" />
+    <Compile Include="Application\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Commands\Base\VsCommandBase.cs" />
     <Compile Include="Models\CodeModel.cs" />
     <Compile Include="Models\IssueModel.cs" />
@@ -95,6 +86,7 @@
     <Compile Include="ToolWindows\Markdown\MarkdownWindowControl.xaml.cs">
       <DependentUpon>MarkdownWindowControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ToolWindows\Problems\Class1.cs" />
     <Compile Include="ToolWindows\Status\StatusWindow.cs" />
     <Compile Include="Commands\OpenStatusWindowCommand.cs" />
     <Compile Include="ToolWindows\Status\StatusWindowControl.xaml.cs">
@@ -224,15 +216,15 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Application\Controls\ComplexConditional.xaml">
+    <Page Include="Controls\ComplexConditional.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Application\Controls\ExcessNumberOfFunctionArguments.xaml">
+    <Page Include="Controls\ExcessNumberOfFunctionArguments.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Application\Controls\GeneralCodeHealth.xaml">
+    <Page Include="Controls\GeneralCodeHealth.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -258,6 +250,10 @@
     <ProjectReference Include="..\CodeLensShared\CodeLensShared.csproj">
       <Project>{d59642e5-a52c-4ffc-8228-21e7f3554dfe}</Project>
       <Name>CodeLensShared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\Core.csproj">
+      <Project>{3217b4fd-5a1b-4deb-b1d9-bcbdf5f22388}</Project>
+      <Name>Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

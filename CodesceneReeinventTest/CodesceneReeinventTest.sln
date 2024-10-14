@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeLensProvider", "CodeLen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeLensShared", "CodeLensShared\CodeLensShared.csproj", "{D59642E5-A52C-4FFC-8228-21E7F3554DFE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{D59642E5-A52C-4FFC-8228-21E7F3554DFE}.Release|arm64.Build.0 = Release|Any CPU
 		{D59642E5-A52C-4FFC-8228-21E7F3554DFE}.Release|x86.ActiveCfg = Release|Any CPU
 		{D59642E5-A52C-4FFC-8228-21E7F3554DFE}.Release|x86.Build.0 = Release|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Debug|arm64.Build.0 = Debug|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Debug|x86.Build.0 = Debug|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Release|arm64.ActiveCfg = Release|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Release|arm64.Build.0 = Release|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Release|x86.ActiveCfg = Release|Any CPU
+		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

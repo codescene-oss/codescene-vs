@@ -1,6 +1,6 @@
-﻿using CodesceneReeinventTest.Application;
-using CodesceneReeinventTest.Commands;
-using CodesceneReeinventTest.Models;
+﻿
+using Core.Application.Services.IssueHandler;
+using Core.Models;
 using System.Collections.Generic;
 
 namespace CodesceneReeinventTest;

@@ -1,6 +1,7 @@
-﻿using CodesceneReeinventTest.Application;
-using CodesceneReeinventTest.Application.Services.FileReviewer;
+﻿
 using CodesceneReeinventTest.Commands;
+using Core.Application.Services.FileReviewer;
+using Core.Application.Services.IssueHandler;
 
 namespace CodesceneReeinventTest;
 

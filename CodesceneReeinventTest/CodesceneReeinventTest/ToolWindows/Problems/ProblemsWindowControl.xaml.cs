@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace CodesceneReeinventTest;
+namespace CodesceneReeinventTest.ToolWindows.Problems;
 public partial class ProblemsWindowControl : UserControl
 {
     public ProblemsWindowControl()
