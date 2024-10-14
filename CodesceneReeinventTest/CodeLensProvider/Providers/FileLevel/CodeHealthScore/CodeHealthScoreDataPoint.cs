@@ -1,36 +1,23 @@
-﻿using CodeLensShared;
+﻿using CodeLensProvider.Providers.Base;
+using CodeLensShared;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
-using Microsoft.VisualStudio.Threading;
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CodeLensProvider
+namespace CodeLensProvider.Providers.FileLevel.CodeHealthScore
 {
-    public class CodeHealthScoreDataPoint : IAsyncCodeLensDataPoint
+    public class CodeHealthScoreDataPoint : BaseDataPoint
     {
-        private readonly ICodeLensCallbackService _callbackService;
-        public readonly string DataPointId = Guid.NewGuid().ToString();
+        public CodeHealthScoreDataPoint(CodeLensDescriptor descriptor, ICodeLensCallbackService callbackService) : base(descriptor, callbackService) { }
 
-        public VisualStudioConnection VsConnection;
-
-        public CodeHealthScoreDataPoint(
-            CodeLensDescriptor descriptor,
-            ICodeLensCallbackService callbackService
-        )
-        {
-            _callbackService = callbackService;
-            Descriptor = descriptor;
-        }
-
-        public async Task<CodeLensDataPointDescriptor> GetDataAsync(
+        public override async Task<CodeLensDataPointDescriptor> GetDataAsync(
             CodeLensDescriptorContext descriptorContext,
             CancellationToken token
         )
         {
-            var fileCodeHealth = await _callbackService
+            var fileCodeHealth = await CallbackService
                 .InvokeAsync<float>(
                     this,
                     nameof(ICodeLevelMetricsCallbackService.GetFileReviewScore),
@@ -49,12 +36,11 @@ namespace CodeLensProvider
             };
         }
 
-        public Task<CodeLensDetailsDescriptor> GetDetailsAsync(
+        public override Task<CodeLensDetailsDescriptor> GetDetailsAsync(
             CodeLensDescriptorContext descriptorContext,
             CancellationToken token
         )
         {
-            //open markdown here
             var result = new CodeLensDetailsDescriptor()
             {
                 CustomData = new List<CustomDetailsData>{
@@ -63,11 +49,5 @@ namespace CodeLensProvider
             };
             return Task.FromResult(result);
         }
-
-        public CodeLensDescriptor Descriptor { get; }
-        public event AsyncEventHandler InvalidatedAsync;
-
-        public void Refresh() =>
-            _ = InvalidatedAsync?.InvokeAsync(this, EventArgs.Empty).ConfigureAwait(false);
     }
 }

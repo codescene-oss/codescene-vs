@@ -1,4 +1,5 @@
-﻿using CodeLensShared;
+﻿using CodeLensProvider.Providers.Base;
+using CodeLensShared;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -8,65 +9,24 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CodeLensProvider
+namespace CodeLensProvider.Providers.FileLevel.CodeHealthScore
 {
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
-    [Name("CodeLensDataPointProvider")]
-    [ContentType("csharp")]
+    [Name(nameof(CodeHealthScoreDataPointProvider))]
+    [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
     [Priority(200)]
-    internal class CodeHealthScoreDataPointProvider : IAsyncCodeLensDataPointProvider
+    internal class CodeHealthScoreDataPointProvider : BaseDataPointProvider<CodeHealthScoreDataPoint>
     {
-        private readonly Lazy<ICodeLensCallbackService> _callbackService;
 
         [ImportingConstructor]
-        public CodeHealthScoreDataPointProvider(Lazy<ICodeLensCallbackService> callbackService)
-        {
-            _callbackService = callbackService;
-        }
+        public CodeHealthScoreDataPointProvider(Lazy<ICodeLensCallbackService> callbackService) : base(callbackService) { }
 
-        public async Task<bool> CanCreateDataPointAsync(
-            CodeLensDescriptor descriptor,
-            CodeLensDescriptorContext descriptorContext,
-            CancellationToken token
-        )
+        public override string Name => throw new NotImplementedException();
+
+        public override async Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
             var methodsOnly = descriptor.Kind == CodeElementKinds.Type;
             return (methodsOnly && await _callbackService.Value.InvokeAsync<bool>(this, nameof(ICodeLevelMetricsCallbackService.IsCodeSceneLensesEnabled)));
-        }
-
-        /// <summary>
-        /// Responsible for creating the actual datapoint and setting up two-way communication over RPC back to the in-process extension
-        /// </summary>
-        public async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(
-            CodeLensDescriptor descriptor,
-            CodeLensDescriptorContext descriptorContext,
-            CancellationToken token
-        )
-        {
-            var dataPoint = new CodeHealthScoreDataPoint(descriptor, _callbackService.Value);
-
-            var vsPid = await _callbackService
-                .Value.InvokeAsync<int>(
-                    this,
-                    nameof(ICodeLevelMetricsCallbackService.GetVisualStudioPid),
-                    cancellationToken: token
-                )
-                .ConfigureAwait(false);
-
-            _ = _callbackService
-                .Value.InvokeAsync(
-                    this,
-                    nameof(ICodeLevelMetricsCallbackService.InitializeRpcAsync),
-                    new[] { dataPoint.DataPointId },
-                    token
-                )
-                .ConfigureAwait(false);
-
-            var connection = new VisualStudioConnection(dataPoint, vsPid);
-            await connection.ConnectAsync(token);
-            dataPoint.VsConnection = connection;
-
-            return dataPoint;
         }
     }
 }
