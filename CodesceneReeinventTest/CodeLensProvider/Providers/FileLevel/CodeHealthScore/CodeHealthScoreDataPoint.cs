@@ -1,0 +1,53 @@
+﻿using CodeLensProvider.Providers.Base;
+using CodeLensShared;
+using Microsoft.VisualStudio.Language.CodeLens;
+using Microsoft.VisualStudio.Language.CodeLens.Remoting;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace CodeLensProvider.Providers.FileLevel.CodeHealthScore
+{
+    public class CodeHealthScoreDataPoint : BaseDataPoint
+    {
+        public CodeHealthScoreDataPoint(CodeLensDescriptor descriptor, ICodeLensCallbackService callbackService) : base(descriptor, callbackService) { }
+
+        public override async Task<CodeLensDataPointDescriptor> GetDataAsync(
+            CodeLensDescriptorContext descriptorContext,
+            CancellationToken token
+        )
+        {
+            var fileCodeHealth = await CallbackService
+                .InvokeAsync<float>(
+                    this,
+                    nameof(ICodeLevelMetricsCallbackService.GetFileReviewScore),
+                    new object[]
+                    {
+                        Descriptor.FilePath
+                    },
+                    cancellationToken: token
+                )
+                .ConfigureAwait(false);
+
+            return new CodeLensDataPointDescriptor
+            {
+                Description = $"Code health score: {(fileCodeHealth != 0 ? fileCodeHealth.ToString() + "/10" : "No application code detected for scoring")}",
+                TooltipText = $"Code health score: {(fileCodeHealth != 0 ? fileCodeHealth.ToString() + "/10" : "No application code detected for scoring")}",
+            };
+        }
+
+        public override Task<CodeLensDetailsDescriptor> GetDetailsAsync(
+            CodeLensDescriptorContext descriptorContext,
+            CancellationToken token
+        )
+        {
+            var result = new CodeLensDetailsDescriptor()
+            {
+                CustomData = new List<CustomDetailsData>{
+                    new CustomDetailsData { FileName = "general-code-health", Title = "General Code Health"}
+                }
+            };
+            return Task.FromResult(result);
+        }
+    }
+}

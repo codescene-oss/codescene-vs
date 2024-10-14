@@ -1,4 +1,4 @@
-﻿using CodesceneReeinventTest.Application.Services.FileReviewer.ReviewResult;
+﻿using CodeLensShared;
 using CodesceneReeinventTest.Models;
 using System.Collections.Generic;
 

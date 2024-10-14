@@ -45,9 +45,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Application\Controls\ComplexConditional.xaml.cs">
+      <DependentUpon>ComplexConditional.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Application\Controls\ExcessNumberOfFunctionArguments.xaml.cs">
+      <DependentUpon>ExcessNumberOfFunctionArguments.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Application\Controls\GeneralCodeHealth.xaml.cs">
+      <DependentUpon>GeneralCodeHealth.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Application\Handlers\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Handlers\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Application\Helpers\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Application\Services\CodeLens\CodeLensConnection.cs" />
+    <Compile Include="Application\Services\CodeLens\CodeLensPackage.cs" />
+    <Compile Include="Application\Services\CodeLens\CodeLevelMetricsCallbackService.cs" />
     <Compile Include="Application\Services\FileDownloader\ArtifactInfo.cs" />
     <Compile Include="Application\Services\FileDownloader\FileDownloader.cs" />
     <Compile Include="Application\Services\FileDownloader\IFileDownloader.cs" />
@@ -58,18 +70,6 @@
     <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Application\Services\FileReviewer\FileReviewer.cs" />
     <Compile Include="Application\Services\FileReviewer\IFileReviewer.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Bumps.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\BumpsBySeverity.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Congestion.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\CsReview.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Details.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\FnArgs.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Function.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Nested.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\NestedComplexityOfInterest.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\RawScore.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\Review.cs" />
-    <Compile Include="Application\Services\FileReviewer\ReviewResult\WorstBump.cs" />
     <Compile Include="Commands\OpenErrorListWindowCommand.cs" />
     <Compile Include="Commands\OpenProblemsWindowCommand.cs" />
     <Compile Include="Application\Services\IssueHandler\IIssuesHandler.cs" />
@@ -102,6 +102,7 @@
       <DependentUpon>ProblemsWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="ToolWindows\Status\StatusWIndowModel.cs" />
+    <Compile Include="ViewElementFactory.cs" />
     <Compile Include="VSCommandTable.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -172,10 +173,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Resources\cs-logo.png">
+    <Resource Include="Resources\cs-logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
+    </Resource>
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="VSCommandTable.vsct">
@@ -221,6 +221,18 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Application\Controls\ComplexConditional.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Application\Controls\ExcessNumberOfFunctionArguments.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Application\Controls\GeneralCodeHealth.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ToolWindows\Markdown\MarkdownWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -233,6 +245,17 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CodeLensProvider\CodeLensProvider.csproj">
+      <Project>{f9f38cfc-6b77-4e6d-8511-9f201135af97}</Project>
+      <Name>CodeLensProvider</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+    </ProjectReference>
+    <ProjectReference Include="..\CodeLensShared\CodeLensShared.csproj">
+      <Project>{d59642e5-a52c-4ffc-8228-21e7f3554dfe}</Project>
+      <Name>CodeLensShared</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
