@@ -1,13 +1,12 @@
-﻿using Community.VisualStudio.Toolkit.DependencyInjection;
-using Community.VisualStudio.Toolkit.DependencyInjection.Core;
-using EnvDTE;
+﻿using CodesceneReeinventTest.Commands;
+using CodesceneReeinventTest.ToolWindows.Status;
 
 namespace CodesceneReeinventTest;
 
-[Command(PackageIds.OpenStatusWindowCommand)]
-internal sealed class OpenStatusWindowCommand(DIToolkitPackage package) : BaseDICommand(package)
+internal class OpenStatusWindowCommand : VsCommandBase
 {
-    protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
+    internal const int Id = PackageIds.OpenStatusWindowCommand;
+    protected override async void InvokeInternal()
     {
         await StatusWindow.ShowAsync();
     }

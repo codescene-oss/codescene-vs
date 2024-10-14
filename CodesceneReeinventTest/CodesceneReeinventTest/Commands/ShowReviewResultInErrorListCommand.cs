@@ -1,14 +1,15 @@
-﻿using CodesceneReeinventTest.Application;
-using CodesceneReeinventTest.Application.Services.FileReviewer;
-using Community.VisualStudio.Toolkit.DependencyInjection;
-using Community.VisualStudio.Toolkit.DependencyInjection.Core;
+﻿
+using CodesceneReeinventTest.Commands;
+using Core.Application.Services.FileReviewer;
+using Core.Application.Services.IssueHandler;
 
 namespace CodesceneReeinventTest;
 
-[Command(PackageIds.ShowReviewResultInErrorListCommand)]
-internal sealed class ShowReviewResultInErrorListCommand(DIToolkitPackage package, IFileReviewer fileReviewer, IIssuesHandler issuesHandler) : BaseDICommand(package)
+internal sealed class ShowReviewResultInErrorListCommand(IFileReviewer fileReviewer, IIssuesHandler issuesHandler) : VsCommandBase
 {
-    protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
+    internal const int Id = PackageIds.ShowReviewResultInErrorListCommand;
+
+    protected override async void InvokeInternal()
     {
         DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
         if (docView?.TextView == null)

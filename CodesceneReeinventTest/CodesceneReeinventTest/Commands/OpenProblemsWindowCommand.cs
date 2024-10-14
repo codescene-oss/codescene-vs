@@ -1,12 +1,13 @@
-﻿using Community.VisualStudio.Toolkit.DependencyInjection;
-using Community.VisualStudio.Toolkit.DependencyInjection.Core;
+﻿using CodesceneReeinventTest.Commands;
+using CodesceneReeinventTest.ToolWindows.Problems;
 
 namespace CodesceneReeinventTest;
 
-[Command(PackageIds.OpenProblemsWindowCommand)]
-internal sealed class OpenProblemsWindowCommand(DIToolkitPackage package) : BaseDICommand(package)
+internal sealed class OpenProblemsWindowCommand : VsCommandBase
 {
-    protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
+    internal const int Id = PackageIds.OpenProblemsWindowCommand;
+
+    protected override async void InvokeInternal()
     {
         await ProblemsWindow.ShowAsync();
     }
