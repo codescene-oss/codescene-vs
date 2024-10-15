@@ -1,6 +1,4 @@
 ﻿using CodesceneReeinventTest.Application.MDFileHandler;
-using Microsoft.VisualStudio.ComponentModelHost;
-using System.ComponentModel.Composition;
 using System.Drawing;
 using System.Windows.Controls;
 
@@ -9,22 +7,16 @@ namespace CodesceneReeinventTest.ToolWindows.Markdown
 {
     public partial class MarkdownWindowControl : UserControl
     {
-        [Import(typeof(IMDFileHandler))]
         private IMDFileHandler _mdFileHandler;
 
         private string _fileName;
         public MarkdownWindowControl(string fileName)
         {
+            _mdFileHandler = CodesceneReeinventTestPackage.GetService<IMDFileHandler>();
             //ovdje da se proslijedi naziv file-a
             this.InitializeComponent();
             _fileName = fileName;
-            SatisfyImports();
             InitializeFileHandler();
-        }
-        private void SatisfyImports()
-        {
-            var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
-            componentModel?.DefaultCompositionService.SatisfyImportsOnce(this);
         }
         public void InitializeFileHandler()
         {
@@ -32,7 +24,7 @@ namespace CodesceneReeinventTest.ToolWindows.Markdown
             {
                 _mdFileHandler.SetFileName(_fileName);
             }
-            string htmlContent = _mdFileHandler.GetContent("Resources", "docs");
+            string htmlContent = _mdFileHandler.GetContent("Resources", null);
 
             SetWebBrowserContent(htmlContent);
         }

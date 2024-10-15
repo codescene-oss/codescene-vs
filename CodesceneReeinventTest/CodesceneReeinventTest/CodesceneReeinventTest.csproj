@@ -129,6 +129,7 @@
     <None Include="Resources\docs\issues\brain-method.md" />
     <Content Include="Resources\bumpy-road-ahead.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <None Include="Resources\docs\issues\code-duplication.md" />
     <None Include="Resources\docs\issues\complex-conditional.md" />
