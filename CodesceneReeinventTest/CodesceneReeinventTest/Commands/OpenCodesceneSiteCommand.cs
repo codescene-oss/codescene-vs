@@ -1,9 +1,9 @@
 ﻿using CodesceneReeinventTest.Commands;
-using System.Diagnostics;
+using Core.Application.Services.Authentication;
 
 namespace CodesceneReeinventTest;
 
-internal class OpenCodesceneSiteCommand : VsCommandBase
+internal class OpenCodesceneSiteCommand(IAuthenticationService authService) : VsCommandBase
 {
     internal const int Id = PackageIds.OpenCodesceneSiteCommand;
 
@@ -18,11 +18,14 @@ internal class OpenCodesceneSiteCommand : VsCommandBase
     {
         try
         {
-            Process.Start(new ProcessStartInfo
+            var loggedIn = authService.Login(url);
+            if (!loggedIn)
             {
-                FileName = url,
-                UseShellExecute = true // Ovo osigurava da se koristi podrazumevani browser
-            });
+                await VS.MessageBox.ShowWarningAsync("Error", $"Auth rejected!");
+            }
+
+            var data = authService.GetData();
+            await VS.MessageBox.ShowConfirmAsync("Auth successful", $"name:{data.Name}");
         }
         catch (Exception ex)
         {

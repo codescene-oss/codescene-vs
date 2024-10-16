@@ -69,11 +69,16 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
         services.AddSingleton<IModelMapper, ModelMapper>();
         services.AddSingleton<IFileDownloader, FileDownloader>();
     }
-    private async Task InitOnUIThreadAsync()
+    private Task InitOnUIThreadAsync()
     {
-        this.commandManager = new PackageCommandManager(_serviceProvider.GetService<IMenuCommandService>(), _serviceProvider.GetService<IFileReviewer>(), _serviceProvider.GetService<IIssuesHandler>());
+        commandManager = new PackageCommandManager(
+            _serviceProvider.GetService<IMenuCommandService>(),
+            _serviceProvider.GetService<IFileReviewer>(),
+            _serviceProvider.GetService<IIssuesHandler>(),
+            _serviceProvider.GetService<IAuthenticationService>());
 
-        this.commandManager.Initialize(
+        commandManager.Initialize(
             ShowOptionPage);
+        return Task.CompletedTask;
     }
 }

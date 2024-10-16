@@ -1,4 +1,5 @@
-﻿using Core.Application.Services.FileReviewer;
+﻿using Core.Application.Services.Authentication;
+using Core.Application.Services.FileReviewer;
 using Core.Application.Services.IssueHandler;
 using System.ComponentModel.Design;
 
@@ -10,12 +11,14 @@ namespace CodesceneReeinventTest.Commands
         private readonly IMenuCommandService menuService;
         private readonly IFileReviewer fileReviewer;
         private readonly IIssuesHandler issuesHandler;
+        private readonly IAuthenticationService authService;
 
-        public PackageCommandManager(IMenuCommandService menuService, IFileReviewer fileReviewer, IIssuesHandler issuesHandler)
+        public PackageCommandManager(IMenuCommandService menuService, IFileReviewer fileReviewer, IIssuesHandler issuesHandler, IAuthenticationService authService)
         {
             this.menuService = menuService ?? throw new ArgumentNullException(nameof(menuService));
             this.fileReviewer = fileReviewer ?? throw new ArgumentNullException(nameof(fileReviewer));
             this.issuesHandler = issuesHandler ?? throw new ArgumentNullException(nameof(issuesHandler));
+            this.authService = authService ?? throw new ArgumentNullException(nameof(authService));
         }
 
         public void Initialize(ShowOptionsPage showOptionsPage)
@@ -23,7 +26,7 @@ namespace CodesceneReeinventTest.Commands
             RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, OpenErrorListWindowCommand.Id, new OpenErrorListWindowCommand(issuesHandler));
             RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, ShowReviewResultInErrorListCommand.Id, new ShowReviewResultInErrorListCommand(fileReviewer, issuesHandler));
             RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, ReviewActiveFileCommand.Id, new ReviewActiveFileCommand(fileReviewer));
-            RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, OpenCodesceneSiteCommand.Id, new OpenCodesceneSiteCommand());
+            RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, OpenCodesceneSiteCommand.Id, new OpenCodesceneSiteCommand(authService));
             RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, OpenStatusWindowCommand.Id, new OpenStatusWindowCommand());
             RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, OpenProblemsWindowCommand.Id, new OpenProblemsWindowCommand());
             RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
