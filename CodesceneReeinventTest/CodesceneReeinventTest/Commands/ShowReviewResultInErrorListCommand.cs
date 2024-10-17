@@ -1,11 +1,12 @@
 ﻿
 using CodesceneReeinventTest.Commands;
+using Core.Application.Services.ErrorHandling;
 using Core.Application.Services.FileReviewer;
 using Core.Application.Services.IssueHandler;
 
 namespace CodesceneReeinventTest;
 
-internal sealed class ShowReviewResultInErrorListCommand(IFileReviewer fileReviewer, IIssuesHandler issuesHandler) : VsCommandBase
+internal sealed class ShowReviewResultInErrorListCommand(IFileReviewer fileReviewer, IIssuesHandler issuesHandler, IErrorsHandler errorsHandler) : VsCommandBase
 {
     internal const int Id = PackageIds.ShowReviewResultInErrorListCommand;
 
@@ -28,7 +29,9 @@ internal sealed class ShowReviewResultInErrorListCommand(IFileReviewer fileRevie
         }
         catch (Exception ex)
         {
-            await VS.MessageBox.ShowAsync($"File:{fileName}\nPath:{filePath}\nError:{ex.Message}");
+            var message = $"File:{fileName}\nPath:{filePath}\nError:{ex.Message}";
+            await errorsHandler.LogAsync(message, ex);
+            await VS.MessageBox.ShowAsync(message);
         }
     }
 }

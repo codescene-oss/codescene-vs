@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core.Application.Services.ErrorHandling;
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
@@ -8,6 +9,12 @@ namespace Core.Application.Services.FileDownloader
 {
     public class FileDownloader : IFileDownloader
     {
+        private readonly IErrorsHandler _errorsHandler;
+        public FileDownloader(IErrorsHandler errorsHandler)
+        {
+            _errorsHandler = errorsHandler;
+        }
+
         public async Task HandleAsync()
         {
             try
@@ -22,7 +29,9 @@ namespace Core.Application.Services.FileDownloader
             }
             catch (Exception ex)
             {
-                throw new Exception("Error while handling extension file:" + ex);
+                var message = "Error while handling extension file";
+                _errorsHandler.Log(message, ex);
+                throw new Exception(message + ex);
             }
         }
         private async Task DownloadAsync()
@@ -44,7 +53,9 @@ namespace Core.Application.Services.FileDownloader
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error downloading file: {ex.Message}");
+                    var message = "Error downloading file";
+                    _errorsHandler.Log(message, ex);
+                    Console.WriteLine($"{message}: {ex.Message}");
                 }
             }
         }

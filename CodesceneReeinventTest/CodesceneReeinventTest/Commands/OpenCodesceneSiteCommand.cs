@@ -1,9 +1,10 @@
 ﻿using CodesceneReeinventTest.Commands;
 using Core.Application.Services.Authentication;
+using Core.Application.Services.ErrorHandling;
 
 namespace CodesceneReeinventTest;
 
-internal class OpenCodesceneSiteCommand(IAuthenticationService authService) : VsCommandBase
+internal class OpenCodesceneSiteCommand(IAuthenticationService authService, IErrorsHandler errorsHandler) : VsCommandBase
 {
     internal const int Id = PackageIds.OpenCodesceneSiteCommand;
 
@@ -29,6 +30,7 @@ internal class OpenCodesceneSiteCommand(IAuthenticationService authService) : Vs
         }
         catch (Exception ex)
         {
+            await errorsHandler.LogAsync("Authentication failed", ex);
             await VS.MessageBox.ShowWarningAsync("Error", $"Error: {ex.Message}");
         }
     }
