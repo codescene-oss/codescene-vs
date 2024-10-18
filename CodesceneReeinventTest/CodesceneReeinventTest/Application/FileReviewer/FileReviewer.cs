@@ -1,12 +1,13 @@
-﻿using CodesceneReeinventTest.Core.Models;
-using Core.Application.Services.FileReviewer;
+﻿using Core.Application.Services.FileReviewer;
 using Core.Application.Services.Mapper;
+using Core.Models;
 using Core.Models.ReviewResultModel;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 namespace CodesceneReeinventTest.Application.FileReviewer;
 
 
@@ -28,7 +29,7 @@ public class FileReviewer : IFileReviewer
     {
         ActiveReviewList.Remove(documentPath);
     }
-    public ReviewResultModel GetReviewObject(string filePath)
+    public ReviewMapModel GetReviewObject(string filePath)
     {
         ActiveReviewList.TryGetValue(filePath, out var review);
 
@@ -38,49 +39,12 @@ public class FileReviewer : IFileReviewer
             AddToActiveReviewList(filePath);
             ActiveReviewList.TryGetValue(filePath, out review);
         }
-        var obj = _mapper.Map(review);
-        return review;
+        return _mapper.Map(review);
     }
-    public List<TaggerItemModel> GetTaggerItems(string filePath)
+    public List<ReviewModel> GetTaggerItems(string filePath)
     {
         var review = GetReviewObject(filePath);
-        var tags = new List<TaggerItemModel>();
-        if (review?.FunctionLevelCodeSmells != null)
-        {
-            foreach (var issues in review.FunctionLevelCodeSmells)
-            {
-                if (issues?.CodeSmells == null) continue;
-
-                foreach (var function in issues.CodeSmells)
-                {
-                    var tag = new TaggerItemModel
-                    {
-                        TooltipText = $"{function.Category} ({function.Details})",
-                        StartLine = function.Range.Startline - 1,
-                        StartColumn = function.Range.StartColumn - 1,
-                        EndLine = function.Range.EndLine - 1,
-                        EndColumn = function.Range.EndColumn - 1
-                    };
-                    tags.Add(tag);
-                }
-            }
-        }
-        if (review?.ExpressionLevelCodeSmells != null)
-        {
-            foreach (var item in review.ExpressionLevelCodeSmells)
-            {
-                var tag = new TaggerItemModel
-                {
-                    TooltipText = $"{item.Category} ({item.Details})",
-                    StartLine = item.Range.Startline - 1,
-                    StartColumn = item.Range.StartColumn - 1,
-                    EndLine = item.Range.EndLine - 1,
-                    EndColumn = item.Range.EndColumn - 1
-                };
-                tags.Add(tag);
-            }
-        }
-        return tags;
+        return review.ExpressionLevel.Concat(review.FunctionLevel).ToList();
     }
     public ReviewResultModel Review(string path)
     {

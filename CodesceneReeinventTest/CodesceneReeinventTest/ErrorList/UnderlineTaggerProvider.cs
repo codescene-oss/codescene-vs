@@ -1,5 +1,5 @@
-﻿using CodesceneReeinventTest.Core.Models;
-using Core.Application.Services.FileReviewer;
+﻿using Core.Application.Services.FileReviewer;
+using Core.Models;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -28,7 +28,7 @@ namespace CodesceneReeinventTest.ErrorList
 
             return null;
         }
-        private List<TaggerItemModel> GetLinesToUnderline(ITextBuffer textBuffer)
+        private List<ReviewModel> GetLinesToUnderline(ITextBuffer textBuffer)
         {
             string filePath = textBuffer.GetFileName();
 

@@ -1,4 +1,4 @@
-﻿using CodesceneReeinventTest.Core.Models;
+﻿using Core.Models;
 using Core.Models.ReviewResultModel;
 using System.Collections.Generic;
 
@@ -9,7 +9,7 @@ namespace Core.Application.Services.FileReviewer
         ReviewResultModel Review(string path);
         void AddToActiveReviewList(string documentPath);
         void RemoveFromActiveReviewList(string documentPath);
-        ReviewResultModel GetReviewObject(string filePath);
-        List<TaggerItemModel> GetTaggerItems(string filePath);
+        ReviewMapModel GetReviewObject(string filePath);
+        List<ReviewModel> GetTaggerItems(string filePath);
     }
 }

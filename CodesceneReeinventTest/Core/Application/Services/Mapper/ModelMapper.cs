@@ -79,10 +79,10 @@ namespace Core.Application.Services.Mapper
             {
                 Category = review.Category,
                 Details = review.Details,
-                StartLine = review.Range.Startline,
-                EndLine = review.Range.EndLine,
-                StartColumn = review.Range.StartColumn,
-                EndColumn = review.Range.EndColumn
+                StartLine = review.Range.Startline - 1,
+                EndLine = review.Range.EndLine - 1,
+                StartColumn = review.Range.StartColumn - 1,
+                EndColumn = review.Range.EndColumn - 1
             };
         }
     }

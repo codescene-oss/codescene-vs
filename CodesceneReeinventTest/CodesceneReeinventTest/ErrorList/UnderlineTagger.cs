@@ -1,4 +1,4 @@
-﻿using CodesceneReeinventTest.Core.Models;
+﻿using Core.Models;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -9,9 +9,9 @@ namespace CodesceneReeinventTest.ErrorList
     public class UnderlineTagger : ITagger<IErrorTag>
     {
         private readonly ITextBuffer _buffer;
-        private readonly List<TaggerItemModel> _underlinePositions;
+        private readonly List<ReviewModel> _underlinePositions;
 
-        public UnderlineTagger(ITextBuffer buffer, List<TaggerItemModel> underlinePositions)
+        public UnderlineTagger(ITextBuffer buffer, List<ReviewModel> underlinePositions)
         {
             _buffer = buffer;
             _underlinePositions = underlinePositions;
@@ -34,7 +34,7 @@ namespace CodesceneReeinventTest.ErrorList
                     if (start < startLine.End && end <= endLine.End)
                     {
                         var lineSpan = new SnapshotSpan(start, end - start);
-                        yield return new TagSpan<IErrorTag>(lineSpan, new ErrorTag(PredefinedErrorTypeNames.Warning, position.TooltipText));
+                        yield return new TagSpan<IErrorTag>(lineSpan, new ErrorTag(PredefinedErrorTypeNames.Warning, position.Category + " (" + position.Details + ")"));
                     }
                 }
             }

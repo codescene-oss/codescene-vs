@@ -63,16 +63,9 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
     {
         var review = _fileReviewer.GetReviewObject(filePath);
 
-        //function has no smells
-        if (review.FunctionLevelCodeSmells == null) return false;
-        if (!review.FunctionLevelCodeSmells.Any(x => x.Range.Startline == startLine)) return false;
-        //get code smells for function
-        var listOfFunctionSmells = review.FunctionLevelCodeSmells.Where(x => x.Range.Startline == startLine).FirstOrDefault();
-        if (listOfFunctionSmells == null) return false;
-        //check if one of code smells is issue one
-        if (!listOfFunctionSmells.CodeSmells.Any(x => x.Category == issue)) return false;
+        if (review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == startLine)) return true;
 
-        return true;
+        return false;
 
     }
     public bool IsCodeSceneLensesEnabled()
