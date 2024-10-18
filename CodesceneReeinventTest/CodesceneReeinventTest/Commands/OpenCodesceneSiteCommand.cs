@@ -1,5 +1,6 @@
 ﻿using CodesceneReeinventTest.Commands;
 using Core.Application.Services.Authentication;
+using Core.Application.Services.ErrorHandling;
 using Core.Models;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -7,15 +8,15 @@ using Microsoft.VisualStudio.TaskStatusCenter;
 
 namespace CodesceneReeinventTest;
 
-internal class OpenCodesceneSiteCommand(IAuthenticationService authService) : VsCommandBase
+internal class OpenCodesceneSiteCommand(IAuthenticationService authService, IErrorsHandler errorsHandler) : VsCommandBase
 {
     internal const int Id = PackageIds.OpenCodesceneSiteCommand;
 
-    protected override async void InvokeInternal()
+    protected override void InvokeInternal()
     {
         var options = General.Instance;
         var url = string.IsNullOrEmpty(options.ServerUrl) ? General.DEFAULT_SERVER_URL : options.ServerUrl;
-        await OpenUrlAsync(url);
+        _ = OpenUrlAsync(url);
     }
     private async Task OpenUrlAsync(string url)
     {
@@ -33,42 +34,38 @@ internal class OpenCodesceneSiteCommand(IAuthenticationService authService) : Vs
         }
         catch (Exception ex)
         {
+            await errorsHandler.LogAsync("Authentication failed", ex);
             await ShowFailedStatusAsync();
         }
     }
-    private async Task ShowStartedStatusAsync()
+    private async Task ShowStartedStatusAsync(string message = "Signing in to CodeScene...")
     {
         IVsTaskStatusCenterService tsc = await VS.Services.GetTaskStatusCenterAsync();
 
         var options = default(TaskHandlerOptions);
-        options.Title = "Signing in to CodeScene...";
+        options.Title = message;
         options.ActionsAfterCompletion = CompletionActions.None;
 
         TaskProgressData data = default;
         data.CanBeCanceled = true;
 
         ITaskHandler handler = tsc.PreRegister(options, data);
-        await VS.StatusBar.ShowProgressAsync("Signing in to CodeScene...", 1, 2);
-        await VS.StatusBar.ShowMessageAsync("Signing in to CodeScene...");
+        await VS.StatusBar.ShowProgressAsync(message, 1, 2);
+        await VS.StatusBar.ShowMessageAsync(message);
     }
-    private async Task ShowSuccessStatusAsync(LoginResponse response)
+    private async Task ShowSuccessStatusAsync(LoginResponse response, string message = "Signed in to CodeScene as ")
     {
-        var model = new InfoBarModel(
-        new[] {
-                    new InfoBarTextSpan("Signed in to CodeScene as " + response.Name),
-            //new InfoBarHyperlink("Click me")f
-        },
-        KnownMonikers.PlayStepGroup,
-        true);
+        message = $"{message} {response.Name}";
+        var model = new InfoBarModel([new InfoBarTextSpan(message),], KnownMonikers.PlayStepGroup, true);
 
         InfoBar infoBar = await VS.InfoBar.CreateAsync(ToolWindowGuids80.SolutionExplorer, model);
         await infoBar.TryShowInfoBarUIAsync();
-        await VS.StatusBar.ShowProgressAsync("Signed in to CodeScene as " + response.Name, 2, 2);
-        await VS.StatusBar.ShowMessageAsync("Signed in to CodeScene as " + response.Name);
+        await VS.StatusBar.ShowProgressAsync(message, 2, 2);
+        await VS.StatusBar.ShowMessageAsync(message);
     }
-    private async Task ShowFailedStatusAsync()
+    private async Task ShowFailedStatusAsync(string message = "Signing in to CodeScene failed")
     {
-        await VS.StatusBar.ShowProgressAsync("Signing in to CodeScene failed", 2, 2);
-        await VS.StatusBar.ShowMessageAsync("Signing in to CodeScene failed");
+        await VS.StatusBar.ShowProgressAsync(message, 2, 2);
+        await VS.StatusBar.ShowMessageAsync(message);
     }
 }

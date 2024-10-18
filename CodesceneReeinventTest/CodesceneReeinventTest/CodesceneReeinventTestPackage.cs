@@ -2,6 +2,7 @@
 global using Microsoft.VisualStudio.Shell;
 global using System;
 global using Task = System.Threading.Tasks.Task;
+using CodesceneReeinventTest.Application.ErrorHandling;
 using CodesceneReeinventTest.Application.FileReviewer;
 using CodesceneReeinventTest.Application.IssueHandler;
 using CodesceneReeinventTest.Application.MDFileHandler;
@@ -11,6 +12,7 @@ using CodesceneReeinventTest.ToolWindows.Problems;
 using CodesceneReeinventTest.ToolWindows.Status;
 using Community.VisualStudio.Toolkit.DependencyInjection.Microsoft;
 using Core.Application.Services.Authentication;
+using Core.Application.Services.ErrorHandling;
 using Core.Application.Services.FileDownloader;
 using Core.Application.Services.FileReviewer;
 using Core.Application.Services.IssueHandler;
@@ -68,6 +70,7 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
         services.AddSingleton<IFileReviewer, FileReviewer>();
         services.AddSingleton<IModelMapper, ModelMapper>();
         services.AddSingleton<IFileDownloader, FileDownloader>();
+        services.AddSingleton<IErrorsHandler, ErrorsHandler>();
     }
     private Task InitOnUIThreadAsync()
     {
@@ -75,7 +78,8 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
             _serviceProvider.GetService<IMenuCommandService>(),
             _serviceProvider.GetService<IFileReviewer>(),
             _serviceProvider.GetService<IIssuesHandler>(),
-            _serviceProvider.GetService<IAuthenticationService>());
+            _serviceProvider.GetService<IAuthenticationService>(),
+            _serviceProvider.GetService<IErrorsHandler>());
 
         commandManager.Initialize(
             ShowOptionPage);
