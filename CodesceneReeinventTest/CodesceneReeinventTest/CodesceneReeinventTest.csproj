@@ -54,6 +54,9 @@
     <Compile Include="Controls\ComplexConditional.xaml.cs">
       <DependentUpon>ComplexConditional.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\ComplexMethod.xaml.cs">
+      <DependentUpon>ComplexMethod.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ExcessNumberOfFunctionArguments.xaml.cs">
       <DependentUpon>ExcessNumberOfFunctionArguments.xaml</DependentUpon>
     </Compile>
@@ -214,6 +217,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Controls\ComplexConditional.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\ComplexMethod.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

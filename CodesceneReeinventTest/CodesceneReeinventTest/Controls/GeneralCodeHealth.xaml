@@ -18,18 +18,18 @@
     <LineBreak/>
     <LineBreak/>
     <Run Text="Read more about the Code Health metric, "/>
-    <Hyperlink NavigateUri="https://codescene.io/docs/guides/technical/code-health.html#code-health-identifies-factors-known-to-impact-maintenance-costs-and-delivery-risks" 
+    <Hyperlink TextDecorations="None" NavigateUri="https://codescene.io/docs/guides/technical/code-health.html#code-health-identifies-factors-known-to-impact-maintenance-costs-and-delivery-risks" 
                RequestNavigate="Hyperlink_RequestNavigate">
         <Run Text="why it is important"/>
     </Hyperlink>
     <Run Text=" and "/>
-    <Hyperlink NavigateUri="https://codescene.io/docs/guides/technical/code-health.html#adapt-code-health-to-your-coding-standards" 
+    <Hyperlink TextDecorations="None" NavigateUri="https://codescene.io/docs/guides/technical/code-health.html#adapt-code-health-to-your-coding-standards" 
                RequestNavigate="Hyperlink_RequestNavigate">
         <Run Text="how to adapt it to your coding standards"/>
     </Hyperlink>
      <LineBreak/>
     <Run Text="in the general documentation: "/>
-    <Hyperlink NavigateUri="https://codescene.io/docs/guides/technical/code-health.html" 
+    <Hyperlink TextDecorations="None" NavigateUri="https://codescene.io/docs/guides/technical/code-health.html" 
                RequestNavigate="Hyperlink_RequestNavigate">
         <Run Text="https://codescene.io/docs/guides/technical/code-health.html"/>
     </Hyperlink>

@@ -31,7 +31,7 @@ namespace CodesceneReeinventTest.ErrorList
         private List<ReviewModel> GetLinesToUnderline(ITextBuffer textBuffer)
         {
             string filePath = textBuffer.GetFileName();
-
+            if (filePath == null) return null;
             return _fileReviewer.GetTaggerItems(filePath);
         }
         #region IDocumentEvents methods
