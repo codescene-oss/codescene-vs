@@ -19,7 +19,7 @@ namespace CodeLensProvider.Providers.ExpressionLevel
         {
             return Task.FromResult(new CodeLensDataPointDescriptor
             {
-                Description = $"Complex Conditional"
+                Description = Constants.Titles.COMPLEX_CONDITIONAL
             });
         }
 
@@ -34,7 +34,7 @@ namespace CodeLensProvider.Providers.ExpressionLevel
                     new CustomDetailsData
                     {
                         FileName = "complex-conditional",
-                        Title = "Complex Conditional"
+                        Title = Constants.Titles.COMPLEX_CONDITIONAL
                     }
                 }
             };

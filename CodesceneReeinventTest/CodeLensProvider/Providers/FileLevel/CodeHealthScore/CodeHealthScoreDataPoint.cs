@@ -29,10 +29,11 @@ namespace CodeLensProvider.Providers.FileLevel.CodeHealthScore
                 )
                 .ConfigureAwait(false);
 
+            var text = $"Code health score: {(fileCodeHealth != 0 ? fileCodeHealth.ToString() + "/10" : "No application code detected for scoring")}";
             return new CodeLensDataPointDescriptor
             {
-                Description = $"Code health score: {(fileCodeHealth != 0 ? fileCodeHealth.ToString() + "/10" : "No application code detected for scoring")}",
-                TooltipText = $"Code health score: {(fileCodeHealth != 0 ? fileCodeHealth.ToString() + "/10" : "No application code detected for scoring")}",
+                Description = text,
+                TooltipText = text
             };
         }
 

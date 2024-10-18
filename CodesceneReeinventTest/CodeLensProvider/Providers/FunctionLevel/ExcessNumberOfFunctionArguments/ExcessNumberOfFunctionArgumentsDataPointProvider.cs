@@ -12,7 +12,7 @@ namespace CodeLensProvider.Providers.FunctionLevel.ExcessNumberOfFunctionArgumen
     [Priority(100)]
     public class ExcessNumberOfFunctionArgumentsDataPointProvider : BaseDataPointProvider<ExcessNumberOfFunctionArgumentsDataPoint>
     {
-        public override string Name => "Excess Number of Function Arguments";
+        public override string Name => Constants.Titles.EXCESS_NUMBER_OF_FUNCTION_ARGUMENTS;
 
         [ImportingConstructor]
         public ExcessNumberOfFunctionArgumentsDataPointProvider(Lazy<ICodeLensCallbackService> callbackService) : base(callbackService) { }

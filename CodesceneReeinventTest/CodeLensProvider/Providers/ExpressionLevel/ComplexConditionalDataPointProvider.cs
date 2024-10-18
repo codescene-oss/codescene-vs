@@ -12,7 +12,7 @@ namespace CodeLensProvider.Providers.ExpressionLevel
     [Priority(101)]
     public class ComplexConditionalDataPointProvider : BaseDataPointProvider<ComplexConditionalDataPoint>
     {
-        public override string Name => "Complex Conditional";
+        public override string Name => Constants.Titles.COMPLEX_CONDITIONAL;
 
         [ImportingConstructor]
         public ComplexConditionalDataPointProvider(Lazy<ICodeLensCallbackService> callbackService) : base(callbackService) { }

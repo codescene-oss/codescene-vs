@@ -15,7 +15,7 @@ namespace CodeLensProvider.Providers.FunctionLevel.ExcessNumberOfFunctionArgumen
         {
             return Task.FromResult(new CodeLensDataPointDescriptor
             {
-                Description = $"Excess Number od Function Arguments"
+                Description = Constants.Titles.EXCESS_NUMBER_OF_FUNCTION_ARGUMENTS
             });
         }
 
@@ -27,7 +27,7 @@ namespace CodeLensProvider.Providers.FunctionLevel.ExcessNumberOfFunctionArgumen
                     new CustomDetailsData
                     {
                         FileName = "excess-number-of-function-arguments",
-                        Title = "Excess Number od Function Arguments"
+                        Title = Constants.Titles.EXCESS_NUMBER_OF_FUNCTION_ARGUMENTS
                     }
                 }
             };
