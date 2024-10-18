@@ -123,7 +123,7 @@ internal class IssuesHandler : IIssuesHandler
     {
         Delete(filePath);
 
-        var issues = _modelMapper.Map(review);
+        var issues = _modelMapper.MapToList(review);
         if (!issues.Any())
         {
             _errorListProvider.Show();//Just show Error list window

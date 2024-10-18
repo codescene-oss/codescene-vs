@@ -1,5 +1,6 @@
 ﻿using CodesceneReeinventTest.Core.Models;
 using Core.Application.Services.FileReviewer;
+using Core.Application.Services.Mapper;
 using Core.Models.ReviewResultModel;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -14,6 +15,8 @@ namespace CodesceneReeinventTest.Application.FileReviewer;
 public class FileReviewer : IFileReviewer
 {
     const string EXECUTABLE_FILE = "cs-win32-x64.exe";
+    [Import(typeof(IModelMapper))]
+    private readonly IModelMapper _mapper;
 
     private static readonly Dictionary<string, ReviewResultModel> ActiveReviewList = [];
     public void AddToActiveReviewList(string documentPath)
@@ -35,6 +38,7 @@ public class FileReviewer : IFileReviewer
             AddToActiveReviewList(filePath);
             ActiveReviewList.TryGetValue(filePath, out review);
         }
+        var obj = _mapper.Map(review);
         return review;
     }
     public List<TaggerItemModel> GetTaggerItems(string filePath)

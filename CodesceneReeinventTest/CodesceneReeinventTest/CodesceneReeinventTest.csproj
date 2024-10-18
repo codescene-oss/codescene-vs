@@ -254,6 +254,8 @@
     <ProjectReference Include="..\Core\Core.csproj">
       <Project>{3217b4fd-5a1b-4deb-b1d9-bcbdf5f22388}</Project>
       <Name>Core</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

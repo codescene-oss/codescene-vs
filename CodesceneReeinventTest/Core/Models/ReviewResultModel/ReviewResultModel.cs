@@ -9,11 +9,11 @@ namespace Core.Models.ReviewResultModel
     {
         public float Score { get; set; }
         [JsonProperty("file-level-code-smells")]
-        public List<FileLevelCodeSmellModel> FileLevelCodeSmells { get; set; }
+        public List<CodeSmellModel> FileLevelCodeSmells { get; set; }
         [JsonProperty("function-level-code-smells")]
         public List<FunctionLevelCodeSmellModel> FunctionLevelCodeSmells { get; set; }
         [JsonProperty("expression-level-code-smells")]
-        public List<ExpressionLevelCodeSmellModel> ExpressionLevelCodeSmells { get; set; }
+        public List<CodeSmellModel> ExpressionLevelCodeSmells { get; set; }
         public RawScore RawScore { get; set; }
     }
 }

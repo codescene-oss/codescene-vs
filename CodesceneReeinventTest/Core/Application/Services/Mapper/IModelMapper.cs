@@ -8,6 +8,7 @@ namespace Core.Application.Services.Mapper
     public interface IModelMapper
     {
         IEnumerable<ReviewModel> Map(CsReview result);
-        IEnumerable<ReviewModel> Map(ReviewResultModel result);
+        IEnumerable<ReviewModel> MapToList(ReviewResultModel result);
+        ReviewMapModel Map(ReviewResultModel result);
     }
 }
