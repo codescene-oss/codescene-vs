@@ -57,7 +57,7 @@ public class FileReviewer : IFileReviewer
         var exePath = $"{executionPath}\\{EXECUTABLE_FILE}";
         if (!File.Exists(exePath))
         {
-            throw new FileNotFoundException($"Executable file {EXECUTABLE_FILE} can not be found on the location{executionPath}!");
+            throw new FileNotFoundException($"Executable file {EXECUTABLE_FILE} can not be found on the location:\n{executionPath}!");
         }
         string arguments = $"review {path} --ide-api";
 
