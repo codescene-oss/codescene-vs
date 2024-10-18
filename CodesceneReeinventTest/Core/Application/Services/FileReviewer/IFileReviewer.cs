@@ -6,7 +6,7 @@ namespace Core.Application.Services.FileReviewer
 {
     public interface IFileReviewer
     {
-        ReviewResultModel Review(string path);
+        ReviewMapModel Review(string path);
         void AddToActiveReviewList(string documentPath);
         void RemoveFromActiveReviewList(string documentPath);
         ReviewMapModel GetReviewObject(string filePath);

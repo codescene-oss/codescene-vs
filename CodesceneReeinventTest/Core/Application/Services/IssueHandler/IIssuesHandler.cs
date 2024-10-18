@@ -10,6 +10,6 @@ namespace Core.Application.Services.IssueHandler
         string GetUrl();
         void Handle(IEnumerable<IssueModel> issues);
         void Handle(string filePath, CsReview review);
-        void Handle(string filePath, ReviewResultModel review);
+        void Handle(string filePath, ReviewMapModel review);
     }
 }

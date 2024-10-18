@@ -119,11 +119,11 @@ internal class IssuesHandler : IIssuesHandler
 
         Add(issues);
     }
-    public void Handle(string filePath, ReviewResultModel review)
+    public void Handle(string filePath, ReviewMapModel review)
     {
         Delete(filePath);
 
-        var issues = _modelMapper.MapToList(review);
+        var issues = review.FunctionLevel;
         if (!issues.Any())
         {
             _errorListProvider.Show();//Just show Error list window

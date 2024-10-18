@@ -61,7 +61,7 @@ internal class OpenCodesceneSiteCommand(IAuthenticationService authService, IErr
         InfoBar infoBar = await VS.InfoBar.CreateAsync(ToolWindowGuids80.SolutionExplorer, model);
         await infoBar.TryShowInfoBarUIAsync();
         await VS.StatusBar.ShowProgressAsync(message, 2, 2);
-        await VS.StatusBar.ShowMessageAsync(message + response.Name);
+        await VS.StatusBar.ShowMessageAsync(message);
     }
     private async Task ShowFailedStatusAsync(string message = "Signing in to CodeScene failed")
     {
