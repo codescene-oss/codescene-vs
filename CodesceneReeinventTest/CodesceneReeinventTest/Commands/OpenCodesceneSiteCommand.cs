@@ -1,5 +1,6 @@
 ﻿using CodesceneReeinventTest.Commands;
 using Core.Application.Services.Authentication;
+using Core.Models;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TaskStatusCenter;
@@ -28,7 +29,7 @@ internal class OpenCodesceneSiteCommand(IAuthenticationService authService) : Vs
             }
 
             var data = authService.GetData();
-            await ShowSuccessStatusAsync();
+            await ShowSuccessStatusAsync(data);
         }
         catch (Exception ex)
         {
@@ -50,11 +51,11 @@ internal class OpenCodesceneSiteCommand(IAuthenticationService authService) : Vs
         await VS.StatusBar.ShowProgressAsync("Signing in to CodeScene...", 1, 2);
         await VS.StatusBar.ShowMessageAsync("Signing in to CodeScene...");
     }
-    private async Task ShowSuccessStatusAsync()
+    private async Task ShowSuccessStatusAsync(LoginResponse response)
     {
         var model = new InfoBarModel(
         new[] {
-                    new InfoBarTextSpan("Signed in to CodeScene as "),
+                    new InfoBarTextSpan("Signed in to CodeScene as " + response.Name),
             //new InfoBarHyperlink("Click me")f
         },
         KnownMonikers.PlayStepGroup,
@@ -62,6 +63,8 @@ internal class OpenCodesceneSiteCommand(IAuthenticationService authService) : Vs
 
         InfoBar infoBar = await VS.InfoBar.CreateAsync(ToolWindowGuids80.SolutionExplorer, model);
         await infoBar.TryShowInfoBarUIAsync();
+        await VS.StatusBar.ShowProgressAsync("Signed in to CodeScene as " + response.Name, 2, 2);
+        await VS.StatusBar.ShowMessageAsync("Signed in to CodeScene as " + response.Name);
     }
     private async Task ShowFailedStatusAsync()
     {
