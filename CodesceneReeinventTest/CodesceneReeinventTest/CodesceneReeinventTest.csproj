@@ -51,6 +51,9 @@
     <Compile Include="CodeLens\CodeLensConnection.cs" />
     <Compile Include="CodeLens\CodeLensPackage.cs" />
     <Compile Include="CodeLens\CodeLevelMetricsCallbackService.cs" />
+    <Compile Include="Controls\BumpyRoadAhead.xaml.cs">
+      <DependentUpon>BumpyRoadAhead.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ComplexConditional.xaml.cs">
       <DependentUpon>ComplexConditional.xaml</DependentUpon>
     </Compile>
@@ -216,6 +219,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Controls\BumpyRoadAhead.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\ComplexConditional.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

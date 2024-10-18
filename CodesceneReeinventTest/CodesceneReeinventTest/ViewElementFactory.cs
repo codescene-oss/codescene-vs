@@ -38,6 +38,11 @@ namespace CodesceneReeinventTest
                     var detailsUI = new ComplexMethod();
                     return detailsUI as TView;
                 }
+                else if (detailsData.FileName == "bumpy-road-ahead")
+                {
+                    var detailsUI = new BumpyRoadAhead();
+                    return detailsUI as TView;
+                }
                 else
                 {
                     var detailsUI = new ExcessNumberOfFunctionArguments(); ;

@@ -160,6 +160,8 @@
     <Compile Include="Providers\FileLevel\CodeHealthScore\CodeHealthScoreDataPoint.cs" />
     <Compile Include="Providers\FileLevel\CodeHealthScore\CodeHealthScoreDataPointProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Providers\FunctionLevel\BumpyRoadAhead\BumpyRoadAheadDataPoint.cs" />
+    <Compile Include="Providers\FunctionLevel\BumpyRoadAhead\BumpyRoadAheadDataPointProvider.cs" />
     <Compile Include="Providers\FunctionLevel\ComplexMethod\ComplexMethodDataPoint.cs" />
     <Compile Include="Providers\FunctionLevel\ComplexMethod\ComplexMethodDataPointProvider.cs" />
     <Compile Include="Providers\FunctionLevel\ExcessNumberOfFunctionArguments\ExcessNumberOfFunctionArgumentsDataPoint.cs" />
