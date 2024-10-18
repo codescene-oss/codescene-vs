@@ -57,6 +57,15 @@
     <Compile Include="Models\CodeModel.cs" />
     <Compile Include="Models\IssueModel.cs" />
     <Compile Include="Models\ReviewModel.cs" />
+    <Compile Include="Models\ReviewResultModel\CodeSmellEnum.cs" />
+    <Compile Include="Models\ReviewResultModel\CodeSmellModel.cs" />
+    <Compile Include="Models\ReviewResultModel\HighlightRangeModel.cs" />
+    <Compile Include="Models\ReviewResultModel\ReviewMapModel.cs" />
+    <Compile Include="Models\ReviewResultModel\ReviewResultModel.cs" />
+    <Compile Include="Models\ReviewResultModel\ExpressionLevelCodeSmellModel.cs" />
+    <Compile Include="Models\ReviewResultModel\FileLevelCodeSmellModel.cs" />
+    <Compile Include="Models\ReviewResultModel\FunctionLevelCodeSmellModel.cs" />
+    <Compile Include="Models\ReviewResultModel\RangeModel.cs" />
     <Compile Include="Models\ReviewResult\Bumps.cs" />
     <Compile Include="Models\ReviewResult\BumpsBySeverity.cs" />
     <Compile Include="Models\ReviewResult\Congestion.cs" />
@@ -69,6 +78,7 @@
     <Compile Include="Models\ReviewResult\RawScore.cs" />
     <Compile Include="Models\ReviewResult\Review.cs" />
     <Compile Include="Models\ReviewResult\WorstBump.cs" />
+    <Compile Include="Models\TaggerItemModel.cs" />
     <Compile Include="Models\TargetModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

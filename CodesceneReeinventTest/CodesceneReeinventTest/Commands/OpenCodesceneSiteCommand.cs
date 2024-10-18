@@ -44,7 +44,6 @@ internal class OpenCodesceneSiteCommand : VsCommandBase
         LoginResponse loginResponse = await HandleUriAsync("https://codescene.io/configuration/devtools-tokens/add/vscode/", cts.Token);
 
     }
-
     public async Task<LoginResponse> HandleUriAsync(string redirectUri, CancellationToken cancellationToken)
     {
         using var listener = new HttpListener();

@@ -2,6 +2,7 @@
 using Core.Application.Services.Mapper;
 using Core.Models;
 using Core.Models.ReviewResult;
+using Core.Models.ReviewResultModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Collections.Generic;
@@ -106,6 +107,19 @@ internal class IssuesHandler : IIssuesHandler
     }
 
     public void Handle(string filePath, CsReview review)
+    {
+        Delete(filePath);
+
+        var issues = _modelMapper.Map(review);
+        if (!issues.Any())
+        {
+            _errorListProvider.Show();//Just show Error list window
+            return;
+        }
+
+        Add(issues);
+    }
+    public void Handle(string filePath, ReviewResultModel review)
     {
         Delete(filePath);
 

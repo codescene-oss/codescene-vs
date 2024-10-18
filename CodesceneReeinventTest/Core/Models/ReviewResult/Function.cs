@@ -12,6 +12,8 @@ namespace Core.Models.ReviewResult
 
         [JsonProperty("end-line")]
         public int Endline { get; set; }
+        public int StartColumn { get; set; }
+        public int EndColumn { get; set; }
         public string Url { get; set; }
     }
 }
