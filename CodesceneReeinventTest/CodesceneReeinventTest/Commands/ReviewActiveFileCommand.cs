@@ -12,6 +12,7 @@ internal sealed class ReviewActiveFileCommand(IFileReviewer fileReviewer, IError
     protected override async void InvokeInternal()
     {
         DocumentView docView = await VS.Documents.GetActiveDocumentViewAsync();
+
         if (docView?.TextView == null)
         {
             await VS.MessageBox.ShowAsync("There is no active opened window");

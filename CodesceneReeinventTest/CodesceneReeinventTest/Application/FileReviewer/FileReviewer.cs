@@ -1,9 +1,13 @@
 ﻿using Core.Application.Services.FileReviewer;
-using Core.Models.ReviewResult;
+using Core.Application.Services.Mapper;
+using Core.Models;
+using Core.Models.ReviewResultModel;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 namespace CodesceneReeinventTest.Application.FileReviewer;
 
 
@@ -12,7 +16,37 @@ namespace CodesceneReeinventTest.Application.FileReviewer;
 public class FileReviewer : IFileReviewer
 {
     const string EXECUTABLE_FILE = "cs-win32-x64.exe";
-    public CsReview Review(string path)
+    [Import(typeof(IModelMapper))]
+    private readonly IModelMapper _mapper;
+
+    private static readonly Dictionary<string, ReviewResultModel> ActiveReviewList = [];
+    public void AddToActiveReviewList(string documentPath)
+    {
+        var review = Review(documentPath);
+        ActiveReviewList.Add(documentPath, review);
+    }
+    public void RemoveFromActiveReviewList(string documentPath)
+    {
+        ActiveReviewList.Remove(documentPath);
+    }
+    public ReviewMapModel GetReviewObject(string filePath)
+    {
+        ActiveReviewList.TryGetValue(filePath, out var review);
+
+        //for already opened files on IDE load
+        if (review == null)
+        {
+            AddToActiveReviewList(filePath);
+            ActiveReviewList.TryGetValue(filePath, out review);
+        }
+        return _mapper.Map(review);
+    }
+    public List<ReviewModel> GetTaggerItems(string filePath)
+    {
+        var review = GetReviewObject(filePath);
+        return review.ExpressionLevel.Concat(review.FunctionLevel).ToList();
+    }
+    public ReviewResultModel Review(string path)
     {
         if (!File.Exists(path))
         {
@@ -25,7 +59,7 @@ public class FileReviewer : IFileReviewer
         {
             throw new FileNotFoundException($"Executable file {EXECUTABLE_FILE} can not be found on the location{executionPath}!");
         }
-        string arguments = $"review {path}";
+        string arguments = $"review {path} --ide-api";
 
         var processInfo = new ProcessStartInfo()
         {
@@ -40,7 +74,7 @@ public class FileReviewer : IFileReviewer
         {
             string result = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
-            return JsonConvert.DeserializeObject<CsReview>(result);
+            return JsonConvert.DeserializeObject<ReviewResultModel>(result);
         }
     }
 }

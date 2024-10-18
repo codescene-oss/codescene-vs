@@ -1,6 +1,6 @@
 ﻿using CodeLensShared;
 using Core.Application.Services.FileReviewer;
-using Core.Models.ReviewResult;
+using Core.Models.ReviewResultModel;
 using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Utilities;
@@ -24,7 +24,7 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
 
     private readonly DocumentEvents _documentEvents;
 
-    private static readonly Dictionary<string, CsReview> ActiveReviewList = [];
+    private static readonly Dictionary<string, ReviewResultModel> ActiveReviewList = [];
 
     public CodeLevelMetricsCallbackService()
     {
@@ -33,61 +33,39 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
         _documentEvents.Closed += OnDocumentClosed;
         _documentEvents.Opened += OnDocumentsOpened;
         _documentEvents.Saved += OnDocumentsSaved;
+
     }
 
     private async void OnDocumentsSaved(string filePath)
     {
-        RemoveFromActiveReviewList(filePath);
+        _fileReviewer.RemoveFromActiveReviewList(filePath);
 
-        AddToActiveReviewList(filePath);
+        _fileReviewer.AddToActiveReviewList(filePath);
         await RefreshAllCodeLensDataPointsAsync();
     }
     private void OnDocumentsOpened(string filePath)
     {
-        AddToActiveReviewList(filePath);
+        _fileReviewer.AddToActiveReviewList(filePath);
+        AddWarnings(filePath);
     }
     private void OnDocumentClosed(string filePath)
     {
-        RemoveFromActiveReviewList(filePath);
+        _fileReviewer.RemoveFromActiveReviewList(filePath);
     }
-    private void AddToActiveReviewList(string documentPath)
-    {
-        var review = _fileReviewer.Review(documentPath);
-        ActiveReviewList.Add(documentPath, review);
-    }
-    private void RemoveFromActiveReviewList(string documentPath)
-    {
-        ActiveReviewList.Remove(documentPath);
-    }
-    private CsReview GetReviewObject(string filePath)
-    {
-        ActiveReviewList.TryGetValue(filePath, out var review);
 
-        //for already opened files on IDE load
-        if (review == null)
-        {
-            AddToActiveReviewList(filePath);
-            ActiveReviewList.TryGetValue(filePath, out review);
-        }
-        return review;
-    }
     public float GetFileReviewScore(string filePath)
     {
-        var review = GetReviewObject(filePath);
+        var review = _fileReviewer.GetReviewObject(filePath);
 
         return review.Score;
     }
     public bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj)
     {
-        var review = GetReviewObject(filePath);
+        var review = _fileReviewer.GetReviewObject(filePath);
 
-        if (!review.Review.Any(x => x.Category == issue)) return false;
+        if (review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == startLine)) return true;
 
-        var listOfFunctions = review.Review.Where(x => x.Category == issue).FirstOrDefault().Functions;
-
-        if (!listOfFunctions.Any(x => x.Startline == startLine)) return false;
-
-        return true;
+        return false;
 
     }
     public bool IsCodeSceneLensesEnabled()
@@ -130,5 +108,33 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
     public static async Task RefreshAllCodeLensDataPointsAsync() =>
         await Task.WhenAll(Connections.Keys.Select(RefreshCodeLensDataPointAsync))
             .ConfigureAwait(false);
+
+
+    private async void AddWarnings(string filePath)
+    {
+        var errorListProvider = new ErrorListProvider(ServiceProvider.GlobalProvider);
+        var review = _fileReviewer.GetReviewObject(filePath);
+
+        //foreach (var issues in review.Review)
+        //{
+        //    foreach (var function in issues.Functions)
+        //    {
+        //        var errorTask = new ErrorTask
+        //        {
+
+        //            Text = issues.Category + " (" + function.Details + ")",
+        //            Document = filePath,
+        //            Line = function.Startline - 1,
+        //            Column = function.Startline,
+        //            Category = TaskCategory.BuildCompile,
+        //            ErrorCategory = TaskErrorCategory.Warning,
+        //        };
+        //        errorListProvider.Tasks.Add(errorTask);
+        //    }
+        //}
+        errorListProvider.Show();
+    }
+
+
 }
 

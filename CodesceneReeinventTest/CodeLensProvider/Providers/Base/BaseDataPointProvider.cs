@@ -38,7 +38,7 @@ namespace CodeLensProvider.Providers.Base
                    {
                        Name,
                        descriptor.FilePath,
-                       (int)startLineObject + 1,
+                       (int)startLineObject,
                        descriptorContext.Properties
                    },
                    cancellationToken: token
