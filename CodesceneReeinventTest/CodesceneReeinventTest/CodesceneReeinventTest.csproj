@@ -65,9 +65,9 @@
     <Compile Include="Commands\Base\PackageCommandManager.cs" />
     <Compile Include="Commands\ReviewActiveFileCommand.cs" />
     <Compile Include="Commands\ShowReviewResultInErrorListCommand.cs" />
-    <Compile Include="ErrorList\DocumentsEvents.cs" />
-    <Compile Include="ErrorList\UnderlineTagger.cs" />
-    <Compile Include="ErrorList\UnderlineTaggerProvider.cs" />
+    <Compile Include="UnderlineTagger\DocumentsEvents.cs" />
+    <Compile Include="UnderlineTagger\UnderlineTagger.cs" />
+    <Compile Include="UnderlineTagger\UnderlineTaggerProvider.cs" />
     <Compile Include="Helpers\BooleanToVisibilityConverter.cs" />
     <Compile Include="Application\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\MDFileHandler\MDFileHandler.cs" />

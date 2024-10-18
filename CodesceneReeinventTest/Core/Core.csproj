@@ -76,7 +76,6 @@
     <Compile Include="Models\ReviewResult\RawScore.cs" />
     <Compile Include="Models\ReviewResult\Review.cs" />
     <Compile Include="Models\ReviewResult\WorstBump.cs" />
-    <Compile Include="Models\TaggerItemModel.cs" />
     <Compile Include="Models\TargetModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

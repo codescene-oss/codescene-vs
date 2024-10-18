@@ -19,7 +19,7 @@ public class FileReviewer : IFileReviewer
     [Import(typeof(IModelMapper))]
     private readonly IModelMapper _mapper;
 
-    private static readonly Dictionary<string, ReviewResultModel> ActiveReviewList = [];
+    private static readonly Dictionary<string, ReviewMapModel> ActiveReviewList = [];
     public void AddToActiveReviewList(string documentPath)
     {
         var review = Review(documentPath);
@@ -39,14 +39,14 @@ public class FileReviewer : IFileReviewer
             AddToActiveReviewList(filePath);
             ActiveReviewList.TryGetValue(filePath, out review);
         }
-        return _mapper.Map(review);
+        return review;
     }
     public List<ReviewModel> GetTaggerItems(string filePath)
     {
         var review = GetReviewObject(filePath);
         return review.ExpressionLevel.Concat(review.FunctionLevel).ToList();
     }
-    public ReviewResultModel Review(string path)
+    public ReviewMapModel Review(string path)
     {
         if (!File.Exists(path))
         {
@@ -74,7 +74,7 @@ public class FileReviewer : IFileReviewer
         {
             string result = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
-            return JsonConvert.DeserializeObject<ReviewResultModel>(result);
+            return _mapper.Map(JsonConvert.DeserializeObject<ReviewResultModel>(result));
         }
     }
 }
