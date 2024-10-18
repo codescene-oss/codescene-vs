@@ -6,10 +6,11 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Core.Application.Services.Authentication;
 
 namespace CodesceneReeinventTest;
 
-internal class OpenCodesceneSiteCommand : VsCommandBase
+internal class OpenCodesceneSiteCommand(IAuthenticationService authService) : VsCommandBase
 {
     internal const int Id = PackageIds.OpenCodesceneSiteCommand;
 
@@ -52,27 +53,14 @@ internal class OpenCodesceneSiteCommand : VsCommandBase
 
         try
         {
-            var context = await listener.GetContextAsync();
-            var queryParams = context.Request.QueryString;
+            var loggedIn = authService.Login(url);
+            if (!loggedIn)
+            {
+                await VS.MessageBox.ShowWarningAsync("Error", $"Auth rejected!");
+            }
 
-            var name = queryParams["name"];
-            var token = queryParams["token"];
-            var userId = queryParams["user-id"];
-
-            if (string.IsNullOrEmpty(token))
-            {
-                throw new Exception("No token found in redirect");
-            }
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new Exception("No name found in redirect");
-            }
-            if (string.IsNullOrEmpty(userId))
-            {
-                throw new Exception("No user-id found in redirect");
-            }
+            var data = authService.GetData();
             await ShowSuccessStatusAsync();
-            return new LoginResponse(name, token, userId);
         }
         catch (Exception ex)
         {

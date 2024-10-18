@@ -57,6 +57,7 @@
     <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
     <Compile Include="Models\CodeModel.cs" />
     <Compile Include="Models\IssueModel.cs" />
+    <Compile Include="Models\LoginResponse.cs" />
     <Compile Include="Models\ReviewModel.cs" />
     <Compile Include="Models\ReviewResultModel\CodeSmellModel.cs" />
     <Compile Include="Models\ReviewResultModel\ReviewMapModel.cs" />
