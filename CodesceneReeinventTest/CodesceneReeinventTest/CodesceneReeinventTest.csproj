@@ -60,12 +60,8 @@
     <Compile Include="Controls\GeneralCodeHealth.xaml.cs">
       <DependentUpon>GeneralCodeHealth.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Commands\OpenErrorListWindowCommand.cs" />
-    <Compile Include="Commands\OpenProblemsWindowCommand.cs" />
     <Compile Include="Commands\OptionsCommand.cs" />
     <Compile Include="Commands\Base\PackageCommandManager.cs" />
-    <Compile Include="Commands\ReviewActiveFileCommand.cs" />
-    <Compile Include="Commands\ShowReviewResultInErrorListCommand.cs" />
     <Compile Include="UnderlineTagger\DocumentsEvents.cs" />
     <Compile Include="UnderlineTagger\UnderlineTagger.cs" />
     <Compile Include="UnderlineTagger\UnderlineTaggerProvider.cs" />

@@ -24,10 +24,6 @@ namespace CodesceneReeinventTest
         public const int CodesceneMenuGroup = 0x0001;
         public const int CodesceneMenuGroupEdit = 0x0002;
         public const int OpenCodesceneSiteCommand = 0x0400;
-        public const int OpenProblemsWindowCommand = 0x0200;
-        public const int OpenErrorListWindowCommand = 0x0300;
-        public const int ReviewActiveFileCommand = 0x0500;
-        public const int ShowReviewResultInErrorListCommand = 0x0600;
         public const int OpenStatusWindowCommand = 0x0800;
         public const int OptionsCommand = 0x1025;
 

@@ -76,8 +76,6 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
     {
         commandManager = new PackageCommandManager(
             _serviceProvider.GetService<IMenuCommandService>(),
-            _serviceProvider.GetService<IFileReviewer>(),
-            _serviceProvider.GetService<IIssuesHandler>(),
             _serviceProvider.GetService<IAuthenticationService>(),
             _serviceProvider.GetService<IErrorsHandler>());
 
