@@ -5,8 +5,50 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CodesceneReeinventTest.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
+             >
+    <Grid HorizontalAlignment="Stretch">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+            <StackPanel>
+                <!-- Title -->
+                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">
+                <Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
+                <Run Text="Brain Class" FontWeight="Bold" FontSize="16"/>
+                <LineBreak/>
+                </TextBlock>
+                <TextBlock FontSize="12" Margin="0,0,0,10">
+            A <Italic>brain class</Italic> - also known as a <Italic>god class</Italic> - is a large module with too many responsibilities. A module is a brain class if:
+                </TextBlock>
+
+                <!-- Bulleted List -->
+                <StackPanel Margin="10,0">
+                    <TextBlock Text="• it's a large module with many lines of code" />
+                    <TextBlock Text="• it has many functions" />
+                    <TextBlock>
+                    • and at least one  <Bold>Brain Method</Bold>
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- Problem Description -->
+                <TextBlock Margin="0,10,0,10" TextWrapping="Wrap">
+            Brain classes are problematic since changes become more complex over time, harder to test, 
+                    <LineBreak />
+                    and challenging to refactor the longer you wait.
+                </TextBlock>
+
+                <!-- Solution Section -->
+                <TextBlock FontSize="12" FontWeight="Bold" Margin="0,10,0,5">
+            Solution
+                </TextBlock>
+
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            Look for opportunities to modularize the design. This is done by identifying groups of functions that represent
+                    <LineBreak />
+                    different responsibilities and/or operate on different data. Once you have identified the different responsibilities, 
+                    <LineBreak />
+                    then use refactorings like 
+            <Hyperlink TextDecorations="None" NavigateUri="https://refactoring.com/catalog/extractClass.html" RequestNavigate="Hyperlink_RequestNavigate">EXTRACT CLASS</Hyperlink>.
+                </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

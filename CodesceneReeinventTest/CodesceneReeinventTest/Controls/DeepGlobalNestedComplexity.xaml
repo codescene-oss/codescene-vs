@@ -5,8 +5,38 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CodesceneReeinventTest.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
+             >
+    <Grid HorizontalAlignment="Stretch">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">
+ <Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
+ <Run Text="Deep Global Nested Complexity" FontWeight="Bold" FontSize="16"/>
+ <LineBreak/>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap"  Margin="0,0,0,10">
+            The code contains deeply nested code in its global scope, i.e. code outside functions. 
+                    <LineBreak />
+            Nesting is logical control structures such as if statements or loops. 
+                    <LineBreak />
+            The deeper the nesting, the lower the code health.
+                </TextBlock>
+
+                <!-- Explanation -->
+                <TextBlock TextWrapping="Wrap" Margin="0,10,0,10">
+            Deep nested logic increases the cognitive load on the programmer reading the code. 
+                    <LineBreak />
+                    The human working memory has a typical maximum capacity of 3-4 items; beyond that threshold, 
+                    <LineBreak />
+                    we struggle with keeping things in our head.
+                </TextBlock>
+
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            Consequently, deep nested logic has a strong correlation to defects and accounts for roughly 20% of 
+                    <LineBreak />
+                    all programming mistakes.
+                </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

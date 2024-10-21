@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Diagnostics;
+using System.Windows.Controls;
 
 namespace CodesceneReeinventTest.Controls
 {
@@ -10,6 +11,11 @@ namespace CodesceneReeinventTest.Controls
         public LargeEmbeddedCodeBlock()
         {
             InitializeComponent();
+        }
+        private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true; // Prevents the default handling of the event
         }
     }
 }
