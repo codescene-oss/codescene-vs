@@ -15,8 +15,12 @@
                 <LineBreak/>
                 </TextBlock>
 
-                <TextBlock Text="The Bumpy Road code smell is a function that contains multiple chunks of nested conditional logic. Just like a bumpy road slows down your driving, a bumpy road in code presents an obstacle to comprehension." TextWrapping="Wrap" />
-                <TextBlock Text="Fundamentally, a bumpy code road represents a lack of encapsulation which becomes an obstacle to comprehension. Worse, in imperative languages there’s also an increased risk for feature entanglement, which tends to lead to complex state management." TextWrapping="Wrap" />
+                <TextBlock TextWrapping="Wrap">
+                    <Run Text="The Bumpy Road code smell is a function that contains multiple chunks of nested conditional logic. Just like a bumpy road slows down your driving," />
+                    <LineBreak />
+                      <Run Text="a bumpy road in code presents an obstacle to comprehension. Fundamentally, a bumpy code road represents a lack of encapsulation which becomes" />
+                </TextBlock>
+                <TextBlock Text="an obstacle to comprehension. Worse, in imperative languages there’s also an increased risk for feature entanglement, which tends to lead to complex state management." TextWrapping="Wrap" />
                 <TextBlock Text="Example" FontWeight="Bold" FontSize="16" Margin="0,10,0,0" />
                 <TextBlock Text="Example 2" FontWeight="Bold" FontSize="14" Margin="0,5,0,0" />
                 <TextBlock Text="Here is an example of code that uses multiple chunks of nested conditional logic:" TextWrapping="Wrap" />
@@ -110,7 +114,12 @@
                 <Run Text="}" />
                 </TextBlock>
 
-                <TextBlock Text="In this case we were able to express the bumps in terms of more general functions that we able to place elsewhere. This enables re-use and makes the code easier to understand. We could even eliminate the comments as they now became superfluous." TextWrapping="Wrap" />
+                <TextBlock TextWrapping="Wrap" >
+                    <Run Text="In this case we were able to express the bumps in terms of more general functions that we able to place elsewhere. This enables re-use and makes the code easier" />
+                     <LineBreak />
+                     <Run Text="to understand. We could even eliminate the comments as they now became superfluous." />
+                </TextBlock>
+               
             </StackPanel>
         </ScrollViewer>
     </Grid>

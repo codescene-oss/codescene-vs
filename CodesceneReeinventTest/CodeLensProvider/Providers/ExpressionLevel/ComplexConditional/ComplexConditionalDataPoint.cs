@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CodeLensProvider.Providers.ExpressionLevel
+namespace CodeLensProvider.Providers.ExpressionLevel.ComplexConditional
 {
     public class ComplexConditionalDataPoint : BaseDataPoint
     {

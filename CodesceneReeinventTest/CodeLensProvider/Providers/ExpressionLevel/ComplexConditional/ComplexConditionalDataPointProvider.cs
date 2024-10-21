@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using System.ComponentModel.Composition;
 
-namespace CodeLensProvider.Providers.ExpressionLevel
+namespace CodeLensProvider.Providers.ExpressionLevel.ComplexConditional
 {
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(ComplexConditionalDataPointProvider))]

@@ -155,17 +155,23 @@
     <Compile Include="Providers\Base\Constants.cs" />
     <Compile Include="Providers\Base\IBaseDataPoint.cs" />
     <Compile Include="Providers\Base\VisualStudioConnection.cs" />
-    <Compile Include="Providers\ExpressionLevel\ComplexConditionalDataPoint.cs" />
-    <Compile Include="Providers\ExpressionLevel\ComplexConditionalDataPointProvider.cs" />
+    <Compile Include="Providers\ExpressionLevel\ComplexConditional\ComplexConditionalDataPoint.cs" />
+    <Compile Include="Providers\ExpressionLevel\ComplexConditional\ComplexConditionalDataPointProvider.cs" />
     <Compile Include="Providers\FileLevel\CodeHealthScore\CodeHealthScoreDataPoint.cs" />
     <Compile Include="Providers\FileLevel\CodeHealthScore\CodeHealthScoreDataPointProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Providers\FunctionLevel\BrainMethod\BrainMethodDataPoint.cs" />
+    <Compile Include="Providers\FunctionLevel\BrainMethod\BrainMethodDataPointProvider.cs" />
     <Compile Include="Providers\FunctionLevel\BumpyRoadAhead\BumpyRoadAheadDataPoint.cs" />
     <Compile Include="Providers\FunctionLevel\BumpyRoadAhead\BumpyRoadAheadDataPointProvider.cs" />
     <Compile Include="Providers\FunctionLevel\ComplexMethod\ComplexMethodDataPoint.cs" />
     <Compile Include="Providers\FunctionLevel\ComplexMethod\ComplexMethodDataPointProvider.cs" />
+    <Compile Include="Providers\FunctionLevel\DeepNestedComplexity\DeepNestedComplexityDataPoint.cs" />
+    <Compile Include="Providers\FunctionLevel\DeepNestedComplexity\DeepNestedComplexityDataPointProvider.cs" />
     <Compile Include="Providers\FunctionLevel\ExcessNumberOfFunctionArguments\ExcessNumberOfFunctionArgumentsDataPoint.cs" />
     <Compile Include="Providers\FunctionLevel\ExcessNumberOfFunctionArguments\ExcessNumberOfFunctionArgumentsDataPointProvider.cs" />
+    <Compile Include="Providers\FunctionLevel\LargeMethod\LargeMethodDataPoint.cs" />
+    <Compile Include="Providers\FunctionLevel\LargeMethod\LargeMethodDataPointProvider.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
