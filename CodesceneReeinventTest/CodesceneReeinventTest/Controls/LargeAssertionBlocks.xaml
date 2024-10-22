@@ -7,12 +7,107 @@
              mc:Ignorable="d" 
              >
     <Grid HorizontalAlignment="Stretch">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+        <ScrollViewer Margin="10" VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
             <StackPanel>
                 <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">
-<Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
-<Run Text="Large Assertion Blocks" FontWeight="Bold" FontSize="16"/>
-<LineBreak/>
+                    <Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
+                    <Run Text="Large Assertion Blocks" FontWeight="Bold" FontSize="16"/>
+                    <LineBreak/>
+                </TextBlock>
+                <TextBlock Margin="0,0,0,10">
+    This test file has several blocks of large, consecutive assert statements. Avoid adding more.
+                </TextBlock>
+
+                <!-- Explanation -->
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    Large blocks with consecutive assertions indicate a missing abstraction. Often, large assert blocks lead to duplicated test criteria too. 
+                    <LineBreak />
+                    Consider extracting and encapsulating custom assertions that communicate the test criteria in the language of your domain.
+                </TextBlock>
+
+                <!-- Example -->
+                <TextBlock FontWeight="Bold" Margin="0,0,0,5">
+    Example:
+                </TextBlock>
+
+                <TextBlock FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,5,0,0">
+    <Run Text="@Before" />
+    <Run Text=" public void createDamagedBot() {" />
+    <LineBreak />
+    <Run Text="    robT1000 = new Shapeshifting_T_1000();" />
+    <LineBreak />
+    <Run Text="    // .. lots of other code here.." />
+    <LineBreak />
+    <Run Text="}" />
+    <LineBreak />
+    <Run Text="" />
+    <LineBreak />
+    <Run Text="@Test" />
+    <Run Text=" void autoRepairsWhenDamaged() {" />
+    <LineBreak />
+    <Run Text="    robT1000.heal();" />
+    <LineBreak />
+    <Run Text="" />
+    <LineBreak />
+    <Run Text="    assertEquals(100, robT1000.cpuCapacity());" />
+    <LineBreak />
+    <Run Text="    assertTrue(robT1000.ramCheckPasses());" />
+    <LineBreak />
+    <Run Text="    assertTrue(robT1000.diskAccessible());" />
+    <LineBreak />
+    <Run Text="    assertEquals(100, robT1000.vision());" />
+    <LineBreak />
+    <Run Text="    assertEquals(CONSTANTS.FUNCTIONAL, robT1000.equipment());" />
+    <LineBreak />
+    <Run Text="}" />
+                </TextBlock>
+
+                <!-- Solution -->
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    Consider encapsulating the duplicated assertions (i.e. test criteria) in a custom assert statement that you can then re-use. 
+                    <LineBreak />
+                    We also recommend to consider the granularity of the tests; sometimes a single test tests too many things; 
+                    <LineBreak />
+                    extracting smaller tests can usually help you get rid of the duplication.
+                </TextBlock>
+
+                <!-- Improved Example -->
+                <TextBlock FontWeight="Bold" Margin="0,0,0,5">
+    Improved Example:
+                </TextBlock>
+
+                <TextBlock FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,5,0,0">
+    <Run Text="@Before" />
+    <Run Text=" public void createDamagedBot() {" />
+    <LineBreak />
+    <Run Text="    robT1000 = new Shapeshifting_T_1000();" />
+    <LineBreak />
+    <Run Text="    // .. lots of other code here.." />
+    <LineBreak />
+    <Run Text="}" />
+    <LineBreak />
+    <Run Text="" />
+    <LineBreak />
+    <Run Text="@Test" />
+    <Run Text=" void autoRepairsWhenDamaged() {" />
+    <LineBreak />
+    <Run Text="    robT1000.heal();" />
+    <LineBreak />
+    <Run Text="" />
+    <LineBreak />
+    <Run Text="    // Replace the low-level assertions with a custom assert that lets" />
+    <LineBreak />
+    <Run Text="    // us communicate in the language of our domain. Also encapsulates" />
+    <LineBreak />
+    <Run Text="    // the criteria so that we only have one place to change if/when" />
+    <LineBreak />
+    <Run Text="    // more properties are added." />
+    <LineBreak />
+    <Run Text="    // Most test frameworks have support for custom asserts." />
+    <LineBreak />
+    <Run Text="    assertFullyOperational(robT1000);" />
+    <LineBreak />
+    <Run Text="}" />
                 </TextBlock>
             </StackPanel>
         </ScrollViewer>

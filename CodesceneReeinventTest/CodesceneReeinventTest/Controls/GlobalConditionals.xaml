@@ -10,9 +10,20 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
             <StackPanel>
                 <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">
- <Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
- <Run Text="Global Conditionals" FontWeight="Bold" FontSize="16"/>
- <LineBreak/>
+                 <Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
+                 <Run Text="Global Conditionals" FontWeight="Bold" FontSize="16"/>
+                 <LineBreak/>   
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            The code has become too complex as it contains many conditional statements (e.g. if, for, while) 
+                    <LineBreak />
+                    across its implementation, leading to lower code health. Avoid adding more.
+                </TextBlock>
+
+                <TextBlock TextWrapping="Wrap" Margin="0,10,0,10">
+            Code in the global scope that grows too complex is a sign that the design lacks abstractions. 
+                    <LineBreak />
+                    Consider encapsulating the complex constructs in named functions that can serve as higher-level abstractions of the concept.
                 </TextBlock>
             </StackPanel>
         </ScrollViewer>

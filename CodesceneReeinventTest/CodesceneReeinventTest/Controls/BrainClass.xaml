@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              >
     <Grid HorizontalAlignment="Stretch">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"  Margin="10" Foreground="{x:Static SystemColors.ControlLightBrush}">
             <StackPanel>
                 <!-- Title -->
                 <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">

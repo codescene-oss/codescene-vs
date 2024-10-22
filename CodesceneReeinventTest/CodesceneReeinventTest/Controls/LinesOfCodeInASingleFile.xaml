@@ -7,12 +7,25 @@
              mc:Ignorable="d" 
              >
     <Grid HorizontalAlignment="Stretch">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+        <ScrollViewer Margin="10" VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
             <StackPanel>
                 <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">
-<Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
-<Run Text="Lines of Code in a Single File" FontWeight="Bold" FontSize="16"/>
-<LineBreak/>
+                    <Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
+                    <Run Text="Lines of Code in a Single File" FontWeight="Bold" FontSize="16"/>
+                    <LineBreak/>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            The number of lines of code in a single file. More lines of code lowers the code health.
+                </TextBlock>
+
+                <!-- Explanation -->
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            A file serves as a logical container for behavior. The larger the file, the harder it is to get an overview of its content.
+                </TextBlock>
+
+                <!-- Additional Insight -->
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            In general, high cohesion is the important metric while Lines of Code is more a rule of thumb.
                 </TextBlock>
             </StackPanel>
         </ScrollViewer>

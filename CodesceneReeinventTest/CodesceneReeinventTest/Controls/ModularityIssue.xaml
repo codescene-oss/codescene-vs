@@ -7,12 +7,38 @@
              mc:Ignorable="d" 
              >
     <Grid HorizontalAlignment="Stretch">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+        <ScrollViewer Margin="10" VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
             <StackPanel>
                 <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">
-<Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
-<Run Text="Modularity Issue" FontWeight="Bold" FontSize="16"/>
-<LineBreak/>
+                    <Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
+                    <Run Text="Modularity Issue" FontWeight="Bold" FontSize="16"/>
+                    <LineBreak/>    
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    This file is large in terms of lines of code and has accumulated many functions. 
+                    <LineBreak />
+                    Together, this indicates that the file could degrade into a <TextBlock FontWeight="Bold" TextDecorations="Underline">Brain Class</TextBlock> unless acted upon.
+</TextBlock>
+
+                <!-- Explanation -->
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    This is an early warning that the software design starts to get problematic. 
+                    <LineBreak />
+                    Look for opportunities to modularize the code by separating related groups of functions into new cohesive files/classes/modules.
+                </TextBlock>
+
+                <!-- Solution -->
+                <TextBlock TextWrapping="Wrap" FontWeight="Bold" Margin="0,0,0,10">
+    Solution
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    Look for opportunities to modularize the design. 
+                    <LineBreak />
+                    This is done by identifying groups of functions that represent different responsibilities and/or operate on different data.
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    Once you have identified the different responsibilities, then use refactorings like 
+    <Hyperlink TextDecorations="None" NavigateUri="https://refactoring.com/catalog/extractClass.html" RequestNavigate="Hyperlink_RequestNavigate">EXTRACT CLASS</Hyperlink>.
                 </TextBlock>
             </StackPanel>
         </ScrollViewer>

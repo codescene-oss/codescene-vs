@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              >
     <Grid HorizontalAlignment="Stretch">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+        <ScrollViewer Margin="10" VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
             <StackPanel>
                 <TextBlock Margin="0,0,0,10">
             Code Health Monitor [beta]

@@ -8,11 +8,14 @@
              >
     <Grid HorizontalAlignment="Stretch">
         <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
-            <StackPanel>
+            <StackPanel  Margin="10">
                 <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">
-<Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
-<Run Text="Potentially Low Cohesion" FontWeight="Bold" FontSize="16"/>
-<LineBreak/>
+                    <Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
+                    <Run Text="Potentially Low Cohesion" FontWeight="Bold" FontSize="16"/>
+                    <LineBreak/>    
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            The module has cohesion issues, but it's still at a manageable level.
                 </TextBlock>
             </StackPanel>
         </ScrollViewer>

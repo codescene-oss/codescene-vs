@@ -7,12 +7,85 @@
              mc:Ignorable="d" 
              >
     <Grid HorizontalAlignment="Stretch">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+        <ScrollViewer Margin="10" VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
             <StackPanel>
                 <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">
-<Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
-<Run Text="Primitive Obsession" FontWeight="Bold" FontSize="16"/>
-<LineBreak/>
+                    <Image Source="/CodesceneReeinventTest;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
+                    <Run Text="Primitive Obsession" FontWeight="Bold" FontSize="16"/>
+                    <LineBreak/>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    The functions in this file have too many primitive types (e.g. int, double, float) in their function argument lists. 
+                    <LineBreak />
+                    Using many primitive types lead to the code smell *Primitive Obsession*. Avoid adding more primitive arguments.
+                </TextBlock>
+
+                <!-- Explanation -->
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    Primitive obsession indicates a missing domain language, leading to a number of issues. First, primitive types typically require separate validation logic in the application code. 
+                    <LineBreak />
+                    Second, primitive types can lead to fragile code as they don't constrain the value range in the way a domain type could. Introducing domain-specific types simplifies the code and improves its robustness.
+                </TextBlock>
+
+                <!-- Example -->
+                <TextBlock TextWrapping="Wrap" FontWeight="Bold" Margin="0,0,0,10">
+    Example
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    Code that uses a high degree of built-in primitives such as integers, strings, and floats lacks a domain language that encapsulates the validation and semantics of function arguments. 
+                    <LineBreak />
+                    Primitive Obsession has several consequences:
+                </TextBlock>
+                <StackPanel Margin="0,0,0,10">
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5">
+        - In a statically typed language, the compiler will detect less erroneous assignments.
+                    </TextBlock>
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,5">
+        - Security impact since the possible value range of a variable/argument isn't restricted.
+                    </TextBlock>
+                </StackPanel>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    Here is an example of code with too many primitive types as arguments:
+                </TextBlock>
+                <TextBlock FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,5,0,0">
+                    <Run Text="public class PrimitiveObsessionExample {" />
+                    <LineBreak />
+                    <Run Text="    public JsonNode search(String query, Integer pages, Integer pageSize) {" />
+                    <LineBreak />
+                    <Run Text="        return httpClient.get(String.format(&quot;%s?q=%s&amp;pages=%d&amp;pageSize=%d&quot;, " />
+                    <LineBreak />
+                    <Run Text="            baseUrl," />
+                    <LineBreak />
+                    <Run Text="            query," />
+                    <LineBreak />
+                    <Run Text="            pages == null ? 10 : pages," />
+                    <LineBreak />
+                    <Run Text="            pageSize == null ? 10 : pages));" />
+                    <LineBreak />
+                    <Run Text="    }" />
+                    <LineBreak />
+                    <Run Text="}" />    
+                </TextBlock>
+
+                <!-- Solution -->
+                <TextBlock TextWrapping="Wrap" FontWeight="Bold" Margin="0,0,0,10">
+    Solution
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    Primitive Obsession indicates a missing domain language. Introduce data types that encapsulate the details and constraints of your domain. 
+                    <LineBreak />
+                    For example, instead of <TextBlock FontWeight="Bold">int userId</TextBlock>, consider <TextBlock FontWeight="Bold">User clicked</TextBlock>. Working with the previous example, we can make an attempt at straightening out the code:
+</TextBlock>
+                <TextBlock FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" Margin="0,5,0,0">
+                    <Run Text="public class PrimitiveObsessionExample {" />
+                    <LineBreak />
+                    <Run Text="    public JsonNode search(SearchRequest request) {" />
+                    <LineBreak />
+                    <Run Text="        return httpClient.get(request.getUrl());" />
+                    <LineBreak />
+                    <Run Text="    }" />
+                    <LineBreak />
+                    <Run Text="}" />
                 </TextBlock>
             </StackPanel>
         </ScrollViewer>
