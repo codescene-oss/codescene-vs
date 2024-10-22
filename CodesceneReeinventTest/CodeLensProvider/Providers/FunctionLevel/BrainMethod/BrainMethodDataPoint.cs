@@ -15,6 +15,7 @@ namespace CodeLensProvider.Providers.FunctionLevel.BrainMethod
         {
             return Task.FromResult(new CodeLensDataPointDescriptor
             {
+                ImageId = Constants.Images.WarningImageId,
                 Description = Constants.Titles.BRAIN_METHOD
             });
         }

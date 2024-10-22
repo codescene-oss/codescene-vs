@@ -51,9 +51,15 @@
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.VisualStudio.CoreUtility.17.11.260\lib\net472\Microsoft.VisualStudio.CoreUtility.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.ImageCatalog.17.0.31902.203\lib\net472\Microsoft.VisualStudio.ImageCatalog.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime.17.11.40252\lib\net472\Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Interop, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Interop.17.0.31902.203\lib\net472\Microsoft.VisualStudio.Interop.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Language, Version=17.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.VisualStudio.Language.17.11.260\lib\net472\Microsoft.VisualStudio.Language.dll</HintPath>
@@ -82,6 +88,7 @@
     <Reference Include="Nerdbank.Streams, Version=2.11.0.0, Culture=neutral, PublicKeyToken=cac503e1823ce71c, processorArchitecture=MSIL">
       <HintPath>..\packages\Nerdbank.Streams.2.11.79\lib\netstandard2.0\Nerdbank.Streams.dll</HintPath>
     </Reference>
+    <Reference Include="netstandard" />
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -164,6 +171,8 @@
     <Compile Include="Providers\FunctionLevel\BrainMethod\BrainMethodDataPointProvider.cs" />
     <Compile Include="Providers\FunctionLevel\BumpyRoadAhead\BumpyRoadAheadDataPoint.cs" />
     <Compile Include="Providers\FunctionLevel\BumpyRoadAhead\BumpyRoadAheadDataPointProvider.cs" />
+    <Compile Include="Providers\FunctionLevel\CodeDuplication\CodeDuplicationDataPoint.cs" />
+    <Compile Include="Providers\FunctionLevel\CodeDuplication\CodeDuplicationDataPointProvider.cs" />
     <Compile Include="Providers\FunctionLevel\ComplexMethod\ComplexMethodDataPoint.cs" />
     <Compile Include="Providers\FunctionLevel\ComplexMethod\ComplexMethodDataPointProvider.cs" />
     <Compile Include="Providers\FunctionLevel\DeepNestedComplexity\DeepNestedComplexityDataPoint.cs" />

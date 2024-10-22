@@ -6,17 +6,17 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CodeLensProvider.Providers.FunctionLevel.DeepNestedComplexity
+namespace CodeLensProvider.Providers.FunctionLevel.CodeDuplication
 {
-    public class DeepNestedComplexityDataPoint : BaseDataPoint
+    public class CodeDuplicationDataPoint : BaseDataPoint
     {
-        public DeepNestedComplexityDataPoint(CodeLensDescriptor descriptor, ICodeLensCallbackService callbackService) : base(descriptor, callbackService) { }
+        public CodeDuplicationDataPoint(CodeLensDescriptor descriptor, ICodeLensCallbackService callbackService) : base(descriptor, callbackService) { }
         public override Task<CodeLensDataPointDescriptor> GetDataAsync(CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
             return Task.FromResult(new CodeLensDataPointDescriptor
             {
                 ImageId = Constants.Images.WarningImageId,
-                Description = Constants.Titles.DEEP_NESTED_COMPLEXITY
+                Description = Constants.Titles.CODE_DUPLICATION
             });
         }
 
@@ -27,8 +27,8 @@ namespace CodeLensProvider.Providers.FunctionLevel.DeepNestedComplexity
                 CustomData = new List<CustomDetailsData>{
                     new CustomDetailsData
                     {
-                        FileName = "deep-nested-complexity",
-                        Title = Constants.Titles.DEEP_NESTED_COMPLEXITY
+                        FileName = "code-duplication",
+                        Title = Constants.Titles.CODE_DUPLICATION
                     }
                 }
             };

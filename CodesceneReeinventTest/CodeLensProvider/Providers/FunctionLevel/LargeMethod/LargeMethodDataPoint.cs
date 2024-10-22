@@ -15,6 +15,7 @@ namespace CodeLensProvider.Providers.FunctionLevel.LargeMethod
         {
             return Task.FromResult(new CodeLensDataPointDescriptor
             {
+                ImageId = Constants.Images.WarningImageId,
                 Description = Constants.Titles.LARGE_METHOD
             });
         }

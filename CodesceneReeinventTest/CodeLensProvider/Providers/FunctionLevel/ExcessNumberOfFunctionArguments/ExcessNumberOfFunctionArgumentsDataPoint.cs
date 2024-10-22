@@ -15,6 +15,7 @@ namespace CodeLensProvider.Providers.FunctionLevel.ExcessNumberOfFunctionArgumen
         {
             return Task.FromResult(new CodeLensDataPointDescriptor
             {
+                ImageId = Constants.Images.WarningImageId,
                 Description = Constants.Titles.EXCESS_NUMBER_OF_FUNCTION_ARGUMENTS
             });
         }

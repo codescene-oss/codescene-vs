@@ -19,6 +19,7 @@ namespace CodeLensProvider.Providers.ExpressionLevel.ComplexConditional
         {
             return Task.FromResult(new CodeLensDataPointDescriptor
             {
+                ImageId = Constants.Images.WarningImageId,
                 Description = Constants.Titles.COMPLEX_CONDITIONAL
             });
         }

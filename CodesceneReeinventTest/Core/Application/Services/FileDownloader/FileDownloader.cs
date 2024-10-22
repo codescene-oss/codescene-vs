@@ -59,7 +59,6 @@ namespace Core.Application.Services.FileDownloader
                 }
             }
         }
-
         private void UnzipFile()
         {
             if (File.Exists(ArtifactInfo.AbsoluteDownloadPath))

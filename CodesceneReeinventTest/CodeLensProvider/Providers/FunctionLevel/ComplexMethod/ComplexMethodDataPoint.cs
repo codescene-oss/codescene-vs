@@ -15,6 +15,7 @@ namespace CodeLensProvider.Providers.FunctionLevel.ComplexMethod
         {
             return Task.FromResult(new CodeLensDataPointDescriptor
             {
+                ImageId = Constants.Images.WarningImageId,
                 Description = Constants.Titles.COMPLEX_METHOD
             });
         }

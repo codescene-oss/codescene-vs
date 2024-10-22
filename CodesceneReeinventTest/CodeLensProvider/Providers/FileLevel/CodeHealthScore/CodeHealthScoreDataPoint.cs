@@ -32,6 +32,7 @@ namespace CodeLensProvider.Providers.FileLevel.CodeHealthScore
             var text = $"Code health score: {(fileCodeHealth != 0 ? fileCodeHealth.ToString() + "/10" : "No application code detected for scoring")}";
             return new CodeLensDataPointDescriptor
             {
+                ImageId = Constants.Images.HeartbeatImageId,
                 Description = text,
                 TooltipText = text
             };

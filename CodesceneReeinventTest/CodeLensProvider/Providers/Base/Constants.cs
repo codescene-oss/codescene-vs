@@ -1,4 +1,7 @@
-﻿namespace CodeLensProvider.Providers.Base
+﻿using Microsoft.VisualStudio.Core.Imaging;
+using Microsoft.VisualStudio.Imaging;
+
+namespace CodeLensProvider.Providers.Base
 {
     internal class Constants
     {
@@ -37,5 +40,11 @@
             public const string CODE_HEALTH_MONITOR = "Code Health Monitor";
             public const string GENERAL_CODE_HEALTH = "General Code Health";
         }
+        public class Images
+        {
+            public static readonly ImageId WarningImageId = new ImageId(KnownMonikers.StatusWarningNoColor.Guid, KnownMonikers.StatusWarningNoColor.Id);
+            public static readonly ImageId HeartbeatImageId = new ImageId(KnownMonikers.Wizard.Guid, KnownMonikers.Wizard.Id);
+        }
+
     }
 }

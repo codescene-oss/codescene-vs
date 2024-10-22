@@ -15,6 +15,7 @@ namespace CodeLensProvider.Providers.FunctionLevel.BumpyRoadAhead
         {
             return Task.FromResult(new CodeLensDataPointDescriptor
             {
+                ImageId = Constants.Images.WarningImageId,
                 Description = Constants.Titles.BUMPY_ROAD_AHEAD
             });
         }
