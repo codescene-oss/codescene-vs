@@ -8,6 +8,10 @@ namespace Core.Application.Services.Authentication
     {
         const string NEXT = "/configuration/devtools-tokens/add/vscode";//change later with visual studio next parameter
         private LoginResponse _loginResponse = null;
+
+        public event AuthSignedInHandler OnSignedIn;
+        public event AuthSignedOutHandler OnSignedOut;
+
         public LoginResponse GetData()
         {
             return _loginResponse;
@@ -47,15 +51,18 @@ namespace Core.Application.Services.Authentication
             if (response != null)
             {
                 _loginResponse = response;
+                OnSignedIn?.Invoke(response);
                 return true;
             }
 
+            OnSignedOut?.Invoke();
             return false;
         }
 
         public void SignOut()
         {
             _loginResponse = null;
+            OnSignedOut?.Invoke();
         }
 
         private LoginResponse GetResponse(HttpListenerRequest request)

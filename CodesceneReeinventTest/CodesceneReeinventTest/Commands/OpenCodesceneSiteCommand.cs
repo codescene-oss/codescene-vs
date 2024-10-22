@@ -16,9 +16,9 @@ internal class OpenCodesceneSiteCommand(IAuthenticationService authService, IErr
     {
         var options = General.Instance;
         var url = string.IsNullOrEmpty(options.ServerUrl) ? General.DEFAULT_SERVER_URL : options.ServerUrl;
-        _ = OpenUrlAsync(url);
+        _ = SignInAsync(url);
     }
-    private async Task OpenUrlAsync(string url)
+    private async Task SignInAsync(string url)
     {
         await ShowStartedStatusAsync();
         try
