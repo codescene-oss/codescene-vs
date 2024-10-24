@@ -148,6 +148,7 @@
     <Compile Include="Controls\UnderlineTaggerTooltip.xaml.cs">
       <DependentUpon>UnderlineTaggerTooltip.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\ToolWindowRegistry.cs" />
     <Compile Include="ToolWindows\UserControlWindow\UserControlWindow.cs" />
     <Compile Include="UnderlineTagger\DocumentsEvents.cs" />
     <Compile Include="UnderlineTagger\UnderlineTagger.cs" />
