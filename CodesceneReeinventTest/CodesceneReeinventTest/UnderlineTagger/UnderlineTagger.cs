@@ -1,4 +1,5 @@
-﻿using Core.Models;
+﻿using CodesceneReeinventTest.Controls;
+using Core.Models;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -34,7 +35,12 @@ namespace CodesceneReeinventTest.ErrorList
                     if (start < startLine.End && end <= endLine.End)
                     {
                         var lineSpan = new SnapshotSpan(start, end - start);
-                        yield return new TagSpan<IErrorTag>(lineSpan, new ErrorTag(PredefinedErrorTypeNames.Warning, position.Category + " (" + position.Details + ")"));
+                        yield return new TagSpan<IErrorTag>(lineSpan, new ErrorTag(PredefinedErrorTypeNames.Warning,
+
+                            //position.Category + " (" + position.Details + ")"
+                            new UnderlineTaggerTooltip(position.Category, position.Details)
+                            )
+                            );
                     }
                 }
             }

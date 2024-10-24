@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Imaging;
 
 namespace CodeLensProvider.Providers.Base
 {
-    internal class Constants
+    public class Constants
     {
         public const string DATA_POINT_PROVIDER_CONTENT_TYPE = "csharp";
         public class Titles

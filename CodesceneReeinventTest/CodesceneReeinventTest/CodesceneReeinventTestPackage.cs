@@ -10,6 +10,7 @@ using CodesceneReeinventTest.Commands;
 using CodesceneReeinventTest.ToolWindows.Markdown;
 using CodesceneReeinventTest.ToolWindows.Problems;
 using CodesceneReeinventTest.ToolWindows.Status;
+using CodesceneReeinventTest.ToolWindows.UserControlWindow;
 using Community.VisualStudio.Toolkit.DependencyInjection.Microsoft;
 using Core.Application.Services.Authentication;
 using Core.Application.Services.ErrorHandling;
@@ -19,6 +20,7 @@ using Core.Application.Services.IssueHandler;
 using Core.Application.Services.Mapper;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell.Interop;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
@@ -28,13 +30,13 @@ namespace CodesceneReeinventTest;
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 [InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Version)]
 [ProvideMenuResource("Menus.ctmenu", 1)]
-[ProvideAutoLoad(PackageGuids.PackageActivation, PackageAutoLoadFlags.BackgroundLoad)]
+[ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
 [Guid(PackageGuids.Package)]
 [ProvideToolWindow(typeof(ProblemsWindow.Pane))]
 [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
 [ProvideToolWindow(typeof(StatusWindow.Pane), Window = WindowGuids.SolutionExplorer, Style = VsDockStyle.Tabbed)]
-[ProvideToolWindow(typeof(MarkdownWindow.Pane))]
-
+[ProvideToolWindow(typeof(MarkdownWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
+[ProvideToolWindow(typeof(UserControlWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
 public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<CodesceneReeinventTestPackage>
 {
     private static IServiceProvider _serviceProvider;
