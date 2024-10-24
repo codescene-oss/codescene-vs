@@ -49,7 +49,7 @@ internal class SignInCommand(IAuthenticationService authService, IErrorsHandler 
         TaskProgressData data = default;
         data.CanBeCanceled = true;
 
-        ITaskHandler handler = tsc.PreRegister(options, data);
+        tsc.PreRegister(options, data);
         await VS.StatusBar.ShowProgressAsync(message, 1, 2);
         await VS.StatusBar.ShowMessageAsync(message);
     }

@@ -170,7 +170,6 @@
     <Compile Include="ToolWindows\Markdown\MarkdownWindowControl.xaml.cs">
       <DependentUpon>MarkdownWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ToolWindows\Problems\Class1.cs" />
     <Compile Include="ToolWindows\Status\StatusWindow.cs" />
     <Compile Include="Commands\OpenStatusWindowCommand.cs" />
     <Compile Include="ToolWindows\Status\StatusWindowControl.xaml.cs">
