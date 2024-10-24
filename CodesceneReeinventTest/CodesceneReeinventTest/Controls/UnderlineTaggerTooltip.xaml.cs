@@ -27,11 +27,11 @@ namespace CodesceneReeinventTest.Controls
                 var category = parameter as string;
                 if (ToolWindowRegistry.CategoryToIdMap.TryGetValue(category, out int toolWindowId))
                 {
-                    await UserControlWindow.HideAsync(WindowId);
-                    WindowId = toolWindowId;
+                    await UserControlWindow.HideAllUserControlWindowsAsync();
                     await UserControlWindow.ShowAsync(toolWindowId, true);
                 }
             }
+
         }
         public UnderlineTaggerTooltip(string category, string details)
         {
