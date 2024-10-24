@@ -12,20 +12,27 @@ namespace CodesceneReeinventTest
     /// </summary>
     internal sealed partial class PackageGuids
     {
-        public const string Package = "68D6A325-11E8-4790-A4BA-0EDD001FB080";
-        public const string PackageActivation = "063BA845-A14B-40A1-97B7-33BFD00272E2";
-        public const string CodeSceneMenuCommandSet = "DB0701CC-1E44-41F7-97D6-29B160A70BCB";
+        public const string guidVsPackagePkgStringString = "68d6a325-11e8-4790-a4ba-0edd001fb080";
+        public static Guid guidVsPackagePkgString = new Guid(guidVsPackagePkgStringString);
+
+        public const string CodeSceneCmdSetString = "db0701cc-1e44-41f7-97d6-29b160a70bcb";
+        public static Guid CodeSceneCmdSet = new Guid(CodeSceneCmdSetString);
+
+        public const string guidSHLMainMenuString = "d309f791-903f-11d0-9efc-00a0c911004f";
+        public static Guid guidSHLMainMenu = new Guid(guidSHLMainMenuString);
     }
     /// <summary>
     /// Helper class that encapsulates all CommandIDs uses across VS Package.
     /// </summary>
     internal sealed partial class PackageIds
     {
-        public const int CodesceneMenuGroup = 0x0001;
-        public const int CodesceneMenuGroupEdit = 0x0002;
-        public const int OpenCodesceneSiteCommand = 0x0400;
-        public const int OpenStatusWindowCommand = 0x0800;
+        public const int CodeSceneOuterGroup = 0x1020;
+        public const int CodeSceneMenu = 0x1021;
+        public const int CodeSceneCommandsGroup = 0x1022;
         public const int OptionsCommand = 0x1025;
-
+        public const int SignInCommand = 0x0400;
+        public const int OpenStatusWindowCommand = 0x0800;
+        public const int SignOutCommand = 0x0500;
+        public const int IDM_VS_MENU_EXTENSIONS = 0x0091;
     }
 }

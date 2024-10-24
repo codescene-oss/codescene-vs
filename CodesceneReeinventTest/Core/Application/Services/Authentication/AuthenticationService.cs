@@ -6,8 +6,19 @@ namespace Core.Application.Services.Authentication
 {
     public class AuthenticationService : IAuthenticationService
     {
+        private readonly IPersistenceAuthDataProvider _persistenceDataProvider;
+        public AuthenticationService(IPersistenceAuthDataProvider persistenceDataProvider)
+        {
+            _persistenceDataProvider = persistenceDataProvider;
+        }
+
         const string NEXT = "/configuration/devtools-tokens/add/vscode";//change later with visual studio next parameter
+
         private LoginResponse _loginResponse = null;
+
+        public event AuthSignedInHandler OnSignedIn;
+        public event AuthSignedOutHandler OnSignedOut;
+
         public LoginResponse GetData()
         {
             return _loginResponse;
@@ -15,6 +26,12 @@ namespace Core.Application.Services.Authentication
 
         public bool IsLoggedIn()
         {
+            //First check in-memory object
+            if (_loginResponse == null)
+            {
+                _loginResponse = _persistenceDataProvider.GetData();
+            }
+
             return _loginResponse != null;
         }
 
@@ -47,15 +64,20 @@ namespace Core.Application.Services.Authentication
             if (response != null)
             {
                 _loginResponse = response;
+                OnSignedIn?.Invoke(response);
+                _persistenceDataProvider.Store(response);
                 return true;
             }
 
+            OnSignedOut?.Invoke();
             return false;
         }
 
         public void SignOut()
         {
             _loginResponse = null;
+            _persistenceDataProvider.Clear();
+            OnSignedOut?.Invoke();
         }
 
         private LoginResponse GetResponse(HttpListenerRequest request)

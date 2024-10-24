@@ -2,6 +2,7 @@
 using CodesceneReeinventTest.ToolWindows.Markdown;
 using Core.Application.Services.Authentication;
 using Core.Application.Services.FileDownloader;
+using Core.Models;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,8 +31,11 @@ namespace CodesceneReeinventTest.ToolWindows.Status
             ViewModel = new StatusWindowModel
             {
                 CodeHealthActivated = General.Instance.PreviewCodeHealthGate,
-                IsLoggedIn = _authenticationService.IsLoggedIn()
+                IsLoggedIn = _authenticationService.IsLoggedIn(),
             };
+
+            _authenticationService.OnSignedIn += (LoginResponse response) => { ViewModel.IsLoggedIn = true; };
+            _authenticationService.OnSignedOut += () => { ViewModel.IsLoggedIn = false; };
             DataContext = ViewModel;
 
         }
