@@ -15,9 +15,6 @@
 			<Group guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" priority="0x0101">
 				<Parent guid="CodeSceneCmdSet" id="CodeSceneMenu" />
 			</Group>
-			<Group guid="CodeSceneCmdSet" id="CodesceneMenuGroupEdit" priority="0x0700">
-				<Parent guid="VSMainMenu" id="Edit" />
-			</Group>
 		</Groups>
 
 		<Menus>
@@ -32,12 +29,20 @@
 		</Menus>
 
 		<Buttons>
-			<Button guid="CodeSceneCmdSet" id="OpenCodesceneSiteCommand" priority="0x0100" type="Button">
+			<Button guid="CodeSceneCmdSet" id="SignInCommand" priority="0x0100" type="Button">
 				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
 				<Icon guid="ImageCatalogGuid" id="User" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
 				<Strings>
 					<ButtonText>Sign in with CodeScene Tools to use CodeScene</ButtonText>
+				</Strings>
+			</Button>
+			<Button guid="CodeSceneCmdSet" id="SignOutCommand" priority="0x0100" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
+				<Icon guid="ImageCatalogGuid" id="User" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>Sign out</ButtonText>
 				</Strings>
 			</Button>
 			<Button guid="CodeSceneCmdSet" id="OpenStatusWindowCommand" priority="0x0100" type="Button">
@@ -69,10 +74,9 @@
 			<IDSymbol name="CodeSceneMenu" value="0x1021" />
 			<IDSymbol name="CodeSceneCommandsGroup" value="0x1022" />
 			<IDSymbol name="OptionsCommand" value="0x1025"/>
-			<IDSymbol name="OpenCodesceneSiteCommand" value="0x0400" />
+			<IDSymbol name="SignInCommand" value="0x0400" />
 			<IDSymbol name="OpenStatusWindowCommand" value="0x0800" />
-
-			<IDSymbol name="CodesceneMenuGroupEdit" value="0x0002" />
+			<IDSymbol name="SignOutCommand" value="0x0500" />
 		</GuidSymbol>
 		<!-- External Symbols -->
 		<GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">

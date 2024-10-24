@@ -8,9 +8,9 @@ using Microsoft.VisualStudio.TaskStatusCenter;
 
 namespace CodesceneReeinventTest;
 
-internal class OpenCodesceneSiteCommand(IAuthenticationService authService, IErrorsHandler errorsHandler) : VsCommandBase
+internal class SignInCommand(IAuthenticationService authService, IErrorsHandler errorsHandler) : VsCommandBase
 {
-    internal const int Id = PackageIds.OpenCodesceneSiteCommand;
+    internal const int Id = PackageIds.SignInCommand;
 
     protected override void InvokeInternal()
     {

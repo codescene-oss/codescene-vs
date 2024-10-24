@@ -28,8 +28,8 @@ namespace CodesceneReeinventTest;
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 [InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Version)]
 [ProvideMenuResource("Menus.ctmenu", 1)]
-[ProvideAutoLoad(PackageGuids.PackageActivation, PackageAutoLoadFlags.BackgroundLoad)]
-[Guid(PackageGuids.Package)]
+[ProvideAutoLoad(PackageGuids.CodeSceneCmdSetString, PackageAutoLoadFlags.BackgroundLoad)]
+[Guid(PackageGuids.guidVsPackagePkgStringString)]
 [ProvideToolWindow(typeof(ProblemsWindow.Pane))]
 [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
 [ProvideToolWindow(typeof(StatusWindow.Pane), Window = WindowGuids.SolutionExplorer, Style = VsDockStyle.Tabbed)]
@@ -71,6 +71,7 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
         services.AddSingleton<IModelMapper, ModelMapper>();
         services.AddSingleton<IFileDownloader, FileDownloader>();
         services.AddSingleton<IErrorsHandler, ErrorsHandler>();
+        services.AddSingleton<IPersistenceAuthDataProvider, PersistenceAuthDataProvider>();
     }
     private Task InitOnUIThreadAsync()
     {

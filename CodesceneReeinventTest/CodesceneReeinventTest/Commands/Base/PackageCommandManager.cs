@@ -4,25 +4,19 @@ using System.ComponentModel.Design;
 
 namespace CodesceneReeinventTest.Commands
 {
-    internal class PackageCommandManager
+    internal class PackageCommandManager(IMenuCommandService menuService, IAuthenticationService authService, IErrorsHandler errorsHandler)
     {
         internal delegate void ShowOptionsPage(Type optionsPageToOpen);
-        private readonly IMenuCommandService menuService;
-        private readonly IAuthenticationService authService;
-        private readonly IErrorsHandler errorsHandler;
-
-        public PackageCommandManager(IMenuCommandService menuService, IAuthenticationService authService, IErrorsHandler errorsHandler)
-        {
-            this.menuService = menuService ?? throw new ArgumentNullException(nameof(menuService));
-            this.authService = authService ?? throw new ArgumentNullException(nameof(authService));
-            this.errorsHandler = errorsHandler ?? throw new ArgumentNullException(nameof(errorsHandler));
-        }
+        private readonly IMenuCommandService menuService = menuService ?? throw new ArgumentNullException(nameof(menuService));
+        private readonly IAuthenticationService authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        private readonly IErrorsHandler errorsHandler = errorsHandler ?? throw new ArgumentNullException(nameof(errorsHandler));
 
         public void Initialize(ShowOptionsPage showOptionsPage)
         {
-            RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, OpenCodesceneSiteCommand.Id, new OpenCodesceneSiteCommand(authService, errorsHandler));
-            RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, OpenStatusWindowCommand.Id, new OpenStatusWindowCommand());
-            RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
+            RegisterCommand(PackageGuids.CodeSceneCmdSetString, OpenStatusWindowCommand.Id, new OpenStatusWindowCommand());
+            RegisterCommand(PackageGuids.CodeSceneCmdSetString, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
+            RegisterCommand(PackageGuids.CodeSceneCmdSetString, SignOutCommand.Id, new SignOutCommand(authService, errorsHandler));
+            RegisterCommand(PackageGuids.CodeSceneCmdSetString, SignInCommand.Id, new SignInCommand(authService, errorsHandler));
         }
 
         private OleMenuCommand AddCommand(Guid commandGroupGuid, int commandId, EventHandler invokeHandler, EventHandler beforeQueryStatus)
@@ -36,7 +30,7 @@ namespace CodesceneReeinventTest.Commands
         }
         internal OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
         {
-            return RegisterCommand(PackageGuids.CodeSceneMenuCommandSet, commandId, command);
+            return RegisterCommand(PackageGuids.CodeSceneCmdSetString, commandId, command);
         }
         internal OleMenuCommand RegisterCommand(string commandSetGuid, int commandId, VsCommandBase command)
         {
