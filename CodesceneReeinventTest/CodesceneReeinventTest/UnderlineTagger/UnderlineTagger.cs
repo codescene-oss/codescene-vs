@@ -45,10 +45,10 @@ namespace CodesceneReeinventTest.ErrorList
                 }
             }
         }
-
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
         private void OnBufferChanged(TextContentChangedEventArgs args)
         {
+            //ovdje treba pozvati review
             TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(new SnapshotSpan(args.After, new Span())));
         }
     }

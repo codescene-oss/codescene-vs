@@ -20,6 +20,7 @@ public class FileReviewer : IFileReviewer
     private readonly IModelMapper _mapper;
 
     private static readonly Dictionary<string, ReviewMapModel> ActiveReviewList = [];
+
     public void AddToActiveReviewList(string documentPath)
     {
         var review = Review(documentPath);
