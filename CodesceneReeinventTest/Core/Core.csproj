@@ -49,7 +49,7 @@
     <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IPersistenceAuthDataProvider.cs" />
-    <Compile Include="Application\Services\Authentication\PersistenceAuthDataProvider.cs" />
+    <Compile Include="Application\Services\Authentication\FakeAuthDataProvider.cs" />
     <Compile Include="Application\Services\ErrorHandling\IErrorsHandler.cs" />
     <Compile Include="Application\Services\FileDownloader\ArtifactInfo.cs" />
     <Compile Include="Application\Services\FileDownloader\FileDownloader.cs" />
