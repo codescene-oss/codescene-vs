@@ -2,7 +2,7 @@
 
 namespace Core.Application.Services.Authentication
 {
-    public class PersistenceAuthDataProvider : IPersistenceAuthDataProvider
+    public class FakeAuthDataProvider : IPersistenceAuthDataProvider
     {
         public void Clear()
         {

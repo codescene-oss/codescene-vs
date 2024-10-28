@@ -15,8 +15,37 @@ namespace CodesceneReeinventTest.Commands
         {
             RegisterCommand(PackageGuids.CodeSceneCmdSetString, OpenStatusWindowCommand.Id, new OpenStatusWindowCommand());
             RegisterCommand(PackageGuids.CodeSceneCmdSetString, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
-            RegisterCommand(PackageGuids.CodeSceneCmdSetString, SignOutCommand.Id, new SignOutCommand(authService, errorsHandler));
-            RegisterCommand(PackageGuids.CodeSceneCmdSetString, SignInCommand.Id, new SignInCommand(authService, errorsHandler));
+
+            var signInCommand = RegisterCommand(PackageGuids.CodeSceneCmdSetString, SignInCommand.Id, new SignInCommand(authService, errorsHandler));
+            signInCommand.BeforeQueryStatus += SignInCommand_BeforeQueryStatus;
+
+            var signOutCommand = RegisterCommand(PackageGuids.CodeSceneCmdSetString, SignOutCommand.Id, new SignOutCommand(authService, errorsHandler));
+            signOutCommand.BeforeQueryStatus += SignOutCommand_BeforeQueryStatus;
+        }
+
+        private void SignOutCommand_BeforeQueryStatus(object sender, EventArgs e)
+        {
+            var command = (OleMenuCommand)sender;
+            var loggedIn = authService.IsLoggedIn();
+            command.Visible = loggedIn;
+            command.Enabled = loggedIn;
+            if (loggedIn)
+            {
+                var data = authService.GetData();
+                command.Text = $"{data.Name} - Sign Out";
+            }
+            else
+            {
+                command.Text = "Sign Out";
+            }
+        }
+
+        private void SignInCommand_BeforeQueryStatus(object sender, EventArgs e)
+        {
+            var command = (OleMenuCommand)sender;
+            var loggedIn = authService.IsLoggedIn();
+            command.Visible = !loggedIn;
+            command.Enabled = !loggedIn;
         }
 
         private OleMenuCommand AddCommand(Guid commandGroupGuid, int commandId, EventHandler invokeHandler, EventHandler beforeQueryStatus)
@@ -28,10 +57,7 @@ namespace CodesceneReeinventTest.Commands
 
             return command;
         }
-        internal OleMenuCommand RegisterCommand(int commandId, VsCommandBase command)
-        {
-            return RegisterCommand(PackageGuids.CodeSceneCmdSetString, commandId, command);
-        }
+
         internal OleMenuCommand RegisterCommand(string commandSetGuid, int commandId, VsCommandBase command)
         {
             return AddCommand(new Guid(commandSetGuid), commandId, command.Invoke, command.QueryStatus);

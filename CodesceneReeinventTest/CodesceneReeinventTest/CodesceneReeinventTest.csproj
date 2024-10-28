@@ -170,7 +170,6 @@
     <Compile Include="ToolWindows\Markdown\MarkdownWindowControl.xaml.cs">
       <DependentUpon>MarkdownWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ToolWindows\Problems\Class1.cs" />
     <Compile Include="ToolWindows\Status\StatusWindow.cs" />
     <Compile Include="Commands\OpenStatusWindowCommand.cs" />
     <Compile Include="ToolWindows\Status\StatusWindowControl.xaml.cs">
@@ -454,6 +453,10 @@
       <Name>Core</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
+    <ProjectReference Include="..\CredentialManagerPersistenceAuthProvider\CredentialManagerPersistenceAuthProvider.csproj">
+      <Project>{3e9f599c-61b2-4224-b730-e406fe8e641c}</Project>
+      <Name>CredentialManagerPersistenceAuthProvider</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

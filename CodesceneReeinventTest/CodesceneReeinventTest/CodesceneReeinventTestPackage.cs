@@ -18,6 +18,7 @@ using Core.Application.Services.FileDownloader;
 using Core.Application.Services.FileReviewer;
 using Core.Application.Services.IssueHandler;
 using Core.Application.Services.Mapper;
+using CredentialManagerPersistenceAuthProvider;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -73,7 +74,7 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
         services.AddSingleton<IModelMapper, ModelMapper>();
         services.AddSingleton<IFileDownloader, FileDownloader>();
         services.AddSingleton<IErrorsHandler, ErrorsHandler>();
-        services.AddSingleton<IPersistenceAuthDataProvider, PersistenceAuthDataProvider>();
+        services.AddSingleton<IPersistenceAuthDataProvider, CredentialManagerProvider>();
     }
     private Task InitOnUIThreadAsync()
     {

@@ -40,6 +40,7 @@
 			<Button guid="CodeSceneCmdSet" id="SignOutCommand" priority="0x0100" type="Button">
 				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
 				<Icon guid="ImageCatalogGuid" id="User" />
+				<CommandFlag>TextChanges</CommandFlag>
 				<CommandFlag>IconIsMoniker</CommandFlag>
 				<Strings>
 					<ButtonText>Sign out</ButtonText>
