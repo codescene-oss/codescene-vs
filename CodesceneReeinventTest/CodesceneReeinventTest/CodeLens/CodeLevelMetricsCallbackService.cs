@@ -70,6 +70,7 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
 
     private void OnDocumentsOpened(string filePath)
     {
+        SubscribeToChangeEvent();
         _fileReviewer.AddToActiveReviewList(filePath);
         AddWarnings(filePath);
 
@@ -86,7 +87,6 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
     }
     public bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj)
     {
-        SubscribeToChangeEvent();
         var review = _fileReviewer.GetReviewObject(filePath);
 
         if (review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == startLine)) return true;
