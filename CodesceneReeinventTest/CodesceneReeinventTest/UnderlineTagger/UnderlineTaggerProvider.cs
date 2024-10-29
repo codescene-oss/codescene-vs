@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 
 namespace CodesceneReeinventTest.ErrorList
 {
@@ -15,15 +16,14 @@ namespace CodesceneReeinventTest.ErrorList
     {
         [Import(typeof(IFileReviewer))]
         private readonly IFileReviewer _fileReviewer;
-        [Import]
-        internal ITextDocumentFactoryService TextDocumentFactoryService { get; set; }
-
+        private UnderlineTagger _tagger;
         public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
         {
             if (typeof(T) == typeof(IErrorTag))
             {
                 var linesToUnderline = GetLinesToUnderline(textBuffer);
-                return (ITagger<T>)new UnderlineTagger(textBuffer, linesToUnderline);
+                _tagger = new UnderlineTagger(textBuffer, linesToUnderline, async () => await GetRefreshedLinesToUnderline(textBuffer));
+                return (ITagger<T>)_tagger;
             }
 
             return null;
@@ -34,10 +34,14 @@ namespace CodesceneReeinventTest.ErrorList
             if (filePath == null) return null;
             return _fileReviewer.GetTaggerItems(filePath);
         }
-        #region IDocumentEvents methods
-
-        public event EventHandler<DocumentClosedEventArgs> DocumentClosed;
-
-        #endregion IDocumentEvents methods
+        private async Task<List<ReviewModel>> GetRefreshedLinesToUnderline(ITextBuffer textBuffer)
+        {
+            OnDocumentChange(textBuffer.GetFileName(), textBuffer.CurrentSnapshot.GetText());
+            return _fileReviewer.GetTaggerItems(textBuffer.GetFileName());
+        }
+        private void OnDocumentChange(string filePath, string content)
+        {
+            _fileReviewer.AddToActiveReviewList(filePath, content);
+        }
     }
 }

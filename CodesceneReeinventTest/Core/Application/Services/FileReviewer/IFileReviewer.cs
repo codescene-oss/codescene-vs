@@ -8,6 +8,7 @@ namespace Core.Application.Services.FileReviewer
     {
         ReviewMapModel Review(string path);
         void AddToActiveReviewList(string documentPath);
+        void AddToActiveReviewList(string documentPath, string content);
         void RemoveFromActiveReviewList(string documentPath);
         ReviewMapModel GetReviewObject(string filePath);
         List<ReviewModel> GetTaggerItems(string filePath);

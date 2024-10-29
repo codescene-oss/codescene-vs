@@ -26,6 +26,11 @@ public class FileReviewer : IFileReviewer
         var review = Review(documentPath);
         ActiveReviewList.Add(documentPath, review);
     }
+    public void AddToActiveReviewList(string documentPath, string content)
+    {
+        var review = Review(documentPath, content);
+        ActiveReviewList[documentPath] = review;
+    }
     public void RemoveFromActiveReviewList(string documentPath)
     {
         ActiveReviewList.Remove(documentPath);
@@ -73,6 +78,38 @@ public class FileReviewer : IFileReviewer
 
         using (var process = Process.Start(processInfo))
         {
+            string result = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+            return _mapper.Map(JsonConvert.DeserializeObject<ReviewResultModel>(result));
+        }
+    }
+    public ReviewMapModel Review(string fileName, string content)
+    {
+        var executionPath = "C:\\";
+        var exePath = $"{executionPath}\\{EXECUTABLE_FILE}";
+        if (!File.Exists(exePath))
+        {
+            throw new FileNotFoundException($"Executable file {EXECUTABLE_FILE} can not be found on the location:\n{executionPath}!");
+        }
+        string arguments = $"review --ide-api --file-name {fileName}";
+
+        var processInfo = new ProcessStartInfo()
+        {
+            FileName = exePath,
+            Arguments = arguments,
+            RedirectStandardOutput = true,
+            RedirectStandardInput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using (var process = Process.Start(processInfo))
+        {
+            if (process.StandardInput != null)
+            {
+                process.StandardInput.Write(content);
+                process.StandardInput.Close(); // Close input stream to signal end of input
+            }
             string result = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
             return _mapper.Map(JsonConvert.DeserializeObject<ReviewResultModel>(result));

@@ -4,19 +4,21 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CodesceneReeinventTest.ErrorList
 {
     public class UnderlineTagger : ITagger<IErrorTag>
     {
         private readonly ITextBuffer _buffer;
-        private readonly List<ReviewModel> _underlinePositions;
+        private List<ReviewModel> _underlinePositions;
+        private readonly Func<Task<List<ReviewModel>>> _refreshUnderlinePositions;
 
-        public UnderlineTagger(ITextBuffer buffer, List<ReviewModel> underlinePositions)
+        public UnderlineTagger(ITextBuffer buffer, List<ReviewModel> underlinePositions, Func<Task<List<ReviewModel>>> refreshUnderlinePositions)
         {
             _buffer = buffer;
             _underlinePositions = underlinePositions;
-
+            _refreshUnderlinePositions = refreshUnderlinePositions;
             _buffer.Changed += (sender, args) => OnBufferChanged(args);
         }
 
@@ -35,20 +37,21 @@ namespace CodesceneReeinventTest.ErrorList
                     if (start < startLine.End && end <= endLine.End)
                     {
                         var lineSpan = new SnapshotSpan(start, end - start);
-                        yield return new TagSpan<IErrorTag>(lineSpan, new ErrorTag(PredefinedErrorTypeNames.Warning,
-
-                            //position.Category + " (" + position.Details + ")"
-                            new UnderlineTaggerTooltip(position.Category, position.Details)
+                        yield return new TagSpan<IErrorTag>(lineSpan,
+                            new ErrorTag
+                            (
+                                PredefinedErrorTypeNames.Warning,
+                                new UnderlineTaggerTooltip(position.Category, position.Details)
                             )
-                            );
+                        );
                     }
                 }
             }
         }
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
-        private void OnBufferChanged(TextContentChangedEventArgs args)
+        private async void OnBufferChanged(TextContentChangedEventArgs args)
         {
-            //ovdje treba pozvati review
+            _underlinePositions = await _refreshUnderlinePositions.Invoke();
             TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(new SnapshotSpan(args.After, new Span())));
         }
     }

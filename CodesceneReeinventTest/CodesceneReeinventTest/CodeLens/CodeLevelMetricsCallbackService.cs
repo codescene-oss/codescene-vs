@@ -5,7 +5,6 @@ using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -31,18 +30,12 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
 
     private static readonly Dictionary<string, ReviewResultModel> ActiveReviewList = [];
 
-    [Import]
-    internal ITextDocumentFactoryService _textDocumentFactoryService { get; set; }
-
-    private IVsTextManager _textManager { get; set; }
     private ITextView _textView; // Add this to hold the current text view
     private Timer _timer;
     private readonly int _delayInMilliseconds = 3000;
 
     public CodeLevelMetricsCallbackService()
     {
-        _textManager = ServiceProvider.GlobalProvider.GetService(typeof(SVsTextManager)) as IVsTextManager;
-
         //listen to events
         _documentEvents = VS.Events.DocumentEvents;
         _documentEvents.Closed += OnDocumentClosed;
@@ -70,7 +63,7 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
 
     private void OnDocumentsOpened(string filePath)
     {
-        SubscribeToChangeEvent();
+        //SubscribeToChangeEvent();
         _fileReviewer.AddToActiveReviewList(filePath);
         AddWarnings(filePath);
 
