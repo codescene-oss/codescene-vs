@@ -1,5 +1,5 @@
 ﻿# Status of the project
-The solution was developed over approximately 45 days by two developers, Amin Ovčina and Emir Prljača. 
+The solution was developed over approximately 6 weeks by two developers, Amina Ovčina and Emir Prljača. 
 Our primary source of information for requirements was the existing and released VS Code extensions. We aimed to replicate as many functionalities and features as possible.
 
 We followed the same approach that the VS Code extension uses with the CS executable file, which involves:
@@ -36,22 +36,32 @@ Currently, this is managed with Windows Credential Manager, though it can be eas
 ***CodesceneReeinventTest/Core/Application/Services/Authentication/IPersistenceAuthDataProvider.cs.***
 
 ### File review
-Amina
+File review involves monitoring document events. When a file is opened, its review is triggered and cached until the file is closed. 
+Additionally, a file review is performed whenever the document is saved. 
+For complete functionality, file review is has to be triggered 3 seconds after the last modification, following the logic in the Visual Studio Code extension which is not yet done.
 
 ### File Downloader
-Amina
+In the status window, there is a button to manually initiate the download, extraction, and renaming of a zip file, similar to the Visual Studio Code extension. 
+For production, this process should be automated upon extension load.
 
 ### Global Error Handling
 To enable centralized error handling, we created a global error handler located in
 ***CodesceneReeinventTest/CodesceneReeinventTest/Application/ErrorHandling/ErrorsHandler.cs.***
 Currently, it logs information in the Output Window, but once the extension is in production, it should be integrated with a well-known analytics service such as Application Insights, Raygun, or Google Analytics.
 
-### Code lense
-Amina
+### CodeLens
+CodeLens functionality is implemented and displays above methods and types. 
+It does not currently appear above specific lines within methods due to IDE limitations. 
+The production version will include automatic refreshing of CodeLens indicators.
+
+### Underline
+An underline tagger has been implemented as in the Visual Studio Code extension. 
+Currently, it refreshes on every change instead of using debouncing, as this implementation was a preliminary version and not intended for production.
 
 ### Supported type of issues (smells)
-Amina
-
+Based on the Visual Studio Code extension, there are three types of code smells: file-level, function-level, and expression-level. 
+Currently supported code smells are: Complex Conditional, Code Health Score, Brain Method, Bumpy Road Ahead, Code Duplication, Complex Method, Deep Nested Complexity, Excessive Function Arguments, and Large Method. 
+Additional providers can be added in the future by following the same creation pattern.
 
 ### Status window
-Amina
+A menu item, CodeScene, has been added under the Extensions menu in the IDE, providing access to options like Sign In, Options, and Status Window—all displaying the same data as the status window in the Visual Studio Code extension.
