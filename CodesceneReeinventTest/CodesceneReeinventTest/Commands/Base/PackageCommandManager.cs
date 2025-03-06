@@ -14,6 +14,7 @@ namespace CodesceneReeinventTest.Commands
         public void Initialize(ShowOptionsPage showOptionsPage)
         {
             RegisterCommand(PackageGuids.CodeSceneCmdSetString, OpenStatusWindowCommand.Id, new OpenStatusWindowCommand());
+            RegisterCommand(PackageGuids.CodeSceneCmdSetString, OpenSpikeWindowCommand.Id, new OpenSpikeWindowCommand());
             RegisterCommand(PackageGuids.CodeSceneCmdSetString, OptionsCommand.Id, new OptionsCommand(showOptionsPage));
 
             var signInCommand = RegisterCommand(PackageGuids.CodeSceneCmdSetString, SignInCommand.Id, new SignInCommand(authService, errorsHandler));

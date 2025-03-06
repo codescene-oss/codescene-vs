@@ -32,6 +32,7 @@ namespace CodesceneReeinventTest
         public const int OptionsCommand = 0x1025;
         public const int SignInCommand = 0x0400;
         public const int OpenStatusWindowCommand = 0x0800;
+        public const int OpenSpikeWindowCommand = 0x0900;
         public const int SignOutCommand = 0x0500;
         public const int IDM_VS_MENU_EXTENSIONS = 0x0091;
     }

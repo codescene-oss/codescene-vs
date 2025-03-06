@@ -38,6 +38,7 @@ namespace CodesceneReeinventTest;
 [ProvideToolWindow(typeof(StatusWindow.Pane), Window = WindowGuids.SolutionExplorer, Style = VsDockStyle.Tabbed)]
 [ProvideToolWindow(typeof(MarkdownWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
 [ProvideToolWindow(typeof(UserControlWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
+[ProvideToolWindow(typeof(SpikeWindow.Pane), Window = WindowGuids.SolutionExplorer, Style = VsDockStyle.Tabbed)]
 public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<CodesceneReeinventTestPackage>
 {
     private static IServiceProvider _serviceProvider;
