@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CredentialManagerPersistenceAuthProvider", "CredentialManagerPersistenceAuthProvider\CredentialManagerPersistenceAuthProvider.csproj", "{3E9F599C-61B2-4224-B730-E406FE8E641C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codescene.VSExtension.DocumentationFetcher", "Codescene.VSExtension.DocumentationFetcher\Codescene.VSExtension.DocumentationFetcher.csproj", "{62B96C57-10ED-4B0A-9E6B-6261D010588B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Release|arm64.Build.0 = Release|Any CPU
 		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Release|x86.ActiveCfg = Release|Any CPU
 		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Release|x86.Build.0 = Release|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Debug|arm64.Build.0 = Debug|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Debug|x86.Build.0 = Debug|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Release|arm64.ActiveCfg = Release|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Release|arm64.Build.0 = Release|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Release|x86.ActiveCfg = Release|Any CPU
+		{62B96C57-10ED-4B0A-9E6B-6261D010588B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
