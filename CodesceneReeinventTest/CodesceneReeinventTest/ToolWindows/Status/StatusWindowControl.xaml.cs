@@ -13,14 +13,14 @@ namespace CodesceneReeinventTest.ToolWindows.Status
     {
         private readonly IAuthenticationService _authenticationService;
         private readonly IMDFileHandler _mDFileHandler;
-        private readonly IFileDownloader _fileDownloader;
+        private readonly ICliExecutableHandler _fileDownloader;
         public StatusWindowModel ViewModel { get; set; }
 
         public StatusWindowControl()
         {
             _authenticationService = CodesceneReeinventTestPackage.GetService<IAuthenticationService>();
             _mDFileHandler = CodesceneReeinventTestPackage.GetService<IMDFileHandler>();
-            _fileDownloader = CodesceneReeinventTestPackage.GetService<IFileDownloader>();
+            _fileDownloader = CodesceneReeinventTestPackage.GetService<ICliExecutableHandler>();
 
             //fire event on settings change
             General.Saved += OnSettingsSaved;
@@ -60,7 +60,7 @@ namespace CodesceneReeinventTest.ToolWindows.Status
 
         private async void OpenFileDownloadButton_Click(object sender, RoutedEventArgs e)
         {
-            await _fileDownloader.HandleAsync();
+            await _fileDownloader.DownloadAsync();
         }
     }
 }

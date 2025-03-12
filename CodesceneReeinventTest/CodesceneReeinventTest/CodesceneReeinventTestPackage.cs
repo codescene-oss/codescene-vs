@@ -60,11 +60,28 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
         await base.InitializeAsync(cancellationToken, progress);
+
+        //Check if this is first run of the extension so we can download or upgrade the cli file
+        var regHelper = new RegistryHelper();
+        bool hasRunBefore = regHelper.CheckIfHasRunBefore();
+        var handler = _serviceProvider.GetService<ICliExecutableHandler>();
+        if (hasRunBefore)
+        {
+            await handler.UpgradeFileVersionIfNecessaryAsync();
+        }
+        else
+        {
+            await handler.DownloadAsync();
+            regHelper.SetHasRunBefore();
+        }
+
         var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel));
         componentModel.DefaultCompositionService.SatisfyImportsOnce(this);
         this.RegisterToolWindows();
         await InitOnUIThreadAsync();
     }
+
+
     void RegisterServices(IServiceCollection services)
     {
         services.AddSingleton<IIssuesHandler, IssuesHandler>();
@@ -72,7 +89,7 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
         services.AddSingleton<IMDFileHandler, MDFileHandler>();
         services.AddSingleton<IFileReviewer, FileReviewer>();
         services.AddSingleton<IModelMapper, ModelMapper>();
-        services.AddSingleton<IFileDownloader, FileDownloader>();
+        services.AddSingleton<ICliExecutableHandler, CliExecutableHandler>();
         services.AddSingleton<IErrorsHandler, ErrorsHandler>();
         services.AddSingleton<IPersistenceAuthDataProvider, CredentialManagerProvider>();
     }

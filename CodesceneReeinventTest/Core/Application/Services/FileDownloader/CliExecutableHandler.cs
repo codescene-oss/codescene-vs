@@ -7,21 +7,21 @@ using System.Threading.Tasks;
 
 namespace Core.Application.Services.FileDownloader
 {
-    public class FileDownloader : IFileDownloader
+    public class CliExecutableHandler : ICliExecutableHandler
     {
         private readonly IErrorsHandler _errorsHandler;
-        public FileDownloader(IErrorsHandler errorsHandler)
+        public CliExecutableHandler(IErrorsHandler errorsHandler)
         {
             _errorsHandler = errorsHandler;
         }
 
-        public async Task HandleAsync()
+        public async Task DownloadAsync()
         {
             try
             {
                 if (!File.Exists(ArtifactInfo.AbsoluteBinaryPath))
                 {
-                    await DownloadAsync();
+                    await _DownloadAsync();
                     UnzipFile();
                     RenameFile();
                     DeleteFile();
@@ -34,7 +34,7 @@ namespace Core.Application.Services.FileDownloader
                 throw new Exception(message + ex);
             }
         }
-        private async Task DownloadAsync()
+        private async Task _DownloadAsync()
         {
             using (var client = new HttpClient())
             {
@@ -99,35 +99,10 @@ namespace Core.Application.Services.FileDownloader
 
             Console.WriteLine($"The file at {ArtifactInfo.AbsoluteDownloadPath} was not found.");
         }
-        private void Test3(string v, string c, string d, string e, string f, string g)
+
+        public Task UpgradeFileVersionIfNecessaryAsync()
         {
-            if (1 == 2 || 2 == 2 || 3 == 2)
-            {
-            }
-            else if (1 == 2)
-            {
-            }
-            else if (1 == 3)
-            {
-
-            }
-        }
-
-        private void Test4(string v, string c, string d, string e, string f) 
-        {
-            if (1 == 2 || 2 == 2 || 3 == 2) 
-            {
-                 
-            }
-            else if (1 == 2)
-            {
-
-
-            }
-            else if (1 == 3)
-            {
-
-            }
+            throw new NotImplementedException();
         }
     }
 }
