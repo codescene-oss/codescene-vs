@@ -396,3 +396,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/CodesceneReeinventTest/CodesceneReeinventTest/cs-win32-x64.exe

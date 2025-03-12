@@ -52,9 +52,9 @@
     <Compile Include="Application\Services\Authentication\FakeAuthDataProvider.cs" />
     <Compile Include="Application\Services\ErrorHandling\IErrorsHandler.cs" />
     <Compile Include="Application\Services\FileDownloader\ArtifactInfo.cs" />
-    <Compile Include="Application\Services\FileDownloader\CliExecutableHandler.cs" />
-    <Compile Include="Application\Services\FileDownloader\ICliExecutableHandler.cs" />
-    <Compile Include="Application\Services\FileReviewer\IFileReviewer.cs" />
+    <Compile Include="Application\Services\FileDownloader\CliDownloader.cs" />
+    <Compile Include="Application\Services\FileDownloader\ICliDownloader.cs" />
+    <Compile Include="Application\Services\FileReviewer\ICliExecuter.cs" />
     <Compile Include="Application\Services\IssueHandler\IIssuesHandler.cs" />
     <Compile Include="Application\Services\Mapper\IModelMapper.cs" />
     <Compile Include="Application\Services\Mapper\ModelMapper.cs" />

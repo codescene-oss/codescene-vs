@@ -23,8 +23,8 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
 {
     public static readonly ConcurrentDictionary<string, CodeLensConnection> Connections = new();
     public static bool CodeSceneLensesEnabled;
-    [Import(typeof(IFileReviewer))]
-    private readonly IFileReviewer _fileReviewer;
+    [Import(typeof(ICliExecuter))]
+    private readonly ICliExecuter _fileReviewer;
 
     private readonly DocumentEvents _documentEvents;
 

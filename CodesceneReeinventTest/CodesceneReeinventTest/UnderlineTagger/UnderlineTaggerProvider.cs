@@ -14,8 +14,8 @@ namespace CodesceneReeinventTest.ErrorList
     [TagType(typeof(IErrorTag))]
     internal class UnderlineTaggerProvider : ITaggerProvider
     {
-        [Import(typeof(IFileReviewer))]
-        private readonly IFileReviewer _fileReviewer;
+        [Import(typeof(ICliExecuter))]
+        private readonly ICliExecuter _fileReviewer;
         private UnderlineTagger _tagger;
         public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
         {

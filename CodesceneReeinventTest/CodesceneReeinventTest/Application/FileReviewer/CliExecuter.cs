@@ -1,4 +1,5 @@
-﻿using Core.Application.Services.FileReviewer;
+﻿using Core.Application.Services.FileDownloader;
+using Core.Application.Services.FileReviewer;
 using Core.Application.Services.Mapper;
 using Core.Models;
 using Core.Models.ReviewResultModel;
@@ -11,11 +12,11 @@ using System.Linq;
 namespace CodesceneReeinventTest.Application.FileReviewer;
 
 
-[Export(typeof(IFileReviewer))] // MEF export attribute
+[Export(typeof(ICliExecuter))] // MEF export attribute
 [PartCreationPolicy(CreationPolicy.Shared)] // Ensures a single instance
-public class FileReviewer : IFileReviewer
+public class CliExecuter : ICliExecuter
 {
-    const string EXECUTABLE_FILE = "cs-win32-x64.exe";
+    //const string EXECUTABLE_FILE = "cs-win32-x64.exe";
     [Import(typeof(IModelMapper))]
     private readonly IModelMapper _mapper;
 
@@ -52,46 +53,28 @@ public class FileReviewer : IFileReviewer
         var review = GetReviewObject(filePath);
         return review.ExpressionLevel.Concat(review.FunctionLevel).ToList();
     }
+
     public ReviewMapModel Review(string path)
     {
-        if (!File.Exists(path))
-        {
-            throw new FileNotFoundException($"File not found!\n{path}");
-        }
-
-        var executionPath = "C:\\"; //Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        var exePath = $"{executionPath}\\{EXECUTABLE_FILE}";
-        if (!File.Exists(exePath))
-        {
-            throw new FileNotFoundException($"Executable file {EXECUTABLE_FILE} can not be found on the location:\n{executionPath}!");
-        }
         string arguments = $"review {path} --ide-api";
-
-        var processInfo = new ProcessStartInfo()
-        {
-            FileName = exePath,
-            Arguments = arguments,
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
-        using (var process = Process.Start(processInfo))
-        {
-            string result = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-            return _mapper.Map(JsonConvert.DeserializeObject<ReviewResultModel>(result));
-        }
+        var result = ExecuteCommand(arguments);
+        return _mapper.Map(JsonConvert.DeserializeObject<ReviewResultModel>(result));
     }
+
     public ReviewMapModel Review(string fileName, string content)
     {
-        var executionPath = "C:\\";
-        var exePath = $"{executionPath}\\{EXECUTABLE_FILE}";
+        string arguments = $"review --ide-api --file-name {fileName}";
+        var result = ExecuteCommand(arguments, content: content);
+        return _mapper.Map(JsonConvert.DeserializeObject<ReviewResultModel>(result));
+    }
+
+    private string ExecuteCommand(string arguments, string content = null)
+    {
+        var exePath = ArtifactInfo.ABSOLUTE_CLI_FILE_PATH;
         if (!File.Exists(exePath))
         {
-            throw new FileNotFoundException($"Executable file {EXECUTABLE_FILE} can not be found on the location:\n{executionPath}!");
+            throw new FileNotFoundException($"Executable file {exePath} can not be found on the location!");
         }
-        string arguments = $"review --ide-api --file-name {fileName}";
 
         var processInfo = new ProcessStartInfo()
         {
@@ -103,16 +86,22 @@ public class FileReviewer : IFileReviewer
             CreateNoWindow = true
         };
 
-        using (var process = Process.Start(processInfo))
+        using var process = Process.Start(processInfo);
+        if (process.StandardInput != null && content != null)
         {
-            if (process.StandardInput != null)
-            {
-                process.StandardInput.Write(content);
-                process.StandardInput.Close(); // Close input stream to signal end of input
-            }
-            string result = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
-            return _mapper.Map(JsonConvert.DeserializeObject<ReviewResultModel>(result));
+            process.StandardInput.Write(content);
+            process.StandardInput.Close(); // Close input stream to signal end of input
         }
+        string result = process.StandardOutput.ReadToEnd();
+        process.WaitForExit();
+
+        return result;
+    }
+
+    public string GetFileVersion()
+    {
+        string arguments = $"version --sha";
+        var result = ExecuteCommand(arguments);
+        return result.TrimEnd('\r', '\n');
     }
 }

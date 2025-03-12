@@ -61,19 +61,9 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
     {
         await base.InitializeAsync(cancellationToken, progress);
 
-        //Check if this is first run of the extension so we can download or upgrade the cli file
-        var regHelper = new RegistryHelper();
-        bool hasRunBefore = regHelper.CheckIfHasRunBefore();
-        var handler = _serviceProvider.GetService<ICliExecutableHandler>();
-        if (hasRunBefore)
-        {
-            await handler.UpgradeFileVersionIfNecessaryAsync();
-        }
-        else
-        {
-            await handler.DownloadAsync();
-            regHelper.SetHasRunBefore();
-        }
+        //Check CLI file
+        var cliDownloader = _serviceProvider.GetService<ICliDownloader>();
+        await cliDownloader.DownloadOrUpgradeAsync();
 
         var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel));
         componentModel.DefaultCompositionService.SatisfyImportsOnce(this);
@@ -87,9 +77,9 @@ public sealed class CodesceneReeinventTestPackage : MicrosoftDIToolkitPackage<Co
         services.AddSingleton<IIssuesHandler, IssuesHandler>();
         services.AddSingleton<IAuthenticationService, AuthenticationService>();
         services.AddSingleton<IMDFileHandler, MDFileHandler>();
-        services.AddSingleton<IFileReviewer, FileReviewer>();
+        services.AddSingleton<ICliExecuter, CliExecuter>();
         services.AddSingleton<IModelMapper, ModelMapper>();
-        services.AddSingleton<ICliExecutableHandler, CliExecutableHandler>();
+        services.AddSingleton<ICliDownloader, CliDownloader>();
         services.AddSingleton<IErrorsHandler, ErrorsHandler>();
         services.AddSingleton<IPersistenceAuthDataProvider, CredentialManagerProvider>();
     }

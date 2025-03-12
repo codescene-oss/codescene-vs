@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Core.Application.Services.FileReviewer
 {
-    public interface IFileReviewer
+    public interface ICliExecuter
     {
         ReviewMapModel Review(string path);
         void AddToActiveReviewList(string documentPath);
@@ -12,5 +12,6 @@ namespace Core.Application.Services.FileReviewer
         void RemoveFromActiveReviewList(string documentPath);
         ReviewMapModel GetReviewObject(string filePath);
         List<ReviewModel> GetTaggerItems(string filePath);
+        string GetFileVersion();
     }
 }

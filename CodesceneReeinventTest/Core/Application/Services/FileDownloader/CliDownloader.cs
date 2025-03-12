@@ -1,4 +1,5 @@
 ﻿using Core.Application.Services.ErrorHandling;
+using Core.Application.Services.FileReviewer;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -7,34 +8,24 @@ using System.Threading.Tasks;
 
 namespace Core.Application.Services.FileDownloader
 {
-    public class CliExecutableHandler : ICliExecutableHandler
+    public class CliDownloader : ICliDownloader
     {
         private readonly IErrorsHandler _errorsHandler;
-        public CliExecutableHandler(IErrorsHandler errorsHandler)
+        private readonly ICliExecuter _cliExecuter;
+        public CliDownloader(IErrorsHandler errorsHandler, ICliExecuter cliExecuter)
         {
             _errorsHandler = errorsHandler;
+            _cliExecuter = cliExecuter;
         }
 
-        public async Task DownloadAsync()
+        private async Task DownloadAsync()
         {
-            try
-            {
-                if (!File.Exists(ArtifactInfo.AbsoluteBinaryPath))
-                {
-                    await _DownloadAsync();
-                    UnzipFile();
-                    RenameFile();
-                    DeleteFile();
-                }
-            }
-            catch (Exception ex)
-            {
-                var message = "Error while handling extension file";
-                _errorsHandler.Log(message, ex);
-                throw new Exception(message + ex);
-            }
+            await DownloadFromRepoAsync();
+            UnzipFile();
+            RenameFile();
+            DeleteFile();
         }
-        private async Task _DownloadAsync()
+        private async Task DownloadFromRepoAsync()
         {
             using (var client = new HttpClient())
             {
@@ -53,7 +44,7 @@ namespace Core.Application.Services.FileDownloader
                 }
                 catch (Exception ex)
                 {
-                    var message = "Error downloading file";
+                    var message = "Error downloading cli file";
                     _errorsHandler.Log(message, ex);
                     Console.WriteLine($"{message}: {ex.Message}");
                 }
@@ -79,9 +70,9 @@ namespace Core.Application.Services.FileDownloader
         {
             if (File.Exists(ArtifactInfo.ExecFromZipPath))
             {
-                if (!File.Exists(ArtifactInfo.AbsoluteBinaryPath))
+                if (!File.Exists(ArtifactInfo.ABSOLUTE_CLI_FILE_PATH))
                 {
-                    File.Move(ArtifactInfo.ExecFromZipPath, ArtifactInfo.AbsoluteBinaryPath);
+                    File.Move(ArtifactInfo.ExecFromZipPath, ArtifactInfo.ABSOLUTE_CLI_FILE_PATH);
                 }
                 return;
             }
@@ -100,9 +91,31 @@ namespace Core.Application.Services.FileDownloader
             Console.WriteLine($"The file at {ArtifactInfo.AbsoluteDownloadPath} was not found.");
         }
 
-        public Task UpgradeFileVersionIfNecessaryAsync()
+        public async Task DownloadOrUpgradeAsync()
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (!File.Exists(ArtifactInfo.ABSOLUTE_CLI_FILE_PATH))
+                {
+                    await DownloadAsync();
+                    return;
+                }
+
+                var currentCliVersion = _cliExecuter.GetFileVersion();
+                if (currentCliVersion == ArtifactInfo.REQUIRED_DEV_TOOLS_VERSION)
+                {
+                    return;
+                }
+
+                File.Delete(ArtifactInfo.ABSOLUTE_CLI_FILE_PATH);
+                await DownloadAsync();
+            }
+            catch (Exception ex)
+            {
+                var message = "Error downloading or upgrading CLI file";
+                _errorsHandler.Log(message, ex);
+                Console.WriteLine($"{message}: {ex.Message}");
+            }
         }
     }
 }
