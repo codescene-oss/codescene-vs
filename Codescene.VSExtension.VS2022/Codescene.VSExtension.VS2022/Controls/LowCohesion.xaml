@@ -1,0 +1,33 @@
+﻿<UserControl x:Class="Codescene.VSExtension.VS2022.Controls.LowCohesion"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Codescene.VSExtension.VS2022.Controls"
+             mc:Ignorable="d" 
+             >
+    <Grid HorizontalAlignment="Stretch">
+        <ScrollViewer Margin="10" VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">
+                    <Image Source="/Codescene.VSExtension.VS2022;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
+                    <Run Text="Low Cohesion" FontWeight="Bold" FontSize="16"/>
+                    <LineBreak/>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    This file contains many data declarations, leading to a long file.
+                </TextBlock>
+
+                <!-- Explanation -->
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    The more declarations, the more likely that the file contains too many responsibilities.
+                </TextBlock>
+
+                <!-- Additional Insight -->
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+    In general, high cohesion is the important metric while Lines of Declarations is more a rule of thumb.
+                </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,58 @@
+﻿<UserControl x:Class="Codescene.VSExtension.VS2022.Controls.ConstructorOverInjection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Codescene.VSExtension.VS2022.Controls"
+             mc:Ignorable="d" 
+             >
+    <Grid HorizontalAlignment="Stretch">
+        <ScrollViewer Margin="10" VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">
+                <Image Source="/Codescene.VSExtension.VS2022;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
+                <Run Text="Constructor Over-Injection" FontWeight="Bold" FontSize="16"/>
+                <LineBreak/>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            This constructor has too many arguments, indicating an object with low cohesion or missing function 
+                    <LineBreak />
+                    argument abstraction. Avoid adding more arguments. Remediate this issue by one of:
+                </TextBlock>
+
+                <!-- Bulleted List -->
+                <StackPanel Margin="10,0">
+                    <TextBlock Text="• Splitting the class if it has too many responsibilities." />
+                    <TextBlock Text="• Introducing an abstraction (class, record, struct, etc.) which encapsulates the arguments." />
+                </StackPanel>
+
+                <!-- Solution Section -->
+                <TextBlock FontSize="16" FontWeight="Bold" Margin="0,10,0,5">
+            Solution
+                </TextBlock>
+
+                <!-- Solution Details with Links -->
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            There are multiple ways of addressing constructor over-injection:
+                </TextBlock>
+
+                <StackPanel Margin="10,0">
+                    <TextBlock TextWrapping="Wrap">
+                • Sometimes you can introduce
+                <Hyperlink TextDecorations="None" NavigateUri="https://en.wikipedia.org/wiki/Facade_pattern" RequestNavigate="Hyperlink_RequestNavigate">FACADE services</Hyperlink> 
+                that encapsulate lower-level dependencies.
+                    </TextBlock>
+
+                    <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
+                • In many cases, Constructor Over-Injection is a symptom of a deeper problem. Make sure to 
+                        <LineBreak />
+                        investigate the root cause, and get some inspiration and examples from 
+                <Hyperlink TextDecorations="None" NavigateUri="https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/" RequestNavigate="Hyperlink_RequestNavigate">
+                    Mark Seemann's article on the issue
+                </Hyperlink>.
+                    </TextBlock>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,39 @@
+﻿<UserControl x:Class="Codescene.VSExtension.VS2022.Controls.CodeHealthMonitor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Codescene.VSExtension.VS2022.Controls"
+             mc:Ignorable="d" 
+             >
+    <Grid HorizontalAlignment="Stretch">
+        <ScrollViewer Margin="10" VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+            <StackPanel>
+                <TextBlock Margin="0,0,0,10">
+            Code Health Monitor [beta]
+                </TextBlock>
+
+                <!-- Note -->
+                <TextBlock Margin="0,0,0,10">
+            NOTE: 
+            <Italic> 
+                This feature is experimental and subject to change.
+            </Italic>
+                </TextBlock>
+
+                <!-- Description -->
+                <TextBlock TextWrapping="Wrap" Margin="0,10,0,10">
+            The Code Health Monitor shows any introduced issues among the files being worked on. 
+                    <LineBreak />
+                    It works by comparing the latest code review for a file with the review of the HEAD commit of the file.
+                </TextBlock>
+
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            If any code health degradations are present in the file, they will be shown in this view along 
+                    <LineBreak />
+                    with any other issues or improvements.
+                </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

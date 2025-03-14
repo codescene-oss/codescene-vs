@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="Codescene.VSExtension.VS2022.Controls.NumberOfFunctionsInASingleModule"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Codescene.VSExtension.VS2022.Controls"
+             mc:Ignorable="d" 
+             >
+    <Grid HorizontalAlignment="Stretch">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{x:Static SystemColors.ControlLightBrush}">
+                    <Image Source="/Codescene.VSExtension.VS2022;component/Resources/cs-logo.png" Width="22" Height="22" Margin="0,0,0,-4"/>
+                    <Run Text="Number of Functions in a Single Module" FontWeight="Bold" FontSize="16"/>
+                    <LineBreak/>
+                </TextBlock>
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            This file contains too many functions. Beyond a certain threshold, more functions lower the code health.
+                </TextBlock>
+
+                <!-- Solution Section -->
+                <TextBlock FontSize="16" FontWeight="Bold" Margin="0,10,0,5">
+            Solution
+                </TextBlock>
+
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            Modules with too many functions are generally harder to understand. 
+                    <LineBreak />
+                    Such modules should likely be split into smaller and more cohesive units, e.g. by using the refactoring 
+            <Hyperlink TextDecorations="None" NavigateUri="https://refactoring.com/catalog/extractClass.html">EXTRACT CLASS</Hyperlink>.
+                </TextBlock>
+
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10">
+            Modules with too many functions are also at risk of evolving into a 
+            <TextBlock FontWeight="Bold">Brain Class</TextBlock>. 
+                    <LineBreak />
+                    Brain classes are problematic since changes become more complex over time, harder to test, and challenging to refactor. 
+                    <LineBreak />
+                    Act now to prevent future maintenance issues.
+        </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

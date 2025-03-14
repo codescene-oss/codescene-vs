@@ -396,4 +396,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-/CodesceneReeinventTest/CodesceneReeinventTest/cs-win32-x64.exe
+/Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/cs-win32-x64.exe
+/Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/cs-ide.exe
