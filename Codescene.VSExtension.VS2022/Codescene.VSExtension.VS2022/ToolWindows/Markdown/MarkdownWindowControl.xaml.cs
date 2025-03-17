@@ -12,12 +12,16 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.Markdown
         private string _fileName;
         public MarkdownWindowControl(string fileName)
         {
-            _mdFileHandler = VS2022Package.GetService<IMDFileHandler>();
-            //ovdje da se proslijedi naziv file-a
-            this.InitializeComponent();
+            InitializeComponent();
             _fileName = fileName;
+        }
+
+        public async Task InitializeAsync()
+        {
+            _mdFileHandler = await VS2022Package.GetServiceAsync<IMDFileHandler>();
             InitializeFileHandler();
         }
+
         public void InitializeFileHandler()
         {
             if (_fileName != "")

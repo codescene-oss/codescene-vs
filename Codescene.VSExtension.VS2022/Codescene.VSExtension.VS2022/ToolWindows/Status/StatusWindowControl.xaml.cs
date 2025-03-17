@@ -1,5 +1,4 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Authentication;
-using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.Application.MDFileHandler;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
@@ -11,16 +10,19 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.Status
 {
     public partial class StatusWindowControl : UserControl
     {
-        private readonly IAuthenticationService _authenticationService;
-        private readonly IMDFileHandler _mDFileHandler;
-        private readonly ICliDownloader _fileDownloader;
+        private IAuthenticationService _authenticationService;
+        private IMDFileHandler _mDFileHandler;
         public StatusWindowModel ViewModel { get; set; }
 
         public StatusWindowControl()
         {
-            _authenticationService = VS2022Package.GetService<IAuthenticationService>();
-            _mDFileHandler = VS2022Package.GetService<IMDFileHandler>();
-            _fileDownloader = VS2022Package.GetService<ICliDownloader>();
+            InitializeComponent();
+        }
+
+        public async Task InitializeAsync()
+        {
+            _authenticationService = await VS2022Package.GetServiceAsync<IAuthenticationService>();
+            _mDFileHandler = await VS2022Package.GetServiceAsync<IMDFileHandler>();
 
             //fire event on settings change
             General.Saved += OnSettingsSaved;
@@ -37,7 +39,6 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.Status
             _authenticationService.OnSignedIn += (LoginResponse response) => { ViewModel.IsLoggedIn = true; };
             _authenticationService.OnSignedOut += () => { ViewModel.IsLoggedIn = false; };
             DataContext = ViewModel;
-
         }
 
         private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
@@ -56,11 +57,6 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.Status
         {
             _mDFileHandler.SetFileName("bumpy-road-ahead");
             await MarkdownWindow.ShowAsync();
-        }
-
-        private async void OpenFileDownloadButton_Click(object sender, RoutedEventArgs e)
-        {
-            //await _fileDownloader.DownloadAsync();
         }
     }
 }
