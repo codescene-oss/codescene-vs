@@ -8,12 +8,12 @@ namespace Codescene.VSExtension.VS2022
 {
     internal sealed partial class Vsix
     {
-        public const string Id = "ReeinventVSPluginTest.c90b6097-3fbd-4b82-a308-f9568074c67a";
-        public const string Name = "Reeinvent VS plugin test";
-        public const string Description = @"Developing and testing first Visual studio extensionDevelop";
+        public const string Id = "CodesceneVSExtension.c90b6097-3fbd-4b82-a308-f9568074c67a";
+        public const string Name = "Codescene Visual Studio Extension";
+        public const string Description = @"Codesecene extension for Visual Studio IDE";
         public const string Language = "en-US";
-        public const string Version = "1.0";
-        public const string Author = "Emir Prljaca";
+        public const string Version = "0.1";
+        public const string Author = "Codescene AB";
         public const string Tags = "";
         public const bool IsPreview = false;
     }

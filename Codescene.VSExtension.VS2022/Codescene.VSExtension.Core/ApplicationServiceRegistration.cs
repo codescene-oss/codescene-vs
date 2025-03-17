@@ -7,7 +7,7 @@ namespace Codescene.VSExtension.Core
 {
     public static class ApplicationServiceRegistration
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+        public static void AddApplicationServices(this IServiceCollection services)
         {
             services.AddSingleton<IAuthenticationService, AuthenticationService>();
             services.AddSingleton<ICliExecuter, CliExecuter>();
@@ -16,7 +16,6 @@ namespace Codescene.VSExtension.Core
             services.AddSingleton<ICliDownloader, CliDownloader>();
             services.AddSingleton<ICliSettingsProvider, CliSettingsProvider>();
             services.AddSingleton<ICliFileChecker, CliFileChecker>();
-            return services;
         }
     }
 }
