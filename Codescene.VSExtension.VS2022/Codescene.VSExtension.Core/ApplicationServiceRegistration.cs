@@ -1,6 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Authentication;
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
+using Codescene.VSExtension.Core.Application.Services.MDFileHandler;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Codescene.VSExtension.Core
@@ -16,6 +17,7 @@ namespace Codescene.VSExtension.Core
             services.AddSingleton<ICliDownloader, CliDownloader>();
             services.AddSingleton<ICliSettingsProvider, CliSettingsProvider>();
             services.AddSingleton<ICliFileChecker, CliFileChecker>();
+            services.AddSingleton<IMDFileHandler, MDFileHandler>();
         }
     }
 }

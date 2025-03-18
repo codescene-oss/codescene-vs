@@ -23,25 +23,25 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
 {
     public static readonly ConcurrentDictionary<string, CodeLensConnection> Connections = new();
     public static bool CodeSceneLensesEnabled;
-    [Import(typeof(ICliExecuter))]
-    private readonly ICliExecuter _fileReviewer;
-
     private readonly DocumentEvents _documentEvents;
+    private readonly ICliExecuter _cliExecuter;
 
-    private static readonly Dictionary<string, ReviewResultModel> ActiveReviewList = [];
-
-    private ITextView _textView; // Add this to hold the current text view
-    private Timer _timer;
-    private readonly int _delayInMilliseconds = 3000;
-
-    public CodeLevelMetricsCallbackService()
+    [ImportingConstructor]
+    public CodeLevelMetricsCallbackService(ICliExecuter cliExecuter)
     {
+        _cliExecuter = cliExecuter;
         //listen to events
         _documentEvents = VS.Events.DocumentEvents;
         _documentEvents.Closed += OnDocumentClosed;
         _documentEvents.Opened += OnDocumentsOpened;
         _documentEvents.Saved += OnDocumentsSaved;
     }
+
+    private static readonly Dictionary<string, ReviewResultModel> ActiveReviewList = [];
+
+    private ITextView _textView; // Add this to hold the current text view
+    private Timer _timer;
+    private readonly int _delayInMilliseconds = 3000;
     private async void SubscribeToChangeEvent()
     {
         var temp = await VS.Documents.GetActiveDocumentViewAsync();
@@ -55,32 +55,35 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
     }
     private async void OnDocumentsSaved(string filePath)
     {
-        _fileReviewer.RemoveFromActiveReviewList(filePath);
+        System.Diagnostics.Debug.WriteLine($"OnDocumentsSaved called with filePath: {filePath}");
+        _cliExecuter.RemoveFromActiveReviewList(filePath);
 
-        _fileReviewer.AddToActiveReviewList(filePath);
+        _cliExecuter.AddToActiveReviewList(filePath);
         await RefreshAllCodeLensDataPointsAsync();
     }
 
     private void OnDocumentsOpened(string filePath)
     {
+        System.Diagnostics.Debug.WriteLine($"OnDocumentsOpened called with filePath: {filePath}");
         //SubscribeToChangeEvent();
-        _fileReviewer.AddToActiveReviewList(filePath);
+        _cliExecuter.AddToActiveReviewList(filePath);
         AddWarnings(filePath);
 
     }
     private void OnDocumentClosed(string filePath)
     {
-        _fileReviewer.RemoveFromActiveReviewList(filePath);
+        System.Diagnostics.Debug.WriteLine($"OnDocumentClosed called with filePath: {filePath}");
+        _cliExecuter.RemoveFromActiveReviewList(filePath);
     }
     public float GetFileReviewScore(string filePath)
     {
-        var review = _fileReviewer.GetReviewObject(filePath);
+        var review = _cliExecuter.GetReviewObject(filePath);
 
         return review.Score;
     }
     public bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj)
     {
-        var review = _fileReviewer.GetReviewObject(filePath);
+        var review = _cliExecuter.GetReviewObject(filePath);
 
         if (review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == startLine)) return true;
 
@@ -132,7 +135,7 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
     private async void AddWarnings(string filePath)
     {
         var errorListProvider = new ErrorListProvider(ServiceProvider.GlobalProvider);
-        var review = _fileReviewer.GetReviewObject(filePath);
+        var review = _cliExecuter.GetReviewObject(filePath);
 
         //foreach (var issues in review.Review)
         //{
@@ -153,7 +156,4 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
         //}
         errorListProvider.Show();
     }
-
-
 }
-

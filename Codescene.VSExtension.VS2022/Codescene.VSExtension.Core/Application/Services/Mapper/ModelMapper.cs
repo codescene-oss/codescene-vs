@@ -2,13 +2,10 @@
 using Codescene.VSExtension.Core.Models.ReviewResult;
 using Codescene.VSExtension.Core.Models.ReviewResultModel;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 
 namespace Codescene.VSExtension.Core.Application.Services.Mapper
 {
-    [Export(typeof(IModelMapper))] // MEF export attribute
-    [PartCreationPolicy(CreationPolicy.Shared)] // Ensures a single instance
     public class ModelMapper : IModelMapper
     {
         public IEnumerable<ReviewModel> Map(CsReview result)
@@ -41,21 +38,21 @@ namespace Codescene.VSExtension.Core.Application.Services.Mapper
             {
                 foreach (var smell in item.CodeSmells)
                 {
-                    list.Add(Map(result.RawScore?.Name, smell));
+                    //list.Add(Map(result.RawScore?.Name, smell));
                 }
             }
-            foreach (var item in result.ExpressionLevelCodeSmells)
-            {
-                list.Add(Map(result.RawScore?.Name, item));
-            }
+            //foreach (var item in result.ExpressionLevelCodeSmells)
+            //{
+            //    list.Add(Map(result.RawScore?.Name, item));
+            //}
             return list;
         }
         public ReviewMapModel Map(ReviewResultModel result)
         {
             return new ReviewMapModel
             {
-                Score = result.Score,
-                ExpressionLevel = result.ExpressionLevelCodeSmells.Select(x => Map(x)).ToList(),
+                Score = result.Score ?? 0,
+                //ExpressionLevel = result.ExpressionLevelCodeSmells.Select(x => Map(x)).ToList(),
                 FileLevel = result.FileLevelCodeSmells.Select(x => Map(x)).ToList(),
                 FunctionLevel = result.FunctionLevelCodeSmells.SelectMany(x => x.CodeSmells.Select(y => Map(y))).ToList()
             };

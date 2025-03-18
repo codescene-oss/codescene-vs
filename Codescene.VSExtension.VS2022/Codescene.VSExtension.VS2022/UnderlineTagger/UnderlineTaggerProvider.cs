@@ -14,8 +14,14 @@ namespace Codescene.VSExtension.VS2022.ErrorList
     [TagType(typeof(IErrorTag))]
     internal class UnderlineTaggerProvider : ITaggerProvider
     {
-        [Import(typeof(ICliExecuter))]
-        private readonly ICliExecuter _fileReviewer;
+        private readonly ICliExecuter _cliExecuter;
+
+        [ImportingConstructor]
+        public UnderlineTaggerProvider(ICliExecuter cliExecuter)
+        {
+            _cliExecuter = cliExecuter;
+        }
+
         private UnderlineTagger _tagger;
         public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
         {
@@ -32,16 +38,16 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         {
             string filePath = textBuffer.GetFileName();
             if (filePath == null) return null;
-            return _fileReviewer.GetTaggerItems(filePath);
+            return _cliExecuter.GetTaggerItems(filePath);
         }
         private async Task<List<ReviewModel>> GetRefreshedLinesToUnderline(ITextBuffer textBuffer)
         {
             OnDocumentChange(textBuffer.GetFileName(), textBuffer.CurrentSnapshot.GetText());
-            return _fileReviewer.GetTaggerItems(textBuffer.GetFileName());
+            return _cliExecuter.GetTaggerItems(textBuffer.GetFileName());
         }
         private void OnDocumentChange(string filePath, string content)
         {
-            _fileReviewer.AddToActiveReviewList(filePath, content);
+            _cliExecuter.AddToActiveReviewList(filePath, content);
         }
     }
 }

@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Markdig, Version=0.40.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Markdig.0.40.0\lib\net462\Markdig.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=5.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.5.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
@@ -38,9 +41,22 @@
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -68,6 +84,9 @@
     <Compile Include="Application\Services\IssueHandler\IIssuesHandler.cs" />
     <Compile Include="Application\Services\Mapper\IModelMapper.cs" />
     <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
+    <Compile Include="Application\Services\MDFileHandler\Class1.cs" />
+    <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
+    <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Models\CodeModel.cs" />
     <Compile Include="Models\IssueModel.cs" />
     <Compile Include="Models\LoginResponse.cs" />
@@ -75,7 +94,7 @@
     <Compile Include="Models\ReviewResultModel\CodeSmellModel.cs" />
     <Compile Include="Models\ReviewResultModel\ReviewMapModel.cs" />
     <Compile Include="Models\ReviewResultModel\ReviewResultModel.cs" />
-    <Compile Include="Models\ReviewResultModel\FunctionLevelCodeSmellModel.cs" />
+    <Compile Include="Models\ReviewResultModel\ReviewFunctionModel.cs" />
     <Compile Include="Models\ReviewResultModel\RangeModel.cs" />
     <Compile Include="Models\ReviewResult\Bumps.cs" />
     <Compile Include="Models\ReviewResult\BumpsBySeverity.cs" />

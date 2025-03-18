@@ -3,7 +3,7 @@
     public class CliCommandProvider : ICliCommandProvider
     {
         public string VersionCommand => "version --sha";
-        public string GetReviewFileContentCommand(string path) => $"review --ide-api --file-name {path}";
-        public string GetReviewPathCommand(string path) => $"review {path} --ide-api";
+        public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";
+        public string GetReviewPathCommand(string path) => $"review {path}";
     }
 }

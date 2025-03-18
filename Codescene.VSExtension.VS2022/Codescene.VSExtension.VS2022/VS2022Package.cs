@@ -10,7 +10,6 @@ using Codescene.VSExtension.Core.Application.Services.IssueHandler;
 using Codescene.VSExtension.CredentialManagerPersistenceAuthProvider;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.Application.IssueHandler;
-using Codescene.VSExtension.VS2022.Application.MDFileHandler;
 using Codescene.VSExtension.VS2022.Commands;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
 using Codescene.VSExtension.VS2022.ToolWindows.Problems;
@@ -82,7 +81,6 @@ public sealed class VS2022Package : MicrosoftDIToolkitPackage<VS2022Package>
     {
         services.AddApplicationServices();
         services.AddSingleton<IIssuesHandler, IssuesHandler>();
-        services.AddSingleton<IMDFileHandler, MDFileHandler>();
         services.AddSingleton<ILogger, Logger>();
         services.AddSingleton<IPersistenceAuthDataProvider, CredentialManagerProvider>();
     }

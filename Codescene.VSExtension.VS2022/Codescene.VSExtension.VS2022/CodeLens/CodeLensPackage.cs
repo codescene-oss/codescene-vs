@@ -9,10 +9,7 @@ namespace Codescene.VSExtension.VS2022.CodeLens
     {
         public const string PackageGuidString = "f7e22ea4-4d07-4a48-aaca-d82ff13ec862";
 
-        protected override async Task InitializeAsync(
-            CancellationToken cancellationToken,
-            IProgress<ServiceProgressData> progress
-        )
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         }

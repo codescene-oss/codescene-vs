@@ -1,6 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Authentication;
+using Codescene.VSExtension.Core.Application.Services.MDFileHandler;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.VS2022.Application.MDFileHandler;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
 using System.Diagnostics;
 using System.Windows;

@@ -16,7 +16,7 @@ namespace Codescene.VSExtension.CodeSmells.Issues
             foreach (FileInfo fileInfo in directory.GetFiles())
             {
                 // Provjeravamo uzorak: "data\\d+\\.csv"
-                if (Regex.IsMatch(fileInfo.Name, @"^data\d+\.csv$"))
+                if (Regex.IsMatch(fileInfo.Name, @"^data\d+\.csv$")) 
                 {
                     files.Add(fileInfo.FullName);
                 }

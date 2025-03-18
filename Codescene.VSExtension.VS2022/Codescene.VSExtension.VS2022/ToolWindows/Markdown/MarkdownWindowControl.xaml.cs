@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.VS2022.Application.MDFileHandler;
+﻿using Codescene.VSExtension.Core.Application.Services.MDFileHandler;
 using System.Drawing;
 using System.Windows.Controls;
 
