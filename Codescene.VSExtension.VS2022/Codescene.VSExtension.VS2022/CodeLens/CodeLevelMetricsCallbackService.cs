@@ -1,5 +1,4 @@
-﻿using Codescene.VSExtension.CodeLensShared;
-using Codescene.VSExtension.Core.Application.Services.Cli;
+﻿using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Models.ReviewResultModel;
 using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;

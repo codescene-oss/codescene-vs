@@ -17,8 +17,9 @@
     </Prerequisites>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-        <Asset Type="Microsoft.VisualStudio.CodeLensComponent" d:Source="Project" d:ProjectName="Codescene.VSExtension.CodeLensProvider" Path="|Codescene.VSExtension.CodeLensProvider|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Codescene.VSExtension.Core" Path="|Codescene.VSExtension.Core|" />
-    </Assets>
+		<Asset Type="Microsoft.VisualStudio.CodeLensComponent" d:Source="Project" d:ProjectName="CodeLensProvider" Path="|CodeLensProvider|" />
+
+	</Assets>
 </PackageManifest>

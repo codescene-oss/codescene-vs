@@ -1,5 +1,4 @@
 ﻿using Codescene.VSExtension.VS2022.Controls;
-using Codescene.VSExtension.VS2022.Helpers;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -15,20 +14,20 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.UserControlWindow
     {
         public override string GetTitle(int toolWindowId)
         {
-            if (ToolWindowRegistry.ToolWindowCreators.TryGetValue(toolWindowId, out var creator))
-            {
-                return "CodeScene - " + creator.Category;
-            }
+            //if (ToolWindowRegistry.ToolWindowCreators.TryGetValue(toolWindowId, out var creator))
+            //{
+            //    return "CodeScene - " + creator.Category;
+            //}
             return "CodeScene - Issue";
         }
         public override Type PaneType => typeof(Pane);
 
         public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
         {
-            if (ToolWindowRegistry.ToolWindowCreators.TryGetValue(toolWindowId, out var creator))
-            {
-                return (FrameworkElement)creator.Creator();
-            }
+            //if (ToolWindowRegistry.ToolWindowCreators.TryGetValue(toolWindowId, out var creator))
+            //{
+            //    return (FrameworkElement)creator.Creator();
+            //}
             return new GeneralCodeHealth();
         }
         public static async Task HideAllUserControlWindowsAsync()
