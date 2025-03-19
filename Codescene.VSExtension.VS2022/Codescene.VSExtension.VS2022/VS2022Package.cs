@@ -11,10 +11,6 @@ using Codescene.VSExtension.CredentialManagerPersistenceAuthProvider;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.Application.IssueHandler;
 using Codescene.VSExtension.VS2022.Commands;
-using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
-using Codescene.VSExtension.VS2022.ToolWindows.Problems;
-using Codescene.VSExtension.VS2022.ToolWindows.Status;
-using Codescene.VSExtension.VS2022.ToolWindows.UserControlWindow;
 using Community.VisualStudio.Toolkit.DependencyInjection.Core;
 using Community.VisualStudio.Toolkit.DependencyInjection.Microsoft;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,14 +25,14 @@ using System.Threading.Tasks;
 namespace Codescene.VSExtension.VS2022;
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 [InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Version)]
-[ProvideMenuResource("Menus.ctmenu", 1)]
+//[ProvideMenuResource("Menus.ctmenu", 1)]
 [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
 [Guid(PackageGuids.guidVsPackagePkgStringString)]
-[ProvideToolWindow(typeof(ProblemsWindow.Pane))]
-[ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
-[ProvideToolWindow(typeof(StatusWindow.Pane), Window = WindowGuids.SolutionExplorer, Style = VsDockStyle.Tabbed)]
-[ProvideToolWindow(typeof(MarkdownWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
-[ProvideToolWindow(typeof(UserControlWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
+//[ProvideToolWindow(typeof(ProblemsWindow.Pane))]
+//[ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
+//[ProvideToolWindow(typeof(StatusWindow.Pane), Window = WindowGuids.SolutionExplorer, Style = VsDockStyle.Tabbed)]
+//[ProvideToolWindow(typeof(MarkdownWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
+//[ProvideToolWindow(typeof(UserControlWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
 public sealed class VS2022Package : MicrosoftDIToolkitPackage<VS2022Package>
 {
     private PackageCommandManager commandManager;
