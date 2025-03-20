@@ -10,14 +10,12 @@ using Codescene.VSExtension.Core.Application.Services.IssueHandler;
 using Codescene.VSExtension.CredentialManagerPersistenceAuthProvider;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.Application.IssueHandler;
-using Codescene.VSExtension.VS2022.Commands;
 using Community.VisualStudio.Toolkit.DependencyInjection.Core;
 using Community.VisualStudio.Toolkit.DependencyInjection.Microsoft;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +33,6 @@ namespace Codescene.VSExtension.VS2022;
 //[ProvideToolWindow(typeof(UserControlWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
 public sealed class VS2022Package : MicrosoftDIToolkitPackage<VS2022Package>
 {
-    private PackageCommandManager commandManager;
     public static async Task<T> GetServiceAsync<T>()
     {
         var serviceProvider = await VS.GetServiceAsync<SToolkitServiceProvider<VS2022Package>, IToolkitServiceProvider<VS2022Package>>();
@@ -63,7 +60,6 @@ public sealed class VS2022Package : MicrosoftDIToolkitPackage<VS2022Package>
             var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel));
             componentModel.DefaultCompositionService.SatisfyImportsOnce(this);
             this.RegisterToolWindows();
-            await InitOnUIThreadAsync();
         }
         catch (Exception ex)
         {
@@ -80,14 +76,5 @@ public sealed class VS2022Package : MicrosoftDIToolkitPackage<VS2022Package>
         services.AddSingleton<ILogger, Logger>();
         services.AddSingleton<IPersistenceAuthDataProvider, CredentialManagerProvider>();
     }
-    private Task InitOnUIThreadAsync()
-    {
-        commandManager = new PackageCommandManager(
-            ServiceProvider.GetRequiredService<IMenuCommandService>(),
-            ServiceProvider.GetRequiredService<IAuthenticationService>(),
-            ServiceProvider.GetRequiredService<ILogger>());
 
-        commandManager.Initialize(ShowOptionPage);
-        return Task.CompletedTask;
-    }
 }
