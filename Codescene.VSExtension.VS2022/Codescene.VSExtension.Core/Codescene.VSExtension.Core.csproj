@@ -84,7 +84,6 @@
     <Compile Include="Application\Services\IssueHandler\IIssuesHandler.cs" />
     <Compile Include="Application\Services\Mapper\IModelMapper.cs" />
     <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
-    <Compile Include="Application\Services\MDFileHandler\Class1.cs" />
     <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Models\CodeModel.cs" />

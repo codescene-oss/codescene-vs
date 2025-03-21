@@ -2,6 +2,7 @@
 using Codescene.VSExtension.Core.Application.Services.MDFileHandler;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,20 +11,16 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.Status
 {
     public partial class StatusWindowControl : UserControl
     {
+        [Import]
         private IAuthenticationService _authenticationService;
+
+        [Import]
         private IMDFileHandler _mDFileHandler;
         public StatusWindowModel ViewModel { get; set; }
 
         public StatusWindowControl()
         {
             InitializeComponent();
-        }
-
-        public async Task InitializeAsync()
-        {
-            _authenticationService = await VS2022Package.GetServiceAsync<IAuthenticationService>();
-            _mDFileHandler = await VS2022Package.GetServiceAsync<IMDFileHandler>();
-
             //fire event on settings change
             General.Saved += OnSettingsSaved;
             InitializeComponent();

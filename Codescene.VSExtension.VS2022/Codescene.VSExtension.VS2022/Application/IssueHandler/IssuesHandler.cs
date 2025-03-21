@@ -6,10 +6,13 @@ using Codescene.VSExtension.Core.Models.ReviewResultModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 
 namespace Codescene.VSExtension.VS2022.Application.IssueHandler;
 
+[Export(typeof(IIssuesHandler))]
+[PartCreationPolicy(CreationPolicy.Shared)]
 
 internal class IssuesHandler : IIssuesHandler
 {

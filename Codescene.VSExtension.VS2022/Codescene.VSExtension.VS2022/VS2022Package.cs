@@ -2,26 +2,16 @@
 global using Microsoft.VisualStudio.Shell;
 global using System;
 global using Task = System.Threading.Tasks.Task;
-using Codescene.VSExtension.Core;
-using Codescene.VSExtension.Core.Application.Services.Authentication;
 using Codescene.VSExtension.Core.Application.Services.Cli;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.IssueHandler;
-using Codescene.VSExtension.CredentialManagerPersistenceAuthProvider;
-using Codescene.VSExtension.VS2022.Application.ErrorHandling;
-using Codescene.VSExtension.VS2022.Application.IssueHandler;
-using Codescene.VSExtension.VS2022.Commands;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
 using Codescene.VSExtension.VS2022.ToolWindows.Problems;
 using Codescene.VSExtension.VS2022.ToolWindows.Status;
 using Codescene.VSExtension.VS2022.ToolWindows.UserControlWindow;
 using Community.VisualStudio.Toolkit.DependencyInjection.Core;
-using Community.VisualStudio.Toolkit.DependencyInjection.Microsoft;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,9 +27,12 @@ namespace Codescene.VSExtension.VS2022;
 [ProvideToolWindow(typeof(StatusWindow.Pane), Window = WindowGuids.SolutionExplorer, Style = VsDockStyle.Tabbed)]
 [ProvideToolWindow(typeof(MarkdownWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
 [ProvideToolWindow(typeof(UserControlWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
-public sealed class VS2022Package : MicrosoftDIToolkitPackage<VS2022Package>
+public sealed class VS2022Package : AsyncPackage
 {
-    private PackageCommandManager commandManager;
+    [Import]
+    private readonly ICliFileChecker _cliFileChecker;
+
+    //private PackageCommandManager commandManager;
     public static async Task<T> GetServiceAsync<T>()
     {
         var serviceProvider = await VS.GetServiceAsync<SToolkitServiceProvider<VS2022Package>, IToolkitServiceProvider<VS2022Package>>();
@@ -50,24 +43,23 @@ public sealed class VS2022Package : MicrosoftDIToolkitPackage<VS2022Package>
         return (T)serviceProvider.GetRequiredService(typeof(T));
     }
 
-    protected override void InitializeServices(IServiceCollection services)
-    {
-        RegisterServices(services);
-        services.RegisterCommands(ServiceLifetime.Singleton);
-    }
+    //protected override void InitializeServices(IServiceCollection services)
+    //{
+    //    RegisterServices(services);
+    //    services.RegisterCommands(ServiceLifetime.Singleton);
+    //}
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
         try
         {
             await base.InitializeAsync(cancellationToken, progress);
 
-            //Check CLI file
-            var cliFileChecker = ServiceProvider.GetRequiredService<ICliFileChecker>();
-            await cliFileChecker.Check();
+            //Check CLI file            
             var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel));
             componentModel.DefaultCompositionService.SatisfyImportsOnce(this);
-            this.RegisterToolWindows();
-            await InitOnUIThreadAsync();
+            await _cliFileChecker.Check();
+            //this.RegisterToolWindows();
+            //await InitOnUIThreadAsync();
         }
         catch (Exception ex)
         {
@@ -77,21 +69,21 @@ public sealed class VS2022Package : MicrosoftDIToolkitPackage<VS2022Package>
     }
 
 
-    void RegisterServices(IServiceCollection services)
-    {
-        services.AddApplicationServices();
-        services.AddSingleton<IIssuesHandler, IssuesHandler>();
-        services.AddSingleton<ILogger, Logger>();
-        services.AddSingleton<IPersistenceAuthDataProvider, CredentialManagerProvider>();
-    }
-    private Task InitOnUIThreadAsync()
-    {
-        commandManager = new PackageCommandManager(
-            ServiceProvider.GetRequiredService<IMenuCommandService>(),
-            ServiceProvider.GetRequiredService<IAuthenticationService>(),
-            ServiceProvider.GetRequiredService<ILogger>());
+    //void RegisterServices(IServiceCollection services)
+    //{
+    //    services.AddApplicationServices();
+    //    services.AddSingleton<IIssuesHandler, IssuesHandler>();
+    //    services.AddSingleton<ILogger, Logger>();
+    //    services.AddSingleton<IPersistenceAuthDataProvider, CredentialManagerProvider>();
+    //}
+    //private Task InitOnUIThreadAsync()
+    //{
+    //    commandManager = new PackageCommandManager(
+    //        ServiceProvider.GetRequiredService<IMenuCommandService>(),
+    //        ServiceProvider.GetRequiredService<IAuthenticationService>(),
+    //        ServiceProvider.GetRequiredService<ILogger>());
 
-        commandManager.Initialize(ShowOptionPage);
-        return Task.CompletedTask;
-    }
+    //    commandManager.Initialize(ShowOptionPage);
+    //    return Task.CompletedTask;
+    //}
 }

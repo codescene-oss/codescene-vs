@@ -2,10 +2,13 @@
 using Codescene.VSExtension.Core.Models.ReviewResult;
 using Codescene.VSExtension.Core.Models.ReviewResultModel;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 
 namespace Codescene.VSExtension.Core.Application.Services.Mapper
 {
+    [Export(typeof(IModelMapper))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class ModelMapper : IModelMapper
     {
         public IEnumerable<ReviewModel> Map(CsReview result)

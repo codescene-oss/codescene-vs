@@ -1,5 +1,9 @@
-﻿namespace Codescene.VSExtension.Core.Application.Services.Cli
+﻿using System.ComponentModel.Composition;
+
+namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
+    [Export(typeof(ICliCommandProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliCommandProvider : ICliCommandProvider
     {
         public string VersionCommand => "version --sha";

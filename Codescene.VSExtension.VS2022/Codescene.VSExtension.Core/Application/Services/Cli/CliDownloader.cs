@@ -1,5 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using System;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
@@ -7,18 +8,18 @@ using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
+    [Export(typeof(ICliDownloader))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliDownloader : ICliDownloader
     {
+        [Import]
         private readonly ILogger _logger;
+
+        [Import]
         private readonly ICliSettingsProvider _cliSettingsProvider;
+
         private readonly string _workingDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         private string DownloadedArtifactFilePath => Path.Combine(_workingDirectory, _cliSettingsProvider.CliArtifactName);
-
-        public CliDownloader(ILogger logger, ICliSettingsProvider cliSettingsProvider)
-        {
-            _logger = logger;
-            _cliSettingsProvider = cliSettingsProvider;
-        }
 
         public async Task DownloadAsync()
         {

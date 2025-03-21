@@ -1,10 +1,13 @@
 ﻿using Markdig;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 
 namespace Codescene.VSExtension.Core.Application.Services.MDFileHandler
 {
+    [Export(typeof(IMDFileHandler))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class MDFileHandler : IMDFileHandler
     {
         private string _fileName = null;

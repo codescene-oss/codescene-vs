@@ -3,24 +3,26 @@ using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.ReviewResultModel;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
+    [Export(typeof(ICliExecuter))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliExecuter : ICliExecuter
     {
+        [Import]
         private readonly ICliCommandProvider _cliCommandProvider;
-        private readonly IModelMapper _mapper;
-        private readonly ICliSettingsProvider _cliSettingsProvider;
-        private static readonly Dictionary<string, ReviewMapModel> ActiveReviewList = new Dictionary<string, ReviewMapModel>();
 
-        public CliExecuter(ICliCommandProvider cliCommandProvider, IModelMapper mapper, ICliSettingsProvider cliSettingsProvider)
-        {
-            _cliCommandProvider = cliCommandProvider;
-            _mapper = mapper;
-            _cliSettingsProvider = cliSettingsProvider;
-        }
+        [Import]
+        private readonly IModelMapper _mapper;
+
+        [Import]
+        private readonly ICliSettingsProvider _cliSettingsProvider;
+
+        private static readonly Dictionary<string, ReviewMapModel> ActiveReviewList = new Dictionary<string, ReviewMapModel>();
 
         public void AddToActiveReviewList(string documentPath)
         {
