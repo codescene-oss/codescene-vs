@@ -6,7 +6,7 @@
 	<Include href="KnownImageIds.vsct" />
 	<Include href="VSGlobals.vsct" />
 
-	<Commands package="guidVsPackagePkgString">
+	<Commands package="CodesceneExtension">
 
 		<Groups>
 			<Group guid="CodeSceneCmdSet" id="CodeSceneOuterGroup" priority="0x0100">
@@ -52,12 +52,12 @@
 					<ButtonText>CodeScene: Status</ButtonText>
 				</Strings>
 			</Button>
-			<Button guid="CodeSceneCmdSet" id="OptionsCommand" priority="0x9999">
+			<Button guid="CodeSceneCmdSet" id="OpenSettings" priority="0x9999">
 				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
 				<Icon guid="ImageCatalogGuid" id="Settings" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
 				<Strings>
-					<ButtonText>Options...</ButtonText>
+					<ButtonText>Settings</ButtonText>
 				</Strings>
 			</Button>
 		</Buttons>
@@ -65,14 +65,14 @@
 	</Commands>
 	<Symbols>
 		<!-- This is the package guid for the package. -->
-		<GuidSymbol name="guidVsPackagePkgString" value="{68D6A325-11E8-4790-A4BA-0EDD001FB080}" />
+		<GuidSymbol name="CodesceneExtension" value="{68D6A325-11E8-4790-A4BA-0EDD001FB080}" />
 
 		<!-- This is the guid used to group the menu commands together -->
 		<GuidSymbol name="CodeSceneCmdSet" value="{DB0701CC-1E44-41F7-97D6-29B160A70BCB}">
 			<IDSymbol name="CodeSceneOuterGroup" value="0x1020" />
 			<IDSymbol name="CodeSceneMenu" value="0x1021" />
 			<IDSymbol name="CodeSceneCommandsGroup" value="0x1022" />
-			<IDSymbol name="OptionsCommand" value="0x1025"/>
+			<IDSymbol name="OpenSettings" value="0x1025"/>
 			<IDSymbol name="SignInCommand" value="0x0400" />
 			<IDSymbol name="OpenStatusWindowCommand" value="0x0800" />
 			<IDSymbol name="SignOutCommand" value="0x0500" />

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Shell;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 
 namespace Codescene.VSExtension.VS2022;
@@ -39,4 +41,9 @@ public class General : BaseOptionModel<General>
     [DisplayName("Server Url")]
     [Description("CodeScene authentication server Url")]
     public string ServerUrl { get; set; } = DEFAULT_SERVER_URL;
+
+    public General() : base()
+    {
+        Saved += delegate { VS.StatusBar.ShowMessageAsync("Options Saved").FireAndForget(); };
+    }
 }

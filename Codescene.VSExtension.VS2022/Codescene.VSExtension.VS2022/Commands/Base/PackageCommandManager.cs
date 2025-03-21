@@ -1,5 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Authentication;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Microsoft.VisualStudio.Shell;
+using System;
 using System.ComponentModel.Design;
 
 namespace Codescene.VSExtension.VS2022.Commands

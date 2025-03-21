@@ -1,17 +1,21 @@
 ﻿using Codescene.VSExtension.CodeLensShared;
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Models.ReviewResultModel;
+using Community.VisualStudio.Toolkit;
 using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO.Pipes;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 
 namespace Codescene.VSExtension.VS2022.CodeLens;
@@ -24,12 +28,12 @@ internal class CodeLevelMetricsCallbackService : ICodeLensCallbackListener, ICod
     public static readonly ConcurrentDictionary<string, CodeLensConnection> Connections = new();
     public static bool CodeSceneLensesEnabled;
     private readonly DocumentEvents _documentEvents;
+
+    [Import]
     private readonly ICliExecuter _cliExecuter;
 
-    [ImportingConstructor]
-    public CodeLevelMetricsCallbackService(ICliExecuter cliExecuter)
+    public CodeLevelMetricsCallbackService()
     {
-        _cliExecuter = cliExecuter;
         //listen to events
         _documentEvents = VS.Events.DocumentEvents;
         _documentEvents.Closed += OnDocumentClosed;

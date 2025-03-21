@@ -1,5 +1,8 @@
-﻿using System.Runtime.InteropServices;
+﻿using Microsoft.VisualStudio.Shell;
+using System;
+using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.CodeLens
 {

@@ -2,13 +2,17 @@
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.Commands;
+using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TaskStatusCenter;
+using System;
+using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022;
 
-internal class SignInCommand(IAuthenticationService authService, ILogger errorsHandler) : VsCommandBase
+internal class SignInCommand(IAuthenticationService authService, ILogger errorsHandler) : Commands.VSBaseCommand
 {
     internal const int Id = PackageIds.SignInCommand;
 

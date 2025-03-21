@@ -1,4 +1,6 @@
-﻿namespace Codescene.VSExtension.VS2022.ErrorList
+﻿using System;
+
+namespace Codescene.VSExtension.VS2022.ErrorList
 {
     public class DocumentClosedEventArgs : EventArgs
     {

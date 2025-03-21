@@ -46,10 +46,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Application\ErrorHandling\Logger.cs" />
-    <Compile Include="Application\IssueHandler\IssuesHandler.cs" />
     <Compile Include="CodeLens\CodeLensConnection.cs" />
     <Compile Include="CodeLens\CodeLensPackage.cs" />
     <Compile Include="CodeLens\CodeLevelMetricsCallbackService.cs" />
+    <Compile Include="Commands\OpenSettingsCommand.cs" />
     <Compile Include="Commands\SignOutCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="Controls\BrainClass.xaml.cs">
@@ -97,8 +97,6 @@
     <Compile Include="Controls\GeneralCodeHealth.xaml.cs">
       <DependentUpon>GeneralCodeHealth.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Commands\OptionsCommand.cs" />
-    <Compile Include="Commands\Base\PackageCommandManager.cs" />
     <Compile Include="Controls\GlobalConditionals.xaml.cs">
       <DependentUpon>GlobalConditionals.xaml</DependentUpon>
     </Compile>
@@ -147,17 +145,18 @@
     <Compile Include="Controls\UnderlineTaggerTooltip.xaml.cs">
       <DependentUpon>UnderlineTaggerTooltip.xaml</DependentUpon>
     </Compile>
+    <Compile Include="EventManager.cs" />
     <Compile Include="Helpers\ToolWindowRegistry.cs" />
     <Compile Include="RegistryHelper.cs" />
-    <Compile Include="ToolWindows\UserControlWindow\UserControlWindow.cs" />
     <Compile Include="UnderlineTagger\DocumentsEvents.cs" />
     <Compile Include="UnderlineTagger\UnderlineTagger.cs" />
     <Compile Include="UnderlineTagger\UnderlineTaggerProvider.cs" />
     <Compile Include="Helpers\BooleanToVisibilityConverter.cs" />
-    <Compile Include="Commands\Base\VsCommandBase.cs" />
+    <Compile Include="Commands\Base\VSBaseCommand.cs" />
     <Compile Include="Options\General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\SignInCommand.cs" />
+    <Compile Include="VS2022PackageOld.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>
@@ -168,16 +167,6 @@
     <Compile Include="ToolWindows\Markdown\MarkdownWindowControl.xaml.cs">
       <DependentUpon>MarkdownWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ToolWindows\Status\StatusWindow.cs" />
-    <Compile Include="Commands\OpenStatusWindowCommand.cs" />
-    <Compile Include="ToolWindows\Status\StatusWindowControl.xaml.cs">
-      <DependentUpon>StatusWindowControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="ToolWindows\Problems\ProblemsWindow.cs" />
-    <Compile Include="ToolWindows\Problems\ProblemsWindowControl.xaml.cs">
-      <DependentUpon>ProblemsWindowControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="ToolWindows\Status\StatusWIndowModel.cs" />
     <Compile Include="ViewElementFactory.cs" />
     <Compile Include="VSCommandTable.cs">
       <AutoGen>True</AutoGen>
@@ -205,7 +194,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ToolWindows\Status\User.png" />
     <None Include="Resources\docs\code-health-monitor.md" />
     <None Include="Resources\docs\complex-conditional.md" />
     <None Include="Resources\docs\general-code-health.md" />
@@ -431,14 +419,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ToolWindows\Status\StatusWindowControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ToolWindows\Problems\ProblemsWindowControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Codescene.VSExtension.CodeLensProvider\Codescene.VSExtension.CodeLensProvider.csproj">
@@ -461,7 +441,9 @@
       <Name>Codescene.VSExtension.CredentialManagerPersistenceAuthProvider</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Application\IssueHandler\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

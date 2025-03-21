@@ -4,7 +4,9 @@ using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.ReviewResult;
 using Codescene.VSExtension.Core.Models.ReviewResultModel;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -19,7 +21,7 @@ internal class IssuesHandler : IIssuesHandler
     private readonly ErrorListProvider _errorListProvider;
     private readonly IModelMapper _modelMapper;
     private readonly VS2022Package _package;
-    public IssuesHandler(IServiceProvider serviceProvider, IModelMapper mapper)
+    public IssuesHandler(VS2022Package package)
     {
         // Retrieve it as your package type
         _package = serviceProvider.GetRequiredService<VS2022Package>();

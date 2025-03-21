@@ -1,5 +1,4 @@
 ﻿using Codescene.VSExtension.VS2022.Commands;
-using Codescene.VSExtension.VS2022.ToolWindows.Status;
 
 namespace Codescene.VSExtension.VS2022;
 

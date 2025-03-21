@@ -1,5 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 

@@ -3,6 +3,7 @@ using Codescene.VSExtension.VS2022.Controls;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using System;
 using System.ComponentModel.Composition;
 using System.Windows;
 

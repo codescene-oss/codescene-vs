@@ -3,6 +3,7 @@ using Codescene.VSExtension.VS2022.Controls;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
