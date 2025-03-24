@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.CodeDup
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(CodeDuplicationDataPointProvider))]
     [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
-    [Priority(100)]
+    [Priority(1030)]
     public class CodeDuplicationDataPointProvider : BaseDataPointProvider<CodeDuplicationDataPoint>
     {
         public override string Name => Constants.Titles.CODE_DUPLICATION;

@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.ExcessN
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(ExcessNumberOfFunctionArgumentsDataPointProvider))]
     [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
-    [Priority(100)]
+    [Priority(1050)]
     public class ExcessNumberOfFunctionArgumentsDataPointProvider : BaseDataPointProvider<ExcessNumberOfFunctionArgumentsDataPoint>
     {
         public override string Name => Constants.Titles.EXCESS_NUMBER_OF_FUNCTION_ARGUMENTS;

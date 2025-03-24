@@ -15,17 +15,18 @@ internal partial class OptionsProvider
 public class General : BaseOptionModel<General>
 {
     public const string DEFAULT_SERVER_URL = "https://codescene.io";
+    public const string DEFAULT_DEV_TOOLS_URL = "https://devtools.codescene.io";
+
 
     [Category("General")]
-    [DisplayName("Enable CodeScene Lenses")]
-    [Description("Enable CodeScene code lenses")]
-    //[DefaultValue(true)] Emir, this doesn't work
+    [DisplayName("Enable Review Code Lenses")]
+    [Description("Show CodeLenses for review diagnostics")]
     public bool EnableCodeLenses { get; set; } = true;
 
-    [Category("General")]
-    [DisplayName("Preview Code Health Gate")]
-    [Description("Preview the experimental Code Health Gate (beta)")]
-    public bool PreviewCodeHealthGate { get; set; } = true;
+    //[Category("General")]
+    //[DisplayName("Preview Code Health Gate")]
+    //[Description("Preview the experimental Code Health Gate (beta)")]
+    //public bool PreviewCodeHealthGate { get; set; } = true;
 
     [Category("General")]
     [DisplayName("Gitignore")]
@@ -39,8 +40,13 @@ public class General : BaseOptionModel<General>
 
     [Category("General")]
     [DisplayName("Server Url")]
-    [Description("CodeScene authentication server Url")]
+    [Description("URL of the CodeScene server")]
     public string ServerUrl { get; set; } = DEFAULT_SERVER_URL;
+
+    [Category("General")]
+    [DisplayName("Devtools Portal Url")]
+    [Description("URL of the CodeScene Devtool Portal server")]
+    public string DevtoolsPortalUrl { get; set; } = DEFAULT_DEV_TOOLS_URL;
 
     public General() : base()
     {

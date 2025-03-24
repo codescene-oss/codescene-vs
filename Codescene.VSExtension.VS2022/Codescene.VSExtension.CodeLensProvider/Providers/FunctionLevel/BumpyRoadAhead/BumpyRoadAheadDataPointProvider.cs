@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.BumpyRo
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(BumpyRoadAheadDataPointProvider))]
     [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
-    [Priority(100)]
+    [Priority(1000)]
     public class BumpyRoadAheadDataPointProvider : BaseDataPointProvider<BumpyRoadAheadDataPoint>
     {
         public override string Name => Constants.Titles.BUMPY_ROAD_AHEAD;

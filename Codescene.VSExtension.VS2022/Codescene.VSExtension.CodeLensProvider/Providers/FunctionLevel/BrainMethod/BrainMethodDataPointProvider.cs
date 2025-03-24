@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.BrainMe
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(BrainMethodDataPointProvider))]
     [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
-    [Priority(100)]
+    [Priority(1040)]
     public class BrainMethodDataPointProvider : BaseDataPointProvider<BrainMethodDataPoint>
     {
         public override string Name => Constants.Titles.BRAIN_METHOD;

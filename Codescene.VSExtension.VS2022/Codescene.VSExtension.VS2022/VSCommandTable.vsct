@@ -52,7 +52,7 @@
 					<ButtonText>CodeScene: Status</ButtonText>
 				</Strings>
 			</Button>
-			<Button guid="CodeSceneCmdSet" id="OpenSettings" priority="0x9999">
+			<Button guid="CodeSceneCmdSet" id="OpenSettings" priority="0x9999" type="Button">
 				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
 				<Icon guid="ImageCatalogGuid" id="Settings" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
