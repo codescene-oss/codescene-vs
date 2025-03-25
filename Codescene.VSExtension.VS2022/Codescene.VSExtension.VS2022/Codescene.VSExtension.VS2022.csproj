@@ -429,10 +429,6 @@
       <Name>Codescene.VSExtension.CodeLensProvider</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\Codescene.VSExtension.CodeLensShared\Codescene.VSExtension.CodeLensShared.csproj">
-      <Project>{d59642e5-a52c-4ffc-8228-21e7f3554dfe}</Project>
-      <Name>Codescene.VSExtension.CodeLensShared</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Codescene.VSExtension.Core\Codescene.VSExtension.Core.csproj">
       <Project>{3217b4fd-5a1b-4deb-b1d9-bcbdf5f22388}</Project>
       <Name>Codescene.VSExtension.Core</Name>

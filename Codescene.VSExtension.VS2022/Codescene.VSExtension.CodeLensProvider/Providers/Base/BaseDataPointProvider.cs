@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.CodeLensShared;
+﻿using Codescene.VSExtension.Core.CodeLensShared;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Language.Intellisense;

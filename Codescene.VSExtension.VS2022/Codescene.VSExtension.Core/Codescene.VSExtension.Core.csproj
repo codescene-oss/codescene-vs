@@ -92,6 +92,10 @@
     <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
     <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
+    <Compile Include="CodeLensShared\CustomDetailsData.cs" />
+    <Compile Include="CodeLensShared\ICodeLevelMetricsCallbackService.cs" />
+    <Compile Include="CodeLensShared\IRemoteCodeLens.cs" />
+    <Compile Include="CodeLensShared\RpcPipeNames.cs" />
     <Compile Include="Models\CodeModel.cs" />
     <Compile Include="Models\IssueModel.cs" />
     <Compile Include="Models\LoginResponse.cs" />
