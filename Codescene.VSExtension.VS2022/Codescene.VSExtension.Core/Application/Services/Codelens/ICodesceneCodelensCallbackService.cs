@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.Core.CodeLensShared
+namespace Codescene.VSExtension.Core.Application.Services.Codelens
 {
-    public interface ICodeLevelMetricsCallbackService
+    public interface ICodesceneCodelensCallbackService
     {
         float GetFileReviewScore(string filePath);
         bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj);

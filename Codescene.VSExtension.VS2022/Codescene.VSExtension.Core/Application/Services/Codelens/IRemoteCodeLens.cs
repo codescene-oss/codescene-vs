@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.CodeLensShared
+﻿namespace Codescene.VSExtension.Core.Application.Services.Codelens
 {
     public interface IRemoteCodeLens
     {

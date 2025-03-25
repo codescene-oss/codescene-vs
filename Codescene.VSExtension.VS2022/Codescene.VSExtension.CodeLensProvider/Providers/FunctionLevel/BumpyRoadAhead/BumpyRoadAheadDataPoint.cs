@@ -1,5 +1,5 @@
 ﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
-using Codescene.VSExtension.Core.CodeLensShared;
+using Codescene.VSExtension.Core.Application.Services.Codelens;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using System.Collections.Generic;

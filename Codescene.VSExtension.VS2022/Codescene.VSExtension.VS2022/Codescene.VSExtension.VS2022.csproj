@@ -48,7 +48,7 @@
     <Compile Include="Application\ErrorHandling\Logger.cs" />
     <Compile Include="CodeLens\CodeLensConnection.cs" />
     <Compile Include="CodeLens\CodeLensPackage.cs" />
-    <Compile Include="CodeLens\CodeLevelMetricsCallbackService.cs" />
+    <Compile Include="CodeLens\CodesceneCodelensCallbackService.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
     <Compile Include="Commands\SignOutCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />

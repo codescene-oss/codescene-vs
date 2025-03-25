@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.CodeLensShared;
+﻿using Codescene.VSExtension.Core.Application.Services.Codelens;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -17,15 +17,21 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
         [ImportingConstructor]
         public BaseDataPointProvider(Lazy<ICodeLensCallbackService> callbackService) => _callbackService = callbackService;
 
+
+        protected async Task<bool> IsCodelenseEnabledAsync()
+        {
+            return await _callbackService.Value
+                    .InvokeAsync<bool>(
+                    this,
+                    nameof(ICodesceneCodelensCallbackService.IsCodeSceneLensesEnabled));
+        }
+
         public virtual async Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
             var methodsOnly = descriptor.Kind == CodeElementKinds.Method;
             if (!methodsOnly) return false;
 
-            var codeSceneLensesEnabled = await _callbackService.Value
-                .InvokeAsync<bool>(
-                this,
-                nameof(ICodeLevelMetricsCallbackService.IsCodeSceneLensesEnabled));
+            var codeSceneLensesEnabled = await IsCodelenseEnabledAsync();
             if (!codeSceneLensesEnabled) return false;
 
             descriptorContext.Properties.TryGetValue("StartLine", out dynamic startLineObject);
@@ -33,7 +39,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
             var showCodeLens = await _callbackService.Value
                .InvokeAsync<bool>(
                    this,
-                   nameof(ICodeLevelMetricsCallbackService.ShowCodeLensForIssue),
+                   nameof(ICodesceneCodelensCallbackService.ShowCodeLensForIssue),
                    new object[]
                    {
                        Name,
@@ -55,7 +61,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
             var vsPid = await _callbackService
              .Value.InvokeAsync<int>(
                  this,
-                 nameof(ICodeLevelMetricsCallbackService.GetVisualStudioPid),
+                 nameof(ICodesceneCodelensCallbackService.GetVisualStudioPid),
                  cancellationToken: token
              )
              .ConfigureAwait(false);
@@ -63,7 +69,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
             _ = _callbackService
                 .Value.InvokeAsync(
                     this,
-                    nameof(ICodeLevelMetricsCallbackService.InitializeRpcAsync),
+                    nameof(ICodesceneCodelensCallbackService.InitializeRpcAsync),
                     new[] { dataPoint.DataPointId },
                     token
                 )

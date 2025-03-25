@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.CodeLensShared;
+﻿using Codescene.VSExtension.Core.Application.Services.Codelens;
 using StreamJsonRpc;
 using System.IO.Pipes;
 using System.Threading;

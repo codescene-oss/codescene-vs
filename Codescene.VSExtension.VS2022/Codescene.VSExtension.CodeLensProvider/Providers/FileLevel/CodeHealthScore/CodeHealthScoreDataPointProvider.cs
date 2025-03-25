@@ -1,5 +1,4 @@
 ﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
-using Codescene.VSExtension.Core.CodeLensShared;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -26,7 +25,8 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FileLevel.CodeHealthS
         public override async Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
             var methodsOnly = descriptor.Kind == CodeElementKinds.Type;
-            return (methodsOnly && await _callbackService.Value.InvokeAsync<bool>(this, nameof(ICodeLevelMetricsCallbackService.IsCodeSceneLensesEnabled)));
+            var codeSceneLensesEnabled = await IsCodelenseEnabledAsync();
+            return methodsOnly && codeSceneLensesEnabled;
         }
     }
 }
