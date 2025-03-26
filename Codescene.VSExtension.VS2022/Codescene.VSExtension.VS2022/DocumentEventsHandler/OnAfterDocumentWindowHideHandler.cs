@@ -1,5 +1,5 @@
-﻿using Community.VisualStudio.Toolkit;
-using Microsoft.VisualStudio.Shell;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Community.VisualStudio.Toolkit;
 using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
@@ -8,8 +8,11 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class OnAfterDocumentWindowHideHandler
 {
+    [Import]
+    private readonly ILogger _logger;
+
     public void Handle(DocumentView doc)
     {
-        VS.StatusBar.ShowMessageAsync(doc.Document?.FilePath ?? "").FireAndForget();
+        _logger.Info(doc.Document?.FilePath ?? "");
     }
 }

@@ -1,5 +1,5 @@
-﻿using Community.VisualStudio.Toolkit;
-using Microsoft.VisualStudio.Shell;
+﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
@@ -8,8 +8,15 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class OnDocumentClosedHandler
 {
+    [Import]
+    private readonly ILogger _logger;
+
+    [Import]
+    private readonly ICliExecuter _cliExecuter;
+
     public void Handle(string path)
     {
-        VS.StatusBar.ShowMessageAsync("Closed document " + (path ?? "no name")).FireAndForget();
+        _logger.Info("Closed document " + (path ?? "no name"));
+        _cliExecuter.RemoveFromActiveReviewList(path);
     }
 }
