@@ -4,12 +4,12 @@ using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
 
-[Export(typeof(OnDocumentSavedHandler))]
+[Export(typeof(OnAfterDocumentWindowHideHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class OnDocumentSavedHandler
+public class OnAfterDocumentWindowHideHandler
 {
-    public void Handle(string path)
+    public void Handle(DocumentView doc)
     {
-        VS.StatusBar.ShowMessageAsync("Saved document " + (path ?? "no name")).FireAndForget();
+        VS.StatusBar.ShowMessageAsync(doc.Document?.FilePath ?? "").FireAndForget();
     }
 }

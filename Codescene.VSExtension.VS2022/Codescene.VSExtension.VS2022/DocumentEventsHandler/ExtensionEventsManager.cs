@@ -1,47 +1,90 @@
 ﻿using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.ComponentModel.Composition;
 using System.Linq;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
+[Export(typeof(ExtensionEventsManager))]
 public class ExtensionEventsManager : IDisposable
 {
+    [Import]
+    private readonly OnDocumentOpenedHandler _onDocumentOpenedHandler;
+
+    [Import]
+    private readonly OnDocumentClosedHandler _onDocumentClosedHandler;
+
+    [Import]
+    private readonly OnDocumentSavedHandler _onDocumentSavedHandler;
+
+    [Import]
+    private readonly OnBeforeDocumentWindowShowHandler _onBeforeDocumentWindowShowHandler;
+
+    [Import]
+    private readonly OnAfterDocumentWindowHideHandler _onAfterDocumentWindowHideHandler;
+
     public void RegisterEvents()
     {
-        VS.Events.DocumentEvents.Opened += OnDocumentOpenedHandler.Handle;
-        VS.Events.DocumentEvents.Closed += OnDocumentClosedHandler.Handle;
-        VS.Events.DocumentEvents.BeforeDocumentWindowShow += OnBeforeDocumentWindowShowHandler.Handle;
-        VS.Events.DocumentEvents.AfterDocumentWindowHide += OnDocumentWindowHideHandler.Handle;
-        VS.Events.DocumentEvents.Saved += OnDocumentSavedHandler.Handle;
+        VS.Events.DocumentEvents.Opened += OnDocumentOpened;
+        VS.Events.DocumentEvents.Closed += OnDocumentClosed;
+        VS.Events.DocumentEvents.Saved += OnDocumentSaved;
+        VS.Events.DocumentEvents.BeforeDocumentWindowShow += OnBeforeDocumentWindowShow;
+        VS.Events.DocumentEvents.AfterDocumentWindowHide += OnAfterDocumentWindowHide;
 
+        #region Project & solution events
         //VS.Events.ProjectItemsEvents.AfterRenameProjectItems += OnAfterRenameProjectItems;
         //VS.Events.ProjectItemsEvents.AfterRemoveProjectItems += OnAfterRemoveProjectItems;
         //VS.Events.SolutionEvents.OnAfterOpenProject += OnAfterOpenProject;
         //VS.Events.SolutionEvents.OnBeforeOpenProject += OnBeforeOpenProject;
         //VS.Events.BuildEvents.ProjectConfigurationChanged += OnProjectConfigurationChanged;
         //VS.Events.BuildEvents.SolutionConfigurationChanged += OnSolutionConfigurationChanged;
+        #endregion
     }
 
-    private void OnDocumentWindowHide(DocumentView obj)
+    public void Dispose()
     {
-        VS.StatusBar.ShowMessageAsync(obj.Document?.FilePath ?? "").FireAndForget();
+        VS.Events.DocumentEvents.Opened -= OnDocumentOpened;
+        VS.Events.DocumentEvents.Closed -= OnDocumentClosed;
+        VS.Events.DocumentEvents.Saved -= OnDocumentSaved;
+        VS.Events.DocumentEvents.BeforeDocumentWindowShow -= OnBeforeDocumentWindowShow;
+        VS.Events.DocumentEvents.AfterDocumentWindowHide -= OnAfterDocumentWindowHide;
+
+        #region Project & solution events
+        //VS.Events.ProjectItemsEvents.AfterRenameProjectItems -= OnAfterRenameProjectItems;
+        //VS.Events.ProjectItemsEvents.AfterRemoveProjectItems -= OnAfterRemoveProjectItems;
+        //VS.Events.SolutionEvents.OnAfterOpenProject -= OnAfterOpenProject;
+        //VS.Events.SolutionEvents.OnBeforeOpenProject -= OnBeforeOpenProject;
+        //VS.Events.BuildEvents.ProjectConfigurationChanged -= OnProjectConfigurationChanged;
+        //VS.Events.BuildEvents.SolutionConfigurationChanged -= OnSolutionConfigurationChanged;
+        #endregion
     }
 
-    private void OnDocumentOpened(string obj)
+    private void OnDocumentOpened(string path)
     {
-        VS.StatusBar.ShowMessageAsync("Opened document " + (obj ?? "no name")).FireAndForget();
+        _onDocumentOpenedHandler.Handle(path);
     }
 
-    private void OnDocumentClosed(string obj)
+    private void OnDocumentClosed(string path)
     {
-        VS.StatusBar.ShowMessageAsync("Closed document " + (obj ?? "no name")).FireAndForget();
+        _onDocumentClosedHandler.Handle(path);
     }
 
-    private void OnBeforeDocumentWindowShow(DocumentView obj)
+    private void OnDocumentSaved(string path)
     {
-        VS.StatusBar.ShowMessageAsync(obj.Document?.FilePath ?? "").FireAndForget();
+        _onDocumentSavedHandler.Handle(path);
     }
 
+    private void OnBeforeDocumentWindowShow(DocumentView doc)
+    {
+        _onBeforeDocumentWindowShowHandler.Handle(doc);
+    }
+
+    private void OnAfterDocumentWindowHide(DocumentView doc)
+    {
+        _onAfterDocumentWindowHideHandler.Handle(doc);
+    }
+
+    #region Project & solution events
     private void OnAfterRenameProjectItems(AfterRenameProjectItemEventArgs obj)
     {
         string info = string.Join(",", obj.ProjectItemRenames.Select(x => $"{x.SolutionItem.Name}:{x.OldName}"));
@@ -80,18 +123,5 @@ public class ExtensionEventsManager : IDisposable
         VS.StatusBar.ShowMessageAsync("Solution configuration changed").FireAndForget();
     }
 
-    public void Dispose()
-    {
-        VS.Events.DocumentEvents.AfterDocumentWindowHide -= OnDocumentWindowHide;
-        VS.Events.DocumentEvents.Opened -= OnDocumentOpened;
-        VS.Events.DocumentEvents.Closed -= OnDocumentClosed;
-        VS.Events.DocumentEvents.BeforeDocumentWindowShow -= OnBeforeDocumentWindowShow;
-        VS.Events.ProjectItemsEvents.AfterRenameProjectItems -= OnAfterRenameProjectItems;
-        VS.Events.ProjectItemsEvents.AfterRemoveProjectItems -= OnAfterRemoveProjectItems;
-        VS.Events.SolutionEvents.OnAfterOpenProject -= OnAfterOpenProject;
-        VS.Events.SolutionEvents.OnBeforeOpenProject -= OnBeforeOpenProject;
-        VS.Events.BuildEvents.ProjectConfigurationChanged -= OnProjectConfigurationChanged;
-        VS.Events.BuildEvents.SolutionConfigurationChanged -= OnSolutionConfigurationChanged;
-    }
+    #endregion
 }
-

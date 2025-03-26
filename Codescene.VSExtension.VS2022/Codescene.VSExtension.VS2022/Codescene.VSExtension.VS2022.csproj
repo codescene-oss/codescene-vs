@@ -149,7 +149,7 @@
     <Compile Include="DocumentEventsHandler\OnDocumentClosedHandler.cs" />
     <Compile Include="DocumentEventsHandler\OnDocumentOpenedHandler.cs" />
     <Compile Include="DocumentEventsHandler\OnDocumentSavedHandler.cs" />
-    <Compile Include="DocumentEventsHandler\OnDocumentWindowHideHandler.cs" />
+    <Compile Include="DocumentEventsHandler\OnAfterDocumentWindowHideHandler.cs" />
     <Compile Include="DocumentEventsHandler\ExtensionEventsManager.cs" />
     <Compile Include="Helpers\ToolWindowRegistry.cs" />
     <Compile Include="RegistryHelper.cs" />
