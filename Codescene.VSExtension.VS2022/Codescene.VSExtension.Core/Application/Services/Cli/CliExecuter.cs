@@ -38,6 +38,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         {
             ActiveReviewList.Remove(documentPath);
         }
+
         public ReviewMapModel GetReviewObject(string filePath)
         {
             ActiveReviewList.TryGetValue(filePath, out var review);
@@ -50,6 +51,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             }
             return review;
         }
+
         public List<ReviewModel> GetTaggerItems(string filePath)
         {
             var review = GetReviewObject(filePath);

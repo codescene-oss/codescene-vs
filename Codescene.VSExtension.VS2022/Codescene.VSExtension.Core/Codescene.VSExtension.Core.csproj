@@ -87,7 +87,7 @@
     <Compile Include="Application\Services\Cli\CliDownloader.cs" />
     <Compile Include="Application\Services\Cli\ICliDownloader.cs" />
     <Compile Include="Application\Services\Cli\ICliExecuter.cs" />
-    <Compile Include="Application\Services\IssueHandler\IIssuesHandler.cs" />
+    <Compile Include="Application\Services\ErrorListWindowHandler\IErrorListWindowHandler.cs" />
     <Compile Include="Application\Services\Mapper\IModelMapper.cs" />
     <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
     <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />

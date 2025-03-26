@@ -3,7 +3,6 @@ using Codescene.VSExtension.Core.Application.Services.Codelens;
 using Codescene.VSExtension.Core.Models.ReviewResultModel;
 using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using System;
@@ -130,30 +129,5 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
     {
         await Task.WhenAll(Connections.Keys.Select(RefreshCodeLensDataPointAsync))
             .ConfigureAwait(false);
-    }
-
-    private async void AddWarnings(string filePath)
-    {
-        var errorListProvider = new ErrorListProvider(ServiceProvider.GlobalProvider);
-        var review = _cliExecuter.GetReviewObject(filePath);
-
-        //foreach (var issues in review.Review)
-        //{
-        //    foreach (var function in issues.Functions)
-        //    {
-        //        var errorTask = new ErrorTask
-        //        {
-
-        //            Text = issues.Category + " (" + function.Details + ")",
-        //            Document = filePath,
-        //            Line = function.Startline - 1,
-        //            Column = function.Startline,
-        //            Category = TaskCategory.BuildCompile,
-        //            ErrorCategory = TaskErrorCategory.Warning,
-        //        };
-        //        errorListProvider.Tasks.Add(errorTask);
-        //    }
-        //}
-        errorListProvider.Show();
     }
 }
