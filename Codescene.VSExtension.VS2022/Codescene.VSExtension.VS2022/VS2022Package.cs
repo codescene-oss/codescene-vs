@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.VS2022.DocumentEventsHandler;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -26,7 +27,7 @@ namespace Codescene.VSExtension.VS2022;
 public sealed class VS2022Package : ToolkitPackage
 {
     public static VS2022Package Instance { get; private set; }
-    private readonly EventManager _eventManager = new();
+    private readonly ExtensionEventsManager _eventManager = new();
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
         Instance = this;

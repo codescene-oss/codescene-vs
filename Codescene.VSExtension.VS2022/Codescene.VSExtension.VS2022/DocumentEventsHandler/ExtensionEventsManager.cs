@@ -3,21 +3,23 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Linq;
 
-namespace Codescene.VSExtension.VS2022;
-public class EventManager : IDisposable
+namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
+public class ExtensionEventsManager : IDisposable
 {
     public void RegisterEvents()
     {
-        VS.Events.DocumentEvents.AfterDocumentWindowHide += OnDocumentWindowHide;
-        VS.Events.DocumentEvents.Opened += OnDocumentOpened;
-        VS.Events.DocumentEvents.Closed += OnDocumentClosed;
-        VS.Events.DocumentEvents.BeforeDocumentWindowShow += OnBeforeDocumentWindowShow;
-        VS.Events.ProjectItemsEvents.AfterRenameProjectItems += OnAfterRenameProjectItems;
-        VS.Events.ProjectItemsEvents.AfterRemoveProjectItems += OnAfterRemoveProjectItems;
-        VS.Events.SolutionEvents.OnAfterOpenProject += OnAfterOpenProject;
-        VS.Events.SolutionEvents.OnBeforeOpenProject += OnBeforeOpenProject;
-        VS.Events.BuildEvents.ProjectConfigurationChanged += OnProjectConfigurationChanged;
-        VS.Events.BuildEvents.SolutionConfigurationChanged += OnSolutionConfigurationChanged;
+        VS.Events.DocumentEvents.Opened += OnDocumentOpenedHandler.Handle;
+        VS.Events.DocumentEvents.Closed += OnDocumentClosedHandler.Handle;
+        VS.Events.DocumentEvents.BeforeDocumentWindowShow += OnBeforeDocumentWindowShowHandler.Handle;
+        VS.Events.DocumentEvents.AfterDocumentWindowHide += OnDocumentWindowHideHandler.Handle;
+        VS.Events.DocumentEvents.Saved += OnDocumentSavedHandler.Handle;
+
+        //VS.Events.ProjectItemsEvents.AfterRenameProjectItems += OnAfterRenameProjectItems;
+        //VS.Events.ProjectItemsEvents.AfterRemoveProjectItems += OnAfterRemoveProjectItems;
+        //VS.Events.SolutionEvents.OnAfterOpenProject += OnAfterOpenProject;
+        //VS.Events.SolutionEvents.OnBeforeOpenProject += OnBeforeOpenProject;
+        //VS.Events.BuildEvents.ProjectConfigurationChanged += OnProjectConfigurationChanged;
+        //VS.Events.BuildEvents.SolutionConfigurationChanged += OnSolutionConfigurationChanged;
     }
 
     private void OnDocumentWindowHide(DocumentView obj)
