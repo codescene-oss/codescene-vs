@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace Codescene.VSExtension.Core.Models.ReviewResultModel
+namespace Codescene.VSExtension.Core.Models.Cli
 {
-    public class CodeSmellModel
+    public class CliCodeSmellModel
     {
         [JsonProperty("category")]
         public string Category { get; set; }
@@ -11,8 +11,7 @@ namespace Codescene.VSExtension.Core.Models.ReviewResultModel
         public string Details { get; set; }
 
         [JsonProperty("highlight-range")]
-        public RangeModel Range { get; set; }
-
+        public CliRangeModel Range { get; set; }
     }
 }
 

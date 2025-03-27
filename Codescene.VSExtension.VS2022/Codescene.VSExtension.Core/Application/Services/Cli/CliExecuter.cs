@@ -1,12 +1,8 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Mapper;
-using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.ReviewResultModel;
+﻿using Codescene.VSExtension.Core.Models.Cli;
 using Newtonsoft.Json;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
     [Export(typeof(ICliExecuter))]
@@ -17,59 +13,21 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         private readonly ICliCommandProvider _cliCommandProvider;
 
         [Import]
-        private readonly IModelMapper _mapper;
-
-        [Import]
         private readonly ICliSettingsProvider _cliSettingsProvider;
 
-        private static readonly Dictionary<string, ReviewMapModel> ActiveReviewList = new Dictionary<string, ReviewMapModel>();
 
-        public void AddToActiveReviewList(string documentPath)
-        {
-            var review = Review(documentPath);
-            ActiveReviewList.Add(documentPath, review);
-        }
-        public void AddToActiveReviewList(string documentPath, string content)
-        {
-            var review = Review(documentPath, content);
-            ActiveReviewList[documentPath] = review;
-        }
-        public void RemoveFromActiveReviewList(string documentPath)
-        {
-            ActiveReviewList.Remove(documentPath);
-        }
-
-        public ReviewMapModel GetReviewObject(string filePath)
-        {
-            ActiveReviewList.TryGetValue(filePath, out var review);
-
-            //for already opened files on IDE load
-            if (review == null)
-            {
-                AddToActiveReviewList(filePath);
-                ActiveReviewList.TryGetValue(filePath, out review);
-            }
-            return review;
-        }
-
-        public List<ReviewModel> GetTaggerItems(string filePath)
-        {
-            var review = GetReviewObject(filePath);
-            return review.ExpressionLevel.Concat(review.FunctionLevel).ToList();
-        }
-
-        public ReviewMapModel Review(string path)
+        public CliReviewModel Review(string path)
         {
             string arguments = _cliCommandProvider.GetReviewPathCommand(path);
             var result = ExecuteCommand(arguments);
-            return _mapper.Map(JsonConvert.DeserializeObject<ReviewResultModel>(result));
+            return JsonConvert.DeserializeObject<CliReviewModel>(result);
         }
 
-        public ReviewMapModel Review(string path, string content)
+        public CliReviewModel ReviewContent(string filename, string content)
         {
-            string arguments = _cliCommandProvider.GetReviewFileContentCommand(path);
+            string arguments = _cliCommandProvider.GetReviewFileContentCommand(filename);
             var result = ExecuteCommand(arguments, content: content);
-            return _mapper.Map(JsonConvert.DeserializeObject<ReviewResultModel>(result));
+            return JsonConvert.DeserializeObject<CliReviewModel>(result);
         }
 
         private string ExecuteCommand(string arguments, string content = null)

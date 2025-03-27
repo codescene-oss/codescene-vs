@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using System.ComponentModel.Composition;
 
@@ -12,11 +12,11 @@ public class OnDocumentClosedHandler
     private readonly ILogger _logger;
 
     [Import]
-    private readonly ICliExecuter _cliExecuter;
+    private readonly IReviewedFilesCacheHandler _cache;
 
     public void Handle(string path)
     {
         _logger.Info("Closed document " + (path ?? "no name"));
-        _cliExecuter.RemoveFromActiveReviewList(path);
+        _cache.Remove(path);
     }
 }

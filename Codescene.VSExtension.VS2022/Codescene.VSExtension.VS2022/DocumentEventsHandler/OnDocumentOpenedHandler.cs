@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using System.ComponentModel.Composition;
@@ -13,7 +13,7 @@ public class OnDocumentOpenedHandler
     private readonly ILogger _logger;
 
     [Import]
-    private readonly ICliExecuter _cliExecuter;
+    private readonly ICodeReviewer _reviewer;
 
     [Import]
     private readonly IErrorListWindowHandler _errorListWindowHandler;
@@ -21,8 +21,7 @@ public class OnDocumentOpenedHandler
     public void Handle(string path)
     {
         _logger.Info("Opened document " + (path ?? "no name"));
-        _cliExecuter.AddToActiveReviewList(path);
-        var review = _cliExecuter.GetReviewObject(path);
+        var review = _reviewer.Review(path);
         _errorListWindowHandler.Handle(path, review);
     }
 }

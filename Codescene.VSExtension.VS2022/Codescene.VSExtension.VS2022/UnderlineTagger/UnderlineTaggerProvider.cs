@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Models;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -12,15 +12,10 @@ namespace Codescene.VSExtension.VS2022.ErrorList
     [Export(typeof(ITaggerProvider))]
     [ContentType("CSharp")]
     [TagType(typeof(IErrorTag))]
-    internal class UnderlineTaggerProvider : ITaggerProvider
+    public class UnderlineTaggerProvider : ITaggerProvider
     {
-        private readonly ICliExecuter _cliExecuter;
-
-        [ImportingConstructor]
-        public UnderlineTaggerProvider(ICliExecuter cliExecuter)
-        {
-            _cliExecuter = cliExecuter;
-        }
+        [Import]
+        private readonly ICodeReviewer _reviewer;
 
         private UnderlineTagger _tagger;
         public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
@@ -34,20 +29,20 @@ namespace Codescene.VSExtension.VS2022.ErrorList
 
             return null;
         }
-        private List<ReviewModel> GetLinesToUnderline(ITextBuffer textBuffer)
+        private List<CodeSmellModel> GetLinesToUnderline(ITextBuffer textBuffer)
         {
             string filePath = textBuffer.GetFileName();
             if (filePath == null) return null;
-            return _cliExecuter.GetTaggerItems(filePath);
+            return new List<CodeSmellModel>();// _cliExecuter.GetTaggerItems(filePath);
         }
-        private async Task<List<ReviewModel>> GetRefreshedLinesToUnderline(ITextBuffer textBuffer)
+        private async Task<List<CodeSmellModel>> GetRefreshedLinesToUnderline(ITextBuffer textBuffer)
         {
             OnDocumentChange(textBuffer.GetFileName(), textBuffer.CurrentSnapshot.GetText());
-            return _cliExecuter.GetTaggerItems(textBuffer.GetFileName());
+            return new List<CodeSmellModel>();// _cliExecuter.GetTaggerItems(textBuffer.GetFileName());
         }
         private void OnDocumentChange(string filePath, string content)
         {
-            _cliExecuter.AddToActiveReviewList(filePath, content);
+            //_cliExecuter.AddToActiveReviewList(filePath, content);
         }
     }
 }

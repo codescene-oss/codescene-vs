@@ -1,13 +1,11 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
-using Codescene.VSExtension.Core.Application.Services.Codelens;
-using Codescene.VSExtension.Core.Models.ReviewResultModel;
+﻿using Codescene.VSExtension.Core.Application.Services.Codelens;
+using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO.Pipes;
 using System.Linq;
@@ -27,7 +25,7 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
     //private readonly DocumentEvents _documentEvents;
 
     [Import]
-    private readonly ICliExecuter _cliExecuter;
+    private readonly ICodeReviewer _reviewer;
 
     public CodesceneCodelensCallbackService()
     {
@@ -38,7 +36,7 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         //_documentEvents.Saved += OnDocumentsSaved;
     }
 
-    private static readonly Dictionary<string, ReviewResultModel> ActiveReviewList = [];
+    //private static readonly Dictionary<string, CliReviewModel> ActiveReviewList = [];
 
     private ITextView _textView; // Add this to hold the current text view
     private Timer _timer;
@@ -79,13 +77,13 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
 
     public float GetFileReviewScore(string filePath)
     {
-        var review = _cliExecuter.GetReviewObject(filePath);
+        var review = _reviewer.Review(filePath);
 
         return review.Score;
     }
     public bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj)
     {
-        var review = _cliExecuter.GetReviewObject(filePath);
+        var review = _reviewer.Review(filePath);
 
         if (review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == startLine)) return true;
 

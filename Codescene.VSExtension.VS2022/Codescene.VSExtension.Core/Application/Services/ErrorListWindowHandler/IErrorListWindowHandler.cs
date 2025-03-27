@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models.ReviewResultModel;
+﻿using Codescene.VSExtension.Core.Models.ReviewModels;
 
 namespace Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler
 {
@@ -7,6 +7,6 @@ namespace Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler
         //string GetUrl();
         //void Handle(IEnumerable<IssueModel> issues);
         //void Handle(string filePath, CsReview review);
-        void Handle(string filePath, ReviewMapModel review);
+        void Handle(string filePath, FileReviewModel review);
     }
 }

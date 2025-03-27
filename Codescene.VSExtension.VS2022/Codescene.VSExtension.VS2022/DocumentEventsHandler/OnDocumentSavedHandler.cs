@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.VS2022.CodeLens;
 using Microsoft.VisualStudio.Shell;
@@ -14,13 +14,13 @@ public class OnDocumentSavedHandler
     private readonly ILogger _logger;
 
     [Import]
-    private readonly ICliExecuter _cliExecuter;
+    private readonly ICodeReviewer _reviewer;
 
     public void Handle(string path)
     {
         _logger.Info("Opened document " + (path ?? "no name"));
-        _cliExecuter.RemoveFromActiveReviewList(path);
-        _cliExecuter.AddToActiveReviewList(path);
+        //_cliExecuter.RemoveFromActiveReviewList(path);
+        //_cliExecuter.AddToActiveReviewList(path);
         CodesceneCodelensCallbackService.RefreshAllCodeLensDataPointsAsync().FireAndForget();
     }
 }

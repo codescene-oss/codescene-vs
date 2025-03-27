@@ -12,10 +12,10 @@ namespace Codescene.VSExtension.VS2022.ErrorList
     public class UnderlineTagger : ITagger<IErrorTag>
     {
         private readonly ITextBuffer _buffer;
-        private List<ReviewModel> _underlinePositions;
-        private readonly Func<Task<List<ReviewModel>>> _refreshUnderlinePositions;
+        private List<CodeSmellModel> _underlinePositions;
+        private readonly Func<Task<List<CodeSmellModel>>> _refreshUnderlinePositions;
 
-        public UnderlineTagger(ITextBuffer buffer, List<ReviewModel> underlinePositions, Func<Task<List<ReviewModel>>> refreshUnderlinePositions)
+        public UnderlineTagger(ITextBuffer buffer, List<CodeSmellModel> underlinePositions, Func<Task<List<CodeSmellModel>>> refreshUnderlinePositions)
         {
             _buffer = buffer;
             _underlinePositions = underlinePositions;

@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace Codescene.VSExtension.Core.Models.ReviewResultModel
+namespace Codescene.VSExtension.Core.Models.Cli
 {
-    public class RangeModel
+    public class CliRangeModel
     {
         [JsonProperty("start-line")]
         public int Startline { get; set; }

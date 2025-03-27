@@ -1,7 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.ReviewResultModel;
+using Codescene.VSExtension.Core.Models.ReviewModels;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
@@ -38,7 +38,7 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
     //    }
     //}
 
-    private void Add(IEnumerable<ReviewModel> issues)
+    private void Add(IEnumerable<CodeSmellModel> issues)
     {
         foreach (var issue in issues)
         {
@@ -46,9 +46,9 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
         }
     }
 
-    private string FormatMessage(ReviewModel i) => $"Codescene - {i.Category} ({i.Details})";
+    private string FormatMessage(CodeSmellModel i) => $"Codescene - {i.Category} ({i.Details})";
 
-    private void Add(ReviewModel issue)
+    private void Add(CodeSmellModel issue)
     {
         var errorTask = new ErrorTask()
         {
@@ -151,7 +151,7 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
     //}
 
     private string _filePath = string.Empty;
-    public void Handle(string filePath, ReviewMapModel review)
+    public void Handle(string filePath, FileReviewModel review)
     {
         _filePath = filePath;
         Delete(filePath);
