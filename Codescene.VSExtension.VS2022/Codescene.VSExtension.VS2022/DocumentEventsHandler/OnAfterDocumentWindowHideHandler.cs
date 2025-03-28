@@ -3,7 +3,6 @@ using Community.VisualStudio.Toolkit;
 using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
-
 [Export(typeof(OnAfterDocumentWindowHideHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class OnAfterDocumentWindowHideHandler
@@ -13,6 +12,6 @@ public class OnAfterDocumentWindowHideHandler
 
     public void Handle(DocumentView doc)
     {
-        _logger.Info(doc.Document?.FilePath ?? "");
+        _logger.Info($"After document window hide:{doc.Document?.FilePath ?? ""}");
     }
 }

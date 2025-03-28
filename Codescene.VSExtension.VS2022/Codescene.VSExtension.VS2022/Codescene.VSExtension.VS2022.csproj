@@ -154,6 +154,7 @@
     <Compile Include="DocumentEventsHandler\OnDocumentSavedHandler.cs" />
     <Compile Include="DocumentEventsHandler\OnAfterDocumentWindowHideHandler.cs" />
     <Compile Include="DocumentEventsHandler\ExtensionEventsManager.cs" />
+    <Compile Include="DocumentEventsHandler\OnStartExtensionActiveDocumentHandler.cs" />
     <Compile Include="Helpers\ToolWindowRegistry.cs" />
     <Compile Include="RegistryHelper.cs" />
     <Compile Include="UnderlineTagger\DocumentsEvents.cs" />

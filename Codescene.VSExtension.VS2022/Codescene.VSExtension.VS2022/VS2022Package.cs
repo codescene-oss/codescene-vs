@@ -2,12 +2,14 @@
 using Codescene.VSExtension.VS2022.DocumentEventsHandler;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
 using Community.VisualStudio.Toolkit;
+using EnvDTE;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace Codescene.VSExtension.VS2022;
@@ -39,25 +41,47 @@ public sealed class VS2022Package : ToolkitPackage
 
         // Cli file
         await CheckCliFileAsync();
+
+        // Check active document
+        await CheckActiveOpenedDocumentAsync();
+
+    }
+
+    async Task<T> GetServiceAsync<T>()
+    {
+        if (await GetServiceAsync(typeof(SComponentModel)) is IComponentModel componentModel)
+        {
+            return componentModel.DefaultExportProvider.GetExportedValue<T>();
+        }
+
+        throw new Exception($"Can not find component {nameof(T)}");
     }
 
     async Task RegisterEventsAsync()
     {
-        if (await GetServiceAsync(typeof(SComponentModel)) is IComponentModel componentModel)
-        {
-            var eventManager = componentModel.DefaultExportProvider.GetExportedValue<ExtensionEventsManager>();
-            eventManager.RegisterEvents();
-        }
+        var eventManager = await GetServiceAsync<ExtensionEventsManager>();
+        eventManager.RegisterEvents();
     }
 
     async Task CheckCliFileAsync()
     {
-        if (await GetServiceAsync(typeof(SComponentModel)) is not IComponentModel componentModel)
-        {
-            throw new ArgumentNullException(nameof(componentModel));
-        }
-
-        var cliFileChecker = componentModel.DefaultExportProvider.GetExportedValue<ICliFileChecker>();
+        var cliFileChecker = await GetServiceAsync<ICliFileChecker>();
         await cliFileChecker.Check();
+    }
+
+    async Task CheckActiveOpenedDocumentAsync()
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(DisposalToken);
+
+        if (await GetServiceAsync(typeof(SDTE)) is DTE dte)
+        {
+            Document activeDocument = dte.ActiveDocument;
+            if (activeDocument != null)
+            {
+                var path = activeDocument.FullName;
+                var handler = await GetServiceAsync<OnStartExtensionActiveDocumentHandler>();
+                handler.Handle(path);
+            }
+        }
     }
 }
