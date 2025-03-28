@@ -22,6 +22,6 @@ public class OnDocumentOpenedHandler
     {
         _logger.Info("Opened document " + (path ?? "no name"));
         var review = _reviewer.Review(path);
-        _errorListWindowHandler.Handle(path, review);
+        _errorListWindowHandler.Handle(review);
     }
 }

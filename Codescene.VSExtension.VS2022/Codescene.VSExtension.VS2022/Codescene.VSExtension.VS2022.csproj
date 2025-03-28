@@ -46,7 +46,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Application\ErrorHandling\Logger.cs" />
+    <Compile Include="Application\ErrorListWindowHandler\CustomErrorListEntry.cs" />
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
+    <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="CodeLens\CodeLensConnection.cs" />
     <Compile Include="CodeLens\CodeLensPackage.cs" />
     <Compile Include="CodeLens\CodesceneCodelensCallbackService.cs" />
