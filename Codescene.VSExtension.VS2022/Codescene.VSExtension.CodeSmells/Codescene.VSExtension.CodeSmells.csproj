@@ -53,5 +53,8 @@
     <Compile Include="Old\TrackedNeutralFile.cs" />
     <Compile Include="Old\TrackedPositiveFile.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="ShouldNotBeAnalyzed\text.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,8 +1,10 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Community.VisualStudio.Toolkit;
 using System.ComponentModel.Composition;
+using System.IO;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
 
@@ -19,10 +21,25 @@ public class OnBeforeDocumentWindowShowHandler
     [Import]
     private readonly IErrorListWindowHandler _errorListWindowHandler;
 
+    [Import]
+    private readonly ISupportedFileChecker _supportedFileChecker;
+
     public void Handle(DocumentView doc)
     {
-        _logger.Info(doc.Document?.FilePath ?? "");
-        var review = _reviewer.Review(doc.Document.FilePath);
+        var path = doc.Document?.FilePath;
+        _logger.Info(path);
+
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            throw new System.ArgumentNullException(nameof(path));
+        }
+
+        if (_supportedFileChecker.IsNotSupported(Path.GetExtension(path)))
+        {
+            return;
+        }
+
+        var review = _reviewer.Review(path);
         _errorListWindowHandler.Handle(review);
     }
 }

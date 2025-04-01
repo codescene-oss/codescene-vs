@@ -13,5 +13,6 @@ public class OnDocumentOpenedHandler
     public void Handle(string path)
     {
         _logger.Info("Opened document " + (path ?? "no name"));
+        //var temp = await VS.Documents.GetActiveDocumentViewAsync();
     }
 }

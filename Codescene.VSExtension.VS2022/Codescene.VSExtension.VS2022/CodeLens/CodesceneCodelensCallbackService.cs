@@ -29,6 +29,7 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
 
     public CodesceneCodelensCallbackService()
     {
+        var emir = "";
         //listen to events
         //_documentEvents = VS.Events.DocumentEvents;
         //_documentEvents.Closed += OnDocumentClosed;
@@ -118,14 +119,11 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
             );
         }
 
-        await connectionHandler
-            .Rpc.InvokeAsync(nameof(IRemoteCodeLens.Refresh))
-            .ConfigureAwait(false);
+        await connectionHandler.Rpc.InvokeAsync(nameof(IRemoteCodeLens.Refresh)).ConfigureAwait(false);
     }
 
     public static async Task RefreshAllCodeLensDataPointsAsync()
     {
-        await Task.WhenAll(Connections.Keys.Select(RefreshCodeLensDataPointAsync))
-            .ConfigureAwait(false);
+        await Task.WhenAll(Connections.Keys.Select(RefreshCodeLensDataPointAsync)).ConfigureAwait(false);
     }
 }

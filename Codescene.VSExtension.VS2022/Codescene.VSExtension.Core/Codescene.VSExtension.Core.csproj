@@ -80,9 +80,11 @@
     <Compile Include="Application\Services\Cli\CliExecuter.cs" />
     <Compile Include="Application\Services\Cli\CliFileChecker.cs" />
     <Compile Include="Application\Services\Cli\CliSettingsProvider.cs" />
+    <Compile Include="Application\Services\Cli\SupportedFileChecker.cs" />
     <Compile Include="Application\Services\Cli\ICliCommandProvider.cs" />
     <Compile Include="Application\Services\Cli\ICliFileChecker.cs" />
     <Compile Include="Application\Services\Cli\ICliSettingsProvider.cs" />
+    <Compile Include="Application\Services\Cli\ISupportedFileChecker.cs" />
     <Compile Include="Application\Services\CodeReviewer\CodeReviewer.cs" />
     <Compile Include="Application\Services\CodeReviewer\IReviewedFilesCacheHandler.cs" />
     <Compile Include="Application\Services\CodeReviewer\ReviewedFilesCacheHandler.cs" />
