@@ -50,7 +50,6 @@
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="CodeLens\CodeLensConnection.cs" />
-    <Compile Include="CodeLens\CodeLensPackage.cs" />
     <Compile Include="CodeLens\CodesceneCodelensCallbackService.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
     <Compile Include="Commands\SignOutCommand.cs" />
@@ -165,7 +164,6 @@
     <Compile Include="Options\General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\SignInCommand.cs" />
-    <Compile Include="VS2022PackageOld.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>

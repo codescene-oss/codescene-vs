@@ -27,6 +27,11 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 throw new ArgumentNullException(nameof(path));
             }
 
+            if (_cache.Exists(path))
+            {
+                return _cache.Get(path);
+            }
+
             var review = _executer.Review(path);
             var mapped = _mapper.Map(path, review);
             _cache.Add(mapped);

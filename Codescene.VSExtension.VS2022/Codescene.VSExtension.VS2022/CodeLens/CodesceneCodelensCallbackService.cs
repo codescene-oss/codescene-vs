@@ -82,17 +82,37 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
 
         return review.Score;
     }
-    public bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj)
+
+    /// <summary>
+    /// This method is invoked by the Codelens Data Point Provider. It iterates through the file's code lines and calls this method for each line. The method checks whether the reviewer has found an issue on the line it was called for.
+    /// </summary>
+    /// <param name="issue"></param>
+    /// <param name="filePath"></param>
+    /// <param name="lineNumber"></param>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    public bool ShowCodeLensForLine(string issue, string filePath, int lineNumber, dynamic obj)
     {
         var review = _reviewer.Review(filePath);
 
-        if (review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == startLine)) return true;
+        if (review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == lineNumber))
+        {
+            return true;
+        }
 
         return false;
 
     }
-    public bool IsCodeSceneLensesEnabled() => General.Instance.EnableCodeLenses;
-    public int GetVisualStudioPid() => System.Diagnostics.Process.GetCurrentProcess().Id;
+
+    public bool IsCodeSceneLensesEnabled()
+    {
+        return General.Instance.EnableCodeLenses;
+    }
+
+    public int GetVisualStudioPid()
+    {
+        return System.Diagnostics.Process.GetCurrentProcess().Id;
+    }
 
     public async Task InitializeRpcAsync(string dataPointId)
     {

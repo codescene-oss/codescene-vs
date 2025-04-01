@@ -25,7 +25,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FileLevel.CodeHealthS
         public override async Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
             var methodsOnly = descriptor.Kind == CodeElementKinds.Type;
-            var codeSceneLensesEnabled = await IsCodelenseEnabledAsync();
+            var codeSceneLensesEnabled = await IsCodelenseEnabledAsync(token);
             return methodsOnly && codeSceneLensesEnabled;
         }
     }

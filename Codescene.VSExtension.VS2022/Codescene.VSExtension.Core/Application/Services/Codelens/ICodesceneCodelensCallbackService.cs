@@ -5,7 +5,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Codelens
     public interface ICodesceneCodelensCallbackService
     {
         float GetFileReviewScore(string filePath);
-        bool ShowCodeLensForIssue(string issue, string filePath, int startLine, dynamic obj);
+        bool ShowCodeLensForLine(string issue, string filePath, int startLine, dynamic obj);
         int GetVisualStudioPid();
         Task InitializeRpcAsync(string dataPointId);
         bool IsCodeSceneLensesEnabled();
