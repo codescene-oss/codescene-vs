@@ -52,14 +52,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
             var dataPoint = (T)Activator.CreateInstance(typeof(T), descriptor, _callbackService.Value);
 
-            _ =  _callbackService
-                .Value.InvokeAsync(
-                    this,
-                    nameof(ICodesceneCodelensCallbackService.InitializeRpcAsync),
-                    new[] { dataPoint.DataPointId },
-                    token
-                )
-                .ConfigureAwait(false);
+            _ = InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.InitializeRpcAsync), token, parameters: new[] { dataPoint.DataPointId });
 
             var connection = new VisualStudioConnection(dataPoint, vsPid);
             await connection.ConnectAsync(token);

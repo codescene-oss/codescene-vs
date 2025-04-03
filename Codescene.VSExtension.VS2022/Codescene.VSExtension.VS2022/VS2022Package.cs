@@ -45,6 +45,8 @@ public sealed class VS2022Package : ToolkitPackage
         // Check active document
         await CheckActiveOpenedDocumentAsync();
 
+        // Subscribe on active document change event
+        await SubscribeOnActiveWindowChangeAsync();
     }
 
     async Task<T> GetServiceAsync<T>()
@@ -82,6 +84,17 @@ public sealed class VS2022Package : ToolkitPackage
                 var handler = await GetServiceAsync<OnStartExtensionActiveDocumentHandler>();
                 handler.Handle(path);
             }
+        }
+    }
+
+    async Task SubscribeOnActiveWindowChangeAsync()
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(DisposalToken);
+
+        if (await GetServiceAsync(typeof(SDTE)) is DTE dte)
+        {
+            var handler = await GetServiceAsync<OnActiveWindowChangeHandler>();
+            dte.Events.WindowEvents.WindowActivated += handler.Handle;
         }
     }
 }

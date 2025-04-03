@@ -147,6 +147,7 @@
     <Compile Include="Controls\UnderlineTaggerTooltip.xaml.cs">
       <DependentUpon>UnderlineTaggerTooltip.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DocumentEventsHandler\OnActiveWindowChangeHandler.cs" />
     <Compile Include="DocumentEventsHandler\OnBeforeDocumentWindowShowHandler.cs" />
     <Compile Include="DocumentEventsHandler\OnDocumentClosedHandler.cs" />
     <Compile Include="DocumentEventsHandler\OnDocumentOpenedHandler.cs" />

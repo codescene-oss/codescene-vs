@@ -38,18 +38,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FileLevel.CodeHealthS
             };
         }
 
-        public override Task<CodeLensDetailsDescriptor> GetDetailsAsync(
-            CodeLensDescriptorContext descriptorContext,
-            CancellationToken token
-        )
-        {
-            var result = new CodeLensDetailsDescriptor()
-            {
-                CustomData = new List<CustomDetailsData>{
-                    new CustomDetailsData { FileName = "general-code-health", Title = "General Code Health"}
-                }
-            };
-            return Task.FromResult(result);
-        }
+        public override Task<CodeLensDetailsDescriptor> GetDetailsAsync(CodeLensDescriptorContext descriptorContext, CancellationToken token)
+            => Task.FromResult(new CodeLensDetailsDescriptor() { CustomData = new List<CustomDetailsData> { new CustomDetailsData { FileName = "general-code-health", Title = "General Code Health" } } });
     }
 }
