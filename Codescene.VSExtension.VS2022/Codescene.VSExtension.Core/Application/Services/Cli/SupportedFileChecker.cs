@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class SupportedFileChecker : ISupportedFileChecker
     {
-        private readonly List<string> _list = new List<string> { "cs", "cpp", "c", "js", "ts" };
+        private readonly List<string> _list = new List<string> { ".cs", ".cpp", ".c", ".js", ".ts" };
 
         public bool IsNotSupported(string extension) => !IsSupported(extension);
 

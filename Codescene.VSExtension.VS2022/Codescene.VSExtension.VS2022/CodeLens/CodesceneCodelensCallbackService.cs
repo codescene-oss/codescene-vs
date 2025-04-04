@@ -2,14 +2,12 @@
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
 using System.IO.Pipes;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -21,60 +19,9 @@ namespace Codescene.VSExtension.VS2022.CodeLens;
 internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICodesceneCodelensCallbackService
 {
     public static readonly ConcurrentDictionary<string, CodeLensConnection> Connections = new();
-    public static bool CodeSceneLensesEnabled;
-    //private readonly DocumentEvents _documentEvents;
 
     [Import]
     private readonly ICodeReviewer _reviewer;
-
-    public CodesceneCodelensCallbackService()
-    {
-        var emir = "";
-        //listen to events
-        //_documentEvents = VS.Events.DocumentEvents;
-        //_documentEvents.Closed += OnDocumentClosed;
-        //_documentEvents.Opened += OnDocumentsOpened;
-        //_documentEvents.Saved += OnDocumentsSaved;
-    }
-
-    //private static readonly Dictionary<string, CliReviewModel> ActiveReviewList = [];
-
-    private ITextView _textView; // Add this to hold the current text view
-    private Timer _timer;
-    private readonly int _delayInMilliseconds = 3000;
-    //private async void SubscribeToChangeEvent()
-    //{
-    //    var temp = await VS.Documents.GetActiveDocumentViewAsync();
-    //    temp.Document.TextBuffer.Changed += TextBuffer_Changed;
-    //}
-    //private async void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
-    //{
-    //    var temp = await VS.Documents.GetActiveDocumentViewAsync();
-    //    _timer?.Change(Timeout.Infinite, Timeout.Infinite); // Stop the timer if already running
-    //    _timer = new Timer(async _ => OnDocumentsSaved(temp.FilePath), null, _delayInMilliseconds, Timeout.Infinite);
-    //}
-    //private async void OnDocumentsSaved(string filePath)
-    //{
-    //    System.Diagnostics.Debug.WriteLine($"OnDocumentsSaved called with filePath: {filePath}");
-    //    _cliExecuter.RemoveFromActiveReviewList(filePath);
-
-    //    _cliExecuter.AddToActiveReviewList(filePath);
-    //    await RefreshAllCodeLensDataPointsAsync();
-    //}
-
-    //private void OnDocumentsOpened(string filePath)
-    //{
-    //    System.Diagnostics.Debug.WriteLine($"OnDocumentsOpened called with filePath: {filePath}");
-    //    //SubscribeToChangeEvent();
-    //    _cliExecuter.AddToActiveReviewList(filePath);
-    //    AddWarnings(filePath);
-
-    //}
-    //private void OnDocumentClosed(string filePath)
-    //{
-    //    System.Diagnostics.Debug.WriteLine($"OnDocumentClosed called with filePath: {filePath}");
-    //    _cliExecuter.RemoveFromActiveReviewList(filePath);
-    //}
 
     public float GetFileReviewScore(string filePath)
     {
@@ -130,7 +77,7 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         Connections[dataPointId] = connection;
     }
 
-    public static async Task RefreshCodeLensDataPointAsync(string dataPointId)
+    private static async Task RefreshDataPointAsync(string dataPointId)
     {
         if (!Connections.TryGetValue(dataPointId, out var connectionHandler))
         {
@@ -142,8 +89,8 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         await connectionHandler.Rpc.InvokeAsync(nameof(IRemoteCodeLens.Refresh)).ConfigureAwait(false);
     }
 
-    public static async Task RefreshAllCodeLensDataPointsAsync()
+    public static async Task RefreshCodeLensAsync()
     {
-        await Task.WhenAll(Connections.Keys.Select(RefreshCodeLensDataPointAsync)).ConfigureAwait(false);
+        await Task.WhenAll(Connections.Keys.Select(RefreshDataPointAsync)).ConfigureAwait(false);
     }
 }

@@ -58,7 +58,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
             var review = _executer.ReviewContent(fileName, content);
             var mapped = _mapper.Map(path, review);
-            _cache.Add(mapped);
             return mapped;
         }
     }

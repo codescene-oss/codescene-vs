@@ -25,6 +25,9 @@ public class OnStartExtensionActiveDocumentHandler
     [Import]
     private readonly ISupportedFileChecker _supportedFileChecker;
 
+    [Import]
+    private readonly ActiveDocumentTextChangeHandler _documentHandler;
+
     public void Handle(string path)
     {
         _logger.Info($"Active opened document:{path}");
@@ -41,6 +44,8 @@ public class OnStartExtensionActiveDocumentHandler
 
         var review = _reviewer.Review(path);
         _errorListWindowHandler.Handle(review);
-        CodesceneCodelensCallbackService.RefreshAllCodeLensDataPointsAsync().FireAndForget();
+        CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
+
+        _ = _documentHandler.SubscribeAsync();
     }
 }

@@ -41,6 +41,6 @@ public class OnDocumentSavedHandler
 
         var review = _reviewer.Review(path);
         _errorListWindowHandler.Handle(review);
-        CodesceneCodelensCallbackService.RefreshAllCodeLensDataPointsAsync().FireAndForget();
+        CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
     }
 }
