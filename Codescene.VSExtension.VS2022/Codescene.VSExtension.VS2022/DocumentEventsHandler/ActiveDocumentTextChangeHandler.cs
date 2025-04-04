@@ -42,15 +42,15 @@ public class ActiveDocumentTextChangeHandler
             _timer?.Dispose();
             _timer = new Timer((state) =>
             {
-                OnTimerTick(state, activeDocument.FilePath);
+                //On timer tick
+                ReviewNewContent(activeDocument.FilePath);
             }, null, TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3));
 
-            var p = activeDocument.FilePath;
             activeDocument.TextBuffer.Changed += TextBuffer_Changed;
         }
     }
 
-    private void OnTimerTick(object state, string path)
+    private void ReviewNewContent(string path)
     {
         if (_changed)
         {
