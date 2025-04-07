@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.ErrorList
 {
@@ -13,9 +12,9 @@ namespace Codescene.VSExtension.VS2022.ErrorList
     {
         private readonly ITextBuffer _buffer;
         private List<CodeSmellModel> _underlinePositions;
-        private readonly Func<Task<List<CodeSmellModel>>> _refreshUnderlinePositions;
+        private readonly Func<List<CodeSmellModel>> _refreshUnderlinePositions;
 
-        public UnderlineTagger(ITextBuffer buffer, List<CodeSmellModel> underlinePositions, Func<Task<List<CodeSmellModel>>> refreshUnderlinePositions)
+        public UnderlineTagger(ITextBuffer buffer, List<CodeSmellModel> underlinePositions, Func<List<CodeSmellModel>> refreshUnderlinePositions)
         {
             _buffer = buffer;
             _underlinePositions = underlinePositions;
@@ -49,10 +48,12 @@ namespace Codescene.VSExtension.VS2022.ErrorList
                 }
             }
         }
+
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
-        private async void OnBufferChanged(TextContentChangedEventArgs args)
+
+        private void OnBufferChanged(TextContentChangedEventArgs args)
         {
-            _underlinePositions = await _refreshUnderlinePositions.Invoke();
+            _underlinePositions = _refreshUnderlinePositions.Invoke();
             TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(new SnapshotSpan(args.After, new Span())));
         }
     }

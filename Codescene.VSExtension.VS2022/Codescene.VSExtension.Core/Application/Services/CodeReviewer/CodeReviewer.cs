@@ -1,7 +1,9 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
+using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 
@@ -39,6 +41,12 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         {
             _type = ReviewType.CONTENT_ONLY;
             _content = content;
+        }
+
+        public List<CodeSmellModel> GetCodesmellExpressions(string path)
+        {
+            var review = Review(path);
+            return review.FunctionLevel;
         }
 
         public FileReviewModel Review(string path)
