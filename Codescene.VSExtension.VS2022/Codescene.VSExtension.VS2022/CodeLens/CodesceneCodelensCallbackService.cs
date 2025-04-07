@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace Codescene.VSExtension.VS2022.CodeLens;
 
 [Export(typeof(ICodeLensCallbackListener))]
-[PartCreationPolicy(CreationPolicy.Shared)]
+//[PartCreationPolicy(CreationPolicy.Shared)]
 [ContentType("CSharp")]
 internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICodesceneCodelensCallbackService
 {

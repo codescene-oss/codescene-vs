@@ -58,41 +58,5 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
             return _reviews.Remove(path);
         }
-
-        //public void AddToActiveReviewList(string documentPath, ReviewMapModel review)
-        //{
-        //    var review = Review(documentPath);
-        //    ActiveReviewList.Add(documentPath, review);
-        //}
-
-        //public void AddToActiveReviewList(string documentPath, string content)
-        //{
-        //    var review = ReviewContent(documentPath, content);
-        //    ActiveReviewList[documentPath] = review;
-        //}
-
-        //public void RemoveFromActiveReviewList(string documentPath)
-        //{
-        //    ActiveReviewList.Remove(documentPath);
-        //}
-
-        //public ReviewMapModel GetReviewObject(string filePath)
-        //{
-        //    ActiveReviewList.TryGetValue(filePath, out var review);
-
-        //    //for already opened files on IDE load
-        //    if (review == null)
-        //    {
-        //        AddToActiveReviewList(filePath);
-        //        ActiveReviewList.TryGetValue(filePath, out review);
-        //    }
-        //    return review;
-        //}
-
-        //public List<ReviewModel> GetTaggerItems(string filePath)
-        //{
-        //    var review = GetReviewObject(filePath);
-        //    return review.ExpressionLevel.Concat(review.FunctionLevel).ToList();
-        //}
     }
 }

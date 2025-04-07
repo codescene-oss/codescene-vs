@@ -39,6 +39,7 @@ public class OnDocumentSavedHandler
             return;
         }
 
+        _reviewer.UseFileOnPathType();
         var review = _reviewer.Review(path);
         _errorListWindowHandler.Handle(review);
         CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();

@@ -10,69 +10,17 @@ namespace Codescene.VSExtension.Core.Application.Services.Mapper
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ModelMapper : IModelMapper
     {
-        //public IEnumerable<ReviewModel> Map(CsReview result)
-        //{
-        //    var list = new List<ReviewModel>();
-
-        //    foreach (var item in result.Review)
-        //    {
-        //        list.Add(Map(result.RawScore?.Name, item));
-        //    }
-
-        //    return list;
-        //}
-        //private ReviewModel Map(string path, Review review)
-        //{
-        //    return new ReviewModel
-        //    {
-        //        Path = path,
-        //        Category = review.Category,
-        //        Details = review.Functions.First().Details,
-        //        StartLine = review.Functions.First().Startline,
-        //        EndLine = review.Functions.First().Endline,
-        //    };
-        //}
-        //public IEnumerable<ReviewModel> MapToList(CliReviewModel result)
-        //{
-        //    var list = new List<ReviewModel>();
-
-        //    foreach (var item in result.FunctionLevelCodeSmells)
-        //    {
-        //        foreach (var smell in item.CodeSmells)
-        //        {
-        //            //list.Add(Map(result.RawScore?.Name, smell));
-        //        }
-        //    }
-        //    //foreach (var item in result.ExpressionLevelCodeSmells)
-        //    //{
-        //    //    list.Add(Map(result.RawScore?.Name, item));
-        //    //}
-        //    return list;
-        //}
         public FileReviewModel Map(string filePath, CliReviewModel result)
         {
             return new FileReviewModel
             {
                 FilePath = filePath,
                 Score = result.Score ?? 0,
-                //ExpressionLevel = result.ExpressionLevelCodeSmells.Select(x => Map(x)).ToList(),
                 FileLevel = result.FileLevelCodeSmells.Select(x => Map(filePath, x)).ToList(),
                 FunctionLevel = result.FunctionLevelCodeSmells.SelectMany(x => x.CodeSmells.Select(y => Map(filePath, y))).ToList()
             };
         }
-        //private ReviewModel Map(string path, CliCodeSmellModel review)
-        //{
-        //    return new ReviewModel
-        //    {
-        //        Path = path,
-        //        Category = review.Category,
-        //        Details = review.Details,
-        //        StartLine = review.Range.Startline,
-        //        EndLine = review.Range.EndLine,
-        //        StartColumn = review.Range.StartColumn,
-        //        EndColumn = review.Range.EndColumn
-        //    };
-        //}
+
         private CodeSmellModel Map(string path, CliCodeSmellModel review)
         {
             return new CodeSmellModel

@@ -5,6 +5,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
     public interface ICodeReviewer
     {
         FileReviewModel Review(string path);
-        FileReviewModel ReviewContent(string path, string content);
+        void UseFileOnPathType();
+        void UseContentOnlyType(string content);
     }
 }

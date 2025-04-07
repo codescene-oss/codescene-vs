@@ -42,6 +42,7 @@ public class OnStartExtensionActiveDocumentHandler
             return;
         }
 
+        _reviewer.UseFileOnPathType();
         var review = _reviewer.Review(path);
         _errorListWindowHandler.Handle(review);
         CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();

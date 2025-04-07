@@ -11,34 +11,65 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeReviewer : ICodeReviewer
     {
+        private string _content = string.Empty;
+        private enum ReviewType
+        {
+            FILE_ON_PATH,
+            CONTENT_ONLY
+        }
+
+        private ReviewType _type = ReviewType.FILE_ON_PATH;
+
         [Import]
         private readonly IModelMapper _mapper;
 
         [Import]
         private readonly ICliExecuter _executer;
 
-        [Import]
-        private readonly IReviewedFilesCacheHandler _cache;
+        //[Import]
+        //private readonly IReviewedFilesCacheHandler _cache;
+
+        public void UseFileOnPathType()
+        {
+            _type = ReviewType.FILE_ON_PATH;
+            _content = string.Empty;
+        }
+
+        public void UseContentOnlyType(string content)
+        {
+            _type = ReviewType.CONTENT_ONLY;
+            _content = content;
+        }
 
         public FileReviewModel Review(string path)
+        {
+            if (_type == ReviewType.CONTENT_ONLY && string.IsNullOrWhiteSpace(_content))
+            {
+                throw new ArgumentNullException(nameof(_content));
+            }
+
+            return _type == ReviewType.FILE_ON_PATH ? ReviewFileOnPath(path) : ReviewContent(path, _content);
+        }
+
+        private FileReviewModel ReviewFileOnPath(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
                 throw new ArgumentNullException(nameof(path));
             }
 
-            if (_cache.Exists(path))
-            {
-                return _cache.Get(path);
-            }
+            //if (_cache.Exists(path))
+            //{
+            //    return _cache.Get(path);
+            //}
 
             var review = _executer.Review(path);
             var mapped = _mapper.Map(path, review);
-            _cache.Add(mapped);
+            //_cache.Add(mapped);
             return mapped;
         }
 
-        public FileReviewModel ReviewContent(string path, string content)
+        private FileReviewModel ReviewContent(string path, string content)
         {
             if (string.IsNullOrWhiteSpace(path))
             {

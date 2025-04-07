@@ -158,9 +158,6 @@
     <Compile Include="DocumentEventsHandler\OnStartExtensionActiveDocumentHandler.cs" />
     <Compile Include="Helpers\ToolWindowRegistry.cs" />
     <Compile Include="RegistryHelper.cs" />
-    <Compile Include="UnderlineTagger\DocumentsEvents.cs" />
-    <Compile Include="UnderlineTagger\UnderlineTagger.cs" />
-    <Compile Include="UnderlineTagger\UnderlineTaggerProvider.cs" />
     <Compile Include="Helpers\BooleanToVisibilityConverter.cs" />
     <Compile Include="Commands\Base\VSBaseCommand.cs" />
     <Compile Include="Options\General.cs" />
@@ -449,7 +446,9 @@
       <Name>Codescene.VSExtension.CredentialManagerPersistenceAuthProvider</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="UnderlineTagger\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

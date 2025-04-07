@@ -39,6 +39,7 @@ public class OnBeforeDocumentWindowShowHandler
             return;
         }
 
+        _reviewer.UseFileOnPathType();
         var review = _reviewer.Review(path);
         _errorListWindowHandler.Handle(review);
     }

@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
@@ -10,9 +11,12 @@ public class OnDocumentOpenedHandler
     [Import]
     private readonly ILogger _logger;
 
+    [Import]
+    private readonly ICodeReviewer _reviewer;
+
     public void Handle(string path)
     {
         _logger.Info("Opened document " + (path ?? "no name"));
-        //var temp = await VS.Documents.GetActiveDocumentViewAsync();
+        _reviewer.UseFileOnPathType();
     }
 }

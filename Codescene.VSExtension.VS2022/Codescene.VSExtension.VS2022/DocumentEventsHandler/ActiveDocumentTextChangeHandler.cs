@@ -34,6 +34,7 @@ public class ActiveDocumentTextChangeHandler
         }
     }
 
+    private const int _SECONDS = 1;
     public async Task SubscribeAsync()
     {
         var activeDocument = await VS.Documents.GetActiveDocumentViewAsync();
@@ -44,7 +45,7 @@ public class ActiveDocumentTextChangeHandler
             {
                 //On timer tick
                 ReviewNewContent(activeDocument.FilePath);
-            }, null, TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3));
+            }, null, TimeSpan.FromSeconds(_SECONDS), TimeSpan.FromSeconds(_SECONDS));
 
             activeDocument.TextBuffer.Changed += TextBuffer_Changed;
         }
@@ -62,11 +63,20 @@ public class ActiveDocumentTextChangeHandler
 
                 // Now safe to use VS APIs that require the UI thread:
                 var newContent = _buffer.CurrentSnapshot.GetText();
-                var review = _reviewer.ReviewContent(path, newContent);
+                _reviewer.UseContentOnlyType(newContent);
+                var review = _reviewer.Review(path);
                 _errorListWindowHandler.Handle(review);
 
                 // Also, call RefreshCodeLensAsync on the UI thread
-                await CodesceneCodelensCallbackService.RefreshCodeLensAsync();
+                try
+                {
+                    CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
+                }
+                catch (Exception ex)
+                {
+                    var e = ex.Message;
+                }
+
             });
         }
     }

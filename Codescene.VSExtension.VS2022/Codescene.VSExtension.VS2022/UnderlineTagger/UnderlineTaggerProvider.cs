@@ -1,5 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
-using Codescene.VSExtension.Core.Models;
+﻿using Codescene.VSExtension.Core.Models;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -14,10 +13,11 @@ namespace Codescene.VSExtension.VS2022.ErrorList
     [TagType(typeof(IErrorTag))]
     public class UnderlineTaggerProvider : ITaggerProvider
     {
-        [Import]
-        private readonly ICodeReviewer _reviewer;
+        //[Import]
+        //private readonly ICodeReviewer _reviewer;
 
         private UnderlineTagger _tagger;
+
         public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
         {
             if (typeof(T) == typeof(IErrorTag))
@@ -29,6 +29,7 @@ namespace Codescene.VSExtension.VS2022.ErrorList
 
             return null;
         }
+
         private List<CodeSmellModel> GetLinesToUnderline(ITextBuffer textBuffer)
         {
             string filePath = textBuffer.GetFileName();
@@ -42,6 +43,7 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         }
         private void OnDocumentChange(string filePath, string content)
         {
+            var emir = "";
             //_cliExecuter.AddToActiveReviewList(filePath, content);
         }
     }
