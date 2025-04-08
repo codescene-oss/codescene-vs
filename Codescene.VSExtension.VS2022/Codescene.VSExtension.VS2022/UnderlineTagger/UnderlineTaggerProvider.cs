@@ -16,8 +16,6 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         [Import]
         private readonly ICodeReviewer _reviewer;
 
-        private UnderlineTagger _tagger;
-
         public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
         {
             if (typeof(T) != typeof(IErrorTag))
@@ -26,8 +24,8 @@ namespace Codescene.VSExtension.VS2022.ErrorList
             }
 
             var linesToUnderline = GetLinesToUnderline(textBuffer);
-            _tagger = new UnderlineTagger(textBuffer, linesToUnderline, () => GetRefreshedLinesToUnderline(textBuffer));
-            return (ITagger<T>)_tagger;
+            var tagger = new UnderlineTagger(textBuffer, linesToUnderline, () => GetRefreshedLinesToUnderline(textBuffer));
+            return (ITagger<T>)tagger;
         }
 
         private List<CodeSmellModel> GetLinesToUnderline(ITextBuffer textBuffer)
