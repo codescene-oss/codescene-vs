@@ -40,7 +40,7 @@ public class OnBeforeDocumentWindowShowHandler
         }
 
         _reviewer.UseFileOnPathType();
-        var review = _reviewer.Review(path);
+        var review = _reviewer.Review(path, invalidateCache: true);
         _errorListWindowHandler.Handle(review);
     }
 }

@@ -38,7 +38,7 @@ namespace Codescene.VSExtension.VS2022.ErrorList
             var path = GetPath(textBuffer);
             var content = textBuffer.CurrentSnapshot.GetText();
             _reviewer.UseContentOnlyType(content);
-            return _reviewer.GetCodesmellExpressions(path);
+            return _reviewer.GetCodesmellExpressions(path, invalidateCache: true);
         }
 
         private string GetPath(ITextBuffer textBuffer)

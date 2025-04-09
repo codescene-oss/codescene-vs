@@ -28,8 +28,8 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         [Import]
         private readonly ICliExecuter _executer;
 
-        //[Import]
-        //private readonly IReviewedFilesCacheHandler _cache;
+        [Import]
+        private readonly IReviewedFilesCacheHandler _cache;
 
         public void UseFileOnPathType()
         {
@@ -43,17 +43,22 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             _content = content;
         }
 
-        public List<CodeSmellModel> GetCodesmellExpressions(string path)
+        public List<CodeSmellModel> GetCodesmellExpressions(string path, bool invalidateCache = false)
         {
-            var review = Review(path);
+            var review = Review(path, invalidateCache);
             return review.FunctionLevel;
         }
 
-        public FileReviewModel Review(string path)
+        public FileReviewModel Review(string path, bool invalidateCache = false)
         {
             if (_type == ReviewType.CONTENT_ONLY && string.IsNullOrWhiteSpace(_content))
             {
                 throw new ArgumentNullException(nameof(_content));
+            }
+
+            if (invalidateCache)
+            {
+                InvalidateCache(path);
             }
 
             return _type == ReviewType.FILE_ON_PATH ? ReviewFileOnPath(path) : ReviewContent(path, _content);
@@ -66,14 +71,14 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 throw new ArgumentNullException(nameof(path));
             }
 
-            //if (_cache.Exists(path))
-            //{
-            //    return _cache.Get(path);
-            //}
+            if (_cache.Exists(path))
+            {
+                return _cache.Get(path);
+            }
 
             var review = _executer.Review(path);
             var mapped = _mapper.Map(path, review);
-            //_cache.Add(mapped);
+            _cache.Add(mapped);
             return mapped;
         }
 
@@ -95,9 +100,20 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 throw new ArgumentNullException(nameof(fileName));
             }
 
+            if (_cache.Exists(path))
+            {
+                return _cache.Get(path);
+            }
+
             var review = _executer.ReviewContent(fileName, content);
             var mapped = _mapper.Map(path, review);
+            _cache.Add(mapped);
             return mapped;
+        }
+
+        public void InvalidateCache(string path)
+        {
+            _cache.Remove(path);
         }
     }
 }

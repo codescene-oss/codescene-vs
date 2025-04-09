@@ -6,9 +6,10 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 {
     public interface ICodeReviewer
     {
-        FileReviewModel Review(string path);
+        void InvalidateCache(string path);
+        FileReviewModel Review(string path, bool invalidateCache = false);
         void UseFileOnPathType();
         void UseContentOnlyType(string content);
-        List<CodeSmellModel> GetCodesmellExpressions(string path);
+        List<CodeSmellModel> GetCodesmellExpressions(string path, bool invalidateCache = false);
     }
 }

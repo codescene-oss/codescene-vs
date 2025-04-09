@@ -64,19 +64,11 @@ public class ActiveDocumentTextChangeHandler
                 // Now safe to use VS APIs that require the UI thread:
                 var newContent = _buffer.CurrentSnapshot.GetText();
                 _reviewer.UseContentOnlyType(newContent);
-                var review = _reviewer.Review(path);
+                var review = _reviewer.Review(path, invalidateCache: true);
                 _errorListWindowHandler.Handle(review);
 
                 // Also, call RefreshCodeLensAsync on the UI thread
-                try
-                {
-                    CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
-                }
-                catch (Exception ex)
-                {
-                    var e = ex.Message;
-                }
-
+                CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
             });
         }
     }
