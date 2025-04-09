@@ -51,6 +51,8 @@
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="CodeLens\CodeLensConnection.cs" />
     <Compile Include="CodeLens\CodesceneCodelensCallbackService.cs" />
+    <Compile Include="Commands\OpenAceToolWindowCommand.cs" />
+    <Compile Include="Commands\OpenCodeHealthToolWindowCommand.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
     <Compile Include="Commands\SignOutCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
@@ -163,6 +165,11 @@
     <Compile Include="Options\General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\SignInCommand.cs" />
+    <Compile Include="ToolWindows\WebComponent\AceToolWindow.cs" />
+    <Compile Include="ToolWindows\WebComponent\CodeHealthToolWindow.cs" />
+    <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">
+      <DependentUpon>WebComponentUserControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UnderlineTagger\UnderlineTagger.cs" />
     <Compile Include="UnderlineTagger\UnderlineTaggerProvider.cs" />
     <Compile Include="VS2022Package.cs" />
@@ -183,6 +190,18 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ToolWindows\WebComponent\index.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ToolWindows\WebComponent\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ToolWindows\WebComponent\index.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Resource Include="Resources\StatusError.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -294,11 +313,14 @@
       <Version>3.1.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection">
-      <Version>9.0.3</Version>
+      <Version>9.0.4</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.13.2126">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Web.WebView2">
+      <Version>1.0.3179.45</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -427,6 +449,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ToolWindows\Markdown\MarkdownWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ToolWindows\WebComponent\WebComponentUserControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
