@@ -1,97 +1,100 @@
-﻿global using Community.VisualStudio.Toolkit;
-global using Microsoft.VisualStudio.Shell;
-global using System;
-global using Task = System.Threading.Tasks.Task;
-using Codescene.VSExtension.Core;
-using Codescene.VSExtension.Core.Application.Services.Authentication;
-using Codescene.VSExtension.Core.Application.Services.Cli;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.IssueHandler;
-using Codescene.VSExtension.CredentialManagerPersistenceAuthProvider;
-using Codescene.VSExtension.VS2022.Application.ErrorHandling;
-using Codescene.VSExtension.VS2022.Application.IssueHandler;
-using Codescene.VSExtension.VS2022.Commands;
+﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.VS2022.DocumentEventsHandler;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
-using Codescene.VSExtension.VS2022.ToolWindows.Problems;
-using Codescene.VSExtension.VS2022.ToolWindows.Status;
-using Codescene.VSExtension.VS2022.ToolWindows.UserControlWindow;
-using Community.VisualStudio.Toolkit.DependencyInjection.Core;
-using Community.VisualStudio.Toolkit.DependencyInjection.Microsoft;
-using Microsoft.Extensions.DependencyInjection;
+using Community.VisualStudio.Toolkit;
+using EnvDTE;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Design;
+using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Task = System.Threading.Tasks.Task;
 
 namespace Codescene.VSExtension.VS2022;
+
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-[InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Version)]
+[Guid(PackageGuids.CodesceneExtensionString)]
+[ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
+[ProvideToolWindow(typeof(MarkdownWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
 [ProvideMenuResource("Menus.ctmenu", 1)]
 [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
-[Guid(PackageGuids.guidVsPackagePkgStringString)]
-[ProvideToolWindow(typeof(ProblemsWindow.Pane))]
-[ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
-[ProvideToolWindow(typeof(StatusWindow.Pane), Window = WindowGuids.SolutionExplorer, Style = VsDockStyle.Tabbed)]
-[ProvideToolWindow(typeof(MarkdownWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
-[ProvideToolWindow(typeof(UserControlWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
-public sealed class VS2022Package : MicrosoftDIToolkitPackage<VS2022Package>
+public sealed class VS2022Package : ToolkitPackage
 {
-    private PackageCommandManager commandManager;
-    public static async Task<T> GetServiceAsync<T>()
-    {
-        var serviceProvider = await VS.GetServiceAsync<SToolkitServiceProvider<VS2022Package>, IToolkitServiceProvider<VS2022Package>>();
-        if (serviceProvider == null)
-        {
-            throw new ArgumentNullException("serviceProvider");
-        }
-        return (T)serviceProvider.GetRequiredService(typeof(T));
-    }
+    public static VS2022Package Instance { get; private set; }
 
-    protected override void InitializeServices(IServiceCollection services)
-    {
-        RegisterServices(services);
-        services.RegisterCommands(ServiceLifetime.Singleton);
-    }
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        try
-        {
-            await base.InitializeAsync(cancellationToken, progress);
+        Instance = this;
 
-            //Check CLI file
-            var cliFileChecker = ServiceProvider.GetRequiredService<ICliFileChecker>();
-            await cliFileChecker.Check();
-            var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel));
-            componentModel.DefaultCompositionService.SatisfyImportsOnce(this);
-            this.RegisterToolWindows();
-            await InitOnUIThreadAsync();
-        }
-        catch (Exception ex)
+        // Tool windows
+        this.RegisterToolWindows();
+
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        // Commands
+        await this.RegisterCommandsAsync();
+
+        // Events
+        await RegisterEventsAsync();
+
+        // Cli file
+        await CheckCliFileAsync();
+
+        // Check active document
+        await CheckActiveOpenedDocumentAsync();
+
+        // Subscribe on active document change event
+        await SubscribeOnActiveWindowChangeAsync();
+    }
+
+    async Task<T> GetServiceAsync<T>()
+    {
+        if (await GetServiceAsync(typeof(SComponentModel)) is IComponentModel componentModel)
         {
-            var e = ex.Message;
-            throw;
+            return componentModel.DefaultExportProvider.GetExportedValue<T>();
+        }
+
+        throw new Exception($"Can not find component {nameof(T)}");
+    }
+
+    async Task RegisterEventsAsync()
+    {
+        var eventManager = await GetServiceAsync<ExtensionEventsManager>();
+        eventManager.RegisterEvents();
+    }
+
+    async Task CheckCliFileAsync()
+    {
+        var cliFileChecker = await GetServiceAsync<ICliFileChecker>();
+        await cliFileChecker.Check();
+    }
+
+    async Task CheckActiveOpenedDocumentAsync()
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(DisposalToken);
+
+        if (await GetServiceAsync(typeof(SDTE)) is DTE dte)
+        {
+            Document activeDocument = dte.ActiveDocument;
+            if (activeDocument != null)
+            {
+                var path = activeDocument.FullName;
+                var handler = await GetServiceAsync<OnStartExtensionActiveDocumentHandler>();
+                handler.Handle(path);
+            }
         }
     }
 
-
-    void RegisterServices(IServiceCollection services)
+    async Task SubscribeOnActiveWindowChangeAsync()
     {
-        services.AddApplicationServices();
-        services.AddSingleton<IIssuesHandler, IssuesHandler>();
-        services.AddSingleton<ILogger, Logger>();
-        services.AddSingleton<IPersistenceAuthDataProvider, CredentialManagerProvider>();
-    }
-    private Task InitOnUIThreadAsync()
-    {
-        commandManager = new PackageCommandManager(
-            ServiceProvider.GetRequiredService<IMenuCommandService>(),
-            ServiceProvider.GetRequiredService<IAuthenticationService>(),
-            ServiceProvider.GetRequiredService<ILogger>());
+        await JoinableTaskFactory.SwitchToMainThreadAsync(DisposalToken);
 
-        commandManager.Initialize(ShowOptionPage);
-        return Task.CompletedTask;
+        if (await GetServiceAsync(typeof(SDTE)) is DTE dte)
+        {
+            var handler = await GetServiceAsync<OnActiveWindowChangeHandler>();
+            dte.Events.WindowEvents.WindowActivated += handler.Handle;
+        }
     }
 }

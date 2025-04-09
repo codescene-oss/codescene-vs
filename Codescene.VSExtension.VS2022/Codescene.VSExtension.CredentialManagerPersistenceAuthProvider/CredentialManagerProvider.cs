@@ -1,9 +1,12 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Authentication;
 using Codescene.VSExtension.Core.Models;
 using Meziantou.Framework.Win32;
+using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.CredentialManagerPersistenceAuthProvider
 {
+    [Export(typeof(IPersistenceAuthDataProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class CredentialManagerProvider : IPersistenceAuthDataProvider
     {
         public const string APPLICATION_NAME = "vs-codescene-extension";

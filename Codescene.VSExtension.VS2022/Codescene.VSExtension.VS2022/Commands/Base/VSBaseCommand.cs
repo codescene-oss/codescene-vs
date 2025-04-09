@@ -1,6 +1,9 @@
-﻿namespace Codescene.VSExtension.VS2022.Commands
+﻿using Microsoft.VisualStudio.Shell;
+using System;
+
+namespace Codescene.VSExtension.VS2022.Commands
 {
-    public abstract class VsCommandBase
+    public abstract class VSBaseCommand
     {
         protected virtual void QueryStatusInternal(OleMenuCommand command)
         {

@@ -1,23 +1,26 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using System;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
+    [Export(typeof(ICliFileChecker))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliFileChecker : ICliFileChecker
     {
+        [Import]
         private readonly ILogger _logger;
+
+        [Import]
         private readonly ICliExecuter _cliExecuter;
+
+        [Import]
         private readonly ICliSettingsProvider _cliSettingsProvider;
+
+        [Import]
         private readonly ICliDownloader _cliDownloader;
-        public CliFileChecker(ILogger logger, ICliSettingsProvider cliSettingsProvider, ICliExecuter cliExecuter, ICliDownloader cliDownloader)
-        {
-            _cliSettingsProvider = cliSettingsProvider;
-            _cliExecuter = cliExecuter;
-            _cliDownloader = cliDownloader;
-            _logger = logger;
-        }
 
         public async Task Check()
         {

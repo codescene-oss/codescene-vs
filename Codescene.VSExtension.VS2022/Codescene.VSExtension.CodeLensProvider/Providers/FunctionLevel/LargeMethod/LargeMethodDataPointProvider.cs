@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.LargeMe
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(LargeMethodDataPointProvider))]
     [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
-    [Priority(100)]
+    [Priority(1060)]
     public class LargeMethodDataPointProvider : BaseDataPointProvider<LargeMethodDataPoint>
     {
         public override string Name => Constants.Titles.LARGE_METHOD;

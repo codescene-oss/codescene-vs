@@ -13,8 +13,8 @@ namespace Codescene.VSExtension.VS2022
     /// </summary>
     internal sealed partial class PackageGuids
     {
-        public const string guidVsPackagePkgStringString = "68d6a325-11e8-4790-a4ba-0edd001fb080";
-        public static Guid guidVsPackagePkgString = new Guid(guidVsPackagePkgStringString);
+        public const string CodesceneExtensionString = "68d6a325-11e8-4790-a4ba-0edd001fb080";
+        public static Guid CodesceneExtension = new Guid(CodesceneExtensionString);
 
         public const string CodeSceneCmdSetString = "db0701cc-1e44-41f7-97d6-29b160a70bcb";
         public static Guid CodeSceneCmdSet = new Guid(CodeSceneCmdSetString);
@@ -31,7 +31,7 @@ namespace Codescene.VSExtension.VS2022
         public const int CodeSceneOuterGroup = 0x1020;
         public const int CodeSceneMenu = 0x1021;
         public const int CodeSceneCommandsGroup = 0x1022;
-        public const int OptionsCommand = 0x1025;
+        public const int OpenSettings = 0x1025;
         public const int SignInCommand = 0x0400;
         public const int OpenStatusWindowCommand = 0x0800;
         public const int SignOutCommand = 0x0500;

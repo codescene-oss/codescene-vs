@@ -1,12 +1,16 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Authentication;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.VS2022.Commands;
+using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using System;
+using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022;
 
-internal class SignOutCommand(IAuthenticationService authService, ILogger errorsHandler) : VsCommandBase
+internal class SignOutCommand(IAuthenticationService authService, ILogger errorsHandler) : Commands.VSBaseCommand
 {
     internal const int Id = PackageIds.SignOutCommand;
 

@@ -1,6 +1,6 @@
 ﻿namespace Codescene.VSExtension.Core.Models
 {
-    public class ReviewModel
+    public class CodeSmellModel
     {
         public string Path { get; set; }
         public string Category { get; set; }

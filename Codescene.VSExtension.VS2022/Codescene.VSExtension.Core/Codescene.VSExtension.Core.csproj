@@ -34,28 +34,34 @@
     <Reference Include="Markdig, Version=0.40.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Markdig.0.40.0\lib\net462\Markdig.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=5.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.5.0.0\lib\net461\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.3\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=9.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.9.0.3\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
     </Reference>
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
     </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.6.3\lib\net462\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -65,7 +71,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApplicationServiceRegistration.cs" />
     <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IPersistenceAuthDataProvider.cs" />
@@ -74,41 +79,35 @@
     <Compile Include="Application\Services\Cli\CliExecuter.cs" />
     <Compile Include="Application\Services\Cli\CliFileChecker.cs" />
     <Compile Include="Application\Services\Cli\CliSettingsProvider.cs" />
+    <Compile Include="Application\Services\Cli\SupportedFileChecker.cs" />
     <Compile Include="Application\Services\Cli\ICliCommandProvider.cs" />
     <Compile Include="Application\Services\Cli\ICliFileChecker.cs" />
     <Compile Include="Application\Services\Cli\ICliSettingsProvider.cs" />
+    <Compile Include="Application\Services\Cli\ISupportedFileChecker.cs" />
+    <Compile Include="Application\Services\CodeReviewer\CodeReviewer.cs" />
+    <Compile Include="Application\Services\CodeReviewer\IReviewedFilesCacheHandler.cs" />
+    <Compile Include="Application\Services\CodeReviewer\ReviewedFilesCacheHandler.cs" />
+    <Compile Include="Application\Services\CodeReviewer\ICodeReviewer.cs" />
     <Compile Include="Application\Services\ErrorHandling\ILogger.cs" />
     <Compile Include="Application\Services\Cli\CliDownloader.cs" />
     <Compile Include="Application\Services\Cli\ICliDownloader.cs" />
     <Compile Include="Application\Services\Cli\ICliExecuter.cs" />
-    <Compile Include="Application\Services\IssueHandler\IIssuesHandler.cs" />
+    <Compile Include="Application\Services\ErrorListWindowHandler\IErrorListWindowHandler.cs" />
     <Compile Include="Application\Services\Mapper\IModelMapper.cs" />
     <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
-    <Compile Include="Application\Services\MDFileHandler\Class1.cs" />
     <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
-    <Compile Include="Models\CodeModel.cs" />
-    <Compile Include="Models\IssueModel.cs" />
+    <Compile Include="Application\Services\Codelens\CustomDetailsData.cs" />
+    <Compile Include="Application\Services\Codelens\ICodesceneCodelensCallbackService.cs" />
+    <Compile Include="Application\Services\Codelens\IRemoteCodeLens.cs" />
+    <Compile Include="Application\Services\Codelens\RpcPipeNames.cs" />
     <Compile Include="Models\LoginResponse.cs" />
-    <Compile Include="Models\ReviewModel.cs" />
-    <Compile Include="Models\ReviewResultModel\CodeSmellModel.cs" />
-    <Compile Include="Models\ReviewResultModel\ReviewMapModel.cs" />
-    <Compile Include="Models\ReviewResultModel\ReviewResultModel.cs" />
-    <Compile Include="Models\ReviewResultModel\ReviewFunctionModel.cs" />
-    <Compile Include="Models\ReviewResultModel\RangeModel.cs" />
-    <Compile Include="Models\ReviewResult\Bumps.cs" />
-    <Compile Include="Models\ReviewResult\BumpsBySeverity.cs" />
-    <Compile Include="Models\ReviewResult\Congestion.cs" />
-    <Compile Include="Models\ReviewResult\CsReview.cs" />
-    <Compile Include="Models\ReviewResult\Details.cs" />
-    <Compile Include="Models\ReviewResult\FnArgs.cs" />
-    <Compile Include="Models\ReviewResult\Function.cs" />
-    <Compile Include="Models\ReviewResult\Nested.cs" />
-    <Compile Include="Models\ReviewResult\NestedComplexityOfInterest.cs" />
-    <Compile Include="Models\ReviewResult\RawScore.cs" />
-    <Compile Include="Models\ReviewResult\Review.cs" />
-    <Compile Include="Models\ReviewResult\WorstBump.cs" />
-    <Compile Include="Models\TargetModel.cs" />
+    <Compile Include="Models\CodeSmellModel.cs" />
+    <Compile Include="Models\Cli\CliCodeSmellModel.cs" />
+    <Compile Include="Models\FileReviewModel.cs" />
+    <Compile Include="Models\Cli\CliReviewModel.cs" />
+    <Compile Include="Models\Cli\CliReviewFunctionModel.cs" />
+    <Compile Include="Models\Cli\CliRangeModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

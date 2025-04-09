@@ -1,53 +1,56 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Models;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.ErrorList
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType("CSharp")]
     [TagType(typeof(IErrorTag))]
-    internal class UnderlineTaggerProvider : ITaggerProvider
+    public class UnderlineTaggerProvider : ITaggerProvider
     {
-        private readonly ICliExecuter _cliExecuter;
+        [Import]
+        private readonly ICodeReviewer _reviewer;
 
-        [ImportingConstructor]
-        public UnderlineTaggerProvider(ICliExecuter cliExecuter)
-        {
-            _cliExecuter = cliExecuter;
-        }
-
-        private UnderlineTagger _tagger;
         public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
         {
-            if (typeof(T) == typeof(IErrorTag))
+            if (typeof(T) != typeof(IErrorTag))
             {
-                var linesToUnderline = GetLinesToUnderline(textBuffer);
-                _tagger = new UnderlineTagger(textBuffer, linesToUnderline, async () => await GetRefreshedLinesToUnderline(textBuffer));
-                return (ITagger<T>)_tagger;
+                return null;
             }
 
-            return null;
+            var linesToUnderline = GetLinesToUnderline(textBuffer);
+            var tagger = new UnderlineTagger(textBuffer, linesToUnderline, () => GetRefreshedLinesToUnderline(textBuffer));
+            return (ITagger<T>)tagger;
         }
-        private List<ReviewModel> GetLinesToUnderline(ITextBuffer textBuffer)
+
+        private List<CodeSmellModel> GetLinesToUnderline(ITextBuffer textBuffer)
         {
-            string filePath = textBuffer.GetFileName();
-            if (filePath == null) return null;
-            return _cliExecuter.GetTaggerItems(filePath);
+            var path = GetPath(textBuffer);
+            return _reviewer.GetCodesmellExpressions(path);
         }
-        private async Task<List<ReviewModel>> GetRefreshedLinesToUnderline(ITextBuffer textBuffer)
+        private List<CodeSmellModel> GetRefreshedLinesToUnderline(ITextBuffer textBuffer)
         {
-            OnDocumentChange(textBuffer.GetFileName(), textBuffer.CurrentSnapshot.GetText());
-            return _cliExecuter.GetTaggerItems(textBuffer.GetFileName());
+            var path = GetPath(textBuffer);
+            var content = textBuffer.CurrentSnapshot.GetText();
+            _reviewer.UseContentOnlyType(content);
+            return _reviewer.GetCodesmellExpressions(path, invalidateCache: true);
         }
-        private void OnDocumentChange(string filePath, string content)
+
+        private string GetPath(ITextBuffer textBuffer)
         {
-            _cliExecuter.AddToActiveReviewList(filePath, content);
+            var path = textBuffer.GetFileName();
+
+            if (path == null)
+            {
+                throw new System.ArgumentNullException(nameof(path));
+            }
+
+            return path;
         }
     }
 }

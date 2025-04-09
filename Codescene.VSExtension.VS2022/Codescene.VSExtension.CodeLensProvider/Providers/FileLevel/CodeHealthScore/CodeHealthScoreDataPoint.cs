@@ -1,5 +1,5 @@
 ﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
-using Codescene.VSExtension.CodeLensShared;
+using Codescene.VSExtension.Core.Application.Services.Codelens;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FileLevel.CodeHealthS
             var fileCodeHealth = await CallbackService
                 .InvokeAsync<float>(
                     this,
-                    nameof(ICodeLevelMetricsCallbackService.GetFileReviewScore),
+                    nameof(ICodesceneCodelensCallbackService.GetFileReviewScore),
                     new object[]
                     {
                         Descriptor.FilePath
@@ -38,18 +38,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FileLevel.CodeHealthS
             };
         }
 
-        public override Task<CodeLensDetailsDescriptor> GetDetailsAsync(
-            CodeLensDescriptorContext descriptorContext,
-            CancellationToken token
-        )
-        {
-            var result = new CodeLensDetailsDescriptor()
-            {
-                CustomData = new List<CustomDetailsData>{
-                    new CustomDetailsData { FileName = "general-code-health", Title = "General Code Health"}
-                }
-            };
-            return Task.FromResult(result);
-        }
+        public override Task<CodeLensDetailsDescriptor> GetDetailsAsync(CodeLensDescriptorContext descriptorContext, CancellationToken token)
+            => Task.FromResult(new CodeLensDetailsDescriptor() { CustomData = new List<CustomDetailsData> { new CustomDetailsData { FileName = "general-code-health", Title = "General Code Health" } } });
     }
 }

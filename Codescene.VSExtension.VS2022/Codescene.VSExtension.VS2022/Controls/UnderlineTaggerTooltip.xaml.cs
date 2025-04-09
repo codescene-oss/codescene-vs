@@ -1,6 +1,5 @@
 ﻿using Codescene.VSExtension.VS2022.Commands;
 using Codescene.VSExtension.VS2022.Helpers;
-using Codescene.VSExtension.VS2022.ToolWindows.UserControlWindow;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -27,8 +26,8 @@ namespace Codescene.VSExtension.VS2022.Controls
                 var category = parameter as string;
                 if (ToolWindowRegistry.CategoryToIdMap.TryGetValue(category, out int toolWindowId))
                 {
-                    await UserControlWindow.HideAllUserControlWindowsAsync();
-                    await UserControlWindow.ShowAsync(toolWindowId, true);
+                    //await UserControlWindow.HideAllUserControlWindowsAsync();
+                    //await UserControlWindow.ShowAsync(toolWindowId, true);
                 }
             }
 

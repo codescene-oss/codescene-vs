@@ -1,8 +1,6 @@
 ﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
-using Codescene.VSExtension.CodeLensShared;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Utilities;
 using System;
 using System.ComponentModel.Composition;
@@ -14,7 +12,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FileLevel.CodeHealthS
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(CodeHealthScoreDataPointProvider))]
     [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
-    [Priority(200)]
+    [Priority(1000)]
     internal class CodeHealthScoreDataPointProvider : BaseDataPointProvider<CodeHealthScoreDataPoint>
     {
 
@@ -23,10 +21,14 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FileLevel.CodeHealthS
 
         public override string Name => throw new NotImplementedException();
 
-        public override async Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
+        public override Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
-            var methodsOnly = descriptor.Kind == CodeElementKinds.Type;
-            return (methodsOnly && await _callbackService.Value.InvokeAsync<bool>(this, nameof(ICodeLevelMetricsCallbackService.IsCodeSceneLensesEnabled)));
+            //var methodsOnly = descriptor.Kind == CodeElementKinds.Type;
+            //var codeSceneLensesEnabled = await IsCodelenseEnabledAsync(token);
+            //return methodsOnly && codeSceneLensesEnabled;
+
+            //Since Codehealth is score for a whole file it doesn't make sense to show it for a Class and we will skip it for now
+            return Task.FromResult(false);
         }
     }
 }

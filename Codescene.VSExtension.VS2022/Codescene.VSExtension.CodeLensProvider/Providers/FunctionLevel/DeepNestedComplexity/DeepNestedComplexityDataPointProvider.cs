@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.DeepNes
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(DeepNestedComplexityDataPointProvider))]
     [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
-    [Priority(100)]
+    [Priority(1010)]
     public class DeepNestedComplexityDataPointProvider : BaseDataPointProvider<DeepNestedComplexityDataPoint>
     {
         public override string Name => Constants.Titles.DEEP_NESTED_COMPLEXITY;

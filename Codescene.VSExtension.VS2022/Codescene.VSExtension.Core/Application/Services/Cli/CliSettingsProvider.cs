@@ -1,11 +1,14 @@
-﻿using System.IO;
+﻿using System.ComponentModel.Composition;
+using System.IO;
 using System.Reflection;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
+    [Export(typeof(ICliSettingsProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliSettingsProvider : ICliSettingsProvider
     {
-        public string RequiredDevToolVersion => "3b28b97d2f4a17d596c6f2ec5cf2e86363c08d21";
+        public string RequiredDevToolVersion => "23b3e1c0b8bb8132641ae4337f000b9e98a22027";
         public string CliArtifactName => $"cs-ide-windows-amd64-{RequiredDevToolVersion}.zip";
         public string CliArtifactUrl => $"{ArtifactBaseUrl}{CliArtifactName}";
         public string CliFileName => $"cs-ide.exe";

@@ -1,4 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.MDFileHandler;
+using Microsoft.VisualStudio.Shell;
+using System.ComponentModel.Composition;
 using System.Drawing;
 using System.Windows.Controls;
 
@@ -7,6 +9,7 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.Markdown
 {
     public partial class MarkdownWindowControl : UserControl
     {
+        [Import]
         private IMDFileHandler _mdFileHandler;
 
         private string _fileName;
@@ -14,11 +17,6 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.Markdown
         {
             InitializeComponent();
             _fileName = fileName;
-        }
-
-        public async Task InitializeAsync()
-        {
-            _mdFileHandler = await VS2022Package.GetServiceAsync<IMDFileHandler>();
             InitializeFileHandler();
         }
 
