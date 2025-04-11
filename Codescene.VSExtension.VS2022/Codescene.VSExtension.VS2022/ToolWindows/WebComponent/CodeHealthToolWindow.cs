@@ -12,7 +12,8 @@ public class CodeHealthToolWindow : BaseToolWindow<CodeHealthToolWindow>
 {
     public override Type PaneType => typeof(Pane);
 
-    public override Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken) => Task.FromResult<FrameworkElement>(new WebComponentUserControl());
+    public override Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
+        => Task.FromResult<FrameworkElement>(new WebComponentUserControl(view: "codehealth"));
 
     public override string GetTitle(int toolWindowId) => "Codescene Code Health Monitoring";
 

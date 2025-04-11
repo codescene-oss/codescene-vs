@@ -12103,10 +12103,11 @@ class ExtensionAPIWrapper {
    * @param message Abitrary data (must be JSON serializable) to send to the extension context.
    */
   postMessage(message) {
+    console.log("%c[CS webview]%c [Send ⬆]", "color: white; background: #162c53; padding: 3px;", "color: #32e132;", message);
     if (this.extensionApi) {
       this.extensionApi.postMessage(message);
     } else {
-      console.log("[Codescene webview] no extension api", message);
+      console.warn("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "no extension api", message);
     }
   }
 }
@@ -12123,46 +12124,43 @@ function filtersReducer(state, action) {
         ...state,
         loading: action.payload
       };
-    case "addEvent": {
-      return {
-        ...state,
-        events: [...state.events, action.payload]
-      };
-    }
     default:
       return state;
   }
 }
 function initialState() {
-  var _a2;
+  var _a2, _b, _c;
   if (!window.ideContext) {
-    console.warn("[Codescene webview] no ideContext set");
+    console.warn("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "no ideContext set");
   }
+  console.log("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "IDE Type:", (_a2 = window.ideContext) == null ? void 0 : _a2.ideType);
   return {
     loading: false,
-    ideType: (_a2 = window.ideContext) == null ? void 0 : _a2.ideType,
-    data: [],
+    ideType: (_b = window.ideContext) == null ? void 0 : _b.ideType,
+    view: (_c = window.ideContext) == null ? void 0 : _c.view,
+    data: void 0
     // TODO: define actual data for features needed.
-    events: []
   };
 }
 const handleEvent = (dispatch) => (event) => {
   const message = event.data;
-  dispatch({
-    type: "addEvent",
-    payload: {
-      timestamp: /* @__PURE__ */ new Date(),
-      direction: "receive",
-      type: message.messageType,
-      data: message.payload
-    }
-  });
-  console.log("[Codescene webview] Received data from extension - ", event);
+  console.log("%c[CS webview]%c [Receive ⬇]", "color: white; background: #162c53; padding: 3px;", "color: #5e9ffe;", message.messageType, event);
   switch (message.messageType) {
     case "file-tree": {
       dispatch({
         type: "receiveMessage",
-        payload: message.payload
+        payload: message
+      });
+      dispatch({
+        type: "updateLoading",
+        payload: false
+      });
+      break;
+    }
+    case "auto-refactor": {
+      dispatch({
+        type: "receiveMessage",
+        payload: message
       });
       dispatch({
         type: "updateLoading",
@@ -12185,18 +12183,9 @@ function useNativeReducer() {
       try {
         window.chrome.webview.addEventListener("message", handleEvent(dispatch));
       } catch (error) {
-        console.error("[Codescene webview] unable to use Visual Studio window.chrome.webview.addEventListener()", error);
+        console.error("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "unable to use Visual Studio window.chrome.webview.addEventListener()", error);
       }
     }
-    dispatch({
-      type: "addEvent",
-      payload: {
-        timestamp: /* @__PURE__ */ new Date(),
-        direction: "send",
-        type: "init",
-        data: null
-      }
-    });
     extensionApi.postMessage({
       messageType: "init"
     });
@@ -12224,13 +12213,6 @@ function useNative() {
   const context = React.useContext(NativeContext);
   if (context === null) {
     throw new Error("useNative must be used within a NativeProvider");
-  }
-  return context;
-}
-function useNativeDispatch() {
-  const context = React.useContext(NativeDispatchContext);
-  if (context === null) {
-    throw new Error("useNativeDispatch must be used within a NativeDispatchContext");
   }
   return context;
 }
@@ -12555,10 +12537,10 @@ var SkipIcon = /* @__PURE__ */ createIconComponent("SkipIcon", "octicon octicon-
     }
   };
 });
-const styles$1 = {
+const styles = {
   storybookButton: {
     display: "x78zum5",
-    gap: "x1jnr06f",
+    gap: "x17d4w8g",
     rowGap: null,
     columnGap: null,
     cursor: "x1ypdohk",
@@ -12677,7 +12659,10 @@ const iconLookup = {
 function getIcon(icon2, size, disabled2) {
   const props2 = {
     fill: disabled2 ? "#606060" : "#fff",
-    size: iconSize[size]
+    size: iconSize[size],
+    style: {
+      margin: "auto 0"
+    }
   };
   const Icon = iconLookup[icon2];
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, {
@@ -12692,12 +12677,12 @@ const Button = ({
   disabled: disabled2,
   ...props$1
 }) => {
-  let modeStyle = primary ? styles$1["storybookButton--primary"] : styles$1["storybookButton--secondary"];
-  if (disabled2) modeStyle = styles$1["storybookButton--disabled"];
-  const sizeStyle = styles$1[`storybookButton--${size}`];
+  let modeStyle = primary ? styles["storybookButton--primary"] : styles["storybookButton--secondary"];
+  if (disabled2) modeStyle = styles["storybookButton--disabled"];
+  const sizeStyle = styles[`storybookButton--${size}`];
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("button", {
     type: "button",
-    ...props([styles$1.storybookButton, sizeStyle, modeStyle]),
+    ...props([styles.storybookButton, sizeStyle, modeStyle]),
     ...props$1,
     children: [getIcon(icon2, size, disabled2), " ", /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
       ...{
@@ -100168,34 +100153,15 @@ const source = `
 a paragraf of text
 `;
 const AceView = ({
-  codeString,
-  dispatch
+  codeString
 }) => {
   const accept = () => {
-    dispatch == null ? void 0 : dispatch({
-      type: "addEvent",
-      payload: {
-        timestamp: /* @__PURE__ */ new Date(),
-        direction: "send",
-        type: "apply",
-        data: "apply"
-      }
-    });
     extensionApi.postMessage({
       messageType: "apply",
       payload: "apply"
     });
   };
   const reject = () => {
-    dispatch == null ? void 0 : dispatch({
-      type: "addEvent",
-      payload: {
-        timestamp: /* @__PURE__ */ new Date(),
-        direction: "send",
-        type: "reject",
-        data: "reject"
-      }
-    });
     extensionApi.postMessage({
       messageType: "reject",
       payload: "reject"
@@ -100239,67 +100205,10 @@ const AceView = ({
     })]
   });
 };
-const styles = {
-  log: {
-    fontFamily: "x1ey7xld",
-    position: "x10l6tqk",
-    bottom: "x1ey2m1c",
-    left: "xu96u03",
-    right: "x3m8u43",
-    insetInlineStart: null,
-    insetInlineEnd: null,
-    height: "x1vd4hg5",
-    overflowY: "x1rife3k",
-    $$css: true
-  },
-  logList: {
-    listStyle: "xe8uvvx",
-    listStyleImage: null,
-    listStylePosition: null,
-    listStyleType: null,
-    padding: "x1717udv",
-    paddingInline: null,
-    paddingStart: null,
-    paddingLeft: null,
-    paddingEnd: null,
-    paddingRight: null,
-    paddingBlock: null,
-    paddingTop: null,
-    paddingBottom: null,
-    $$css: true
-  },
-  logListItem: {
-    display: "x78zum5",
-    flexDirection: "x1q0g3np",
-    gap: "x1nejdyq",
-    rowGap: null,
-    columnGap: null,
-    $$css: true
-  },
-  timestamp: {
-    fontWeight: "x1xlr1w8",
-    $$css: true
-  },
-  send: {
-    color: "x1pivzo6",
-    $$css: true
-  },
-  receive: {
-    color: "x1wlh0h9",
-    $$css: true
-  }
-};
 function MainView() {
-  const dispatch = useNativeDispatch();
   const {
-    events,
     ideType
   } = useNative();
-  const logRef = reactExports.useRef(null);
-  reactExports.useEffect(() => {
-    var _a2;
-    (_a2 = logRef == null ? void 0 : logRef.current) == null ? void 0 : _a2.scrollIntoView();
-  }, [events]);
   if (!ideType) {
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
       className: "container",
@@ -100322,40 +100231,12 @@ webview <html> template`
     });
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {
-    children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
       className: "container",
-      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(AceView, {
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(AceView, {
         codeString: "function helloWorld() {}",
-        confidence: 10,
-        dispatch
-      }), /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-        ...{
-          className: "x1ey7xld x10l6tqk x1ey2m1c xu96u03 x3m8u43 x1vd4hg5 x1rife3k"
-        },
-        children: [/* @__PURE__ */ jsxRuntimeExports.jsx("ul", {
-          ...{
-            className: "xe8uvvx x1717udv"
-          },
-          children: events.map((event) => /* @__PURE__ */ jsxRuntimeExports.jsxs("li", {
-            ...{
-              className: "x78zum5 x1q0g3np x1nejdyq"
-            },
-            children: [/* @__PURE__ */ jsxRuntimeExports.jsxs("span", {
-              ...{
-                className: "x1xlr1w8"
-              },
-              children: [event.timestamp.toISOString(), ":"]
-            }), /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
-              ...props([styles[event.direction]]),
-              children: event.direction
-            }), /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
-              children: event.type
-            })]
-          }, event.timestamp.toISOString()))
-        }), /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-          ref: logRef
-        })]
-      })]
+        confidence: 10
+      })
     })
   });
 }

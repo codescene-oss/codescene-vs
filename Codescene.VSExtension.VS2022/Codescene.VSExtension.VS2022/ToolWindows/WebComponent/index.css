@@ -4,46 +4,32 @@
 .x1wty727:not(#\#){border:0}
 .xe7mz8o:not(#\#){margin:auto 0}
 .x1bpp3o7:not(#\#){margin:auto}
-.x1717udv:not(#\#){padding:0}
 .x1bg5miv:not(#\#){padding:12px 24px}
 .x10kqxg1:not(#\#){padding:14px 26px}
 .x1x7i2cb:not(#\#){padding:3px 9px}
 .x1otgul:not(#\#){padding:6px 11px}
 .x17pgkn5:not(#\#):not(#\#){flex:0 0 32px}
 .x883omv:not(#\#):not(#\#){gap:10px}
-.x1jnr06f:not(#\#):not(#\#){gap:4px}
-.x1nejdyq:not(#\#):not(#\#){gap:5px}
+.x17d4w8g:not(#\#):not(#\#){gap:6px}
 .x167g77z:not(#\#):not(#\#){gap:8px}
-.xe8uvvx:not(#\#):not(#\#){list-style:none}
 .x1nte9fd:not(#\#):not(#\#):not(#\#){background-color:#282828}
 .xrjojri:not(#\#):not(#\#):not(#\#){background-color:#303031}
 .x1xz20ev:not(#\#):not(#\#):not(#\#){background-color:var(--x1b8wa0y)}
-.x1pivzo6:not(#\#):not(#\#):not(#\#){color:#32e132}
-.x1wlh0h9:not(#\#):not(#\#):not(#\#){color:#5e9ffe}
 .x11x8p45:not(#\#):not(#\#):not(#\#){color:#606060}
 .x1f7m26b:not(#\#):not(#\#):not(#\#){color:#ffffff}
 .xzbod5j:not(#\#):not(#\#):not(#\#){color:var(--cs-theme-foreground,#fff)}
 .xt0e3qv:not(#\#):not(#\#):not(#\#){cursor:default}
 .x1ypdohk:not(#\#):not(#\#):not(#\#){cursor:pointer}
 .x78zum5:not(#\#):not(#\#):not(#\#){display:flex}
-.x1q0g3np:not(#\#):not(#\#):not(#\#){flex-direction:row}
 .xrt6l7w:not(#\#):not(#\#):not(#\#){font-family:'Nunito Sans','Helvetica Neue',Helvetica,Arial,sans-serif}
-.x1ey7xld:not(#\#):not(#\#):not(#\#){font-family:monospace}
 .x1e38ks9:not(#\#):not(#\#):not(#\#){font-family:var(--cs-font-family,sans-serif)}
 .xfifm61:not(#\#):not(#\#):not(#\#){font-size:12px}
 .x4z9k3i:not(#\#):not(#\#):not(#\#){font-size:13px}
 .x1j61zf2:not(#\#):not(#\#):not(#\#){font-size:16px}
 .x182rzkk:not(#\#):not(#\#):not(#\#){font-size:var(--cs-font-size,13px)}
 .xk50ysn:not(#\#):not(#\#):not(#\#){font-weight:500}
-.x1xlr1w8:not(#\#):not(#\#):not(#\#){font-weight:700}
 .xo5v014:not(#\#):not(#\#):not(#\#){line-height:1}
-.x10l6tqk:not(#\#):not(#\#):not(#\#){position:absolute}
-.x1ey2m1c:not(#\#):not(#\#):not(#\#):not(#\#){bottom:0}
-.x1vd4hg5:not(#\#):not(#\#):not(#\#):not(#\#){height:300px}
 .x10w6t97:not(#\#):not(#\#):not(#\#):not(#\#){height:32px}
-.xu96u03:not(#\#):not(#\#):not(#\#):not(#\#){left:0}
-.x1rife3k:not(#\#):not(#\#):not(#\#):not(#\#){overflow-y:scroll}
-.x3m8u43:not(#\#):not(#\#):not(#\#):not(#\#){right:0}
 
 
 
@@ -53,32 +39,6 @@
 
 
 
-
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-}
-
-code {
-  background-color: transparent;
-  color: var(--cs-theme-foreground, #abb2bf)
-}
-
-
-@media (prefers-color-scheme: light) {
-
-}
 
 #root {
   position: absolute;
@@ -90,20 +50,6 @@ code {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-}
-
-.card {
-  padding: 2em;
-  padding-top: 130px;
-}
-
-
-:root {
-  --drop-height: 200px;
-  --logo-size: 48px;
-  --offset: 150px;
-  --shadow-height: 8px;
-  --duration: 0.5s;
 }
 
 html,
@@ -122,56 +68,6 @@ body {
   width: 32px;
   height: 32px;
   display: inline-block
-}
-
-.logo-bounce {
-  width: var(--logo-size);
-  height: var(--logo-size);
-
-  position: absolute;
-  top: var(--offset);
-  left: calc(50% - var(--logo-size) / 2);
-
-  animation-name: bounce;
-  animation-duration: var(--duration);
-  animation-direction: alternate;
-  animation-timing-function: cubic-bezier(0.95, 0.05, 0.795, 0.035);
-  animation-iteration-count: infinite;
-}
-
-.shadow {
-  width: var(--logo-size);
-  height: var(--shadow-height);
-  background: radial-gradient(50% 50%, rgb(10, 10, 10), rgba(10, 10, 10, 0.05));
-  position: absolute;
-  top: calc(var(--offset) + var(--drop-height) + var(--logo-size) - 1.5 * var(--shadow-height));
-  left: calc(50% - var(--logo-size) / 2);
-
-  animation-name: grow;
-  animation-duration: var(--duration);
-  animation-direction: alternate;
-  animation-timing-function: cubic-bezier(0.95, 0.05, 0.795, 0.035);
-  animation-iteration-count: infinite;
-}
-
-@keyframes bounce {
-  from {
-    transform: translateY(0) scale(1);
-  }
-
-  to {
-    transform: translateY(var(--drop-height)) scale(1, 0.7);
-  }
-}
-
-@keyframes grow {
-  from {
-    transform: scale(0.2, 0.5);
-  }
-
-  to {
-    transform: scale(1.5, 0.8);
-  }
 }
 
 :root {

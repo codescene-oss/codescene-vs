@@ -12,7 +12,8 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 {
     public override Type PaneType => typeof(Pane);
 
-    public override Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken) => Task.FromResult<FrameworkElement>(new WebComponentUserControl());
+    public override Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
+        => Task.FromResult<FrameworkElement>(new WebComponentUserControl(view: "ace"));
 
     public override string GetTitle(int toolWindowId) => "Refactoring suggestion";
 
