@@ -8,6 +8,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
         public const string DATA_POINT_PROVIDER_CONTENT_TYPE = "csharp";
         public class Titles
         {
+            public const string CODESCENE_ACE = "Codescene ACE";
             public const string BRAIN_CLASS = "Brain Class";
             public const string BRAIN_METHOD = "Brain Method";
             public const string BUMPY_ROAD_AHEAD = "Bumpy Road Ahead";

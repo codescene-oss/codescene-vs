@@ -12,7 +12,9 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 {
     public abstract class BaseDataPointProvider<T> : IAsyncCodeLensDataPointProvider where T : class, IBaseDataPoint
     {
+        protected const string CODESCENE_LENS_PRESENT = "CodeScene:LensPresent";
         public abstract string Name { get; }
+
         protected readonly Lazy<ICodeLensCallbackService> _callbackService;
 
         [ImportingConstructor]
@@ -20,9 +22,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
         private Task<TResult> InvokeMethodAsync<TResult>(string name, CancellationToken token, IReadOnlyList<object> parameters = null) => _callbackService.Value.InvokeAsync<TResult>(this, name, parameters, token);
 
-        protected Task<bool> IsCodelenseEnabledAsync(CancellationToken token) => InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.IsCodeSceneLensesEnabled), token);
-
-        public virtual async Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
+        protected async Task<bool> IsCodelenseEnabledAsync(CodeLensDescriptor descriptor, CancellationToken token)
         {
             // Add codelense only for methods
             if (descriptor.Kind != CodeElementKinds.Method)
@@ -30,9 +30,15 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
                 return false;
             }
 
-            // Check if codelense is enabled in settings
-            var codeSceneLensesEnabled = await IsCodelenseEnabledAsync(token);
-            if (!codeSceneLensesEnabled)
+            var isEnabledInSettings = await InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.IsCodeSceneLensesEnabled), token);
+
+            return isEnabledInSettings;
+        }
+
+        public virtual async Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
+        {
+            var enabled = await IsCodelenseEnabledAsync(descriptor, token);
+            if (!enabled)
             {
                 return false;
             }
@@ -43,7 +49,14 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
                        (int)zeroBasedLineNumber + 1, //Since it's 0-based it should be increment for 1
                        descriptorContext.Properties };
 
-            return await InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.ShowCodeLensForLine), token, parameters);
+            var show = await InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.ShowCodeLensForLine), token, parameters);
+
+            if (show)
+            {
+                //descriptorContext.Properties[CODESCENE_LENS_PRESENT] = Name;
+            }
+
+            return show;
         }
 
         public virtual async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)

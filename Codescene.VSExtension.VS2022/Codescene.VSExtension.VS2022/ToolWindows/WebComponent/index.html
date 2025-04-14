@@ -4,19 +4,12 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="index.css">
-    <title>WebView2 Communication</title>
+    <link rel="stylesheet" crossorigin href="index.css">
+    <title></title>
+    <link rel="icon" href="data:,">
 </head>
 <body>
-    <h1>This is content of web viewer:</h1>
     <div id="root"></div>
-    <script src="index.js"></script>
-    <script type="text/javascript">
-        function test() {
-            console.log('Testing...');
-            console.log(window.ideContext);
-        }
-        test();
-    </script>
+    <script type="module" crossorigin="anonymous" src="index.js"></script>
 </body>
 </html>

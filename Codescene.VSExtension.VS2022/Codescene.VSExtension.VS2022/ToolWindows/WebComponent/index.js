@@ -153,7 +153,7 @@ function requireReact_production() {
   assign(pureComponentPrototype, Component.prototype);
   pureComponentPrototype.isPureReactComponent = true;
   var isArrayImpl = Array.isArray, ReactSharedInternals = { H: null, A: null, T: null, S: null, V: null }, hasOwnProperty2 = Object.prototype.hasOwnProperty;
-  function ReactElement(type, key, self2, source2, owner, props2) {
+  function ReactElement(type, key, self2, source, owner, props2) {
     self2 = props2.ref;
     return {
       $$typeof: REACT_ELEMENT_TYPE,
@@ -2624,22 +2624,22 @@ function requireReactDomClient_production() {
     registerTwoPhaseEvent(reactName, [domEventName]);
   }
   var CapturedStacks = /* @__PURE__ */ new WeakMap();
-  function createCapturedValueAtFiber(value, source2) {
+  function createCapturedValueAtFiber(value, source) {
     if ("object" === typeof value && null !== value) {
       var existing = CapturedStacks.get(value);
       if (void 0 !== existing) return existing;
-      source2 = {
+      source = {
         value,
-        source: source2,
-        stack: getStackByFiberInDevAndProd(source2)
+        source,
+        stack: getStackByFiberInDevAndProd(source)
       };
-      CapturedStacks.set(value, source2);
-      return source2;
+      CapturedStacks.set(value, source);
+      return source;
     }
     return {
       value,
-      source: source2,
-      stack: getStackByFiberInDevAndProd(source2)
+      source,
+      stack: getStackByFiberInDevAndProd(source)
     };
   }
   var concurrentQueues = [], concurrentQueuesIndex = 0, concurrentlyUpdatedLanes = 0;
@@ -12082,6 +12082,13 @@ function requireClient() {
   return client.exports;
 }
 var clientExports = requireClient();
+function sendToJetBrains(query) {
+  if (window.cefQuery) {
+    window.cefQuery(query);
+  }
+}
+const handleJetBrainsQuerySuccess = (response) => console.log("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "Success", response);
+const handleJetBrainsQueryError = (errorCode, errorMessage) => console.error("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", errorCode, errorMessage);
 class ExtensionAPIWrapper {
   constructor() {
     __publicField(this, "extensionApi");
@@ -12092,6 +12099,8 @@ class ExtensionAPIWrapper {
       this.extensionApi = acquireVsCodeApi();
     } else if (this.ideType === "Visual Studio") {
       this.extensionApi = (_b = window.chrome) == null ? void 0 : _b.webview;
+    } else if (this.ideType === "JetBrains") {
+      console.warn("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", `IDE Type: ${this.ideType} not tested yet, might have issues`);
     }
   }
   /**
@@ -12106,6 +12115,13 @@ class ExtensionAPIWrapper {
     console.log("%c[CS webview]%c [Send ⬆]", "color: white; background: #162c53; padding: 3px;", "color: #32e132;", message);
     if (this.extensionApi) {
       this.extensionApi.postMessage(message);
+    } else if (window.ideContext.ideType === "JetBrains") {
+      sendToJetBrains({
+        request: JSON.stringify(message),
+        persistent: false,
+        onSuccess: handleJetBrainsQuerySuccess,
+        onFailure: handleJetBrainsQueryError
+      });
     } else {
       console.warn("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "no extension api", message);
     }
@@ -12117,7 +12133,7 @@ function filtersReducer(state, action) {
     case "receiveMessage":
       return {
         ...state,
-        data: action.payload
+        data: action.payload.data
       };
     case "updateLoading":
       return {
@@ -12129,16 +12145,17 @@ function filtersReducer(state, action) {
   }
 }
 function initialState() {
-  var _a2, _b, _c;
+  var _a2, _b, _c, _d, _e;
   if (!window.ideContext) {
     console.warn("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "no ideContext set");
   }
   console.log("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "IDE Type:", (_a2 = window.ideContext) == null ? void 0 : _a2.ideType);
+  console.log("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "IDE Data:", (_b = window.ideContext) == null ? void 0 : _b.data);
   return {
     loading: false,
-    ideType: (_b = window.ideContext) == null ? void 0 : _b.ideType,
-    view: (_c = window.ideContext) == null ? void 0 : _c.view,
-    data: void 0
+    ideType: (_c = window.ideContext) == null ? void 0 : _c.ideType,
+    view: (_d = window.ideContext) == null ? void 0 : _d.view,
+    data: (_e = window.ideContext) == null ? void 0 : _e.data
     // TODO: define actual data for features needed.
   };
 }
@@ -12146,21 +12163,10 @@ const handleEvent = (dispatch) => (event) => {
   const message = event.data;
   console.log("%c[CS webview]%c [Receive ⬇]", "color: white; background: #162c53; padding: 3px;", "color: #5e9ffe;", message.messageType, event);
   switch (message.messageType) {
-    case "file-tree": {
+    case "update-renderer": {
       dispatch({
         type: "receiveMessage",
-        payload: message
-      });
-      dispatch({
-        type: "updateLoading",
-        payload: false
-      });
-      break;
-    }
-    case "auto-refactor": {
-      dispatch({
-        type: "receiveMessage",
-        payload: message
+        payload: message.payload
       });
       dispatch({
         type: "updateLoading",
@@ -12177,7 +12183,7 @@ function useNativeReducer() {
   }, dispatch] = reducerVal;
   reactExports.useEffect(() => {
     const controller = new AbortController();
-    if (ideType === "VSCode") {
+    if (ideType === "VSCode" || ideType === "JetBrains") {
       window.addEventListener("message", handleEvent(dispatch), controller);
     } else if (ideType === "Visual Studio") {
       try {
@@ -12190,7 +12196,11 @@ function useNativeReducer() {
       messageType: "init"
     });
     return () => {
+      var _a2, _b, _c;
       controller.abort();
+      if ((_a2 = window.chrome) == null ? void 0 : _a2.webview) {
+        (_c = (_b = window.chrome.webview).removeEventListener) == null ? void 0 : _c.call(_b, "message", handleEvent(dispatch));
+      }
     };
   }, []);
   return reducerVal;
@@ -12372,11 +12382,11 @@ function ownKeys$2(object, enumerableOnly) {
 }
 function _objectSpread2(target) {
   for (var i = 1; i < arguments.length; i++) {
-    var source2 = null != arguments[i] ? arguments[i] : {};
-    i % 2 ? ownKeys$2(Object(source2), true).forEach(function(key) {
-      _defineProperty$1(target, key, source2[key]);
-    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source2)) : ownKeys$2(Object(source2)).forEach(function(key) {
-      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source2, key));
+    var source = null != arguments[i] ? arguments[i] : {};
+    i % 2 ? ownKeys$2(Object(source), true).forEach(function(key) {
+      _defineProperty$1(target, key, source[key]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys$2(Object(source)).forEach(function(key) {
+      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
     });
   }
   return target;
@@ -12397,10 +12407,10 @@ function _defineProperty$1(obj, key, value) {
 function _extends$1() {
   _extends$1 = Object.assign ? Object.assign.bind() : function(target) {
     for (var i = 1; i < arguments.length; i++) {
-      var source2 = arguments[i];
-      for (var key in source2) {
-        if (Object.prototype.hasOwnProperty.call(source2, key)) {
-          target[key] = source2[key];
+      var source = arguments[i];
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
         }
       }
     }
@@ -12408,29 +12418,29 @@ function _extends$1() {
   };
   return _extends$1.apply(this, arguments);
 }
-function _objectWithoutPropertiesLoose$1(source2, excluded) {
-  if (source2 == null) return {};
+function _objectWithoutPropertiesLoose$1(source, excluded) {
+  if (source == null) return {};
   var target = {};
-  var sourceKeys = Object.keys(source2);
+  var sourceKeys = Object.keys(source);
   var key, i;
   for (i = 0; i < sourceKeys.length; i++) {
     key = sourceKeys[i];
     if (excluded.indexOf(key) >= 0) continue;
-    target[key] = source2[key];
+    target[key] = source[key];
   }
   return target;
 }
-function _objectWithoutProperties$1(source2, excluded) {
-  if (source2 == null) return {};
-  var target = _objectWithoutPropertiesLoose$1(source2, excluded);
+function _objectWithoutProperties$1(source, excluded) {
+  if (source == null) return {};
+  var target = _objectWithoutPropertiesLoose$1(source, excluded);
   var key, i;
   if (Object.getOwnPropertySymbols) {
-    var sourceSymbolKeys = Object.getOwnPropertySymbols(source2);
+    var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
     for (i = 0; i < sourceSymbolKeys.length; i++) {
       key = sourceSymbolKeys[i];
       if (excluded.indexOf(key) >= 0) continue;
-      if (!Object.prototype.propertyIsEnumerable.call(source2, key)) continue;
-      target[key] = source2[key];
+      if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
+      target[key] = source[key];
     }
   }
   return target;
@@ -12485,6 +12495,24 @@ function closestNaturalHeight(naturalHeights, height) {
     return naturalHeight <= height ? naturalHeight : acc;
   }, naturalHeights[0]);
 }
+var AlertIcon = /* @__PURE__ */ createIconComponent("AlertIcon", "octicon octicon-alert", function() {
+  return {
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", {
+        d: "M13 17.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm-.25-8.25a.75.75 0 0 0-1.5 0v4.5a.75.75 0 0 0 1.5 0v-4.5Z"
+      }), /* @__PURE__ */ React.createElement("path", {
+        d: "M9.836 3.244c.963-1.665 3.365-1.665 4.328 0l8.967 15.504c.963 1.667-.24 3.752-2.165 3.752H3.034c-1.926 0-3.128-2.085-2.165-3.752Zm3.03.751a1.002 1.002 0 0 0-1.732 0L2.168 19.499A1.002 1.002 0 0 0 3.034 21h17.932a1.002 1.002 0 0 0 .866-1.5L12.866 3.994Z"
+      }))
+    }
+  };
+});
 var CheckIcon = /* @__PURE__ */ createIconComponent("CheckIcon", "octicon octicon-check", function() {
   return {
     "16": {
@@ -12497,6 +12525,22 @@ var CheckIcon = /* @__PURE__ */ createIconComponent("CheckIcon", "octicon octico
       "width": 24,
       "path": /* @__PURE__ */ React.createElement("path", {
         d: "M21.03 5.72a.75.75 0 0 1 0 1.06l-11.5 11.5a.747.747 0 0 1-1.072-.012l-5.5-5.75a.75.75 0 1 1 1.084-1.036l4.97 5.195L19.97 5.72a.75.75 0 0 1 1.06 0Z"
+      })
+    }
+  };
+});
+var FileIcon = /* @__PURE__ */ createIconComponent("FileIcon", "octicon octicon-file", function() {
+  return {
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Zm2-.5a.5.5 0 0 0-.5.5v18a.5.5 0 0 0 .5.5h14a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4Zm10 0v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5Z"
       })
     }
   };
@@ -12519,6 +12563,22 @@ var FileDiffIcon = /* @__PURE__ */ createIconComponent("FileDiffIcon", "octicon 
     }
   };
 });
+var PackageIcon = /* @__PURE__ */ createIconComponent("PackageIcon", "octicon octicon-package", function() {
+  return {
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "m8.878.392 5.25 3.045c.54.314.872.89.872 1.514v6.098a1.75 1.75 0 0 1-.872 1.514l-5.25 3.045a1.75 1.75 0 0 1-1.756 0l-5.25-3.045A1.75 1.75 0 0 1 1 11.049V4.951c0-.624.332-1.201.872-1.514L7.122.392a1.75 1.75 0 0 1 1.756 0ZM7.875 1.69l-4.63 2.685L8 7.133l4.755-2.758-4.63-2.685a.248.248 0 0 0-.25 0ZM2.5 5.677v5.372c0 .09.047.171.125.216l4.625 2.683V8.432Zm6.25 8.271 4.625-2.683a.25.25 0 0 0 .125-.216V5.677L8.75 8.432Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M12.876.64V.639l8.25 4.763c.541.313.875.89.875 1.515v9.525a1.75 1.75 0 0 1-.875 1.516l-8.25 4.762a1.748 1.748 0 0 1-1.75 0l-8.25-4.763a1.75 1.75 0 0 1-.875-1.515V6.917c0-.625.334-1.202.875-1.515L11.126.64a1.748 1.748 0 0 1 1.75 0Zm-1 1.298L4.251 6.34l7.75 4.474 7.75-4.474-7.625-4.402a.248.248 0 0 0-.25 0Zm.875 19.123 7.625-4.402a.25.25 0 0 0 .125-.216V7.639l-7.75 4.474ZM3.501 7.64v8.803c0 .09.048.172.125.216l7.625 4.402v-8.947Z"
+      })
+    }
+  };
+});
 var SkipIcon = /* @__PURE__ */ createIconComponent("SkipIcon", "octicon octicon-skip", function() {
   return {
     "16": {
@@ -12537,9 +12597,304 @@ var SkipIcon = /* @__PURE__ */ createIconComponent("SkipIcon", "octicon octicon-
     }
   };
 });
-const styles = {
+var SparklesFillIcon = /* @__PURE__ */ createIconComponent("SparklesFillIcon", "octicon octicon-sparkles-fill", function() {
+  return {
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M9.6 2.279a.426.426 0 0 1 .8 0l.407 1.112a6.386 6.386 0 0 0 3.802 3.802l1.112.407a.426.426 0 0 1 0 .8l-1.112.407a6.386 6.386 0 0 0-3.802 3.802l-.407 1.112a.426.426 0 0 1-.8 0l-.407-1.112a6.386 6.386 0 0 0-3.802-3.802L4.279 8.4a.426.426 0 0 1 0-.8l1.112-.407a6.386 6.386 0 0 0 3.802-3.802L9.6 2.279Zm-4.267 8.837a.178.178 0 0 1 .334 0l.169.464a2.662 2.662 0 0 0 1.584 1.584l.464.169a.178.178 0 0 1 0 .334l-.464.169a2.662 2.662 0 0 0-1.584 1.584l-.169.464a.178.178 0 0 1-.334 0l-.169-.464a2.662 2.662 0 0 0-1.584-1.584l-.464-.169a.178.178 0 0 1 0-.334l.464-.169a2.662 2.662 0 0 0 1.584-1.584l.169-.464ZM2.8.14a.213.213 0 0 1 .4 0l.203.556a3.2 3.2 0 0 0 1.901 1.901l.556.203a.213.213 0 0 1 0 .4l-.556.203a3.2 3.2 0 0 0-1.901 1.901L3.2 5.86a.213.213 0 0 1-.4 0l-.203-.556A3.2 3.2 0 0 0 .696 3.403L.14 3.2a.213.213 0 0 1 0-.4l.556-.203A3.2 3.2 0 0 0 2.597.696L2.8.14Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M14.4 3.419a.639.639 0 0 1 1.2 0l.61 1.668a9.587 9.587 0 0 0 5.703 5.703l1.668.61a.639.639 0 0 1 0 1.2l-1.668.61a9.587 9.587 0 0 0-5.703 5.703l-.61 1.668a.639.639 0 0 1-1.2 0l-.61-1.668a9.587 9.587 0 0 0-5.703-5.703l-1.668-.61a.639.639 0 0 1 0-1.2l1.668-.61a9.587 9.587 0 0 0 5.703-5.703l.61-1.668ZM8 16.675a.266.266 0 0 1 .5 0l.254.694a3.992 3.992 0 0 0 2.376 2.377l.695.254a.266.266 0 0 1 0 .5l-.695.254a3.992 3.992 0 0 0-2.376 2.377l-.254.694a.266.266 0 0 1-.5 0l-.254-.694a3.992 3.992 0 0 0-2.376-2.377l-.695-.254a.266.266 0 0 1 0-.5l.695-.254a3.992 3.992 0 0 0 2.376-2.377L8 16.675ZM4.2.21a.32.32 0 0 1 .6 0l.305.833a4.793 4.793 0 0 0 2.852 2.852l.833.305a.32.32 0 0 1 0 .6l-.833.305a4.793 4.793 0 0 0-2.852 2.852L4.8 8.79a.32.32 0 0 1-.6 0l-.305-.833a4.793 4.793 0 0 0-2.852-2.852L.21 4.8a.32.32 0 0 1 0-.6l.833-.305a4.793 4.793 0 0 0 2.852-2.852L4.2.21Z"
+      })
+    }
+  };
+});
+var XIcon = /* @__PURE__ */ createIconComponent("XIcon", "octicon octicon-x", function() {
+  return {
+    "12": {
+      "width": 12,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M2.22 2.22a.749.749 0 0 1 1.06 0L6 4.939 8.72 2.22a.749.749 0 1 1 1.06 1.06L7.061 6 9.78 8.72a.749.749 0 1 1-1.06 1.06L6 7.061 3.28 9.78a.749.749 0 1 1-1.06-1.06L4.939 6 2.22 3.28a.749.749 0 0 1 0-1.06Z"
+      })
+    },
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M5.72 5.72a.75.75 0 0 1 1.06 0L12 10.94l5.22-5.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L13.06 12l5.22 5.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L12 13.06l-5.22 5.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L10.94 12 5.72 6.78a.75.75 0 0 1 0-1.06Z"
+      })
+    }
+  };
+});
+const primaryTones = {
+  warning: "var(--xl733iw)"
+};
+const gapStyles = {
+  none: {
+    $$css: true
+  },
+  "size-0": {
+    gap: "x17pe6bd",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-1": {
+    gap: "x173ompp",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-2": {
+    gap: "x3x3ztt",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-3": {
+    gap: "x1cjls43",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-4": {
+    gap: "x1daxgar",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-5": {
+    gap: "x1d946yd",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-6": {
+    gap: "xsarade",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-7": {
+    gap: "xxr1zfz",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-8": {
+    gap: "xlcisk",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-9": {
+    gap: "x138nto0",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-10": {
+    gap: "xoweimo",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-11": {
+    gap: "xwtofwr",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-12": {
+    gap: "x1lqkcwm",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-13": {
+    gap: "x1f5h1f3",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-14": {
+    gap: "x1bu9hfp",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-15": {
+    gap: "x17wtu1",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  },
+  "size-16": {
+    gap: "x6qef39",
+    rowGap: null,
+    columnGap: null,
+    $$css: true
+  }
+};
+const rowGapStyles = {
+  none: {
+    $$css: true
+  },
+  "size-0": {
+    rowGap: "xrbck9l",
+    $$css: true
+  },
+  "size-1": {
+    rowGap: "x1a7go0n",
+    $$css: true
+  },
+  "size-2": {
+    rowGap: "x40ot2c",
+    $$css: true
+  },
+  "size-3": {
+    rowGap: "x1lr92h7",
+    $$css: true
+  },
+  "size-4": {
+    rowGap: "x1tyjujy",
+    $$css: true
+  },
+  "size-5": {
+    rowGap: "x1off71b",
+    $$css: true
+  },
+  "size-6": {
+    rowGap: "xrzd597",
+    $$css: true
+  },
+  "size-7": {
+    rowGap: "x1yoih9z",
+    $$css: true
+  },
+  "size-8": {
+    rowGap: "x1orzl9f",
+    $$css: true
+  },
+  "size-9": {
+    rowGap: "x181c3i8",
+    $$css: true
+  },
+  "size-10": {
+    rowGap: "x1lww28y",
+    $$css: true
+  },
+  "size-11": {
+    rowGap: "x1aaab8b",
+    $$css: true
+  },
+  "size-12": {
+    rowGap: "x1ptgdo4",
+    $$css: true
+  },
+  "size-13": {
+    rowGap: "x1c9sdsm",
+    $$css: true
+  },
+  "size-14": {
+    rowGap: "x1211t8c",
+    $$css: true
+  },
+  "size-15": {
+    rowGap: "xoz6x91",
+    $$css: true
+  },
+  "size-16": {
+    rowGap: "x15zxzh3",
+    $$css: true
+  }
+};
+const columnGapStyles = {
+  none: {
+    $$css: true
+  },
+  "size-0": {
+    columnGap: "xx7x100",
+    $$css: true
+  },
+  "size-1": {
+    columnGap: "xd1y75v",
+    $$css: true
+  },
+  "size-2": {
+    columnGap: "xapkwgz",
+    $$css: true
+  },
+  "size-3": {
+    columnGap: "x1yf0zy3",
+    $$css: true
+  },
+  "size-4": {
+    columnGap: "x1vnsxdw",
+    $$css: true
+  },
+  "size-5": {
+    columnGap: "x1rb2966",
+    $$css: true
+  },
+  "size-6": {
+    columnGap: "x81qk16",
+    $$css: true
+  },
+  "size-7": {
+    columnGap: "x14v88gw",
+    $$css: true
+  },
+  "size-8": {
+    columnGap: "x80btdy",
+    $$css: true
+  },
+  "size-9": {
+    columnGap: "xd9obmb",
+    $$css: true
+  },
+  "size-10": {
+    columnGap: "x1labieh",
+    $$css: true
+  },
+  "size-11": {
+    columnGap: "xmn3dpl",
+    $$css: true
+  },
+  "size-12": {
+    columnGap: "x1kybkhl",
+    $$css: true
+  },
+  "size-13": {
+    columnGap: "x3d5qif",
+    $$css: true
+  },
+  "size-14": {
+    columnGap: "xl8olrw",
+    $$css: true
+  },
+  "size-15": {
+    columnGap: "xtpul9e",
+    $$css: true
+  },
+  "size-16": {
+    columnGap: "xf5j89j",
+    $$css: true
+  }
+};
+const styles$1 = {
   storybookButton: {
     display: "x78zum5",
+    alignSelf: "xqcrz7y",
     gap: "x17d4w8g",
     rowGap: null,
     columnGap: null,
@@ -12573,7 +12928,6 @@ const styles = {
     borderTopColor: null,
     borderBottomColor: null,
     fontWeight: "xk50ysn",
-    lineHeight: "xo5v014",
     fontSize: "x182rzkk",
     fontFamily: "xrt6l7w",
     $$css: true
@@ -12584,12 +12938,12 @@ const styles = {
     $$css: true
   },
   "storybookButton--secondary": {
-    backgroundColor: "xrjojri",
+    backgroundColor: "xdz8tzw",
     color: "x1f7m26b",
     $$css: true
   },
   "storybookButton--disabled": {
-    backgroundColor: "x1nte9fd",
+    backgroundColor: "x1n099lw",
     color: "x11x8p45",
     cursor: "xt0e3qv",
     $$css: true
@@ -12651,12 +13005,14 @@ const iconSize = {
   "medium": 14,
   "large": 16
 };
-const iconLookup = {
-  "check": CheckIcon,
-  "fileDiff": FileDiffIcon,
-  "skip": SkipIcon
+const iconLookup$1 = {
+  check: CheckIcon,
+  fileDiff: FileDiffIcon,
+  skip: SkipIcon,
+  cross: XIcon,
+  sparkle: SparklesFillIcon
 };
-function getIcon(icon2, size, disabled2) {
+function getIcon$1(icon2, size, disabled2) {
   const props2 = {
     fill: disabled2 ? "#606060" : "#fff",
     size: iconSize[size],
@@ -12664,7 +13020,7 @@ function getIcon(icon2, size, disabled2) {
       margin: "auto 0"
     }
   };
-  const Icon = iconLookup[icon2];
+  const Icon = iconLookup$1[icon2];
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, {
     ...props2
   });
@@ -12677,14 +13033,14 @@ const Button = ({
   disabled: disabled2,
   ...props$1
 }) => {
-  let modeStyle = primary ? styles["storybookButton--primary"] : styles["storybookButton--secondary"];
-  if (disabled2) modeStyle = styles["storybookButton--disabled"];
-  const sizeStyle = styles[`storybookButton--${size}`];
+  let modeStyle = primary ? styles$1["storybookButton--primary"] : styles$1["storybookButton--secondary"];
+  if (disabled2) modeStyle = styles$1["storybookButton--disabled"];
+  const sizeStyle = styles$1[`storybookButton--${size}`];
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("button", {
     type: "button",
-    ...props([styles.storybookButton, sizeStyle, modeStyle]),
+    ...props([styles$1.storybookButton, sizeStyle, modeStyle]),
     ...props$1,
-    children: [getIcon(icon2, size, disabled2), " ", /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    children: [getIcon$1(icon2, size, disabled2), " ", /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
       ...{
         className: "x1bpp3o7"
       },
@@ -13546,17 +13902,17 @@ function requireCore$1() {
   function escape(value) {
     return new RegExp(value.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"), "m");
   }
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function countMatchGroups(re2) {
@@ -13572,7 +13928,7 @@ function requireCore$1() {
     return regexps.map((regex2) => {
       numCaptures += 1;
       const offset = numCaptures;
-      let re2 = source2(regex2);
+      let re2 = source(regex2);
       let out = "";
       while (re2.length > 0) {
         const match = BACKREF_RE.exec(re2);
@@ -13848,7 +14204,7 @@ function requireCore$1() {
   function compileLanguage(language, { plugins }) {
     function langRe(value, global) {
       return new RegExp(
-        source2(value),
+        source(value),
         "m" + (language.case_insensitive ? "i" : "") + (global ? "g" : "")
       );
     }
@@ -13989,7 +14345,7 @@ function requireCore$1() {
         if (mode.endSameAsBegin) mode.end = mode.begin;
         if (!mode.end && !mode.endsWithParent) mode.end = /\B|\b/;
         if (mode.end) cmode.endRe = langRe(mode.end);
-        cmode.terminatorEnd = source2(mode.end) || "";
+        cmode.terminatorEnd = source(mode.end) || "";
         if (mode.endsWithParent && parent2.terminatorEnd) {
           cmode.terminatorEnd += (mode.end ? "|" : "") + parent2.terminatorEnd;
         }
@@ -15261,13 +15617,13 @@ var hasRequiredAbnf;
 function requireAbnf() {
   if (hasRequiredAbnf) return abnf_1;
   hasRequiredAbnf = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function abnf2(hljs) {
@@ -15338,17 +15694,17 @@ var hasRequiredAccesslog;
 function requireAccesslog() {
   if (hasRequiredAccesslog) return accesslog_1;
   hasRequiredAccesslog = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function accesslog(_hljs) {
@@ -15437,13 +15793,13 @@ var hasRequiredActionscript;
 function requireActionscript() {
   if (hasRequiredActionscript) return actionscript_1;
   hasRequiredActionscript = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function actionscript2(hljs) {
@@ -15878,17 +16234,17 @@ var hasRequiredApplescript;
 function requireApplescript() {
   if (hasRequiredApplescript) return applescript_1;
   hasRequiredApplescript = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function applescript2(hljs) {
@@ -16172,7 +16528,7 @@ var hasRequiredArduino;
 function requireArduino() {
   if (hasRequiredArduino) return arduino_1;
   hasRequiredArduino = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -16184,7 +16540,7 @@ function requireArduino() {
     return concat("(", re2, ")?");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function cPlusPlus(hljs) {
@@ -16697,7 +17053,7 @@ var hasRequiredXml;
 function requireXml() {
   if (hasRequiredXml) return xml_1;
   hasRequiredXml = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -16709,11 +17065,11 @@ function requireXml() {
     return concat("(", re2, ")?");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function xml2(hljs) {
@@ -16948,13 +17304,13 @@ var hasRequiredAsciidoc;
 function requireAsciidoc() {
   if (hasRequiredAsciidoc) return asciidoc_1;
   hasRequiredAsciidoc = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function asciidoc2(hljs) {
@@ -17228,13 +17584,13 @@ var hasRequiredAspectj;
 function requireAspectj() {
   if (hasRequiredAspectj) return aspectj_1;
   hasRequiredAspectj = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function aspectj(hljs) {
@@ -17941,13 +18297,13 @@ var hasRequiredBash;
 function requireBash() {
   if (hasRequiredBash) return bash_1;
   hasRequiredBash = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function bash2(hljs) {
@@ -18215,7 +18571,7 @@ var hasRequiredCLike;
 function requireCLike() {
   if (hasRequiredCLike) return cLike_1;
   hasRequiredCLike = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -18227,7 +18583,7 @@ function requireCLike() {
     return concat("(", re2, ")?");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function cPlusPlus(hljs) {
@@ -18642,7 +18998,7 @@ var hasRequiredC;
 function requireC() {
   if (hasRequiredC) return c_1;
   hasRequiredC = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -18651,7 +19007,7 @@ function requireC() {
     return concat("(", re2, ")?");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function c2(hljs) {
@@ -19802,7 +20158,7 @@ var hasRequiredCpp;
 function requireCpp() {
   if (hasRequiredCpp) return cpp_1;
   hasRequiredCpp = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -19814,7 +20170,7 @@ function requireCpp() {
     return concat("(", re2, ")?");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function cpp2(hljs) {
@@ -21522,7 +21878,7 @@ function requireCss() {
     // reverse makes sure longer attributes `font-weight` are matched fully
     // instead of getting false positives on say `font`
   ].reverse();
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -21531,7 +21887,7 @@ function requireCss() {
     return concat("(?=", re2, ")");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function css2(hljs) {
@@ -21799,13 +22155,13 @@ var hasRequiredMarkdown;
 function requireMarkdown() {
   if (hasRequiredMarkdown) return markdown_1;
   hasRequiredMarkdown = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function markdown2(hljs) {
@@ -23267,7 +23623,7 @@ var hasRequiredRuby;
 function requireRuby() {
   if (hasRequiredRuby) return ruby_1;
   hasRequiredRuby = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -23276,7 +23632,7 @@ function requireRuby() {
     return concat("(?=", re2, ")");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function ruby2(hljs) {
@@ -23634,13 +23990,13 @@ var hasRequiredErlangRepl;
 function requireErlangRepl() {
   if (hasRequiredErlangRepl) return erlangRepl_1;
   hasRequiredErlangRepl = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function erlangRepl(hljs) {
@@ -24041,13 +24397,13 @@ var hasRequiredFortran;
 function requireFortran() {
   if (hasRequiredFortran) return fortran_1;
   hasRequiredFortran = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function fortran2(hljs) {
@@ -24216,7 +24572,7 @@ var hasRequiredGams;
 function requireGams() {
   if (hasRequiredGams) return gams_1;
   hasRequiredGams = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -24225,7 +24581,7 @@ function requireGams() {
     return concat("(", re2, ")*");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function gams(hljs) {
@@ -24908,7 +25264,7 @@ var hasRequiredGroovy;
 function requireGroovy() {
   if (hasRequiredGroovy) return groovy_1;
   hasRequiredGroovy = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -24917,7 +25273,7 @@ function requireGroovy() {
     return concat("(?=", re2, ")");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function variants(variants2, obj = {}) {
@@ -25166,7 +25522,7 @@ var hasRequiredHandlebars;
 function requireHandlebars() {
   if (hasRequiredHandlebars) return handlebars_1;
   hasRequiredHandlebars = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -25178,11 +25534,11 @@ function requireHandlebars() {
     return concat("(", re2, ")?");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function handlebars2(hljs) {
@@ -25811,7 +26167,7 @@ var hasRequiredHtmlbars;
 function requireHtmlbars() {
   if (hasRequiredHtmlbars) return htmlbars_1;
   hasRequiredHtmlbars = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -25823,11 +26179,11 @@ function requireHtmlbars() {
     return concat("(", re2, ")?");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function handlebars2(hljs) {
@@ -26086,13 +26442,13 @@ var hasRequiredHttp;
 function requireHttp() {
   if (hasRequiredHttp) return http_1;
   hasRequiredHttp = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function http2(hljs) {
@@ -26331,7 +26687,7 @@ var hasRequiredIni;
 function requireIni() {
   if (hasRequiredIni) return ini_1;
   hasRequiredIni = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -26340,11 +26696,11 @@ function requireIni() {
     return concat("(?=", re2, ")");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function ini2(hljs) {
@@ -26476,13 +26832,13 @@ var hasRequiredIrpf90;
 function requireIrpf90() {
   if (hasRequiredIrpf90) return irpf90_1;
   hasRequiredIrpf90 = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function irpf90(hljs) {
@@ -27128,7 +27484,7 @@ function requireJavascript() {
     TYPES,
     ERROR_TYPES
   );
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -27137,7 +27493,7 @@ function requireJavascript() {
     return concat("(?=", re2, ")");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function javascript2(hljs) {
@@ -28476,13 +28832,13 @@ var hasRequiredLatex;
 function requireLatex() {
   if (hasRequiredLatex) return latex_1;
   hasRequiredLatex = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function latex2(hljs) {
@@ -30073,13 +30429,13 @@ var hasRequiredLlvm;
 function requireLlvm() {
   if (hasRequiredLlvm) return llvm_1;
   hasRequiredLlvm = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function llvm2(hljs) {
@@ -37030,7 +37386,7 @@ function requireMathematica() {
     "$WolframID",
     "$WolframUUID"
   ];
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -37039,11 +37395,11 @@ function requireMathematica() {
     return concat("(", re2, ")?");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function mathematica(hljs) {
@@ -37523,17 +37879,17 @@ var hasRequiredPerl;
 function requirePerl() {
   if (hasRequiredPerl) return perl_1;
   hasRequiredPerl = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function perl2(hljs) {
@@ -40599,7 +40955,7 @@ var hasRequiredPython;
 function requirePython() {
   if (hasRequiredPython) return python_1;
   hasRequiredPython = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -40608,7 +40964,7 @@ function requirePython() {
     return concat("(?=", re2, ")");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function python2(hljs) {
@@ -41073,13 +41429,13 @@ var hasRequiredQml;
 function requireQml() {
   if (hasRequiredQml) return qml_1;
   hasRequiredQml = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function qml2(hljs) {
@@ -41247,7 +41603,7 @@ var hasRequiredR;
 function requireR() {
   if (hasRequiredR) return r_1;
   hasRequiredR = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -41256,7 +41612,7 @@ function requireR() {
     return concat("(?=", re2, ")");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function r2(hljs) {
@@ -43565,17 +43921,17 @@ var hasRequiredSql;
 function requireSql() {
   if (hasRequiredSql) return sql_1;
   hasRequiredSql = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function sql2(hljs) {
@@ -45530,7 +45886,7 @@ var hasRequiredSwift;
 function requireSwift() {
   if (hasRequiredSwift) return swift_1;
   hasRequiredSwift = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -45539,11 +45895,11 @@ function requireSwift() {
     return concat("(?=", re2, ")");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   const keywordWrapper = (keyword) => concat(
@@ -46599,7 +46955,7 @@ var hasRequiredTcl;
 function requireTcl() {
   if (hasRequiredTcl) return tcl_1;
   hasRequiredTcl = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -46608,7 +46964,7 @@ function requireTcl() {
     return concat("(", re2, ")?");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function tcl2(hljs) {
@@ -47015,7 +47371,7 @@ function requireTypescript() {
     TYPES,
     ERROR_TYPES
   );
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
@@ -47024,7 +47380,7 @@ function requireTypescript() {
     return concat("(?=", re2, ")");
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function javascript2(hljs) {
@@ -47553,17 +47909,17 @@ var hasRequiredVbnet;
 function requireVbnet() {
   if (hasRequiredVbnet) return vbnet_1;
   hasRequiredVbnet = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function vbnet2(hljs) {
@@ -47714,17 +48070,17 @@ var hasRequiredVbscript;
 function requireVbscript() {
   if (hasRequiredVbscript) return vbscript_1;
   hasRequiredVbscript = 1;
-  function source2(re2) {
+  function source(re2) {
     if (!re2) return null;
     if (typeof re2 === "string") return re2;
     return re2.source;
   }
   function concat(...args) {
-    const joined = args.map((x) => source2(x)).join("");
+    const joined = args.map((x) => source(x)).join("");
     return joined;
   }
   function either(...args) {
-    const joined = "(" + args.map((x) => source2(x)).join("|") + ")";
+    const joined = "(" + args.map((x) => source(x)).join("|") + ")";
     return joined;
   }
   function vbscript(hljs) {
@@ -48855,7 +49211,8 @@ const atomOneDark = {
   }
 };
 const customStyle$1 = {
-  background: "var(--cs-theme-textCodeBlock-background, rgba(10, 10, 10, 0.4))"
+  background: "var(--cs-theme-textCodeBlock-background, rgba(10, 10, 10, 0.4))",
+  margin: 0
 };
 const CodeBlock = ({
   codeString
@@ -48866,6 +49223,474 @@ const CodeBlock = ({
     style: atomOneDark,
     showLineNumbers: true,
     children: codeString
+  });
+};
+const directionStyles = {
+  row: {
+    display: "x78zum5",
+    flexDirection: "x1q0g3np",
+    $$css: true
+  },
+  column: {
+    display: "x78zum5",
+    flexDirection: "xdt5ytf",
+    $$css: true
+  }
+};
+const alignItemsStyles = {
+  start: {
+    alignItems: "x1cy8zhl",
+    $$css: true
+  },
+  center: {
+    alignItems: "x6s0dn4",
+    $$css: true
+  },
+  end: {
+    alignItems: "xuk3077",
+    $$css: true
+  },
+  stretch: {
+    alignItems: "x1qjc9v5",
+    $$css: true
+  },
+  baseline: {
+    alignItems: "x1pha0wt",
+    $$css: true
+  }
+};
+const justifyContentStyles = {
+  start: {
+    justifyContent: "x1nhvcw1",
+    $$css: true
+  },
+  center: {
+    justifyContent: "xl56j7k",
+    $$css: true
+  },
+  end: {
+    justifyContent: "x13a6bvl",
+    $$css: true
+  },
+  spaceBetween: {
+    justifyContent: "x1qughib",
+    $$css: true
+  },
+  spaceAround: {
+    justifyContent: "x1l1ennw",
+    $$css: true
+  },
+  spaceEvenly: {
+    justifyContent: "xaw8158",
+    $$css: true
+  }
+};
+const flexGrowStyles = {
+  none: {
+    flexGrow: "x1c4vz4f",
+    $$css: true
+  },
+  grow: {
+    flexGrow: "x1iyjqo2",
+    $$css: true
+  }
+};
+const wrapStyles = {
+  wrap: {
+    flexWrap: "x1a02dak",
+    $$css: true
+  },
+  wrapReverse: {
+    flexWrap: "x8hhl5t",
+    $$css: true
+  },
+  nowrap: {
+    flexWrap: "xozqiw3",
+    $$css: true
+  }
+};
+function Stack({
+  children,
+  direction: direction2 = "column",
+  flexGrow = "none",
+  gap: gap2,
+  columnGap,
+  rowGap,
+  alignItems,
+  justifyContent,
+  wrap: wrap2,
+  style: style2
+}) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props(directionStyles[direction2], gap2 && gapStyles[gap2], columnGap && columnGapStyles[columnGap], rowGap && rowGapStyles[rowGap], alignItems && alignItemsStyles[alignItems], justifyContent && justifyContentStyles[justifyContent], wrap2 && wrapStyles[wrap2], flexGrowStyles[flexGrow], style2),
+    children
+  });
+}
+const styles = {
+  bannerContainer: {
+    background: "xy96b20",
+    backgroundAttachment: null,
+    backgroundClip: null,
+    backgroundColor: null,
+    backgroundImage: null,
+    backgroundOrigin: null,
+    backgroundPosition: null,
+    backgroundPositionX: null,
+    backgroundPositionY: null,
+    backgroundRepeat: null,
+    backgroundSize: null,
+    padding: "xrx2rhq",
+    paddingInline: null,
+    paddingStart: null,
+    paddingLeft: null,
+    paddingEnd: null,
+    paddingRight: null,
+    paddingBlock: null,
+    paddingTop: null,
+    paddingBottom: null,
+    borderLeftWidth: "x1vo0akb",
+    borderInlineStartWidth: null,
+    borderInlineEndWidth: null,
+    borderLeftStyle: "x19ypqd9",
+    borderInlineStartStyle: null,
+    borderInlineEndStyle: null,
+    fontSize: "x4z9k3i",
+    width: "xh8yej3",
+    boxSizing: "x9f619",
+    $$css: true
+  },
+  title: {
+    fontWeight: "x1xlr1w8",
+    $$css: true
+  },
+  success: {
+    borderColor: "x1w53u8b",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "x17r9unv",
+    $$css: true
+  },
+  issue: {
+    borderColor: "xyhv35e",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "xs4frbw",
+    $$css: true
+  },
+  warning: {
+    borderColor: "xch19pq",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "x49s89i",
+    $$css: true
+  },
+  neutral: {
+    borderColor: "x15uqbi0",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "x1aglvb5",
+    $$css: true
+  },
+  info: {
+    borderColor: "x10mome6",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "xutiqi0",
+    $$css: true
+  },
+  error: {
+    borderColor: "xes0m8c",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "xy54ajn",
+    $$css: true
+  }
+};
+const Banner = ({
+  title,
+  tone = "neutral",
+  textElement,
+  actions = []
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props([styles.bannerContainer, styles[tone]]),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      gap: "size-2",
+      direction: "row",
+      children: [tone === "warning" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(AlertIcon, {
+          fill: primaryTones.warning
+        })
+      }), /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+        direction: "column",
+        gap: "size-4",
+        children: [/* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+          direction: "column",
+          gap: "size-1",
+          children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+            ...{
+              className: "x1xlr1w8"
+            },
+            children: title
+          }), /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+            ...{
+              className: "x15uqbi0 x1aglvb5"
+            },
+            children: textElement
+          })]
+        }), actions.length ? /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, {
+          direction: "row",
+          gap: "size-2",
+          children: actions
+        }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {})]
+      })]
+    })
+  });
+};
+const PanelHeader = ({
+  title,
+  subElement = /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {})
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...{
+      className: "x2er46h xlrvzsl"
+    },
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "column",
+      gap: "size-2",
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx("h1", {
+        ...{
+          className: "x1s688f xosj86m x1ghz6dp"
+        },
+        children: title
+      }), subElement]
+    })
+  });
+};
+const iconLookup = {
+  file: FileIcon,
+  package: PackageIcon
+};
+function getIcon(icon2, disabled2) {
+  const props2 = {
+    fill: "#fff",
+    size: 14,
+    style: {
+      margin: "auto 0"
+    }
+  };
+  const Icon = iconLookup[icon2];
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, {
+    ...props2
+  });
+}
+const FileSubHeader = ({
+  filename,
+  functionName,
+  lineNumber,
+  action
+}) => {
+  const openFile = () => {
+    if (action) {
+      extensionApi.postMessage({
+        messageType: "open-file",
+        payload: action.filePayload
+      });
+    }
+  };
+  const openFunction = () => {
+    if (action) {
+      extensionApi.postMessage({
+        messageType: "open-function",
+        payload: action.functionPayload
+      });
+    }
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+    direction: "row",
+    gap: "size-4",
+    children: [/* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "row",
+      gap: "size-1",
+      children: [getIcon("file"), /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+        onClick: openFile,
+        ...{
+          className: "xk50ysn xxamwa4 xe7mz8o x1ypdohk"
+        },
+        children: filename
+      })]
+    }), /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "row",
+      gap: "size-1",
+      children: [getIcon("package"), /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+        onClick: openFunction,
+        ...{
+          className: "xk50ysn xxamwa4 xe7mz8o x1ypdohk"
+        },
+        children: [functionName, " [Ln ", lineNumber, "]"]
+      })]
+    })]
+  });
+};
+const actionMessages = {
+  accept: () => extensionApi.postMessage({
+    messageType: "apply",
+    payload: "apply"
+  }),
+  reject: () => extensionApi.postMessage({
+    messageType: "reject",
+    payload: "reject"
+  }),
+  retry: () => extensionApi.postMessage({
+    messageType: "retry",
+    payload: "retry"
+  }),
+  close: () => extensionApi.postMessage({
+    messageType: "close",
+    payload: "close"
+  }),
+  showLogoutput: () => extensionApi.postMessage({
+    messageType: "showLogoutput",
+    payload: "showLogoutput"
+  })
+};
+const getToneFromConfidenceLevel = (level) => {
+  switch (level) {
+    case 4:
+      return "success";
+    case 3:
+      return "success";
+    case 2:
+      return "issue";
+    case 1:
+      return "neutral";
+    case 0:
+      return "info";
+    case "error":
+      return "error";
+    default:
+      return "neutral";
+  }
+};
+const getBanner = (confidence, isStale, actionMessages2) => {
+  if (isStale) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+      title: "File Changes Detected",
+      tone: "warning",
+      textElement: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+        children: "The function has been changed, so the refactoring might no longer apply. If the change was intentional, please reopen the panel to have ACE refactor the latest state of the function. If not, you might want to undo your changes."
+      }),
+      actions: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+        label: "Close Panel",
+        icon: "cross",
+        onClick: actionMessages2.close
+      })]
+    });
+  } else if (confidence.level === "error") {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+      title: "Refactoring Failed",
+      tone: "error",
+      textElement: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+        children: ["There was an error when performing this refactoring. Please see the", " ", /* @__PURE__ */ jsxRuntimeExports.jsx("a", {
+          href: "",
+          onClick: (e) => {
+            e.preventDefault();
+            actionMessages2.showLogoutput();
+          },
+          children: "CodeScene Log"
+        }), " ", "output for error details."]
+      }),
+      actions: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+        label: "Retry Auto-Refactor",
+        primary: true,
+        onClick: actionMessages2.retry
+      })]
+    });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+    title: confidence["recommended-action"].details,
+    tone: getToneFromConfidenceLevel(confidence.level),
+    textElement: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      children: confidence["recommended-action"].description
+    }),
+    actions: confidence.level === 1 ? [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+      label: "Retry Auto-Refactor",
+      primary: true,
+      onClick: actionMessages2.retry
+    })] : []
+  });
+};
+const AceView = ({
+  refactorResponse,
+  file,
+  isStale
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...{
+      className: "x10kqxg1 xzbod5j xl13fje x1e38ks9 x182rzkk"
+    },
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "column",
+      gap: "size-4",
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
+        title: refactorResponse.confidence.title,
+        subElement: /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
+          ...file
+        })
+      }), getBanner(refactorResponse.confidence, isStale, actionMessages), refactorResponse.confidence.level >= 1 && !isStale && /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+        gap: "size-2",
+        direction: "row",
+        children: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+          label: "Accept Auto-Refactor",
+          primary: true,
+          onClick: actionMessages.accept,
+          disabled: refactorResponse.confidence.level <= 1
+        }), /* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+          label: "Reject",
+          icon: "skip",
+          onClick: actionMessages.reject,
+          disabled: refactorResponse.confidence.level <= 1
+        })]
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(CodeBlock, {
+        codeString: refactorResponse.code
+      })]
+    })
   });
 };
 const convert = (
@@ -57695,9 +58520,9 @@ csp.displayName = "csp";
 csp.aliases = [];
 function csp(Prism2) {
   (function(Prism3) {
-    function value(source2) {
+    function value(source) {
       return RegExp(
-        /([ \t])/.source + "(?:" + source2 + ")" + /(?=[\s;]|$)/.source,
+        /([ \t])/.source + "(?:" + source + ")" + /(?=[\s;]|$)/.source,
         "i"
       );
     }
@@ -58660,13 +59485,13 @@ function docker(Prism2) {
       lookbehind: true,
       greedy: true
     };
-    function re2(source2, flags) {
-      source2 = source2.replace(/<OPT>/g, function() {
+    function re2(source, flags) {
+      source = source.replace(/<OPT>/g, function() {
         return option;
       }).replace(/<SP>/g, function() {
         return space2;
       });
-      return RegExp(source2, flags);
+      return RegExp(source, flags);
     }
     Prism3.languages.docker = {
       instruction: {
@@ -58760,9 +59585,9 @@ function dot(Prism2) {
         inside: Prism3.languages.markup
       }
     };
-    function withID(source2, flags) {
+    function withID(source, flags) {
       return RegExp(
-        source2.replace(/<ID>/g, function() {
+        source.replace(/<ID>/g, function() {
           return ID;
         }),
         flags
@@ -61277,9 +62102,9 @@ function textile(Prism2) {
   (function(Prism3) {
     var modifierRegex = /\([^|()\n]+\)|\[[^\]\n]+\]|\{[^}\n]+\}/.source;
     var parenthesesRegex = /\)|\((?![^|()\n]+\))/.source;
-    function withModifier(source2, flags) {
+    function withModifier(source, flags) {
       return RegExp(
-        source2.replace(/<MOD>/g, function() {
+        source.replace(/<MOD>/g, function() {
           return "(?:" + modifierRegex + ")";
         }).replace(/<PAR>/g, function() {
           return "(?:" + parenthesesRegex + ")";
@@ -62282,12 +63107,12 @@ icuMessageFormat.displayName = "icu-message-format";
 icuMessageFormat.aliases = [];
 function icuMessageFormat(Prism2) {
   (function(Prism3) {
-    function nested(source2, level) {
+    function nested(source, level) {
       if (level <= 0) {
         return /[]/.source;
       } else {
-        return source2.replace(/<SELF>/g, function() {
-          return nested(source2, level - 1);
+        return source.replace(/<SELF>/g, function() {
+          return nested(source, level - 1);
         });
       }
     }
@@ -63453,9 +64278,9 @@ function jsExtras(Prism2) {
         }
       ]
     });
-    function withId(source2, flags) {
+    function withId(source, flags) {
       return RegExp(
-        source2.replace(/<ID>/g, function() {
+        source.replace(/<ID>/g, function() {
           return /(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*/.source;
         }),
         flags
@@ -68459,15 +69284,15 @@ function jsx(Prism2) {
     var space2 = /(?:\s|\/\/.*(?!.)|\/\*(?:[^*]|\*(?!\/))\*\/)/.source;
     var braces = /(?:\{(?:\{(?:\{[^{}]*\}|[^{}])*\}|[^{}])*\})/.source;
     var spread = /(?:\{<S>*\.{3}(?:[^{}]|<BRACES>)*\})/.source;
-    function re2(source2, flags) {
-      source2 = source2.replace(/<S>/g, function() {
+    function re2(source, flags) {
+      source = source.replace(/<S>/g, function() {
         return space2;
       }).replace(/<BRACES>/g, function() {
         return braces;
       }).replace(/<SPREAD>/g, function() {
         return spread;
       });
-      return RegExp(source2, flags);
+      return RegExp(source, flags);
     }
     spread = re2(spread).source;
     Prism3.languages.jsx = Prism3.languages.extend("markup", javascript2);
@@ -75138,8 +75963,8 @@ const ltrRange = "A-Za-zÀ-ÖØ-öø-ʸ̀-֐ࠀ-῿‎Ⰰ-﬜︀-﹯﻽-￿";
 const rtl = new RegExp("^[^" + ltrRange + "]*[" + rtlRange + "]");
 const ltr = new RegExp("^[^" + rtlRange + "]*[" + ltrRange + "]");
 function direction(value) {
-  const source2 = String(value || "");
-  return rtl.test(source2) ? "rtl" : ltr.test(source2) ? "ltr" : "neutral";
+  const source = String(value || "");
+  return rtl.test(source) ? "rtl" : ltr.test(source) ? "ltr" : "neutral";
 }
 function enterState(state, node2) {
   const schema = state.schema;
@@ -76075,8 +76900,8 @@ const deserializer = ($2, _2) => {
       case DATE:
         return as(new Date(value), index2);
       case REGEXP: {
-        const { source: source2, flags } = value;
-        return as(new RegExp(source2, flags), index2);
+        const { source, flags } = value;
+        return as(new RegExp(source, flags), index2);
       }
       case MAP: {
         const map2 = as(/* @__PURE__ */ new Map(), index2);
@@ -76210,8 +77035,8 @@ const serializer = (strict, json2, $2, _2) => {
       case DATE:
         return as([TYPE, value.toISOString()], value);
       case REGEXP: {
-        const { source: source2, flags } = value;
-        return as([TYPE, { source: source2, flags }], value);
+        const { source, flags } = value;
+        return as([TYPE, { source, flags }], value);
       }
       case MAP: {
         const entries = [];
@@ -94522,20 +95347,20 @@ function tableCell(state, node2) {
 const tab = 9;
 const space = 32;
 function trimLines(value) {
-  const source2 = String(value);
+  const source = String(value);
   const search2 = /\r?\n|\r/g;
-  let match = search2.exec(source2);
+  let match = search2.exec(source);
   let last = 0;
   const lines = [];
   while (match) {
     lines.push(
-      trimLine(source2.slice(last, match.index), last > 0, true),
+      trimLine(source.slice(last, match.index), last > 0, true),
       match[0]
     );
     last = match.index + match[0].length;
-    match = search2.exec(source2);
+    match = search2.exec(source);
   }
-  lines.push(trimLine(source2.slice(last), last > 0, false));
+  lines.push(trimLine(source.slice(last), last > 0, false));
   return lines.join("");
 }
 function trimLine(value, start, end) {
@@ -96578,15 +97403,15 @@ function defaultUrlTransform$1(value) {
   return "";
 }
 function ccount(value, character) {
-  const source2 = String(value);
+  const source = String(value);
   if (typeof character !== "string") {
     throw new TypeError("Expected character");
   }
   let count2 = 0;
-  let index2 = source2.indexOf(character);
+  let index2 = source.indexOf(character);
   while (index2 !== -1) {
     count2++;
-    index2 = source2.indexOf(character, index2 + character.length);
+    index2 = source.indexOf(character, index2 + character.length);
   }
   return count2;
 }
@@ -97190,8 +98015,8 @@ function hardBreak(_2, _1, state, info) {
   return "\\\n";
 }
 function longestStreak(value, substring) {
-  const source2 = String(value);
-  let index2 = source2.indexOf(substring);
+  const source = String(value);
+  let index2 = source.indexOf(substring);
   let expected = index2;
   let count2 = 0;
   let max = 0;
@@ -97207,7 +98032,7 @@ function longestStreak(value, substring) {
       count2 = 1;
     }
     expected = index2 + substring.length;
-    index2 = source2.indexOf(substring, expected);
+    index2 = source.indexOf(substring, expected);
   }
   return max;
 }
@@ -99679,7 +100504,7 @@ const MarkdownPreview$1 = /* @__PURE__ */ React.forwardRef((props2, ref) => {
   var {
     prefixCls = "wmde-markdown wmde-markdown-color",
     className: className2,
-    source: source2,
+    source,
     style: style2,
     disableCopy = false,
     skipHtml = true,
@@ -99722,7 +100547,7 @@ const MarkdownPreview$1 = /* @__PURE__ */ React.forwardRef((props2, ref) => {
       urlTransform: urlTransform || defaultUrlTransform,
       rehypePlugins: pluginsFilter ? pluginsFilter("rehype", rehypePlugins) : rehypePlugins,
       remarkPlugins: pluginsFilter ? pluginsFilter("remark", remarkPlugins) : remarkPlugins,
-      children: source2 || ""
+      children: source || ""
     }))
   }));
 });
@@ -100135,79 +100960,61 @@ const MarkdownPreview = /* @__PURE__ */ React.forwardRef((props2, ref) => {
 });
 const customStyle = {
   background: "transparent",
-  fontSize: "var(--cs-font-size, 13px)",
-  marginBottom: "16px"
+  fontSize: "var(--cs-font-size, 13px)"
 };
 const Markdown = ({
-  source: source2
+  source
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(MarkdownPreview, {
-    source: source2,
+    source,
     style: customStyle
   });
 };
-const source = `
-## Dauta
-> todo: React component preview markdown text.
-
-a paragraf of text
-`;
-const AceView = ({
-  codeString
-}) => {
-  const accept = () => {
-    extensionApi.postMessage({
-      messageType: "apply",
-      payload: "apply"
-    });
-  };
-  const reject = () => {
-    extensionApi.postMessage({
-      messageType: "reject",
-      payload: "reject"
-    });
-  };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-    ...{
-      className: "x10kqxg1 xzbod5j x1azcca8 x1e38ks9 x182rzkk"
+const placeHolderArgs = {
+  file: {
+    filename: "CustomLegends.ts",
+    functionName: "extract_identifiers",
+    lineNumber: 11,
+    action: {
+      filePayload: "path/to/CustomLegends.ts",
+      functionPayload: "path/to/CustomLegends.ts:extract_identifiers"
+    }
+  },
+  refactorResponse: {
+    confidence: {
+      title: "Bumpy Road Ahead",
+      description: "description placeholder",
+      level: 4,
+      "recommended-action": {
+        details: "Quick Inspection",
+        description: "The refactoring improves Code Health and preserves the semantics of the code."
+      }
     },
-    children: [/* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-      ...{
-        className: "x78zum5 x883omv"
-      },
-      children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-        ...{
-          className: "xe7mz8o x17pgkn5 x10w6t97"
-        },
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-          className: "logo logo-solid"
-        })
-      }), /* @__PURE__ */ jsxRuntimeExports.jsx("h1", {
-        children: "Ace Auto-refactor"
-      })]
-    }), /* @__PURE__ */ jsxRuntimeExports.jsx(Markdown, {
-      source
-    }), /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-      ...{
-        className: "x78zum5 x167g77z"
-      },
-      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
-        label: "Accept Auto-Refactor",
-        primary: true,
-        onClick: accept
-      }), /* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
-        label: "Reject",
-        icon: "skip",
-        onClick: reject
-      })]
-    }), /* @__PURE__ */ jsxRuntimeExports.jsx(CodeBlock, {
-      codeString
-    })]
-  });
+    "reasons-with-details": [],
+    "refactoring-properties": {
+      "added-code-smells": [],
+      "removed-code-smells": []
+    },
+    metadata: {
+      "cached?": false
+    },
+    code: `import SyntaxHighlighter from "react-syntax-highlighter";
+import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
+export const CodeBlock = () => {
+  const codeString = "(num) => num + 1";
+  return (
+    <SyntaxHighlighter language="React" style={docco}>
+      {codeString}
+    </SyntaxHighlighter>
+  );
+};`
+  }
 };
 function MainView() {
   const {
-    ideType
+    ideType,
+    view,
+    data
   } = useNative();
   if (!ideType) {
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
@@ -100220,7 +101027,7 @@ webview <html> template`
         codeString: `    <script>
       function setContext() {
         window.ideContext = {
-          ideType: "browser" | "VSCode" | "intellij" | "Visual Studio",
+          ideType: "browser" | "VSCode" | "JetBrains" | "Visual Studio",
           view: "ace",
           data: {}
         }
@@ -100230,14 +101037,50 @@ webview <html> template`
       })]
     });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {
-    children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-      className: "container",
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(AceView, {
-        codeString: "function helloWorld() {}",
-        confidence: 10
+  console.log(view, data);
+  if (view === "ace" && data) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+        className: "container",
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(AceView, {
+          ...placeHolderArgs
+        })
       })
-    })
+    });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+    gap: "size-4",
+    direction: "column",
+    children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
+      title: "Params not provided"
+    }), /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+      title: "window.ideContext missing params",
+      tone: "warning",
+      textElement: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+        children: [/* @__PURE__ */ jsxRuntimeExports.jsxs("p", {
+          children: ["There seems to be some missing params in the", " ", /* @__PURE__ */ jsxRuntimeExports.jsx("code", {
+            children: "window.ideContext"
+          })]
+        }), "Provided context:", /* @__PURE__ */ jsxRuntimeExports.jsx("pre", {
+          children: JSON.stringify(window.ideContext, null, 2)
+        }), /* @__PURE__ */ jsxRuntimeExports.jsxs("p", {
+          children: ["Seeing this means that the webview ", /* @__PURE__ */ jsxRuntimeExports.jsx("code", {
+            children: "index.js"
+          }), " bundle works, just need to figure out the data."]
+        }), /* @__PURE__ */ jsxRuntimeExports.jsx("p", {
+          children: "Provided a button to thest the message handling between webview and native, open webview devtools console to see messages."
+        })]
+      }),
+      actions: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+        label: "Test close event",
+        icon: "cross",
+        primary: true,
+        onClick: () => extensionApi.postMessage({
+          messageType: "close",
+          payload: "close"
+        })
+      })]
+    })]
   });
 }
 function App() {

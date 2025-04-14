@@ -2,6 +2,8 @@
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +15,23 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     public override Type PaneType => typeof(Pane);
 
     public override Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
-        => Task.FromResult<FrameworkElement>(new WebComponentUserControl(view: "ace"));
+    {
+        var exePath = Assembly.GetExecutingAssembly().Location;
+        var exeFolder = Path.GetDirectoryName(exePath);
+        string localFolder = Path.Combine(exeFolder, "ToolWindows\\WebComponent");
+        string data = File.ReadAllText(Path.Combine(localFolder, "test_data.json"));
+        var validator = new JsonSchemaValidator();
+        var result = validator.Validate(data);
+        var ctrl = new WebComponentUserControl(view: "ace", data: data);
+
+        ctrl.CloseRequested = async () =>
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await HideAsync();
+        };
+
+        return Task.FromResult<FrameworkElement>(ctrl);
+    }
 
     public override string GetTitle(int toolWindowId) => "Refactoring suggestion";
 

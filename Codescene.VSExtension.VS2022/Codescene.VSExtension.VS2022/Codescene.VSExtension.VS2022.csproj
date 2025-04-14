@@ -71,6 +71,9 @@
     <Compile Include="Controls\CodeHealthMonitor.xaml.cs">
       <DependentUpon>CodeHealthMonitor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\CodelensACE.xaml.cs">
+      <DependentUpon>CodelensACE.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\ComplexConditional.xaml.cs">
       <DependentUpon>ComplexConditional.xaml</DependentUpon>
     </Compile>
@@ -167,6 +170,9 @@
     <Compile Include="Commands\SignInCommand.cs" />
     <Compile Include="ToolWindows\WebComponent\AceToolWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\CodeHealthToolWindow.cs" />
+    <Compile Include="ToolWindows\WebComponent\JsonSchemaValidator.cs" />
+    <Compile Include="ToolWindows\WebComponent\MessageObj.cs" />
+    <Compile Include="ToolWindows\WebComponent\WebComponentMessageHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">
       <DependentUpon>WebComponentUserControl.xaml</DependentUpon>
     </Compile>
@@ -182,7 +188,7 @@
     <Compile Include="ToolWindows\Markdown\MarkdownWindowControl.xaml.cs">
       <DependentUpon>MarkdownWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ViewElementFactory.cs" />
+    <Compile Include="CodeLens\ViewElementFactory.cs" />
     <Compile Include="VSCommandTable.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -199,6 +205,14 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="ToolWindows\WebComponent\index.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ToolWindows\WebComponent\test_data.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ToolWindows\WebComponent\webview-schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -322,6 +336,9 @@
     <PackageReference Include="Microsoft.Web.WebView2">
       <Version>1.0.3179.45</Version>
     </PackageReference>
+    <PackageReference Include="Newtonsoft.Json.Schema">
+      <Version>4.0.1</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Page Include="Controls\BrainClass.xaml">
@@ -341,6 +358,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\CodeHealthMonitor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\CodelensACE.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

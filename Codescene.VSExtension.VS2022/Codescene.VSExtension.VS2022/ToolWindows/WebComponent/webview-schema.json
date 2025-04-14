@@ -1,0 +1,287 @@
+{
+  "anyOf": [
+    {
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ideType": {
+              "$ref": "#/definitions/IdeTypes"
+            }
+          },
+          "required": [
+            "ideType"
+          ]
+        },
+        {
+          "$ref": "#/definitions/AceContextViewProps"
+        }
+      ]
+    },
+    {
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "ideType": {
+              "$ref": "#/definitions/IdeTypes"
+            }
+          },
+          "required": [
+            "ideType"
+          ]
+        },
+        {
+          "$ref": "#/definitions/CodeSmellContextViewProps"
+        }
+      ]
+    }
+  ],
+  "definitions": {
+    "IdeTypes": {
+      "enum": [
+        "JetBrains",
+        "VSCode",
+        "Visual Studio",
+        "browser"
+      ],
+      "type": "string"
+    },
+    "AceContextViewProps": {
+      "description": "context data for rendering ACE result view",
+      "type": "object",
+      "properties": {
+        "view": {
+          "type": "string",
+          "const": "ace"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "fileData": {
+              "$ref": "#/definitions/FileSubHeaderProps"
+            },
+            "aceResultData": {
+              "$ref": "#/definitions/RefactorResponse"
+            },
+            "isStale": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "aceResultData",
+            "fileData"
+          ]
+        }
+      },
+      "required": [
+        "data",
+        "view"
+      ]
+    },
+    "FileSubHeaderProps": {
+      "type": "object",
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "functionName": {
+          "type": "string"
+        },
+        "lineNumber": {
+          "type": "number"
+        },
+        "action": {
+          "type": "object",
+          "properties": {
+            "filePayload": {
+              "type": "string"
+            },
+            "functionPayload": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "filePayload",
+            "functionPayload"
+          ]
+        }
+      },
+      "required": [
+        "filename"
+      ]
+    },
+    "RefactorResponse": {
+      "type": "object",
+      "properties": {
+        "confidence": {
+          "$ref": "#/definitions/RefactorConfidence"
+        },
+        "reasons-with-details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ReasonsWithDetails"
+          }
+        },
+        "refactoring-properties": {
+          "$ref": "#/definitions/RefactorProperties"
+        },
+        "code": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/Metadata"
+        }
+      },
+      "required": [
+        "code",
+        "confidence",
+        "metadata",
+        "reasons-with-details",
+        "refactoring-properties"
+      ]
+    },
+    "RefactorConfidence": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "const": "error",
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "recommended-action": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "details": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "details"
+          ]
+        },
+        "review-header": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "description",
+        "level",
+        "recommended-action",
+        "title"
+      ]
+    },
+    "ReasonsWithDetails": {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ReasonDetails"
+          }
+        }
+      },
+      "required": [
+        "summary"
+      ]
+    },
+    "ReasonDetails": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "columns",
+        "lines",
+        "message"
+      ]
+    },
+    "RefactorProperties": {
+      "type": "object",
+      "properties": {
+        "added-code-smells": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "removed-code-smells": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "added-code-smells",
+        "removed-code-smells"
+      ]
+    },
+    "Metadata": {
+      "type": "object",
+      "properties": {
+        "cached?": {
+          "type": "boolean"
+        }
+      }
+    },
+    "CodeSmellContextViewProps": {
+      "type": "object",
+      "properties": {
+        "view": {
+          "type": "string",
+          "const": "code-smell"
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "fileData": {
+              "$ref": "#/definitions/FileSubHeaderProps"
+            }
+          },
+          "required": [
+            "fileData"
+          ]
+        }
+      },
+      "required": [
+        "data",
+        "view"
+      ]
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
