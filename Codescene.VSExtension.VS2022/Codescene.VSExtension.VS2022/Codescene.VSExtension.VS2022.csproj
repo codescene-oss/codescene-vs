@@ -161,7 +161,7 @@
     <Compile Include="DocumentEventsHandler\OnAfterDocumentWindowHideHandler.cs" />
     <Compile Include="DocumentEventsHandler\ExtensionEventsManager.cs" />
     <Compile Include="DocumentEventsHandler\OnStartExtensionActiveDocumentHandler.cs" />
-    <Compile Include="Helpers\ToolWindowRegistry.cs" />
+    <Compile Include="CodeLens\ToolWindowRegistry.cs" />
     <Compile Include="RegistryHelper.cs" />
     <Compile Include="Helpers\BooleanToVisibilityConverter.cs" />
     <Compile Include="Commands\Base\VSBaseCommand.cs" />
@@ -216,6 +216,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <None Include="ToolWindows\WebComponent\message-schema.json" />
     <Resource Include="Resources\StatusError.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>

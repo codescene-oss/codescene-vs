@@ -1,7 +1,10 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Codelens;
+﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
+using Codescene.VSExtension.Core.Application.Services.Codelens;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Concurrent;
@@ -36,20 +39,20 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
     /// <param name="issue"></param>
     /// <param name="filePath"></param>
     /// <param name="lineNumber"></param>
-    /// <param name="obj"></param>
     /// <returns></returns>
-    public bool ShowCodeLensForLine(string issue, string filePath, int lineNumber, dynamic obj)
+    public bool ShowCodeLensForFunction(string issue, string filePath, int lineNumber)
     {
         var review = _reviewer.Review(filePath);
 
-        if (review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == lineNumber))
+        // If there is any smells this should be shown
+        if (issue == Constants.Titles.CODESCENE_ACE)
         {
-            return true;
+            return review.FunctionLevel.Any(x => x.StartLine == lineNumber);
         }
 
-        return false;
-
+        return review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == lineNumber);
     }
+
 
     public bool IsCodeSceneLensesEnabled()
     {
@@ -92,5 +95,11 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
     public static async Task RefreshCodeLensAsync()
     {
         await Task.WhenAll(Connections.Keys.Select(RefreshDataPointAsync)).ConfigureAwait(false);
+    }
+
+    public async Task OpenAceToolWindowAsync()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await AceToolWindow.ShowAsync();
     }
 }

@@ -45,16 +45,11 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
             descriptorContext.Properties.TryGetValue("StartLine", out dynamic zeroBasedLineNumber);
 
-            var parameters = new object[] { Name, descriptor.FilePath,
-                       (int)zeroBasedLineNumber + 1, //Since it's 0-based it should be increment for 1
-                       descriptorContext.Properties };
+            var lineNumber = (int)zeroBasedLineNumber + 1;
 
-            var show = await InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.ShowCodeLensForLine), token, parameters);
+            var parameters = new object[] { Name, descriptor.FilePath, lineNumber };
 
-            if (show)
-            {
-                //descriptorContext.Properties[CODESCENE_LENS_PRESENT] = Name;
-            }
+            var show = await InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.ShowCodeLensForFunction), token, parameters);
 
             return show;
         }

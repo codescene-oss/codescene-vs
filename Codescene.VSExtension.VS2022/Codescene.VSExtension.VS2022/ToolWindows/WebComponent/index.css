@@ -20,10 +20,7 @@
 .xes0m8c:not(#\#):not(#\#){border-color:var(--xblfiex)}
 .xch19pq:not(#\#):not(#\#){border-color:var(--xl733iw)}
 .x1w53u8b:not(#\#):not(#\#){border-color:var(--xxfma68)}
-.x17pgkn5:not(#\#):not(#\#){flex:0 0 32px}
-.x883omv:not(#\#):not(#\#){gap:10px}
 .x17d4w8g:not(#\#):not(#\#){gap:6px}
-.x167g77z:not(#\#):not(#\#){gap:8px}
 .x17pe6bd:not(#\#):not(#\#){gap:var(--size-fixed-0)}
 .x173ompp:not(#\#):not(#\#){gap:var(--size-fixed-1)}
 .xoweimo:not(#\#):not(#\#){gap:var(--size-fixed-10)}
@@ -92,9 +89,12 @@
 .x1e38ks9:not(#\#):not(#\#):not(#\#){font-family:var(--cs-font-family,sans-serif)}
 .xfifm61:not(#\#):not(#\#):not(#\#){font-size:12px}
 .x4z9k3i:not(#\#):not(#\#):not(#\#){font-size:13px}
+.x1jvydc1:not(#\#):not(#\#):not(#\#){font-size:15px}
 .x1j61zf2:not(#\#):not(#\#):not(#\#){font-size:16px}
 .xosj86m:not(#\#):not(#\#):not(#\#){font-size:18px}
+.x1fn5q3:not(#\#):not(#\#):not(#\#){font-size:smaller}
 .x182rzkk:not(#\#):not(#\#):not(#\#){font-size:var(--cs-font-size,13px)}
+.x1gtre4s:not(#\#):not(#\#):not(#\#){font-size:var(--cs-font-size,14px)}
 .xk50ysn:not(#\#):not(#\#):not(#\#){font-weight:500}
 .x1s688f:not(#\#):not(#\#):not(#\#){font-weight:600}
 .x1xlr1w8:not(#\#):not(#\#):not(#\#){font-weight:700}
@@ -104,6 +104,7 @@
 .x1l1ennw:not(#\#):not(#\#):not(#\#){justify-content:space-around}
 .x1qughib:not(#\#):not(#\#):not(#\#){justify-content:space-between}
 .xaw8158:not(#\#):not(#\#):not(#\#){justify-content:space-evenly}
+.x1us6l5c:not(#\#):not(#\#):not(#\#){opacity:.8}
 .xrbck9l:not(#\#):not(#\#):not(#\#){row-gap:var(--size-fixed-0)}
 .x1a7go0n:not(#\#):not(#\#):not(#\#){row-gap:var(--size-fixed-1)}
 .x1lww28y:not(#\#):not(#\#):not(#\#){row-gap:var(--size-fixed-10)}
@@ -123,9 +124,50 @@
 .x181c3i8:not(#\#):not(#\#):not(#\#){row-gap:var(--size-fixed-9)}
 .x19ypqd9:not(#\#):not(#\#):not(#\#):not(#\#){border-left-style:solid}
 .x1vo0akb:not(#\#):not(#\#):not(#\#):not(#\#){border-left-width:3px}
-.x10w6t97:not(#\#):not(#\#):not(#\#):not(#\#){height:32px}
+.xod5an3:not(#\#):not(#\#):not(#\#):not(#\#){margin-bottom:12px}
+.x8x9d4c:not(#\#):not(#\#):not(#\#):not(#\#){margin-left:auto}
 .xlrvzsl:not(#\#):not(#\#):not(#\#):not(#\#){padding-bottom:var(--size-fixed-2)}
 .xh8yej3:not(#\#):not(#\#):not(#\#):not(#\#){width:100%}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

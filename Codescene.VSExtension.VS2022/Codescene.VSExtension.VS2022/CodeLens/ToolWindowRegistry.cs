@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Codescene.VSExtension.VS2022.Helpers
+namespace Codescene.VSExtension.VS2022.CodeLens
 {
     public static class ToolWindowRegistry
     {
@@ -19,6 +19,7 @@ namespace Codescene.VSExtension.VS2022.Helpers
                 Category = category;
             }
         }
+
         public static readonly Dictionary<int, ToolWindowInfo> ToolWindowCreators = new Dictionary<int, ToolWindowInfo>
         {
             { 1, new ToolWindowInfo(() => new BrainClass(), Constants.Titles.BRAIN_CLASS) },

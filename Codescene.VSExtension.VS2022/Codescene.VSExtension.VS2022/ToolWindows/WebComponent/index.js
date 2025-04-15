@@ -12112,10 +12112,11 @@ class ExtensionAPIWrapper {
    * @param message Abitrary data (must be JSON serializable) to send to the extension context.
    */
   postMessage(message) {
+    var _a2;
     console.log("%c[CS webview]%c [Send ⬆]", "color: white; background: #162c53; padding: 3px;", "color: #32e132;", message);
     if (this.extensionApi) {
       this.extensionApi.postMessage(message);
-    } else if (window.ideContext.ideType === "JetBrains") {
+    } else if (((_a2 = window.ideContext) == null ? void 0 : _a2.ideType) === "JetBrains") {
       sendToJetBrains({
         request: JSON.stringify(message),
         persistent: false,
@@ -12128,12 +12129,37 @@ class ExtensionAPIWrapper {
   }
 }
 const extensionApi = new ExtensionAPIWrapper();
+const actionMessages = {
+  refactor: () => extensionApi.postMessage({
+    messageType: "request-and-present-refactoring",
+    payload: ""
+  }),
+  accept: () => extensionApi.postMessage({
+    messageType: "apply",
+    payload: ""
+  }),
+  reject: () => extensionApi.postMessage({
+    messageType: "reject",
+    payload: ""
+  }),
+  retry: () => extensionApi.postMessage({
+    messageType: "retry",
+    payload: ""
+  }),
+  close: () => extensionApi.postMessage({
+    messageType: "close",
+    payload: ""
+  }),
+  showLogoutput: () => extensionApi.postMessage({
+    messageType: "showLogoutput",
+    payload: ""
+  })
+};
 function filtersReducer(state, action) {
   switch (action.type) {
     case "receiveMessage":
       return {
-        ...state,
-        data: action.payload.data
+        ...action.payload
       };
     case "updateLoading":
       return {
@@ -12145,19 +12171,27 @@ function filtersReducer(state, action) {
   }
 }
 function initialState() {
-  var _a2, _b, _c, _d, _e;
+  var _a2, _b;
   if (!window.ideContext) {
     console.warn("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "no ideContext set");
   }
   console.log("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "IDE Type:", (_a2 = window.ideContext) == null ? void 0 : _a2.ideType);
   console.log("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "IDE Data:", (_b = window.ideContext) == null ? void 0 : _b.data);
-  return {
-    loading: false,
-    ideType: (_c = window.ideContext) == null ? void 0 : _c.ideType,
-    view: (_d = window.ideContext) == null ? void 0 : _d.view,
-    data: (_e = window.ideContext) == null ? void 0 : _e.data
-    // TODO: define actual data for features needed.
-  };
+  if (window.ideContext) {
+    return {
+      loading: false,
+      ...window.ideContext
+    };
+  } else {
+    return {
+      loading: false,
+      ideType: "browser",
+      view: "docs",
+      data: {
+        docType: "docs_general_code_health"
+      }
+    };
+  }
 }
 const handleEvent = (dispatch) => (event) => {
   const message = event.data;
@@ -12529,6 +12563,70 @@ var CheckIcon = /* @__PURE__ */ createIconComponent("CheckIcon", "octicon octico
     }
   };
 });
+var ChevronDownIcon = /* @__PURE__ */ createIconComponent("ChevronDownIcon", "octicon octicon-chevron-down", function() {
+  return {
+    "12": {
+      "width": 12,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M6 8.825c-.2 0-.4-.1-.5-.2l-3.3-3.3c-.3-.3-.3-.8 0-1.1.3-.3.8-.3 1.1 0l2.7 2.7 2.7-2.7c.3-.3.8-.3 1.1 0 .3.3.3.8 0 1.1l-3.2 3.2c-.2.2-.4.3-.6.3Z"
+      })
+    },
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.939l3.72-3.719a.749.749 0 0 1 1.06 0Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M5.22 8.22a.749.749 0 0 0 0 1.06l6.25 6.25a.749.749 0 0 0 1.06 0l6.25-6.25a.749.749 0 1 0-1.06-1.06L12 13.939 6.28 8.22a.749.749 0 0 0-1.06 0Z"
+      })
+    }
+  };
+});
+var ChevronRightIcon = /* @__PURE__ */ createIconComponent("ChevronRightIcon", "octicon octicon-chevron-right", function() {
+  return {
+    "12": {
+      "width": 12,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M4.7 10c-.2 0-.4-.1-.5-.2-.3-.3-.3-.8 0-1.1L6.9 6 4.2 3.3c-.3-.3-.3-.8 0-1.1.3-.3.8-.3 1.1 0l3.3 3.2c.3.3.3.8 0 1.1L5.3 9.7c-.2.2-.4.3-.6.3Z"
+      })
+    },
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"
+      })
+    }
+  };
+});
+var CopyIcon = /* @__PURE__ */ createIconComponent("CopyIcon", "octicon octicon-copy", function() {
+  return {
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", {
+        d: "M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"
+      }), /* @__PURE__ */ React.createElement("path", {
+        d: "M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"
+      }))
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("path", {
+        d: "M7.024 3.75c0-.966.784-1.75 1.75-1.75H20.25c.966 0 1.75.784 1.75 1.75v11.498a1.75 1.75 0 0 1-1.75 1.75H8.774a1.75 1.75 0 0 1-1.75-1.75Zm1.75-.25a.25.25 0 0 0-.25.25v11.498c0 .139.112.25.25.25H20.25a.25.25 0 0 0 .25-.25V3.75a.25.25 0 0 0-.25-.25Z"
+      }), /* @__PURE__ */ React.createElement("path", {
+        d: "M1.995 10.749a1.75 1.75 0 0 1 1.75-1.751H5.25a.75.75 0 1 1 0 1.5H3.745a.25.25 0 0 0-.25.25L3.5 20.25c0 .138.111.25.25.25h9.5a.25.25 0 0 0 .25-.25v-1.51a.75.75 0 1 1 1.5 0v1.51A1.75 1.75 0 0 1 13.25 22h-9.5A1.75 1.75 0 0 1 2 20.25l-.005-9.501Z"
+      }))
+    }
+  };
+});
 var FileIcon = /* @__PURE__ */ createIconComponent("FileIcon", "octicon octicon-file", function() {
   return {
     "16": {
@@ -12891,7 +12989,7 @@ const columnGapStyles = {
     $$css: true
   }
 };
-const styles$1 = {
+const styles$2 = {
   storybookButton: {
     display: "x78zum5",
     alignSelf: "xqcrz7y",
@@ -13010,7 +13108,8 @@ const iconLookup$1 = {
   fileDiff: FileDiffIcon,
   skip: SkipIcon,
   cross: XIcon,
-  sparkle: SparklesFillIcon
+  sparkle: SparklesFillIcon,
+  copy: CopyIcon
 };
 function getIcon$1(icon2, size, disabled2) {
   const props2 = {
@@ -13033,12 +13132,12 @@ const Button = ({
   disabled: disabled2,
   ...props$1
 }) => {
-  let modeStyle = primary ? styles$1["storybookButton--primary"] : styles$1["storybookButton--secondary"];
-  if (disabled2) modeStyle = styles$1["storybookButton--disabled"];
-  const sizeStyle = styles$1[`storybookButton--${size}`];
+  let modeStyle = primary ? styles$2["storybookButton--primary"] : styles$2["storybookButton--secondary"];
+  if (disabled2) modeStyle = styles$2["storybookButton--disabled"];
+  const sizeStyle = styles$2[`storybookButton--${size}`];
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("button", {
     type: "button",
-    ...props([styles$1.storybookButton, sizeStyle, modeStyle]),
+    ...props([styles$2.storybookButton, sizeStyle, modeStyle]),
     ...props$1,
     children: [getIcon$1(icon2, size, disabled2), " ", /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
       ...{
@@ -49326,7 +49425,7 @@ function Stack({
     children
   });
 }
-const styles = {
+const styles$1 = {
   bannerContainer: {
     background: "xy96b20",
     backgroundAttachment: null,
@@ -49449,7 +49548,7 @@ const Banner = ({
   actions = []
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props([styles.bannerContainer, styles[tone]]),
+    ...props([styles$1.bannerContainer, styles$1[tone]]),
     children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       gap: "size-2",
       direction: "row",
@@ -49551,7 +49650,7 @@ const FileSubHeader = ({
       children: [getIcon("file"), /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
         onClick: openFile,
         ...{
-          className: "xk50ysn xxamwa4 xe7mz8o x1ypdohk"
+          className: "xk50ysn xxamwa4 xe7mz8o x1ypdohk x1fn5q3"
         },
         children: filename
       })]
@@ -49561,34 +49660,47 @@ const FileSubHeader = ({
       children: [getIcon("package"), /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
         onClick: openFunction,
         ...{
-          className: "xk50ysn xxamwa4 xe7mz8o x1ypdohk"
+          className: "xk50ysn xxamwa4 xe7mz8o x1ypdohk x1fn5q3"
         },
-        children: [functionName, " [Ln ", lineNumber, "]"]
+        children: [functionName, ":", " ", /* @__PURE__ */ jsxRuntimeExports.jsxs("span", {
+          ...{
+            className: "x1us6l5c"
+          },
+          children: ["[Ln ", lineNumber, "]"]
+        })]
       })]
     })]
   });
 };
-const actionMessages = {
-  accept: () => extensionApi.postMessage({
-    messageType: "apply",
-    payload: "apply"
-  }),
-  reject: () => extensionApi.postMessage({
-    messageType: "reject",
-    payload: "reject"
-  }),
-  retry: () => extensionApi.postMessage({
-    messageType: "retry",
-    payload: "retry"
-  }),
-  close: () => extensionApi.postMessage({
-    messageType: "close",
-    payload: "close"
-  }),
-  showLogoutput: () => extensionApi.postMessage({
-    messageType: "showLogoutput",
-    payload: "showLogoutput"
-  })
+const sharedViewStyles = {
+  viewWrapper: {
+    padding: "x10kqxg1",
+    paddingInline: null,
+    paddingStart: null,
+    paddingLeft: null,
+    paddingEnd: null,
+    paddingRight: null,
+    paddingBlock: null,
+    paddingTop: null,
+    paddingBottom: null,
+    color: "xzbod5j",
+    background: "xl13fje",
+    backgroundAttachment: null,
+    backgroundClip: null,
+    backgroundColor: null,
+    backgroundImage: null,
+    backgroundOrigin: null,
+    backgroundPosition: null,
+    backgroundPositionX: null,
+    backgroundPositionY: null,
+    backgroundRepeat: null,
+    backgroundSize: null,
+    fontFamily: "x1e38ks9",
+    fontSize: "x1gtre4s",
+    width: "xh8yej3",
+    boxSizing: "x9f619",
+    $$css: true
+  }
 };
 const getToneFromConfidenceLevel = (level) => {
   switch (level) {
@@ -49658,20 +49770,18 @@ const getBanner = (confidence, isStale, actionMessages2) => {
 };
 const AceView = ({
   refactorResponse,
-  file,
+  fileData,
   isStale
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...{
-      className: "x10kqxg1 xzbod5j xl13fje x1e38ks9 x182rzkk"
-    },
+    ...props(sharedViewStyles.viewWrapper),
     children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       direction: "column",
       gap: "size-4",
       children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
         title: refactorResponse.confidence.title,
         subElement: /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
-          ...file
+          ...fileData
         })
       }), getBanner(refactorResponse.confidence, isStale, actionMessages), refactorResponse.confidence.level >= 1 && !isStale && /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
         gap: "size-2",
@@ -89838,7 +89948,7 @@ const emptyMap = /* @__PURE__ */ new Map();
 const cap = /[A-Z]/g;
 const tableElements = /* @__PURE__ */ new Set(["table", "tbody", "thead", "tfoot", "tr"]);
 const tableCellElement = /* @__PURE__ */ new Set(["td", "th"]);
-const docs = "https://github.com/syntax-tree/hast-util-to-jsx-runtime";
+const docs$1 = "https://github.com/syntax-tree/hast-util-to-jsx-runtime";
 function toJsxRuntime(tree, options) {
   if (!options || options.Fragment === void 0) {
     throw new TypeError("Expected `Fragment` in options");
@@ -90139,7 +90249,7 @@ function parseStyle(state, value) {
       source: "hast-util-to-jsx-runtime"
     });
     message.file = state.filePath || void 0;
-    message.url = docs + "#cannot-parse-style-attribute";
+    message.url = docs$1 + "#cannot-parse-style-attribute";
     throw message;
   }
 }
@@ -90188,7 +90298,7 @@ function crashEstree(state, place) {
     }
   );
   message.file = state.filePath || void 0;
-  message.url = docs + "#cannot-handle-mdx-estrees-without-createevaluater";
+  message.url = docs$1 + "#cannot-handle-mdx-estrees-without-createevaluater";
   throw message;
 }
 function transformStylesToCssCasing(domCasing) {
@@ -100962,16 +101072,875 @@ const customStyle = {
   background: "transparent",
   fontSize: "var(--cs-font-size, 13px)"
 };
+const isLink = (node2, parent2) => node2.tagName === "a" && parent2;
+const isHeaderTag = (parent2) => /^h(1|2|3|4|5|6)/.test(parent2.tagName);
 const Markdown = ({
   source
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(MarkdownPreview, {
     source,
-    style: customStyle
+    style: customStyle,
+    disableCopy: true,
+    rehypeRewrite: (node2, _index, parent2) => {
+      if (isLink(node2, parent2) && isHeaderTag(parent2)) {
+        if (parent2 == null ? void 0 : parent2.children) {
+          parent2.children = parent2.children.slice(1);
+        }
+      }
+    }
+  });
+};
+const codeHealthMonitor = `
+Code Health Monitor [beta]
+
+**NOTE:** _This feature is experimental and subject to change._
+
+The Code Health Monitor shows any introduced issues among the files being worked on. 
+It works by comparing the latest code review for a file with the review for of the HEAD commit of the file.
+If any code health degradations are present in the file, they will be shown in this view along with any other issues or improvements.
+
+`;
+const codeHealthMonitor$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: codeHealthMonitor
+}, Symbol.toStringTag, { value: "Module" }));
+const generalCodeHealth = `
+Code Health
+
+Files analysed by CodeScene gets a Code Health score on a scale from 1-10, where 10 is the highest. Code Health is calculated based on 25+ factors scanned from the source code. These factors correlate with increased maintenance costs and an increased risk for defects.
+
+Read more about the Code Health metric, [why](https://codescene.io/docs/guides/technical/code-health.html#code-health-identifies-factors-known-to-impact-maintenance-costs-and-delivery-risks) it is important and [how to adapt](https://codescene.io/docs/guides/technical/code-health.html#adapt-code-health-to-your-coding-standards) it to your coding standards in the general documentation: https://codescene.io/docs/guides/technical/code-health.html
+`;
+const generalCodeHealth$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: generalCodeHealth
+}, Symbol.toStringTag, { value: "Module" }));
+const bumpyRoadAhead$2 = `
+Bumpy Roads are functions with multiple chunks of nested conditional logic, often indicating too many responsibilities in the same function.
+
+## Solution
+
+1. Identify the most severe bumps: more lines of code with more logic amplifies the code smell.
+2. Apply the [EXTRACT FUNCTION](https://refactoring.com/catalog/extractFunction.html) refactoring to encapsulate each bump. 
+3. Look for opportunities to simplify the conditional logic, eg. by [Replace Nested Conditional with Guard Clauses](https://refactoring.com/catalog/replaceNestedConditionalWithGuardClauses.html). 
+
+**Why is this better?** Encapsulating each bump in a well-named function simplifies the algorithm, and often suggests a more impactful refactoring as a next step.
+`;
+const bumpyRoadAhead$3 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: bumpyRoadAhead$2
+}, Symbol.toStringTag, { value: "Module" }));
+const complexConditional$2 = `
+Complex conditionals are expressions with multiple logical operators (e.g. \`&&\`, \`||\`), making the code harder to read.
+
+## Solution
+
+* Apply the [Decompose Conditional](https://refactoring.com/catalog/decomposeConditional.html) refactoring to encapsulate the expression in a separate function with a good name that captures the business rule. 
+* For simple expressions, use the [Introduce Explaining Variable](https://refactoring.com/catalog/extractVariable.html) refactoring.
+
+**Why is this better?** This refactoring captures the business rule in a well-named function, making the primary function easier to understand.
+`;
+const complexConditional$3 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: complexConditional$2
+}, Symbol.toStringTag, { value: "Module" }));
+const complexMethod$2 = `
+Complex methods contain too many logical branches such as \`if\` and \`for\`/\`while\` loops. It's measured using the [Cyclomatic Complexity metric](https://en.wikipedia.org/wiki/Cyclomatic_complexity). 
+
+## Solution
+
+1. Apply the [Extract Function](https://refactoring.com/catalog/extractFunction.html) refactoring. 
+2. Only extract natural and cohesive functions -- don't split for the sake of splitting. 
+3. Address related code smells such as Complex Conditional using the [Decompose Conditional](https://refactoring.com/catalog/decomposeConditional.html) refactoring.
+
+**Why is this better?** Modularizing the code simplifies the primary function by breaking its algorithm into multiple well-named logical steps.
+`;
+const complexMethod$3 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: complexMethod$2
+}, Symbol.toStringTag, { value: "Module" }));
+const deepNestedComplexity$2 = `
+Deep nested complexity is \`if\`-statements inside other \`if\`-statements and/or loops, increasing the cognitive load on the programmer.
+
+## Solution
+
+* See if it's possible to [Replace Nested Conditional with Guard Clauses](https://refactoring.com/catalog/replaceNestedConditionalWithGuardClauses.html).
+* Look for opportunities to [Replace Conditional with Polymorphism](https://refactoring.com/catalog/replaceConditionalWithPolymorphism.html).
+* Identify smaller building blocks inside the nested code. Use [Extract Function](https://refactoring.com/catalog/extractFunction.html) to encapsulate those responsibilities in smaller and more cohesive functions.
+
+**Why is this better?** Rethinking the nesting reduces the cognitive load on the programmer reading the code.
+`;
+const deepNestedComplexity$3 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: deepNestedComplexity$2
+}, Symbol.toStringTag, { value: "Module" }));
+const largeMethod$2 = `
+Large methods containing an excessive number of code lines are generally harder to understand compared to code that has been broken up into smaller logical chunks.
+
+## Solution
+
+Overly long functions make the code harder to read, but we recommend being careful here - just splitting long functions doesn't necessarily make the code easier to read. Instead, look for natural chunks inside the functions that expresses a specific task or concern. Often, such concerns are indicated by a Code Comment followed by an if-statement. Use the [EXTRACT FUNCTION](https://refactoring.com/catalog/extractFunction.html) refactoring to encapsulate that concern.
+`;
+const largeMethod$3 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: largeMethod$2
+}, Symbol.toStringTag, { value: "Module" }));
+const modularityImprovement = `
+Most code smells stem from a lack of modularity. Often, a single function does too many things and contain too much logic. This overwhelms a human reader. A lack of modularity also makes the code harder to refactor.
+
+## Solution
+
+1. Look for opportunities to modularize the design. This is done by identifying the different responsibilities inside the function.
+2. Once identified, then use refactorings like [Extract Function](https://refactoring.com/catalog/extractFunction.html) or even [Extract Class](https://refactoring.com/catalog/extractClass.html).
+
+**Why is this better?**  By breaking larger functions into smaller, well-encapsulated building blocks, you prepare for more impactful refactorings.
+
+`;
+const modularityImprovement$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: modularityImprovement
+}, Symbol.toStringTag, { value: "Module" }));
+const brainClass = `
+A *brain class* - also known as a *god class* - is a large module with too many responsibilities. A module is a brain class if:
+
+- it's a large module with many lines of code
+- it has many functions
+- and at least one **Brain Method**.
+
+Brain classes are problematic since changes become more complex over time, harder to test, and challenging to refactor the longer you wait.
+
+## Solution
+
+Look for opportunities to modularize the design. This is done by
+identifying groups of functions that represent different responsibilities and/or operate
+on different data.
+Once you have identified the different responsibilities, then use refactorings
+like [EXTRACT CLASS](https://refactoring.com/catalog/extractClass.html).
+
+`;
+const brainClass$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: brainClass
+}, Symbol.toStringTag, { value: "Module" }));
+const brainMethod = `
+A *brain method* is a large and complex function that centralizes the behavior of the module.
+
+Brain methods, as described in Object-Oriented Metrics in Practice, by Lanza and Marinescu, are detected using a
+combination of other code issues:
+
+- Deeply nested Logic
+- High cyclomatic complexity
+- Many lines of code
+- Accesses many arguments
+
+The more complex the brain method, the lower the code health.
+
+## Solution
+
+A brain method lacks modularity and violates the [Single Responsibility Principle](https://en.wikipedia.org/wiki/Single-responsibility_principle).
+
+Refactor by identifying the different responsibilities of the brain method and extract them into separate well-named and cohesive functions. Often, a brain method can - and should - be extracted to a new class that encapsulates the responsibilities and can be tested in isolation.
+`;
+const brainMethod$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: brainMethod
+}, Symbol.toStringTag, { value: "Module" }));
+const bumpyRoadAhead = `
+The Bumpy Road code smell is a function that contains multiple chunks of nested conditional logic. Just like a bumpy road slows down your driving, a bumpy road in code presents an obstacle to comprehension.
+
+Fundamentally, a bumpy code road represents a lack of encapsulation which becomes an obstacle to comprehension. Worse, in imperative languages there’s also an increased risk for feature entanglement, which tends to lead to complex state management.
+
+## Example
+
+Here is an example of code that uses multiple chunks of nested conditional logic:
+\`\`\`java
+public class BumpyRoadExample {
+	public void processDirectory(String path) {
+		// Find all files matching "data<number>.csv".
+		List<String> files = new ArrayList<String>();
+		File dir = new File(path);
+		for (File file : dir.listFiles()) {
+			if (file.isFile() && file.getName().matches("data\\d+\\.csv")) {
+				files.add(file.getAbsolutePath());
+			}
+		}
+
+		// Concatenate all the files into one
+		StringBuilder sb = new StringBuilder();
+		for (File file : files) {
+			try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+				String line = br.readLine();
+				while (line != null) {
+					sb.append(line);
+					line = br.readLine();
+				}
+			}
+		}
+
+		// Write the concatenated file to disk
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter("data.csv"))) {
+			bw.write(sb.toString());
+		}
+	}
+}
+\`\`\`
+
+When inspecting bumpy code roads, we follow a set of simple rules to classify the severity of the code smell:
+
+- The deeper the nested conditional logic of each bump, the higher the tax on our working memory.
+- The more bumps we find, the more expensive it is to refactor as each bump represents a missing abstraction.
+- The larger each bump – that is, the more lines of code it spans – the harder it is to build up a mental model of the function.
+
+
+## Solution
+
+Working with the previous example, and the idea that each bump might represent some missing abstraction, we can make an attempt at straightening out the code:
+
+\`\`\`java
+public class BumpyRoadExample {
+	public void processDirectory(String path) {
+		List<String> paths = FileUtils.findFiles(path, "data\\d+\\.csv");
+
+		String data = FileUtils.concatenateFiles(paths);
+
+		// Write the concatenated file to disk
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter("data.csv"))) {
+			bw.write(sb.toString());
+		}
+	}
+}
+\`\`\`
+
+In this case we were able to express the bumps in terms of more general functions that we able to place elsewhere. This enables re-use and makes the code easier to understand. We could even eliminate the comments as they now became superfluous.
+`;
+const bumpyRoadAhead$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: bumpyRoadAhead
+}, Symbol.toStringTag, { value: "Module" }));
+const codeDuplication = `
+Avoid duplicated, aka copy-pasted, code inside the module. More duplication lowers the code health.
+
+Duplicated code might lead to code that's harder to maintain as the same logical change has to be done in multiple places. Look to extract a shared representation which can be re-used across functions.
+
+## Solution
+
+A certain degree of duplicated code might be acceptable. The problems start when it is the same behavior that is duplicated across the functions in the module, ie. a violation of the [Don't Repeat Yourself (DRY) principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself). DRY violations lead to code that is changed together in predictable patterns, which is both expensive and risky. DRY violations can be identified using [CodeScene's X-Ray analysis](https://codescene.com/blog/software-revolution-part3/) to detect clusters of change coupled functions with high code similarity.
+
+Once you have identified the similarities across functions, look to extract and encapsulate the concept that varies into its own function(s). These shared abstractions can then be re-used, which minimizes the amount of duplication and simplifies change.
+`;
+const codeDuplication$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: codeDuplication
+}, Symbol.toStringTag, { value: "Module" }));
+const complexConditional = `
+A complex conditional is an expression inside a branch such as an \`if\`-statement which consists of multiple, logical operations. Example: \`if (x.started() && y.running())\`. Complex conditionals make the code even harder to read, and contribute to the **Complex method** code smell. Encapsulate them. By default, CodeScene warns only if there are at least 2 logical operators, but encapsulation can be valuable even with just one.
+
+## Example
+\`\`\`javascript
+function messageReceived(message, timeReceived) {
+   // Ignore all messages which aren't from known customers:
+   if (!message.sender &&
+       customers.getId(message.name) == null) {
+     log('spam received -- ignoring');
+     return;
+   }
+
+  // Provide an auto-reply when outside business hours:
+  if ((timeReceived.getHours() > 17) ||
+      (timeReceived.getHours() < 8 ||
+      (timeReceived.getDay() == Days.SUNDAY))) {
+    return autoReplyTo(message);
+  }
+
+  pingAgentFor(message);
+}
+\`\`\`
+
+## Solution
+Apply the [DECOMPOSE CONDITIONAL](https://refactoring.com/catalog/decomposeConditional.html) refactoring so that the complex conditional is encapsulated in a separate function with a good name that captures the business rule. Optionally, for simple expressions, introduce a new variable which holds the result of the complex conditional.
+
+Here we improve upon our example by using this tactic:
+
+\`\`\`javascript
+function messageReceived(message, timeReceived) {
+   if (!fromKnownCustomer(message)) {
+     log('spam received -- ignoring');
+     return;
+   }
+
+  if (outsideBusinessHours(timeReceived)) {
+    return autoReplyTo(message);
+  }
+
+  pingAgentFor(message);
+}
+\`\`\`
+
+For brevity the separate functions are omitted. Note also how the clear naming omits the need for extra comments.
+`;
+const complexConditional$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: complexConditional
+}, Symbol.toStringTag, { value: "Module" }));
+const complexMethod = `
+A complex method is a function with a high cyclomatic complexity. Cyclomatic complexity counts the number of logical paths through a function. That is, each if-statement, each control structure like a for or while loop adds complexity. We count them and sum it up to get a complexity value.
+
+It's somewhat of a crude metric, because whether or not the function is difficult to understand
+may depend on other factor as well, such as how deeply nested the code is.
+
+## Solution
+
+The solution heavily depends on specifics of the function. Sometimes when the cyclomatic complexity gets too high, another design approach is beneficial such as
+
+- modeling state using an explicit state machine rather than conditionals, or
+- using table lookup rather than long chains of logic.
+
+In other scenarios, the function can be split using [EXTRACT FUNCTION](https://refactoring.com/catalog/extractFunction.html). Just make sure you extract natural and cohesive functions. Complex Methods can also be addressed by identifying complex conditional expressions and then using the [DECOMPOSE CONDITIONAL](https://refactoring.com/catalog/decomposeConditional.html) refactoring.
+`;
+const complexMethod$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: complexMethod
+}, Symbol.toStringTag, { value: "Module" }));
+const constructorOverInjection = `
+This constructor has too many arguments, indicating an object with low cohesion or missing function argument abstraction. Avoid adding more arguments. Remediate this issue by one of:
+
+- Splitting the class if it has too many responsibilities.
+- Introducing an abstraction (class, record, struct, etc.) which encapsulates the arguments. 
+
+## Solution
+
+There are multiple ways of addressing constructor over-injection:
+
+- Sometimes you can introduce 
+[FACADE services](https://en.wikipedia.org/wiki/Facade_pattern) that encapsulate lower-level dependencies.
+- In many cases, Constructor Over-Injection is a symptom of a deeper problem. 
+Make sure to investigate the root cause, and get some inspiration and examples from 
+[Mark Seemann's article on the issue](https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/).
+
+
+
+
+`;
+const constructorOverInjection$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: constructorOverInjection
+}, Symbol.toStringTag, { value: "Module" }));
+const deepGlobalNestedComplexity = `
+The code contains deeply nested code in its global scope, i.e. code outside functions. Nesting is logical control structures such as if statements or loops. The deeper the nesting, the lower the code health.
+
+Deep nested logic increases the cognitive load on the programmer reading the code. The human working memory has a typical maximum capacity of 3-4 items; beyond that threshold, we struggle with keeping things in our head. Consequently, deep nested logic has a strong correlation to defects and accounts for roughly 20% of all programming mistakes.
+`;
+const deepGlobalNestedComplexity$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: deepGlobalNestedComplexity
+}, Symbol.toStringTag, { value: "Module" }));
+const deepNestedComplexity = `
+Deep nested complexity means that you have control structures like if-statements or loops inside other control structures. Deeply nested complexity increases the cognitive load on the programmer reading the code. The human working memory has a maximum capacity of 3-4 items; beyond that threshold, we struggle with keeping things in our head. Consequently, deeply nested complexity has a strong correlation to defects, and it accounts for roughly 20% of all programming mistakes.
+
+## Solution
+
+Occasionally, it's possible to get rid of the nested logic with the [REPLACING CONDITIONALS WITH GUARD CLAUSES](https://refactoring.com/catalog/replaceNestedConditionalWithGuardClauses.html) refactoring.
+
+Another viable strategy is to identify smaller building blocks inside the
+nested chunks of logic and extract those responsibilities into smaller, cohesive, and well-named functions. The [EXTRACT FUNCTION](https://refactoring.com/catalog/extractFunction.html) refactoring explains the steps.
+
+`;
+const deepNestedComplexity$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: deepNestedComplexity
+}, Symbol.toStringTag, { value: "Module" }));
+const duplicatedAssertionBlocks = `
+This test file has several blocks of duplicated assertion statements. Avoid adding more.
+
+Just like duplicated logic in application code is problematic, duplicated test criteria lead to code that's hard to maintain. Duplicated assertion blocks usually indicate a missing abstraction, either a supporting test function or a specific test is missing.
+
+## Solution
+
+Consider to encapsulate the duplicated assertions (i.e. test criteria) in a custom assert statement that you can then re-use. We also recommend to consider the granularity of the tests; sometimes a single test tests too many things; extracting smaller tests can usually help you get rid of the duplication.
+
+`;
+const duplicatedAssertionBlocks$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: duplicatedAssertionBlocks
+}, Symbol.toStringTag, { value: "Module" }));
+const duplicatedFunctionBlocks = `
+Avoid duplicated, aka copy-pasted, code inside the module. More duplication lowers the code health.
+
+Duplicated code might lead to code that's harder to maintain as the same logical change has to be done in multiple places. Look to extract a shared representation which can be re-used across functions.
+
+## Solution
+
+A certain degree of duplicated code might be acceptable. The problems start when it is the same behavior that is duplicated across the functions in the module, ie. a violation of the [Don't Repeat Yourself (DRY) principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself). DRY violations lead to code that is changed together in predictable patterns, which is both expensive and risky. DRY violations can be identified using [CodeScene's X-Ray analysis](https://codescene.com/blog/software-revolution-part3/) to detect clusters of change coupled functions with high code similarity.
+
+Once you have identified the similarities across functions, look to extract and encapsulate the concept that varies into its own function(s). These shared abstractions can then be re-used, which minimizes the amount of duplication and simplifies change.
+
+`;
+const duplicatedFunctionBlocks$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: duplicatedFunctionBlocks
+}, Symbol.toStringTag, { value: "Module" }));
+const excessNumberOfFunctionArguments = `
+Functions with many arguments indicate either
+
+- low cohesion where the function has too many responsibilities, or
+- a missing abstraction that encapsulates those arguments.
+
+## Solution
+
+Start by investigating the responsibilities of the function. Make sure it doesn't do too many things, in which case it should be split into smaller and more cohesive functions.
+
+Consider the refactoring [INTRODUCE PARAMETER OBJECT](https://refactoring.com/catalog/introduceParameterObject.html) to encapsulate arguments that refer to the same logical concept.
+`;
+const excessNumberOfFunctionArguments$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: excessNumberOfFunctionArguments
+}, Symbol.toStringTag, { value: "Module" }));
+const fileSizeIssue = `
+The file has grown to a large number of lines of code. Avoid large files with many lines of code as they make it hard to get an overview of their content.
+
+When a single module starts to accumulate too many lines of code, there's an increased risk of modularity issues. Act now to prevent future issues.
+
+## Solution
+
+Look for opportunities to modularize the design. This is done by
+identifying groups of functions that represent different responsibilities and/or operate
+on different data. Once you have identified the different responsibilities, then use refactorings
+like [EXTRACT CLASS](https://refactoring.com/catalog/extractClass.html).
+
+`;
+const fileSizeIssue$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: fileSizeIssue
+}, Symbol.toStringTag, { value: "Module" }));
+const globalConditionals = `
+The code has become too complex as it contains many conditional statements (e.g. if, for, while) across its implementation, leading to lower code health. Avoid adding more.
+
+Code in the global scope that grows too complex is a sign that the design lacks abstractions. Consider encapsulating the complex constructs in named functions that can serve as higher-level abstractions of the concept.
+`;
+const globalConditionals$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: globalConditionals
+}, Symbol.toStringTag, { value: "Module" }));
+const highDegreeOfCodeDuplication = `
+Avoid duplicated, aka copy-pasted, code inside the module. More duplication lowers the code health.
+
+Duplicated code might lead to code that's harder to maintain as the same logical change has to be done in multiple places. Look to extract a shared representation which can be re-used across functions.
+
+## Solution
+
+A certain degree of duplicated code might be acceptable. The problems start when it is the same behavior that is duplicated across the functions in the module, ie. a violation of the [Don't Repeat Yourself (DRY) principle](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself). DRY violations lead to code that is changed together in predictable patterns, which is both expensive and risky. DRY violations can be identified using [CodeScene's X-Ray analysis](https://codescene.com/blog/software-revolution-part3/) to detect clusters of change coupled functions with high code similarity.
+
+Once you have identified the similarities across functions, look to extract and encapsulate the concept that varies into its own function(s). These shared abstractions can then be re-used, which minimizes the amount of duplication and simplifies change.
+
+`;
+const highDegreeOfCodeDuplication$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: highDegreeOfCodeDuplication
+}, Symbol.toStringTag, { value: "Module" }));
+const largeAssertionBlocks = `
+This test file has several blocks of large, consecutive assert statements. Avoid adding more.
+
+Large blocks with consecutive assertions indicate a missing abstraction. Often, large assert blocks lead to duplicated test criteria too. Consider extracting and encapsulating custom assertions that communicate the test criteria in the language of your domain.
+
+## Example
+
+Here is an example of test code with a large assertion block:
+\`\`\`java
+@Before
+public void createDamagedBot() {
+    robT1000 = new Shapeshifting_T_1000();
+
+    // .. lots of other code here..
+}
+
+@Test
+void autoRepairsWhenDamaged() {
+    robT1000.heal();
+
+    assertEquals(100, robT1000.cpuCapacity());
+    assertTrue(robT1000.ramCheckPasses());
+    assertTrue(robT1000.diskAccessible());
+    assertEquals(100, robT1000.vision());
+    assertEquals(CONSTANTS.FUNCTIONAL, robT1000.equipment());
+\`\`\`
+
+## Solution
+
+Consider encapsulating the duplicated assertions (i.e. test criteria) in a custom assert statement that you can then re-use.
+We also recommend to consider the granularity of the tests; sometimes a single test tests too many things; extracting smaller tests can usually help you get rid of the duplication.
+
+Working with the previous example, and the idea of encapsulation in a custom assert statement, we can make an attempt at straightening out the code:
+\`\`\`java
+@Before
+public void createDamagedBot() {
+    robT1000 = new Shapeshifting_T_1000();
+
+    // .. lots of other code here..
+}
+
+@Test
+void autoRepairsWhenDamaged() {
+    robT1000.heal();
+
+    // Replace the low-level assertions with a custom assert that lets
+    // us communicate in the language of our domain. Also encapsulates
+    // the criteria so that we only have one place to change if/when
+    // more properties are added.
+    // Most test frameworks have support for custom asserts.
+    assertFullyOperational(robT1000);
+}
+\`\`\`
+
+`;
+const largeAssertionBlocks$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: largeAssertionBlocks
+}, Symbol.toStringTag, { value: "Module" }));
+const largeEmbeddedCodeBlock = `
+The file contains embedded templates which are overly long, making the code hard to understand.
+
+Large chunks of embedded code are generally harder to understand and lower the code health. Consider encapsulating or modularizing the templates so that they become easier to understand.
+
+## Solution
+
+We recommend to be careful here -- just splitting large templates don't necessarily make the code easier to read. Instead, look for natural chunks inside the templates that express a specific task or concern. Use the [EXTRACT FUNCTION](https://refactoring.com/catalog/extractFunction.html) refactoring
+to encapsulate that concern.
+`;
+const largeEmbeddedCodeBlock$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: largeEmbeddedCodeBlock
+}, Symbol.toStringTag, { value: "Module" }));
+const largeMethod = `
+The definition is simple: the function exceeds the threshold for excessive function length.
+
+## Solution
+
+Overly long functions make the code harder to read, but we recommend being careful here - just splitting long functions doesn't necessarily make the code easier to read. Instead, look for natural chunks inside the functions that expresses a specific task or concern. Often, such concerns are indicated by a Code Comment followed by an if-statement. Use the [EXTRACT FUNCTION](https://refactoring.com/catalog/extractFunction.html) refactoring to encapsulate that concern.
+`;
+const largeMethod$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: largeMethod
+}, Symbol.toStringTag, { value: "Module" }));
+const linesOfCodeInASingleFile = `
+The number of lines of code in a single file. More lines of code lowers the code health.
+
+A file serves as a logical container for behavior. The larger the file, the harder to get an overview of its content. In general, high cohesion is the important metric while Lines of Code is more a rule of thumb.
+`;
+const linesOfCodeInASingleFile$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: linesOfCodeInASingleFile
+}, Symbol.toStringTag, { value: "Module" }));
+const linesOfDeclarationsInASingleFile = `
+This file contains many data declarations, leading to a long file.
+
+The more declarations, the more likely that the files contains too many responsibilities. In general, high cohesion is the important metric while Lines of Declarations is more a rule of thumb.
+`;
+const linesOfDeclarationsInASingleFile$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: linesOfDeclarationsInASingleFile
+}, Symbol.toStringTag, { value: "Module" }));
+const lowCohesion = `
+Cohesion is calculated using the LCOM4 metric. Low cohesion means that the module/class has multiple **unrelated** responsibilities, doing too many things and breaking the Single Responsibility Principle.
+
+With LCOM4, the functions inside a module are **related** if:
+
+- they access the same data members, or
+- they call each other.
+
+A module with multiple responsibilities is harder to understand and more risky to change since there's a risk for unexpected feature interactions. Refactor low cohesion files by splitting them into cohesive units, one unit per responsibility.
+`;
+const lowCohesion$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: lowCohesion
+}, Symbol.toStringTag, { value: "Module" }));
+const missingArgumentsAbstractions = `
+The functions in this file have too many arguments, indicating a lack of encapsulation or too many responsibilities in the same functions. Avoid adding more.
+
+This code health issue is measured as the average number of function arguments across the whole file. A function with many arguments can be simplified either by 
+- splitting the function if it has too many responsibilities, or 
+- introducing an abstraction (class, record, struct, etc.) which encapsulates the arguments. 
+
+## Solution
+
+Start by investigating the responsibilities of the function. Make sure it doesn't do too many things, in which case it should be split into smaller and more cohesive functions. Consider the refactoring [INTRODUCE PARAMETER OBJECT](https://refactoring.com/catalog/introduceParameterObject.html) to encapsulate arguments that refer to the same logical concept.
+`;
+const missingArgumentsAbstractions$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: missingArgumentsAbstractions
+}, Symbol.toStringTag, { value: "Module" }));
+const modularityIssue = `
+This file is large in terms of lines of code and has accumulated many functions. Together, this indicates that the file could degrade into a **Brain Class** unless acted upon.
+
+This is an early warning that the software design starts to get problematic. Look for opportunities to modularize the code by separating related groups of functions into new cohesive files/classes/modules.
+
+## Solution
+
+Look for opportunities to modularize the design. This is done by identifying groups of functions that represent different responsibilities and/or operate on different data.
+
+Once you have identified the different responsibilities, then use refactorings like [EXTRACT CLASS](https://refactoring.com/catalog/extractClass.html).
+
+`;
+const modularityIssue$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: modularityIssue
+}, Symbol.toStringTag, { value: "Module" }));
+const numberOfFunctionsInASingleModule = `
+This file contains too many functions. Beyond a certain threshold, more functions lower the code health.
+
+## Solution
+
+Modules with too many functions are generally harder to understand. Such modules should likely be split into smaller and more cohesive units, e.g. by using the refactoring [EXTRACT CLASS](https://refactoring.com/catalog/extractClass.html).
+
+Modules with too many functions are also at risk of evolving into a **Brain Class**. Brain classes are problematic since changes become more complex over time, harder to test, and challenging to refactor. Act now to prevent future maintenance issues.
+`;
+const numberOfFunctionsInASingleModule$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: numberOfFunctionsInASingleModule
+}, Symbol.toStringTag, { value: "Module" }));
+const overallCodeComplexity = `
+This file has many conditional statements (e.g. if, for, while) across its implementation, leading to lower code health. Avoid adding more conditionals.
+
+Code complexity is detected by the [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) metric, which counts the number of conditional statements. Cyclomatic complexity indicates the minimum number of unit tests you would need for the implementation in this file. The more tests you need, the more complicated the method. This code smell indicates that the whole implementation would benefit from being simplified.
+
+## Solution
+
+Start by addressing possible bumpy road and/or deeply nested logic issues if applicable. This will help you lower the average cyclomatic complexity too.
+
+You can then address the overall cyclomatic complexity by a) modularizing the code, and b) abstract away the complexity. Let's look at some examples:
+
+- Modularizing the Code: Do an X-Ray and inspect the local hotspots. Are there any complex conditional expressions? If yes, then do a [DECOMPOSE CONDITIONAL](https://refactoring.com/catalog/decomposeConditional.html) refactoring. Extract the conditional logic into a separate function and put a good name on that function. This clarifies the intent and makes the original function easier to read. Repeat until all complex conditional expressions have been simplified.
+- In an object-oriented language, conditionals can often be replaced with polymorphic calls (see the design patterns [STRATEGY](https://en.wikipedia.org/wiki/Strategy_pattern) and [COMMAND](https://en.wikipedia.org/wiki/Command_pattern) -- they often help).
+- In a functional programming language, conditionals can often be replaced by pipes of filter, remove, reduce, etc.
+- You also want to inspect the code and see if it seems to do more than one thing. If yes, then consider the [EXTRACT FUNCTION](https://refactoring.com/catalog/extractFunction.html) refactoring.
+
+`;
+const overallCodeComplexity$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: overallCodeComplexity
+}, Symbol.toStringTag, { value: "Module" }));
+const potentiallyLowCohesion = `
+The module has cohesion issues, but it's still at a manageable level.
+`;
+const potentiallyLowCohesion$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: potentiallyLowCohesion
+}, Symbol.toStringTag, { value: "Module" }));
+const primitiveObsession = `
+The functions in this file have too many primitive types (e.g. int, double, float) in their function argument lists. Using many primitive types lead to the code smell *Primitive Obsession*. Avoid adding more primitive arguments.
+
+Primitive obsession indicates a missing domain language, leading to a number of issues. First, primitive types typically require separate validation logic in the application code. Second, primitive types can lead to fragile code as they don't constrain the value range in the way a domain type could. Introducing domain specific types simplifies the code and improves its robustness.
+
+
+## Example
+
+Code that uses a high degree of built-in primitives such as integers, strings, floats, lacks a domain language that encapsulates the validation and semantics of function arguments. Primitive Obsession has several consequences:
+
+- In a statically typed language, the compiler will detect less erroneous assignments.
+- Security impact since the possible value range of a variable/argument isn't restricted.
+
+Here is an example of code with too many primitive types as arguments:
+\`\`\`java
+public class PrimitiveObsessionExample {
+	public JsonNode search(String query, Integer pages, Integer pageSize) {
+		return httpClient.get(String.format("%s?q=%s&pages=%d&pageSize=%d",
+					baseUrl,
+					query,
+					pages == null ? 10 : pages,
+					pageSize == null ? 10 : pages));
+	}
+}
+\`\`\`
+
+## Solution
+
+Primitive Obsession indicates a missing domain language. Introduce data types that encapsulate the details and constraints of your domain. For example, instead of \`int userId\`, consider \`User clicked\`. Working with the previous example, we can make an attempt at straightening out the code:
+
+\`\`\`java
+public class PrimitiveObsessionExample {
+	public JsonNode search(SearchRequest request) {
+		return httpClient.get(request.getUrl());
+	}
+}
+\`\`\`
+
+`;
+const primitiveObsession$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: primitiveObsession
+}, Symbol.toStringTag, { value: "Module" }));
+const stringHeavyFunctionArguments = `
+The functions in this file have a high ratio of strings as arguments. Avoid adding more.
+
+Heavy usage of built-in string types indicate a missing domain language. There are also validation implications since code needs to be written that checks the semantics of the string type.
+
+## Solution
+
+Introduce data types that encapsulate the semantics. For example, a \`user_name\` is better represented as a constrained \`User\` type rather than a pure string, which could be anything.
+`;
+const stringHeavyFunctionArguments$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: stringHeavyFunctionArguments
+}, Symbol.toStringTag, { value: "Module" }));
+const availableDocs = ["docs_code_health_monitor", "docs_general_code_health", "docs_improvement_guides_bumpy_road_ahead", "docs_improvement_guides_complex_conditional", "docs_improvement_guides_complex_method", "docs_improvement_guides_deep_nested_complexity", "docs_improvement_guides_large_method", "docs_improvement_guides_modularity_improvement", "docs_issues_brain_class", "docs_issues_brain_method", "docs_issues_bumpy_road_ahead", "docs_issues_code_duplication", "docs_issues_complex_conditional", "docs_issues_complex_method", "docs_issues_constructor_over_injection", "docs_issues_deep_global_nested_complexity", "docs_issues_deep_nested_complexity", "docs_issues_duplicated_assertion_blocks", "docs_issues_duplicated_function_blocks", "docs_issues_excess_number_of_function_arguments", "docs_issues_file_size_issue", "docs_issues_global_conditionals", "docs_issues_high_degree_of_code_duplication", "docs_issues_large_assertion_blocks", "docs_issues_large_embedded_code_block", "docs_issues_large_method", "docs_issues_lines_of_code_in_a_single_file", "docs_issues_lines_of_declarations_in_a_single_file", "docs_issues_low_cohesion", "docs_issues_missing_arguments_abstractions", "docs_issues_modularity_issue", "docs_issues_number_of_functions_in_a_single_module", "docs_issues_overall_code_complexity", "docs_issues_potentially_low_cohesion", "docs_issues_primitive_obsession", "docs_issues_string_heavy_function_arguments"];
+const docs = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  availableDocs,
+  docs_code_health_monitor: codeHealthMonitor$1,
+  docs_general_code_health: generalCodeHealth$1,
+  docs_improvement_guides_bumpy_road_ahead: bumpyRoadAhead$3,
+  docs_improvement_guides_complex_conditional: complexConditional$3,
+  docs_improvement_guides_complex_method: complexMethod$3,
+  docs_improvement_guides_deep_nested_complexity: deepNestedComplexity$3,
+  docs_improvement_guides_large_method: largeMethod$3,
+  docs_improvement_guides_modularity_improvement: modularityImprovement$1,
+  docs_issues_brain_class: brainClass$1,
+  docs_issues_brain_method: brainMethod$1,
+  docs_issues_bumpy_road_ahead: bumpyRoadAhead$1,
+  docs_issues_code_duplication: codeDuplication$1,
+  docs_issues_complex_conditional: complexConditional$1,
+  docs_issues_complex_method: complexMethod$1,
+  docs_issues_constructor_over_injection: constructorOverInjection$1,
+  docs_issues_deep_global_nested_complexity: deepGlobalNestedComplexity$1,
+  docs_issues_deep_nested_complexity: deepNestedComplexity$1,
+  docs_issues_duplicated_assertion_blocks: duplicatedAssertionBlocks$1,
+  docs_issues_duplicated_function_blocks: duplicatedFunctionBlocks$1,
+  docs_issues_excess_number_of_function_arguments: excessNumberOfFunctionArguments$1,
+  docs_issues_file_size_issue: fileSizeIssue$1,
+  docs_issues_global_conditionals: globalConditionals$1,
+  docs_issues_high_degree_of_code_duplication: highDegreeOfCodeDuplication$1,
+  docs_issues_large_assertion_blocks: largeAssertionBlocks$1,
+  docs_issues_large_embedded_code_block: largeEmbeddedCodeBlock$1,
+  docs_issues_large_method: largeMethod$1,
+  docs_issues_lines_of_code_in_a_single_file: linesOfCodeInASingleFile$1,
+  docs_issues_lines_of_declarations_in_a_single_file: linesOfDeclarationsInASingleFile$1,
+  docs_issues_low_cohesion: lowCohesion$1,
+  docs_issues_missing_arguments_abstractions: missingArgumentsAbstractions$1,
+  docs_issues_modularity_issue: modularityIssue$1,
+  docs_issues_number_of_functions_in_a_single_module: numberOfFunctionsInASingleModule$1,
+  docs_issues_overall_code_complexity: overallCodeComplexity$1,
+  docs_issues_potentially_low_cohesion: potentiallyLowCohesion$1,
+  docs_issues_primitive_obsession: primitiveObsession$1,
+  docs_issues_string_heavy_function_arguments: stringHeavyFunctionArguments$1
+}, Symbol.toStringTag, { value: "Module" }));
+const styles = {
+  headerStack: {
+    cursor: "x1ypdohk",
+    marginBottom: "xod5an3",
+    $$css: true
+  },
+  buttonStack: {
+    marginLeft: "x8x9d4c",
+    marginInlineStart: null,
+    marginInlineEnd: null,
+    $$css: true
+  }
+};
+const CollapsibleMarkdown = ({
+  title,
+  body,
+  isCollapsed = false,
+  actions = []
+}) => {
+  const [collapsed, setCollapsed] = reactExports.useState(isCollapsed);
+  const toggle = () => setCollapsed((prev) => !prev);
+  reactExports.useEffect(() => {
+    setCollapsed(isCollapsed);
+  }, [isCollapsed, body]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+    children: [/* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "row",
+      gap: "size-2",
+      alignItems: "center",
+      style: styles.headerStack,
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+        onClick: toggle,
+        children: !collapsed ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDownIcon, {
+          size: 16
+        }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRightIcon, {
+          size: 16
+        })
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx("h2", {
+        ...{
+          className: "x1jvydc1 x1s688f x1ghz6dp"
+        },
+        onClick: toggle,
+        children: title
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, {
+        direction: "row",
+        gap: "size-2",
+        style: styles.buttonStack,
+        children: actions
+      })]
+    }), !collapsed && /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Markdown, {
+        source: body
+      })
+    })]
+  });
+};
+function snakeCaseToPretty(input) {
+  return input.split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+}
+function splitMarkdown(title, sourceMarkdown) {
+  let description = sourceMarkdown, exampleAndSolution, example, solution;
+  if (sourceMarkdown.includes("## Solution")) {
+    if (sourceMarkdown.includes("## Example")) {
+      [description, exampleAndSolution] = sourceMarkdown.split("## Example");
+      [example, solution] = exampleAndSolution.split("## Solution");
+    } else {
+      [description, solution] = sourceMarkdown.split("## Solution");
+    }
+  }
+  const result = [{
+    title,
+    body: description
+  }, {
+    title: "Example",
+    body: example
+  }, {
+    title: "Solution",
+    body: solution
+  }].filter((item) => item.body);
+  return result;
+}
+const DocsView = ({
+  fileData,
+  docType,
+  autoRefactorAvailable
+}) => {
+  const docsHeader = docType.replace("docs_issues_", "").replace("docs_improvements_", "").replace("docs_", "");
+  const sourceMarkdown = docs[docType].default;
+  const splitDocs = splitMarkdown(snakeCaseToPretty(docsHeader), sourceMarkdown);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      ...props(sharedViewStyles.viewWrapper),
+      children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+        direction: "column",
+        gap: "size-4",
+        children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
+          title: snakeCaseToPretty(docsHeader),
+          subElement: fileData ? /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
+            filename: fileData.filename,
+            functionName: fileData.functionName,
+            lineNumber: fileData.lineNumber,
+            action: fileData.action
+          }) : void 0
+        }), /* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+          label: "Auto-Refactor",
+          icon: autoRefactorAvailable ? "sparkle" : "skip",
+          primary: true,
+          disabled: !autoRefactorAvailable,
+          onClick: actionMessages.refactor
+        }), splitDocs.map((doc) => /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleMarkdown, {
+          title: doc.title,
+          body: doc.body
+        }, doc.title))]
+      })
+    })
   });
 };
 const placeHolderArgs = {
-  file: {
+  fileData: {
     filename: "CustomLegends.ts",
     functionName: "extract_identifiers",
     lineNumber: 11,
@@ -101010,21 +101979,45 @@ export const CodeBlock = () => {
 };`
   }
 };
-function MainView() {
-  const {
-    ideType,
-    view,
-    data
-  } = useNative();
-  if (!ideType) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-      className: "container",
-      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(Markdown, {
-        source: `# Missing context
+const CatchAll = () => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...{
+      className: "x10kqxg1 xzbod5j xl13fje x1e38ks9 x182rzkk"
+    },
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      gap: "size-4",
+      direction: "column",
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
+        title: "Something wrong"
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+        title: "This is a catch all",
+        tone: "error",
+        textElement: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+          children: [/* @__PURE__ */ jsxRuntimeExports.jsx("p", {
+            children: "Something went wrong, check the console.log"
+          }), "Provided context:", /* @__PURE__ */ jsxRuntimeExports.jsx("pre", {
+            children: JSON.stringify(window.ideContext, null, 2)
+          }), /* @__PURE__ */ jsxRuntimeExports.jsxs("p", {
+            children: ["Seeing this means that the webview ", /* @__PURE__ */ jsxRuntimeExports.jsx("code", {
+              children: "index.js"
+            }), " bundle works, just need to figure out the data."]
+          })]
+        })
+      })]
+    })
+  });
+};
+const MissingContext = () => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+    ...{
+      className: "x10kqxg1 xzbod5j xl13fje x1e38ks9 x182rzkk"
+    },
+    children: [/* @__PURE__ */ jsxRuntimeExports.jsx(Markdown, {
+      source: `# Missing context
 Missing ideContext, please add the following tag to head tag in
 webview <html> template`
-      }), /* @__PURE__ */ jsxRuntimeExports.jsx(CodeBlock, {
-        codeString: `    <script>
+    }), /* @__PURE__ */ jsxRuntimeExports.jsx(CodeBlock, {
+      codeString: `    <script>
       function setContext() {
         window.ideContext = {
           ideType: "browser" | "VSCode" | "JetBrains" | "Visual Studio",
@@ -101034,54 +102027,78 @@ webview <html> template`
       }
       setContext();
     <\/script>`
-      })]
-    });
-  }
-  console.log(view, data);
-  if (view === "ace" && data) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-        className: "container",
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(AceView, {
-          ...placeHolderArgs
-        })
-      })
-    });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
-    gap: "size-4",
-    direction: "column",
-    children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
-      title: "Params not provided"
-    }), /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
-      title: "window.ideContext missing params",
-      tone: "warning",
-      textElement: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-        children: [/* @__PURE__ */ jsxRuntimeExports.jsxs("p", {
-          children: ["There seems to be some missing params in the", " ", /* @__PURE__ */ jsxRuntimeExports.jsx("code", {
-            children: "window.ideContext"
-          })]
-        }), "Provided context:", /* @__PURE__ */ jsxRuntimeExports.jsx("pre", {
-          children: JSON.stringify(window.ideContext, null, 2)
-        }), /* @__PURE__ */ jsxRuntimeExports.jsxs("p", {
-          children: ["Seeing this means that the webview ", /* @__PURE__ */ jsxRuntimeExports.jsx("code", {
-            children: "index.js"
-          }), " bundle works, just need to figure out the data."]
-        }), /* @__PURE__ */ jsxRuntimeExports.jsx("p", {
-          children: "Provided a button to thest the message handling between webview and native, open webview devtools console to see messages."
-        })]
-      }),
-      actions: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
-        label: "Test close event",
-        icon: "cross",
-        primary: true,
-        onClick: () => extensionApi.postMessage({
-          messageType: "close",
-          payload: "close"
-        })
-      })]
     })]
   });
+};
+const MissingParams = () => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...{
+      className: "x10kqxg1 xzbod5j xl13fje x1e38ks9 x182rzkk"
+    },
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      gap: "size-4",
+      direction: "column",
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
+        title: "Params not provided"
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+        title: "window.ideContext missing params",
+        tone: "warning",
+        textElement: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+          children: [/* @__PURE__ */ jsxRuntimeExports.jsxs("p", {
+            children: ["There seems to be some missing params in the", " ", /* @__PURE__ */ jsxRuntimeExports.jsx("code", {
+              children: "window.ideContext"
+            })]
+          }), "Provided context:", /* @__PURE__ */ jsxRuntimeExports.jsx("pre", {
+            children: JSON.stringify(window.ideContext, null, 2)
+          }), /* @__PURE__ */ jsxRuntimeExports.jsxs("p", {
+            children: ["Seeing this means that the webview ", /* @__PURE__ */ jsxRuntimeExports.jsx("code", {
+              children: "index.js"
+            }), " bundle works, just need to figure out the data."]
+          }), /* @__PURE__ */ jsxRuntimeExports.jsx("p", {
+            children: "Provided a button to thest the message handling between webview and native, open webview devtools console to see messages."
+          })]
+        }),
+        actions: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+          label: "Test close event",
+          icon: "cross",
+          primary: true,
+          onClick: () => extensionApi.postMessage({
+            messageType: "close",
+            payload: "close"
+          })
+        }, "test")]
+      })]
+    })
+  });
+};
+function MainView() {
+  const {
+    ideType,
+    view,
+    data
+  } = useNative();
+  try {
+    if (!ideType) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(MissingContext, {});
+    }
+    console.log("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", view, data);
+    if (view === "ace" && data) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(AceView, {
+        ...placeHolderArgs
+      });
+    }
+    if (view === "docs" && data) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(DocsView, {
+        docType: data.docType,
+        fileData: data.fileData,
+        autoRefactorAvailable: true
+      });
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(MissingParams, {});
+  } catch (error) {
+    console.error("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", error);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(CatchAll, {});
+  }
 }
 function App() {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(NativeProvider, {

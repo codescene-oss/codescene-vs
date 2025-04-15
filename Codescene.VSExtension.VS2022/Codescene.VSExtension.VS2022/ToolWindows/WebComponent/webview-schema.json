@@ -1,57 +1,26 @@
 {
   "anyOf": [
     {
-      "allOf": [
-        {
-          "type": "object",
-          "properties": {
-            "ideType": {
-              "$ref": "#/definitions/IdeTypes"
-            }
-          },
-          "required": [
-            "ideType"
-          ]
-        },
-        {
-          "$ref": "#/definitions/AceContextViewProps"
-        }
-      ]
+      "$ref": "#/definitions/AceContextViewProps"
     },
     {
-      "allOf": [
-        {
-          "type": "object",
-          "properties": {
-            "ideType": {
-              "$ref": "#/definitions/IdeTypes"
-            }
-          },
-          "required": [
-            "ideType"
-          ]
-        },
-        {
-          "$ref": "#/definitions/CodeSmellContextViewProps"
-        }
-      ]
+      "$ref": "#/definitions/DocsContextViewProps"
     }
   ],
   "definitions": {
-    "IdeTypes": {
-      "enum": [
-        "JetBrains",
-        "VSCode",
-        "Visual Studio",
-        "browser"
-      ],
-      "type": "string"
-    },
     "AceContextViewProps": {
       "description": "context data for rendering ACE result view",
       "type": "object",
       "properties": {
+        "loading": {
+          "type": "boolean"
+        },
+        "ideType": {
+          "$ref": "#/definitions/IdeTypes",
+          "description": "The IDE invoking th webview"
+        },
         "view": {
+          "description": "What view should be rendered",
           "type": "string",
           "const": "ace"
         },
@@ -59,12 +28,15 @@
           "type": "object",
           "properties": {
             "fileData": {
-              "$ref": "#/definitions/FileSubHeaderProps"
+              "$ref": "#/definitions/FileSubHeaderProps",
+              "description": "Information about the source file and function"
             },
             "aceResultData": {
-              "$ref": "#/definitions/RefactorResponse"
+              "$ref": "#/definitions/RefactorResponse",
+              "description": "API responce from the ACE service"
             },
             "isStale": {
+              "description": "Has the data been changed after ACE result",
               "type": "boolean"
             }
           },
@@ -76,8 +48,18 @@
       },
       "required": [
         "data",
+        "ideType",
         "view"
       ]
+    },
+    "IdeTypes": {
+      "enum": [
+        "JetBrains",
+        "VSCode",
+        "Visual Studio",
+        "browser"
+      ],
+      "type": "string"
     },
     "FileSubHeaderProps": {
       "type": "object",
@@ -92,6 +74,7 @@
           "type": "number"
         },
         "action": {
+          "description": "action strings are the payload the webview will send back to IDE extension on open-file or open-function messageTypes",
           "type": "object",
           "properties": {
             "filePayload": {
@@ -258,27 +241,79 @@
         }
       }
     },
-    "CodeSmellContextViewProps": {
+    "DocsContextViewProps": {
       "type": "object",
       "properties": {
+        "loading": {
+          "type": "boolean"
+        },
+        "ideType": {
+          "$ref": "#/definitions/IdeTypes",
+          "description": "The IDE invoking th webview"
+        },
         "view": {
+          "description": "What view should be rendered",
           "type": "string",
-          "const": "code-smell"
+          "const": "docs"
         },
         "data": {
           "type": "object",
           "properties": {
             "fileData": {
+              "description": "Information about the source file and function",
               "$ref": "#/definitions/FileSubHeaderProps"
+            },
+            "docType": {
+              "description": "Which documentation should be rendered",
+              "enum": [
+                "docs_code_health_monitor",
+                "docs_general_code_health",
+                "docs_improvement_guides_bumpy_road_ahead",
+                "docs_improvement_guides_complex_conditional",
+                "docs_improvement_guides_complex_method",
+                "docs_improvement_guides_deep_nested_complexity",
+                "docs_improvement_guides_large_method",
+                "docs_improvement_guides_modularity_improvement",
+                "docs_issues_brain_class",
+                "docs_issues_brain_method",
+                "docs_issues_bumpy_road_ahead",
+                "docs_issues_code_duplication",
+                "docs_issues_complex_conditional",
+                "docs_issues_complex_method",
+                "docs_issues_constructor_over_injection",
+                "docs_issues_deep_global_nested_complexity",
+                "docs_issues_deep_nested_complexity",
+                "docs_issues_duplicated_assertion_blocks",
+                "docs_issues_duplicated_function_blocks",
+                "docs_issues_excess_number_of_function_arguments",
+                "docs_issues_file_size_issue",
+                "docs_issues_global_conditionals",
+                "docs_issues_high_degree_of_code_duplication",
+                "docs_issues_large_assertion_blocks",
+                "docs_issues_large_embedded_code_block",
+                "docs_issues_large_method",
+                "docs_issues_lines_of_code_in_a_single_file",
+                "docs_issues_lines_of_declarations_in_a_single_file",
+                "docs_issues_low_cohesion",
+                "docs_issues_missing_arguments_abstractions",
+                "docs_issues_modularity_issue",
+                "docs_issues_number_of_functions_in_a_single_module",
+                "docs_issues_overall_code_complexity",
+                "docs_issues_potentially_low_cohesion",
+                "docs_issues_primitive_obsession",
+                "docs_issues_string_heavy_function_arguments"
+              ],
+              "type": "string"
             }
           },
           "required": [
-            "fileData"
+            "docType"
           ]
         }
       },
       "required": [
         "data",
+        "ideType",
         "view"
       ]
     }

@@ -1,0 +1,177 @@
+{
+  "anyOf": [
+    {
+      "type": "object",
+      "properties": {
+        "messageType": {
+          "type": "string",
+          "const": "init"
+        }
+      },
+      "required": [
+        "messageType"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "messageType": {
+          "type": "string",
+          "const": "apply"
+        },
+        "payload": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageType",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "messageType": {
+          "type": "string",
+          "const": "reject"
+        },
+        "payload": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageType",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "messageType": {
+          "type": "string",
+          "const": "retry"
+        },
+        "payload": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageType",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "messageType": {
+          "type": "string",
+          "const": "close"
+        },
+        "payload": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageType",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "messageType": {
+          "type": "string",
+          "const": "goto-function-location"
+        },
+        "payload": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageType",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "messageType": {
+          "type": "string",
+          "const": "copyCode"
+        },
+        "payload": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageType",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "messageType": {
+          "type": "string",
+          "const": "showLogoutput"
+        },
+        "payload": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageType",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "messageType": {
+          "type": "string",
+          "const": "open-file"
+        },
+        "payload": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageType",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "messageType": {
+          "type": "string",
+          "const": "open-function"
+        },
+        "payload": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageType",
+        "payload"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "messageType": {
+          "type": "string",
+          "const": "request-and-present-refactoring"
+        },
+        "payload": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "messageType",
+        "payload"
+      ]
+    }
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
