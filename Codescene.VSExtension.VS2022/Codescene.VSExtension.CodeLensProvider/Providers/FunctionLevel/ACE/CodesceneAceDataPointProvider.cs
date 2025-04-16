@@ -9,7 +9,10 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.ACE
 
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(CodesceneAceDataPointProvider))]
-    [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
+    [ContentType(Constants.CONTENT_TYPE_CSHARP)]
+    [ContentType(Constants.CONTENT_TYPE_JAVA)]
+    [ContentType(Constants.CONTENT_TYPE_JS)]
+    [ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
     [Priority(980)]
     public class CodesceneAceDataPointProvider : BaseDataPointProvider<CodesceneAceDataPoint>
     {

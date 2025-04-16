@@ -1,13 +1,11 @@
-﻿namespace Codescene.VSExtension.CodeSmells.Issues
+﻿namespace Codescene.VSExtension.CodeSmells.Issues.CSharp
 {
     class DeepNestedComplexity
     {
-        // Pretpostavke: boolean svojstva/polja
         public bool IsDead { get; set; }
         public bool IsSeparated { get; set; }
         public bool IsRetired { get; set; }
 
-        // Metode za izračun
         private decimal DeadAmount() => 0m;
         private decimal SeparatedAmount() => 100m;
         private decimal RetiredAmount() => 200m;

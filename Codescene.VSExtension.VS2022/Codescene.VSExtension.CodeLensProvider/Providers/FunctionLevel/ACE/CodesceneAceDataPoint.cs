@@ -1,5 +1,5 @@
-﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
-using Codescene.VSExtension.Core.Application.Services.Codelens;
+﻿using Codescene.VSExtension.CodeLensProvider.Abstraction;
+using Codescene.VSExtension.CodeLensProvider.Providers.Base;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using System.Threading;
@@ -21,7 +21,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.ACE
 
         public override async Task<CodeLensDetailsDescriptor> GetDetailsAsync(CodeLensDescriptorContext ctx, CancellationToken token)
         {
-            await CallbackService.InvokeAsync<object>(this, nameof(ICodesceneCodelensCallbackService.OpenAceToolWindowAsync), cancellationToken: token);
+            await CallbackService.InvokeAsync<object>(this, nameof(ICodesceneCodelensCallbackService.OpenAceToolWindowAsync), arguments: new object[] { Descriptor, ctx }, cancellationToken: token);
             return null;
         }
     }

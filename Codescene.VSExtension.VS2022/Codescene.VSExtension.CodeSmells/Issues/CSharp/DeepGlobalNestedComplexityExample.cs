@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace Codescene.VSExtension.CodeSmells.Issues
+namespace Codescene.VSExtension.CodeSmells.Issues.CSharp
 {
-    // Global settings used throughout the application
     static class GlobalSettings
     {
         public static bool FeatureAEnabled = true;
@@ -10,7 +9,6 @@ namespace Codescene.VSExtension.CodeSmells.Issues
         public static bool DebugMode = true;
     }
 
-    // Global utilities class with static variables and methods
     static class GlobalUtilities
     {
         public static int GlobalCounter = 0;

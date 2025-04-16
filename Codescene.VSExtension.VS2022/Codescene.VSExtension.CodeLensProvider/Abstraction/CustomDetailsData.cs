@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.Application.Services.Codelens
+﻿namespace Codescene.VSExtension.CodeLensProvider.Abstraction
 {
     public class CustomDetailsData
     {

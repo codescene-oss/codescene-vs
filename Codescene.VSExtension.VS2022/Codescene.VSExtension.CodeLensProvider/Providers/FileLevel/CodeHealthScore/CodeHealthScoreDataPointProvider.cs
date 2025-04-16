@@ -11,7 +11,10 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FileLevel.CodeHealthS
 {
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(CodeHealthScoreDataPointProvider))]
-    [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
+    [ContentType(Constants.CONTENT_TYPE_CSHARP)]
+    [ContentType(Constants.CONTENT_TYPE_JAVA)]
+    [ContentType(Constants.CONTENT_TYPE_JS)]
+    [ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
     [Priority(1000)]
     internal class CodeHealthScoreDataPointProvider : BaseDataPointProvider<CodeHealthScoreDataPoint>
     {

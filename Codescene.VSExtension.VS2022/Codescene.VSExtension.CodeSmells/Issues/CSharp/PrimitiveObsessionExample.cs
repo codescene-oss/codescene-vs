@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.CodeSmells.Issues
+﻿namespace Codescene.VSExtension.CodeSmells.Issues.CSharp
 {
     interface IHttpClient
     {

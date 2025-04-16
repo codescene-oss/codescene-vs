@@ -5,7 +5,11 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 {
     public class Constants
     {
-        public const string DATA_POINT_PROVIDER_CONTENT_TYPE = "csharp";
+        public const string CONTENT_TYPE_CSHARP = "csharp";
+        public const string CONTENT_TYPE_JAVA = "Java";
+        public const string CONTENT_TYPE_JS = "JavaScript";
+        public const string CONTENT_TYPE_TYPESCRIPT = "TypeScript";
+
         public class Titles
         {
             public const string CODESCENE_ACE = "Codescene ACE";

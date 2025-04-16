@@ -8,7 +8,10 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.DeepNes
 {
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(DeepNestedComplexityDataPointProvider))]
-    [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
+    [ContentType(Constants.CONTENT_TYPE_CSHARP)]
+    [ContentType(Constants.CONTENT_TYPE_JAVA)]
+    [ContentType(Constants.CONTENT_TYPE_JS)]
+    [ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
     [Priority(1010)]
     public class DeepNestedComplexityDataPointProvider : BaseDataPointProvider<DeepNestedComplexityDataPoint>
     {

@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using Microsoft.VisualStudio.Language.CodeLens;
+using Microsoft.VisualStudio.Language.CodeLens.Remoting;
+using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.Core.Application.Services.Codelens
+namespace Codescene.VSExtension.CodeLensProvider.Abstraction
 {
     public interface ICodesceneCodelensCallbackService
     {
@@ -9,6 +11,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Codelens
         int GetVisualStudioPid();
         Task InitializeRpcAsync(string dataPointId);
         bool IsCodeSceneLensesEnabled();
-        Task OpenAceToolWindowAsync();
+        Task OpenAceToolWindowAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext context);
     }
 }

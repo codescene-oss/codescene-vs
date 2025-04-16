@@ -1,9 +1,10 @@
-﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
-using Codescene.VSExtension.Core.Application.Services.Codelens;
+﻿using Codescene.VSExtension.CodeLensProvider.Abstraction;
+using Codescene.VSExtension.CodeLensProvider.Providers.Base;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
+using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
 using System;
@@ -97,8 +98,27 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         await Task.WhenAll(Connections.Keys.Select(RefreshDataPointAsync)).ConfigureAwait(false);
     }
 
-    public async Task OpenAceToolWindowAsync()
+    //public async Task OpenAceToolWindowAsync()
+    //{
+    //    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+    //    await AceToolWindow.ShowAsync();
+    //}
+
+    //public Task OpenAceToolWindowAsync(object descriptor, object context)
+    //{
+    //    var desc = (CodeLensDescriptor)descriptor;
+    //    var ctx = (CodeLensDescriptorContext)context;
+    //    return null;
+    //}
+
+    public async Task OpenAceToolWindowAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext context)
     {
+        context.Properties.TryGetValue("StartLine", out var startLine);
+        context.Properties.TryGetValue("StartColumn", out var startColumn);
+        context.Properties.TryGetValue("FullyQualifiedName", out var fullyQualifiedName);
+        var path = descriptor.FilePath;
+        var kind = descriptor.Kind;
+        var elementDescription = descriptor.ElementDescription;
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         await AceToolWindow.ShowAsync();
     }
