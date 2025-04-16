@@ -18,8 +18,10 @@ using System.Threading.Tasks;
 namespace Codescene.VSExtension.VS2022.CodeLens;
 
 [Export(typeof(ICodeLensCallbackListener))]
-//[PartCreationPolicy(CreationPolicy.Shared)]
-[ContentType("CSharp")]
+[ContentType(Constants.CONTENT_TYPE_CSHARP)]
+[ContentType(Constants.CONTENT_TYPE_JAVA)]
+[ContentType(Constants.CONTENT_TYPE_JS)]
+[ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
 internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICodesceneCodelensCallbackService
 {
     public static readonly ConcurrentDictionary<string, CodeLensConnection> Connections = new();

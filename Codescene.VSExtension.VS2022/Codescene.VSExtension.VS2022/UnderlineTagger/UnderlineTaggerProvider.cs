@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
+using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Models;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -9,7 +10,10 @@ using System.ComponentModel.Composition;
 namespace Codescene.VSExtension.VS2022.ErrorList
 {
     [Export(typeof(ITaggerProvider))]
-    [ContentType("CSharp")]
+    [ContentType(Constants.CONTENT_TYPE_CSHARP)]
+    [ContentType(Constants.CONTENT_TYPE_JAVA)]
+    [ContentType(Constants.CONTENT_TYPE_JS)]
+    [ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
     [TagType(typeof(IErrorTag))]
     public class UnderlineTaggerProvider : ITaggerProvider
     {
