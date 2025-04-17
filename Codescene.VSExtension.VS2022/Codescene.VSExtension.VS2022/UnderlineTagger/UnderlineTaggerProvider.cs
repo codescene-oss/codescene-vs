@@ -12,8 +12,8 @@ namespace Codescene.VSExtension.VS2022.ErrorList
     [Export(typeof(ITaggerProvider))]
     [ContentType(Constants.CONTENT_TYPE_CSHARP)]
     [ContentType(Constants.CONTENT_TYPE_JAVA)]
-    [ContentType(Constants.CONTENT_TYPE_JS)]
     [ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
+    [ContentType(Constants.CONTENT_TYPE_JAVASCRIPT)]
     [TagType(typeof(IErrorTag))]
     public class UnderlineTaggerProvider : ITaggerProvider
     {

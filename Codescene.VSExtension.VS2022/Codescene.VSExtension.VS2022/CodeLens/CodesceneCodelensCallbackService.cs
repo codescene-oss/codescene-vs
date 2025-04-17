@@ -2,7 +2,6 @@
 using Codescene.VSExtension.CodeLensProvider.Providers.Base;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
-using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Shell;
@@ -20,8 +19,8 @@ namespace Codescene.VSExtension.VS2022.CodeLens;
 [Export(typeof(ICodeLensCallbackListener))]
 [ContentType(Constants.CONTENT_TYPE_CSHARP)]
 [ContentType(Constants.CONTENT_TYPE_JAVA)]
-[ContentType(Constants.CONTENT_TYPE_JS)]
 [ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
+[ContentType(Constants.CONTENT_TYPE_JAVASCRIPT)]
 internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICodesceneCodelensCallbackService
 {
     public static readonly ConcurrentDictionary<string, CodeLensConnection> Connections = new();
@@ -123,5 +122,11 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         var elementDescription = descriptor.ElementDescription;
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         await AceToolWindow.ShowAsync();
+    }
+
+    public bool ThrowException(Exception ex)
+    {
+        var m = ex.Message;
+        return true;
     }
 }

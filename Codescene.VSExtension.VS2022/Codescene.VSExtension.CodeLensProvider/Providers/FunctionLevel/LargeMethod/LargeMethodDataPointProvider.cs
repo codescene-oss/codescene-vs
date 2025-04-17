@@ -10,8 +10,8 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.LargeMe
     [Name(nameof(LargeMethodDataPointProvider))]
     [ContentType(Constants.CONTENT_TYPE_CSHARP)]
     [ContentType(Constants.CONTENT_TYPE_JAVA)]
-    [ContentType(Constants.CONTENT_TYPE_JS)]
     [ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
+    [ContentType(Constants.CONTENT_TYPE_JAVASCRIPT)]
     [Priority(1060)]
     public class LargeMethodDataPointProvider : BaseDataPointProvider<LargeMethodDataPoint>
     {

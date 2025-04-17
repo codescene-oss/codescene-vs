@@ -10,8 +10,8 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.BumpyRo
     [Name(nameof(BumpyRoadAheadDataPointProvider))]
     [ContentType(Constants.CONTENT_TYPE_CSHARP)]
     [ContentType(Constants.CONTENT_TYPE_JAVA)]
-    [ContentType(Constants.CONTENT_TYPE_JS)]
     [ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
+    [ContentType(Constants.CONTENT_TYPE_JAVASCRIPT)]
     [Priority(1000)]
     public class BumpyRoadAheadDataPointProvider : BaseDataPointProvider<BumpyRoadAheadDataPoint>
     {

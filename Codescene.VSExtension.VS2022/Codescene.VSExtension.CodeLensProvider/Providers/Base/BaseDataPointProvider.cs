@@ -22,10 +22,13 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
         private Task<TResult> InvokeMethodAsync<TResult>(string name, CancellationToken token, IReadOnlyList<object> parameters = null) => _callbackService.Value.InvokeAsync<TResult>(this, name, parameters, token);
 
+        private bool IsAllowedKind(CodeElementKinds kind) => kind == CodeElementKinds.Method || kind == CodeElementKinds.Function;
+        private bool IsNotAllowedKind(CodeElementKinds kind) => !IsAllowedKind(kind);
+
         protected async Task<bool> IsCodelenseEnabledAsync(CodeLensDescriptor descriptor, CancellationToken token)
         {
-            // Add codelense only for methods
-            if (descriptor.Kind != CodeElementKinds.Method)
+            // Add codelense only for methods and functions
+            if (IsNotAllowedKind(descriptor.Kind))
             {
                 return false;
             }
@@ -37,21 +40,29 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
         public virtual async Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
-            var enabled = await IsCodelenseEnabledAsync(descriptor, token);
-            if (!enabled)
+            try
             {
+                var enabled = await IsCodelenseEnabledAsync(descriptor, token);
+                if (!enabled)
+                {
+                    return false;
+                }
+
+                descriptorContext.Properties.TryGetValue("StartLine", out dynamic zeroBasedLineNumber);
+
+                var lineNumber = (int)zeroBasedLineNumber + 1;
+
+                var parameters = new object[] { Name, descriptor.FilePath, lineNumber };
+
+                var show = await InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.ShowCodeLensForFunction), token, parameters);
+
+                return show;
+            }
+            catch (Exception ex)
+            {
+                await InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.ThrowException), token, new object[] { ex });
                 return false;
             }
-
-            descriptorContext.Properties.TryGetValue("StartLine", out dynamic zeroBasedLineNumber);
-
-            var lineNumber = (int)zeroBasedLineNumber + 1;
-
-            var parameters = new object[] { Name, descriptor.FilePath, lineNumber };
-
-            var show = await InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.ShowCodeLensForFunction), token, parameters);
-
-            return show;
         }
 
         public virtual async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)

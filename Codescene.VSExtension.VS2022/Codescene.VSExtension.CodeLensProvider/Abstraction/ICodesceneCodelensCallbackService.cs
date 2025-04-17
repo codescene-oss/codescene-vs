@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
+using System;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.CodeLensProvider.Abstraction
@@ -12,5 +13,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Abstraction
         Task InitializeRpcAsync(string dataPointId);
         bool IsCodeSceneLensesEnabled();
         Task OpenAceToolWindowAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext context);
+
+        bool ThrowException(Exception ex);
     }
 }
