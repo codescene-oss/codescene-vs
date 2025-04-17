@@ -14,6 +14,9 @@ const GlobalUtilities = {
 };
 
 class DeepGlobalNestedComplexityExample {
+
+
+    
     ComplexMethod(value) {
         if (GlobalSettings.FeatureAEnabled) {
 
@@ -29,10 +32,10 @@ class DeepGlobalNestedComplexityExample {
                             while (GlobalUtilities.GlobalCounter < i) {
 
                                 if (GlobalUtilities.CheckCondition(i)) {
-                                    console.log("Condition met – incrementing GlobalCounter.");
+                                    console.log("Condition met ï¿½ incrementing GlobalCounter.");
                                     GlobalUtilities.GlobalCounter++;
                                 } else {
-                                    console.log("Condition not met – resetting GlobalCounter.");
+                                    console.log("Condition not met ï¿½ resetting GlobalCounter.");
                                     GlobalUtilities.GlobalCounter = 0;
                                 }
                             }

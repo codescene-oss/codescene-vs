@@ -2,9 +2,11 @@
 :root, .x17rv10d{--xxfma68:#73C991;--x63q3xt:#EE9D28;--xl733iw:#C6A837;--x3u5mio:#CCCCCC;--x1dznuj7:#66A8F5;--xblfiex:#E55E51;}
 @media (prefers-color-scheme: dark){:root, .x69v6f9{--x1b8wa0y:#007ACC;--xx2i63v:#3A3D41;--x1p7m2db:#282828;--xv3m80b:var(--cs-theme-editor-background, #1E1E1E);--x12zxatx:var(--cs-theme-textCodeBlock-background, #2A2D2E);}}
 @media (prefers-color-scheme: dark){:root, .x17rv10d{--xxfma68:#73C991;--x63q3xt:#EE9D28;--xl733iw:#C6A837;--x3u5mio:#CCCCCC;--x1dznuj7:#66A8F5;--xblfiex:#E55E51;}}
+.xvlky3a:not(#\#){background:#1a1a1a}
 .xy96b20:not(#\#){background:var(--x12zxatx)}
 .xl13fje:not(#\#){background:var(--xv3m80b)}
 .x1wty727:not(#\#){border:0}
+.x1vdmwfg:not(#\#){inset:10px}
 .x1ghz6dp:not(#\#){margin:0}
 .xe7mz8o:not(#\#){margin:auto 0}
 .x1bpp3o7:not(#\#){margin:auto}
@@ -105,6 +107,7 @@
 .x1qughib:not(#\#):not(#\#):not(#\#){justify-content:space-between}
 .xaw8158:not(#\#):not(#\#):not(#\#){justify-content:space-evenly}
 .x1us6l5c:not(#\#):not(#\#):not(#\#){opacity:.8}
+.x10l6tqk:not(#\#):not(#\#):not(#\#){position:absolute}
 .xrbck9l:not(#\#):not(#\#):not(#\#){row-gap:var(--size-fixed-0)}
 .x1a7go0n:not(#\#):not(#\#):not(#\#){row-gap:var(--size-fixed-1)}
 .x1lww28y:not(#\#):not(#\#):not(#\#){row-gap:var(--size-fixed-10)}
@@ -124,10 +127,17 @@
 .x181c3i8:not(#\#):not(#\#):not(#\#){row-gap:var(--size-fixed-9)}
 .x19ypqd9:not(#\#):not(#\#):not(#\#):not(#\#){border-left-style:solid}
 .x1vo0akb:not(#\#):not(#\#):not(#\#):not(#\#){border-left-width:3px}
+.x10w6t97:not(#\#):not(#\#):not(#\#):not(#\#){height:32px}
 .xod5an3:not(#\#):not(#\#):not(#\#):not(#\#){margin-bottom:12px}
 .x8x9d4c:not(#\#):not(#\#):not(#\#):not(#\#){margin-left:auto}
 .xlrvzsl:not(#\#):not(#\#):not(#\#):not(#\#){padding-bottom:var(--size-fixed-2)}
+.x4a824z:not(#\#):not(#\#):not(#\#):not(#\#){right:5px}
+.x1jzctok:not(#\#):not(#\#):not(#\#):not(#\#){top:5px}
 .xh8yej3:not(#\#):not(#\#):not(#\#):not(#\#){width:100%}
+.x1td3qas:not(#\#):not(#\#):not(#\#):not(#\#){width:32px}
+
+
+
 
 
 

@@ -12150,6 +12150,14 @@ const actionMessages = {
     messageType: "close",
     payload: ""
   }),
+  copy: () => extensionApi.postMessage({
+    messageType: "copyCode",
+    payload: ""
+  }),
+  showDiff: () => extensionApi.postMessage({
+    messageType: "showDiff",
+    payload: ""
+  }),
   showLogoutput: () => extensionApi.postMessage({
     messageType: "showLogoutput",
     payload: ""
@@ -12160,11 +12168,6 @@ function filtersReducer(state, action) {
     case "receiveMessage":
       return {
         ...action.payload
-      };
-    case "updateLoading":
-      return {
-        ...state,
-        loading: action.payload
       };
     default:
       return state;
@@ -12179,12 +12182,10 @@ function initialState() {
   console.log("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", "IDE Data:", (_b = window.ideContext) == null ? void 0 : _b.data);
   if (window.ideContext) {
     return {
-      loading: false,
       ...window.ideContext
     };
   } else {
     return {
-      loading: false,
       ideType: "browser",
       view: "docs",
       data: {
@@ -12201,10 +12202,6 @@ const handleEvent = (dispatch) => (event) => {
       dispatch({
         type: "receiveMessage",
         payload: message.payload
-      });
-      dispatch({
-        type: "updateLoading",
-        payload: false
       });
       break;
     }
@@ -12544,6 +12541,22 @@ var AlertIcon = /* @__PURE__ */ createIconComponent("AlertIcon", "octicon octico
       }), /* @__PURE__ */ React.createElement("path", {
         d: "M9.836 3.244c.963-1.665 3.365-1.665 4.328 0l8.967 15.504c.963 1.667-.24 3.752-2.165 3.752H3.034c-1.926 0-3.128-2.085-2.165-3.752Zm3.03.751a1.002 1.002 0 0 0-1.732 0L2.168 19.499A1.002 1.002 0 0 0 3.034 21h17.932a1.002 1.002 0 0 0 .866-1.5L12.866 3.994Z"
       }))
+    }
+  };
+});
+var BugIcon = /* @__PURE__ */ createIconComponent("BugIcon", "octicon octicon-bug", function() {
+  return {
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M4.72.22a.75.75 0 0 1 1.06 0l1 .999a3.488 3.488 0 0 1 2.441 0l.999-1a.748.748 0 0 1 1.265.332.75.75 0 0 1-.205.729l-.775.776c.616.63.995 1.493.995 2.444v.327c0 .1-.009.197-.025.292.408.14.764.392 1.029.722l1.968-.787a.75.75 0 0 1 .556 1.392L13 7.258V9h2.25a.75.75 0 0 1 0 1.5H13v.5c0 .409-.049.806-.141 1.186l2.17.868a.75.75 0 0 1-.557 1.392l-2.184-.873A4.997 4.997 0 0 1 8 16a4.997 4.997 0 0 1-4.288-2.427l-2.183.873a.75.75 0 0 1-.558-1.392l2.17-.868A5.036 5.036 0 0 1 3 11v-.5H.75a.75.75 0 0 1 0-1.5H3V7.258L.971 6.446a.75.75 0 0 1 .558-1.392l1.967.787c.265-.33.62-.583 1.03-.722a1.677 1.677 0 0 1-.026-.292V4.5c0-.951.38-1.814.995-2.444L4.72 1.28a.75.75 0 0 1 0-1.06Zm.53 6.28a.75.75 0 0 0-.75.75V11a3.5 3.5 0 1 0 7 0V7.25a.75.75 0 0 0-.75-.75ZM6.173 5h3.654A.172.172 0 0 0 10 4.827V4.5a2 2 0 1 0-4 0v.327c0 .096.077.173.173.173Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M7.72.22a.75.75 0 0 1 1.06 0l1.204 1.203A4.98 4.98 0 0 1 12 1c.717 0 1.4.151 2.016.423L15.22.22a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042l-.971.972A4.991 4.991 0 0 1 17 6v1.104a2.755 2.755 0 0 1 1.917 1.974l1.998-.999a.75.75 0 0 1 .67 1.342L19 10.714V13.5l3.25.003a.75.75 0 0 1 0 1.5L19 15.001V16c0 .568-.068 1.134-.204 1.686l.04.018 2.75 1.375a.75.75 0 1 1-.671 1.342l-2.638-1.319A6.998 6.998 0 0 1 12 23a6.998 6.998 0 0 1-6.197-3.742l-2.758 1.181a.752.752 0 0 1-1.064-.776.752.752 0 0 1 .474-.602l2.795-1.199A6.976 6.976 0 0 1 5 16v-.996H1.75a.75.75 0 0 1 0-1.5H5v-2.79L2.415 9.42a.75.75 0 0 1 .67-1.342l1.998.999A2.756 2.756 0 0 1 7 7.104V6a4.99 4.99 0 0 1 1.69-3.748l-.97-.972a.75.75 0 0 1 0-1.06ZM6.5 9.75V16a5.5 5.5 0 1 0 11 0V9.75c0-.69-.56-1.25-1.25-1.25h-8.5c-.69 0-1.25.56-1.25 1.25ZM8.5 7h7V6a3.5 3.5 0 1 0-7 0Z"
+      })
     }
   };
 });
@@ -49317,7 +49330,7 @@ const CodeBlock = ({
   codeString
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(highlighter, {
-    language: "React",
+    language: "typescript",
     customStyle: customStyle$1,
     style: atomOneDark,
     showLineNumbers: true,
@@ -49425,163 +49438,6 @@ function Stack({
     children
   });
 }
-const styles$1 = {
-  bannerContainer: {
-    background: "xy96b20",
-    backgroundAttachment: null,
-    backgroundClip: null,
-    backgroundColor: null,
-    backgroundImage: null,
-    backgroundOrigin: null,
-    backgroundPosition: null,
-    backgroundPositionX: null,
-    backgroundPositionY: null,
-    backgroundRepeat: null,
-    backgroundSize: null,
-    padding: "xrx2rhq",
-    paddingInline: null,
-    paddingStart: null,
-    paddingLeft: null,
-    paddingEnd: null,
-    paddingRight: null,
-    paddingBlock: null,
-    paddingTop: null,
-    paddingBottom: null,
-    borderLeftWidth: "x1vo0akb",
-    borderInlineStartWidth: null,
-    borderInlineEndWidth: null,
-    borderLeftStyle: "x19ypqd9",
-    borderInlineStartStyle: null,
-    borderInlineEndStyle: null,
-    fontSize: "x4z9k3i",
-    width: "xh8yej3",
-    boxSizing: "x9f619",
-    $$css: true
-  },
-  title: {
-    fontWeight: "x1xlr1w8",
-    $$css: true
-  },
-  success: {
-    borderColor: "x1w53u8b",
-    borderInlineColor: null,
-    borderInlineStartColor: null,
-    borderLeftColor: null,
-    borderInlineEndColor: null,
-    borderRightColor: null,
-    borderBlockColor: null,
-    borderTopColor: null,
-    borderBottomColor: null,
-    color: "x17r9unv",
-    $$css: true
-  },
-  issue: {
-    borderColor: "xyhv35e",
-    borderInlineColor: null,
-    borderInlineStartColor: null,
-    borderLeftColor: null,
-    borderInlineEndColor: null,
-    borderRightColor: null,
-    borderBlockColor: null,
-    borderTopColor: null,
-    borderBottomColor: null,
-    color: "xs4frbw",
-    $$css: true
-  },
-  warning: {
-    borderColor: "xch19pq",
-    borderInlineColor: null,
-    borderInlineStartColor: null,
-    borderLeftColor: null,
-    borderInlineEndColor: null,
-    borderRightColor: null,
-    borderBlockColor: null,
-    borderTopColor: null,
-    borderBottomColor: null,
-    color: "x49s89i",
-    $$css: true
-  },
-  neutral: {
-    borderColor: "x15uqbi0",
-    borderInlineColor: null,
-    borderInlineStartColor: null,
-    borderLeftColor: null,
-    borderInlineEndColor: null,
-    borderRightColor: null,
-    borderBlockColor: null,
-    borderTopColor: null,
-    borderBottomColor: null,
-    color: "x1aglvb5",
-    $$css: true
-  },
-  info: {
-    borderColor: "x10mome6",
-    borderInlineColor: null,
-    borderInlineStartColor: null,
-    borderLeftColor: null,
-    borderInlineEndColor: null,
-    borderRightColor: null,
-    borderBlockColor: null,
-    borderTopColor: null,
-    borderBottomColor: null,
-    color: "xutiqi0",
-    $$css: true
-  },
-  error: {
-    borderColor: "xes0m8c",
-    borderInlineColor: null,
-    borderInlineStartColor: null,
-    borderLeftColor: null,
-    borderInlineEndColor: null,
-    borderRightColor: null,
-    borderBlockColor: null,
-    borderTopColor: null,
-    borderBottomColor: null,
-    color: "xy54ajn",
-    $$css: true
-  }
-};
-const Banner = ({
-  title,
-  tone = "neutral",
-  textElement,
-  actions = []
-}) => {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props([styles$1.bannerContainer, styles$1[tone]]),
-    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
-      gap: "size-2",
-      direction: "row",
-      children: [tone === "warning" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(AlertIcon, {
-          fill: primaryTones.warning
-        })
-      }), /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
-        direction: "column",
-        gap: "size-4",
-        children: [/* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
-          direction: "column",
-          gap: "size-1",
-          children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-            ...{
-              className: "x1xlr1w8"
-            },
-            children: title
-          }), /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-            ...{
-              className: "x15uqbi0 x1aglvb5"
-            },
-            children: textElement
-          })]
-        }), actions.length ? /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, {
-          direction: "row",
-          gap: "size-2",
-          children: actions
-        }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {})]
-      })]
-    })
-  });
-};
 const PanelHeader = ({
   title,
   subElement = /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {})
@@ -49701,107 +49557,6 @@ const sharedViewStyles = {
     boxSizing: "x9f619",
     $$css: true
   }
-};
-const getToneFromConfidenceLevel = (level) => {
-  switch (level) {
-    case 4:
-      return "success";
-    case 3:
-      return "success";
-    case 2:
-      return "issue";
-    case 1:
-      return "neutral";
-    case 0:
-      return "info";
-    case "error":
-      return "error";
-    default:
-      return "neutral";
-  }
-};
-const getBanner = (confidence, isStale, actionMessages2) => {
-  if (isStale) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
-      title: "File Changes Detected",
-      tone: "warning",
-      textElement: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-        children: "The function has been changed, so the refactoring might no longer apply. If the change was intentional, please reopen the panel to have ACE refactor the latest state of the function. If not, you might want to undo your changes."
-      }),
-      actions: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
-        label: "Close Panel",
-        icon: "cross",
-        onClick: actionMessages2.close
-      })]
-    });
-  } else if (confidence.level === "error") {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
-      title: "Refactoring Failed",
-      tone: "error",
-      textElement: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-        children: ["There was an error when performing this refactoring. Please see the", " ", /* @__PURE__ */ jsxRuntimeExports.jsx("a", {
-          href: "",
-          onClick: (e) => {
-            e.preventDefault();
-            actionMessages2.showLogoutput();
-          },
-          children: "CodeScene Log"
-        }), " ", "output for error details."]
-      }),
-      actions: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
-        label: "Retry Auto-Refactor",
-        primary: true,
-        onClick: actionMessages2.retry
-      })]
-    });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
-    title: confidence["recommended-action"].details,
-    tone: getToneFromConfidenceLevel(confidence.level),
-    textElement: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-      children: confidence["recommended-action"].description
-    }),
-    actions: confidence.level === 1 ? [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
-      label: "Retry Auto-Refactor",
-      primary: true,
-      onClick: actionMessages2.retry
-    })] : []
-  });
-};
-const AceView = ({
-  refactorResponse,
-  fileData,
-  isStale
-}) => {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props(sharedViewStyles.viewWrapper),
-    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
-      direction: "column",
-      gap: "size-4",
-      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
-        title: refactorResponse.confidence.title,
-        subElement: /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
-          ...fileData
-        })
-      }), getBanner(refactorResponse.confidence, isStale, actionMessages), refactorResponse.confidence.level >= 1 && !isStale && /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
-        gap: "size-2",
-        direction: "row",
-        children: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
-          label: "Accept Auto-Refactor",
-          primary: true,
-          onClick: actionMessages.accept,
-          disabled: refactorResponse.confidence.level <= 1
-        }), /* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
-          label: "Reject",
-          icon: "skip",
-          onClick: actionMessages.reject,
-          disabled: refactorResponse.confidence.level <= 1
-        })]
-      }), /* @__PURE__ */ jsxRuntimeExports.jsx(CodeBlock, {
-        codeString: refactorResponse.code
-      })]
-    })
-  });
 };
 const convert = (
   // Note: overloads in JSDoc can’t yet use different `@template`s.
@@ -101090,6 +100845,62 @@ const Markdown = ({
     }
   });
 };
+const styles$1 = {
+  headerStack: {
+    cursor: "x1ypdohk",
+    marginBottom: "xod5an3",
+    $$css: true
+  },
+  buttonStack: {
+    marginLeft: "x8x9d4c",
+    marginInlineStart: null,
+    marginInlineEnd: null,
+    $$css: true
+  }
+};
+const CollapsibleMarkdown = ({
+  title,
+  body,
+  isCollapsed = false,
+  actions = []
+}) => {
+  const [collapsed, setCollapsed] = reactExports.useState(isCollapsed);
+  const toggle = () => setCollapsed((prev) => !prev);
+  reactExports.useEffect(() => {
+    setCollapsed(isCollapsed);
+  }, [isCollapsed, body]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+    children: [/* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "row",
+      gap: "size-2",
+      alignItems: "center",
+      style: styles$1.headerStack,
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+        onClick: toggle,
+        children: !collapsed ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDownIcon, {
+          size: 16
+        }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRightIcon, {
+          size: 16
+        })
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx("h2", {
+        ...{
+          className: "x1jvydc1 x1s688f x1ghz6dp"
+        },
+        onClick: toggle,
+        children: title
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, {
+        direction: "row",
+        gap: "size-2",
+        style: styles$1.buttonStack,
+        children: actions
+      })]
+    }), !collapsed && /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      children: typeof body === "string" ? /* @__PURE__ */ jsxRuntimeExports.jsx(Markdown, {
+        source: body
+      }) : body
+    })]
+  });
+};
 const codeHealthMonitor = `
 Code Health Monitor [beta]
 
@@ -101822,65 +101633,6 @@ const docs = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty
   docs_issues_primitive_obsession: primitiveObsession$1,
   docs_issues_string_heavy_function_arguments: stringHeavyFunctionArguments$1
 }, Symbol.toStringTag, { value: "Module" }));
-const styles = {
-  headerStack: {
-    cursor: "x1ypdohk",
-    marginBottom: "xod5an3",
-    $$css: true
-  },
-  buttonStack: {
-    marginLeft: "x8x9d4c",
-    marginInlineStart: null,
-    marginInlineEnd: null,
-    $$css: true
-  }
-};
-const CollapsibleMarkdown = ({
-  title,
-  body,
-  isCollapsed = false,
-  actions = []
-}) => {
-  const [collapsed, setCollapsed] = reactExports.useState(isCollapsed);
-  const toggle = () => setCollapsed((prev) => !prev);
-  reactExports.useEffect(() => {
-    setCollapsed(isCollapsed);
-  }, [isCollapsed, body]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-    children: [/* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
-      direction: "row",
-      gap: "size-2",
-      alignItems: "center",
-      style: styles.headerStack,
-      children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-        onClick: toggle,
-        children: !collapsed ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDownIcon, {
-          size: 16
-        }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRightIcon, {
-          size: 16
-        })
-      }), /* @__PURE__ */ jsxRuntimeExports.jsx("h2", {
-        ...{
-          className: "x1jvydc1 x1s688f x1ghz6dp"
-        },
-        onClick: toggle,
-        children: title
-      }), /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, {
-        direction: "row",
-        gap: "size-2",
-        style: styles.buttonStack,
-        children: actions
-      })]
-    }), !collapsed && /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Markdown, {
-        source: body
-      })
-    })]
-  });
-};
-function snakeCaseToPretty(input) {
-  return input.split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
-}
 function splitMarkdown(title, sourceMarkdown) {
   let description = sourceMarkdown, exampleAndSolution, example, solution;
   if (sourceMarkdown.includes("## Solution")) {
@@ -101903,12 +101655,16 @@ function splitMarkdown(title, sourceMarkdown) {
   }].filter((item) => item.body);
   return result;
 }
+function snakeCaseToPretty(input) {
+  return input.split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+}
 const DocsView = ({
   fileData,
   docType,
-  autoRefactorAvailable
+  autoRefactor,
+  banner
 }) => {
-  const docsHeader = docType.replace("docs_issues_", "").replace("docs_improvements_", "").replace("docs_", "");
+  const docsHeader = docType.replace("docs_issues_", "").replace("docs_improvement_", "").replace("docs_", "");
   const sourceMarkdown = docs[docType].default;
   const splitDocs = splitMarkdown(snakeCaseToPretty(docsHeader), sourceMarkdown);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {
@@ -101925,13 +101681,13 @@ const DocsView = ({
             lineNumber: fileData.lineNumber,
             action: fileData.action
           }) : void 0
-        }), /* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+        }), banner ? banner : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {}), (autoRefactor == null ? void 0 : autoRefactor.visible) ? /* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
           label: "Auto-Refactor",
-          icon: autoRefactorAvailable ? "sparkle" : "skip",
+          icon: !(autoRefactor == null ? void 0 : autoRefactor.disabled) ? "sparkle" : "skip",
           primary: true,
-          disabled: !autoRefactorAvailable,
+          disabled: autoRefactor == null ? void 0 : autoRefactor.disabled,
           onClick: actionMessages.refactor
-        }), splitDocs.map((doc) => /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleMarkdown, {
+        }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {}), splitDocs.map((doc) => /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleMarkdown, {
           title: doc.title,
           body: doc.body
         }, doc.title))]
@@ -101939,51 +101695,358 @@ const DocsView = ({
     })
   });
 };
-const placeHolderArgs = {
-  fileData: {
-    filename: "CustomLegends.ts",
-    functionName: "extract_identifiers",
-    lineNumber: 11,
-    action: {
-      filePayload: "path/to/CustomLegends.ts",
-      functionPayload: "path/to/CustomLegends.ts:extract_identifiers"
-    }
+const styles = {
+  bannerContainer: {
+    background: "xy96b20",
+    backgroundAttachment: null,
+    backgroundClip: null,
+    backgroundColor: null,
+    backgroundImage: null,
+    backgroundOrigin: null,
+    backgroundPosition: null,
+    backgroundPositionX: null,
+    backgroundPositionY: null,
+    backgroundRepeat: null,
+    backgroundSize: null,
+    padding: "xrx2rhq",
+    paddingInline: null,
+    paddingStart: null,
+    paddingLeft: null,
+    paddingEnd: null,
+    paddingRight: null,
+    paddingBlock: null,
+    paddingTop: null,
+    paddingBottom: null,
+    borderLeftWidth: "x1vo0akb",
+    borderInlineStartWidth: null,
+    borderInlineEndWidth: null,
+    borderLeftStyle: "x19ypqd9",
+    borderInlineStartStyle: null,
+    borderInlineEndStyle: null,
+    fontSize: "x4z9k3i",
+    width: "xh8yej3",
+    boxSizing: "x9f619",
+    $$css: true
   },
-  refactorResponse: {
-    confidence: {
-      title: "Bumpy Road Ahead",
-      description: "description placeholder",
-      level: 4,
-      "recommended-action": {
-        details: "Quick Inspection",
-        description: "The refactoring improves Code Health and preserves the semantics of the code."
-      }
-    },
-    "reasons-with-details": [],
-    "refactoring-properties": {
-      "added-code-smells": [],
-      "removed-code-smells": []
-    },
-    metadata: {
-      "cached?": false
-    },
-    code: `import SyntaxHighlighter from "react-syntax-highlighter";
-import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
-export const CodeBlock = () => {
-  const codeString = "(num) => num + 1";
-  return (
-    <SyntaxHighlighter language="React" style={docco}>
-      {codeString}
-    </SyntaxHighlighter>
-  );
-};`
+  title: {
+    fontWeight: "x1xlr1w8",
+    $$css: true
+  },
+  success: {
+    borderColor: "x1w53u8b",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "x17r9unv",
+    $$css: true
+  },
+  issue: {
+    borderColor: "xyhv35e",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "xs4frbw",
+    $$css: true
+  },
+  warning: {
+    borderColor: "xch19pq",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "x49s89i",
+    $$css: true
+  },
+  neutral: {
+    borderColor: "x15uqbi0",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "x1aglvb5",
+    $$css: true
+  },
+  info: {
+    borderColor: "x10mome6",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "xutiqi0",
+    $$css: true
+  },
+  error: {
+    borderColor: "xes0m8c",
+    borderInlineColor: null,
+    borderInlineStartColor: null,
+    borderLeftColor: null,
+    borderInlineEndColor: null,
+    borderRightColor: null,
+    borderBlockColor: null,
+    borderTopColor: null,
+    borderBottomColor: null,
+    color: "xy54ajn",
+    $$css: true
   }
+};
+const Banner = ({
+  title,
+  tone = "neutral",
+  textElement,
+  actions = []
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props([styles.bannerContainer, styles[tone]]),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      gap: "size-2",
+      direction: "row",
+      children: [tone === "warning" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(AlertIcon, {
+          fill: primaryTones.warning
+        })
+      }), /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+        direction: "column",
+        gap: "size-4",
+        children: [/* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+          direction: "column",
+          gap: "size-1",
+          children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+            ...{
+              className: "x1xlr1w8"
+            },
+            children: title
+          }), /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+            ...{
+              className: "x15uqbi0 x1aglvb5"
+            },
+            children: textElement
+          })]
+        }), actions.length ? /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, {
+          direction: "row",
+          gap: "size-2",
+          children: actions
+        }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {})]
+      })]
+    })
+  });
+};
+const getToneFromConfidenceLevel = (level) => {
+  switch (level) {
+    case 4:
+      return "success";
+    case 3:
+      return "success";
+    case 2:
+      return "issue";
+    case 1:
+      return "info";
+    case 0:
+      return "neutral";
+    case "error":
+      return "error";
+    default:
+      return "neutral";
+  }
+};
+function reasonsContent(response) {
+  const {
+    reasons: reasonsWithDetails,
+    confidence: {
+      "review-header": reviewHeader,
+      level
+    }
+  } = response;
+  let reasons;
+  if (response.confidence.level === "error") {
+    reasons = `Unfortunately, we are unable to provide a CodeScene ACE refactoring recommendation or a code improvement
+guide at this time. We recommend reviewing your code manually to identify potential areas for enhancement.
+
+For further assistance, please refer to the [CodeScene documentation](https://codescene.io/docs)
+for best practices and guidance on improving your code.`;
+  } else if (response.confidence.level === 0) {
+    reasons = "The LLMs couldn't provide an ideal refactoring due to the specific complexities of the code. Though not an endorsed solution, it is displayed as a guide to help refine your approach.";
+  } else {
+    const reasonListItems = reasonsWithDetails.map((reason2) => `<li>${reason2.summary}</li>`);
+    reasons = reasonListItems.length > 0 ? `<ul>${reasonListItems.join("\n")}</ul>` : null;
+  }
+  const safeHeader = reviewHeader || "Reasons for review";
+  const isCollapsed = level > 2;
+  return reasons ? /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleMarkdown, {
+    title: safeHeader,
+    body: reasons,
+    isCollapsed
+  }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {});
+}
+const buttons = {
+  close: /* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+    label: "Close Panel",
+    icon: "cross",
+    onClick: actionMessages.close
+  }, "close"),
+  retry: /* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+    label: "Retry Auto-Refactor",
+    primary: true,
+    onClick: actionMessages.retry
+  }, "retry")
+};
+const getBanner = (confidence, isStale) => {
+  if (isStale) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+      title: "File Changes Detected",
+      tone: "warning",
+      textElement: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+        children: "The function has been changed, so the refactoring might no longer apply. If the change was intentional, please reopen the panel to have ACE refactor the latest state of the function. If not, you might want to undo your changes."
+      }),
+      actions: [buttons.close]
+    });
+  } else if (confidence.level === "error") {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+      title: "Refactoring Failed",
+      tone: "error",
+      textElement: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+        children: ["There was an error when performing this refactoring. Please see the", " ", /* @__PURE__ */ jsxRuntimeExports.jsx("a", {
+          href: "",
+          onClick: (e) => {
+            e.preventDefault();
+            actionMessages.showLogoutput();
+          },
+          children: "CodeScene Log"
+        }), " ", "output for error details."]
+      }),
+      actions: [buttons.retry]
+    });
+  } else if (confidence.level === 1) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+      title: "Code Improvement Guide",
+      tone: getToneFromConfidenceLevel(confidence.level),
+      textElement: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+        children: "CodeScene ACE was unable to generate a refactoring recommendation. Please refer to the manual steps for improving your code."
+      })
+    });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+    title: confidence["recommended-action"].details,
+    tone: getToneFromConfidenceLevel(confidence.level),
+    textElement: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      children: confidence["recommended-action"].description
+    }),
+    actions: confidence.level === 0 ? [buttons.retry] : []
+  });
+};
+const AceView = ({
+  loading,
+  aceResultData,
+  fileData,
+  isStale
+}) => {
+  if (loading) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      ...props(sharedViewStyles.viewWrapper),
+      children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+        direction: "column",
+        gap: "size-4",
+        children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
+          title: "Refactoring...",
+          subElement: /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
+            ...fileData
+          })
+        }), /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+          tone: "info",
+          title: "Refactoring...",
+          textElement: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+            children: "doing stuff..."
+          })
+        })]
+      })
+    });
+  }
+  const {
+    confidence,
+    code: code2
+  } = aceResultData;
+  if (confidence.level === 1) {
+    const {
+      "refactoring-properties": {
+        "removed-code-smells": removedCodeSmells
+      }
+    } = aceResultData;
+    let docType = "docs_improvement_guides_modularity_improvement";
+    if (removedCodeSmells.length > 0) {
+      docType = "docs_improvement_guides_" + removedCodeSmells[0].replaceAll("-", "_");
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(DocsView, {
+      fileData,
+      docType,
+      banner: getBanner(confidence, isStale)
+    });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props(sharedViewStyles.viewWrapper),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "column",
+      gap: "size-4",
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
+        title: confidence.title,
+        subElement: /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
+          ...fileData
+        })
+      }), getBanner(confidence, isStale), confidence.level >= 1 && !isStale && /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+        gap: "size-2",
+        direction: "row",
+        children: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+          label: "Accept Auto-Refactor",
+          primary: true,
+          onClick: actionMessages.accept,
+          disabled: confidence.level <= 1
+        }, "accept"), /* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+          label: "Reject",
+          icon: "skip",
+          onClick: actionMessages.reject,
+          disabled: confidence.level <= 1
+        }, "reject")]
+      }), reasonsContent(aceResultData), confidence.level !== "error" ? /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleMarkdown, {
+        title: `Refactored code ${confidence.level === 0 ? "(unverified)" : ""}`,
+        body: /* @__PURE__ */ jsxRuntimeExports.jsx(CodeBlock, {
+          codeString: code2
+        }),
+        actions: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+          label: "Show diff",
+          icon: "fileDiff",
+          onClick: actionMessages.showDiff
+        }, "diff"), /* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+          label: "Copy",
+          icon: "copy",
+          onClick: actionMessages.copy
+        }, "copy")]
+      }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {})]
+    })
+  });
 };
 const CatchAll = () => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...{
-      className: "x10kqxg1 xzbod5j xl13fje x1e38ks9 x182rzkk"
-    },
+    ...props(sharedViewStyles.viewWrapper),
     children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       gap: "size-4",
       direction: "column",
@@ -102009,9 +102072,7 @@ const CatchAll = () => {
 };
 const MissingContext = () => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-    ...{
-      className: "x10kqxg1 xzbod5j xl13fje x1e38ks9 x182rzkk"
-    },
+    ...props(sharedViewStyles.viewWrapper),
     children: [/* @__PURE__ */ jsxRuntimeExports.jsx(Markdown, {
       source: `# Missing context
 Missing ideContext, please add the following tag to head tag in
@@ -102032,9 +102093,7 @@ webview <html> template`
 };
 const MissingParams = () => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...{
-      className: "x10kqxg1 xzbod5j xl13fje x1e38ks9 x182rzkk"
-    },
+    ...props(sharedViewStyles.viewWrapper),
     children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       gap: "size-4",
       direction: "column",
@@ -102071,6 +102130,34 @@ const MissingParams = () => {
     })
   });
 };
+const DebugView = ({
+  data
+}) => {
+  const [showDebug, setShowDebug] = reactExports.useState(false);
+  if (!showDebug) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      ...{
+        className: "x10l6tqk x1jzctok x4a824z x1td3qas x10w6t97 x1ypdohk"
+      },
+      onClick: () => setShowDebug(true),
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(BugIcon, {})
+    });
+  } else {
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+      ...{
+        className: "x10l6tqk x1vdmwfg xvlky3a"
+      },
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+        label: "close",
+        primary: true,
+        icon: "cross",
+        onClick: () => setShowDebug(false)
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(CodeBlock, {
+        codeString: JSON.stringify(data, null, 2)
+      })]
+    });
+  }
+};
 function MainView() {
   const {
     ideType,
@@ -102083,15 +102170,23 @@ function MainView() {
     }
     console.log("%c[CS webview]", "color: white; background: #162c53; padding: 3px;", view, data);
     if (view === "ace" && data) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(AceView, {
-        ...placeHolderArgs
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, {
+        children: [/* @__PURE__ */ jsxRuntimeExports.jsx(AceView, {
+          ...data
+        }), /* @__PURE__ */ jsxRuntimeExports.jsx(DebugView, {
+          data
+        })]
       });
     }
     if (view === "docs" && data) {
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(DocsView, {
-        docType: data.docType,
-        fileData: data.fileData,
-        autoRefactorAvailable: true
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, {
+        children: [/* @__PURE__ */ jsxRuntimeExports.jsx(DocsView, {
+          docType: data.docType,
+          fileData: data.fileData,
+          autoRefactor: data.autoRefactor
+        }), /* @__PURE__ */ jsxRuntimeExports.jsx(DebugView, {
+          data
+        })]
       });
     }
     return /* @__PURE__ */ jsxRuntimeExports.jsx(MissingParams, {});
