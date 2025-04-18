@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models.Cli;
+﻿using Codescene.VSExtension.Core.Models.Cli.Review;
 using Newtonsoft.Json;
 using System.ComponentModel.Composition;
 using System.Diagnostics;

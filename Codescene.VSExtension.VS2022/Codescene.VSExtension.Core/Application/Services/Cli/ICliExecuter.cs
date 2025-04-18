@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models.Cli;
+﻿using Codescene.VSExtension.Core.Models.Cli.Review;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {

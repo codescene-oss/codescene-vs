@@ -97,16 +97,33 @@
     <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
     <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
+    <Compile Include="Models\Cli\Refactor\ConfidenceModel.cs" />
+    <Compile Include="Models\Cli\Refactor\CreditsInfoModel.cs" />
+    <Compile Include="Models\Cli\Refactor\CreditsInfoErrorModel.cs" />
+    <Compile Include="Models\Cli\Refactor\FnToRefactor.cs" />
+    <Compile Include="Models\Cli\Refactor\MetadataModel.cs" />
+    <Compile Include="Models\Cli\Refactor\PreFlightResponseModel.cs" />
+    <Compile Include="Models\Cli\Refactor\ReasonDetailsModel.cs" />
+    <Compile Include="Models\Cli\Refactor\ReasonModel.cs" />
+    <Compile Include="Models\Cli\Refactor\RecommendedActionModel.cs" />
+    <Compile Include="Models\Cli\Refactor\RefactoringPropertiesModel.cs" />
+    <Compile Include="Models\Cli\Refactor\RefactoringTargetModel.cs" />
+    <Compile Include="Models\Cli\Refactor\RefactorResponseModel.cs" />
+    <Compile Include="Models\Cli\Refactor\RefactorSupportModel.cs" />
+    <Compile Include="Models\Cli\Review\CliCodeHealthRulesErrorModel.cs" />
     <Compile Include="Models\LoginResponse.cs" />
     <Compile Include="Models\CodeSmellModel.cs" />
-    <Compile Include="Models\Cli\CliCodeSmellModel.cs" />
+    <Compile Include="Models\Cli\Review\CliCodeSmellModel.cs" />
     <Compile Include="Models\FileReviewModel.cs" />
-    <Compile Include="Models\Cli\CliReviewModel.cs" />
-    <Compile Include="Models\Cli\CliReviewFunctionModel.cs" />
+    <Compile Include="Models\Cli\Review\CliReviewModel.cs" />
+    <Compile Include="Models\Cli\Review\CliReviewFunctionModel.cs" />
     <Compile Include="Models\Cli\CliRangeModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Monikers.imagemanifest">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />

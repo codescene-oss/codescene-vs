@@ -1,5 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cli;
+using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using System.ComponentModel.Composition;
 using System.Linq;

@@ -196,6 +196,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="cs-ide.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="ToolWindows\WebComponent\index.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -232,10 +236,6 @@
     <Resource Include="Resources\User.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Content Include="cs-ide.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <None Include="Resources\docs\code-health-monitor.md" />
     <None Include="Resources\docs\complex-conditional.md" />
     <None Include="Resources\docs\general-code-health.md" />
