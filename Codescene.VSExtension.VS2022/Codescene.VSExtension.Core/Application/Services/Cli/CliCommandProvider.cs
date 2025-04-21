@@ -14,8 +14,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return $"refactor preflight{useForce}";
         }
 
-        public string GetRefactorCommandWithCodeSmells(string extension, string codeSmellsJson)
-            => $"refactor fns-to-refactor --extension {extension} --code-smells {codeSmellsJson}";
+        public string GetRefactorCommandWithCodeSmells(string extension, string codeSmellsJson, string preflight = null)
+        {
+            var preflightString = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight {preflight}";
+            return $"refactor fns-to-refactor --extension {extension}{preflightString} --code-smells {codeSmellsJson}";
+        }
 
         public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";
         public string GetReviewPathCommand(string path) => $"review {path}";

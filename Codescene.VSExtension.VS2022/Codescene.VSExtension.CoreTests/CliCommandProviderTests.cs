@@ -49,5 +49,62 @@ namespace Codescene.VSExtension.CoreTests
             Assert.AreEqual("review some/path --ide-api", command,
                 "GetReviewPathCommand didn't return the expected string.");
         }
+
+        [TestMethod]
+        public void GetRefactorCommandWithCodeSmells_Without_Preflight_Parameter()
+        {
+            // ARRANGE
+            var extension = "js";
+            var codeSmellsJson = "{ id = 1 }";
+            var provider = new CliCommandProvider();
+
+            // ACT
+            var command = provider.GetRefactorCommandWithCodeSmells(extension, codeSmellsJson);
+
+            // ASSERT
+            Assert.AreEqual(command, $"refactor fns-to-refactor --extension {extension} --code-smells {codeSmellsJson}");
+        }
+
+        [TestMethod]
+        public void GetRefactorCommandWithCodeSmells_With_Preflight_Parameter()
+        {
+            // ARRANGE
+            var extension = "js";
+            var codeSmellsJson = "{ id = 1 }";
+            var preflight = "{ id = 5 }";
+            var provider = new CliCommandProvider();
+
+            // ACT
+            var command = provider.GetRefactorCommandWithCodeSmells(extension, codeSmellsJson, preflight);
+
+            // ASSERT
+            Assert.AreEqual(command, $"refactor fns-to-refactor --extension {extension} --preflight {preflight} --code-smells {codeSmellsJson}");
+        }
+
+        [TestMethod]
+        public void GetPreflightSupportInformationCommand_Without_Force_Parameter()
+        {
+            // ARRANGE
+            var provider = new CliCommandProvider();
+
+            // ACT
+            var command = provider.GetPreflightSupportInformationCommand(force: false);
+
+            // ASSERT
+            Assert.AreEqual(command, "refactor preflight");
+        }
+
+        [TestMethod]
+        public void GetPreflightSupportInformationCommand_With_Force_Parameter()
+        {
+            // ARRANGE
+            var provider = new CliCommandProvider();
+
+            // ACT
+            var command = provider.GetPreflightSupportInformationCommand(force: true);
+
+            // ASSERT
+            Assert.AreEqual(command, "refactor preflight --force");
+        }
     }
 }

@@ -9,5 +9,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         CliReviewModel ReviewContent(string filename, string content);
         string GetFileVersion();
         PreFlightResponseModel Preflight(bool force = true);
+        RefactorResponseModel FnsToRefactorFromCodeSmells(string extension, string content, string codeSmellsJson);
+        RefactorResponseModel FnsToRefactorFromCodeSmells(string extension, string content, string codeSmellsJson, string preflight);
     }
 }

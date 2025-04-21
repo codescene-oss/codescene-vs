@@ -24,14 +24,14 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public CliReviewModel Review(string path)
         {
-            string arguments = _cliCommandProvider.GetReviewPathCommand(path);
+            var arguments = _cliCommandProvider.GetReviewPathCommand(path);
             var result = ExecuteCommand(arguments);
             return JsonConvert.DeserializeObject<CliReviewModel>(result);
         }
 
         public CliReviewModel ReviewContent(string filename, string content)
         {
-            string arguments = _cliCommandProvider.GetReviewFileContentCommand(filename);
+            var arguments = _cliCommandProvider.GetReviewFileContentCommand(filename);
             var result = ExecuteCommand(arguments, content: content);
             return JsonConvert.DeserializeObject<CliReviewModel>(result);
         }
@@ -69,16 +69,30 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public string GetFileVersion()
         {
-            string arguments = _cliCommandProvider.VersionCommand;
+            var arguments = _cliCommandProvider.VersionCommand;
             var result = ExecuteCommand(arguments);
             return result.TrimEnd('\r', '\n');
         }
 
         public PreFlightResponseModel Preflight(bool force = true)
         {
-            string arguments = _cliCommandProvider.GetPreflightSupportInformationCommand(force: force);
+            var arguments = _cliCommandProvider.GetPreflightSupportInformationCommand(force: force);
             var result = ExecuteCommand(arguments);
             return JsonConvert.DeserializeObject<PreFlightResponseModel>(result);
+        }
+
+        public RefactorResponseModel FnsToRefactorFromCodeSmells(string extension, string content, string codeSmellsJson)
+        {
+            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmellsJson);
+            var result = ExecuteCommand(arguments, content);
+            return JsonConvert.DeserializeObject<RefactorResponseModel>(result);
+        }
+
+        public RefactorResponseModel FnsToRefactorFromCodeSmells(string extension, string content, string codeSmellsJson, string preflight)
+        {
+            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmellsJson, preflight);
+            var result = ExecuteCommand(arguments, content);
+            return JsonConvert.DeserializeObject<RefactorResponseModel>(result);
         }
     }
 }
