@@ -6,7 +6,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
     public class PreFlightResponseModel
     {
         [JsonProperty("version")]
-        public int Version { get; set; }
+        public decimal Version { get; set; }
 
         [JsonProperty("file-types")]
         public string[] FileTypes { get; set; }

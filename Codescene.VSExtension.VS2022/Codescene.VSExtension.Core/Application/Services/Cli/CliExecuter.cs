@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Models.Cli.Review;
+﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cli.Review;
 using Newtonsoft.Json;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -15,6 +16,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         [Import]
         private readonly ICliSettingsProvider _cliSettingsProvider;
 
+        public CliExecuter(ICliCommandProvider cliCommandProvider, ICliSettingsProvider cliSettingsProvider)
+        {
+            _cliCommandProvider = cliCommandProvider;
+            _cliSettingsProvider = cliSettingsProvider;
+        }
 
         public CliReviewModel Review(string path)
         {
@@ -66,6 +72,13 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             string arguments = _cliCommandProvider.VersionCommand;
             var result = ExecuteCommand(arguments);
             return result.TrimEnd('\r', '\n');
+        }
+
+        public PreFlightResponseModel Preflight(bool force = true)
+        {
+            string arguments = _cliCommandProvider.GetPreflightSupportInformationCommand(force: force);
+            var result = ExecuteCommand(arguments);
+            return JsonConvert.DeserializeObject<PreFlightResponseModel>(result);
         }
     }
 }
