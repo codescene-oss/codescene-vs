@@ -10,17 +10,38 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public string GetPreflightSupportInformationCommand(bool force)
         {
-            var useForce = force ? " --force" : string.Empty;
-            return $"refactor preflight{useForce}";
+            var useForceArg = force ? " --force" : string.Empty;
+            return $"refactor preflight{useForceArg}";
         }
 
-        public string GetRefactorCommandWithCodeSmells(string extension, string codeSmellsJson, string preflight = null)
+        public string GetRefactorCommandWithCodeSmells(string extension, string codeSmells, string preflight = null)
         {
-            var preflightString = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight {preflight}";
-            return $"refactor fns-to-refactor --extension {extension}{preflightString} --code-smells {codeSmellsJson}";
+            var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight {preflight}";
+            return $"refactor fns-to-refactor --extension {extension}{preflightArg} --code-smells {codeSmells}";
+        }
+
+        public string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null)
+        {
+            var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight {preflight}";
+            return $"refactor fns-to-refactor --extension {extension}{preflightArg} --delta-result {deltaResult}";
+        }
+
+        public string GetRefactorPostCommand(string fnToRefactor, bool skipCache, string token = null)
+        {
+            var skipCacheArg = skipCache ? " --skip-cache" : string.Empty;
+            var tokenArg = string.IsNullOrWhiteSpace(token) ? string.Empty : $" --token {token}";
+            return $"refactor post{skipCacheArg} --fn-to-refactor {fnToRefactor}{tokenArg}";
+        }
+
+
+
+        public string GetReviewDeltaCommand(string path)
+        {
+            throw new System.NotImplementedException();
         }
 
         public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";
+
         public string GetReviewPathCommand(string path) => $"review {path}";
     }
 }

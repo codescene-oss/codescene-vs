@@ -1,6 +1,8 @@
-﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+﻿using Codescene.VSExtension.Core.Models.Cli.Delta;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
@@ -56,7 +58,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
             using (var process = Process.Start(processInfo))
             {
-                if (process.StandardInput != null && content != null)
+                if (process.StandardInput != null && string.IsNullOrWhiteSpace(content) == false)
                 {
                     process.StandardInput.Write(content);
                     process.StandardInput.Close(); // Close input stream to signal end of input
@@ -81,18 +83,47 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return JsonConvert.DeserializeObject<PreFlightResponseModel>(result);
         }
 
-        public RefactorResponseModel FnsToRefactorFromCodeSmells(string extension, string content, string codeSmellsJson)
+        public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmellsJson)
         {
             var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmellsJson);
+            var result = ExecuteCommand(arguments, content);
+            return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
+        }
+
+        public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmellsJson, string preflight)
+        {
+            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmellsJson, preflight);
+            var result = ExecuteCommand(arguments, content);
+            return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
+        }
+
+        public RefactorResponseModel PostRefactoring(string content, string fnToRefactor, bool skipCache = false, string token = null)
+        {
+            var arguments = _cliCommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: token);
             var result = ExecuteCommand(arguments, content);
             return JsonConvert.DeserializeObject<RefactorResponseModel>(result);
         }
 
-        public RefactorResponseModel FnsToRefactorFromCodeSmells(string extension, string content, string codeSmellsJson, string preflight)
+        public IList<FnToRefactorModel> FnsToRefactorFromDelta(string content, string extension, string delta)
         {
-            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmellsJson, preflight);
+            var arguments = _cliCommandProvider.GetRefactorCommandWithDeltaResult(extension: extension, deltaResult: delta);
             var result = ExecuteCommand(arguments, content);
-            return JsonConvert.DeserializeObject<RefactorResponseModel>(result);
+            return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
+        }
+
+        public IList<FnToRefactorModel> FnsToRefactorFromDelta(string content, string extension, string delta, string preflight)
+        {
+            var arguments = _cliCommandProvider.GetRefactorCommandWithDeltaResult(extension: extension, deltaResult: delta, preflight: preflight);
+            var result = ExecuteCommand(arguments, content);
+            return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
+        }
+
+        public DeltaResponseModel ReviewDelta(string content, string oldScore, string newScore)
+        {
+            //var arguments = _cliCommandProvider.get(extension: extension, deltaResult: delta, preflight: preflight);
+            //var result = ExecuteCommand(arguments, content);
+            //return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
+            return null;
         }
     }
 }

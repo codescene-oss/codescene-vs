@@ -43,7 +43,7 @@ namespace Codescene.VSExtension.Tests
                 var result = _cliExecuter.ReviewContent(fileName, content);
                 var codesmellsJson = JsonConvert.SerializeObject(result.FunctionLevelCodeSmells[0].CodeSmells);
                 var preflight = JsonConvert.SerializeObject(_cliExecuter.Preflight());
-                var refactor = _cliExecuter.FnsToRefactorFromCodeSmells(extension, content, codesmellsJson, preflight);
+                var refactor = _cliExecuter.FnsToRefactorFromCodeSmells(content, extension, codesmellsJson, preflight);
                 //Assert.IsNotNull(result);
             }
         }

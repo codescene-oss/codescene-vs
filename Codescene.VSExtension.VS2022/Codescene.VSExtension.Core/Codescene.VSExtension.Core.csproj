@@ -79,6 +79,8 @@
     <Compile Include="Application\Services\Cli\CliExecuter.cs" />
     <Compile Include="Application\Services\Cli\CliFileChecker.cs" />
     <Compile Include="Application\Services\Cli\CliSettingsProvider.cs" />
+    <Compile Include="Application\Services\Cli\IObjectScoreCreator.cs" />
+    <Compile Include="Application\Services\Cli\ObjectScoreCreator.cs" />
     <Compile Include="Application\Services\Cli\SupportedFileChecker.cs" />
     <Compile Include="Application\Services\Cli\ICliCommandProvider.cs" />
     <Compile Include="Application\Services\Cli\ICliFileChecker.cs" />
@@ -97,10 +99,15 @@
     <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
     <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
+    <Compile Include="Models\Cli\Delta\ChangeDetailModel.cs" />
+    <Compile Include="Models\Cli\Delta\ChangeType.cs" />
+    <Compile Include="Models\Cli\Delta\DeltaResponseModel.cs" />
+    <Compile Include="Models\Cli\Delta\FunctionFindingModel.cs" />
+    <Compile Include="Models\Cli\Delta\FunctionInfoModel.cs" />
     <Compile Include="Models\Cli\Refactor\ConfidenceModel.cs" />
     <Compile Include="Models\Cli\Refactor\CreditsInfoModel.cs" />
     <Compile Include="Models\Cli\Refactor\CreditsInfoErrorModel.cs" />
-    <Compile Include="Models\Cli\Refactor\FnToRefactor.cs" />
+    <Compile Include="Models\Cli\Refactor\FnToRefactorModel.cs" />
     <Compile Include="Models\Cli\Refactor\MetadataModel.cs" />
     <Compile Include="Models\Cli\Refactor\PreFlightResponseModel.cs" />
     <Compile Include="Models\Cli\Refactor\ReasonDetailsModel.cs" />

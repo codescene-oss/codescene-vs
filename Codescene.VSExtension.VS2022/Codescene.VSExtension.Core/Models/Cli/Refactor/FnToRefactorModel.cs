@@ -5,7 +5,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
     /// <summary>
     /// A structure for use in subsequent calls to the refactor endpoint.
     /// </summary>
-    public class FnToRefactor
+    public class FnToRefactorModel
     {
 
         [JsonProperty("body")]
