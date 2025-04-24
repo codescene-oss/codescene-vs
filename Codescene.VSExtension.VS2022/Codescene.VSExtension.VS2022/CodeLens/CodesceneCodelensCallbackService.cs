@@ -1,7 +1,10 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Codelens;
+﻿using Codescene.VSExtension.CodeLensProvider.Abstraction;
+using Codescene.VSExtension.CodeLensProvider.Providers.Base;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
-using Microsoft.Build.Framework.XamlTypes;
+using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Microsoft.VisualStudio.Language.CodeLens;
+using Microsoft.VisualStudio.Language.CodeLens.Remoting;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Concurrent;
@@ -14,8 +17,10 @@ using System.Threading.Tasks;
 namespace Codescene.VSExtension.VS2022.CodeLens;
 
 [Export(typeof(ICodeLensCallbackListener))]
-//[PartCreationPolicy(CreationPolicy.Shared)]
-[ContentType("CSharp")]
+[ContentType(Constants.CONTENT_TYPE_CSHARP)]
+[ContentType(Constants.CONTENT_TYPE_JAVA)]
+[ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
+[ContentType(Constants.CONTENT_TYPE_JAVASCRIPT)]
 internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICodesceneCodelensCallbackService
 {
     public static readonly ConcurrentDictionary<string, CodeLensConnection> Connections = new();
@@ -36,20 +41,20 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
     /// <param name="issue"></param>
     /// <param name="filePath"></param>
     /// <param name="lineNumber"></param>
-    /// <param name="obj"></param>
     /// <returns></returns>
-    public bool ShowCodeLensForLine(string issue, string filePath, int lineNumber, dynamic obj)
+    public bool ShowCodeLensForFunction(string issue, string filePath, int lineNumber)
     {
         var review = _reviewer.Review(filePath);
 
-        if (review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == lineNumber))
+        // If there is any smells this should be shown
+        if (issue == Constants.Titles.CODESCENE_ACE)
         {
-            return true;
+            return review.FunctionLevel.Any(x => x.StartLine == lineNumber);
         }
 
-        return false;
-
+        return review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == lineNumber);
     }
+
 
     public bool IsCodeSceneLensesEnabled()
     {
@@ -92,5 +97,36 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
     public static async Task RefreshCodeLensAsync()
     {
         await Task.WhenAll(Connections.Keys.Select(RefreshDataPointAsync)).ConfigureAwait(false);
+    }
+
+    //public async Task OpenAceToolWindowAsync()
+    //{
+    //    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+    //    await AceToolWindow.ShowAsync();
+    //}
+
+    //public Task OpenAceToolWindowAsync(object descriptor, object context)
+    //{
+    //    var desc = (CodeLensDescriptor)descriptor;
+    //    var ctx = (CodeLensDescriptorContext)context;
+    //    return null;
+    //}
+
+    public async Task OpenAceToolWindowAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext context)
+    {
+        context.Properties.TryGetValue("StartLine", out var startLine);
+        context.Properties.TryGetValue("StartColumn", out var startColumn);
+        context.Properties.TryGetValue("FullyQualifiedName", out var fullyQualifiedName);
+        var path = descriptor.FilePath;
+        var kind = descriptor.Kind;
+        var elementDescription = descriptor.ElementDescription;
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await AceToolWindow.ShowAsync();
+    }
+
+    public bool ThrowException(Exception ex)
+    {
+        var m = ex.Message;
+        return true;
     }
 }

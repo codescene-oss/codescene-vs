@@ -41,11 +41,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Issues\BumpyRoadExample.cs" />
-    <Compile Include="Issues\ComplexConditionalExample.cs" />
-    <Compile Include="Issues\DeepGlobalNestedComplexityExample.cs" />
-    <Compile Include="Issues\DeepNestedComplexity.cs" />
-    <Compile Include="Issues\PrimitiveObsessionExample.cs" />
+    <Compile Include="Issues\CSharp\BumpyRoadExample.cs" />
+    <Compile Include="Issues\CSharp\ComplexConditionalExample.cs" />
+    <Compile Include="Issues\CSharp\DeepGlobalNestedComplexityExample.cs" />
+    <Compile Include="Issues\CSharp\DeepNestedComplexity.cs" />
+    <Compile Include="Issues\CSharp\PrimitiveObsessionExample.cs" />
     <Compile Include="Old\TestCombined.cs" />
     <Compile Include="Old\TestingImprovements.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -54,7 +54,16 @@
     <Compile Include="Old\TrackedPositiveFile.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Issues\Javascript\BumpyRoadExample.js" />
+    <Content Include="Issues\Javascript\ComplexConditionalExample.js" />
+    <Content Include="Issues\Javascript\DeepGlobalNestedComplexityExample.js" />
+    <Content Include="Issues\Javascript\DeepNestedComplexity.js" />
     <Content Include="ShouldNotBeAnalyzed\text.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Monikers.imagemanifest">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

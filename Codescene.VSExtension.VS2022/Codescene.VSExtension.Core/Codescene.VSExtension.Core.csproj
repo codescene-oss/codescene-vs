@@ -31,14 +31,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Markdig, Version=0.40.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Markdig.0.40.0\lib\net462\Markdig.dll</HintPath>
+    <Reference Include="Markdig, Version=0.41.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Markdig.0.41.0\lib\net462\Markdig.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.3, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.3\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.4, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.4\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=9.0.0.3, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.9.0.3\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=9.0.0.4, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.9.0.4\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -79,6 +79,8 @@
     <Compile Include="Application\Services\Cli\CliExecuter.cs" />
     <Compile Include="Application\Services\Cli\CliFileChecker.cs" />
     <Compile Include="Application\Services\Cli\CliSettingsProvider.cs" />
+    <Compile Include="Application\Services\Cli\IObjectScoreCreator.cs" />
+    <Compile Include="Application\Services\Cli\ObjectScoreCreator.cs" />
     <Compile Include="Application\Services\Cli\SupportedFileChecker.cs" />
     <Compile Include="Application\Services\Cli\ICliCommandProvider.cs" />
     <Compile Include="Application\Services\Cli\ICliFileChecker.cs" />
@@ -97,20 +99,38 @@
     <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
     <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
-    <Compile Include="Application\Services\Codelens\CustomDetailsData.cs" />
-    <Compile Include="Application\Services\Codelens\ICodesceneCodelensCallbackService.cs" />
-    <Compile Include="Application\Services\Codelens\IRemoteCodeLens.cs" />
-    <Compile Include="Application\Services\Codelens\RpcPipeNames.cs" />
+    <Compile Include="Models\Cli\Delta\ChangeDetailModel.cs" />
+    <Compile Include="Models\Cli\Delta\ChangeType.cs" />
+    <Compile Include="Models\Cli\Delta\DeltaResponseModel.cs" />
+    <Compile Include="Models\Cli\Delta\FunctionFindingModel.cs" />
+    <Compile Include="Models\Cli\Delta\FunctionInfoModel.cs" />
+    <Compile Include="Models\Cli\Refactor\ConfidenceModel.cs" />
+    <Compile Include="Models\Cli\Refactor\CreditsInfoModel.cs" />
+    <Compile Include="Models\Cli\Refactor\CreditsInfoErrorModel.cs" />
+    <Compile Include="Models\Cli\Refactor\FnToRefactorModel.cs" />
+    <Compile Include="Models\Cli\Refactor\MetadataModel.cs" />
+    <Compile Include="Models\Cli\Refactor\PreFlightResponseModel.cs" />
+    <Compile Include="Models\Cli\Refactor\ReasonDetailsModel.cs" />
+    <Compile Include="Models\Cli\Refactor\ReasonModel.cs" />
+    <Compile Include="Models\Cli\Refactor\RecommendedActionModel.cs" />
+    <Compile Include="Models\Cli\Refactor\RefactoringPropertiesModel.cs" />
+    <Compile Include="Models\Cli\Refactor\RefactoringTargetModel.cs" />
+    <Compile Include="Models\Cli\Refactor\RefactorResponseModel.cs" />
+    <Compile Include="Models\Cli\Refactor\RefactorSupportModel.cs" />
+    <Compile Include="Models\Cli\Review\CliCodeHealthRulesErrorModel.cs" />
     <Compile Include="Models\LoginResponse.cs" />
     <Compile Include="Models\CodeSmellModel.cs" />
-    <Compile Include="Models\Cli\CliCodeSmellModel.cs" />
+    <Compile Include="Models\Cli\Review\CliCodeSmellModel.cs" />
     <Compile Include="Models\FileReviewModel.cs" />
-    <Compile Include="Models\Cli\CliReviewModel.cs" />
-    <Compile Include="Models\Cli\CliReviewFunctionModel.cs" />
+    <Compile Include="Models\Cli\Review\CliReviewModel.cs" />
+    <Compile Include="Models\Cli\Review\CliReviewFunctionModel.cs" />
     <Compile Include="Models\Cli\CliRangeModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Monikers.imagemanifest">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />

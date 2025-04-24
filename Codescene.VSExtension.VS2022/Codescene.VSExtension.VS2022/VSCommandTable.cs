@@ -32,6 +32,8 @@ namespace Codescene.VSExtension.VS2022
         public const int CodeSceneMenu = 0x1021;
         public const int CodeSceneCommandsGroup = 0x1022;
         public const int OpenSettings = 0x1025;
+        public const int OpenAceToolWindow = 0x1026;
+        public const int OpenCodeHealthToolWindow = 0x1027;
         public const int SignInCommand = 0x0400;
         public const int OpenStatusWindowCommand = 0x0800;
         public const int SignOutCommand = 0x0500;

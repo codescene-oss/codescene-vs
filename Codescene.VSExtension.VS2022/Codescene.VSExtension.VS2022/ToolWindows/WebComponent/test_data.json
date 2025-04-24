@@ -1,0 +1,60 @@
+//{
+//  "file": {
+//    "filename": "CustomLegends.ts",
+//    "functionName": "extract_identifiers",
+//    "lineNumber": 11,
+//    "action": {
+//      "filePayload": "path/to/CustomLegends.ts",
+//      "functionPayload": "path/to/CustomLegends.ts:extract_identifiers"
+//    }
+//  },
+//  "refactorResponse": {
+//    "confidence": {
+//      "title": "Refactoring Results",
+//      "description": "description placeholder",
+//      "level": 4,
+//      "recommended-action": {
+//        "details": "Quick Inspection",
+//        "description": "The refactoring improves Code Health and preserves the semantics of the code."
+//      }
+//    },
+//    "reasons-with-details": [],
+//    "refactoring-properties": {
+//      "added-code-smells": [],
+//      "removed-code-smells": []
+//    },
+//    "metadata": {
+//      "cached?": false
+//    },
+//    "code": "import SyntaxHighlighter from \"react-syntax-highlighter\";\nimport { docco } from \"react-syntax-highlighter/dist/esm/styles/hljs\";\nexport const CodeBlock = () => {\n  const codeString = \"(num) => num + 1\";\n  return (\n    <SyntaxHighlighter language=\"React\" style={docco}>\n      {codeString}\n    </SyntaxHighlighter>\n  );\n};"
+//  }
+//}
+
+{
+  "view": "ace",
+  "ideType": "VSCode",
+  "data": {
+    "fileData": {
+      "filename": "CustomLegends.ts",
+      "functionName": "extract_identifiers",
+      "lineNumber": 11,
+      "action": {
+        "filePayload": "path/to/CustomLegends.ts",
+        "functionPayload": "path/to/CustomLegends.ts:extract_identifiers"
+      }
+    },
+    "aceResultData": { /* rename from refactorResponse */
+      "confidence": {
+
+      },
+      "reasons-with-details": [],
+      "refactoring-properties": {
+        "added-code-smells": [],
+        "removed-code-smells": []
+      },
+      "metadata": { "cached?": false },
+      "code": "import SyntaxHighlighter ..."
+    },
+    "isStale": false /* optional */
+  }
+}

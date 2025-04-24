@@ -60,6 +60,22 @@
 					<ButtonText>Settings</ButtonText>
 				</Strings>
 			</Button>
+			<Button guid="CodeSceneCmdSet" id="OpenAceToolWindow" priority="0x9999" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
+				<Icon guid="ImageCatalogGuid" id="Settings" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>Open Ace</ButtonText>
+				</Strings>
+			</Button>
+			<Button guid="CodeSceneCmdSet" id="OpenCodeHealthToolWindow" priority="0x9999" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
+				<Icon guid="ImageCatalogGuid" id="Settings" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>Open Code health</ButtonText>
+				</Strings>
+			</Button>
 		</Buttons>
 
 	</Commands>
@@ -73,6 +89,8 @@
 			<IDSymbol name="CodeSceneMenu" value="0x1021" />
 			<IDSymbol name="CodeSceneCommandsGroup" value="0x1022" />
 			<IDSymbol name="OpenSettings" value="0x1025"/>
+			<IDSymbol name="OpenAceToolWindow" value="0x1026"/>
+			<IDSymbol name="OpenCodeHealthToolWindow" value="0x1027"/>
 			<IDSymbol name="SignInCommand" value="0x0400" />
 			<IDSymbol name="OpenStatusWindowCommand" value="0x0800" />
 			<IDSymbol name="SignOutCommand" value="0x0500" />

@@ -8,7 +8,10 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.BrainMe
 {
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(BrainMethodDataPointProvider))]
-    [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
+    [ContentType(Constants.CONTENT_TYPE_CSHARP)]
+    [ContentType(Constants.CONTENT_TYPE_JAVA)]
+    [ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
+    [ContentType(Constants.CONTENT_TYPE_JAVASCRIPT)]
     [Priority(1040)]
     public class BrainMethodDataPointProvider : BaseDataPointProvider<BrainMethodDataPoint>
     {

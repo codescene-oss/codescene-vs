@@ -1,5 +1,5 @@
-﻿using Codescene.VSExtension.VS2022.Commands;
-using Codescene.VSExtension.VS2022.Helpers;
+﻿using Codescene.VSExtension.VS2022.CodeLens;
+using Codescene.VSExtension.VS2022.Commands;
 using System.Windows.Controls;
 using System.Windows.Input;
 

@@ -51,6 +51,8 @@
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="CodeLens\CodeLensConnection.cs" />
     <Compile Include="CodeLens\CodesceneCodelensCallbackService.cs" />
+    <Compile Include="Commands\OpenAceToolWindowCommand.cs" />
+    <Compile Include="Commands\OpenCodeHealthToolWindowCommand.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
     <Compile Include="Commands\SignOutCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
@@ -68,6 +70,9 @@
     </Compile>
     <Compile Include="Controls\CodeHealthMonitor.xaml.cs">
       <DependentUpon>CodeHealthMonitor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\CodelensACE.xaml.cs">
+      <DependentUpon>CodelensACE.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\ComplexConditional.xaml.cs">
       <DependentUpon>ComplexConditional.xaml</DependentUpon>
@@ -156,13 +161,21 @@
     <Compile Include="DocumentEventsHandler\OnAfterDocumentWindowHideHandler.cs" />
     <Compile Include="DocumentEventsHandler\ExtensionEventsManager.cs" />
     <Compile Include="DocumentEventsHandler\OnStartExtensionActiveDocumentHandler.cs" />
-    <Compile Include="Helpers\ToolWindowRegistry.cs" />
+    <Compile Include="CodeLens\ToolWindowRegistry.cs" />
     <Compile Include="RegistryHelper.cs" />
     <Compile Include="Helpers\BooleanToVisibilityConverter.cs" />
     <Compile Include="Commands\Base\VSBaseCommand.cs" />
     <Compile Include="Options\General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\SignInCommand.cs" />
+    <Compile Include="ToolWindows\WebComponent\AceToolWindow.cs" />
+    <Compile Include="ToolWindows\WebComponent\CodeHealthToolWindow.cs" />
+    <Compile Include="ToolWindows\WebComponent\JsonSchemaValidator.cs" />
+    <Compile Include="ToolWindows\WebComponent\MessageObj.cs" />
+    <Compile Include="ToolWindows\WebComponent\WebComponentMessageHandler.cs" />
+    <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">
+      <DependentUpon>WebComponentUserControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UnderlineTagger\UnderlineTagger.cs" />
     <Compile Include="UnderlineTagger\UnderlineTaggerProvider.cs" />
     <Compile Include="VS2022Package.cs" />
@@ -175,7 +188,7 @@
     <Compile Include="ToolWindows\Markdown\MarkdownWindowControl.xaml.cs">
       <DependentUpon>MarkdownWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ViewElementFactory.cs" />
+    <Compile Include="CodeLens\ViewElementFactory.cs" />
     <Compile Include="VSCommandTable.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -183,6 +196,31 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="cs-ide.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ToolWindows\WebComponent\index.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ToolWindows\WebComponent\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ToolWindows\WebComponent\index.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ToolWindows\WebComponent\test_data.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ToolWindows\WebComponent\webview-schema.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <None Include="ToolWindows\WebComponent\message-schema.json" />
     <Resource Include="Resources\StatusError.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -198,10 +236,6 @@
     <Resource Include="Resources\User.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Content Include="cs-ide.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <None Include="Resources\docs\code-health-monitor.md" />
     <None Include="Resources\docs\complex-conditional.md" />
     <None Include="Resources\docs\general-code-health.md" />
@@ -288,17 +322,29 @@
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Markdig">
-      <Version>0.40.0</Version>
+      <Version>0.41.0</Version>
     </PackageReference>
     <PackageReference Include="MessagePack">
       <Version>3.1.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection">
-      <Version>9.0.3</Version>
+      <Version>9.0.4</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language">
+      <Version>17.13.226</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServices">
+      <Version>4.13.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.13.2126">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Web.WebView2">
+      <Version>1.0.3179.45</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json.Schema">
+      <Version>4.0.1</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -319,6 +365,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\CodeHealthMonitor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\CodelensACE.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -430,18 +480,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="ToolWindows\WebComponent\WebComponentUserControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Codescene.VSExtension.CodeLensProvider\Codescene.VSExtension.CodeLensProvider.csproj">
-      <Project>{f9f38cfc-6b77-4e6d-8511-9f201135af97}</Project>
+      <Project>{F9F38CFC-6B77-4E6D-8511-9F201135AF97}</Project>
       <Name>Codescene.VSExtension.CodeLensProvider</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\Codescene.VSExtension.Core\Codescene.VSExtension.Core.csproj">
-      <Project>{3217b4fd-5a1b-4deb-b1d9-bcbdf5f22388}</Project>
+      <Project>{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}</Project>
       <Name>Codescene.VSExtension.Core</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\Codescene.VSExtension.CredentialManagerPersistenceAuthProvider\Codescene.VSExtension.CredentialManagerPersistenceAuthProvider.csproj">
       <Project>{3e9f599c-61b2-4224-b730-e406fe8e641c}</Project>

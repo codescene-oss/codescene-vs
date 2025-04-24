@@ -8,7 +8,10 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.FunctionLevel.CodeDup
 {
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(CodeDuplicationDataPointProvider))]
-    [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
+    [ContentType(Constants.CONTENT_TYPE_CSHARP)]
+    [ContentType(Constants.CONTENT_TYPE_JAVA)]
+    [ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
+    [ContentType(Constants.CONTENT_TYPE_JAVASCRIPT)]
     [Priority(1030)]
     public class CodeDuplicationDataPointProvider : BaseDataPointProvider<CodeDuplicationDataPoint>
     {

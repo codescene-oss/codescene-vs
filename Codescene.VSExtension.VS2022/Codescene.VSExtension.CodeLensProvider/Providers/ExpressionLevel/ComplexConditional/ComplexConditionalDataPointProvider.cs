@@ -8,8 +8,11 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.ExpressionLevel.Compl
 {
     [Export(typeof(IAsyncCodeLensDataPointProvider))]
     [Name(nameof(ComplexConditionalDataPointProvider))]
-    [ContentType(Constants.DATA_POINT_PROVIDER_CONTENT_TYPE)]
-    [Priority(101)]
+    [ContentType(Constants.CONTENT_TYPE_CSHARP)]
+    [ContentType(Constants.CONTENT_TYPE_JAVA)]
+    [ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
+    [ContentType(Constants.CONTENT_TYPE_JAVASCRIPT)]
+    [Priority(990)]
     public class ComplexConditionalDataPointProvider : BaseDataPointProvider<ComplexConditionalDataPoint>
     {
         public override string Name => Constants.Titles.COMPLEX_CONDITIONAL;

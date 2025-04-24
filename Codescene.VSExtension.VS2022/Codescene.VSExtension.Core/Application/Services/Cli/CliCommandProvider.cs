@@ -7,7 +7,43 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     public class CliCommandProvider : ICliCommandProvider
     {
         public string VersionCommand => "version --sha";
+
+        public string GetPreflightSupportInformationCommand(bool force)
+        {
+            var useForceArg = force ? " --force" : string.Empty;
+            return $"refactor preflight{useForceArg}";
+        }
+
+        private string AdjustQuotes(string value) => value.Replace("\"", "\"\"");
+
+        public string GetRefactorCommandWithCodeSmells(string extension, string codeSmells, string preflight = null)
+        {
+            var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight \"{AdjustQuotes(preflight)}\"";
+            return $"refactor fns-to-refactor --extension {extension}{preflightArg} --code-smells \"{AdjustQuotes(codeSmells)}\"";
+        }
+
+        public string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null)
+        {
+            var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight \"{AdjustQuotes(preflight)}\"";
+            return $"refactor fns-to-refactor --extension {extension}{preflightArg} --delta-result {deltaResult}";
+        }
+
+        public string GetRefactorPostCommand(string fnToRefactor, bool skipCache, string token = null)
+        {
+            var skipCacheArg = skipCache ? " --skip-cache" : string.Empty;
+            var tokenArg = string.IsNullOrWhiteSpace(token) ? string.Empty : $" --token {token}";
+            return $"refactor post{skipCacheArg} --fn-to-refactor {fnToRefactor}{tokenArg}";
+        }
+
+
+
+        public string GetReviewDeltaCommand(string path)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";
+
         public string GetReviewPathCommand(string path) => $"review {path}";
     }
 }
