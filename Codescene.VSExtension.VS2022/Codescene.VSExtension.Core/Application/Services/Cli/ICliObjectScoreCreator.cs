@@ -1,6 +1,6 @@
 ﻿namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
-    public interface IObjectScoreCreator
+    public interface ICliObjectScoreCreator
     {
         /// <summary>
         /// 

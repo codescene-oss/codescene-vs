@@ -6,6 +6,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliCommandProvider : ICliCommandProvider
     {
+        [Import]
+        private readonly ICliObjectScoreCreator _creator;
+
         public string VersionCommand => "version --sha";
 
         public string GetPreflightSupportInformationCommand(bool force)
@@ -36,14 +39,14 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         }
 
 
-
-        public string GetReviewDeltaCommand(string path)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";
 
         public string GetReviewPathCommand(string path) => $"review {path}";
+
+        public string GetReviewDeltaCommand(string oldScore, string newScore)
+        {
+            var scores = _creator.Create(oldScore, newScore);
+            return $"delta {scores}";
+        }
     }
 }

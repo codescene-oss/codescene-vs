@@ -79,8 +79,8 @@
     <Compile Include="Application\Services\Cli\CliExecuter.cs" />
     <Compile Include="Application\Services\Cli\CliFileChecker.cs" />
     <Compile Include="Application\Services\Cli\CliSettingsProvider.cs" />
-    <Compile Include="Application\Services\Cli\IObjectScoreCreator.cs" />
-    <Compile Include="Application\Services\Cli\ObjectScoreCreator.cs" />
+    <Compile Include="Application\Services\Cli\ICliObjectScoreCreator.cs" />
+    <Compile Include="Application\Services\Cli\CliObjectScoreCreator.cs" />
     <Compile Include="Application\Services\Cli\SupportedFileChecker.cs" />
     <Compile Include="Application\Services\Cli\ICliCommandProvider.cs" />
     <Compile Include="Application\Services\Cli\ICliFileChecker.cs" />

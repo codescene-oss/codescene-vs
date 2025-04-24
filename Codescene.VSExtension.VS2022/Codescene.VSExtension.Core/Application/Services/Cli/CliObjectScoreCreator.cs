@@ -3,9 +3,9 @@ using System.Text;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
-    [Export(typeof(IObjectScoreCreator))]
+    [Export(typeof(ICliObjectScoreCreator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class ObjectScoreCreator : IObjectScoreCreator
+    public class CliObjectScoreCreator : ICliObjectScoreCreator
     {
         /// <summary>
         /// 
@@ -31,7 +31,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             var oldScoreExists = false;
             if (!string.IsNullOrWhiteSpace(oldScore))
             {
-                sb.Append($" 'old-score':{oldScore} ");
+                sb.Append($"\"old-score\":\"{oldScore}\"");
                 oldScoreExists = true;
             }
 
@@ -39,10 +39,10 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             {
                 if (oldScoreExists)
                 {
-                    sb.Append(", ");
+                    sb.Append(",");
                 }
 
-                sb.Append($" 'new-score':{newScore} ");
+                sb.Append($"\"new-score\":\"{newScore}\"");
             }
 
             sb.Append("}");

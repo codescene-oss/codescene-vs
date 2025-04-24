@@ -167,12 +167,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
         }
 
-        public DeltaResponseModel ReviewDelta(string content, string oldScore, string newScore)
+        public async Task<DeltaResponseModel> ReviewDelta(string content, string oldScore, string newScore)
         {
-            //var arguments = _cliCommandProvider.get(extension: extension, deltaResult: delta, preflight: preflight);
-            //var result = ExecuteCommand(arguments, content);
-            //return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
-            return null;
+            var arguments = _cliCommandProvider.GetReviewDeltaCommand(oldScore: oldScore, newScore: newScore);
+            var result = await ExecuteCommandAsync(arguments, content);
+            return JsonConvert.DeserializeObject<DeltaResponseModel>(result.StdOut);
         }
 
         public Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells)
