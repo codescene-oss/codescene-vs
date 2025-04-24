@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Tests
 {
@@ -28,9 +29,8 @@ namespace Codescene.VSExtension.Tests
             Assert.IsNotNull(result);
         }
 
-
         [TestMethod]
-        public void Test_Refactor()
+        public async Task Test_Refactor()
         {
             var fileName = "DeepGlobalNestedComplexityExample.js";
             var extension = Path.GetExtension(fileName).Replace(".", "");
@@ -43,8 +43,8 @@ namespace Codescene.VSExtension.Tests
                 var result = _cliExecuter.ReviewContent(fileName, content);
                 var codesmellsJson = JsonConvert.SerializeObject(result.FunctionLevelCodeSmells[0].CodeSmells);
                 var preflight = JsonConvert.SerializeObject(_cliExecuter.Preflight());
-                var refactor = _cliExecuter.FnsToRefactorFromCodeSmells(content, extension, codesmellsJson, preflight);
-                //Assert.IsNotNull(result);
+                var refactor = await _cliExecuter.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
+                Assert.IsNotNull(result);
             }
         }
     }

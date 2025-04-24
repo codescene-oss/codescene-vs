@@ -2,6 +2,7 @@
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
@@ -17,5 +18,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         IList<FnToRefactorModel> FnsToRefactorFromDelta(string content, string extension, string delta);
         IList<FnToRefactorModel> FnsToRefactorFromDelta(string content, string extension, string delta, string preflight);
         RefactorResponseModel PostRefactoring(string content, string fnToRefactor, bool skipCache = false, string token = null);
+        Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells);
+        Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells, string preflight);
     }
 }

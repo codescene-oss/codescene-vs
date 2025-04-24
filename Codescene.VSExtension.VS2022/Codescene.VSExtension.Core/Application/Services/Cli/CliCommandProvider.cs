@@ -14,15 +14,17 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return $"refactor preflight{useForceArg}";
         }
 
+        private string AdjustQuotes(string value) => value.Replace("\"", "\"\"");
+
         public string GetRefactorCommandWithCodeSmells(string extension, string codeSmells, string preflight = null)
         {
-            var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight {preflight}";
-            return $"refactor fns-to-refactor --extension {extension}{preflightArg} --code-smells {codeSmells}";
+            var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight \"{AdjustQuotes(preflight)}\"";
+            return $"refactor fns-to-refactor --extension {extension}{preflightArg} --code-smells \"{AdjustQuotes(codeSmells)}\"";
         }
 
         public string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null)
         {
-            var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight {preflight}";
+            var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight \"{AdjustQuotes(preflight)}\"";
             return $"refactor fns-to-refactor --extension {extension}{preflightArg} --delta-result {deltaResult}";
         }
 
