@@ -20,8 +20,8 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         var exeFolder = Path.GetDirectoryName(exePath);
         string localFolder = Path.Combine(exeFolder, "ToolWindows\\WebComponent");
         string data = File.ReadAllText(Path.Combine(localFolder, "test_data.json"));
-        var validator = new JsonSchemaValidator();
-        var result = validator.Validate(data);
+        //var validator = new JsonSchemaValidator();
+        //var result = validator.Validate(data);
         var ctrl = new WebComponentUserControl(view: "ace", data: data);
 
         ctrl.CloseRequested = async () =>
