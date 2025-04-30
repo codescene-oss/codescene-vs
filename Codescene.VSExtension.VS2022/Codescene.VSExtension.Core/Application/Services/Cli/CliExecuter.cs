@@ -20,6 +20,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         [Import]
         private readonly ICliSettingsProvider _cliSettingsProvider;
 
+        [ImportingConstructor]
         public CliExecuter(ICliCommandProvider cliCommandProvider, ICliSettingsProvider cliSettingsProvider)
         {
             _cliCommandProvider = cliCommandProvider;
