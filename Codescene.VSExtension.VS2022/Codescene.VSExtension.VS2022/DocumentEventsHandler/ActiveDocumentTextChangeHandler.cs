@@ -34,7 +34,7 @@ public class ActiveDocumentTextChangeHandler
         }
     }
 
-    private const int _SECONDS = 3;
+    private const int _SECONDS = 1;
     public async Task SubscribeAsync()
     {
         var activeDocument = await VS.Documents.GetActiveDocumentViewAsync();
