@@ -1,4 +1,7 @@
-﻿using Microsoft.Web.WebView2.Core;
+﻿using Codescene.VSExtension.Core.Models.WebComponent;
+using Microsoft.Web.WebView2.Core;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.IO;
 using System.Reflection;
@@ -14,16 +17,26 @@ public partial class WebComponentUserControl : UserControl
     public Func<Task> CloseRequested;
     private const string FOLDER_LOCATION = @"ToolWindows\WebComponent";
 
-    public WebComponentUserControl(string view, string data = "{}")
+    public WebComponentUserControl(WebComponentPayload payload)
     {
         InitializeComponent();
-        _ = InitializeWebView2Async(view: view, data: data);
+        _ = InitializeWebView2Async(payload);
     }
 
-    private string GenerateInitialScript(string view, string data)
+    private string GenerateInitialScript(WebComponentPayload payload)
     {
-        const string expression = "function setContext() { window.ideContext = { ideType:'Visual Studio', view:'viewType', data:dataObject } }; setContext();";
-        return expression.Replace("viewType", view).Replace("dataObject", data);
+        const string template = "function setContext() { window.ideContext = %ideContext% } setContext();";
+
+        var settings = new JsonSerializerSettings
+        {
+            ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
+            Formatting = Formatting.None
+        };
+        var ideContext = JsonConvert.SerializeObject(payload, settings);
+
+        var script = template.Replace("%ideContext%", ideContext);
+
+        return script;
     }
 
     private async Task<CoreWebView2Environment> CreatePerWindowEnvAsync(string view)
@@ -34,9 +47,9 @@ public partial class WebComponentUserControl : UserControl
 
 
     private const string HOST = "myapp.local";
-    private async Task InitializeWebView2Async(string view, string data)
+    private async Task InitializeWebView2Async(WebComponentPayload payload)
     {
-        var env = await CreatePerWindowEnvAsync(view);
+        var env = await CreatePerWindowEnvAsync(payload.View);
 
         await webView.EnsureCoreWebView2Async(env);
 
@@ -52,7 +65,7 @@ public partial class WebComponentUserControl : UserControl
 
         webView.Source = new Uri($"https://{HOST}/index.html");
 
-        await webView.CoreWebView2.ExecuteScriptAsync(GenerateInitialScript(view: view, data: data));
+        await webView.CoreWebView2.ExecuteScriptAsync(GenerateInitialScript(payload));
     }
 
     private async Task OnWebMessageReceivedAsync(object sender, CoreWebView2WebMessageReceivedEventArgs e)

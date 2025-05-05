@@ -1,4 +1,5 @@
-﻿using Community.VisualStudio.Toolkit;
+﻿using Codescene.VSExtension.Core.Models.WebComponent;
+using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using System;
@@ -19,15 +20,34 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         var exePath = Assembly.GetExecutingAssembly().Location;
         var exeFolder = Path.GetDirectoryName(exePath);
         string localFolder = Path.Combine(exeFolder, "ToolWindows\\WebComponent");
-        string data = File.ReadAllText(Path.Combine(localFolder, "test_data.json"));
-        var validator = new JsonSchemaValidator();
-        var result = validator.Validate(data);
-        var ctrl = new WebComponentUserControl(view: "ace", data: data);
 
-        ctrl.CloseRequested = async () =>
+        var payload = new WebComponentPayload
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            await HideAsync();
+            IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+            View = WebComponentConstants.VievTypes.ACE,
+            Data = new WebComponentData
+            {
+                Loading = true,
+                FileData = new WebComponentFileData
+                {
+                    Filename = "CustomLegends.ts",
+                    FunctionName = "extract_identifiers",
+                    LineNumber = 11,
+                    Action = new WebComponentAction
+                    {
+                        GoToFunctionLocationPayload = "path/to/CustomLegends.ts:extract_identifiers"
+                    }
+                }
+            }
+        };
+
+        var ctrl = new WebComponentUserControl(payload)
+        {
+            CloseRequested = async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await HideAsync();
+            }
         };
 
         return Task.FromResult<FrameworkElement>(ctrl);

@@ -14,7 +14,7 @@ public class CodeHealthToolWindow : BaseToolWindow<CodeHealthToolWindow>
 
     public override Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
-        var ctrl = new WebComponentUserControl(view: "codehealth");
+        var ctrl = new WebComponentUserControl(new Core.Models.WebComponent.WebComponentPayload());
 
         ctrl.CloseRequested = async () =>
         {

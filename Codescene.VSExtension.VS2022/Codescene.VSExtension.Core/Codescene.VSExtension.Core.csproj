@@ -125,6 +125,11 @@
     <Compile Include="Models\Cli\Review\CliReviewModel.cs" />
     <Compile Include="Models\Cli\Review\CliReviewFunctionModel.cs" />
     <Compile Include="Models\Cli\CliRangeModel.cs" />
+    <Compile Include="Models\WebComponent\WebComponentData.cs" />
+    <Compile Include="Models\WebComponent\WebComponentFileData.cs" />
+    <Compile Include="Models\WebComponent\WebComponentMessage.cs" />
+    <Compile Include="Models\WebComponent\WebComponentConstants.cs" />
+    <Compile Include="Models\WebComponent\WebComponentPayload.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

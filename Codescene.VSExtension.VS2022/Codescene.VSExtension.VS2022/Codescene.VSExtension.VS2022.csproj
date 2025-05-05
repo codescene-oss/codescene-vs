@@ -170,7 +170,6 @@
     <Compile Include="Commands\SignInCommand.cs" />
     <Compile Include="ToolWindows\WebComponent\AceToolWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\CodeHealthToolWindow.cs" />
-    <Compile Include="ToolWindows\WebComponent\JsonSchemaValidator.cs" />
     <Compile Include="ToolWindows\WebComponent\MessageObj.cs" />
     <Compile Include="ToolWindows\WebComponent\WebComponentMessageHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">

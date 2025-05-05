@@ -12172,9 +12172,9 @@ const actionMessages = {
     messageType: "close",
     payload: ""
   }),
-  goToFunctionLocation: (file) => extensionApi.postMessage({
+  goToFunctionLocation: (functionLocation) => extensionApi.postMessage({
     messageType: "goto-function-location",
-    payload: file
+    payload: functionLocation
   }),
   copy: () => extensionApi.postMessage({
     messageType: "copyCode",
@@ -12566,6 +12566,54 @@ var AlertIcon = /* @__PURE__ */ createIconComponent("AlertIcon", "octicon octico
     }
   };
 });
+var ArrowDownRightIcon = /* @__PURE__ */ createIconComponent("ArrowDownRightIcon", "octicon octicon-arrow-down-right", function() {
+  return {
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M4.22 4.179a.75.75 0 0 1 1.06 0l5.26 5.26v-4.2a.75.75 0 0 1 1.5 0v6.01a.75.75 0 0 1-.75.75H5.28a.75.75 0 0 1 0-1.5h4.2L4.22 5.24a.75.75 0 0 1 0-1.06Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M18.25 8.5a.75.75 0 0 1 .75.75v9a.75.75 0 0 1-.75.75h-9a.75.75 0 0 1 0-1.5h7.19L6.22 7.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L17.5 16.44V9.25a.75.75 0 0 1 .75-.75Z"
+      })
+    }
+  };
+});
+var ArrowRightIcon = /* @__PURE__ */ createIconComponent("ArrowRightIcon", "octicon octicon-arrow-right", function() {
+  return {
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M8.22 2.97a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l2.97-2.97H3.75a.75.75 0 0 1 0-1.5h7.44L8.22 4.03a.75.75 0 0 1 0-1.06Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"
+      })
+    }
+  };
+});
+var ArrowUpRightIcon = /* @__PURE__ */ createIconComponent("ArrowUpRightIcon", "octicon octicon-arrow-up-right", function() {
+  return {
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M4.53 4.75A.75.75 0 0 1 5.28 4h6.01a.75.75 0 0 1 .75.75v6.01a.75.75 0 0 1-1.5 0v-4.2l-5.26 5.261a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L9.48 5.5h-4.2a.75.75 0 0 1-.75-.75Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M18.25 15.5a.75.75 0 0 1-.75-.75V7.56L7.28 17.78a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L16.44 6.5H9.25a.75.75 0 0 1 0-1.5h9a.75.75 0 0 1 .75.75v9a.75.75 0 0 1-.75.75Z"
+      })
+    }
+  };
+});
 var BugIcon = /* @__PURE__ */ createIconComponent("BugIcon", "octicon octicon-bug", function() {
   return {
     "16": {
@@ -12638,6 +12686,22 @@ var ChevronRightIcon = /* @__PURE__ */ createIconComponent("ChevronRightIcon", "
       "width": 24,
       "path": /* @__PURE__ */ React.createElement("path", {
         d: "M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"
+      })
+    }
+  };
+});
+var CodeIcon = /* @__PURE__ */ createIconComponent("CodeIcon", "octicon octicon-code", function() {
+  return {
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M15.22 4.97a.75.75 0 0 1 1.06 0l6.5 6.5a.75.75 0 0 1 0 1.06l-6.5 6.5a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L21.19 12l-5.97-5.97a.75.75 0 0 1 0-1.06Zm-6.44 0a.75.75 0 0 1 0 1.06L2.81 12l5.97 5.97a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215l-6.5-6.5a.75.75 0 0 1 0-1.06l6.5-6.5a.75.75 0 0 1 1.06 0Z"
       })
     }
   };
@@ -12746,6 +12810,22 @@ var SparklesFillIcon = /* @__PURE__ */ createIconComponent("SparklesFillIcon", "
     }
   };
 });
+var ThumbsupIcon = /* @__PURE__ */ createIconComponent("ThumbsupIcon", "octicon octicon-thumbsup", function() {
+  return {
+    "16": {
+      "width": 16,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M8.347.631A.75.75 0 0 1 9.123.26l.238.04a3.25 3.25 0 0 1 2.591 4.098L11.494 6h.665a3.25 3.25 0 0 1 3.118 4.167l-1.135 3.859A2.751 2.751 0 0 1 11.503 16H6.586a3.75 3.75 0 0 1-2.184-.702A1.75 1.75 0 0 1 3 16H1.75A1.75 1.75 0 0 1 0 14.25v-6.5C0 6.784.784 6 1.75 6h3.417a.25.25 0 0 0 .217-.127ZM4.75 13.649l.396.33c.404.337.914.521 1.44.521h4.917a1.25 1.25 0 0 0 1.2-.897l1.135-3.859A1.75 1.75 0 0 0 12.159 7.5H10.5a.75.75 0 0 1-.721-.956l.731-2.558a1.75 1.75 0 0 0-1.127-2.14L6.69 6.611a1.75 1.75 0 0 1-1.523.889H4.75ZM3.25 7.5h-1.5a.25.25 0 0 0-.25.25v6.5c0 .138.112.25.25.25H3a.25.25 0 0 0 .25-.25Z"
+      })
+    },
+    "24": {
+      "width": 24,
+      "path": /* @__PURE__ */ React.createElement("path", {
+        d: "M13.349 2.378a.748.748 0 0 1 .808-.361l.127.027a3.875 3.875 0 0 1 2.879 4.97L16.527 9h1.137c2.645 0 4.513 2.591 3.676 5.1l-1.559 4.678A3.25 3.25 0 0 1 16.698 21h-5.289a4.503 4.503 0 0 1-2.828-.999A1.75 1.75 0 0 1 7 21H4.75A1.75 1.75 0 0 1 3 19.25v-8.5C3 9.784 3.784 9 4.75 9h4.67a.251.251 0 0 0 .217-.126l3.712-6.496ZM8.75 18.16l.683.598a3.003 3.003 0 0 0 1.976.742h5.289a1.75 1.75 0 0 0 1.66-1.197l1.559-4.677a2.375 2.375 0 0 0-2.253-3.126H15.5a.75.75 0 0 1-.714-.979l.948-2.964a2.375 2.375 0 0 0-1.373-2.927l-3.422 5.988a1.749 1.749 0 0 1-1.519.882h-.67v7.66Zm-1.5-7.66h-2.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25H7a.25.25 0 0 0 .25-.25V10.5Z"
+      })
+    }
+  };
+});
 var XIcon = /* @__PURE__ */ createIconComponent("XIcon", "octicon octicon-x", function() {
   return {
     "12": {
@@ -12769,15 +12849,19 @@ var XIcon = /* @__PURE__ */ createIconComponent("XIcon", "octicon octicon-x", fu
   };
 });
 const font = {
-  color: "var(--x1fmqzwv)",
-  size: "var(--x3nk13k)",
-  editorSize: "var(--x4anqww)"
+  color: "var(--xqb64tn)",
+  size: "var(--x1qdp6t0)",
+  editorSize: "var(--x1gwgvkz)"
 };
 const surfaceColors = {
-  primary: "var(--x1b8wa0y)"
+  primary: "var(--xlv8a0e)"
 };
 const primaryTones = {
-  warning: "var(--xl733iw)"
+  success: "var(--x1usc5kn)",
+  issue: "var(--x22xb7u)",
+  warning: "var(--x1jxx5gf)",
+  neutral: "var(--x40krt4)",
+  error: "var(--xebh0w)"
 };
 const gapStyles = {
   none: {
@@ -13032,7 +13116,7 @@ const columnGapStyles = {
     $$css: true
   }
 };
-const styles$5 = {
+const styles$8 = {
   storybookButton: {
     display: "x78zum5",
     alignSelf: "xqcrz7y",
@@ -13069,7 +13153,7 @@ const styles$5 = {
     borderTopColor: null,
     borderBottomColor: null,
     fontWeight: "x1fcty0u",
-    fontSize: "x1relrul",
+    fontSize: "x1tt3jfx",
     borderRadius: "x1cum3z5",
     borderStartStartRadius: null,
     borderStartEndRadius: null,
@@ -13084,17 +13168,17 @@ const styles$5 = {
     $$css: true
   },
   "storybookButton--primary": {
-    backgroundColor: "x1xz20ev",
+    backgroundColor: "x13zhi31",
     color: "x1f7m26b",
     $$css: true
   },
   "storybookButton--secondary": {
-    backgroundColor: "xdz8tzw",
+    backgroundColor: "x1abw7xj",
     color: "x1f7m26b",
     $$css: true
   },
   "storybookButton--disabled": {
-    backgroundColor: "x1n099lw",
+    backgroundColor: "xmtn67x",
     color: "x11x8p45",
     cursor: "xt0e3qv",
     $$css: true
@@ -13152,9 +13236,9 @@ const styles$5 = {
   }
 };
 const iconSize = {
-  "small": 12,
-  "medium": 14,
-  "large": 16
+  small: 12,
+  medium: 14,
+  large: 16
 };
 const iconLookup$1 = {
   check: CheckIcon,
@@ -13185,12 +13269,12 @@ const Button = ({
   disabled: disabled2,
   ...props$1
 }) => {
-  let modeStyle = primary ? styles$5["storybookButton--primary"] : styles$5["storybookButton--secondary"];
-  if (disabled2) modeStyle = styles$5["storybookButton--disabled"];
-  const sizeStyle = styles$5[`storybookButton--${size}`];
+  let modeStyle = primary ? styles$8["storybookButton--primary"] : styles$8["storybookButton--secondary"];
+  if (disabled2) modeStyle = styles$8["storybookButton--disabled"];
+  const sizeStyle = styles$8[`storybookButton--${size}`];
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("button", {
     type: "button",
-    ...props([styles$5.storybookButton, sizeStyle, modeStyle]),
+    ...props([styles$8.storybookButton, sizeStyle, modeStyle]),
     ...props$1,
     children: [getIcon$1(icon2, size, disabled2), " ", /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
       ...{
@@ -13323,7 +13407,7 @@ const PanelHeader = ({
     })
   });
 };
-const styles$4 = {
+const styles$7 = {
   wrapper: {
     padding: "xxdrffx",
     paddingInline: null,
@@ -13390,14 +13474,14 @@ const FileSubHeader = ({
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
     direction: "row",
     gap: "size-4",
-    style: styles$4.wrapper,
+    style: styles$7.wrapper,
     onClick: openFile,
     children: [/* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       direction: "row",
       gap: "size-1",
       children: [getIcon("file"), /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
         ...{
-          className: "xk50ysn x1e0gfvt xe7mz8o x1fn5q3 xuxw1ft"
+          className: "xk50ysn xjqiblg xe7mz8o x1fn5q3 xuxw1ft"
         },
         children: filename
       })]
@@ -13406,7 +13490,7 @@ const FileSubHeader = ({
       gap: "size-1",
       children: [getIcon("package"), /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
         ...{
-          className: "xk50ysn x1e0gfvt xe7mz8o x1fn5q3 xuxw1ft"
+          className: "xk50ysn xjqiblg xe7mz8o x1fn5q3 xuxw1ft"
         },
         children: [functionName, ":", " ", /* @__PURE__ */ jsxRuntimeExports.jsxs("span", {
           ...{
@@ -13430,7 +13514,7 @@ const sharedViewStyles = {
     paddingTop: null,
     paddingBottom: null,
     color: "xzbod5j",
-    background: "x53e3rw",
+    background: "xhdr95k",
     backgroundAttachment: null,
     backgroundClip: null,
     backgroundColor: null,
@@ -13447,6 +13531,7 @@ const sharedViewStyles = {
     height: "x5yr21d",
     boxSizing: "x9f619",
     display: "x78zum5",
+    overflowX: "x6ikm8r",
     $$css: true
   },
   mainStack: {
@@ -13454,6 +13539,7 @@ const sharedViewStyles = {
     flexGrow: null,
     flexShrink: null,
     flexBasis: null,
+    width: "xh8yej3",
     $$css: true
   }
 };
@@ -100966,7 +101052,7 @@ const Markdown = ({
     }
   });
 };
-const styles$3 = {
+const styles$6 = {
   headerStack: {
     cursor: "x1ypdohk",
     marginBottom: "xod5an3",
@@ -100995,7 +101081,7 @@ const CollapsibleMarkdown = ({
       direction: "row",
       gap: "size-2",
       alignItems: "center",
-      style: styles$3.headerStack,
+      style: styles$6.headerStack,
       children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
         onClick: toggle,
         children: !collapsed ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDownIcon, {
@@ -101012,7 +101098,7 @@ const CollapsibleMarkdown = ({
       }), /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, {
         direction: "row",
         gap: "size-2",
-        style: styles$3.buttonStack,
+        style: styles$6.buttonStack,
         children: actions
       })]
     }), !collapsed && /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
@@ -101779,9 +101865,9 @@ function splitMarkdown(title, sourceMarkdown) {
 function snakeCaseToPretty(input) {
   return input.split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 }
-const styles$2 = {
+const styles$5 = {
   ackContainer: {
-    background: "xy96b20",
+    background: "xm5rnah",
     backgroundAttachment: null,
     backgroundClip: null,
     backgroundColor: null,
@@ -101801,10 +101887,10 @@ const styles$2 = {
     paddingBlock: null,
     paddingTop: null,
     paddingBottom: null,
-    fontSize: "x1relrul",
+    fontSize: "x1tt3jfx",
     width: "xh8yej3",
     boxSizing: "x9f619",
-    color: "x1e0gfvt",
+    color: "xjqiblg",
     border: "xgi7kxh",
     borderWidth: null,
     borderInlineWidth: null,
@@ -101844,10 +101930,10 @@ const styles$2 = {
 const AceAcknowledge = () => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
     gap: "size-4",
-    style: styles$2.ackContainer,
+    style: styles$5.ackContainer,
     children: [/* @__PURE__ */ jsxRuntimeExports.jsx("h4", {
       ...{
-        className: "x1ghz6dp xif65rj x1e0gfvt"
+        className: "x1ghz6dp xif65rj xjqiblg"
       },
       children: "CodeScene ACE - AI-Powered Refactoring"
     }), /* @__PURE__ */ jsxRuntimeExports.jsxs("p", {
@@ -101871,22 +101957,22 @@ const AceAcknowledge = () => {
         className: "x1ghz6dp x1717udv xe8uvvx"
       },
       children: [/* @__PURE__ */ jsxRuntimeExports.jsxs("li", {
-        ...props(styles$2.listItem, gapStyles["size-2"]),
+        ...props(styles$5.listItem, gapStyles["size-2"]),
         children: [/* @__PURE__ */ jsxRuntimeExports.jsx(CheckIcon, {
           fill: "#73C991"
         }), "Your code is never stored by us or the LLMs"]
       }), /* @__PURE__ */ jsxRuntimeExports.jsxs("li", {
-        ...props(styles$2.listItem, gapStyles["size-2"]),
+        ...props(styles$5.listItem, gapStyles["size-2"]),
         children: [/* @__PURE__ */ jsxRuntimeExports.jsx(CheckIcon, {
           fill: "#73C991"
         }), "Your code snippets are shared only with select LLMs"]
       }), /* @__PURE__ */ jsxRuntimeExports.jsxs("li", {
-        ...props(styles$2.listItem, gapStyles["size-2"]),
+        ...props(styles$5.listItem, gapStyles["size-2"]),
         children: [/* @__PURE__ */ jsxRuntimeExports.jsx(CheckIcon, {
           fill: "#73C991"
         }), "Your code is not used to train any LLM"]
       }), /* @__PURE__ */ jsxRuntimeExports.jsxs("li", {
-        ...props(styles$2.listItem, gapStyles["size-2"]),
+        ...props(styles$5.listItem, gapStyles["size-2"]),
         children: [/* @__PURE__ */ jsxRuntimeExports.jsx(CheckIcon, {
           fill: "#73C991"
         }), "All communications with CodeScene ACE is fully encrypted"]
@@ -101946,9 +102032,9 @@ const DocsView = ({
     })
   });
 };
-const styles$1 = {
+const styles$4 = {
   bannerContainer: {
-    background: "xy96b20",
+    background: "xm5rnah",
     backgroundAttachment: null,
     backgroundClip: null,
     backgroundColor: null,
@@ -101980,7 +102066,7 @@ const styles$1 = {
     $$css: true
   },
   textContent: {
-    color: "x1e0gfvt",
+    color: "xjqiblg",
     $$css: true
   },
   title: {
@@ -101988,7 +102074,7 @@ const styles$1 = {
     $$css: true
   },
   success: {
-    borderColor: "x1w53u8b",
+    borderColor: "x4fduma",
     borderInlineColor: null,
     borderInlineStartColor: null,
     borderLeftColor: null,
@@ -101997,11 +102083,11 @@ const styles$1 = {
     borderBlockColor: null,
     borderTopColor: null,
     borderBottomColor: null,
-    color: "x17r9unv",
+    color: "xq0u3yc",
     $$css: true
   },
   issue: {
-    borderColor: "xyhv35e",
+    borderColor: "x1eiocw6",
     borderInlineColor: null,
     borderInlineStartColor: null,
     borderLeftColor: null,
@@ -102010,11 +102096,11 @@ const styles$1 = {
     borderBlockColor: null,
     borderTopColor: null,
     borderBottomColor: null,
-    color: "xs4frbw",
+    color: "x1xnldmx",
     $$css: true
   },
   warning: {
-    borderColor: "xch19pq",
+    borderColor: "x1by0xuz",
     borderInlineColor: null,
     borderInlineStartColor: null,
     borderLeftColor: null,
@@ -102023,11 +102109,11 @@ const styles$1 = {
     borderBlockColor: null,
     borderTopColor: null,
     borderBottomColor: null,
-    color: "x49s89i",
+    color: "x164pts0",
     $$css: true
   },
   neutral: {
-    borderColor: "x15uqbi0",
+    borderColor: "x15tzyu2",
     borderInlineColor: null,
     borderInlineStartColor: null,
     borderLeftColor: null,
@@ -102036,11 +102122,11 @@ const styles$1 = {
     borderBlockColor: null,
     borderTopColor: null,
     borderBottomColor: null,
-    color: "x1aglvb5",
+    color: "x5143sy",
     $$css: true
   },
   info: {
-    borderColor: "x10mome6",
+    borderColor: "x1fpz9xe",
     borderInlineColor: null,
     borderInlineStartColor: null,
     borderLeftColor: null,
@@ -102049,11 +102135,11 @@ const styles$1 = {
     borderBlockColor: null,
     borderTopColor: null,
     borderBottomColor: null,
-    color: "xutiqi0",
+    color: "x1msyk61",
     $$css: true
   },
   error: {
-    borderColor: "xes0m8c",
+    borderColor: "x176jlya",
     borderInlineColor: null,
     borderInlineStartColor: null,
     borderLeftColor: null,
@@ -102062,7 +102148,7 @@ const styles$1 = {
     borderBlockColor: null,
     borderTopColor: null,
     borderBottomColor: null,
-    color: "xy54ajn",
+    color: "xqs0t6q",
     $$css: true
   }
 };
@@ -102073,7 +102159,7 @@ const Banner = ({
   actions = []
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props([styles$1.bannerContainer, styles$1[tone]]),
+    ...props([styles$4.bannerContainer, styles$4[tone]]),
     children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       gap: "size-2",
       direction: "row",
@@ -102094,7 +102180,7 @@ const Banner = ({
             children: title
           }), /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
             ...{
-              className: "x1e0gfvt"
+              className: "xjqiblg"
             },
             children: textElement
           })]
@@ -102199,7 +102285,7 @@ const getBanner = (confidence, isStale) => {
     actions: confidence.level === 0 ? [buttons.retry] : []
   });
 };
-const styles = {
+const styles$3 = {
   pathOnce: {
     strokeDasharray: "xpriz74",
     strokeDashoffset: "xdnbdqb",
@@ -102264,17 +102350,17 @@ const animationStyles = {
     strokeWidth: 0.5
   },
   once: {
-    path: styles.pathOnce,
-    pathSide: styles.pathSideOnce,
-    fill: styles.fillOnce,
+    path: styles$3.pathOnce,
+    pathSide: styles$3.pathSideOnce,
+    fill: styles$3.fillOnce,
     fillColor: "#fff",
     strokeColor: "#fff",
     strokeWidth: 0.5
   },
   spinner: {
-    path: styles.pathSpinner,
-    pathSide: styles.pathSideSpinner,
-    fill: styles.fillSpinner,
+    path: styles$3.pathSpinner,
+    pathSide: styles$3.pathSideSpinner,
+    fill: styles$3.fillSpinner,
     fillColor: "transparent",
     strokeColor: surfaceColors.primary,
     strokeWidth: 0.7
@@ -102482,6 +102568,655 @@ const InitView = () => {
     })
   });
 };
+function getAvailableRefactors(fileDeltaData) {
+  const refactors = fileDeltaData.flatMap(({
+    delta
+  }) => delta["function-level-findings"].filter((finding) => finding.refactorableFn));
+  return refactors.length;
+}
+function buildLineIdLookup(fileDeltaData) {
+  const tempLineIdLookup = {};
+  fileDeltaData.forEach(({
+    file,
+    delta
+  }) => {
+    tempLineIdLookup[`${file.filename}`] = {
+      type: "file"
+    };
+    tempLineIdLookup[`${file.filename}:code-health`] = {
+      type: "codeHealth",
+      data: {
+        "new-score": delta["new-score"],
+        "old-score": delta["old-score"],
+        "score-change": delta["score-change"]
+      }
+    };
+    delta["file-level-findings"].forEach((fileFinding) => {
+      tempLineIdLookup[`${file.filename}:${fileFinding.category}`] = {
+        type: "fileFinding",
+        data: fileFinding
+      };
+    });
+    delta["function-level-findings"].forEach((functionFinding) => {
+      tempLineIdLookup[`${file.filename}:${functionFinding.function.name}`] = {
+        type: "functionFinding",
+        data: {
+          file,
+          function: functionFinding.function
+        }
+      };
+    });
+  });
+  return tempLineIdLookup;
+}
+const useMonitorView = (fileDeltaData) => {
+  const [selectedLineId, setSelectedLineId] = reactExports.useState(void 0);
+  const [collapsedFiles, setCollapsedFiles] = reactExports.useState([]);
+  const [lineIdLookup, setLineIdLookup] = reactExports.useState({});
+  reactExports.useEffect(() => {
+    const selectedId = window.localStorage.getItem("monitor:selectedLineId");
+    const collasedIdsString = window.localStorage.getItem("monitor:collapsedFiles");
+    try {
+      const collapsedIds = collasedIdsString ? JSON.parse(collasedIdsString) : [];
+      if (collapsedIds.length) setCollapsedFiles(collapsedIds);
+    } catch (error) {
+      console.error("localStorage issues", error);
+    }
+    if (selectedId) setSelectedLineId(selectedId);
+    setLineIdLookup(buildLineIdLookup(fileDeltaData));
+  }, [fileDeltaData]);
+  const handleLineClick = (lineId, type) => {
+    switch (type) {
+      case "file":
+        handleToggleCollapse(lineId);
+        break;
+      case "codeHealth":
+        handleSelectCodeHealth(lineId);
+        break;
+      case "fileFinding":
+        handleSelectFileFinding(lineId);
+        break;
+      case "functionFinding":
+        handleSelectFn(lineId);
+        break;
+    }
+  };
+  const handleSelectFn = (lineId) => {
+    window.localStorage.setItem("monitor:selectedLineId", lineId);
+    setSelectedLineId(lineId);
+    const gotoData = lineIdLookup[lineId];
+    actionMessages.goToFunctionLocation(JSON.stringify(gotoData));
+  };
+  const handleSelectCodeHealth = (lineId) => {
+    window.localStorage.setItem("monitor:selectedLineId", lineId);
+    setSelectedLineId(lineId);
+  };
+  const handleSelectFileFinding = (lineId) => {
+    window.localStorage.setItem("monitor:selectedLineId", lineId);
+    setSelectedLineId(lineId);
+  };
+  const handleToggleCollapse = (filename) => {
+    const isCollapsed = collapsedFiles.includes(filename);
+    const updatedCollapsedFiles = isCollapsed ? collapsedFiles.filter((fileId) => fileId !== filename) : [...collapsedFiles, filename];
+    window.localStorage.setItem("monitor:collapsedFiles", JSON.stringify(updatedCollapsedFiles));
+    setCollapsedFiles(updatedCollapsedFiles);
+  };
+  const availableRefactorsCount = getAvailableRefactors(fileDeltaData);
+  const selectedLineData = selectedLineId ? lineIdLookup[selectedLineId] : void 0;
+  return {
+    selectedLineId,
+    selectedLineData,
+    collapsedFiles,
+    availableRefactorsCount,
+    handleLineClick
+  };
+};
+const sharedTreeStyles = {
+  treeLine: {
+    userSelect: "x87ps6o",
+    cursor: "x1ypdohk",
+    padding: "x17ngzzj",
+    paddingInline: null,
+    paddingStart: null,
+    paddingLeft: null,
+    paddingEnd: null,
+    paddingRight: null,
+    paddingBlock: null,
+    paddingTop: null,
+    paddingBottom: null,
+    color: "xb2r0x7",
+    ":hover_background": "xe6o7v7",
+    ":hover_backgroundAttachment": null,
+    ":hover_backgroundClip": null,
+    ":hover_backgroundColor": null,
+    ":hover_backgroundImage": null,
+    ":hover_backgroundOrigin": null,
+    ":hover_backgroundPosition": null,
+    ":hover_backgroundPositionX": null,
+    ":hover_backgroundPositionY": null,
+    ":hover_backgroundRepeat": null,
+    ":hover_backgroundSize": null,
+    $$css: true
+  },
+  selectedTreeline: {
+    color: "xr9avd4",
+    background: "x1ilj876",
+    backgroundAttachment: null,
+    backgroundClip: null,
+    backgroundColor: null,
+    backgroundImage: null,
+    backgroundOrigin: null,
+    backgroundPosition: null,
+    backgroundPositionX: null,
+    backgroundPositionY: null,
+    backgroundRepeat: null,
+    backgroundSize: null,
+    $$css: true
+  },
+  autoRefactor: {
+    fontWeight: "x1s688f",
+    paddingLeft: "x1lqa7cf",
+    paddingInlineStart: null,
+    paddingInlineEnd: null,
+    cursor: "xt0e3qv",
+    ":hover_background": "x1avruku",
+    ":hover_backgroundAttachment": null,
+    ":hover_backgroundClip": null,
+    ":hover_backgroundColor": null,
+    ":hover_backgroundImage": null,
+    ":hover_backgroundOrigin": null,
+    ":hover_backgroundPosition": null,
+    ":hover_backgroundPositionX": null,
+    ":hover_backgroundPositionY": null,
+    ":hover_backgroundRepeat": null,
+    ":hover_backgroundSize": null,
+    $$css: true
+  }
+};
+const getColorForCodeHealth = (codeHealth) => {
+  if (codeHealth === void 0) return primaryTones.neutral;
+  if (codeHealth < 4) return primaryTones.error;
+  if (codeHealth > 3.5 && codeHealth < 9) return primaryTones.issue;
+  return primaryTones.success;
+};
+const codeHealthStyles = {
+  wrapper: {
+    paddingLeft: "x36mcrg",
+    fontSize: "x1tt3jfx",
+    $$css: true
+  }
+};
+const TreeFileCodeHealth = ({
+  lineId,
+  oldScore,
+  newScore = 1,
+  selectedLineId,
+  handleLineClick
+}) => {
+  const scoreChange = oldScore ? newScore - oldScore : newScore - 10;
+  const scorePercentage = (newScore - 1) / 9 * 100;
+  const codeHealthIcon = scoreChange > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(ThumbsupIcon, {
+    size: 14,
+    fill: getColorForCodeHealth(newScore)
+  }) : /* @__PURE__ */ jsxRuntimeExports.jsx(AlertIcon, {
+    size: 14,
+    fill: getColorForCodeHealth(newScore)
+  });
+  let directionIcon = scoreChange > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowUpRightIcon, {
+    size: 14
+  }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowDownRightIcon, {
+    size: 14
+  });
+  if (scoreChange === 0) {
+    directionIcon = /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRightIcon, {
+      size: 14
+    });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props([sharedTreeStyles.treeLine, codeHealthStyles.wrapper, selectedLineId === lineId && sharedTreeStyles.selectedTreeline]),
+    onClick: () => handleLineClick(lineId, "codeHealth"),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "row",
+      gap: "size-2",
+      alignItems: "center",
+      children: [codeHealthIcon, /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+        gap: "size-1",
+        children: [/* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+          direction: "row",
+          alignItems: "center",
+          gap: "size-1",
+          children: ["Code Health:", " ", /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
+            style: {
+              color: getColorForCodeHealth(oldScore)
+            },
+            children: oldScore || "N/A"
+          }), directionIcon, /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
+            style: {
+              color: getColorForCodeHealth(newScore)
+            },
+            children: newScore
+          })]
+        }), /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, {
+          children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+            ...{
+              className: "x1n2onr6 xuoj239 xrostsh xu06os2"
+            },
+            children: [/* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+              ...{
+                className: "x1cum3z5 xb3r6kr xuxw1ft x5yr21d x78zum5 xynrrda"
+              },
+              children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+                ...{
+                  className: "x5yr21d"
+                },
+                style: {
+                  width: "33.33%",
+                  background: primaryTones.error
+                }
+              }), /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+                ...{
+                  className: "x5yr21d"
+                },
+                style: {
+                  width: "55.56%",
+                  background: primaryTones.issue
+                }
+              })]
+            }), /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+              ...{
+                className: "x10l6tqk x1ycjhwn x1ftt334 xorixrz xt754a9 x1fyqlhn xmkeg23 x1y0btm7 xuuh30 x1qiirwl"
+              },
+              style: {
+                left: scorePercentage + "%"
+              }
+            })]
+          })
+        })]
+      })]
+    })
+  });
+};
+const functionStyles = {
+  wrapper: {
+    paddingLeft: "x36mcrg",
+    paddingInlineStart: null,
+    paddingInlineEnd: null,
+    fontSize: "x1tt3jfx",
+    $$css: true
+  },
+  dot: {
+    height: "x1kpxq89",
+    width: "xsmyaan",
+    fontSize: "xdzlmae",
+    borderRadius: "xorixrz",
+    borderStartStartRadius: null,
+    borderStartEndRadius: null,
+    borderEndStartRadius: null,
+    borderEndEndRadius: null,
+    borderTopLeftRadius: null,
+    borderTopRightRadius: null,
+    borderBottomLeftRadius: null,
+    borderBottomRightRadius: null,
+    display: "x78zum5",
+    color: "xayvuls",
+    fontWeight: "x1xlr1w8",
+    $$css: true
+  },
+  letter: {
+    margin: "x1bpp3o7",
+    marginInline: null,
+    marginInlineStart: null,
+    marginLeft: null,
+    marginInlineEnd: null,
+    marginRight: null,
+    marginBlock: null,
+    marginTop: null,
+    marginBottom: null,
+    $$css: true
+  },
+  introduced: {
+    background: "x1bpo7pb",
+    backgroundAttachment: null,
+    backgroundClip: null,
+    backgroundColor: null,
+    backgroundImage: null,
+    backgroundOrigin: null,
+    backgroundPosition: null,
+    backgroundPositionX: null,
+    backgroundPositionY: null,
+    backgroundRepeat: null,
+    backgroundSize: null,
+    $$css: true
+  },
+  fixed: {
+    background: "xynrrda",
+    backgroundAttachment: null,
+    backgroundClip: null,
+    backgroundColor: null,
+    backgroundImage: null,
+    backgroundOrigin: null,
+    backgroundPosition: null,
+    backgroundPositionX: null,
+    backgroundPositionY: null,
+    backgroundRepeat: null,
+    backgroundSize: null,
+    $$css: true
+  },
+  improved: {
+    background: "xynrrda",
+    backgroundAttachment: null,
+    backgroundClip: null,
+    backgroundColor: null,
+    backgroundImage: null,
+    backgroundOrigin: null,
+    backgroundPosition: null,
+    backgroundPositionX: null,
+    backgroundPositionY: null,
+    backgroundRepeat: null,
+    backgroundSize: null,
+    $$css: true
+  },
+  degraded: {
+    background: "x1bpo7pb",
+    backgroundAttachment: null,
+    backgroundClip: null,
+    backgroundColor: null,
+    backgroundImage: null,
+    backgroundOrigin: null,
+    backgroundPosition: null,
+    backgroundPositionX: null,
+    backgroundPositionY: null,
+    backgroundRepeat: null,
+    backgroundSize: null,
+    $$css: true
+  },
+  unchanged: {
+    background: "x1s0ttc8",
+    backgroundAttachment: null,
+    backgroundClip: null,
+    backgroundColor: null,
+    backgroundImage: null,
+    backgroundOrigin: null,
+    backgroundPosition: null,
+    backgroundPositionX: null,
+    backgroundPositionY: null,
+    backgroundRepeat: null,
+    backgroundSize: null,
+    $$css: true
+  },
+  functionStack: {
+    position: "x1n2onr6",
+    $$css: true
+  },
+  actionWrapper: {
+    opacity: "xg01cxk",
+    position: "x10l6tqk",
+    height: "x5yr21d",
+    right: "x3m8u43",
+    insetInlineStart: null,
+    insetInlineEnd: null,
+    padding: "xh1tndv",
+    paddingInline: null,
+    paddingStart: null,
+    paddingLeft: null,
+    paddingEnd: null,
+    paddingRight: null,
+    paddingBlock: null,
+    paddingTop: null,
+    paddingBottom: null,
+    background: "x1bxbyv2",
+    backgroundAttachment: null,
+    backgroundClip: null,
+    backgroundColor: null,
+    backgroundImage: null,
+    backgroundOrigin: null,
+    backgroundPosition: null,
+    backgroundPositionX: null,
+    backgroundPositionY: null,
+    backgroundRepeat: null,
+    backgroundSize: null,
+    transition: "xk82a7y",
+    transitionBehavior: null,
+    transitionDelay: null,
+    transitionDuration: null,
+    transitionProperty: null,
+    transitionTimingFunction: null,
+    $$css: true
+  },
+  visible: {
+    opacity: "x1hc1fzr",
+    $$css: true
+  }
+};
+const TreeFileFunctionFinding = ({
+  lineId,
+  finding,
+  selectedLineId,
+  handleLineClick
+}) => {
+  const [hovered, setHovered] = reactExports.useState(false);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props([sharedTreeStyles.treeLine, functionStyles.wrapper, selectedLineId === lineId && sharedTreeStyles.selectedTreeline]),
+    onClick: () => handleLineClick(lineId, "functionFinding"),
+    onMouseEnter: () => setHovered(true),
+    onMouseLeave: () => setHovered(false),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "row",
+      gap: "size-2",
+      alignItems: "center",
+      style: functionStyles.functionStack,
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(CodeIcon, {
+        size: 14,
+        fill: primaryTones.issue
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, {
+        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+          direction: "row",
+          alignItems: "center",
+          gap: "size-1",
+          children: [finding.function.name, " ", finding.refactorableFn ? /* @__PURE__ */ jsxRuntimeExports.jsx(SparklesFillIcon, {
+            size: 13
+          }) : ""]
+        })
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, {
+        direction: "row",
+        gap: "size-1",
+        alignItems: "center",
+        style: [functionStyles.actionWrapper, hovered && functionStyles.visible],
+        children: finding["change-details"].map((detail) => {
+          return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+            ...props([functionStyles.dot, functionStyles[detail["change-type"]]]),
+            title: `${detail.category} - ${detail["change-type"]}`,
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
+              ...{
+                className: "x1bpp3o7"
+              },
+              children: detail["change-type"][0].toUpperCase()
+            })
+          }, lineId + detail.category);
+        })
+      })]
+    })
+  });
+};
+const styles$2 = {
+  wrapper: {
+    paddingLeft: "x36mcrg",
+    fontSize: "x1tt3jfx",
+    $$css: true
+  }
+};
+const TreeFileFinding = ({
+  lineId,
+  fileFinding,
+  selectedLineId,
+  handleLineClick
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props([sharedTreeStyles.treeLine, styles$2.wrapper, selectedLineId === lineId && sharedTreeStyles.selectedTreeline]),
+    onClick: () => handleLineClick(lineId, "fileFinding"),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "row",
+      gap: "size-2",
+      alignItems: "center",
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(AlertIcon, {
+        size: 14,
+        fill: primaryTones.issue
+      }), fileFinding.category]
+    })
+  });
+};
+const styles$1 = {
+  wrapper: {
+    paddingLeft: "x15mi2be",
+    paddingInlineStart: null,
+    paddingInlineEnd: null,
+    fontSize: "x1tt3jfx",
+    fontWeight: "x1s688f",
+    $$css: true
+  },
+  functionsList: {
+    position: "x1n2onr6",
+    $$css: true
+  }
+};
+const TreeFileContent = ({
+  fileDelta,
+  selectedLineId,
+  handleLineClick,
+  isCollapsed
+}) => {
+  return !isCollapsed ? /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+    style: styles$1.functionsList,
+    children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      ...{
+        className: "x1ilj876 x5yr21d x1i1rx1s x10l6tqk x13vifvy xxozgar"
+      }
+    }), /* @__PURE__ */ jsxRuntimeExports.jsx(TreeFileCodeHealth, {
+      lineId: `${fileDelta.file.filename}:code-health`,
+      newScore: fileDelta.delta["new-score"],
+      oldScore: fileDelta.delta["old-score"],
+      selectedLineId,
+      handleLineClick
+    }), fileDelta.delta["file-level-findings"].map((fileFinding) => {
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(TreeFileFinding, {
+        lineId: `${fileDelta.file.filename}:${fileFinding.category}`,
+        selectedLineId,
+        handleLineClick,
+        fileFinding
+      });
+    }), fileDelta.delta["function-level-findings"].map((finding) => {
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(TreeFileFunctionFinding, {
+        lineId: `${fileDelta.file.filename}:${finding.function.name}`,
+        finding,
+        selectedLineId,
+        handleLineClick
+      });
+    })]
+  }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {});
+};
+const TreeFileItem = ({
+  fileDelta,
+  selectedLineId,
+  handleLineClick,
+  isCollapsed
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+    children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      ...props(sharedTreeStyles.treeLine, styles$1.wrapper),
+      onClick: () => handleLineClick(fileDelta.file.filename, "file"),
+      children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+        direction: "row",
+        gap: "size-1",
+        alignItems: "center",
+        children: [isCollapsed ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRightIcon, {}) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDownIcon, {}), /* @__PURE__ */ jsxRuntimeExports.jsx(FileIcon, {
+          size: 14
+        }), fileDelta.file.filename, isCollapsed ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, {
+          children: [/* @__PURE__ */ jsxRuntimeExports.jsx("span", {
+            style: {
+              color: getColorForCodeHealth(fileDelta.delta["new-score"])
+            },
+            ...{
+              className: "x1k6wstc xd8780z"
+            },
+            children: fileDelta.delta["new-score"]
+          }), /* @__PURE__ */ jsxRuntimeExports.jsxs("span", {
+            style: {
+              color: fileDelta.delta["score-change"] > 0 ? primaryTones.success : primaryTones.issue
+            },
+            ...{
+              className: "x1k6wstc xd8780z"
+            },
+            children: ["(", fileDelta.delta["score-change"] > 0 ? "+" : "", fileDelta.delta["score-change"], ")"]
+          })]
+        }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {})]
+      })
+    }), /* @__PURE__ */ jsxRuntimeExports.jsx(TreeFileContent, {
+      fileDelta,
+      selectedLineId,
+      handleLineClick,
+      isCollapsed
+    })]
+  });
+};
+const styles = {
+  wrapper: {
+    padding: "x1717udv",
+    paddingInline: null,
+    paddingStart: null,
+    paddingLeft: null,
+    paddingEnd: null,
+    paddingRight: null,
+    paddingBlock: null,
+    paddingTop: null,
+    paddingBottom: null,
+    $$css: true
+  }
+};
+const AutoRefactorSummary = ({
+  availableRefactorsCount
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props(sharedTreeStyles.treeLine, sharedTreeStyles.autoRefactor),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "row",
+      gap: "size-1",
+      alignItems: "center",
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(SparklesFillIcon, {
+        size: 14
+      }), /* @__PURE__ */ jsxRuntimeExports.jsxs("span", {
+        children: [availableRefactorsCount, " auto-refactorings available"]
+      })]
+    })
+  });
+};
+const MonitorView = ({
+  fileDeltaData
+}) => {
+  const {
+    selectedLineId,
+    collapsedFiles,
+    availableRefactorsCount,
+    handleLineClick
+  } = useMonitorView(fileDeltaData);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props(sharedViewStyles.viewWrapper, styles.wrapper),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "column",
+      gap: "size-2",
+      style: sharedViewStyles.mainStack,
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(AutoRefactorSummary, {
+        availableRefactorsCount
+      }), fileDeltaData.map((fileDelta) => {
+        return /* @__PURE__ */ jsxRuntimeExports.jsx(TreeFileItem, {
+          fileDelta,
+          selectedLineId,
+          handleLineClick,
+          isCollapsed: collapsedFiles.includes(fileDelta.file.filename)
+        }, fileDelta.file.filename);
+      })]
+    })
+  });
+};
 const CatchAll = () => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
     ...props(sharedViewStyles.viewWrapper),
@@ -102581,6 +103316,15 @@ function MainView() {
           docType: data.docType,
           fileData: data.fileData,
           autoRefactor: data.autoRefactor
+        }), /* @__PURE__ */ jsxRuntimeExports.jsx(DebugView, {
+          data
+        })]
+      });
+    }
+    if (view === "monitor" && data) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, {
+        children: [/* @__PURE__ */ jsxRuntimeExports.jsx(MonitorView, {
+          fileDeltaData: data.fileDeltaData
         }), /* @__PURE__ */ jsxRuntimeExports.jsx(DebugView, {
           data
         })]
