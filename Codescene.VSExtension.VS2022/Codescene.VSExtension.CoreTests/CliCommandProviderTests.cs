@@ -148,7 +148,7 @@ namespace Codescene.VSExtension.CoreTests
             var command = provider.GetRefactorPostCommand(skipCache: true, fnToRefactor: fnToRefactorJson);
 
             // ASSERT
-            Assert.AreEqual(command, $"refactor post --skip-cache --fn-to-refactor {fnToRefactorJson}");
+            Assert.AreEqual(command, $"refactor post --skip-cache --fn-to-refactor \"{fnToRefactorJson}\"");
         }
 
         [TestMethod]
@@ -162,7 +162,7 @@ namespace Codescene.VSExtension.CoreTests
             var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson);
 
             // ASSERT
-            Assert.AreEqual(command, $"refactor post --fn-to-refactor {fnToRefactorJson}");
+            Assert.AreEqual(command, $"refactor post --fn-to-refactor \"{fnToRefactorJson}\"");
         }
 
         [TestMethod]

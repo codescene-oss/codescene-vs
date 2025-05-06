@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Threading.Tasks;
@@ -117,10 +118,18 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         context.Properties.TryGetValue("StartLine", out var startLine);
         context.Properties.TryGetValue("StartColumn", out var startColumn);
         context.Properties.TryGetValue("FullyQualifiedName", out var fullyQualifiedName);
-        var path = descriptor.FilePath;
+        //var path = descriptor.FilePath;
+        var path = "C:\\Users\\User\\source\\repos\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.CodeSmells\\Issues\\Javascript\\DeepGlobalNestedComplexityExample.js";
         var kind = descriptor.Kind;
         var elementDescription = descriptor.ElementDescription;
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        using (var reader = File.OpenText(path))
+        {
+            var content = await reader.ReadToEndAsync();
+            var refactored = await _reviewer.Refactor(path: path, content: content);
+        }
+
         await AceToolWindow.ShowAsync();
     }
 

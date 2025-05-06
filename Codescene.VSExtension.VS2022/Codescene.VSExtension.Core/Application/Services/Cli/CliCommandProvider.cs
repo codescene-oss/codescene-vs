@@ -35,9 +35,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         {
             var skipCacheArg = skipCache ? " --skip-cache" : string.Empty;
             var tokenArg = string.IsNullOrWhiteSpace(token) ? string.Empty : $" --token {token}";
-            return $"refactor post{skipCacheArg} --fn-to-refactor {fnToRefactor}{tokenArg}";
+            var escapedFnToRefactor = fnToRefactor.Replace("\\", "\\\\").Replace("\"", "\\\"");
+            return $"refactor post{skipCacheArg} --fn-to-refactor \"{escapedFnToRefactor}\"{tokenArg}";
         }
-
 
         public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";
 

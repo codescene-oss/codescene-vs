@@ -147,11 +147,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
         }
 
-        public RefactorResponseModel PostRefactoring(string content, string fnToRefactor, bool skipCache = false, string token = null)
+        public async Task<RefactorResponseModel> PostRefactoring(string fnToRefactor, bool skipCache = false, string token = null)
         {
             var arguments = _cliCommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: token);
-            var result = ExecuteCommand(arguments, content);
-            return JsonConvert.DeserializeObject<RefactorResponseModel>(result);
+            var result = await ExecuteCommandAsync(arguments);
+            return JsonConvert.DeserializeObject<RefactorResponseModel>(result.StdOut);
         }
 
         public IList<FnToRefactorModel> FnsToRefactorFromDelta(string content, string extension, string delta)

@@ -13,13 +13,17 @@ using System.Windows;
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 public class AceToolWindow : BaseToolWindow<AceToolWindow>
 {
+
     public override Type PaneType => typeof(Pane);
 
-    public override Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
+    public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
         var exePath = Assembly.GetExecutingAssembly().Location;
         var exeFolder = Path.GetDirectoryName(exePath);
         string localFolder = Path.Combine(exeFolder, "ToolWindows\\WebComponent");
+
+        //var reviewer = await VS.GetRequiredServiceAsync<ICodeReviewer>();
+        //var refactoredCode = reviewer.GetCachedRefactoredCode();
 
         var payload = new WebComponentPayload
         {
@@ -38,7 +42,8 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                         GoToFunctionLocationPayload = "path/to/CustomLegends.ts:extract_identifiers"
                     }
                 }
-            }
+            },
+            //AceResultData = refactoredCode
         };
 
         var ctrl = new WebComponentUserControl(payload)
@@ -50,7 +55,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
             }
         };
 
-        return Task.FromResult<FrameworkElement>(ctrl);
+        return ctrl;
     }
 
     public override string GetTitle(int toolWindowId) => "Refactoring suggestion";

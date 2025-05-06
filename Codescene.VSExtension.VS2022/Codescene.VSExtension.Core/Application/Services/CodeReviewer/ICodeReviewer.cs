@@ -1,6 +1,8 @@
 ﻿using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 {
@@ -11,5 +13,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         void UseFileOnPathType();
         void UseContentOnlyType(string content);
         List<CodeSmellModel> GetCodesmellExpressions(string path, bool invalidateCache = false);
+        Task<RefactorResponseModel> Refactor(string path, string content, bool invalidateCache = false);
+        RefactorResponseModel GetCachedRefactoredCode();
     }
 }

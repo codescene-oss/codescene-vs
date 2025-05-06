@@ -1,11 +1,16 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.ReviewModels;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 {
@@ -89,6 +94,26 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 throw new ArgumentNullException(nameof(path));
             }
 
+            if (_cache.Exists(path))
+            {
+                return _cache.Get(path);
+            }
+
+            var review = ReviewFileContent(path, content);
+
+            var mapped = _mapper.Map(path, review);
+            _cache.Add(mapped);
+
+            return mapped;
+        }
+
+        private CliReviewModel ReviewFileContent(string path, string content)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
             if (string.IsNullOrWhiteSpace(content))
             {
                 throw new ArgumentNullException(nameof(content));
@@ -100,20 +125,41 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            if (_cache.Exists(path))
-            {
-                return _cache.Get(path);
-            }
-
             var review = _executer.ReviewContent(fileName, content);
-            var mapped = _mapper.Map(path, review);
-            _cache.Add(mapped);
-            return mapped;
+
+            return review;
         }
 
         public void InvalidateCache(string path)
         {
             _cache.Remove(path);
+        }
+
+        public async Task<RefactorResponseModel> Refactor(string path, string content, bool invalidateCache = false)
+        {
+            UseContentOnlyType(content);
+            var review = ReviewFileContent(path, content);
+            var codesmellsJson = JsonConvert.SerializeObject(review.FunctionLevelCodeSmells[0].CodeSmells);
+            var preflight = JsonConvert.SerializeObject(_executer.Preflight());
+            var fileName = Path.GetFileName(path);
+            var extension = Path.GetExtension(fileName).Replace(".", "");
+            var refactorableFunctions = await _executer.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
+            var refactorableFunctionsString = JsonConvert.SerializeObject(refactorableFunctions.First());
+            var refactoredFunctions = await _executer.PostRefactoring(fnToRefactor: refactorableFunctionsString, skipCache: true);
+
+            if (refactorableFunctions == null)
+            {
+                throw new Exception("Refactoring has failed!");
+            }
+
+            _cache.Add(refactoredFunctions);
+
+            return refactoredFunctions;
+        }
+
+        public RefactorResponseModel GetCachedRefactoredCode()
+        {
+            return _cache.GetRefactored();
         }
     }
 }

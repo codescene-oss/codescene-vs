@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Models.ReviewModels;
+﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.ReviewModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -11,6 +12,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
     {
 
         private static readonly Dictionary<string, FileReviewModel> _reviews = new Dictionary<string, FileReviewModel>();
+        private static RefactorResponseModel _refactored = null;
 
         public void Add(FileReviewModel model)
         {
@@ -20,6 +22,21 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             }
 
             _reviews[model.FilePath] = model;
+        }
+
+        public void Add(RefactorResponseModel model)
+        {
+            if (model == null)
+            {
+                throw new ArgumentNullException(nameof(model));
+            }
+
+            _refactored = model;
+        }
+
+        public void ClearRefactored()
+        {
+            _refactored = null;
         }
 
         public bool Exists(string path)
@@ -47,6 +64,16 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             }
 
             return model;
+        }
+
+        public RefactorResponseModel GetRefactored()
+        {
+            if (_refactored == null)
+            {
+                throw new Exception($"{nameof(_refactored)} is null");
+            }
+
+            return _refactored;
         }
 
         public bool Remove(string path)

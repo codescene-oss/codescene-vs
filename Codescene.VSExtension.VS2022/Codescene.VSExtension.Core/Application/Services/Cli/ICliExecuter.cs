@@ -17,7 +17,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmells, string preflight);
         IList<FnToRefactorModel> FnsToRefactorFromDelta(string content, string extension, string delta);
         IList<FnToRefactorModel> FnsToRefactorFromDelta(string content, string extension, string delta, string preflight);
-        RefactorResponseModel PostRefactoring(string content, string fnToRefactor, bool skipCache = false, string token = null);
+        Task<RefactorResponseModel> PostRefactoring(string fnToRefactor, bool skipCache = false, string token = null);
         Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells);
         Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells, string preflight);
     }

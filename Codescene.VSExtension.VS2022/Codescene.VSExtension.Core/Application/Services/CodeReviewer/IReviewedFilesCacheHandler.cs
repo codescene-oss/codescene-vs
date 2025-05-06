@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Models.ReviewModels;
+﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.ReviewModels;
 
 namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 {
@@ -8,5 +9,8 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         FileReviewModel Get(string path);
         bool Remove(string path);
         bool Exists(string path);
+        void Add(RefactorResponseModel model);
+        RefactorResponseModel GetRefactored();
+        void ClearRefactored();
     }
 }
