@@ -99,6 +99,7 @@
     <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
     <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
+    <Compile Include="Application\Services\WebComponent\WebComponentMapper.cs" />
     <Compile Include="Models\Cli\Delta\ChangeDetailModel.cs" />
     <Compile Include="Models\Cli\Delta\ChangeType.cs" />
     <Compile Include="Models\Cli\Delta\DeltaResponseModel.cs" />

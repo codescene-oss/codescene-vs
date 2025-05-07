@@ -1,15 +1,26 @@
-﻿namespace Codescene.VSExtension.Core.Models.WebComponent
+﻿using Codescene.VSExtension.Core.Models.Cli;
+
+namespace Codescene.VSExtension.Core.Models.WebComponent
 {
-    public class WebComponentFileData
+    public class WebComponentFileDataBase
     {
         public string Filename { get; set; }
-        public string FunctionName { get; set; }
-        public int LineNumber { get; set; }
+        public WebComponentFileDataBaseFn Fn { get; set; }
+    }
+
+    public class WebComponentFileDataBaseFn
+    {
+        public string Name { get; set; }
+        public CliRangeModel Range { get; set; }
+    }
+
+    public class WebComponentFileData : WebComponentFileDataBase
+    {
         public WebComponentAction Action { get; set; }
     }
 
     public class WebComponentAction
     {
-        public string GoToFunctionLocationPayload { get; set; }
+        public WebComponentFileDataBase GoToFunctionLocationPayload { get; set; }
     }
 }

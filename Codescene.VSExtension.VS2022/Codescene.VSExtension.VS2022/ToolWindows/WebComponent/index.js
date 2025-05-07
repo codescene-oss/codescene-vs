@@ -1,6 +1,25 @@
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+function _mergeNamespaces(n2, m) {
+  for (var i = 0; i < m.length; i++) {
+    const e = m[i];
+    if (typeof e !== "string" && !Array.isArray(e)) {
+      for (const k in e) {
+        if (k !== "default" && !(k in n2)) {
+          const d2 = Object.getOwnPropertyDescriptor(e, k);
+          if (d2) {
+            Object.defineProperty(n2, k, d2.get ? d2 : {
+              enumerable: true,
+              get: () => e[k]
+            });
+          }
+        }
+      }
+    }
+  }
+  return Object.freeze(Object.defineProperty(n2, Symbol.toStringTag, { value: "Module" }));
+}
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) {
@@ -443,11 +462,11 @@ function requireReact_production() {
       _init: lazyInitializer
     };
   };
-  react_production.memo = function(type, compare) {
+  react_production.memo = function(type, compare2) {
     return {
       $$typeof: REACT_MEMO_TYPE,
       type,
-      compare: void 0 === compare ? null : compare
+      compare: void 0 === compare2 ? null : compare2
     };
   };
   react_production.startTransition = function(scope2) {
@@ -542,6 +561,10 @@ function requireReact() {
 }
 var reactExports = requireReact();
 const React = /* @__PURE__ */ getDefaultExportFromCjs(reactExports);
+const React$1 = /* @__PURE__ */ _mergeNamespaces({
+  __proto__: null,
+  default: React
+}, [reactExports]);
 var client = { exports: {} };
 var reactDomClient_production = {};
 var scheduler = { exports: {} };
@@ -565,7 +588,7 @@ function requireScheduler_production() {
       heap.push(node2);
       a: for (; 0 < index2; ) {
         var parentIndex = index2 - 1 >>> 1, parent2 = heap[parentIndex];
-        if (0 < compare(parent2, node2))
+        if (0 < compare2(parent2, node2))
           heap[parentIndex] = node2, heap[index2] = parent2, index2 = parentIndex;
         else break a;
       }
@@ -580,16 +603,16 @@ function requireScheduler_production() {
         heap[0] = last;
         a: for (var index2 = 0, length = heap.length, halfLength = length >>> 1; index2 < halfLength; ) {
           var leftIndex = 2 * (index2 + 1) - 1, left = heap[leftIndex], rightIndex = leftIndex + 1, right = heap[rightIndex];
-          if (0 > compare(left, last))
-            rightIndex < length && 0 > compare(right, left) ? (heap[index2] = right, heap[rightIndex] = last, index2 = rightIndex) : (heap[index2] = left, heap[leftIndex] = last, index2 = leftIndex);
-          else if (rightIndex < length && 0 > compare(right, last))
+          if (0 > compare2(left, last))
+            rightIndex < length && 0 > compare2(right, left) ? (heap[index2] = right, heap[rightIndex] = last, index2 = rightIndex) : (heap[index2] = left, heap[leftIndex] = last, index2 = leftIndex);
+          else if (rightIndex < length && 0 > compare2(right, last))
             heap[index2] = right, heap[rightIndex] = last, index2 = rightIndex;
           else break a;
         }
       }
       return first;
     }
-    function compare(a2, b) {
+    function compare2(a2, b) {
       var diff2 = a2.sortIndex - b.sortIndex;
       return 0 !== diff2 ? diff2 : a2.id - b.id;
     }
@@ -12406,7 +12429,7 @@ function requireStyleq() {
   return styleq;
 }
 var styleqExports = /* @__PURE__ */ requireStyleq();
-function props() {
+function props$1() {
   for (var _len = arguments.length, styles2 = new Array(_len), _key = 0; _key < _len; _key++) {
     styles2[_key] = arguments[_key];
   }
@@ -13267,15 +13290,15 @@ const Button = ({
   label,
   icon: icon2 = "check",
   disabled: disabled2,
-  ...props$1
+  ...props2
 }) => {
   let modeStyle = primary ? styles$8["storybookButton--primary"] : styles$8["storybookButton--secondary"];
   if (disabled2) modeStyle = styles$8["storybookButton--disabled"];
   const sizeStyle = styles$8[`storybookButton--${size}`];
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("button", {
     type: "button",
-    ...props([styles$8.storybookButton, sizeStyle, modeStyle]),
-    ...props$1,
+    ...props$1([styles$8.storybookButton, sizeStyle, modeStyle]),
+    ...props2,
     children: [getIcon$1(icon2, size, disabled2), " ", /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
       ...{
         className: "x1bpp3o7"
@@ -13382,7 +13405,7 @@ function Stack({
   onClick
 }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props(directionStyles[direction2], gap2 && gapStyles[gap2], columnGap && columnGapStyles[columnGap], rowGap && rowGapStyles[rowGap], alignItems && alignItemsStyles[alignItems], justifyContent && justifyContentStyles[justifyContent], wrap2 && wrapStyles[wrap2], flexGrowStyles[flexGrow], style2),
+    ...props$1(directionStyles[direction2], gap2 && gapStyles[gap2], columnGap && columnGapStyles[columnGap], rowGap && rowGapStyles[rowGap], alignItems && alignItemsStyles[alignItems], justifyContent && justifyContentStyles[justifyContent], wrap2 && wrapStyles[wrap2], flexGrowStyles[flexGrow], style2),
     onClick,
     children
   });
@@ -13462,8 +13485,7 @@ function getIcon(icon2, disabled2) {
 }
 const FileSubHeader = ({
   filename,
-  functionName,
-  lineNumber,
+  fn,
   action
 }) => {
   const openFile = () => {
@@ -13485,21 +13507,23 @@ const FileSubHeader = ({
         },
         children: filename
       })]
-    }), /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+    }), (fn == null ? void 0 : fn.name) ? /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       direction: "row",
       gap: "size-1",
       children: [getIcon("package"), /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
         ...{
           className: "xk50ysn xjqiblg xe7mz8o x1fn5q3 xuxw1ft"
         },
-        children: [functionName, ":", " ", /* @__PURE__ */ jsxRuntimeExports.jsxs("span", {
-          ...{
-            className: "x1us6l5c"
-          },
-          children: ["[Ln ", lineNumber, "]"]
-        })]
+        children: [fn.name, fn.range ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, {
+          children: [":", " ", /* @__PURE__ */ jsxRuntimeExports.jsxs("span", {
+            ...{
+              className: "x1us6l5c"
+            },
+            children: ["[Ln ", fn.range["start-line"], "]"]
+          })]
+        }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {})]
       })]
-    })]
+    }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {})]
   });
 };
 const sharedViewStyles = {
@@ -27823,8 +27847,8 @@ function jsTemplates(Prism2) {
       // vanilla template string
       templateString
     ].filter(Boolean);
-    function getPlaceholder(counter, language) {
-      return "___" + language.toUpperCase() + "_" + counter + "___";
+    function getPlaceholder(counter2, language) {
+      return "___" + language.toUpperCase() + "_" + counter2 + "___";
     }
     function tokenizeWithHooks(code2, grammar, language) {
       var env2 = {
@@ -39219,20 +39243,20 @@ function createParser(options) {
     error.name = "ParserError";
     throw error;
   }
-  function assert(condition, errorMessage) {
+  function assert2(condition, errorMessage) {
     if (!condition) {
       return fail(errorMessage);
     }
   }
   var assertNonEof = function() {
-    assert(pos < l2, "Unexpected end of input.");
+    assert2(pos < l2, "Unexpected end of input.");
   };
   var isEof = function() {
     return pos >= l2;
   };
   var pass = function(character) {
-    assert(pos < l2, 'Expected "'.concat(character, '" but end of input reached.'));
-    assert(chr === character, 'Expected "'.concat(character, '" but "').concat(chr, '" found.'));
+    assert2(pos < l2, 'Expected "'.concat(character, '" but end of input reached.'));
+    assert2(chr === character, 'Expected "'.concat(character, '" but "').concat(chr, '" found.'));
     pos++;
     chr = str.charAt(pos);
   };
@@ -39394,22 +39418,22 @@ function createParser(options) {
     skipWhitespace();
     var attr;
     if (is2("|")) {
-      assert(namespaceEnabled, "Namespaces are not enabled.");
+      assert2(namespaceEnabled, "Namespaces are not enabled.");
       next2();
       var name_1 = parseIdentifier();
-      assert(name_1, "Expected attribute name.");
+      assert2(name_1, "Expected attribute name.");
       attr = {
         type: "Attribute",
         name: name_1,
         namespace: { type: "NoNamespace" }
       };
     } else if (is2("*")) {
-      assert(namespaceEnabled, "Namespaces are not enabled.");
-      assert(namespaceWildcardEnabled, "Wildcard namespace is not enabled.");
+      assert2(namespaceEnabled, "Namespaces are not enabled.");
+      assert2(namespaceWildcardEnabled, "Wildcard namespace is not enabled.");
       next2();
       pass("|");
       var name_2 = parseIdentifier();
-      assert(name_2, "Expected attribute name.");
+      assert2(name_2, "Expected attribute name.");
       attr = {
         type: "Attribute",
         name: name_2,
@@ -39417,7 +39441,7 @@ function createParser(options) {
       };
     } else {
       var identifier = parseIdentifier();
-      assert(identifier, "Expected attribute name.");
+      assert2(identifier, "Expected attribute name.");
       attr = {
         type: "Attribute",
         name: identifier
@@ -39426,9 +39450,9 @@ function createParser(options) {
         var savedPos = pos;
         next2();
         if (isIdentStart(chr)) {
-          assert(namespaceEnabled, "Namespaces are not enabled.");
+          assert2(namespaceEnabled, "Namespaces are not enabled.");
           var name_3 = parseIdentifier();
-          assert(name_3, "Expected attribute name.");
+          assert2(name_3, "Expected attribute name.");
           attr = {
             type: "Attribute",
             name: name_3,
@@ -39439,7 +39463,7 @@ function createParser(options) {
         }
       }
     }
-    assert(attr.name, "Expected attribute name.");
+    assert2(attr.name, "Expected attribute name.");
     skipWhitespace();
     if (isEof() && !strict) {
       return attr;
@@ -39448,7 +39472,7 @@ function createParser(options) {
       next2();
     } else {
       attr.operator = matchMulticharIndex(attributesOperatorsIndex);
-      assert(attr.operator, "Expected a valid attribute selector operator.");
+      assert2(attr.operator, "Expected a valid attribute selector operator.");
       skipWhitespace();
       assertNonEof();
       if (quoteChars[chr]) {
@@ -39459,14 +39483,14 @@ function createParser(options) {
       } else if (substitutesEnabled && is2("$")) {
         next2();
         var name_4 = parseIdentifier();
-        assert(name_4, "Expected substitute name.");
+        assert2(name_4, "Expected substitute name.");
         attr.value = {
           type: "Substitution",
           name: name_4
         };
       } else {
         var value = parseIdentifier();
-        assert(value, "Expected attribute value.");
+        assert2(value, "Expected attribute value.");
         attr.value = {
           type: "String",
           value
@@ -39478,10 +39502,10 @@ function createParser(options) {
       }
       if (!is2("]")) {
         var caseSensitivityModifier = parseIdentifier();
-        assert(caseSensitivityModifier, "Expected end of attribute selector.");
+        assert2(caseSensitivityModifier, "Expected end of attribute selector.");
         attr.caseSensitivityModifier = caseSensitivityModifier;
-        assert(attributesCaseSensitivityModifiersEnabled, "Attribute case sensitivity modifiers are not enabled.");
-        assert(attributesAcceptUnknownCaseSensitivityModifiers || attributesCaseSensitivityModifiers[attr.caseSensitivityModifier], "Unknown attribute case sensitivity modifier.");
+        assert2(attributesCaseSensitivityModifiersEnabled, "Attribute case sensitivity modifiers are not enabled.");
+        assert2(attributesAcceptUnknownCaseSensitivityModifiers || attributesCaseSensitivityModifiers[attr.caseSensitivityModifier], "Unknown attribute case sensitivity modifier.");
         skipWhitespace();
         if (isEof() && !strict) {
           return attr;
@@ -39496,7 +39520,7 @@ function createParser(options) {
     while (digitsChars[chr]) {
       result += readAndNext();
     }
-    assert(result !== "", "Formula parse error.");
+    assert2(result !== "", "Formula parse error.");
     return parseInt(result);
   }
   var isNumberStart = function() {
@@ -39544,7 +39568,7 @@ function createParser(options) {
     } else {
       identifier = readAndNext();
     }
-    assert(identifier === "n", 'Formula parse error: expected "n".');
+    assert2(identifier === "n", 'Formula parse error: expected "n".');
     skipWhitespace();
     if (is2("+") || is2("-")) {
       var sign = is2("+") ? 1 : -1;
@@ -39563,7 +39587,7 @@ function createParser(options) {
       if (substitutesEnabled && is2("$")) {
         next2();
         var name_5 = parseIdentifier();
-        assert(name_5, "Expected substitute name.");
+        assert2(name_5, "Expected substitute name.");
         argument = {
           type: "Substitution",
           name: name_5
@@ -39573,7 +39597,7 @@ function createParser(options) {
           type: "String",
           value: parsePseudoClassString()
         };
-        assert(argument.value, "Expected ".concat(type, " argument value."));
+        assert2(argument.value, "Expected ".concat(type, " argument value."));
       } else if (signature.type === "Selector") {
         argument = parseSelector2(true);
       } else if (signature.type === "Formula") {
@@ -39587,7 +39611,7 @@ function createParser(options) {
           skipWhitespace();
           if (is2("o") || is2("\\")) {
             var ident = parseIdentifier();
-            assert(ident === "of", "Formula of selector parse error.");
+            assert2(ident === "of", "Formula of selector parse error.");
             skipWhitespace();
             argument = {
               type: "FormulaOfSelector",
@@ -39606,19 +39630,19 @@ function createParser(options) {
       }
       pass(")");
     } else {
-      assert(signature.optional, "Argument is required for ".concat(type, ' "').concat(pseudoName, '".'));
+      assert2(signature.optional, "Argument is required for ".concat(type, ' "').concat(pseudoName, '".'));
     }
     return argument;
   }
   function parseTagName() {
     if (is2("*")) {
-      assert(tagNameWildcardEnabled, "Wildcard tag name is not enabled.");
+      assert2(tagNameWildcardEnabled, "Wildcard tag name is not enabled.");
       next2();
       return { type: "WildcardTag" };
     } else if (isIdentStart(chr)) {
-      assert(tagNameEnabled, "Tag names are not enabled.");
+      assert2(tagNameEnabled, "Tag names are not enabled.");
       var name_6 = parseIdentifier();
-      assert(name_6, "Expected tag name.");
+      assert2(name_6, "Expected tag name.");
       return {
         type: "TagName",
         name: name_6
@@ -39640,22 +39664,22 @@ function createParser(options) {
         rewind(savedPos);
         return parseTagName();
       }
-      assert(namespaceEnabled, "Namespaces are not enabled.");
-      assert(namespaceWildcardEnabled, "Wildcard namespace is not enabled.");
+      assert2(namespaceEnabled, "Namespaces are not enabled.");
+      assert2(namespaceWildcardEnabled, "Wildcard namespace is not enabled.");
       var tagName = parseTagName();
       tagName.namespace = { type: "WildcardNamespace" };
       return tagName;
     } else if (is2("|")) {
-      assert(namespaceEnabled, "Namespaces are not enabled.");
+      assert2(namespaceEnabled, "Namespaces are not enabled.");
       next2();
       var tagName = parseTagName();
       tagName.namespace = { type: "NoNamespace" };
       return tagName;
     } else if (isIdentStart(chr)) {
       var identifier = parseIdentifier();
-      assert(identifier, "Expected tag name.");
+      assert2(identifier, "Expected tag name.");
       if (!is2("|")) {
-        assert(tagNameEnabled, "Tag names are not enabled.");
+        assert2(tagNameEnabled, "Tag names are not enabled.");
         return {
           type: "TagName",
           name: identifier
@@ -39670,7 +39694,7 @@ function createParser(options) {
           name: identifier
         };
       }
-      assert(namespaceEnabled, "Namespaces are not enabled.");
+      assert2(namespaceEnabled, "Namespaces are not enabled.");
       var tagName = parseTagName();
       tagName.namespace = { type: "NamespaceName", name: identifier };
       return tagName;
@@ -39693,13 +39717,13 @@ function createParser(options) {
     }
     while (pos < l2) {
       if (isTagStart()) {
-        assert(rule.items.length === 0, "Unexpected tag/namespace start.");
+        assert2(rule.items.length === 0, "Unexpected tag/namespace start.");
         rule.items.push(parseTagNameWithNamespace());
       } else if (is2("|")) {
         var savedPos = pos;
         next2();
         if (isTagStart()) {
-          assert(rule.items.length === 0, "Unexpected tag/namespace start.");
+          assert2(rule.items.length === 0, "Unexpected tag/namespace start.");
           rewind(savedPos);
           rule.items.push(parseTagNameWithNamespace());
         } else {
@@ -39707,34 +39731,34 @@ function createParser(options) {
           break;
         }
       } else if (is2(".")) {
-        assert(classNamesEnabled, "Class names are not enabled.");
+        assert2(classNamesEnabled, "Class names are not enabled.");
         next2();
         var className2 = parseIdentifier();
-        assert(className2, "Expected class name.");
+        assert2(className2, "Expected class name.");
         rule.items.push({ type: "ClassName", name: className2 });
       } else if (is2("#")) {
-        assert(idEnabled, "IDs are not enabled.");
+        assert2(idEnabled, "IDs are not enabled.");
         next2();
         var idName = parseIdentifier();
-        assert(idName, "Expected ID name.");
+        assert2(idName, "Expected ID name.");
         rule.items.push({ type: "Id", name: idName });
       } else if (is2("[")) {
-        assert(attributesEnabled, "Attributes are not enabled.");
+        assert2(attributesEnabled, "Attributes are not enabled.");
         rule.items.push(parseAttribute());
       } else if (is2(":")) {
         var isDoubleColon = false;
         var isPseudoElement = false;
         next2();
         if (is2(":")) {
-          assert(pseudoElementsEnabled, "Pseudo elements are not enabled.");
-          assert(pseudoElementsDoubleColonNotationEnabled, "Pseudo elements double colon notation is not enabled.");
+          assert2(pseudoElementsEnabled, "Pseudo elements are not enabled.");
+          assert2(pseudoElementsDoubleColonNotationEnabled, "Pseudo elements double colon notation is not enabled.");
           isDoubleColon = true;
           next2();
         }
         var pseudoName = parseIdentifier();
-        assert(isDoubleColon || pseudoName, "Expected pseudo-class name.");
-        assert(!isDoubleColon || pseudoName, "Expected pseudo-element name.");
-        assert(pseudoName, "Expected pseudo-class name.");
+        assert2(isDoubleColon || pseudoName, "Expected pseudo-class name.");
+        assert2(!isDoubleColon || pseudoName, "Expected pseudo-element name.");
+        assert2(pseudoName, "Expected pseudo-class name.");
         if (!isDoubleColon || pseudoElementsAcceptUnknown || Object.prototype.hasOwnProperty.call(pseudoElementsDefinitions, pseudoName)) ;
         else {
           var locations = pseudoLocationIndex.pseudoElements[pseudoName];
@@ -39753,12 +39777,12 @@ function createParser(options) {
           };
           var argument = parsePseudoArgument(pseudoName, "pseudo-element", signature);
           if (argument) {
-            assert(argument.type !== "Formula" && argument.type !== "FormulaOfSelector", "Pseudo-elements cannot have formula argument.");
+            assert2(argument.type !== "Formula" && argument.type !== "FormulaOfSelector", "Pseudo-elements cannot have formula argument.");
             pseudoElement.argument = argument;
           }
           rule.items.push(pseudoElement);
         } else {
-          assert(pseudoClassesEnabled, "Pseudo-classes are not enabled.");
+          assert2(pseudoClassesEnabled, "Pseudo-classes are not enabled.");
           var signature = (_b2 = pseudoClassesDefinitions[pseudoName]) !== null && _b2 !== void 0 ? _b2 : pseudoClassesAcceptUnknown && defaultPseudoSignature;
           if (signature) ;
           else {
@@ -58878,14 +58902,14 @@ function footnoteReference$1(state, node2) {
   const id2 = String(node2.identifier).toUpperCase();
   const safeId = normalizeUri(id2.toLowerCase());
   const index2 = state.footnoteOrder.indexOf(id2);
-  let counter;
+  let counter2;
   let reuseCounter = state.footnoteCounts.get(id2);
   if (reuseCounter === void 0) {
     reuseCounter = 0;
     state.footnoteOrder.push(id2);
-    counter = state.footnoteOrder.length;
+    counter2 = state.footnoteOrder.length;
   } else {
-    counter = index2 + 1;
+    counter2 = index2 + 1;
   }
   reuseCounter += 1;
   state.footnoteCounts.set(id2, reuseCounter);
@@ -58898,7 +58922,7 @@ function footnoteReference$1(state, node2) {
       dataFootnoteRef: true,
       ariaDescribedBy: ["footnote-label"]
     },
-    children: [{ type: "text", value: String(counter) }]
+    children: [{ type: "text", value: String(counter2) }]
   };
   state.patch(node2, link2);
   const sup = {
@@ -101957,22 +101981,22 @@ const AceAcknowledge = () => {
         className: "x1ghz6dp x1717udv xe8uvvx"
       },
       children: [/* @__PURE__ */ jsxRuntimeExports.jsxs("li", {
-        ...props(styles$5.listItem, gapStyles["size-2"]),
+        ...props$1(styles$5.listItem, gapStyles["size-2"]),
         children: [/* @__PURE__ */ jsxRuntimeExports.jsx(CheckIcon, {
           fill: "#73C991"
         }), "Your code is never stored by us or the LLMs"]
       }), /* @__PURE__ */ jsxRuntimeExports.jsxs("li", {
-        ...props(styles$5.listItem, gapStyles["size-2"]),
+        ...props$1(styles$5.listItem, gapStyles["size-2"]),
         children: [/* @__PURE__ */ jsxRuntimeExports.jsx(CheckIcon, {
           fill: "#73C991"
         }), "Your code snippets are shared only with select LLMs"]
       }), /* @__PURE__ */ jsxRuntimeExports.jsxs("li", {
-        ...props(styles$5.listItem, gapStyles["size-2"]),
+        ...props$1(styles$5.listItem, gapStyles["size-2"]),
         children: [/* @__PURE__ */ jsxRuntimeExports.jsx(CheckIcon, {
           fill: "#73C991"
         }), "Your code is not used to train any LLM"]
       }), /* @__PURE__ */ jsxRuntimeExports.jsxs("li", {
-        ...props(styles$5.listItem, gapStyles["size-2"]),
+        ...props$1(styles$5.listItem, gapStyles["size-2"]),
         children: [/* @__PURE__ */ jsxRuntimeExports.jsx(CheckIcon, {
           fill: "#73C991"
         }), "All communications with CodeScene ACE is fully encrypted"]
@@ -102006,7 +102030,7 @@ const DocsView = ({
   const displayAutoRefactor = (autoRefactor == null ? void 0 : autoRefactor.activated) && (autoRefactor == null ? void 0 : autoRefactor.visible);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {
     children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-      ...props(sharedViewStyles.viewWrapper),
+      ...props$1(sharedViewStyles.viewWrapper),
       children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
         direction: "column",
         gap: "size-4",
@@ -102014,8 +102038,7 @@ const DocsView = ({
           title: snakeCaseToPretty(docsHeader),
           subElement: fileData ? /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
             filename: fileData.filename,
-            functionName: fileData.functionName,
-            lineNumber: fileData.lineNumber,
+            fn: fileData.fn,
             action: fileData.action
           }) : void 0
         }), banner ? banner : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {}), displayAutoRefactor ? /* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
@@ -102159,7 +102182,7 @@ const Banner = ({
   actions = []
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props([styles$4.bannerContainer, styles$4[tone]]),
+    ...props$1([styles$4.bannerContainer, styles$4[tone]]),
     children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       gap: "size-2",
       direction: "row",
@@ -102390,35 +102413,99 @@ const CodeSceneLogo = ({
       children: [/* @__PURE__ */ jsxRuntimeExports.jsx("path", {
         d: "M35.3906 9.48691C33.4291 3.89529 28.5254 0 20.0742 0C11.6439 0 6.74021 3.91623 4.75784 9.48691C4.06923 11.4346 3.73535 13.5916 3.73535 15.8534C3.73535 20.5026 4.36136 23.7906 5.44645 26.1152C8.11743 31.7696 13.668 32 20.0534 32C26.4387 32 31.9893 31.7696 34.6603 26.1152C35.7663 23.7906 36.3714 20.5026 36.3714 15.8534C36.3923 13.5916 36.0584 11.4346 35.3906 9.48691ZM32.7197 24.4188C30.5286 29.0052 25.6875 30.0314 20.0742 30.0314C14.461 30.0314 9.61986 29.0052 7.42882 24.4188C6.63587 22.7435 6.1768 20.6283 6.1768 17.9686C6.1768 15.4974 6.51067 13.1937 7.47055 11.267C9.16078 7.8534 12.8125 5.59162 20.0742 5.59162C27.336 5.59162 30.9877 7.8534 32.6779 11.267C33.6378 13.1937 33.9717 15.4974 33.9717 17.9686C33.9717 20.6073 33.5126 22.7225 32.7197 24.4188Z",
         fill,
-        ...props(aStyle.fill)
+        ...props$1(aStyle.fill)
       }), /* @__PURE__ */ jsxRuntimeExports.jsx("path", {
         d: "M2.56665 15.8468C2.56665 13.5012 2.92138 11.3232 3.63086 9.37555C3.65173 9.33366 3.63087 9.29178 3.61 9.24989C3.58913 9.20801 3.54739 9.20801 3.50566 9.20801C1.50242 9.62686 0 13.3337 0 17.8363C0 22.6112 1.73196 26.5064 3.88126 26.5064C4.02733 26.5064 4.15254 26.4855 4.29861 26.4646C4.34034 26.4646 4.36121 26.4436 4.38208 26.4017C4.40294 26.3598 4.40294 26.3389 4.38208 26.297C3.17179 23.8049 2.56665 20.3913 2.56665 15.8468Z",
         fill,
-        ...props(aStyle.fill)
+        ...props$1(aStyle.fill)
       }), /* @__PURE__ */ jsxRuntimeExports.jsx("path", {
         d: "M36.6427 9.19238C36.6009 9.19238 36.5592 9.19238 36.5383 9.23427C36.5175 9.27615 36.4966 9.31804 36.5175 9.35992C37.227 11.3076 37.5817 13.4856 37.5817 15.8311C37.5817 20.3756 36.9974 23.7892 35.7871 26.2814C35.7663 26.3233 35.7663 26.3442 35.7871 26.3861C35.808 26.428 35.8289 26.4489 35.8706 26.4489C35.9958 26.4699 36.1419 26.4908 36.2879 26.4908C38.4164 26.4908 40.1692 22.5955 40.1692 17.8207C40.1484 13.318 38.6459 9.61123 36.6427 9.19238Z",
         fill,
-        ...props(aStyle.fill)
+        ...props$1(aStyle.fill)
       }), /* @__PURE__ */ jsxRuntimeExports.jsx("path", {
         d: "M35.3906 9.48691C33.4291 3.89529 28.5254 0 20.0742 0C11.6439 0 6.74021 3.91623 4.75784 9.48691C4.06923 11.4346 3.73535 13.5916 3.73535 15.8534C3.73535 20.5026 4.36136 23.7906 5.44645 26.1152C8.11743 31.7696 13.668 32 20.0534 32C26.4387 32 31.9893 31.7696 34.6603 26.1152C35.7663 23.7906 36.3714 20.5026 36.3714 15.8534C36.3923 13.5916 36.0584 11.4346 35.3906 9.48691ZM32.7197 24.4188C30.5286 29.0052 25.6875 30.0314 20.0742 30.0314C14.461 30.0314 9.61986 29.0052 7.42882 24.4188C6.63587 22.7435 6.1768 20.6283 6.1768 17.9686C6.1768 15.4974 6.51067 13.1937 7.47055 11.267C9.16078 7.8534 12.8125 5.59162 20.0742 5.59162C27.336 5.59162 30.9877 7.8534 32.6779 11.267C33.6378 13.1937 33.9717 15.4974 33.9717 17.9686C33.9717 20.6073 33.5126 22.7225 32.7197 24.4188Z",
         fill: "tranparent",
         stroke,
         strokeWidth,
-        ...props(aStyle.path)
+        ...props$1(aStyle.path)
       }), /* @__PURE__ */ jsxRuntimeExports.jsx("path", {
         d: "M2.56665 15.8468C2.56665 13.5012 2.92138 11.3232 3.63086 9.37555C3.65173 9.33366 3.63087 9.29178 3.61 9.24989C3.58913 9.20801 3.54739 9.20801 3.50566 9.20801C1.50242 9.62686 0 13.3337 0 17.8363C0 22.6112 1.73196 26.5064 3.88126 26.5064C4.02733 26.5064 4.15254 26.4855 4.29861 26.4646C4.34034 26.4646 4.36121 26.4436 4.38208 26.4017C4.40294 26.3598 4.40294 26.3389 4.38208 26.297C3.17179 23.8049 2.56665 20.3913 2.56665 15.8468Z",
         fill: "tranparent",
         stroke,
         strokeWidth,
-        ...props(aStyle.pathSide)
+        ...props$1(aStyle.pathSide)
       }), /* @__PURE__ */ jsxRuntimeExports.jsx("path", {
         d: "M36.6427 9.19238C36.6009 9.19238 36.5592 9.19238 36.5383 9.23427C36.5175 9.27615 36.4966 9.31804 36.5175 9.35992C37.227 11.3076 37.5817 13.4856 37.5817 15.8311C37.5817 20.3756 36.9974 23.7892 35.7871 26.2814C35.7663 26.3233 35.7663 26.3442 35.7871 26.3861C35.808 26.428 35.8289 26.4489 35.8706 26.4489C35.9958 26.4699 36.1419 26.4908 36.2879 26.4908C38.4164 26.4908 40.1692 22.5955 40.1692 17.8207C40.1484 13.318 38.6459 9.61123 36.6427 9.19238Z",
         fill: "tranparent",
         stroke,
         strokeWidth,
-        ...props(aStyle.pathSide)
+        ...props$1(aStyle.pathSide)
       })]
     })]
+  });
+};
+const LoadingAceView = ({
+  fileData
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props$1(sharedViewStyles.viewWrapper),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "column",
+      gap: "size-4",
+      alignItems: "center",
+      style: sharedViewStyles.mainStack,
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
+        title: "Refactoring...",
+        subElement: /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
+          ...fileData
+        })
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+        tone: "info",
+        title: "Refactoring...",
+        textElement: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+          children: "Waiting for ACE service..."
+        })
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(CodeSceneLogo, {
+        size: 128,
+        animationStyle: "spinner"
+      })]
+    })
+  });
+};
+const AceErrorView = ({
+  fileData
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props$1(sharedViewStyles.viewWrapper),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "column",
+      gap: "size-4",
+      style: sharedViewStyles.mainStack,
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
+        title: "Refactoring Failed",
+        subElement: /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
+          ...fileData
+        })
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
+        title: "Refactoring Failed",
+        tone: "error",
+        textElement: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+          children: ["There was an error when performing this refactoring. Please see the", " ", /* @__PURE__ */ jsxRuntimeExports.jsx("a", {
+            href: "",
+            onClick: (e) => {
+              e.preventDefault();
+              actionMessages.showLogoutput();
+            },
+            children: "CodeScene Log"
+          }), " ", "output for error details."]
+        }),
+        actions: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
+          label: "Retry Auto-Refactor",
+          primary: true,
+          onClick: actionMessages.retry
+        }, "retry")]
+      }), errorReason()]
+    })
   });
 };
 const AceView = ({
@@ -102428,64 +102515,25 @@ const AceView = ({
   fileData,
   isStale
 }) => {
+  var _a2, _b;
+  const fileDataAs1 = fileData;
+  const fileDataAs2 = fileData;
+  const transformedFileData = {
+    filename: fileData.filename,
+    fn: {
+      name: fileDataAs2["function"] || ((_a2 = fileDataAs1.fn) == null ? void 0 : _a2.name),
+      range: fileDataAs2.range || ((_b = fileDataAs1.fn) == null ? void 0 : _b.range)
+    },
+    action: fileData.action
+  };
   if (loading) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-      ...props(sharedViewStyles.viewWrapper),
-      children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
-        direction: "column",
-        gap: "size-4",
-        alignItems: "center",
-        style: sharedViewStyles.mainStack,
-        children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
-          title: "Refactoring...",
-          subElement: /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
-            ...fileData
-          })
-        }), /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
-          tone: "info",
-          title: "Refactoring...",
-          textElement: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-            children: "Waiting for ACE service..."
-          })
-        }), /* @__PURE__ */ jsxRuntimeExports.jsx(CodeSceneLogo, {
-          size: 128,
-          animationStyle: "spinner"
-        })]
-      })
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(LoadingAceView, {
+      fileData: transformedFileData
     });
   }
   if (error || aceResultData === void 0) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-      ...props(sharedViewStyles.viewWrapper),
-      children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
-        direction: "column",
-        gap: "size-4",
-        style: sharedViewStyles.mainStack,
-        children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
-          title: "Refactoring Failed",
-          subElement: /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
-            ...fileData
-          })
-        }), /* @__PURE__ */ jsxRuntimeExports.jsx(Banner, {
-          title: "Refactoring Failed",
-          tone: "error",
-          textElement: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-            children: ["There was an error when performing this refactoring. Please see the", " ", /* @__PURE__ */ jsxRuntimeExports.jsx("a", {
-              href: "",
-              onClick: (e) => {
-                e.preventDefault();
-                actionMessages.showLogoutput();
-              },
-              children: "CodeScene Log"
-            }), " ", "output for error details."]
-          }),
-          actions: [/* @__PURE__ */ jsxRuntimeExports.jsx(Button, {
-            label: "Retry Auto-Refactor",
-            primary: true,
-            onClick: actionMessages.retry
-          }, "retry")]
-        }), errorReason()]
-      })
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(AceErrorView, {
+      fileData: transformedFileData
     });
   }
   const {
@@ -102506,13 +102554,13 @@ const AceView = ({
       }
     }
     return /* @__PURE__ */ jsxRuntimeExports.jsx(DocsView, {
-      fileData,
+      fileData: transformedFileData,
       docType,
       banner: getBanner(confidence, isStale)
     });
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props(sharedViewStyles.viewWrapper),
+    ...props$1(sharedViewStyles.viewWrapper),
     children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       direction: "column",
       gap: "size-4",
@@ -102520,7 +102568,7 @@ const AceView = ({
       children: [/* @__PURE__ */ jsxRuntimeExports.jsx(PanelHeader, {
         title: confidence.title,
         subElement: /* @__PURE__ */ jsxRuntimeExports.jsx(FileSubHeader, {
-          ...fileData
+          ...transformedFileData
         })
       }), getBanner(confidence, isStale), confidence.level >= 1 && !isStale && /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
         gap: "size-2",
@@ -102556,7 +102604,7 @@ const AceView = ({
 };
 const InitView = () => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props(sharedViewStyles.viewWrapper),
+    ...props$1(sharedViewStyles.viewWrapper),
     children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
       ...{
         className: "xotqu29"
@@ -102594,7 +102642,10 @@ function buildLineIdLookup(fileDeltaData) {
     delta["file-level-findings"].forEach((fileFinding) => {
       tempLineIdLookup[`${file.filename}:${fileFinding.category}`] = {
         type: "fileFinding",
-        data: fileFinding
+        data: {
+          file,
+          finding: fileFinding
+        }
       };
     });
     delta["function-level-findings"].forEach((functionFinding) => {
@@ -102602,7 +102653,7 @@ function buildLineIdLookup(fileDeltaData) {
         type: "functionFinding",
         data: {
           file,
-          function: functionFinding.function
+          finding: functionFinding
         }
       };
     });
@@ -102773,7 +102824,7 @@ const TreeFileCodeHealth = ({
     });
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props([sharedTreeStyles.treeLine, codeHealthStyles.wrapper, selectedLineId === lineId && sharedTreeStyles.selectedTreeline]),
+    ...props$1([sharedTreeStyles.treeLine, codeHealthStyles.wrapper, selectedLineId === lineId && sharedTreeStyles.selectedTreeline]),
     onClick: () => handleLineClick(lineId, "codeHealth"),
     children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       direction: "row",
@@ -102839,9 +102890,10 @@ const TreeFileCodeHealth = ({
 const functionStyles = {
   wrapper: {
     paddingLeft: "x36mcrg",
+    fontSize: "x1tt3jfx",
+    paddingRight: "xcicffo",
     paddingInlineStart: null,
     paddingInlineEnd: null,
-    fontSize: "x1tt3jfx",
     $$css: true
   },
   dot: {
@@ -102996,7 +103048,9 @@ const TreeFileFunctionFinding = ({
 }) => {
   const [hovered, setHovered] = reactExports.useState(false);
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props([sharedTreeStyles.treeLine, functionStyles.wrapper, selectedLineId === lineId && sharedTreeStyles.selectedTreeline]),
+    ...props$1([sharedTreeStyles.treeLine, functionStyles.wrapper, selectedLineId === lineId && sharedTreeStyles.selectedTreeline]),
+    role: "function-finding",
+    "aria-label": finding.function.name,
     onClick: () => handleLineClick(lineId, "functionFinding"),
     onMouseEnter: () => setHovered(true),
     onMouseLeave: () => setHovered(false),
@@ -103024,7 +103078,7 @@ const TreeFileFunctionFinding = ({
         style: [functionStyles.actionWrapper, hovered && functionStyles.visible],
         children: finding["change-details"].map((detail) => {
           return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-            ...props([functionStyles.dot, functionStyles[detail["change-type"]]]),
+            ...props$1([functionStyles.dot, functionStyles[detail["change-type"]]]),
             title: `${detail.category} - ${detail["change-type"]}`,
             children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
               ...{
@@ -103052,7 +103106,9 @@ const TreeFileFinding = ({
   handleLineClick
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props([sharedTreeStyles.treeLine, styles$2.wrapper, selectedLineId === lineId && sharedTreeStyles.selectedTreeline]),
+    ...props$1([sharedTreeStyles.treeLine, styles$2.wrapper, selectedLineId === lineId && sharedTreeStyles.selectedTreeline]),
+    role: "file-finding",
+    "aria-label": fileFinding.category,
     onClick: () => handleLineClick(lineId, "fileFinding"),
     children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       direction: "row",
@@ -103122,7 +103178,7 @@ const TreeFileItem = ({
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
     children: [/* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-      ...props(sharedTreeStyles.treeLine, styles$1.wrapper),
+      ...props$1(sharedTreeStyles.treeLine, styles$1.wrapper),
       onClick: () => handleLineClick(fileDelta.file.filename, "file"),
       children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
         direction: "row",
@@ -103158,6 +103214,2274 @@ const TreeFileItem = ({
     })]
   });
 };
+const PanelGroupContext = reactExports.createContext(null);
+PanelGroupContext.displayName = "PanelGroupContext";
+const DATA_ATTRIBUTES = {
+  group: "data-panel-group",
+  groupDirection: "data-panel-group-direction",
+  groupId: "data-panel-group-id",
+  panel: "data-panel",
+  panelCollapsible: "data-panel-collapsible",
+  panelId: "data-panel-id",
+  panelSize: "data-panel-size",
+  resizeHandle: "data-resize-handle",
+  resizeHandleActive: "data-resize-handle-active",
+  resizeHandleEnabled: "data-panel-resize-handle-enabled",
+  resizeHandleId: "data-panel-resize-handle-id",
+  resizeHandleState: "data-resize-handle-state"
+};
+const PRECISION = 10;
+const useIsomorphicLayoutEffect = reactExports.useLayoutEffect;
+const useId = React$1["useId".toString()];
+const wrappedUseId = typeof useId === "function" ? useId : () => null;
+let counter = 0;
+function useUniqueId(idFromParams = null) {
+  const idFromUseId = wrappedUseId();
+  const idRef = reactExports.useRef(idFromParams || idFromUseId || null);
+  if (idRef.current === null) {
+    idRef.current = "" + counter++;
+  }
+  return idFromParams !== null && idFromParams !== void 0 ? idFromParams : idRef.current;
+}
+function PanelWithForwardedRef({
+  children,
+  className: classNameFromProps = "",
+  collapsedSize,
+  collapsible,
+  defaultSize,
+  forwardedRef,
+  id: idFromProps,
+  maxSize,
+  minSize,
+  onCollapse,
+  onExpand,
+  onResize,
+  order: order2,
+  style: styleFromProps,
+  tagName: Type = "div",
+  ...rest2
+}) {
+  const context = reactExports.useContext(PanelGroupContext);
+  if (context === null) {
+    throw Error(`Panel components must be rendered within a PanelGroup container`);
+  }
+  const {
+    collapsePanel,
+    expandPanel,
+    getPanelSize,
+    getPanelStyle,
+    groupId,
+    isPanelCollapsed,
+    reevaluatePanelConstraints,
+    registerPanel,
+    resizePanel: resizePanel2,
+    unregisterPanel
+  } = context;
+  const panelId = useUniqueId(idFromProps);
+  const panelDataRef = reactExports.useRef({
+    callbacks: {
+      onCollapse,
+      onExpand,
+      onResize
+    },
+    constraints: {
+      collapsedSize,
+      collapsible,
+      defaultSize,
+      maxSize,
+      minSize
+    },
+    id: panelId,
+    idIsFromProps: idFromProps !== void 0,
+    order: order2
+  });
+  reactExports.useRef({
+    didLogMissingDefaultSizeWarning: false
+  });
+  useIsomorphicLayoutEffect(() => {
+    const {
+      callbacks,
+      constraints
+    } = panelDataRef.current;
+    const prevConstraints = {
+      ...constraints
+    };
+    panelDataRef.current.id = panelId;
+    panelDataRef.current.idIsFromProps = idFromProps !== void 0;
+    panelDataRef.current.order = order2;
+    callbacks.onCollapse = onCollapse;
+    callbacks.onExpand = onExpand;
+    callbacks.onResize = onResize;
+    constraints.collapsedSize = collapsedSize;
+    constraints.collapsible = collapsible;
+    constraints.defaultSize = defaultSize;
+    constraints.maxSize = maxSize;
+    constraints.minSize = minSize;
+    if (prevConstraints.collapsedSize !== constraints.collapsedSize || prevConstraints.collapsible !== constraints.collapsible || prevConstraints.maxSize !== constraints.maxSize || prevConstraints.minSize !== constraints.minSize) {
+      reevaluatePanelConstraints(panelDataRef.current, prevConstraints);
+    }
+  });
+  useIsomorphicLayoutEffect(() => {
+    const panelData = panelDataRef.current;
+    registerPanel(panelData);
+    return () => {
+      unregisterPanel(panelData);
+    };
+  }, [order2, panelId, registerPanel, unregisterPanel]);
+  reactExports.useImperativeHandle(forwardedRef, () => ({
+    collapse: () => {
+      collapsePanel(panelDataRef.current);
+    },
+    expand: (minSize2) => {
+      expandPanel(panelDataRef.current, minSize2);
+    },
+    getId() {
+      return panelId;
+    },
+    getSize() {
+      return getPanelSize(panelDataRef.current);
+    },
+    isCollapsed() {
+      return isPanelCollapsed(panelDataRef.current);
+    },
+    isExpanded() {
+      return !isPanelCollapsed(panelDataRef.current);
+    },
+    resize: (size) => {
+      resizePanel2(panelDataRef.current, size);
+    }
+  }), [collapsePanel, expandPanel, getPanelSize, isPanelCollapsed, panelId, resizePanel2]);
+  const style2 = getPanelStyle(panelDataRef.current, defaultSize);
+  return reactExports.createElement(Type, {
+    ...rest2,
+    children,
+    className: classNameFromProps,
+    id: panelId,
+    style: {
+      ...style2,
+      ...styleFromProps
+    },
+    // CSS selectors
+    [DATA_ATTRIBUTES.groupId]: groupId,
+    [DATA_ATTRIBUTES.panel]: "",
+    [DATA_ATTRIBUTES.panelCollapsible]: collapsible || void 0,
+    [DATA_ATTRIBUTES.panelId]: panelId,
+    [DATA_ATTRIBUTES.panelSize]: parseFloat("" + style2.flexGrow).toFixed(1)
+  });
+}
+const Panel = reactExports.forwardRef((props2, ref) => reactExports.createElement(PanelWithForwardedRef, {
+  ...props2,
+  forwardedRef: ref
+}));
+PanelWithForwardedRef.displayName = "Panel";
+Panel.displayName = "forwardRef(Panel)";
+let currentCursorStyle = null;
+let prevRuleIndex = -1;
+let styleElement = null;
+function getCursorStyle(state, constraintFlags) {
+  if (constraintFlags) {
+    const horizontalMin = (constraintFlags & EXCEEDED_HORIZONTAL_MIN) !== 0;
+    const horizontalMax = (constraintFlags & EXCEEDED_HORIZONTAL_MAX) !== 0;
+    const verticalMin = (constraintFlags & EXCEEDED_VERTICAL_MIN) !== 0;
+    const verticalMax = (constraintFlags & EXCEEDED_VERTICAL_MAX) !== 0;
+    if (horizontalMin) {
+      if (verticalMin) {
+        return "se-resize";
+      } else if (verticalMax) {
+        return "ne-resize";
+      } else {
+        return "e-resize";
+      }
+    } else if (horizontalMax) {
+      if (verticalMin) {
+        return "sw-resize";
+      } else if (verticalMax) {
+        return "nw-resize";
+      } else {
+        return "w-resize";
+      }
+    } else if (verticalMin) {
+      return "s-resize";
+    } else if (verticalMax) {
+      return "n-resize";
+    }
+  }
+  switch (state) {
+    case "horizontal":
+      return "ew-resize";
+    case "intersection":
+      return "move";
+    case "vertical":
+      return "ns-resize";
+  }
+}
+function resetGlobalCursorStyle() {
+  if (styleElement !== null) {
+    document.head.removeChild(styleElement);
+    currentCursorStyle = null;
+    styleElement = null;
+    prevRuleIndex = -1;
+  }
+}
+function setGlobalCursorStyle(state, constraintFlags) {
+  var _styleElement$sheet$i, _styleElement$sheet2;
+  const style2 = getCursorStyle(state, constraintFlags);
+  if (currentCursorStyle === style2) {
+    return;
+  }
+  currentCursorStyle = style2;
+  if (styleElement === null) {
+    styleElement = document.createElement("style");
+    document.head.appendChild(styleElement);
+  }
+  if (prevRuleIndex >= 0) {
+    var _styleElement$sheet;
+    (_styleElement$sheet = styleElement.sheet) === null || _styleElement$sheet === void 0 ? void 0 : _styleElement$sheet.removeRule(prevRuleIndex);
+  }
+  prevRuleIndex = (_styleElement$sheet$i = (_styleElement$sheet2 = styleElement.sheet) === null || _styleElement$sheet2 === void 0 ? void 0 : _styleElement$sheet2.insertRule(`*{cursor: ${style2} !important;}`)) !== null && _styleElement$sheet$i !== void 0 ? _styleElement$sheet$i : -1;
+}
+function isKeyDown(event) {
+  return event.type === "keydown";
+}
+function isPointerEvent(event) {
+  return event.type.startsWith("pointer");
+}
+function isMouseEvent(event) {
+  return event.type.startsWith("mouse");
+}
+function getResizeEventCoordinates(event) {
+  if (isPointerEvent(event)) {
+    if (event.isPrimary) {
+      return {
+        x: event.clientX,
+        y: event.clientY
+      };
+    }
+  } else if (isMouseEvent(event)) {
+    return {
+      x: event.clientX,
+      y: event.clientY
+    };
+  }
+  return {
+    x: Infinity,
+    y: Infinity
+  };
+}
+function getInputType() {
+  if (typeof matchMedia === "function") {
+    return matchMedia("(pointer:coarse)").matches ? "coarse" : "fine";
+  }
+}
+function intersects(rectOne, rectTwo, strict) {
+  {
+    return rectOne.x < rectTwo.x + rectTwo.width && rectOne.x + rectOne.width > rectTwo.x && rectOne.y < rectTwo.y + rectTwo.height && rectOne.y + rectOne.height > rectTwo.y;
+  }
+}
+function compare(a2, b) {
+  if (a2 === b) throw new Error("Cannot compare node with itself");
+  const ancestors = {
+    a: get_ancestors(a2),
+    b: get_ancestors(b)
+  };
+  let common_ancestor;
+  while (ancestors.a.at(-1) === ancestors.b.at(-1)) {
+    a2 = ancestors.a.pop();
+    b = ancestors.b.pop();
+    common_ancestor = a2;
+  }
+  assert(common_ancestor, "Stacking order can only be calculated for elements with a common ancestor");
+  const z_indexes = {
+    a: get_z_index(find_stacking_context(ancestors.a)),
+    b: get_z_index(find_stacking_context(ancestors.b))
+  };
+  if (z_indexes.a === z_indexes.b) {
+    const children = common_ancestor.childNodes;
+    const furthest_ancestors = {
+      a: ancestors.a.at(-1),
+      b: ancestors.b.at(-1)
+    };
+    let i = children.length;
+    while (i--) {
+      const child = children[i];
+      if (child === furthest_ancestors.a) return 1;
+      if (child === furthest_ancestors.b) return -1;
+    }
+  }
+  return Math.sign(z_indexes.a - z_indexes.b);
+}
+const props = /\b(?:position|zIndex|opacity|transform|webkitTransform|mixBlendMode|filter|webkitFilter|isolation)\b/;
+function is_flex_item(node2) {
+  var _get_parent;
+  const display = getComputedStyle((_get_parent = get_parent(node2)) !== null && _get_parent !== void 0 ? _get_parent : node2).display;
+  return display === "flex" || display === "inline-flex";
+}
+function creates_stacking_context(node2) {
+  const style2 = getComputedStyle(node2);
+  if (style2.position === "fixed") return true;
+  if (style2.zIndex !== "auto" && (style2.position !== "static" || is_flex_item(node2))) return true;
+  if (+style2.opacity < 1) return true;
+  if ("transform" in style2 && style2.transform !== "none") return true;
+  if ("webkitTransform" in style2 && style2.webkitTransform !== "none") return true;
+  if ("mixBlendMode" in style2 && style2.mixBlendMode !== "normal") return true;
+  if ("filter" in style2 && style2.filter !== "none") return true;
+  if ("webkitFilter" in style2 && style2.webkitFilter !== "none") return true;
+  if ("isolation" in style2 && style2.isolation === "isolate") return true;
+  if (props.test(style2.willChange)) return true;
+  if (style2.webkitOverflowScrolling === "touch") return true;
+  return false;
+}
+function find_stacking_context(nodes) {
+  let i = nodes.length;
+  while (i--) {
+    const node2 = nodes[i];
+    assert(node2, "Missing node");
+    if (creates_stacking_context(node2)) return node2;
+  }
+  return null;
+}
+function get_z_index(node2) {
+  return node2 && Number(getComputedStyle(node2).zIndex) || 0;
+}
+function get_ancestors(node2) {
+  const ancestors = [];
+  while (node2) {
+    ancestors.push(node2);
+    node2 = get_parent(node2);
+  }
+  return ancestors;
+}
+function get_parent(node2) {
+  const {
+    parentNode
+  } = node2;
+  if (parentNode && parentNode instanceof ShadowRoot) {
+    return parentNode.host;
+  }
+  return parentNode;
+}
+const EXCEEDED_HORIZONTAL_MIN = 1;
+const EXCEEDED_HORIZONTAL_MAX = 2;
+const EXCEEDED_VERTICAL_MIN = 4;
+const EXCEEDED_VERTICAL_MAX = 8;
+const isCoarsePointer = getInputType() === "coarse";
+let intersectingHandles = [];
+let isPointerDown = false;
+let ownerDocumentCounts = /* @__PURE__ */ new Map();
+let panelConstraintFlags = /* @__PURE__ */ new Map();
+const registeredResizeHandlers = /* @__PURE__ */ new Set();
+function registerResizeHandle(resizeHandleId, element2, direction2, hitAreaMargins, setResizeHandlerState) {
+  var _ownerDocumentCounts$;
+  const {
+    ownerDocument
+  } = element2;
+  const data = {
+    direction: direction2,
+    element: element2,
+    hitAreaMargins,
+    setResizeHandlerState
+  };
+  const count2 = (_ownerDocumentCounts$ = ownerDocumentCounts.get(ownerDocument)) !== null && _ownerDocumentCounts$ !== void 0 ? _ownerDocumentCounts$ : 0;
+  ownerDocumentCounts.set(ownerDocument, count2 + 1);
+  registeredResizeHandlers.add(data);
+  updateListeners();
+  return function unregisterResizeHandle() {
+    var _ownerDocumentCounts$2;
+    panelConstraintFlags.delete(resizeHandleId);
+    registeredResizeHandlers.delete(data);
+    const count3 = (_ownerDocumentCounts$2 = ownerDocumentCounts.get(ownerDocument)) !== null && _ownerDocumentCounts$2 !== void 0 ? _ownerDocumentCounts$2 : 1;
+    ownerDocumentCounts.set(ownerDocument, count3 - 1);
+    updateListeners();
+    if (count3 === 1) {
+      ownerDocumentCounts.delete(ownerDocument);
+    }
+    if (intersectingHandles.includes(data)) {
+      const index2 = intersectingHandles.indexOf(data);
+      if (index2 >= 0) {
+        intersectingHandles.splice(index2, 1);
+      }
+      updateCursor();
+      setResizeHandlerState("up", true, null);
+    }
+  };
+}
+function handlePointerDown(event) {
+  const {
+    target
+  } = event;
+  const {
+    x,
+    y
+  } = getResizeEventCoordinates(event);
+  isPointerDown = true;
+  recalculateIntersectingHandles({
+    target,
+    x,
+    y
+  });
+  updateListeners();
+  if (intersectingHandles.length > 0) {
+    updateResizeHandlerStates("down", event);
+    event.preventDefault();
+    if (!isWithinResizeHandle(target)) {
+      event.stopImmediatePropagation();
+    }
+  }
+}
+function handlePointerMove(event) {
+  const {
+    x,
+    y
+  } = getResizeEventCoordinates(event);
+  if (isPointerDown && event.buttons === 0) {
+    isPointerDown = false;
+    updateResizeHandlerStates("up", event);
+  }
+  if (!isPointerDown) {
+    const {
+      target
+    } = event;
+    recalculateIntersectingHandles({
+      target,
+      x,
+      y
+    });
+  }
+  updateResizeHandlerStates("move", event);
+  updateCursor();
+  if (intersectingHandles.length > 0) {
+    event.preventDefault();
+  }
+}
+function handlePointerUp(event) {
+  const {
+    target
+  } = event;
+  const {
+    x,
+    y
+  } = getResizeEventCoordinates(event);
+  panelConstraintFlags.clear();
+  isPointerDown = false;
+  if (intersectingHandles.length > 0) {
+    event.preventDefault();
+    if (!isWithinResizeHandle(target)) {
+      event.stopImmediatePropagation();
+    }
+  }
+  updateResizeHandlerStates("up", event);
+  recalculateIntersectingHandles({
+    target,
+    x,
+    y
+  });
+  updateCursor();
+  updateListeners();
+}
+function isWithinResizeHandle(element2) {
+  let currentElement = element2;
+  while (currentElement) {
+    if (currentElement.hasAttribute(DATA_ATTRIBUTES.resizeHandle)) {
+      return true;
+    }
+    currentElement = currentElement.parentElement;
+  }
+  return false;
+}
+function recalculateIntersectingHandles({
+  target,
+  x,
+  y
+}) {
+  intersectingHandles.splice(0);
+  let targetElement = null;
+  if (target instanceof HTMLElement || target instanceof SVGElement) {
+    targetElement = target;
+  }
+  registeredResizeHandlers.forEach((data) => {
+    const {
+      element: dragHandleElement,
+      hitAreaMargins
+    } = data;
+    const dragHandleRect = dragHandleElement.getBoundingClientRect();
+    const {
+      bottom,
+      left,
+      right,
+      top
+    } = dragHandleRect;
+    const margin = isCoarsePointer ? hitAreaMargins.coarse : hitAreaMargins.fine;
+    const eventIntersects = x >= left - margin && x <= right + margin && y >= top - margin && y <= bottom + margin;
+    if (eventIntersects) {
+      if (targetElement !== null && document.contains(targetElement) && dragHandleElement !== targetElement && !dragHandleElement.contains(targetElement) && !targetElement.contains(dragHandleElement) && // Calculating stacking order has a cost, so we should avoid it if possible
+      // That is why we only check potentially intersecting handles,
+      // and why we skip if the event target is within the handle's DOM
+      compare(targetElement, dragHandleElement) > 0) {
+        let currentElement = targetElement;
+        let didIntersect = false;
+        while (currentElement) {
+          if (currentElement.contains(dragHandleElement)) {
+            break;
+          } else if (intersects(currentElement.getBoundingClientRect(), dragHandleRect)) {
+            didIntersect = true;
+            break;
+          }
+          currentElement = currentElement.parentElement;
+        }
+        if (didIntersect) {
+          return;
+        }
+      }
+      intersectingHandles.push(data);
+    }
+  });
+}
+function reportConstraintsViolation(resizeHandleId, flag) {
+  panelConstraintFlags.set(resizeHandleId, flag);
+}
+function updateCursor() {
+  let intersectsHorizontal = false;
+  let intersectsVertical = false;
+  intersectingHandles.forEach((data) => {
+    const {
+      direction: direction2
+    } = data;
+    if (direction2 === "horizontal") {
+      intersectsHorizontal = true;
+    } else {
+      intersectsVertical = true;
+    }
+  });
+  let constraintFlags = 0;
+  panelConstraintFlags.forEach((flag) => {
+    constraintFlags |= flag;
+  });
+  if (intersectsHorizontal && intersectsVertical) {
+    setGlobalCursorStyle("intersection", constraintFlags);
+  } else if (intersectsHorizontal) {
+    setGlobalCursorStyle("horizontal", constraintFlags);
+  } else if (intersectsVertical) {
+    setGlobalCursorStyle("vertical", constraintFlags);
+  } else {
+    resetGlobalCursorStyle();
+  }
+}
+let listenersAbortController = new AbortController();
+function updateListeners() {
+  listenersAbortController.abort();
+  listenersAbortController = new AbortController();
+  const options = {
+    capture: true,
+    signal: listenersAbortController.signal
+  };
+  if (!registeredResizeHandlers.size) {
+    return;
+  }
+  if (isPointerDown) {
+    if (intersectingHandles.length > 0) {
+      ownerDocumentCounts.forEach((count2, ownerDocument) => {
+        const {
+          body
+        } = ownerDocument;
+        if (count2 > 0) {
+          body.addEventListener("contextmenu", handlePointerUp, options);
+          body.addEventListener("pointerleave", handlePointerMove, options);
+          body.addEventListener("pointermove", handlePointerMove, options);
+        }
+      });
+    }
+    ownerDocumentCounts.forEach((_2, ownerDocument) => {
+      const {
+        body
+      } = ownerDocument;
+      body.addEventListener("pointerup", handlePointerUp, options);
+      body.addEventListener("pointercancel", handlePointerUp, options);
+    });
+  } else {
+    ownerDocumentCounts.forEach((count2, ownerDocument) => {
+      const {
+        body
+      } = ownerDocument;
+      if (count2 > 0) {
+        body.addEventListener("pointerdown", handlePointerDown, options);
+        body.addEventListener("pointermove", handlePointerMove, options);
+      }
+    });
+  }
+}
+function updateResizeHandlerStates(action, event) {
+  registeredResizeHandlers.forEach((data) => {
+    const {
+      setResizeHandlerState
+    } = data;
+    const isActive = intersectingHandles.includes(data);
+    setResizeHandlerState(action, isActive, event);
+  });
+}
+function useForceUpdate() {
+  const [_2, setCount] = reactExports.useState(0);
+  return reactExports.useCallback(() => setCount((prevCount) => prevCount + 1), []);
+}
+function assert(expectedCondition, message) {
+  if (!expectedCondition) {
+    console.error(message);
+    throw Error(message);
+  }
+}
+function fuzzyCompareNumbers(actual, expected, fractionDigits = PRECISION) {
+  if (actual.toFixed(fractionDigits) === expected.toFixed(fractionDigits)) {
+    return 0;
+  } else {
+    return actual > expected ? 1 : -1;
+  }
+}
+function fuzzyNumbersEqual$1(actual, expected, fractionDigits = PRECISION) {
+  return fuzzyCompareNumbers(actual, expected, fractionDigits) === 0;
+}
+function fuzzyNumbersEqual(actual, expected, fractionDigits) {
+  return fuzzyCompareNumbers(actual, expected, fractionDigits) === 0;
+}
+function fuzzyLayoutsEqual(actual, expected, fractionDigits) {
+  if (actual.length !== expected.length) {
+    return false;
+  }
+  for (let index2 = 0; index2 < actual.length; index2++) {
+    const actualSize = actual[index2];
+    const expectedSize = expected[index2];
+    if (!fuzzyNumbersEqual(actualSize, expectedSize, fractionDigits)) {
+      return false;
+    }
+  }
+  return true;
+}
+function resizePanel({
+  panelConstraints: panelConstraintsArray,
+  panelIndex,
+  size
+}) {
+  const panelConstraints = panelConstraintsArray[panelIndex];
+  assert(panelConstraints != null, `Panel constraints not found for index ${panelIndex}`);
+  let {
+    collapsedSize = 0,
+    collapsible,
+    maxSize = 100,
+    minSize = 0
+  } = panelConstraints;
+  if (fuzzyCompareNumbers(size, minSize) < 0) {
+    if (collapsible) {
+      const halfwayPoint = (collapsedSize + minSize) / 2;
+      if (fuzzyCompareNumbers(size, halfwayPoint) < 0) {
+        size = collapsedSize;
+      } else {
+        size = minSize;
+      }
+    } else {
+      size = minSize;
+    }
+  }
+  size = Math.min(maxSize, size);
+  size = parseFloat(size.toFixed(PRECISION));
+  return size;
+}
+function adjustLayoutByDelta({
+  delta,
+  initialLayout,
+  panelConstraints: panelConstraintsArray,
+  pivotIndices,
+  prevLayout,
+  trigger
+}) {
+  if (fuzzyNumbersEqual(delta, 0)) {
+    return initialLayout;
+  }
+  const nextLayout = [...initialLayout];
+  const [firstPivotIndex, secondPivotIndex] = pivotIndices;
+  assert(firstPivotIndex != null, "Invalid first pivot index");
+  assert(secondPivotIndex != null, "Invalid second pivot index");
+  let deltaApplied = 0;
+  {
+    if (trigger === "keyboard") {
+      {
+        const index2 = delta < 0 ? secondPivotIndex : firstPivotIndex;
+        const panelConstraints = panelConstraintsArray[index2];
+        assert(panelConstraints, `Panel constraints not found for index ${index2}`);
+        const {
+          collapsedSize = 0,
+          collapsible,
+          minSize = 0
+        } = panelConstraints;
+        if (collapsible) {
+          const prevSize = initialLayout[index2];
+          assert(prevSize != null, `Previous layout not found for panel index ${index2}`);
+          if (fuzzyNumbersEqual(prevSize, collapsedSize)) {
+            const localDelta = minSize - prevSize;
+            if (fuzzyCompareNumbers(localDelta, Math.abs(delta)) > 0) {
+              delta = delta < 0 ? 0 - localDelta : localDelta;
+            }
+          }
+        }
+      }
+      {
+        const index2 = delta < 0 ? firstPivotIndex : secondPivotIndex;
+        const panelConstraints = panelConstraintsArray[index2];
+        assert(panelConstraints, `No panel constraints found for index ${index2}`);
+        const {
+          collapsedSize = 0,
+          collapsible,
+          minSize = 0
+        } = panelConstraints;
+        if (collapsible) {
+          const prevSize = initialLayout[index2];
+          assert(prevSize != null, `Previous layout not found for panel index ${index2}`);
+          if (fuzzyNumbersEqual(prevSize, minSize)) {
+            const localDelta = prevSize - collapsedSize;
+            if (fuzzyCompareNumbers(localDelta, Math.abs(delta)) > 0) {
+              delta = delta < 0 ? 0 - localDelta : localDelta;
+            }
+          }
+        }
+      }
+    }
+  }
+  {
+    const increment2 = delta < 0 ? 1 : -1;
+    let index2 = delta < 0 ? secondPivotIndex : firstPivotIndex;
+    let maxAvailableDelta = 0;
+    while (true) {
+      const prevSize = initialLayout[index2];
+      assert(prevSize != null, `Previous layout not found for panel index ${index2}`);
+      const maxSafeSize = resizePanel({
+        panelConstraints: panelConstraintsArray,
+        panelIndex: index2,
+        size: 100
+      });
+      const delta2 = maxSafeSize - prevSize;
+      maxAvailableDelta += delta2;
+      index2 += increment2;
+      if (index2 < 0 || index2 >= panelConstraintsArray.length) {
+        break;
+      }
+    }
+    const minAbsDelta = Math.min(Math.abs(delta), Math.abs(maxAvailableDelta));
+    delta = delta < 0 ? 0 - minAbsDelta : minAbsDelta;
+  }
+  {
+    const pivotIndex = delta < 0 ? firstPivotIndex : secondPivotIndex;
+    let index2 = pivotIndex;
+    while (index2 >= 0 && index2 < panelConstraintsArray.length) {
+      const deltaRemaining = Math.abs(delta) - Math.abs(deltaApplied);
+      const prevSize = initialLayout[index2];
+      assert(prevSize != null, `Previous layout not found for panel index ${index2}`);
+      const unsafeSize = prevSize - deltaRemaining;
+      const safeSize = resizePanel({
+        panelConstraints: panelConstraintsArray,
+        panelIndex: index2,
+        size: unsafeSize
+      });
+      if (!fuzzyNumbersEqual(prevSize, safeSize)) {
+        deltaApplied += prevSize - safeSize;
+        nextLayout[index2] = safeSize;
+        if (deltaApplied.toPrecision(3).localeCompare(Math.abs(delta).toPrecision(3), void 0, {
+          numeric: true
+        }) >= 0) {
+          break;
+        }
+      }
+      if (delta < 0) {
+        index2--;
+      } else {
+        index2++;
+      }
+    }
+  }
+  if (fuzzyLayoutsEqual(prevLayout, nextLayout)) {
+    return prevLayout;
+  }
+  {
+    const pivotIndex = delta < 0 ? secondPivotIndex : firstPivotIndex;
+    const prevSize = initialLayout[pivotIndex];
+    assert(prevSize != null, `Previous layout not found for panel index ${pivotIndex}`);
+    const unsafeSize = prevSize + deltaApplied;
+    const safeSize = resizePanel({
+      panelConstraints: panelConstraintsArray,
+      panelIndex: pivotIndex,
+      size: unsafeSize
+    });
+    nextLayout[pivotIndex] = safeSize;
+    if (!fuzzyNumbersEqual(safeSize, unsafeSize)) {
+      let deltaRemaining = unsafeSize - safeSize;
+      const pivotIndex2 = delta < 0 ? secondPivotIndex : firstPivotIndex;
+      let index2 = pivotIndex2;
+      while (index2 >= 0 && index2 < panelConstraintsArray.length) {
+        const prevSize2 = nextLayout[index2];
+        assert(prevSize2 != null, `Previous layout not found for panel index ${index2}`);
+        const unsafeSize2 = prevSize2 + deltaRemaining;
+        const safeSize2 = resizePanel({
+          panelConstraints: panelConstraintsArray,
+          panelIndex: index2,
+          size: unsafeSize2
+        });
+        if (!fuzzyNumbersEqual(prevSize2, safeSize2)) {
+          deltaRemaining -= safeSize2 - prevSize2;
+          nextLayout[index2] = safeSize2;
+        }
+        if (fuzzyNumbersEqual(deltaRemaining, 0)) {
+          break;
+        }
+        if (delta > 0) {
+          index2--;
+        } else {
+          index2++;
+        }
+      }
+    }
+  }
+  const totalSize = nextLayout.reduce((total, size) => size + total, 0);
+  if (!fuzzyNumbersEqual(totalSize, 100)) {
+    return prevLayout;
+  }
+  return nextLayout;
+}
+function calculateAriaValues({
+  layout,
+  panelsArray,
+  pivotIndices
+}) {
+  let currentMinSize = 0;
+  let currentMaxSize = 100;
+  let totalMinSize = 0;
+  let totalMaxSize = 0;
+  const firstIndex = pivotIndices[0];
+  assert(firstIndex != null, "No pivot index found");
+  panelsArray.forEach((panelData, index2) => {
+    const {
+      constraints
+    } = panelData;
+    const {
+      maxSize = 100,
+      minSize = 0
+    } = constraints;
+    if (index2 === firstIndex) {
+      currentMinSize = minSize;
+      currentMaxSize = maxSize;
+    } else {
+      totalMinSize += minSize;
+      totalMaxSize += maxSize;
+    }
+  });
+  const valueMax = Math.min(currentMaxSize, 100 - totalMinSize);
+  const valueMin = Math.max(currentMinSize, 100 - totalMaxSize);
+  const valueNow = layout[firstIndex];
+  return {
+    valueMax,
+    valueMin,
+    valueNow
+  };
+}
+function getResizeHandleElementsForGroup(groupId, scope2 = document) {
+  return Array.from(scope2.querySelectorAll(`[${DATA_ATTRIBUTES.resizeHandleId}][data-panel-group-id="${groupId}"]`));
+}
+function getResizeHandleElementIndex(groupId, id2, scope2 = document) {
+  const handles = getResizeHandleElementsForGroup(groupId, scope2);
+  const index2 = handles.findIndex((handle2) => handle2.getAttribute(DATA_ATTRIBUTES.resizeHandleId) === id2);
+  return index2 !== null && index2 !== void 0 ? index2 : null;
+}
+function determinePivotIndices(groupId, dragHandleId, panelGroupElement) {
+  const index2 = getResizeHandleElementIndex(groupId, dragHandleId, panelGroupElement);
+  return index2 != null ? [index2, index2 + 1] : [-1, -1];
+}
+function getPanelGroupElement(id2, rootElement = document) {
+  var _dataset;
+  if (rootElement instanceof HTMLElement && (rootElement === null || rootElement === void 0 ? void 0 : (_dataset = rootElement.dataset) === null || _dataset === void 0 ? void 0 : _dataset.panelGroupId) == id2) {
+    return rootElement;
+  }
+  const element2 = rootElement.querySelector(`[data-panel-group][data-panel-group-id="${id2}"]`);
+  if (element2) {
+    return element2;
+  }
+  return null;
+}
+function getResizeHandleElement(id2, scope2 = document) {
+  const element2 = scope2.querySelector(`[${DATA_ATTRIBUTES.resizeHandleId}="${id2}"]`);
+  if (element2) {
+    return element2;
+  }
+  return null;
+}
+function getResizeHandlePanelIds(groupId, handleId, panelsArray, scope2 = document) {
+  var _panelsArray$index$id, _panelsArray$index, _panelsArray$id, _panelsArray;
+  const handle2 = getResizeHandleElement(handleId, scope2);
+  const handles = getResizeHandleElementsForGroup(groupId, scope2);
+  const index2 = handle2 ? handles.indexOf(handle2) : -1;
+  const idBefore = (_panelsArray$index$id = (_panelsArray$index = panelsArray[index2]) === null || _panelsArray$index === void 0 ? void 0 : _panelsArray$index.id) !== null && _panelsArray$index$id !== void 0 ? _panelsArray$index$id : null;
+  const idAfter = (_panelsArray$id = (_panelsArray = panelsArray[index2 + 1]) === null || _panelsArray === void 0 ? void 0 : _panelsArray.id) !== null && _panelsArray$id !== void 0 ? _panelsArray$id : null;
+  return [idBefore, idAfter];
+}
+function useWindowSplitterPanelGroupBehavior({
+  committedValuesRef,
+  eagerValuesRef,
+  groupId,
+  layout,
+  panelDataArray,
+  panelGroupElement,
+  setLayout
+}) {
+  reactExports.useRef({
+    didWarnAboutMissingResizeHandle: false
+  });
+  useIsomorphicLayoutEffect(() => {
+    if (!panelGroupElement) {
+      return;
+    }
+    const resizeHandleElements = getResizeHandleElementsForGroup(groupId, panelGroupElement);
+    for (let index2 = 0; index2 < panelDataArray.length - 1; index2++) {
+      const {
+        valueMax,
+        valueMin,
+        valueNow
+      } = calculateAriaValues({
+        layout,
+        panelsArray: panelDataArray,
+        pivotIndices: [index2, index2 + 1]
+      });
+      const resizeHandleElement = resizeHandleElements[index2];
+      if (resizeHandleElement == null) ;
+      else {
+        const panelData = panelDataArray[index2];
+        assert(panelData, `No panel data found for index "${index2}"`);
+        resizeHandleElement.setAttribute("aria-controls", panelData.id);
+        resizeHandleElement.setAttribute("aria-valuemax", "" + Math.round(valueMax));
+        resizeHandleElement.setAttribute("aria-valuemin", "" + Math.round(valueMin));
+        resizeHandleElement.setAttribute("aria-valuenow", valueNow != null ? "" + Math.round(valueNow) : "");
+      }
+    }
+    return () => {
+      resizeHandleElements.forEach((resizeHandleElement, index2) => {
+        resizeHandleElement.removeAttribute("aria-controls");
+        resizeHandleElement.removeAttribute("aria-valuemax");
+        resizeHandleElement.removeAttribute("aria-valuemin");
+        resizeHandleElement.removeAttribute("aria-valuenow");
+      });
+    };
+  }, [groupId, layout, panelDataArray, panelGroupElement]);
+  reactExports.useEffect(() => {
+    if (!panelGroupElement) {
+      return;
+    }
+    const eagerValues = eagerValuesRef.current;
+    assert(eagerValues, `Eager values not found`);
+    const {
+      panelDataArray: panelDataArray2
+    } = eagerValues;
+    const groupElement = getPanelGroupElement(groupId, panelGroupElement);
+    assert(groupElement != null, `No group found for id "${groupId}"`);
+    const handles = getResizeHandleElementsForGroup(groupId, panelGroupElement);
+    assert(handles, `No resize handles found for group id "${groupId}"`);
+    const cleanupFunctions = handles.map((handle2) => {
+      const handleId = handle2.getAttribute(DATA_ATTRIBUTES.resizeHandleId);
+      assert(handleId, `Resize handle element has no handle id attribute`);
+      const [idBefore, idAfter] = getResizeHandlePanelIds(groupId, handleId, panelDataArray2, panelGroupElement);
+      if (idBefore == null || idAfter == null) {
+        return () => {
+        };
+      }
+      const onKeyDown = (event) => {
+        if (event.defaultPrevented) {
+          return;
+        }
+        switch (event.key) {
+          case "Enter": {
+            event.preventDefault();
+            const index2 = panelDataArray2.findIndex((panelData) => panelData.id === idBefore);
+            if (index2 >= 0) {
+              const panelData = panelDataArray2[index2];
+              assert(panelData, `No panel data found for index ${index2}`);
+              const size = layout[index2];
+              const {
+                collapsedSize = 0,
+                collapsible,
+                minSize = 0
+              } = panelData.constraints;
+              if (size != null && collapsible) {
+                const nextLayout = adjustLayoutByDelta({
+                  delta: fuzzyNumbersEqual(size, collapsedSize) ? minSize - collapsedSize : collapsedSize - size,
+                  initialLayout: layout,
+                  panelConstraints: panelDataArray2.map((panelData2) => panelData2.constraints),
+                  pivotIndices: determinePivotIndices(groupId, handleId, panelGroupElement),
+                  prevLayout: layout,
+                  trigger: "keyboard"
+                });
+                if (layout !== nextLayout) {
+                  setLayout(nextLayout);
+                }
+              }
+            }
+            break;
+          }
+        }
+      };
+      handle2.addEventListener("keydown", onKeyDown);
+      return () => {
+        handle2.removeEventListener("keydown", onKeyDown);
+      };
+    });
+    return () => {
+      cleanupFunctions.forEach((cleanupFunction) => cleanupFunction());
+    };
+  }, [panelGroupElement, committedValuesRef, eagerValuesRef, groupId, layout, panelDataArray, setLayout]);
+}
+function areEqual(arrayA, arrayB) {
+  if (arrayA.length !== arrayB.length) {
+    return false;
+  }
+  for (let index2 = 0; index2 < arrayA.length; index2++) {
+    if (arrayA[index2] !== arrayB[index2]) {
+      return false;
+    }
+  }
+  return true;
+}
+function getResizeEventCursorPosition(direction2, event) {
+  const isHorizontal = direction2 === "horizontal";
+  const {
+    x,
+    y
+  } = getResizeEventCoordinates(event);
+  return isHorizontal ? x : y;
+}
+function calculateDragOffsetPercentage(event, dragHandleId, direction2, initialDragState, panelGroupElement) {
+  const isHorizontal = direction2 === "horizontal";
+  const handleElement = getResizeHandleElement(dragHandleId, panelGroupElement);
+  assert(handleElement, `No resize handle element found for id "${dragHandleId}"`);
+  const groupId = handleElement.getAttribute(DATA_ATTRIBUTES.groupId);
+  assert(groupId, `Resize handle element has no group id attribute`);
+  let {
+    initialCursorPosition
+  } = initialDragState;
+  const cursorPosition = getResizeEventCursorPosition(direction2, event);
+  const groupElement = getPanelGroupElement(groupId, panelGroupElement);
+  assert(groupElement, `No group element found for id "${groupId}"`);
+  const groupRect = groupElement.getBoundingClientRect();
+  const groupSizeInPixels = isHorizontal ? groupRect.width : groupRect.height;
+  const offsetPixels = cursorPosition - initialCursorPosition;
+  const offsetPercentage = offsetPixels / groupSizeInPixels * 100;
+  return offsetPercentage;
+}
+function calculateDeltaPercentage(event, dragHandleId, direction2, initialDragState, keyboardResizeBy, panelGroupElement) {
+  if (isKeyDown(event)) {
+    const isHorizontal = direction2 === "horizontal";
+    let delta = 0;
+    if (event.shiftKey) {
+      delta = 100;
+    } else if (keyboardResizeBy != null) {
+      delta = keyboardResizeBy;
+    } else {
+      delta = 10;
+    }
+    let movement = 0;
+    switch (event.key) {
+      case "ArrowDown":
+        movement = isHorizontal ? 0 : delta;
+        break;
+      case "ArrowLeft":
+        movement = isHorizontal ? -delta : 0;
+        break;
+      case "ArrowRight":
+        movement = isHorizontal ? delta : 0;
+        break;
+      case "ArrowUp":
+        movement = isHorizontal ? 0 : -delta;
+        break;
+      case "End":
+        movement = 100;
+        break;
+      case "Home":
+        movement = -100;
+        break;
+    }
+    return movement;
+  } else {
+    if (initialDragState == null) {
+      return 0;
+    }
+    return calculateDragOffsetPercentage(event, dragHandleId, direction2, initialDragState, panelGroupElement);
+  }
+}
+function calculateUnsafeDefaultLayout({
+  panelDataArray
+}) {
+  const layout = Array(panelDataArray.length);
+  const panelConstraintsArray = panelDataArray.map((panelData) => panelData.constraints);
+  let numPanelsWithSizes = 0;
+  let remainingSize = 100;
+  for (let index2 = 0; index2 < panelDataArray.length; index2++) {
+    const panelConstraints = panelConstraintsArray[index2];
+    assert(panelConstraints, `Panel constraints not found for index ${index2}`);
+    const {
+      defaultSize
+    } = panelConstraints;
+    if (defaultSize != null) {
+      numPanelsWithSizes++;
+      layout[index2] = defaultSize;
+      remainingSize -= defaultSize;
+    }
+  }
+  for (let index2 = 0; index2 < panelDataArray.length; index2++) {
+    const panelConstraints = panelConstraintsArray[index2];
+    assert(panelConstraints, `Panel constraints not found for index ${index2}`);
+    const {
+      defaultSize
+    } = panelConstraints;
+    if (defaultSize != null) {
+      continue;
+    }
+    const numRemainingPanels = panelDataArray.length - numPanelsWithSizes;
+    const size = remainingSize / numRemainingPanels;
+    numPanelsWithSizes++;
+    layout[index2] = size;
+    remainingSize -= size;
+  }
+  return layout;
+}
+function callPanelCallbacks(panelsArray, layout, panelIdToLastNotifiedSizeMap) {
+  layout.forEach((size, index2) => {
+    const panelData = panelsArray[index2];
+    assert(panelData, `Panel data not found for index ${index2}`);
+    const {
+      callbacks,
+      constraints,
+      id: panelId
+    } = panelData;
+    const {
+      collapsedSize = 0,
+      collapsible
+    } = constraints;
+    const lastNotifiedSize = panelIdToLastNotifiedSizeMap[panelId];
+    if (lastNotifiedSize == null || size !== lastNotifiedSize) {
+      panelIdToLastNotifiedSizeMap[panelId] = size;
+      const {
+        onCollapse,
+        onExpand,
+        onResize
+      } = callbacks;
+      if (onResize) {
+        onResize(size, lastNotifiedSize);
+      }
+      if (collapsible && (onCollapse || onExpand)) {
+        if (onExpand && (lastNotifiedSize == null || fuzzyNumbersEqual$1(lastNotifiedSize, collapsedSize)) && !fuzzyNumbersEqual$1(size, collapsedSize)) {
+          onExpand();
+        }
+        if (onCollapse && (lastNotifiedSize == null || !fuzzyNumbersEqual$1(lastNotifiedSize, collapsedSize)) && fuzzyNumbersEqual$1(size, collapsedSize)) {
+          onCollapse();
+        }
+      }
+    }
+  });
+}
+function compareLayouts(a2, b) {
+  if (a2.length !== b.length) {
+    return false;
+  } else {
+    for (let index2 = 0; index2 < a2.length; index2++) {
+      if (a2[index2] != b[index2]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+function computePanelFlexBoxStyle({
+  defaultSize,
+  dragState,
+  layout,
+  panelData,
+  panelIndex,
+  precision = 3
+}) {
+  const size = layout[panelIndex];
+  let flexGrow;
+  if (size == null) {
+    flexGrow = defaultSize != void 0 ? defaultSize.toPrecision(precision) : "1";
+  } else if (panelData.length === 1) {
+    flexGrow = "1";
+  } else {
+    flexGrow = size.toPrecision(precision);
+  }
+  return {
+    flexBasis: 0,
+    flexGrow,
+    flexShrink: 1,
+    // Without this, Panel sizes may be unintentionally overridden by their content
+    overflow: "hidden",
+    // Disable pointer events inside of a panel during resize
+    // This avoid edge cases like nested iframes
+    pointerEvents: dragState !== null ? "none" : void 0
+  };
+}
+function debounce(callback, durationMs = 10) {
+  let timeoutId = null;
+  let callable = (...args) => {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      callback(...args);
+    }, durationMs);
+  };
+  return callable;
+}
+function initializeDefaultStorage(storageObject) {
+  try {
+    if (typeof localStorage !== "undefined") {
+      storageObject.getItem = (name2) => {
+        return localStorage.getItem(name2);
+      };
+      storageObject.setItem = (name2, value) => {
+        localStorage.setItem(name2, value);
+      };
+    } else {
+      throw new Error("localStorage not supported in this environment");
+    }
+  } catch (error) {
+    console.error(error);
+    storageObject.getItem = () => null;
+    storageObject.setItem = () => {
+    };
+  }
+}
+function getPanelGroupKey(autoSaveId) {
+  return `react-resizable-panels:${autoSaveId}`;
+}
+function getPanelKey(panels) {
+  return panels.map((panel) => {
+    const {
+      constraints,
+      id: id2,
+      idIsFromProps,
+      order: order2
+    } = panel;
+    if (idIsFromProps) {
+      return id2;
+    } else {
+      return order2 ? `${order2}:${JSON.stringify(constraints)}` : JSON.stringify(constraints);
+    }
+  }).sort((a2, b) => a2.localeCompare(b)).join(",");
+}
+function loadSerializedPanelGroupState(autoSaveId, storage) {
+  try {
+    const panelGroupKey = getPanelGroupKey(autoSaveId);
+    const serialized = storage.getItem(panelGroupKey);
+    if (serialized) {
+      const parsed = JSON.parse(serialized);
+      if (typeof parsed === "object" && parsed != null) {
+        return parsed;
+      }
+    }
+  } catch (error) {
+  }
+  return null;
+}
+function loadPanelGroupState(autoSaveId, panels, storage) {
+  var _loadSerializedPanelG, _state$panelKey;
+  const state = (_loadSerializedPanelG = loadSerializedPanelGroupState(autoSaveId, storage)) !== null && _loadSerializedPanelG !== void 0 ? _loadSerializedPanelG : {};
+  const panelKey = getPanelKey(panels);
+  return (_state$panelKey = state[panelKey]) !== null && _state$panelKey !== void 0 ? _state$panelKey : null;
+}
+function savePanelGroupState(autoSaveId, panels, panelSizesBeforeCollapse, sizes, storage) {
+  var _loadSerializedPanelG2;
+  const panelGroupKey = getPanelGroupKey(autoSaveId);
+  const panelKey = getPanelKey(panels);
+  const state = (_loadSerializedPanelG2 = loadSerializedPanelGroupState(autoSaveId, storage)) !== null && _loadSerializedPanelG2 !== void 0 ? _loadSerializedPanelG2 : {};
+  state[panelKey] = {
+    expandToSizes: Object.fromEntries(panelSizesBeforeCollapse.entries()),
+    layout: sizes
+  };
+  try {
+    storage.setItem(panelGroupKey, JSON.stringify(state));
+  } catch (error) {
+    console.error(error);
+  }
+}
+function validatePanelGroupLayout({
+  layout: prevLayout,
+  panelConstraints
+}) {
+  const nextLayout = [...prevLayout];
+  const nextLayoutTotalSize = nextLayout.reduce((accumulated, current) => accumulated + current, 0);
+  if (nextLayout.length !== panelConstraints.length) {
+    throw Error(`Invalid ${panelConstraints.length} panel layout: ${nextLayout.map((size) => `${size}%`).join(", ")}`);
+  } else if (!fuzzyNumbersEqual(nextLayoutTotalSize, 100) && nextLayout.length > 0) {
+    for (let index2 = 0; index2 < panelConstraints.length; index2++) {
+      const unsafeSize = nextLayout[index2];
+      assert(unsafeSize != null, `No layout data found for index ${index2}`);
+      const safeSize = 100 / nextLayoutTotalSize * unsafeSize;
+      nextLayout[index2] = safeSize;
+    }
+  }
+  let remainingSize = 0;
+  for (let index2 = 0; index2 < panelConstraints.length; index2++) {
+    const unsafeSize = nextLayout[index2];
+    assert(unsafeSize != null, `No layout data found for index ${index2}`);
+    const safeSize = resizePanel({
+      panelConstraints,
+      panelIndex: index2,
+      size: unsafeSize
+    });
+    if (unsafeSize != safeSize) {
+      remainingSize += unsafeSize - safeSize;
+      nextLayout[index2] = safeSize;
+    }
+  }
+  if (!fuzzyNumbersEqual(remainingSize, 0)) {
+    for (let index2 = 0; index2 < panelConstraints.length; index2++) {
+      const prevSize = nextLayout[index2];
+      assert(prevSize != null, `No layout data found for index ${index2}`);
+      const unsafeSize = prevSize + remainingSize;
+      const safeSize = resizePanel({
+        panelConstraints,
+        panelIndex: index2,
+        size: unsafeSize
+      });
+      if (prevSize !== safeSize) {
+        remainingSize -= safeSize - prevSize;
+        nextLayout[index2] = safeSize;
+        if (fuzzyNumbersEqual(remainingSize, 0)) {
+          break;
+        }
+      }
+    }
+  }
+  return nextLayout;
+}
+const LOCAL_STORAGE_DEBOUNCE_INTERVAL = 100;
+const defaultStorage = {
+  getItem: (name2) => {
+    initializeDefaultStorage(defaultStorage);
+    return defaultStorage.getItem(name2);
+  },
+  setItem: (name2, value) => {
+    initializeDefaultStorage(defaultStorage);
+    defaultStorage.setItem(name2, value);
+  }
+};
+const debounceMap = {};
+function PanelGroupWithForwardedRef({
+  autoSaveId = null,
+  children,
+  className: classNameFromProps = "",
+  direction: direction2,
+  forwardedRef,
+  id: idFromProps = null,
+  onLayout = null,
+  keyboardResizeBy = null,
+  storage = defaultStorage,
+  style: styleFromProps,
+  tagName: Type = "div",
+  ...rest2
+}) {
+  const groupId = useUniqueId(idFromProps);
+  const panelGroupElementRef = reactExports.useRef(null);
+  const [dragState, setDragState] = reactExports.useState(null);
+  const [layout, setLayout] = reactExports.useState([]);
+  const forceUpdate = useForceUpdate();
+  const panelIdToLastNotifiedSizeMapRef = reactExports.useRef({});
+  const panelSizeBeforeCollapseRef = reactExports.useRef(/* @__PURE__ */ new Map());
+  const prevDeltaRef = reactExports.useRef(0);
+  const committedValuesRef = reactExports.useRef({
+    autoSaveId,
+    direction: direction2,
+    dragState,
+    id: groupId,
+    keyboardResizeBy,
+    onLayout,
+    storage
+  });
+  const eagerValuesRef = reactExports.useRef({
+    layout,
+    panelDataArray: [],
+    panelDataArrayChanged: false
+  });
+  reactExports.useRef({
+    didLogIdAndOrderWarning: false,
+    didLogPanelConstraintsWarning: false,
+    prevPanelIds: []
+  });
+  reactExports.useImperativeHandle(forwardedRef, () => ({
+    getId: () => committedValuesRef.current.id,
+    getLayout: () => {
+      const {
+        layout: layout2
+      } = eagerValuesRef.current;
+      return layout2;
+    },
+    setLayout: (unsafeLayout) => {
+      const {
+        onLayout: onLayout2
+      } = committedValuesRef.current;
+      const {
+        layout: prevLayout,
+        panelDataArray
+      } = eagerValuesRef.current;
+      const safeLayout = validatePanelGroupLayout({
+        layout: unsafeLayout,
+        panelConstraints: panelDataArray.map((panelData) => panelData.constraints)
+      });
+      if (!areEqual(prevLayout, safeLayout)) {
+        setLayout(safeLayout);
+        eagerValuesRef.current.layout = safeLayout;
+        if (onLayout2) {
+          onLayout2(safeLayout);
+        }
+        callPanelCallbacks(panelDataArray, safeLayout, panelIdToLastNotifiedSizeMapRef.current);
+      }
+    }
+  }), []);
+  useIsomorphicLayoutEffect(() => {
+    committedValuesRef.current.autoSaveId = autoSaveId;
+    committedValuesRef.current.direction = direction2;
+    committedValuesRef.current.dragState = dragState;
+    committedValuesRef.current.id = groupId;
+    committedValuesRef.current.onLayout = onLayout;
+    committedValuesRef.current.storage = storage;
+  });
+  useWindowSplitterPanelGroupBehavior({
+    committedValuesRef,
+    eagerValuesRef,
+    groupId,
+    layout,
+    panelDataArray: eagerValuesRef.current.panelDataArray,
+    setLayout,
+    panelGroupElement: panelGroupElementRef.current
+  });
+  reactExports.useEffect(() => {
+    const {
+      panelDataArray
+    } = eagerValuesRef.current;
+    if (autoSaveId) {
+      if (layout.length === 0 || layout.length !== panelDataArray.length) {
+        return;
+      }
+      let debouncedSave = debounceMap[autoSaveId];
+      if (debouncedSave == null) {
+        debouncedSave = debounce(savePanelGroupState, LOCAL_STORAGE_DEBOUNCE_INTERVAL);
+        debounceMap[autoSaveId] = debouncedSave;
+      }
+      const clonedPanelDataArray = [...panelDataArray];
+      const clonedPanelSizesBeforeCollapse = new Map(panelSizeBeforeCollapseRef.current);
+      debouncedSave(autoSaveId, clonedPanelDataArray, clonedPanelSizesBeforeCollapse, layout, storage);
+    }
+  }, [autoSaveId, layout, storage]);
+  reactExports.useEffect(() => {
+  });
+  const collapsePanel = reactExports.useCallback((panelData) => {
+    const {
+      onLayout: onLayout2
+    } = committedValuesRef.current;
+    const {
+      layout: prevLayout,
+      panelDataArray
+    } = eagerValuesRef.current;
+    if (panelData.constraints.collapsible) {
+      const panelConstraintsArray = panelDataArray.map((panelData2) => panelData2.constraints);
+      const {
+        collapsedSize = 0,
+        panelSize,
+        pivotIndices
+      } = panelDataHelper(panelDataArray, panelData, prevLayout);
+      assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
+      if (!fuzzyNumbersEqual$1(panelSize, collapsedSize)) {
+        panelSizeBeforeCollapseRef.current.set(panelData.id, panelSize);
+        const isLastPanel = findPanelDataIndex(panelDataArray, panelData) === panelDataArray.length - 1;
+        const delta = isLastPanel ? panelSize - collapsedSize : collapsedSize - panelSize;
+        const nextLayout = adjustLayoutByDelta({
+          delta,
+          initialLayout: prevLayout,
+          panelConstraints: panelConstraintsArray,
+          pivotIndices,
+          prevLayout,
+          trigger: "imperative-api"
+        });
+        if (!compareLayouts(prevLayout, nextLayout)) {
+          setLayout(nextLayout);
+          eagerValuesRef.current.layout = nextLayout;
+          if (onLayout2) {
+            onLayout2(nextLayout);
+          }
+          callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
+        }
+      }
+    }
+  }, []);
+  const expandPanel = reactExports.useCallback((panelData, minSizeOverride) => {
+    const {
+      onLayout: onLayout2
+    } = committedValuesRef.current;
+    const {
+      layout: prevLayout,
+      panelDataArray
+    } = eagerValuesRef.current;
+    if (panelData.constraints.collapsible) {
+      const panelConstraintsArray = panelDataArray.map((panelData2) => panelData2.constraints);
+      const {
+        collapsedSize = 0,
+        panelSize = 0,
+        minSize: minSizeFromProps = 0,
+        pivotIndices
+      } = panelDataHelper(panelDataArray, panelData, prevLayout);
+      const minSize = minSizeOverride !== null && minSizeOverride !== void 0 ? minSizeOverride : minSizeFromProps;
+      if (fuzzyNumbersEqual$1(panelSize, collapsedSize)) {
+        const prevPanelSize = panelSizeBeforeCollapseRef.current.get(panelData.id);
+        const baseSize = prevPanelSize != null && prevPanelSize >= minSize ? prevPanelSize : minSize;
+        const isLastPanel = findPanelDataIndex(panelDataArray, panelData) === panelDataArray.length - 1;
+        const delta = isLastPanel ? panelSize - baseSize : baseSize - panelSize;
+        const nextLayout = adjustLayoutByDelta({
+          delta,
+          initialLayout: prevLayout,
+          panelConstraints: panelConstraintsArray,
+          pivotIndices,
+          prevLayout,
+          trigger: "imperative-api"
+        });
+        if (!compareLayouts(prevLayout, nextLayout)) {
+          setLayout(nextLayout);
+          eagerValuesRef.current.layout = nextLayout;
+          if (onLayout2) {
+            onLayout2(nextLayout);
+          }
+          callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
+        }
+      }
+    }
+  }, []);
+  const getPanelSize = reactExports.useCallback((panelData) => {
+    const {
+      layout: layout2,
+      panelDataArray
+    } = eagerValuesRef.current;
+    const {
+      panelSize
+    } = panelDataHelper(panelDataArray, panelData, layout2);
+    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
+    return panelSize;
+  }, []);
+  const getPanelStyle = reactExports.useCallback((panelData, defaultSize) => {
+    const {
+      panelDataArray
+    } = eagerValuesRef.current;
+    const panelIndex = findPanelDataIndex(panelDataArray, panelData);
+    return computePanelFlexBoxStyle({
+      defaultSize,
+      dragState,
+      layout,
+      panelData: panelDataArray,
+      panelIndex
+    });
+  }, [dragState, layout]);
+  const isPanelCollapsed = reactExports.useCallback((panelData) => {
+    const {
+      layout: layout2,
+      panelDataArray
+    } = eagerValuesRef.current;
+    const {
+      collapsedSize = 0,
+      collapsible,
+      panelSize
+    } = panelDataHelper(panelDataArray, panelData, layout2);
+    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
+    return collapsible === true && fuzzyNumbersEqual$1(panelSize, collapsedSize);
+  }, []);
+  const isPanelExpanded = reactExports.useCallback((panelData) => {
+    const {
+      layout: layout2,
+      panelDataArray
+    } = eagerValuesRef.current;
+    const {
+      collapsedSize = 0,
+      collapsible,
+      panelSize
+    } = panelDataHelper(panelDataArray, panelData, layout2);
+    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
+    return !collapsible || fuzzyCompareNumbers(panelSize, collapsedSize) > 0;
+  }, []);
+  const registerPanel = reactExports.useCallback((panelData) => {
+    const {
+      panelDataArray
+    } = eagerValuesRef.current;
+    panelDataArray.push(panelData);
+    panelDataArray.sort((panelA, panelB) => {
+      const orderA = panelA.order;
+      const orderB = panelB.order;
+      if (orderA == null && orderB == null) {
+        return 0;
+      } else if (orderA == null) {
+        return -1;
+      } else if (orderB == null) {
+        return 1;
+      } else {
+        return orderA - orderB;
+      }
+    });
+    eagerValuesRef.current.panelDataArrayChanged = true;
+    forceUpdate();
+  }, [forceUpdate]);
+  useIsomorphicLayoutEffect(() => {
+    if (eagerValuesRef.current.panelDataArrayChanged) {
+      eagerValuesRef.current.panelDataArrayChanged = false;
+      const {
+        autoSaveId: autoSaveId2,
+        onLayout: onLayout2,
+        storage: storage2
+      } = committedValuesRef.current;
+      const {
+        layout: prevLayout,
+        panelDataArray
+      } = eagerValuesRef.current;
+      let unsafeLayout = null;
+      if (autoSaveId2) {
+        const state = loadPanelGroupState(autoSaveId2, panelDataArray, storage2);
+        if (state) {
+          panelSizeBeforeCollapseRef.current = new Map(Object.entries(state.expandToSizes));
+          unsafeLayout = state.layout;
+        }
+      }
+      if (unsafeLayout == null) {
+        unsafeLayout = calculateUnsafeDefaultLayout({
+          panelDataArray
+        });
+      }
+      const nextLayout = validatePanelGroupLayout({
+        layout: unsafeLayout,
+        panelConstraints: panelDataArray.map((panelData) => panelData.constraints)
+      });
+      if (!areEqual(prevLayout, nextLayout)) {
+        setLayout(nextLayout);
+        eagerValuesRef.current.layout = nextLayout;
+        if (onLayout2) {
+          onLayout2(nextLayout);
+        }
+        callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
+      }
+    }
+  });
+  useIsomorphicLayoutEffect(() => {
+    const eagerValues = eagerValuesRef.current;
+    return () => {
+      eagerValues.layout = [];
+    };
+  }, []);
+  const registerResizeHandle2 = reactExports.useCallback((dragHandleId) => {
+    let isRTL = false;
+    const panelGroupElement = panelGroupElementRef.current;
+    if (panelGroupElement) {
+      const style3 = window.getComputedStyle(panelGroupElement, null);
+      if (style3.getPropertyValue("direction") === "rtl") {
+        isRTL = true;
+      }
+    }
+    return function resizeHandler(event) {
+      event.preventDefault();
+      const panelGroupElement2 = panelGroupElementRef.current;
+      if (!panelGroupElement2) {
+        return () => null;
+      }
+      const {
+        direction: direction3,
+        dragState: dragState2,
+        id: groupId2,
+        keyboardResizeBy: keyboardResizeBy2,
+        onLayout: onLayout2
+      } = committedValuesRef.current;
+      const {
+        layout: prevLayout,
+        panelDataArray
+      } = eagerValuesRef.current;
+      const {
+        initialLayout
+      } = dragState2 !== null && dragState2 !== void 0 ? dragState2 : {};
+      const pivotIndices = determinePivotIndices(groupId2, dragHandleId, panelGroupElement2);
+      let delta = calculateDeltaPercentage(event, dragHandleId, direction3, dragState2, keyboardResizeBy2, panelGroupElement2);
+      const isHorizontal = direction3 === "horizontal";
+      if (isHorizontal && isRTL) {
+        delta = -delta;
+      }
+      const panelConstraints = panelDataArray.map((panelData) => panelData.constraints);
+      const nextLayout = adjustLayoutByDelta({
+        delta,
+        initialLayout: initialLayout !== null && initialLayout !== void 0 ? initialLayout : prevLayout,
+        panelConstraints,
+        pivotIndices,
+        prevLayout,
+        trigger: isKeyDown(event) ? "keyboard" : "mouse-or-touch"
+      });
+      const layoutChanged = !compareLayouts(prevLayout, nextLayout);
+      if (isPointerEvent(event) || isMouseEvent(event)) {
+        if (prevDeltaRef.current != delta) {
+          prevDeltaRef.current = delta;
+          if (!layoutChanged && delta !== 0) {
+            if (isHorizontal) {
+              reportConstraintsViolation(dragHandleId, delta < 0 ? EXCEEDED_HORIZONTAL_MIN : EXCEEDED_HORIZONTAL_MAX);
+            } else {
+              reportConstraintsViolation(dragHandleId, delta < 0 ? EXCEEDED_VERTICAL_MIN : EXCEEDED_VERTICAL_MAX);
+            }
+          } else {
+            reportConstraintsViolation(dragHandleId, 0);
+          }
+        }
+      }
+      if (layoutChanged) {
+        setLayout(nextLayout);
+        eagerValuesRef.current.layout = nextLayout;
+        if (onLayout2) {
+          onLayout2(nextLayout);
+        }
+        callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
+      }
+    };
+  }, []);
+  const resizePanel2 = reactExports.useCallback((panelData, unsafePanelSize) => {
+    const {
+      onLayout: onLayout2
+    } = committedValuesRef.current;
+    const {
+      layout: prevLayout,
+      panelDataArray
+    } = eagerValuesRef.current;
+    const panelConstraintsArray = panelDataArray.map((panelData2) => panelData2.constraints);
+    const {
+      panelSize,
+      pivotIndices
+    } = panelDataHelper(panelDataArray, panelData, prevLayout);
+    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
+    const isLastPanel = findPanelDataIndex(panelDataArray, panelData) === panelDataArray.length - 1;
+    const delta = isLastPanel ? panelSize - unsafePanelSize : unsafePanelSize - panelSize;
+    const nextLayout = adjustLayoutByDelta({
+      delta,
+      initialLayout: prevLayout,
+      panelConstraints: panelConstraintsArray,
+      pivotIndices,
+      prevLayout,
+      trigger: "imperative-api"
+    });
+    if (!compareLayouts(prevLayout, nextLayout)) {
+      setLayout(nextLayout);
+      eagerValuesRef.current.layout = nextLayout;
+      if (onLayout2) {
+        onLayout2(nextLayout);
+      }
+      callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
+    }
+  }, []);
+  const reevaluatePanelConstraints = reactExports.useCallback((panelData, prevConstraints) => {
+    const {
+      layout: layout2,
+      panelDataArray
+    } = eagerValuesRef.current;
+    const {
+      collapsedSize: prevCollapsedSize = 0,
+      collapsible: prevCollapsible
+    } = prevConstraints;
+    const {
+      collapsedSize: nextCollapsedSize = 0,
+      collapsible: nextCollapsible,
+      maxSize: nextMaxSize = 100,
+      minSize: nextMinSize = 0
+    } = panelData.constraints;
+    const {
+      panelSize: prevPanelSize
+    } = panelDataHelper(panelDataArray, panelData, layout2);
+    if (prevPanelSize == null) {
+      return;
+    }
+    if (prevCollapsible && nextCollapsible && fuzzyNumbersEqual$1(prevPanelSize, prevCollapsedSize)) {
+      if (!fuzzyNumbersEqual$1(prevCollapsedSize, nextCollapsedSize)) {
+        resizePanel2(panelData, nextCollapsedSize);
+      }
+    } else if (prevPanelSize < nextMinSize) {
+      resizePanel2(panelData, nextMinSize);
+    } else if (prevPanelSize > nextMaxSize) {
+      resizePanel2(panelData, nextMaxSize);
+    }
+  }, [resizePanel2]);
+  const startDragging = reactExports.useCallback((dragHandleId, event) => {
+    const {
+      direction: direction3
+    } = committedValuesRef.current;
+    const {
+      layout: layout2
+    } = eagerValuesRef.current;
+    if (!panelGroupElementRef.current) {
+      return;
+    }
+    const handleElement = getResizeHandleElement(dragHandleId, panelGroupElementRef.current);
+    assert(handleElement, `Drag handle element not found for id "${dragHandleId}"`);
+    const initialCursorPosition = getResizeEventCursorPosition(direction3, event);
+    setDragState({
+      dragHandleId,
+      dragHandleRect: handleElement.getBoundingClientRect(),
+      initialCursorPosition,
+      initialLayout: layout2
+    });
+  }, []);
+  const stopDragging = reactExports.useCallback(() => {
+    setDragState(null);
+  }, []);
+  const unregisterPanel = reactExports.useCallback((panelData) => {
+    const {
+      panelDataArray
+    } = eagerValuesRef.current;
+    const index2 = findPanelDataIndex(panelDataArray, panelData);
+    if (index2 >= 0) {
+      panelDataArray.splice(index2, 1);
+      delete panelIdToLastNotifiedSizeMapRef.current[panelData.id];
+      eagerValuesRef.current.panelDataArrayChanged = true;
+      forceUpdate();
+    }
+  }, [forceUpdate]);
+  const context = reactExports.useMemo(() => ({
+    collapsePanel,
+    direction: direction2,
+    dragState,
+    expandPanel,
+    getPanelSize,
+    getPanelStyle,
+    groupId,
+    isPanelCollapsed,
+    isPanelExpanded,
+    reevaluatePanelConstraints,
+    registerPanel,
+    registerResizeHandle: registerResizeHandle2,
+    resizePanel: resizePanel2,
+    startDragging,
+    stopDragging,
+    unregisterPanel,
+    panelGroupElement: panelGroupElementRef.current
+  }), [collapsePanel, dragState, direction2, expandPanel, getPanelSize, getPanelStyle, groupId, isPanelCollapsed, isPanelExpanded, reevaluatePanelConstraints, registerPanel, registerResizeHandle2, resizePanel2, startDragging, stopDragging, unregisterPanel]);
+  const style2 = {
+    display: "flex",
+    flexDirection: direction2 === "horizontal" ? "row" : "column",
+    height: "100%",
+    overflow: "hidden",
+    width: "100%"
+  };
+  return reactExports.createElement(PanelGroupContext.Provider, {
+    value: context
+  }, reactExports.createElement(Type, {
+    ...rest2,
+    children,
+    className: classNameFromProps,
+    id: idFromProps,
+    ref: panelGroupElementRef,
+    style: {
+      ...style2,
+      ...styleFromProps
+    },
+    // CSS selectors
+    [DATA_ATTRIBUTES.group]: "",
+    [DATA_ATTRIBUTES.groupDirection]: direction2,
+    [DATA_ATTRIBUTES.groupId]: groupId
+  }));
+}
+const PanelGroup = reactExports.forwardRef((props2, ref) => reactExports.createElement(PanelGroupWithForwardedRef, {
+  ...props2,
+  forwardedRef: ref
+}));
+PanelGroupWithForwardedRef.displayName = "PanelGroup";
+PanelGroup.displayName = "forwardRef(PanelGroup)";
+function findPanelDataIndex(panelDataArray, panelData) {
+  return panelDataArray.findIndex((prevPanelData) => prevPanelData === panelData || prevPanelData.id === panelData.id);
+}
+function panelDataHelper(panelDataArray, panelData, layout) {
+  const panelIndex = findPanelDataIndex(panelDataArray, panelData);
+  const isLastPanel = panelIndex === panelDataArray.length - 1;
+  const pivotIndices = isLastPanel ? [panelIndex - 1, panelIndex] : [panelIndex, panelIndex + 1];
+  const panelSize = layout[panelIndex];
+  return {
+    ...panelData.constraints,
+    panelSize,
+    pivotIndices
+  };
+}
+function useWindowSplitterResizeHandlerBehavior({
+  disabled: disabled2,
+  handleId,
+  resizeHandler,
+  panelGroupElement
+}) {
+  reactExports.useEffect(() => {
+    if (disabled2 || resizeHandler == null || panelGroupElement == null) {
+      return;
+    }
+    const handleElement = getResizeHandleElement(handleId, panelGroupElement);
+    if (handleElement == null) {
+      return;
+    }
+    const onKeyDown = (event) => {
+      if (event.defaultPrevented) {
+        return;
+      }
+      switch (event.key) {
+        case "ArrowDown":
+        case "ArrowLeft":
+        case "ArrowRight":
+        case "ArrowUp":
+        case "End":
+        case "Home": {
+          event.preventDefault();
+          resizeHandler(event);
+          break;
+        }
+        case "F6": {
+          event.preventDefault();
+          const groupId = handleElement.getAttribute(DATA_ATTRIBUTES.groupId);
+          assert(groupId, `No group element found for id "${groupId}"`);
+          const handles = getResizeHandleElementsForGroup(groupId, panelGroupElement);
+          const index2 = getResizeHandleElementIndex(groupId, handleId, panelGroupElement);
+          assert(index2 !== null, `No resize element found for id "${handleId}"`);
+          const nextIndex = event.shiftKey ? index2 > 0 ? index2 - 1 : handles.length - 1 : index2 + 1 < handles.length ? index2 + 1 : 0;
+          const nextHandle = handles[nextIndex];
+          nextHandle.focus();
+          break;
+        }
+      }
+    };
+    handleElement.addEventListener("keydown", onKeyDown);
+    return () => {
+      handleElement.removeEventListener("keydown", onKeyDown);
+    };
+  }, [panelGroupElement, disabled2, handleId, resizeHandler]);
+}
+function PanelResizeHandle({
+  children = null,
+  className: classNameFromProps = "",
+  disabled: disabled2 = false,
+  hitAreaMargins,
+  id: idFromProps,
+  onBlur,
+  onClick,
+  onDragging,
+  onFocus,
+  onPointerDown,
+  onPointerUp,
+  style: styleFromProps = {},
+  tabIndex = 0,
+  tagName: Type = "div",
+  ...rest2
+}) {
+  var _hitAreaMargins$coars, _hitAreaMargins$fine;
+  const elementRef = reactExports.useRef(null);
+  const callbacksRef = reactExports.useRef({
+    onClick,
+    onDragging,
+    onPointerDown,
+    onPointerUp
+  });
+  reactExports.useEffect(() => {
+    callbacksRef.current.onClick = onClick;
+    callbacksRef.current.onDragging = onDragging;
+    callbacksRef.current.onPointerDown = onPointerDown;
+    callbacksRef.current.onPointerUp = onPointerUp;
+  });
+  const panelGroupContext = reactExports.useContext(PanelGroupContext);
+  if (panelGroupContext === null) {
+    throw Error(`PanelResizeHandle components must be rendered within a PanelGroup container`);
+  }
+  const {
+    direction: direction2,
+    groupId,
+    registerResizeHandle: registerResizeHandleWithParentGroup,
+    startDragging,
+    stopDragging,
+    panelGroupElement
+  } = panelGroupContext;
+  const resizeHandleId = useUniqueId(idFromProps);
+  const [state, setState] = reactExports.useState("inactive");
+  const [isFocused, setIsFocused] = reactExports.useState(false);
+  const [resizeHandler, setResizeHandler] = reactExports.useState(null);
+  const committedValuesRef = reactExports.useRef({
+    state
+  });
+  useIsomorphicLayoutEffect(() => {
+    committedValuesRef.current.state = state;
+  });
+  reactExports.useEffect(() => {
+    if (disabled2) {
+      setResizeHandler(null);
+    } else {
+      const resizeHandler2 = registerResizeHandleWithParentGroup(resizeHandleId);
+      setResizeHandler(() => resizeHandler2);
+    }
+  }, [disabled2, resizeHandleId, registerResizeHandleWithParentGroup]);
+  const coarseHitAreaMargins = (_hitAreaMargins$coars = hitAreaMargins === null || hitAreaMargins === void 0 ? void 0 : hitAreaMargins.coarse) !== null && _hitAreaMargins$coars !== void 0 ? _hitAreaMargins$coars : 15;
+  const fineHitAreaMargins = (_hitAreaMargins$fine = hitAreaMargins === null || hitAreaMargins === void 0 ? void 0 : hitAreaMargins.fine) !== null && _hitAreaMargins$fine !== void 0 ? _hitAreaMargins$fine : 5;
+  reactExports.useEffect(() => {
+    if (disabled2 || resizeHandler == null) {
+      return;
+    }
+    const element2 = elementRef.current;
+    assert(element2, "Element ref not attached");
+    let didMove = false;
+    const setResizeHandlerState = (action, isActive, event) => {
+      if (!isActive) {
+        setState("inactive");
+        return;
+      }
+      switch (action) {
+        case "down": {
+          setState("drag");
+          didMove = false;
+          assert(event, 'Expected event to be defined for "down" action');
+          startDragging(resizeHandleId, event);
+          const {
+            onDragging: onDragging2,
+            onPointerDown: onPointerDown2
+          } = callbacksRef.current;
+          onDragging2 === null || onDragging2 === void 0 ? void 0 : onDragging2(true);
+          onPointerDown2 === null || onPointerDown2 === void 0 ? void 0 : onPointerDown2();
+          break;
+        }
+        case "move": {
+          const {
+            state: state2
+          } = committedValuesRef.current;
+          didMove = true;
+          if (state2 !== "drag") {
+            setState("hover");
+          }
+          assert(event, 'Expected event to be defined for "move" action');
+          resizeHandler(event);
+          break;
+        }
+        case "up": {
+          setState("hover");
+          stopDragging();
+          const {
+            onClick: onClick2,
+            onDragging: onDragging2,
+            onPointerUp: onPointerUp2
+          } = callbacksRef.current;
+          onDragging2 === null || onDragging2 === void 0 ? void 0 : onDragging2(false);
+          onPointerUp2 === null || onPointerUp2 === void 0 ? void 0 : onPointerUp2();
+          if (!didMove) {
+            onClick2 === null || onClick2 === void 0 ? void 0 : onClick2();
+          }
+          break;
+        }
+      }
+    };
+    return registerResizeHandle(resizeHandleId, element2, direction2, {
+      coarse: coarseHitAreaMargins,
+      fine: fineHitAreaMargins
+    }, setResizeHandlerState);
+  }, [coarseHitAreaMargins, direction2, disabled2, fineHitAreaMargins, registerResizeHandleWithParentGroup, resizeHandleId, resizeHandler, startDragging, stopDragging]);
+  useWindowSplitterResizeHandlerBehavior({
+    disabled: disabled2,
+    handleId: resizeHandleId,
+    resizeHandler,
+    panelGroupElement
+  });
+  const style2 = {
+    touchAction: "none",
+    userSelect: "none"
+  };
+  return reactExports.createElement(Type, {
+    ...rest2,
+    children,
+    className: classNameFromProps,
+    id: idFromProps,
+    onBlur: () => {
+      setIsFocused(false);
+      onBlur === null || onBlur === void 0 ? void 0 : onBlur();
+    },
+    onFocus: () => {
+      setIsFocused(true);
+      onFocus === null || onFocus === void 0 ? void 0 : onFocus();
+    },
+    ref: elementRef,
+    role: "separator",
+    style: {
+      ...style2,
+      ...styleFromProps
+    },
+    tabIndex,
+    // CSS selectors
+    [DATA_ATTRIBUTES.groupDirection]: direction2,
+    [DATA_ATTRIBUTES.groupId]: groupId,
+    [DATA_ATTRIBUTES.resizeHandle]: "",
+    [DATA_ATTRIBUTES.resizeHandleActive]: state === "drag" ? "pointer" : isFocused ? "keyboard" : void 0,
+    [DATA_ATTRIBUTES.resizeHandleEnabled]: !disabled2,
+    [DATA_ATTRIBUTES.resizeHandleId]: resizeHandleId,
+    [DATA_ATTRIBUTES.resizeHandleState]: state
+  });
+}
+PanelResizeHandle.displayName = "PanelResizeHandle";
+const usePanelResizer = () => {
+  const MIN_PIXEL_SIZE = 48;
+  const COLLAPSED_PIXEL_SIZE = 32;
+  const ref = reactExports.useRef(null);
+  const [minSize, setMinSize] = reactExports.useState(10);
+  const [collapsedSize, setCollapsedSize] = reactExports.useState(10);
+  const [collapsed, setCollapsed] = reactExports.useState(false);
+  const collapse = (userAction) => () => {
+    setCollapsed(true);
+    const panel = ref.current;
+    if (userAction && panel) {
+      panel.collapse();
+    }
+  };
+  const expand = (userAction) => () => {
+    setCollapsed(false);
+    const panel = ref.current;
+    if (userAction && panel) {
+      panel.expand();
+    }
+  };
+  const toggle = () => {
+    const panel = ref.current;
+    if (panel) {
+      const isCollapsed = panel.isCollapsed();
+      if (isCollapsed) {
+        expand(true)();
+      } else {
+        collapse(true)();
+      }
+    }
+  };
+  reactExports.useLayoutEffect(() => {
+    const panelGroup = document.querySelector('[data-panel-group-id="group"]');
+    const resizeHandles = document.querySelectorAll("[data-panel-resize-handle-id]");
+    if (!(panelGroup && resizeHandles)) return;
+    const observer = new ResizeObserver(() => {
+      let height = panelGroup.offsetHeight;
+      resizeHandles.forEach((resizeHandle) => {
+        height -= resizeHandle.offsetHeight;
+      });
+      setMinSize(MIN_PIXEL_SIZE / height * 100);
+      setCollapsedSize(COLLAPSED_PIXEL_SIZE / height * 100);
+    });
+    observer.observe(panelGroup);
+    resizeHandles.forEach((resizeHandle) => {
+      observer.observe(resizeHandle);
+    });
+    return () => {
+      observer.unobserve(panelGroup);
+      resizeHandles.forEach((resizeHandle) => {
+        observer.unobserve(resizeHandle);
+      });
+      observer.disconnect();
+    };
+  }, []);
+  return {
+    minSize,
+    collapsedSize,
+    collapsed,
+    collapse,
+    expand,
+    panelRef: ref,
+    toggle
+  };
+};
+const panelStyles = {
+  panelWrapper: {
+    padding: "x1q6c6th",
+    paddingInline: null,
+    paddingStart: null,
+    paddingLeft: null,
+    paddingEnd: null,
+    paddingRight: null,
+    paddingBlock: null,
+    paddingTop: null,
+    paddingBottom: null,
+    $$css: true
+  }
+};
+const CodeHealthMonitorPanel = ({
+  selectedLineData
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+    children: [/* @__PURE__ */ jsxRuntimeExports.jsx("h3", {
+      children: selectedLineData.type
+    }), /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
+      children: selectedLineData.data["new-score"]
+    })]
+  });
+};
+const FileFindingMonitorPanel = ({
+  selectedLineData
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+    children: [/* @__PURE__ */ jsxRuntimeExports.jsx("h3", {
+      children: selectedLineData.type
+    }), /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
+      children: selectedLineData.data.file.filename
+    }), /* @__PURE__ */ jsxRuntimeExports.jsxs("span", {
+      children: [selectedLineData.data.finding.category, " ", selectedLineData.data.finding["change-type"]]
+    })]
+  });
+};
+const FunctionFindingMonitorPanel = ({
+  selectedLineData,
+  collapsed,
+  toggle
+}) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+    style: panelStyles.panelWrapper,
+    gap: "size-1",
+    children: [/* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      direction: "row",
+      alignItems: "center",
+      gap: "size-1",
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx("h3", {
+        ...{
+          className: "x1ghz6dp x1ypdohk"
+        },
+        onClick: toggle,
+        children: selectedLineData.type
+      }), !collapsed ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDownIcon, {}) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRightIcon, {})]
+    }), /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx("span", {
+        children: selectedLineData.data.file.filename
+      }), /* @__PURE__ */ jsxRuntimeExports.jsxs("span", {
+        children: [selectedLineData.data.finding.function.name, " "]
+      }), selectedLineData.data.finding["change-details"].map((detail) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+        children: [detail.category, " ", detail["change-type"]]
+      }))]
+    })]
+  });
+};
+const SelectedMonitorPanel = ({
+  selectedLineData,
+  collapsed,
+  toggle
+}) => {
+  switch (selectedLineData == null ? void 0 : selectedLineData.type) {
+    case "codeHealth":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(CodeHealthMonitorPanel, {
+        selectedLineData,
+        collapsed,
+        toggle
+      });
+    case "fileFinding":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(FileFindingMonitorPanel, {
+        selectedLineData,
+        collapsed,
+        toggle
+      });
+    case "functionFinding":
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(FunctionFindingMonitorPanel, {
+        selectedLineData,
+        collapsed,
+        toggle
+      });
+  }
+  if (!selectedLineData) return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    children: "Nothing selected yet"
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Stack, {
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx("h3", {
+      children: selectedLineData.type
+    })
+  });
+};
 const styles = {
   wrapper: {
     padding: "x1717udv",
@@ -103172,11 +105496,15 @@ const styles = {
     $$css: true
   }
 };
+const panelStyle = {
+  overflowY: "auto",
+  borderTop: "2px solid color-mix(in srgb, var(--cs-theme-foreground) 10%, transparent)"
+};
 const AutoRefactorSummary = ({
   availableRefactorsCount
 }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props(sharedTreeStyles.treeLine, sharedTreeStyles.autoRefactor),
+    ...props$1(sharedTreeStyles.treeLine, sharedTreeStyles.autoRefactor),
     children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       direction: "row",
       gap: "size-1",
@@ -103196,30 +105524,66 @@ const MonitorView = ({
     selectedLineId,
     collapsedFiles,
     availableRefactorsCount,
-    handleLineClick
+    handleLineClick,
+    selectedLineData
   } = useMonitorView(fileDeltaData);
+  const {
+    minSize,
+    collapsedSize,
+    collapsed,
+    collapse,
+    expand,
+    panelRef,
+    toggle
+  } = usePanelResizer();
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props(sharedViewStyles.viewWrapper, styles.wrapper),
-    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
-      direction: "column",
-      gap: "size-2",
-      style: sharedViewStyles.mainStack,
-      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(AutoRefactorSummary, {
-        availableRefactorsCount
-      }), fileDeltaData.map((fileDelta) => {
-        return /* @__PURE__ */ jsxRuntimeExports.jsx(TreeFileItem, {
-          fileDelta,
-          selectedLineId,
-          handleLineClick,
-          isCollapsed: collapsedFiles.includes(fileDelta.file.filename)
-        }, fileDelta.file.filename);
+    ...props$1(sharedViewStyles.viewWrapper, styles.wrapper),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(PanelGroup, {
+      autoSaveId: "monitor:panels",
+      direction: "vertical",
+      id: "group",
+      children: [/* @__PURE__ */ jsxRuntimeExports.jsx(Panel, {
+        defaultSize: 75,
+        style: {
+          overflowY: "auto"
+        },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
+          direction: "column",
+          gap: "size-2",
+          style: sharedViewStyles.mainStack,
+          children: [/* @__PURE__ */ jsxRuntimeExports.jsx(AutoRefactorSummary, {
+            availableRefactorsCount
+          }), fileDeltaData.map((fileDelta) => {
+            return /* @__PURE__ */ jsxRuntimeExports.jsx(TreeFileItem, {
+              fileDelta,
+              selectedLineId,
+              handleLineClick,
+              isCollapsed: collapsedFiles.includes(fileDelta.file.filename)
+            }, fileDelta.file.filename);
+          })]
+        })
+      }), /* @__PURE__ */ jsxRuntimeExports.jsx(PanelResizeHandle, {}), /* @__PURE__ */ jsxRuntimeExports.jsx(Panel, {
+        ref: panelRef,
+        id: "bottom-panel",
+        defaultSize: 25,
+        style: panelStyle,
+        minSize,
+        collapsedSize,
+        collapsible: true,
+        onCollapse: collapse(false),
+        onExpand: expand(false),
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectedMonitorPanel, {
+          selectedLineData,
+          collapsed,
+          toggle
+        })
       })]
     })
   });
 };
 const CatchAll = () => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
-    ...props(sharedViewStyles.viewWrapper),
+    ...props$1(sharedViewStyles.viewWrapper),
     children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Stack, {
       gap: "size-4",
       direction: "column",
@@ -103245,7 +105609,7 @@ const CatchAll = () => {
 };
 const MissingContext = () => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
-    ...props(sharedViewStyles.viewWrapper),
+    ...props$1(sharedViewStyles.viewWrapper),
     children: [/* @__PURE__ */ jsxRuntimeExports.jsx(Markdown, {
       source: `# Missing context
 Missing ideContext, please add the following tag to head tag in

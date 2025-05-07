@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
@@ -25,26 +26,13 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
         var reviewer = await VS.GetMefServiceAsync<ICodeReviewer>();
         var refactoredCode = reviewer.GetCachedRefactoredCode();
+        var mapper = await VS.GetMefServiceAsync<WebComponentMapper>();
 
         var payload = new WebComponentPayload
         {
             IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
             View = WebComponentConstants.VievTypes.ACE,
-            Data = new WebComponentData
-            {
-                Loading = false,
-                FileData = new WebComponentFileData
-                {
-                    Filename = "CustomLegends.ts",
-                    FunctionName = "extract_identifiers",
-                    LineNumber = 11,
-                    Action = new WebComponentAction
-                    {
-                        GoToFunctionLocationPayload = "path/to/CustomLegends.ts:extract_identifiers"
-                    }
-                },
-                AceResultData = refactoredCode
-            }
+            Data = mapper.Map(refactoredCode)
         };
 
         var ctrl = new WebComponentUserControl(payload)
