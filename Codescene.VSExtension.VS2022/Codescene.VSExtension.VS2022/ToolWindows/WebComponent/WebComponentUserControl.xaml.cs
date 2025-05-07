@@ -25,7 +25,7 @@ public partial class WebComponentUserControl : UserControl
 
     private string GenerateInitialScript(WebComponentPayload payload)
     {
-        const string template = "function setContext() { window.ideContext = %ideContext% } setContext();";
+        const string template = "function setContext() { window.ideContext = %ideContext% }; setContext();";
 
         var settings = new JsonSerializerSettings
         {

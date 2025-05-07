@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Models.WebComponent;
+﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+using Codescene.VSExtension.Core.Models.WebComponent;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
@@ -22,8 +23,8 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         var exeFolder = Path.GetDirectoryName(exePath);
         string localFolder = Path.Combine(exeFolder, "ToolWindows\\WebComponent");
 
-        //var reviewer = await VS.GetRequiredServiceAsync<ICodeReviewer>();
-        //var refactoredCode = reviewer.GetCachedRefactoredCode();
+        var reviewer = await VS.GetMefServiceAsync<ICodeReviewer>();
+        var refactoredCode = reviewer.GetCachedRefactoredCode();
 
         var payload = new WebComponentPayload
         {
@@ -31,7 +32,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
             View = WebComponentConstants.VievTypes.ACE,
             Data = new WebComponentData
             {
-                Loading = true,
+                Loading = false,
                 FileData = new WebComponentFileData
                 {
                     Filename = "CustomLegends.ts",
@@ -41,9 +42,9 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                     {
                         GoToFunctionLocationPayload = "path/to/CustomLegends.ts:extract_identifiers"
                     }
-                }
-            },
-            //AceResultData = refactoredCode
+                },
+                AceResultData = refactoredCode
+            }
         };
 
         var ctrl = new WebComponentUserControl(payload)
