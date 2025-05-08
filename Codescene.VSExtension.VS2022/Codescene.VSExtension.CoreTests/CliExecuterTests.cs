@@ -52,7 +52,8 @@ namespace Codescene.VSExtension.Tests
         [TestMethod]
         public async Task Test_Post_Refactor()
         {
-            var path = "C:\\Users\\User\\source\\repos\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.CodeSmells\\Issues\\Javascript\\DeepGlobalNestedComplexityExample.js";
+            //var path = "C:\\Users\\User\\source\\repos\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.CodeSmells\\Issues\\Javascript\\DeepGlobalNestedComplexityExample.js";
+            var path = "C:\\Users\\User\\source\\repos\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.CodeSmells\\Issues\\CSharp\\DeepGlobalNestedComplexityExample.cs";
             using (var reader = File.OpenText(path))
             {
                 string content = reader.ReadToEnd();
@@ -62,8 +63,20 @@ namespace Codescene.VSExtension.Tests
                 var fileName = Path.GetFileName(path);
                 var extension = Path.GetExtension(fileName).Replace(".", "");
                 var refactorableFunctions = await _cliExecuter.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
-                var refactorableFunctionsString = JsonConvert.SerializeObject(refactorableFunctions.First());
-                var refactoredFunctions = await _cliExecuter.PostRefactoring(fnToRefactor: refactorableFunctionsString, skipCache: true);
+                var f = refactorableFunctions.First();
+                if (string.IsNullOrWhiteSpace(f.FunctionType))
+                {
+                    f.FunctionType = "MemberFn";
+                }
+                var refactorableFunctionsString = JsonConvert.SerializeObject(f);
+                try
+                {
+                    var refactoredFunctions = await _cliExecuter.PostRefactoring(fnToRefactor: refactorableFunctionsString, skipCache: true);
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
             }
 
             Assert.IsTrue(1 == 1);

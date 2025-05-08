@@ -166,6 +166,20 @@ namespace Codescene.VSExtension.CoreTests
         }
 
         [TestMethod]
+        public void GetRefactorPostCommand_Withiout_Skip_Cache_Use_Staging()
+        {
+            // ARRANGE
+            var provider = new CliCommandProvider();
+            var fnToRefactorJson = "function(){};";
+
+            // ACT
+            var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson, useStagingApi: true);
+
+            // ASSERT
+            Assert.AreEqual(command, $"refactor post --staging --fn-to-refactor \"{fnToRefactorJson}\"");
+        }
+
+        [TestMethod]
         public void GetRefactorPostCommand_Withiout_Skip_Cache_With_Token()
         {
             // ARRANGE

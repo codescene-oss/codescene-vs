@@ -4,6 +4,7 @@ using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.ReviewModels;
+using Codescene.VSExtension.Core.Models.WebComponent;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
     public class CodeReviewer : ICodeReviewer
     {
         private string _content = string.Empty;
+        private string _pathToCache = string.Empty;
         private enum ReviewType
         {
             FILE_ON_PATH,
@@ -144,20 +146,68 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             var fileName = Path.GetFileName(path);
             var extension = Path.GetExtension(fileName).Replace(".", "");
             var refactorableFunctions = await _executer.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
-            var refactorableFunctionsString = JsonConvert.SerializeObject(refactorableFunctions.First());
+            var f = refactorableFunctions.First();
+            if (string.IsNullOrWhiteSpace(f.FunctionType))
+            {
+                f.FunctionType = "MemberFn";
+            }
+            var refactorableFunctionsString = JsonConvert.SerializeObject(f);
             var refactoredFunctions = await _executer.PostRefactoring(fnToRefactor: refactorableFunctionsString, skipCache: true);
 
-            if (refactorableFunctions == null)
+            if (refactoredFunctions == null)
             {
                 throw new Exception("Refactoring has failed!");
             }
 
-            _cache.Add(refactoredFunctions);
+            var cacheItem = new CachedRefactoringActionModel
+            {
+                Path = path,
+                RefactorableCandidate = f,
+                Refactored = refactoredFunctions
+            };
+
+            _cache.Add(cacheItem);
 
             return refactoredFunctions;
         }
 
-        public RefactorResponseModel GetCachedRefactoredCode()
+        public async Task<RefactorResponseModel> Refactor(string path, FnToRefactorModel refactorableFunction, bool invalidateCache = false)
+        {
+            if (string.IsNullOrWhiteSpace(refactorableFunction.FunctionType))
+            {
+                refactorableFunction.FunctionType = "MemberFn";
+            }
+            var refactorableFunctionsString = JsonConvert.SerializeObject(refactorableFunction);
+            var refactoredFunctions = await _executer.PostRefactoring(fnToRefactor: refactorableFunctionsString, skipCache: true);
+
+            if (refactoredFunctions == null)
+            {
+                throw new Exception("Refactoring has failed!");
+            }
+
+            var cacheItem = new CachedRefactoringActionModel
+            {
+                Path = path,
+                RefactorableCandidate = refactorableFunction,
+                Refactored = refactoredFunctions
+            };
+
+            _cache.Add(cacheItem);
+
+            return refactoredFunctions;
+        }
+
+        public void AddPathInCache(string path)
+        {
+            _pathToCache = path;
+        }
+
+        public string GetCachedPath()
+        {
+            return _pathToCache;
+        }
+
+        public CachedRefactoringActionModel GetCachedRefactoredCode()
         {
             return _cache.GetRefactored();
         }

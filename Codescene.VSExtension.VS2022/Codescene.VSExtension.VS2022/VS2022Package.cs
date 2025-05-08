@@ -52,6 +52,15 @@ public sealed class VS2022Package : ToolkitPackage
 
         // Subscribe on active document change event
         await SubscribeOnActiveWindowChangeAsync();
+
+        //Hide Windows
+        await HideOpenedWindowsAsync();
+    }
+
+
+    async Task HideOpenedWindowsAsync()
+    {
+        await AceToolWindow.HideAsync();
     }
 
     async Task<T> GetServiceAsync<T>()

@@ -8,6 +8,6 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         public string Summary { get; set; }
 
         [JsonProperty("details")]
-        public ReasonDetailsModel Details { get; set; }
+        public ReasonDetailsModel[] Details { get; set; }
     }
 }

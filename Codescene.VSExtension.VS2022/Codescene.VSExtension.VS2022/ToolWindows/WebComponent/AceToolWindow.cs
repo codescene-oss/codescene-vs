@@ -15,7 +15,7 @@ using System.Windows;
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 public class AceToolWindow : BaseToolWindow<AceToolWindow>
 {
-
+    public string FilePath { get; set; }
     public override Type PaneType => typeof(Pane);
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
@@ -25,14 +25,14 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         string localFolder = Path.Combine(exeFolder, "ToolWindows\\WebComponent");
 
         var reviewer = await VS.GetMefServiceAsync<ICodeReviewer>();
-        var refactoredCode = reviewer.GetCachedRefactoredCode();
+        //var refactoredCode = reviewer.GetCachedRefactoredCode();
         var mapper = await VS.GetMefServiceAsync<WebComponentMapper>();
 
         var payload = new WebComponentPayload
         {
             IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
             View = WebComponentConstants.VievTypes.ACE,
-            Data = mapper.Map(refactoredCode)
+            Data = mapper.Map(reviewer.GetCachedPath())
         };
 
         var ctrl = new WebComponentUserControl(payload)

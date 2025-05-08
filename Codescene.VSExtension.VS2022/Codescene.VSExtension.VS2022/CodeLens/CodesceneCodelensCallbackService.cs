@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Threading.Tasks;
@@ -118,19 +117,34 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         context.Properties.TryGetValue("StartLine", out var startLine);
         context.Properties.TryGetValue("StartColumn", out var startColumn);
         context.Properties.TryGetValue("FullyQualifiedName", out var fullyQualifiedName);
-        //var path = descriptor.FilePath;
-        var path = "C:\\Users\\User\\source\\repos\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.CodeSmells\\Issues\\Javascript\\DeepGlobalNestedComplexityExample.js";
+        var path = descriptor.FilePath;
+        //var path = "C:\\Users\\User\\source\\repos\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.CodeSmells\\Issues\\Javascript\\DeepGlobalNestedComplexityExample.js";
         var kind = descriptor.Kind;
         var elementDescription = descriptor.ElementDescription;
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        using (var reader = File.OpenText(path))
-        {
-            var content = await reader.ReadToEndAsync();
-            var refactored = await _reviewer.Refactor(path: path, content: content);
-        }
+        //First thing open window        
+        _reviewer.AddPathInCache(path);
+        await AceToolWindow.ShowAsync(create: true);
 
-        await AceToolWindow.ShowAsync();
+
+        //using (var reader = File.OpenText(path))
+        //{
+        //    var content = await reader.ReadToEndAsync();
+        //    _reviewer.UseContentOnlyType(content);
+        //    var review = _reviewer.Review(path);
+        //    var codesmellsJson = JsonConvert.SerializeObject(review.FunctionLevelCodeSmells[0].CodeSmells);
+        //    var preflight = JsonConvert.SerializeObject(_executer.Preflight());
+        //    var fileName = Path.GetFileName(path);
+        //    var extension = Path.GetExtension(fileName).Replace(".", "");
+        //    var refactorableFunctions = await _executer.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
+        //    var f = refactorableFunctions.First();
+
+
+        //    var refactored = await _reviewer.Refactor(path: path, content: content);
+        //}
+
+
     }
 
     public bool ThrowException(Exception ex)

@@ -1,7 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Models.Cli;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using System.ComponentModel.Composition;
+using System.IO;
 
 namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 {
@@ -9,49 +9,95 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class WebComponentMapper
     {
-        public WebComponentData Map(RefactorResponseModel refactoredCode)
+        public WebComponentData Map(CachedRefactoringActionModel model)
         {
             var data = new WebComponentData
             {
                 Loading = false,
                 FileData = new WebComponentFileData
                 {
-                    Filename = "FileData Level FileName",
+                    Filename = model.Path,
                     Fn = new WebComponentFileDataBaseFn
                     {
-                        Name = "FileData Level Fn Function",
+                        Name = model.RefactorableCandidate.Name,
                         Range = new CliRangeModel
                         {
-                            Startline = 1,
-                            StartColumn = 2,
-                            EndLine = 3,
-                            EndColumn = 4
+                            Startline = model.RefactorableCandidate.Range.Startline,
+                            StartColumn = model.RefactorableCandidate.Range.StartColumn,
+                            EndLine = model.RefactorableCandidate.Range.EndLine,
+                            EndColumn = model.RefactorableCandidate.Range.EndColumn
                         }
                     },
                     Action = new WebComponentAction
                     {
                         GoToFunctionLocationPayload = new WebComponentFileDataBase
                         {
-                            Filename = "Action Level FileName",
+                            Filename = model.Path,
                             Fn = new WebComponentFileDataBaseFn
                             {
-                                Name = "Action Level Fn Name",
+                                Name = model.RefactorableCandidate.Name,
                                 Range = new CliRangeModel
                                 {
-                                    Startline = 11,
-                                    StartColumn = 22,
-                                    EndLine = 33,
-                                    EndColumn = 44
+                                    Startline = model.RefactorableCandidate.Range.Startline,
+                                    StartColumn = model.RefactorableCandidate.Range.StartColumn,
+                                    EndLine = model.RefactorableCandidate.Range.EndLine,
+                                    EndColumn = model.RefactorableCandidate.Range.EndColumn
                                 }
                             }
                         }
                     }
                 },
-                AceResultData = refactoredCode
+                AceResultData = model.Refactored
             };
 
             return data;
-
         }
+
+        public WebComponentData Map(string path)
+        {
+            var fileName = Path.GetFileName(path);
+            var data = new WebComponentData
+            {
+                Loading = true,
+                FileData = new WebComponentFileData
+                {
+                    Filename = path,
+                    Fn = new WebComponentFileDataBaseFn
+                    {
+                        Name = fileName,
+                        Range = new CliRangeModel
+                        {
+                            Startline = 0,
+                            StartColumn = 0,
+                            EndLine = 0,
+                            EndColumn = 0
+                        }
+                    },
+                    Action = new WebComponentAction
+                    {
+                        GoToFunctionLocationPayload = new WebComponentFileDataBase
+                        {
+                            Filename = path,
+                            Fn = new WebComponentFileDataBaseFn
+                            {
+                                Name = fileName,
+                                Range = new CliRangeModel
+                                {
+                                    Startline = 0,
+                                    StartColumn = 0,
+                                    EndLine = 0,
+                                    EndColumn = 0
+                                }
+                            }
+                        }
+                    }
+                },
+                AceResultData = null
+            };
+
+            return data;
+        }
+
+
     }
 }

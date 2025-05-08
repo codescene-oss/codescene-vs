@@ -31,12 +31,13 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return $"refactor fns-to-refactor --extension {extension}{preflightArg} --delta-result {deltaResult}";
         }
 
-        public string GetRefactorPostCommand(string fnToRefactor, bool skipCache, string token = null)
+        public string GetRefactorPostCommand(string fnToRefactor, bool skipCache, bool useStagingApi = false, string token = null)
         {
+            var useStagingArg = useStagingApi ? " --staging" : string.Empty;
             var skipCacheArg = skipCache ? " --skip-cache" : string.Empty;
             var tokenArg = string.IsNullOrWhiteSpace(token) ? string.Empty : $" --token {token}";
             var escapedFnToRefactor = fnToRefactor.Replace("\\", "\\\\").Replace("\"", "\\\"");
-            return $"refactor post{skipCacheArg} --fn-to-refactor \"{escapedFnToRefactor}\"{tokenArg}";
+            return $"refactor post{useStagingArg}{skipCacheArg} --fn-to-refactor \"{escapedFnToRefactor}\"{tokenArg}";
         }
 
         public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";
