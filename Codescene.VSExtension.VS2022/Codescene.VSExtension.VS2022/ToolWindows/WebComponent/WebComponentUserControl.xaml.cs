@@ -73,4 +73,6 @@ public partial class WebComponentUserControl : UserControl
         var handler = new WebComponentMessageHandler(this);
         await handler.HandleAsync(e.WebMessageAsJson);
     }
+
+    //webView.CoreWebView2.PostWebMessageAsJson(jsonString);
 }

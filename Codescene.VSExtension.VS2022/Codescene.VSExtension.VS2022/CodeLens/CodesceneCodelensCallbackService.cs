@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Threading.Tasks;
@@ -124,8 +125,8 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         //First thing open window        
-        _reviewer.AddPathInCache(path);
-        await AceToolWindow.ShowAsync(create: true);
+        //_reviewer.AddPathInCache(path);
+        //await AceToolWindow.ShowAsync(create: true);
 
 
         //using (var reader = File.OpenText(path))
@@ -144,6 +145,13 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         //    var refactored = await _reviewer.Refactor(path: path, content: content);
         //}
 
+        using (var reader = File.OpenText(path))
+        {
+            var content = await reader.ReadToEndAsync();
+            var refactored = await _reviewer.Refactor(path: path, content: content);
+        }
+
+        await AceToolWindow.ShowAsync();
 
     }
 

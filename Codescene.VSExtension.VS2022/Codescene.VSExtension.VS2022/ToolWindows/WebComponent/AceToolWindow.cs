@@ -25,14 +25,13 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         string localFolder = Path.Combine(exeFolder, "ToolWindows\\WebComponent");
 
         var reviewer = await VS.GetMefServiceAsync<ICodeReviewer>();
-        //var refactoredCode = reviewer.GetCachedRefactoredCode();
         var mapper = await VS.GetMefServiceAsync<WebComponentMapper>();
 
         var payload = new WebComponentPayload
         {
             IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
             View = WebComponentConstants.VievTypes.ACE,
-            Data = mapper.Map(reviewer.GetCachedPath())
+            Data = mapper.Map(reviewer.GetCachedRefactoredCode())
         };
 
         var ctrl = new WebComponentUserControl(payload)
