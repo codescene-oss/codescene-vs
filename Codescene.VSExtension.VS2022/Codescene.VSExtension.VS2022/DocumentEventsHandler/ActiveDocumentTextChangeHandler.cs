@@ -34,7 +34,7 @@ public class ActiveDocumentTextChangeHandler
         }
     }
 
-    private const int _SECONDS = 1;
+    private const int _MILLI_SECONDS = 10;
     public async Task SubscribeAsync()
     {
         var activeDocument = await VS.Documents.GetActiveDocumentViewAsync();
@@ -45,7 +45,7 @@ public class ActiveDocumentTextChangeHandler
             {
                 //On timer tick
                 ReviewNewContent(activeDocument.FilePath);
-            }, null, TimeSpan.FromSeconds(_SECONDS), TimeSpan.FromSeconds(_SECONDS));
+            }, null, TimeSpan.FromMilliseconds(_MILLI_SECONDS), TimeSpan.FromMilliseconds(_MILLI_SECONDS));
 
             activeDocument.TextBuffer.Changed += TextBuffer_Changed;
         }

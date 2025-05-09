@@ -72,10 +72,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
         private FileReviewModel ReviewFileOnPath(string path)
         {
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
+            ValidatePath(path);
 
             if (_cache.Exists(path))
             {
@@ -83,17 +80,34 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             }
 
             var review = _executer.Review(path);
+
             var mapped = _mapper.Map(path, review);
+
             _cache.Add(mapped);
+
             return mapped;
         }
 
-        private FileReviewModel ReviewContent(string path, string content)
+
+        private void ValidatePath(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
                 throw new ArgumentNullException(nameof(path));
             }
+        }
+
+        private void ValidateContent(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                throw new ArgumentNullException(nameof(content));
+            }
+        }
+
+        private FileReviewModel ReviewContent(string path, string content)
+        {
+            ValidatePath(path);
 
             if (_cache.Exists(path))
             {
@@ -103,28 +117,29 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             var review = ReviewFileContent(path, content);
 
             var mapped = _mapper.Map(path, review);
+
             _cache.Add(mapped);
 
             return mapped;
         }
 
-        private CliReviewModel ReviewFileContent(string path, string content)
+        private string GetFileName(string path)
         {
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                throw new ArgumentNullException(nameof(content));
-            }
-
             var fileName = Path.GetFileName(path);
+
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException(nameof(fileName));
             }
+
+            return fileName;
+        }
+
+        private CliReviewModel ReviewFileContent(string path, string content)
+        {
+            ValidateContent(content);
+
+            var fileName = GetFileName(path);
 
             var review = _executer.ReviewContent(fileName, content);
 
@@ -138,19 +153,32 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
         public async Task<CachedRefactoringActionModel> Refactor(string path, string content, bool invalidateCache = false)
         {
+            ValidatePath(path);
+
             UseContentOnlyType(content);
+
             var review = ReviewFileContent(path, content);
+
             var codesmellsJson = JsonConvert.SerializeObject(review.FunctionLevelCodeSmells[0].CodeSmells);
+
             var preflight = JsonConvert.SerializeObject(_executer.Preflight());
-            var fileName = Path.GetFileName(path);
+
+            var fileName = GetFileName(path);
+
             var extension = Path.GetExtension(fileName).Replace(".", "");
+
             var refactorableFunctions = await _executer.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
+
             var f = refactorableFunctions.First();
+
+            //Fix for csharp ACE api
             if (string.IsNullOrWhiteSpace(f.FunctionType))
             {
                 f.FunctionType = "MemberFn";
             }
+
             var refactorableFunctionsString = JsonConvert.SerializeObject(f);
+
             var refactoredFunctions = await _executer.PostRefactoring(fnToRefactor: refactorableFunctionsString, skipCache: true);
 
             if (refactoredFunctions == null)
@@ -176,7 +204,9 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             {
                 refactorableFunction.FunctionType = "MemberFn";
             }
+
             var refactorableFunctionsString = JsonConvert.SerializeObject(refactorableFunction);
+
             var refactoredFunctions = await _executer.PostRefactoring(fnToRefactor: refactorableFunctionsString, skipCache: true);
 
             if (refactoredFunctions == null)
