@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,6 +27,9 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
 
     [Import]
     private readonly ICodeReviewer _reviewer;
+
+    [Import]
+    private readonly OnClickRefactoringHandler _onClickRefactoringHandler;
 
     public float GetFileReviewScore(string filePath)
     {
@@ -100,61 +102,31 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         await Task.WhenAll(Connections.Keys.Select(RefreshDataPointAsync)).ConfigureAwait(false);
     }
 
-    //public async Task OpenAceToolWindowAsync()
-    //{
-    //    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-    //    await AceToolWindow.ShowAsync();
-    //}
-
-    //public Task OpenAceToolWindowAsync(object descriptor, object context)
-    //{
-    //    var desc = (CodeLensDescriptor)descriptor;
-    //    var ctx = (CodeLensDescriptorContext)context;
-    //    return null;
-    //}
-
     public async Task OpenAceToolWindowAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext context)
     {
+        /* In order that we need more information from passed parameters
         context.Properties.TryGetValue("StartLine", out var startLine);
         context.Properties.TryGetValue("StartColumn", out var startColumn);
         context.Properties.TryGetValue("FullyQualifiedName", out var fullyQualifiedName);
-        var path = descriptor.FilePath;
-        //var path = "C:\\Users\\User\\source\\repos\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.CodeSmells\\Issues\\Javascript\\DeepGlobalNestedComplexityExample.js";
         var kind = descriptor.Kind;
         var elementDescription = descriptor.ElementDescription;
+        */
+
+        var path = descriptor.FilePath;
+
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        //First thing open window        
-        //_reviewer.AddPathInCache(path);
-        //await AceToolWindow.ShowAsync(create: true);
-
-
-        //using (var reader = File.OpenText(path))
-        //{
-        //    var content = await reader.ReadToEndAsync();
-        //    _reviewer.UseContentOnlyType(content);
-        //    var review = _reviewer.Review(path);
-        //    var codesmellsJson = JsonConvert.SerializeObject(review.FunctionLevelCodeSmells[0].CodeSmells);
-        //    var preflight = JsonConvert.SerializeObject(_executer.Preflight());
-        //    var fileName = Path.GetFileName(path);
-        //    var extension = Path.GetExtension(fileName).Replace(".", "");
-        //    var refactorableFunctions = await _executer.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
-        //    var f = refactorableFunctions.First();
-
-
-        //    var refactored = await _reviewer.Refactor(path: path, content: content);
-        //}
-
-        using (var reader = File.OpenText(path))
-        {
-            var content = await reader.ReadToEndAsync();
-            var refactored = await _reviewer.Refactor(path: path, content: content);
-        }
-
-        await AceToolWindow.ShowAsync();
-
+        await _onClickRefactoringHandler.HandleAsync(path);
     }
 
+
+
+
+    /// <summary>
+    /// For Debug Purpose
+    /// </summary>
+    /// <param name="ex"></param>
+    /// <returns></returns>
     public bool ThrowException(Exception ex)
     {
         var m = ex.Message;

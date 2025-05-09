@@ -1,8 +1,11 @@
 ﻿using Codescene.VSExtension.Core.Models.WebComponent;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -20,7 +23,16 @@ public partial class WebComponentUserControl : UserControl
     public WebComponentUserControl(WebComponentPayload payload)
     {
         InitializeComponent();
+        SetWebViewBackground(null);
         _ = InitializeWebView2Async(payload);
+        VSColorTheme.ThemeChanged += SetWebViewBackground;
+    }
+
+    private void SetWebViewBackground(ThemeChangedEventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        var vsColor = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
+        webView.DefaultBackgroundColor = Color.FromArgb(vsColor.A, vsColor.R, vsColor.G, vsColor.B);
     }
 
     private string GenerateInitialScript(WebComponentPayload payload)
@@ -53,6 +65,8 @@ public partial class WebComponentUserControl : UserControl
 
         await webView.EnsureCoreWebView2Async(env);
 
+        webView.NavigationCompleted += (_, __) => loadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
+
         webView.CoreWebView2.WebMessageReceived += (object sender, CoreWebView2WebMessageReceivedEventArgs e) =>
         {
             _ = OnWebMessageReceivedAsync(sender, e);
@@ -74,5 +88,15 @@ public partial class WebComponentUserControl : UserControl
         await handler.HandleAsync(e.WebMessageAsJson);
     }
 
-    //webView.CoreWebView2.PostWebMessageAsJson(jsonString);
+    public void UpdateView(WebComponentMessage message)
+    {
+        var settings = new JsonSerializerSettings
+        {
+            ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
+            Formatting = Formatting.None
+        };
+        var messageString = JsonConvert.SerializeObject(message, settings);
+
+        webView.CoreWebView2.PostWebMessageAsJson(messageString);
+    }
 }

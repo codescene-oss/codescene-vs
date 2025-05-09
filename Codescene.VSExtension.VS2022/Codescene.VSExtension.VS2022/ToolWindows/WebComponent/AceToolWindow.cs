@@ -1,12 +1,9 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
-using Codescene.VSExtension.Core.Application.Services.WebComponent;
+﻿using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using System;
-using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,21 +14,19 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 {
     public string FilePath { get; set; }
     public override Type PaneType => typeof(Pane);
+    private static WebComponentUserControl _ctrl = null;
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
-        var exePath = Assembly.GetExecutingAssembly().Location;
-        var exeFolder = Path.GetDirectoryName(exePath);
-        string localFolder = Path.Combine(exeFolder, "ToolWindows\\WebComponent");
-
-        var reviewer = await VS.GetMefServiceAsync<ICodeReviewer>();
         var mapper = await VS.GetMefServiceAsync<WebComponentMapper>();
+
+        var handler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
 
         var payload = new WebComponentPayload
         {
             IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
-            View = WebComponentConstants.VievTypes.ACE,
-            Data = mapper.Map(reviewer.GetCachedRefactoredCode())
+            View = WebComponentConstants.ViewTypes.ACE,
+            Data = mapper.Map(handler.GetPath())
         };
 
         var ctrl = new WebComponentUserControl(payload)
@@ -43,6 +38,8 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
             }
         };
 
+        _ctrl = ctrl;
+
         return ctrl;
     }
 
@@ -53,4 +50,11 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     {
         public Pane() => BitmapImageMoniker = KnownMonikers.StatusInformation;
     }
+
+    public static void UpdateView(WebComponentMessage message)
+    {
+        _ctrl.UpdateView(message);
+    }
+
+    public static bool IsCreated() => _ctrl != null;
 }

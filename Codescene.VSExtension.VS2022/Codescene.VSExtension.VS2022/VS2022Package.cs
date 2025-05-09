@@ -24,7 +24,6 @@ namespace Codescene.VSExtension.VS2022;
 
 [ProvideToolWindow(typeof(MarkdownWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
 [ProvideToolWindow(typeof(AceToolWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer, Transient = true)]
-[ProvideToolWindow(typeof(CodeHealthToolWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.ServerExplorer, Transient = true)]
 public sealed class VS2022Package : ToolkitPackage
 {
     public static VS2022Package Instance { get; private set; }

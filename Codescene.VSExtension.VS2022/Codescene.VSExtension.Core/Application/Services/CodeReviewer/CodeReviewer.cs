@@ -20,7 +20,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
     public class CodeReviewer : ICodeReviewer
     {
         private string _content = string.Empty;
-        private string _pathToCache = string.Empty;
         private enum ReviewType
         {
             FILE_ON_PATH,
@@ -137,7 +136,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             _cache.Remove(path);
         }
 
-        public async Task<RefactorResponseModel> Refactor(string path, string content, bool invalidateCache = false)
+        public async Task<CachedRefactoringActionModel> Refactor(string path, string content, bool invalidateCache = false)
         {
             UseContentOnlyType(content);
             var review = ReviewFileContent(path, content);
@@ -168,7 +167,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
             _cache.Add(cacheItem);
 
-            return refactoredFunctions;
+            return cacheItem;
         }
 
         public async Task<RefactorResponseModel> Refactor(string path, FnToRefactorModel refactorableFunction, bool invalidateCache = false)
@@ -195,16 +194,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             _cache.Add(cacheItem);
 
             return refactoredFunctions;
-        }
-
-        public void AddPathInCache(string path)
-        {
-            _pathToCache = path;
-        }
-
-        public string GetCachedPath()
-        {
-            return _pathToCache;
         }
 
         public CachedRefactoringActionModel GetCachedRefactoredCode()

@@ -14,10 +14,8 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         void UseFileOnPathType();
         void UseContentOnlyType(string content);
         List<CodeSmellModel> GetCodesmellExpressions(string path, bool invalidateCache = false);
-        Task<RefactorResponseModel> Refactor(string path, string content, bool invalidateCache = false);
+        Task<CachedRefactoringActionModel> Refactor(string path, string content, bool invalidateCache = false);
         CachedRefactoringActionModel GetCachedRefactoredCode();
         Task<RefactorResponseModel> Refactor(string path, FnToRefactorModel refactorableFunction, bool invalidateCache = false);
-        void AddPathInCache(string path);
-        string GetCachedPath();
     }
 }

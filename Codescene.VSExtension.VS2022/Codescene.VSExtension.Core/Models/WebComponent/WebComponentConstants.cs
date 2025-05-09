@@ -3,7 +3,7 @@
     public class WebComponentConstants
     {
         public const string VISUAL_STUDIO_IDE_TYPE = "Visual Studio";
-        public class VievTypes
+        public class ViewTypes
         {
             public const string ACE = "ace";
         }

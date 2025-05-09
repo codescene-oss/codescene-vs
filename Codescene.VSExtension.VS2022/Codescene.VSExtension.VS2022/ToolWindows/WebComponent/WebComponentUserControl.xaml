@@ -7,7 +7,16 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf">
-    <Grid Background="Azure">
-        <wv2:WebView2 x:Name="webView" Margin="2" />
+    <Grid>
+        <wv2:WebView2 x:Name="webView" Margin="0" />
+        <TextBlock x:Name="loadingOverlay"
+                   Text="Loading…"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   Foreground="White"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Visibility="Visible"
+                   IsHitTestVisible="False"/>
     </Grid>
 </UserControl>

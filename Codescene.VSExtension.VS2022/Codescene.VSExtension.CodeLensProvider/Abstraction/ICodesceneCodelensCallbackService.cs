@@ -13,7 +13,11 @@ namespace Codescene.VSExtension.CodeLensProvider.Abstraction
         Task InitializeRpcAsync(string dataPointId);
         bool IsCodeSceneLensesEnabled();
         Task OpenAceToolWindowAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext context);
-
+        /// <summary>
+        /// For Debug Purpose
+        /// </summary>
+        /// <param name="ex"></param>
+        /// <returns></returns>
         bool ThrowException(Exception ex);
     }
 }
