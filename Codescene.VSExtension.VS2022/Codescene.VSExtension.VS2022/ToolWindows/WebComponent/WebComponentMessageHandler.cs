@@ -1,5 +1,4 @@
 ﻿using Codescene.VSExtension.Core.Models.WebComponent;
-using Codescene.VSExtension.VS2022.DocumentEventsHandler;
 using Community.VisualStudio.Toolkit;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
@@ -31,7 +30,7 @@ internal class WebComponentMessageHandler
         if (msgType == WebComponentConstants.MessageTypes.APPLY)
         {
             var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
-            applier.Apply();
+            await applier.ApplyAsync();
             return;
         }
 

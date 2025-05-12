@@ -62,24 +62,19 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 throw new ArgumentNullException(nameof(_content));
             }
 
+            ValidatePath(path);
+
             if (invalidateCache)
             {
                 InvalidateCache(path);
             }
-
-            return _type == ReviewType.FILE_ON_PATH ? ReviewFileOnPath(path) : ReviewContent(path, _content);
-        }
-
-        private FileReviewModel ReviewFileOnPath(string path)
-        {
-            ValidatePath(path);
 
             if (_cache.Exists(path))
             {
                 return _cache.Get(path);
             }
 
-            var review = _executer.Review(path);
+            var review = _type == ReviewType.FILE_ON_PATH ? _executer.Review(path) : ReviewFileContent(path, _content);
 
             var mapped = _mapper.Map(path, review);
 
@@ -87,7 +82,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
             return mapped;
         }
-
 
         private void ValidatePath(string path)
         {
@@ -103,24 +97,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             {
                 throw new ArgumentNullException(nameof(content));
             }
-        }
-
-        private FileReviewModel ReviewContent(string path, string content)
-        {
-            ValidatePath(path);
-
-            if (_cache.Exists(path))
-            {
-                return _cache.Get(path);
-            }
-
-            var review = ReviewFileContent(path, content);
-
-            var mapped = _mapper.Map(path, review);
-
-            _cache.Add(mapped);
-
-            return mapped;
         }
 
         private string GetFileName(string path)

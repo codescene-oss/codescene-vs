@@ -160,7 +160,7 @@
     <Compile Include="DocumentEventsHandler\ExtensionEventsManager.cs" />
     <Compile Include="DocumentEventsHandler\OnStartExtensionActiveDocumentHandler.cs" />
     <Compile Include="CodeLens\ToolWindowRegistry.cs" />
-    <Compile Include="DocumentEventsHandler\RefactoringChangesApplier.cs" />
+    <Compile Include="ToolWindows\WebComponent\RefactoringChangesApplier.cs" />
     <Compile Include="RegistryHelper.cs" />
     <Compile Include="Helpers\BooleanToVisibilityConverter.cs" />
     <Compile Include="Commands\Base\VSBaseCommand.cs" />
