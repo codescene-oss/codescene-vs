@@ -48,5 +48,16 @@ public class RefactoringChangesApplier
         using var edit = buffer.CreateEdit();
         edit.Replace(span, newCode.EndsWith("\r\n") ? newCode : newCode + Environment.NewLine);
         edit.Apply();
+
+        var postSnapshot = buffer.CurrentSnapshot;
+
+        var selectionSpan = new SnapshotSpan(
+            postSnapshot,
+            new Span(startLine.Start.Position, newCode.Length));
+
+        var view = docView.TextView;
+        view.Selection.Select(selectionSpan, isReversed: false);
+        view.Caret.MoveTo(selectionSpan.Start);
+        view.ViewScroller.EnsureSpanVisible(selectionSpan);
     }
 }
