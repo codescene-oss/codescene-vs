@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
+﻿namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 
 class MessageObj<T>
 {

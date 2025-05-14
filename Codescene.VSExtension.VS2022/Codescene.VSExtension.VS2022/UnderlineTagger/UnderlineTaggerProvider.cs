@@ -1,6 +1,7 @@
 ﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -26,6 +27,10 @@ namespace Codescene.VSExtension.VS2022.ErrorList
             {
                 return null;
             }
+
+            var path = textBuffer.GetFileName();
+            if (SkipShowDiffHelper.PathContainsShowDiffFolder(path))
+                return null;
 
             var linesToUnderline = GetLinesToUnderline(textBuffer);
             var tagger = new UnderlineTagger(textBuffer, linesToUnderline, () => GetRefreshedLinesToUnderline(textBuffer));

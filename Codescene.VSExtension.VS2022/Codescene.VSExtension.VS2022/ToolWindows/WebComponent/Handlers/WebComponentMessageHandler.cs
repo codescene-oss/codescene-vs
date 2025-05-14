@@ -3,7 +3,7 @@ using Community.VisualStudio.Toolkit;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
+namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 internal class WebComponentMessageHandler
 {
 
@@ -27,6 +27,29 @@ internal class WebComponentMessageHandler
             return;
         }
 
+        if (msgType == WebComponentConstants.MessageTypes.COPY_CODE)
+        {
+            var handler = await VS.GetMefServiceAsync<CopyRefactoredCodeHandler>();
+            handler.CopyToRefactoredCodeToClipboard();
+            return;
+        }
+
+        if (msgType == WebComponentConstants.MessageTypes.SHOW_DIFF)
+        {
+            try
+            {
+                var handler = await VS.GetMefServiceAsync<ShowDiffHandler>();
+                await handler.ShowDiffWindowAsync();
+            }
+            catch (System.Exception ex)
+            {
+
+                throw;
+            }
+
+            return;
+        }
+
         if (msgType == WebComponentConstants.MessageTypes.APPLY)
         {
             var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
@@ -34,14 +57,13 @@ internal class WebComponentMessageHandler
             return;
         }
 
-        var payload = msgObject.Payload;
-
-        if (payload == "close")
+        if (msgType == WebComponentConstants.MessageTypes.REJECT)
         {
             if (_control.CloseRequested is not null)
             {
                 await _control.CloseRequested();
             }
+            return;
         }
     }
 }

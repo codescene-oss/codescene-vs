@@ -1,4 +1,5 @@
-﻿using Community.VisualStudio.Toolkit;
+﻿using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
+using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Composition;
@@ -76,6 +77,12 @@ public class ExtensionEventsManager : IDisposable
 
     private void OnBeforeDocumentWindowShow(DocumentView doc)
     {
+        //Escape show diff window
+        if (SkipShowDiffHelper.PathContainsShowDiffFolder(doc.FilePath))
+        {
+            return;
+        }
+
         _onBeforeDocumentWindowShowHandler.Handle(doc);
     }
 

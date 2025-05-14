@@ -6,7 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
+namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 
 [Export(typeof(RefactoringChangesApplier))]
 [PartCreationPolicy(CreationPolicy.Shared)]

@@ -5,7 +5,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
+namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 
 
 [Export(typeof(OnClickRefactoringHandler))]
