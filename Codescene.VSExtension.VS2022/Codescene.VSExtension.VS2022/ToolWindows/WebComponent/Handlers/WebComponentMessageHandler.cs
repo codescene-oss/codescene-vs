@@ -36,17 +36,8 @@ internal class WebComponentMessageHandler
 
         if (msgType == WebComponentConstants.MessageTypes.SHOW_DIFF)
         {
-            try
-            {
-                var handler = await VS.GetMefServiceAsync<ShowDiffHandler>();
-                await handler.ShowDiffWindowAsync();
-            }
-            catch (System.Exception ex)
-            {
-
-                throw;
-            }
-
+            var handler = await VS.GetMefServiceAsync<ShowDiffHandler>();
+            await handler.ShowDiffWindowAsync();
             return;
         }
 
