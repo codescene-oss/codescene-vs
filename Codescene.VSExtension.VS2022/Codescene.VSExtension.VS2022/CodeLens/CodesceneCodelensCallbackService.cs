@@ -1,7 +1,8 @@
 ﻿using Codescene.VSExtension.CodeLensProvider.Abstraction;
 using Codescene.VSExtension.CodeLensProvider.Providers.Base;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
-using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
+using Codescene.VSExtension.Core.Application.Services.PreflightManager;
+using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
@@ -10,6 +11,7 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,6 +34,9 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
     [Import]
     private readonly OnClickRefactoringHandler _onClickRefactoringHandler;
 
+    [Import]
+    private readonly IPreflightManager _preflightManager;
+
     public float GetFileReviewScore(string filePath)
     {
         var review = _reviewer.Review(filePath);
@@ -53,10 +58,41 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         // If there is any smells this should be shown
         if (issue == Constants.Titles.CODESCENE_ACE)
         {
+            var supported = IsSupportedAceCodelenseForCodeSmellsAndLanguage(review, lineNumber, filePath);
+            if (!supported)
+            {
+                return false;
+            }
+
             return review.FunctionLevel.Any(x => x.StartLine == lineNumber);
         }
 
         return review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == lineNumber);
+    }
+
+    private bool IsSupportedAceCodelenseForCodeSmellsAndLanguage(FileReviewModel review, int lineNumber, string path)
+    {
+        var extension = Path.GetExtension(path);
+        if (!_preflightManager.IsSupportedLanguage(extension))
+        {
+            return false;
+        }
+
+        //Get all codesmells found for the given line number
+        var codeSmellsFoundForTheLine = review?.FunctionLevel?.Where(x => x.StartLine == lineNumber).Select(x => x.Category);
+        if (!codeSmellsFoundForTheLine.Any())
+        {
+            return false;
+        }
+
+        //Is any of those code smells refactorable
+        var hasAny = _preflightManager.IsAnyCodeSmellSupported(codeSmellsFoundForTheLine);
+        if (!hasAny)
+        {
+            return false;
+        }
+
+        return true;
     }
 
 
