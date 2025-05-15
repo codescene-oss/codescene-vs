@@ -25,21 +25,51 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
         private bool IsAllowedKind(CodeElementKinds kind) => kind == CodeElementKinds.Method || kind == CodeElementKinds.Function;
         private bool IsNotAllowedKind(CodeElementKinds kind) => !IsAllowedKind(kind);
 
+        protected async Task<TResult> SafeInvokeMethodAsync<TResult>(string methodName, CancellationToken token, IReadOnlyList<object> parameters = null)
+        {
+            try
+            {
+                return await _callbackService.Value.InvokeAsync<TResult>(this, methodName, parameters, token);
+            }
+            catch (ObjectDisposedException ex)
+            {
+                // Optional: log or trace for diagnostics
+                return default;
+            }
+            catch (Exception ex)
+            {
+                // Silently ignore or log if needed
+                _ = _callbackService.Value.InvokeAsync<bool>(
+                    this,
+                    nameof(ICodesceneCodelensCallbackService.ThrowException),
+                    new object[] { ex },
+                    token
+                );
+                return default;
+            }
+        }
+
         protected async Task<bool> IsCodelenseEnabledAsync(CodeLensDescriptor descriptor, CancellationToken token)
         {
+            if (token.IsCancellationRequested)
+                return false;
+
             // Add codelense only for methods and functions
             if (IsNotAllowedKind(descriptor.Kind))
             {
                 return false;
             }
 
-            var isEnabledInSettings = await InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.IsCodeSceneLensesEnabled), token);
+            var isEnabledInSettings = await SafeInvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.IsCodeSceneLensesEnabled), token);
 
             return isEnabledInSettings;
         }
 
         public virtual async Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
+            if (token.IsCancellationRequested)
+                return false;
+
             try
             {
                 var enabled = await IsCodelenseEnabledAsync(descriptor, token);
@@ -67,6 +97,9 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
         public virtual async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
+            if (token.IsCancellationRequested)
+                return null;
+
             var vsPid = await InvokeMethodAsync<int>(nameof(ICodesceneCodelensCallbackService.GetVisualStudioPid), token);
 
             var dataPoint = (T)Activator.CreateInstance(typeof(T), descriptor, _callbackService.Value);
