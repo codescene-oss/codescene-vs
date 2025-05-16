@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
+using System.Timers;
 
 namespace Codescene.VSExtension.VS2022.ErrorList
 {
@@ -13,14 +14,34 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         private readonly ITextBuffer _buffer;
         private List<CodeSmellModel> _underlinePositions;
         private readonly Func<List<CodeSmellModel>> _refreshUnderlinePositions;
+        private bool _bufferChangedPending = false;
+        private readonly Timer _throttleTimer;
 
         public UnderlineTagger(ITextBuffer buffer, List<CodeSmellModel> underlinePositions, Func<List<CodeSmellModel>> refreshUnderlinePositions)
         {
             _buffer = buffer;
             _underlinePositions = underlinePositions;
             _refreshUnderlinePositions = refreshUnderlinePositions;
-            _buffer.Changed += (sender, args) => OnBufferChanged(args);
+            //_buffer.Changed += (sender, args) => OnBufferChanged(args);
+
+            _buffer.Changed += (sender, args) => _bufferChangedPending = true;
+
+            _throttleTimer = new Timer(2000); // 2 seconds
+            _throttleTimer.Elapsed += (s, e) => OnTimerElapsed();
+            _throttleTimer.AutoReset = true;
+            _throttleTimer.Start();
         }
+
+        private void OnTimerElapsed()
+        {
+            if (_bufferChangedPending)
+            {
+                _bufferChangedPending = false;
+                _underlinePositions = _refreshUnderlinePositions.Invoke();
+                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(new SnapshotSpan(_buffer.CurrentSnapshot, new Span())));
+            }
+        }
+
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
             if (_underlinePositions == null || _underlinePositions.Count == 0)

@@ -25,8 +25,15 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
         public async Task ConnectAsync(CancellationToken cancellationToken)
         {
-            await _stream.ConnectAsync(cancellationToken).ConfigureAwait(false);
-            Rpc = JsonRpc.Attach(_stream, this);
+            try
+            {
+                await _stream.ConnectAsync(cancellationToken).ConfigureAwait(false);
+                Rpc = JsonRpc.Attach(_stream, this);
+            }
+            catch (System.Exception ex)
+            {
+                throw new System.Exception($"ConnectAsync exception:{ex.Message}");
+            }
         }
 
         public void Refresh() => _owner.Refresh();

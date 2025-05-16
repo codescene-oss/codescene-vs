@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -34,17 +35,14 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
             catch (ObjectDisposedException ex)
             {
                 // Optional: log or trace for diagnostics
+                System.Diagnostics.Debug.WriteLine($"SafeInvokeMethodAsync:{JsonConvert.SerializeObject(ex)}");
                 return default;
             }
             catch (Exception ex)
             {
                 // Silently ignore or log if needed
-                _ = _callbackService.Value.InvokeAsync<bool>(
-                    this,
-                    nameof(ICodesceneCodelensCallbackService.ThrowException),
-                    new object[] { ex },
-                    token
-                );
+                System.Diagnostics.Debug.WriteLine($"SafeInvokeMethodAsync:{JsonConvert.SerializeObject(ex)}");
+                _ = _callbackService.Value.InvokeAsync<bool>(this, nameof(ICodesceneCodelensCallbackService.ThrowException), new object[] { ex }, token);
                 return default;
             }
         }
@@ -100,7 +98,10 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
             if (token.IsCancellationRequested)
                 return null;
 
-            var vsPid = await InvokeMethodAsync<int>(nameof(ICodesceneCodelensCallbackService.GetVisualStudioPid), token);
+            var vsPid = await SafeInvokeMethodAsync<int>(nameof(ICodesceneCodelensCallbackService.GetVisualStudioPid), token);
+
+            if (vsPid == 0)
+                return null;
 
             var dataPoint = (T)Activator.CreateInstance(typeof(T), descriptor, _callbackService.Value);
 
