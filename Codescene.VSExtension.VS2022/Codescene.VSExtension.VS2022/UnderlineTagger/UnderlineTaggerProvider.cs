@@ -53,9 +53,12 @@ namespace Codescene.VSExtension.VS2022.ErrorList
 
         private string GetPath(ITextBuffer textBuffer)
         {
-            ThreadHelper.JoinableTaskFactory.Run(async () => await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync());
-
-            var path = textBuffer.GetFileName();
+            string path = null;
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                path = textBuffer.GetFileName();
+            });
 
             if (path == null)
             {
