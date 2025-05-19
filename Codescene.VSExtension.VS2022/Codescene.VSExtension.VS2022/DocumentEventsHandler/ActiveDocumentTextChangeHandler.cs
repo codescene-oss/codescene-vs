@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
+using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.VS2022.CodeLens;
 using Community.VisualStudio.Toolkit;
@@ -34,7 +35,8 @@ public class ActiveDocumentTextChangeHandler
         }
     }
 
-    private const int _MILLI_SECONDS = 2000;
+    TimeSpan TimerInterval { get { return TimeSpan.FromMilliseconds(Constants.Utils.TEXT_CHANGE_CHECK_INTERVAL_MILISECONDS); } }
+
     public async Task SubscribeAsync()
     {
         var activeDocument = await VS.Documents.GetActiveDocumentViewAsync();
@@ -44,14 +46,14 @@ public class ActiveDocumentTextChangeHandler
             _timer = new Timer((state) =>
             {
                 //On timer tick
-                ReviewNewContent(activeDocument.FilePath);
-            }, null, TimeSpan.FromMilliseconds(_MILLI_SECONDS), TimeSpan.FromMilliseconds(_MILLI_SECONDS));
+                OnTimerElapsed(activeDocument.FilePath);
+            }, null, TimerInterval, TimerInterval);
 
             activeDocument.TextBuffer.Changed += TextBuffer_Changed;
         }
     }
 
-    private void ReviewNewContent(string path)
+    private void OnTimerElapsed(string path)
     {
         if (_changed)
         {

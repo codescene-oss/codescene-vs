@@ -20,10 +20,10 @@ using System.Threading.Tasks;
 namespace Codescene.VSExtension.VS2022.CodeLens;
 
 [Export(typeof(ICodeLensCallbackListener))]
-[ContentType(Constants.CONTENT_TYPE_CSHARP)]
-[ContentType(Constants.CONTENT_TYPE_JAVA)]
-[ContentType(Constants.CONTENT_TYPE_TYPESCRIPT)]
-[ContentType(Constants.CONTENT_TYPE_JAVASCRIPT)]
+[ContentType(Constants.SupportedLanguages.CONTENT_TYPE_CSHARP)]
+[ContentType(Constants.SupportedLanguages.CONTENT_TYPE_JAVA)]
+[ContentType(Constants.SupportedLanguages.CONTENT_TYPE_TYPESCRIPT)]
+[ContentType(Constants.SupportedLanguages.CONTENT_TYPE_JAVASCRIPT)]
 internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICodesceneCodelensCallbackService
 {
     public static readonly ConcurrentDictionary<string, CodeLensConnection> Connections = new();
