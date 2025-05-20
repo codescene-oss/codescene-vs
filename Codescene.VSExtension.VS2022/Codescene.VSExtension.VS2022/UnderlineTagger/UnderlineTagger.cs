@@ -96,11 +96,5 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         }
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
-
-        private void OnBufferChanged(TextContentChangedEventArgs args)
-        {
-            _underlinePositions = _refreshUnderlinePositions.Invoke();
-            TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(new SnapshotSpan(args.After, new Span())));
-        }
     }
 }
