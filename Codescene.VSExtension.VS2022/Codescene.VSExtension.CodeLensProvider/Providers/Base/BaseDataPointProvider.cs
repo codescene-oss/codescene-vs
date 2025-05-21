@@ -2,7 +2,6 @@
 using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -21,7 +20,6 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
         [ImportingConstructor]
         public BaseDataPointProvider(Lazy<ICodeLensCallbackService> callbackService) => _callbackService = callbackService;
 
-        private Task<TResult> InvokeMethodAsync<TResult>(string name, CancellationToken token, IReadOnlyList<object> parameters = null) => _callbackService.Value.InvokeAsync<TResult>(this, name, parameters, token);
 
         private bool IsAllowedKind(CodeElementKinds kind) => kind == CodeElementKinds.Method || kind == CodeElementKinds.Function;
         private bool IsNotAllowedKind(CodeElementKinds kind) => !IsAllowedKind(kind);
@@ -30,22 +28,36 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
         {
             try
             {
-                return await _callbackService.Value.InvokeAsync<TResult>(this, methodName, parameters, token);
+                return await _callbackService.Value.InvokeAsync<TResult>(
+                    this,
+                    methodName,
+                    parameters ?? Array.Empty<object>(),
+                    token
+                );
             }
             catch (ObjectDisposedException ex)
             {
-                // Optional: log or trace for diagnostics
-                System.Diagnostics.Debug.WriteLine($"SafeInvokeMethodAsync:{JsonConvert.SerializeObject(ex)}");
+                System.Diagnostics.Debug.WriteLine($"SafeInvokeMethodAsync ObjectDisposed: {ex.Message}");
                 return default;
             }
             catch (Exception ex)
             {
-                // Silently ignore or log if needed
-                System.Diagnostics.Debug.WriteLine($"SafeInvokeMethodAsync:{JsonConvert.SerializeObject(ex)}");
-                _ = _callbackService.Value.InvokeAsync<bool>(this, nameof(ICodesceneCodelensCallbackService.ThrowException), new object[] { ex }, token);
+                System.Diagnostics.Debug.WriteLine($"SafeInvokeMethodAsync Exception: {ex}");
+
+                try
+                {
+                    var safeMessage = $"Method: SafeInvokeMethodAsync, MethodName: {methodName}, Error: {ex.Message}";
+                    await _callbackService.Value.InvokeAsync<bool>(this, nameof(ICodesceneCodelensCallbackService.SendError), new object[] { safeMessage }, token);
+                }
+                catch (Exception nestedEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error while reporting exception: {nestedEx.Message}");
+                }
+
                 return default;
             }
         }
+
 
         protected async Task<bool> IsCodelenseEnabledAsync(CodeLensDescriptor descriptor, CancellationToken token)
         {
@@ -72,26 +84,48 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
             {
                 var enabled = await IsCodelenseEnabledAsync(descriptor, token);
                 if (!enabled)
-                {
                     return false;
-                }
 
-                descriptorContext.Properties.TryGetValue("StartLine", out dynamic zeroBasedLineNumber);
-
-                var lineNumber = (int)zeroBasedLineNumber + 1;
+                if (!TryGetLineNumber(descriptorContext, out var lineNumber))
+                    return false;
 
                 var parameters = new object[] { Name, descriptor.FilePath, lineNumber };
 
-                var show = await InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.ShowCodeLensForFunction), token, parameters);
+                var show = await SafeInvokeMethodAsync<bool>(
+                    nameof(ICodesceneCodelensCallbackService.ShowCodeLensForFunction),
+                    token,
+                    parameters
+                );
 
                 return show;
             }
             catch (Exception ex)
             {
-                await InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.ThrowException), token, new object[] { ex });
+                await SafeInvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.SendError), token, new object[] { ex.ToString() });
                 return false;
             }
         }
+
+        private bool TryGetLineNumber(CodeLensDescriptorContext context, out int lineNumber)
+        {
+            lineNumber = default;
+
+            if (!context.Properties.TryGetValue("StartLine", out var value))
+                return false;
+
+            switch (value)
+            {
+                case int i:
+                    lineNumber = i + 1;
+                    return true;
+                case long l:
+                    lineNumber = (int)l + 1;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
 
         public virtual async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
@@ -105,7 +139,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
             var dataPoint = (T)Activator.CreateInstance(typeof(T), descriptor, _callbackService.Value);
 
-            _ = InvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.InitializeRpcAsync), token, parameters: new[] { dataPoint.DataPointId });
+            _ = SafeInvokeMethodAsync<bool>(nameof(ICodesceneCodelensCallbackService.InitializeRpcAsync), token, parameters: new[] { dataPoint.DataPointId });
 
             var connection = new VisualStudioConnection(dataPoint, vsPid);
             await connection.ConnectAsync(token);

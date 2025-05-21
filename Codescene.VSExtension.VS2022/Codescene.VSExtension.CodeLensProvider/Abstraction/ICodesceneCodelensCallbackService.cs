@@ -1,6 +1,5 @@
 ﻿using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
-using System;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.CodeLensProvider.Abstraction
@@ -18,6 +17,6 @@ namespace Codescene.VSExtension.CodeLensProvider.Abstraction
         /// </summary>
         /// <param name="ex"></param>
         /// <returns></returns>
-        bool ThrowException(Exception ex);
+        bool SendError(string ex);
     }
 }

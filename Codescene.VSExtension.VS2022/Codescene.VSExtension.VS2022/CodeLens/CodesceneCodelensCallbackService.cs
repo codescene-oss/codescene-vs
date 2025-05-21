@@ -1,6 +1,7 @@
 ﻿using Codescene.VSExtension.CodeLensProvider.Abstraction;
 using Codescene.VSExtension.CodeLensProvider.Providers.Base;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.PreflightManager;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
@@ -30,6 +31,9 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
 
     [Import]
     private readonly ICodeReviewer _reviewer;
+
+    [Import]
+    private readonly ILogger _logger;
 
     [Import]
     private readonly OnClickRefactoringHandler _onClickRefactoringHandler;
@@ -156,17 +160,14 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         await _onClickRefactoringHandler.HandleAsync(path);
     }
 
-
-
-
     /// <summary>
     /// For Debug Purpose
     /// </summary>
-    /// <param name="ex"></param>
+    /// <param name="message"></param>
     /// <returns></returns>
-    public bool ThrowException(Exception ex)
+    public bool SendError(string message)
     {
-        var m = ex.Message;
+        _logger.Error(message: message, new Exception(message));
         return true;
     }
 }
