@@ -12,7 +12,7 @@ namespace Codescene.VSExtension.VS2022
         public const string Name = "Codescene Visual Studio Extension";
         public const string Description = @"Codesecene extension for Visual Studio IDE";
         public const string Language = "en-US";
-        public const string Version = "0.3.8";
+        public const string Version = "0.3.9";
         public const string Author = "Codescene AB";
         public const string Tags = "";
         public const bool IsPreview = false;
