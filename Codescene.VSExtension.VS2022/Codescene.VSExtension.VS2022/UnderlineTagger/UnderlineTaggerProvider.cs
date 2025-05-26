@@ -1,5 +1,4 @@
-﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
-using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Microsoft.VisualStudio.Shell;
@@ -12,11 +11,9 @@ using System.ComponentModel.Composition;
 namespace Codescene.VSExtension.VS2022.ErrorList
 {
     [Export(typeof(ITaggerProvider))]
-    [ContentType(Constants.SupportedLanguages.CONTENT_TYPE_CSHARP)]
-    [ContentType(Constants.SupportedLanguages.CONTENT_TYPE_JAVA)]
-    [ContentType(Constants.SupportedLanguages.CONTENT_TYPE_TYPESCRIPT)]
-    [ContentType(Constants.SupportedLanguages.CONTENT_TYPE_JAVASCRIPT)]
     [TagType(typeof(IErrorTag))]
+    [ContentType("text")]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class UnderlineTaggerProvider : ITaggerProvider
     {
         [Import]
@@ -34,6 +31,8 @@ namespace Codescene.VSExtension.VS2022.ErrorList
                 return null;
 
             var linesToUnderline = GetLinesToUnderline(textBuffer);
+
+            System.Diagnostics.Debug.WriteLine($"Lines to underline {linesToUnderline}");
             var tagger = new UnderlineTagger(textBuffer, linesToUnderline, () => GetRefreshedLinesToUnderline(textBuffer));
             return (ITagger<T>)tagger;
         }

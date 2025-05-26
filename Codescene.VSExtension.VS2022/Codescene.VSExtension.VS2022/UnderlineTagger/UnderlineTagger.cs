@@ -53,6 +53,8 @@ namespace Codescene.VSExtension.VS2022.ErrorList
 
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
+            System.Diagnostics.Debug.WriteLine($"Underline positions {_underlinePositions.ToArray()}");
+
             if (_underlinePositions == null || _underlinePositions.Count == 0)
                 yield break;
 

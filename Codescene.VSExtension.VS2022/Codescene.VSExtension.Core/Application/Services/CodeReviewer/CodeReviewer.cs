@@ -52,11 +52,14 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         public List<CodeSmellModel> GetCodesmellExpressions(string path, bool invalidateCache = false)
         {
             var review = Review(path, invalidateCache);
-            return review.FunctionLevel;
+            return review.FunctionLevel.Concat(review.FileLevel).ToList();
         }
 
         public FileReviewModel Review(string path, bool invalidateCache = false)
         {
+            //TODO: remove
+            System.Diagnostics.Debug.WriteLine($"Reviewing {path} {invalidateCache}");
+            
             if (_type == ReviewType.CONTENT_ONLY && string.IsNullOrWhiteSpace(_content))
             {
                 throw new ArgumentNullException(nameof(_content));
