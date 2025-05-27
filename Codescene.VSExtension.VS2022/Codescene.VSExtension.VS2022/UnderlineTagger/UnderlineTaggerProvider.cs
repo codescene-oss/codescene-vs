@@ -40,11 +40,15 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         private List<CodeSmellModel> GetLinesToUnderline(ITextBuffer textBuffer)
         {
             var path = GetPath(textBuffer);
-            return _reviewer.GetCodesmellExpressions(path);
+
+            return string.IsNullOrEmpty(path) ? [] : _reviewer.GetCodesmellExpressions(path);
         }
+
         private List<CodeSmellModel> GetRefreshedLinesToUnderline(ITextBuffer textBuffer)
         {
             var path = GetPath(textBuffer);
+            if (string.IsNullOrEmpty(path)) return [];
+
             var content = textBuffer.CurrentSnapshot.GetText();
             _reviewer.UseContentOnlyType(content);
             return _reviewer.GetCodesmellExpressions(path, invalidateCache: true);
@@ -53,16 +57,12 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         private string GetPath(ITextBuffer textBuffer)
         {
             string path = null;
+
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 path = textBuffer.GetFileName();
             });
-
-            if (path == null)
-            {
-                throw new System.ArgumentNullException(nameof(path));
-            }
 
             return path;
         }
