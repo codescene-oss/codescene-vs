@@ -31,13 +31,16 @@
                     <TextBlock Text=") " />
                 </StackPanel>
 
-                <TextBlock Text="CodeScene (" FontWeight="Light"/>
+                <TextBlock>
+                    <Run Text="CodeScene" FontWeight="Bold" />
+                    <Run Text=" (" FontWeight="Normal" />
+                </TextBlock>
                 <TextBlock>
                     <Hyperlink Command="{Binding YourCommand}" CommandParameter="{Binding Category}">
                         <Run Text="{Binding Category}" />
                     </Hyperlink>
                 </TextBlock>
-                <TextBlock Text=") " FontWeight="Light"/>
+                <TextBlock Text=")" FontWeight="Light"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>
