@@ -100,7 +100,7 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
 
         Delete(review.FilePath);
 
-        var issues = review.FunctionLevel;
+        var issues = review.FunctionLevel.Concat(review.FileLevel).ToList();
         if (!issues.Any())
         {
             _errorListProvider.Show();//Just show Error list window
