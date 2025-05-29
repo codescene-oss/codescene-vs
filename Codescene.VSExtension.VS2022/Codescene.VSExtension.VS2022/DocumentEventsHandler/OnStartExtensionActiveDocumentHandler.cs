@@ -28,6 +28,8 @@ public class OnStartExtensionActiveDocumentHandler
 
     public void Handle(string path)
     {
+        _logger.Info($"Active opened document:{path}");
+
         if (string.IsNullOrWhiteSpace(path))
         {
             throw new System.ArgumentNullException(nameof(path));
