@@ -32,11 +32,16 @@ namespace Codescene.VSExtension.VS2022.ErrorList
 
             var linesToUnderline = GetLinesToUnderline(textBuffer);
 
-            System.Diagnostics.Debug.WriteLine($"Lines to underline {linesToUnderline}");
             var tagger = new UnderlineTagger(textBuffer, linesToUnderline, () => GetRefreshedLinesToUnderline(textBuffer));
             return (ITagger<T>)tagger;
         }
 
+        /// <summary>
+        /// Retrieves lines with code smells for the current text buffer.
+        /// Uses the saved file on disk as the review source.
+        /// </summary>
+        /// <param name="textBuffer">The text buffer representing the open document.</param>
+        /// <returns>A list of <see cref="CodeSmellModel"/> representing code smells to underline.</returns>
         private List<CodeSmellModel> GetLinesToUnderline(ITextBuffer textBuffer)
         {
             var path = GetPath(textBuffer);
@@ -44,6 +49,12 @@ namespace Codescene.VSExtension.VS2022.ErrorList
             return string.IsNullOrEmpty(path) ? [] : _reviewer.GetCodesmellExpressions(path);
         }
 
+        /// <summary>
+        /// Retrieves updated lines with code smells based on the current (possibly unsaved) content in the text buffer.
+        /// Uses the in-memory content instead of the saved file on disk and forces cache invalidation.
+        /// </summary>
+        /// <param name="textBuffer">The text buffer representing the open document.</param>
+        /// <returns>A list of <see cref="CodeSmellModel"/> representing refreshed code smells to underline.</returns>
         private List<CodeSmellModel> GetRefreshedLinesToUnderline(ITextBuffer textBuffer)
         {
             var path = GetPath(textBuffer);

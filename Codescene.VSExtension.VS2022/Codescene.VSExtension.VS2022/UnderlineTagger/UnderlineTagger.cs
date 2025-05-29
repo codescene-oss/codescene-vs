@@ -150,13 +150,15 @@ namespace Codescene.VSExtension.VS2022.ErrorList
 
         private int CalculateSpanStart(ITextSnapshotLine startLine, int startColumn)
         {
-            int columnOffset = Math.Max(0, startColumn - 1);
+            int lineLength = startLine.Length;
+            int columnOffset = Math.Max(0, Math.Min(startColumn - 1, lineLength));
             return startLine.Start + columnOffset;
         }
 
         private int CalculateSpanEnd(ITextSnapshotLine endLine, int endColumn)
         {
-            int columnOffset = Math.Max(0, endColumn);
+            int lineLength = endLine.Length;
+            int columnOffset = Math.Max(0, Math.Min(endColumn, lineLength));
             return endLine.Start + columnOffset;
         }
 

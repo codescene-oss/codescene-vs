@@ -37,29 +37,45 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         [Import]
         private readonly IReviewedFilesCacheHandler _cache;
 
+        /// <summary>
+        /// Sets the review mode to use the file saved on disk.
+        /// </summary>
         public void UseFileOnPathType()
         {
             _type = ReviewType.FILE_ON_PATH;
             _content = string.Empty;
         }
 
+        /// <summary>
+        /// Sets the review mode to use in-memory content (e.g. unsaved editor buffer).
+        /// </summary>
+        /// <param name="content">The in-memory file content.</param>
         public void UseContentOnlyType(string content)
         {
             _type = ReviewType.CONTENT_ONLY;
             _content = content;
         }
 
+        /// <summary>
+        /// Returns all code smell expressions (function-level and file-level) for the specified file.
+        /// This method is used by the tagger to perform analysis either by file path or in-memory content,
+        /// depending on the active review mode.
+        /// </summary>
         public List<CodeSmellModel> GetCodesmellExpressions(string path, bool invalidateCache = false)
         {
             var review = Review(path, invalidateCache);
             return review.FunctionLevel.Concat(review.FileLevel).ToList();
         }
 
+        /// <summary>
+        /// Performs a review of the file at the given path.
+        /// Depending on the review mode, uses either file on disk or in-memory content.
+        /// </summary>
         public FileReviewModel Review(string path, bool invalidateCache = false)
         {
             //TODO: remove
             System.Diagnostics.Debug.WriteLine($"Reviewing {path} {invalidateCache}");
-            
+
             if (_type == ReviewType.CONTENT_ONLY && string.IsNullOrWhiteSpace(_content))
             {
                 throw new ArgumentNullException(nameof(_content));

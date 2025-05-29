@@ -77,6 +77,8 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
         public virtual async Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
+            return false; //short-circuit lens creation
+
             if (token.IsCancellationRequested)
                 return false;
 

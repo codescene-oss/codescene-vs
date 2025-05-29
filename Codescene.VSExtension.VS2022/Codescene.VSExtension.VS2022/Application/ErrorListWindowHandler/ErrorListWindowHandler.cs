@@ -86,14 +86,13 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
         }
     }
 
+    /// <summary>
+    /// Handles displaying the results of a file review by presenting the found code smells in the error list.
+    /// If no issues are found, it still opens the error list window for user visibility.
+    /// </summary>
     public void Handle(FileReviewModel review)
     {
-        if (review == null)
-        {
-            throw new ArgumentNullException(nameof(review));
-        }
-
-        if (string.IsNullOrWhiteSpace(review.FilePath))
+        if (review == null || string.IsNullOrWhiteSpace(review.FilePath))
         {
             throw new ArgumentNullException(nameof(review));
         }
