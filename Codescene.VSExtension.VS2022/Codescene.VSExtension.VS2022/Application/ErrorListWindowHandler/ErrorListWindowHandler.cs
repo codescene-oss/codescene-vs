@@ -54,7 +54,6 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
 
         errorTask.Navigate += (sender, e) => { OpenDocumentWithIssue(sender, e, issue.Path); };
         _errorListProvider.Tasks.Add(errorTask);
-        _errorListProvider.Show();
     }
 
     private void OpenDocumentWithIssue(object sender, EventArgs e, string path)
@@ -88,7 +87,6 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
 
     /// <summary>
     /// Handles displaying the results of a file review by presenting the found code smells in the error list.
-    /// If no issues are found, it still opens the error list window for user visibility.
     /// </summary>
     public void Handle(FileReviewModel review)
     {
@@ -100,11 +98,8 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
         Delete(review.FilePath);
 
         var issues = review.FunctionLevel.Concat(review.FileLevel).ToList();
-        if (!issues.Any())
-        {
-            _errorListProvider.Show();//Just show Error list window
-            return;
-        }
+
+        if (!issues.Any()) return;
 
         Add(issues);
     }

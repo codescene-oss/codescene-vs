@@ -28,26 +28,26 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             {
                 if (!File.Exists(_cliSettingsProvider.CliFileFullPath))
                 {
-                    _logger.Info($"Cli file doesn't exist. Downloading file...");
+                    _logger.Info($"Setting up CodeScene...");
                     await _cliDownloader.DownloadAsync();
-                    _logger.Info($"Downloaded cli file.");
+                    _logger.Info($"CodeScene setup complete.");
                     return;
                 }
 
                 var currentCliVersion = _cliExecuter.GetFileVersion();
                 if (currentCliVersion == _cliSettingsProvider.RequiredDevToolVersion)
                 {
-                    _logger.Info($"File with required version:{_cliSettingsProvider.RequiredDevToolVersion} already exists.");
                     return;
                 }
 
+                _logger.Info("Updating CodeScene tool to the latest version...");
                 File.Delete(_cliSettingsProvider.CliFileFullPath);
                 await _cliDownloader.DownloadAsync();
-                _logger.Info($"Downloaded a new version of cli file.");
+                _logger.Info($"CodeScene tool updated.");
             }
             catch (Exception ex)
             {
-                _logger.Error("Error downloading artifact file", ex);
+                _logger.Error("Failed to set up the required CodeScene tools.", ex);
             }
         }
     }

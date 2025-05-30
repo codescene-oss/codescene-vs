@@ -20,6 +20,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
     public class CodeReviewer : ICodeReviewer
     {
         private string _content = string.Empty;
+
         private enum ReviewType
         {
             FILE_ON_PATH,
