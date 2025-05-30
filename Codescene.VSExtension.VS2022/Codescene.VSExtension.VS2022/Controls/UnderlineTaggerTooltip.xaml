@@ -4,25 +4,44 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Codescene.VSExtension.VS2022.Controls"
-             mc:Ignorable="d" 
-             >
+             mc:Ignorable="d">
     <Grid HorizontalAlignment="Stretch">
         <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{Binding Category}" />
-                <TextBlock Text=" ("> </TextBlock>
-                <TextBlock Text="{Binding Details}"/>
-                <TextBlock Text=") "></TextBlock>
-                <TextBlock Text="CodeScene (" FontWeight="Light"></TextBlock>
                 <TextBlock>
-                    <Hyperlink  Command="{Binding YourCommand}" CommandParameter="{Binding Category}">
-                         <Run Text="{Binding Category}" />
+                    <Run Text="{Binding Category}" />
+                    <Run Text=" " />
+                </TextBlock>
+
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Details}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Details}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock Text="(" />
+                    <TextBlock Text="{Binding Details}" />
+                    <TextBlock Text=") " />
+                </StackPanel>
+
+                <TextBlock>
+                    <Run Text="CodeScene" FontWeight="Bold" />
+                    <Run Text=" (" FontWeight="Normal" />
+                </TextBlock>
+                <TextBlock>
+                    <Hyperlink Command="{Binding YourCommand}" CommandParameter="{Binding Category}">
+                        <Run Text="{Binding Category}" />
                     </Hyperlink>
                 </TextBlock>
-                <TextBlock Text=") " FontWeight="Light"></TextBlock>
+                <TextBlock Text=")" FontWeight="Light"/>
             </StackPanel>
-
         </ScrollViewer>
-
     </Grid>
 </UserControl>

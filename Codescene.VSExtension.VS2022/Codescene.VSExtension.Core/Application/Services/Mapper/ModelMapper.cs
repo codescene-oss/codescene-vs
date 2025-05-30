@@ -2,6 +2,8 @@
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 
@@ -18,16 +20,21 @@ namespace Codescene.VSExtension.Core.Application.Services.Mapper
                 return new FileReviewModel
                 {
                     FilePath = filePath,
-                    Score = result.Score ?? 0,
-                    FileLevel = result.FileLevelCodeSmells.Select(x => Map(filePath, x)).ToList(),
-                    FunctionLevel = result.FunctionLevelCodeSmells.SelectMany(x => x.CodeSmells.Select(y => Map(filePath, y))).ToList()
+                    Score = result?.Score ?? 0,
+                    FileLevel = result?.FileLevelCodeSmells?
+                        .Select(x => Map(filePath, x))
+                        .ToList() ?? new List<CodeSmellModel>(),
+                    FunctionLevel = result?.FunctionLevelCodeSmells?
+                        .SelectMany(x => (x?.CodeSmells ?? Array.Empty<CliCodeSmellModel>()))
+                        .Select(y => Map(filePath, y))
+                        .ToList() ?? new List<CodeSmellModel>()
                 };
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 var r = JsonConvert.SerializeObject(result);
                 var message = $"{ex.Message}\nPath:{filePath}\nReview:{r}";
-                throw new System.Exception(message);
+                throw new InvalidOperationException(message);
             }
         }
 

@@ -1,7 +1,6 @@
 ﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
-using Codescene.VSExtension.VS2022.CodeLens;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -70,7 +69,7 @@ public class ActiveDocumentTextChangeHandler
                 _errorListWindowHandler.Handle(review);
 
                 // Also, call RefreshCodeLensAsync on the UI thread
-                CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
+                //CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
             });
         }
     }

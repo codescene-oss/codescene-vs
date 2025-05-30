@@ -21,7 +21,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
         public BaseDataPointProvider(Lazy<ICodeLensCallbackService> callbackService) => _callbackService = callbackService;
 
 
-        private bool IsAllowedKind(CodeElementKinds kind) => kind == CodeElementKinds.Method || kind == CodeElementKinds.Function;
+        private bool IsAllowedKind(CodeElementKinds kind) => false;
         private bool IsNotAllowedKind(CodeElementKinds kind) => !IsAllowedKind(kind);
 
         protected async Task<TResult> SafeInvokeMethodAsync<TResult>(string methodName, CancellationToken token, IReadOnlyList<object> parameters = null)
@@ -77,6 +77,8 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
         public virtual async Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken token)
         {
+            return false; //short-circuit lens creation
+
             if (token.IsCancellationRequested)
                 return false;
 

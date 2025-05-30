@@ -20,7 +20,8 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
         public class Titles
         {
-            public const string CODESCENE_ACE = "Codescene ACE";
+            public const string CODESCENE = "CodeScene";
+            public const string CODESCENE_ACE = "CodeScene ACE";
             public const string BRAIN_CLASS = "Brain Class";
             public const string BRAIN_METHOD = "Brain Method";
             public const string BUMPY_ROAD_AHEAD = "Bumpy Road Ahead";

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using static Codescene.VSExtension.CodeLensProvider.Providers.Base.Constants;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorListWindowHandler;
 
@@ -24,9 +25,17 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
         }
     }
 
-    private string FormatMessage(CodeSmellModel i) => $"Codescene - {i.Category} ({i.Details})";
+    private string FormatMessage(CodeSmellModel codeSmell, bool includeDetails = true)
+    {
+        string title = $"{Titles.CODESCENE} - {codeSmell.Category}";
 
-    private string FormatKeyword(CodeSmellModel i) => $"Codescene - {i.Category}";
+        if (includeDetails && !string.IsNullOrEmpty(codeSmell.Details))
+        {
+            title += $" ({codeSmell.Details})";
+        }
+
+        return title;
+    }
 
     private void Add(CodeSmellModel issue)
     {
@@ -40,12 +49,11 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
             Column = issue.StartColumn - 1, //0-based field
             HierarchyItem = HierarchyHelper.GetHierarchyFromFile(VS2022Package.Instance, issue.Path),
             SubcategoryIndex = 2,
-            HelpKeyword = FormatKeyword(issue)
+            HelpKeyword = FormatMessage(issue, false)
         };
 
         errorTask.Navigate += (sender, e) => { OpenDocumentWithIssue(sender, e, issue.Path); };
         _errorListProvider.Tasks.Add(errorTask);
-        _errorListProvider.Show();
     }
 
     private void OpenDocumentWithIssue(object sender, EventArgs e, string path)
@@ -77,26 +85,21 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
         }
     }
 
+    /// <summary>
+    /// Handles displaying the results of a file review by presenting the found code smells in the error list.
+    /// </summary>
     public void Handle(FileReviewModel review)
     {
-        if (review == null)
-        {
-            throw new ArgumentNullException(nameof(review));
-        }
-
-        if (string.IsNullOrWhiteSpace(review.FilePath))
+        if (review == null || string.IsNullOrWhiteSpace(review.FilePath))
         {
             throw new ArgumentNullException(nameof(review));
         }
 
         Delete(review.FilePath);
 
-        var issues = review.FunctionLevel;
-        if (!issues.Any())
-        {
-            _errorListProvider.Show();//Just show Error list window
-            return;
-        }
+        var issues = review.FunctionLevel.Concat(review.FileLevel).ToList();
+
+        if (!issues.Any()) return;
 
         Add(issues);
     }

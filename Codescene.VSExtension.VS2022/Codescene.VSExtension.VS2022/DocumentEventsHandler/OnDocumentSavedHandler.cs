@@ -2,8 +2,6 @@
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
-using Codescene.VSExtension.VS2022.CodeLens;
-using Microsoft.VisualStudio.Shell;
 using System.ComponentModel.Composition;
 using System.IO;
 
@@ -42,6 +40,6 @@ public class OnDocumentSavedHandler
         _reviewer.UseFileOnPathType();
         var review = _reviewer.Review(path);
         _errorListWindowHandler.Handle(review);
-        CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
+        //CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
     }
 }

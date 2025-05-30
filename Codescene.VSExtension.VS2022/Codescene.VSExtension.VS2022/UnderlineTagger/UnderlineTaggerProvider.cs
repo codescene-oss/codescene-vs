@@ -1,5 +1,4 @@
-﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
-using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Microsoft.VisualStudio.Shell;
@@ -12,11 +11,9 @@ using System.ComponentModel.Composition;
 namespace Codescene.VSExtension.VS2022.ErrorList
 {
     [Export(typeof(ITaggerProvider))]
-    [ContentType(Constants.SupportedLanguages.CONTENT_TYPE_CSHARP)]
-    [ContentType(Constants.SupportedLanguages.CONTENT_TYPE_JAVA)]
-    [ContentType(Constants.SupportedLanguages.CONTENT_TYPE_TYPESCRIPT)]
-    [ContentType(Constants.SupportedLanguages.CONTENT_TYPE_JAVASCRIPT)]
     [TagType(typeof(IErrorTag))]
+    [ContentType("text")]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class UnderlineTaggerProvider : ITaggerProvider
     {
         [Import]
@@ -34,18 +31,35 @@ namespace Codescene.VSExtension.VS2022.ErrorList
                 return null;
 
             var linesToUnderline = GetLinesToUnderline(textBuffer);
+
             var tagger = new UnderlineTagger(textBuffer, linesToUnderline, () => GetRefreshedLinesToUnderline(textBuffer));
             return (ITagger<T>)tagger;
         }
 
+        /// <summary>
+        /// Retrieves lines with code smells for the current text buffer.
+        /// Uses the saved file on disk as the review source.
+        /// </summary>
+        /// <param name="textBuffer">The text buffer representing the open document.</param>
+        /// <returns>A list of <see cref="CodeSmellModel"/> representing code smells to underline.</returns>
         private List<CodeSmellModel> GetLinesToUnderline(ITextBuffer textBuffer)
         {
             var path = GetPath(textBuffer);
-            return _reviewer.GetCodesmellExpressions(path);
+
+            return string.IsNullOrEmpty(path) ? [] : _reviewer.GetCodesmellExpressions(path);
         }
+
+        /// <summary>
+        /// Retrieves updated lines with code smells based on the current (possibly unsaved) content in the text buffer.
+        /// Uses the in-memory content instead of the saved file on disk and forces cache invalidation.
+        /// </summary>
+        /// <param name="textBuffer">The text buffer representing the open document.</param>
+        /// <returns>A list of <see cref="CodeSmellModel"/> representing refreshed code smells to underline.</returns>
         private List<CodeSmellModel> GetRefreshedLinesToUnderline(ITextBuffer textBuffer)
         {
             var path = GetPath(textBuffer);
+            if (string.IsNullOrEmpty(path)) return [];
+
             var content = textBuffer.CurrentSnapshot.GetText();
             _reviewer.UseContentOnlyType(content);
             return _reviewer.GetCodesmellExpressions(path, invalidateCache: true);
@@ -54,16 +68,12 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         private string GetPath(ITextBuffer textBuffer)
         {
             string path = null;
+
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 path = textBuffer.GetFileName();
             });
-
-            if (path == null)
-            {
-                throw new System.ArgumentNullException(nameof(path));
-            }
 
             return path;
         }

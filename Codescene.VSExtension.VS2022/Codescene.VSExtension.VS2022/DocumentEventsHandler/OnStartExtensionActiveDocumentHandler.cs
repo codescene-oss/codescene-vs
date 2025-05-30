@@ -1,9 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
-using Codescene.VSExtension.VS2022.CodeLens;
-using Microsoft.VisualStudio.Shell;
 using System.ComponentModel.Composition;
 using System.IO;
 
@@ -13,9 +10,6 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class OnStartExtensionActiveDocumentHandler
 {
-    [Import]
-    private readonly ILogger _logger;
-
     [Import]
     private readonly ICodeReviewer _reviewer;
 
@@ -30,8 +24,6 @@ public class OnStartExtensionActiveDocumentHandler
 
     public void Handle(string path)
     {
-        _logger.Info($"Active opened document:{path}");
-
         if (string.IsNullOrWhiteSpace(path))
         {
             throw new System.ArgumentNullException(nameof(path));
@@ -45,7 +37,7 @@ public class OnStartExtensionActiveDocumentHandler
         _reviewer.UseFileOnPathType();
         var review = _reviewer.Review(path, invalidateCache: true);
         _errorListWindowHandler.Handle(review);
-        CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
+        //CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
 
         _ = _documentHandler.SubscribeAsync();
     }
