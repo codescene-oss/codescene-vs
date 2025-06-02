@@ -100,4 +100,16 @@ public partial class WebComponentUserControl : UserControl
 
         webView.CoreWebView2.PostWebMessageAsJson(messageString);
     }
+
+    public void UpdateView(ShowDocsMessage message)
+    {
+        var settings = new JsonSerializerSettings
+        {
+            ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
+            Formatting = Formatting.None
+        };
+        var messageString = JsonConvert.SerializeObject(message, settings);
+
+        webView.CoreWebView2.PostWebMessageAsJson(messageString);
+    }
 }

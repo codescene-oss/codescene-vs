@@ -3,6 +3,7 @@
     public class WebComponentPayload
     {
         public string IdeType { get; set; }
+        public string DocType { get; set; }
         public string View { get; set; }
         public WebComponentData Data { get; set; }
     }

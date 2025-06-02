@@ -160,6 +160,7 @@
     <Compile Include="DocumentEventsHandler\ExtensionEventsManager.cs" />
     <Compile Include="DocumentEventsHandler\OnStartExtensionActiveDocumentHandler.cs" />
     <Compile Include="CodeLens\ToolWindowRegistry.cs" />
+    <Compile Include="ToolWindows\WebComponent\CodeSmellDocumentationWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\CopyRefactoredCodeHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\RefactoringChangesApplier.cs" />
     <Compile Include="RegistryHelper.cs" />
@@ -172,6 +173,7 @@
     <Compile Include="ToolWindows\WebComponent\Handlers\OnClickRefactoringHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\MessageObj.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\ShowDiffHandler.cs" />
+    <Compile Include="ToolWindows\WebComponent\Handlers\ShowDocumentationHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\SkipShowDiffHelper.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\WebComponentMessageHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">
@@ -179,6 +181,7 @@
     </Compile>
     <Compile Include="UnderlineTagger\UnderlineTagger.cs" />
     <Compile Include="UnderlineTagger\UnderlineTaggerProvider.cs" />
+    <Compile Include="UnderlineTagger\UnderlineTaggerTooltipModel.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>
@@ -201,18 +204,18 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ToolWindows\WebComponent\index.css">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ToolWindows\WebComponent\index.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ToolWindows\WebComponent\index.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
+	<Content Include="ToolWindows\WebComponent\index.css">
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<IncludeInVSIX>true</IncludeInVSIX>
+	</Content>
+	<Content Include="ToolWindows\WebComponent\index.html">
+		 <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		 <IncludeInVSIX>true</IncludeInVSIX>
+	</Content>
+	  <Content Include="ToolWindows\WebComponent\index.js">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		  <IncludeInVSIX>true</IncludeInVSIX>
+	  </Content>
     <Resource Include="Resources\StatusError.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
