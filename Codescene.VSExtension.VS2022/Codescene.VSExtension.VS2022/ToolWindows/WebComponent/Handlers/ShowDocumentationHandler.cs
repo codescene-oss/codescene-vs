@@ -34,7 +34,7 @@ public class ShowDocumentationHandler
                     {
                         Activated = false,
                         Disabled = false,
-                        Visible = true
+                        Visible = false
                     },
                     FileData = new FileDataModel
                     {

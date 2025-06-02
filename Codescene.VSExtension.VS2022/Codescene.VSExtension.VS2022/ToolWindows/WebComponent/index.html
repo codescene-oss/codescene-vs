@@ -1,66 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CS Webview Example HTML</title>
-    <script>
-      function setContext() {
-        window.ideContext = {
-          "ideType": "browser",
-          "view": "ace",
-          "data": {
-            "loading": false,
-            "fileData": {
-              "filename": "CustomLegends.ts",
-              "functionName": "extract_identifiers",
-              "lineNumber": 11,
-              "action": {
-                "goToFunctionLocationPayload": "path/to/CustomLegends.ts:extract_identifiers"
-              }
-            },
-            "aceResultData": {
-              "code": "    ComplexMethod(value) {\n        if (!GlobalSettings.FeatureAEnabled) {\n            console.log(\"Feature A is not enabled.\");\n            return;\n        }\n\n        if (value <= 10) {\n            console.log(\"Value must be greater than 10 to proceed with complex logic.\");\n            return;\n        }\n\n        this.processIterations(value);\n    }\n\n    processIterations(value) {\n        for (let i = 0; i < value; i++) {\n            this.processIteration(i, value);\n        }\n    }\n\n    processIteration(i, value) {\n        if (GlobalSettings.DebugMode) {\n            this.processDebugIteration(i, value);\n        } else {\n            this.processNonDebugIteration(i);\n        }\n    }\n\n    processDebugIteration(i, value) {\n        console.log(`[Debug] Iteration ${i}, Value = ${value}`);\n        if (GlobalUtilities.SomeGlobalString.includes(\"Hello\")) {\n            this.processDebugInnerLoop(i);\n        }\n    }\n\n    processDebugInnerLoop(i) {\n        while (GlobalUtilities.GlobalCounter < i) {\n            if (GlobalUtilities.CheckCondition(i)) {\n                console.log(\"Condition met ? incrementing GlobalCounter.\");\n                GlobalUtilities.GlobalCounter++;\n            } else {\n                console.log(\"Condition not met ? resetting GlobalCounter.\");\n                GlobalUtilities.GlobalCounter = 0;\n            }\n        }\n    }\n\n    processNonDebugIteration(i) {\n        if (GlobalUtilities.CheckCondition(i)) {\n            console.log(\"Operation in non-debug mode, condition was true.\");\n        }\n    }",
-              "confidence": {
-                "level": 2,
-                "recommended-action": {
-                  "description": "Detailed review",
-                  "details": "The code needs to be inspected and verified carefully."
-                },
-                "review-header": "Reason for detailed review",
-                "title": "Refactoring recommendation"
-              },
-              "credits-info": { "limit": 10000, "reset": "", "used": 8 },
-              "metadata": { "cached?": false },
-              "reasons": [
-                {
-                  "summary": "Syntactic validation could not be performed.",
-                  "details": null
-                },
-                {
-                  "summary": "We took the liberty to simplify the extracted boolean expressions (e.g operators, comparisons). Check them for correctness.",
-                  "details": null
-                }
-              ],
-              "refactoring-properties": {
-                "added-code-smells": [],
-                "removed-code-smells": [
-                  "Bumpy Road Ahead",
-                  "Deep, Nested Complexity",
-                  "Complex Method"
-                ]
-              },
-              "trace-id": "0dde08af-73b4-4f75-a9f4-7930b4f130b5"
-            }
-          }
-        }
-      }
-    setContext();
-    </script>
-    <script type="module" crossorigin src="/assets/index.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index.css">
-  </head>
-  <body>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" crossorigin href="index.css">
+    <title></title>
+    <link rel="icon" href="data:,">
+</head>
+<body>
     <div id="root"></div>
-  </body>
+    <script type="module" crossorigin="anonymous" src="index.js"></script>
+</body>
 </html>

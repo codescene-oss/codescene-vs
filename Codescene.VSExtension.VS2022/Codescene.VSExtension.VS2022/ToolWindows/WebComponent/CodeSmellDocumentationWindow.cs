@@ -1,5 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.WebComponent;
-using Codescene.VSExtension.Core.Models.WebComponent;
+﻿using Codescene.VSExtension.Core.Models.WebComponent;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
@@ -20,13 +19,55 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
-        var mapper = await VS.GetMefServiceAsync<WebComponentMapper>();
+        //var mapper = await VS.GetMefServiceAsync<WebComponentMapper>();
 
-        var payload = new WebComponentPayload
+        var payload = new ShowDocsPayload
         {
             IdeType = VISUAL_STUDIO_IDE_TYPE,
             View = ViewTypes.DOCS,
-            Data = mapper.Map("")
+            Data = new ShowDocsModel
+            {
+                DocType = DocTypes.DOCS_IMPROVEMENT_GUIDES_BUMPY_ROAD_AHEAD,
+                AutoRefactor = new AutoRefactorModel
+                {
+                    Activated = false,
+                    Disabled = false,
+                    Visible = false
+                },
+                FileData = new FileDataModel
+                {
+                    FileName = "BumpyRoadAhead.cs",
+                    Fn = new FunctionModel
+                    {
+                        Name = "extract_identifiers",
+                        Range = new RangeModel
+                        {
+                            StartLine = 1,
+                            StartColumn = 1,
+                            EndLine = 1,
+                            EndColumn = 1,
+                        }
+                    },
+                    Action = new ActionModel
+                    {
+                        GoToFunctionLocationPayload = new GoToFunctionLocationPayloadModel
+                        {
+                            FileName = "BumpyRoadAhead.cs",
+                            Fn = new FunctionModel
+                            {
+                                Name = "extract_identifiers",
+                                Range = new RangeModel
+                                {
+                                    StartLine = 1,
+                                    StartColumn = 1,
+                                    EndLine = 1,
+                                    EndColumn = 1,
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         };
 
         var ctrl = new WebComponentUserControl(payload)
