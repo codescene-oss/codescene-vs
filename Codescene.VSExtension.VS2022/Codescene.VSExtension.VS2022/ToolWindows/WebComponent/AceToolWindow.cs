@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.WebComponent;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Community.VisualStudio.Toolkit;
@@ -19,8 +20,8 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
+        var logger = await VS.GetMefServiceAsync<ILogger>();
         var mapper = await VS.GetMefServiceAsync<WebComponentMapper>();
-
         var handler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
 
         var payload = new WebComponentPayload
@@ -30,7 +31,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
             Data = mapper.Map(handler.GetPath())
         };
 
-        var ctrl = new WebComponentUserControl(payload)
+        var ctrl = new WebComponentUserControl(payload, logger)
         {
             CloseRequested = async () =>
             {

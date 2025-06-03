@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Models.WebComponent;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Models.WebComponent;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
@@ -20,6 +21,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
         //var mapper = await VS.GetMefServiceAsync<WebComponentMapper>();
+        var logger = await VS.GetMefServiceAsync<ILogger>();
 
         var payload = new ShowDocsPayload
         {
@@ -70,7 +72,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
             }
         };
 
-        var ctrl = new WebComponentUserControl(payload)
+        var ctrl = new WebComponentUserControl(payload, logger)
         {
             CloseRequested = async () =>
             {
