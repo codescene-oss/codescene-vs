@@ -1,60 +1,80 @@
-﻿using Codescene.VSExtension.Core.Models.WebComponent;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Models.WebComponent;
+using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Community.VisualStudio.Toolkit;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 internal class WebComponentMessageHandler
 {
-
     private readonly WebComponentUserControl _control;
+
     public WebComponentMessageHandler(WebComponentUserControl control)
     {
         _control = control;
     }
 
+    /// <summary>
+    /// Handles messages sent from the WebView component to the native Visual Studio extension.
+    /// Processes different message types by dispatching to the appropriate handler services.
+    /// </summary>
     public async Task HandleAsync(string message)
     {
-        var msgObject = JsonConvert.DeserializeObject<MessageObj<string>>(message);
-        if (msgObject == null)
+        ILogger logger = await VS.GetMefServiceAsync<ILogger>();
+        MessageObj<JToken> msgObject;
+        try
         {
-            throw new System.ArgumentNullException(nameof(msgObject));
+            msgObject = JsonConvert.DeserializeObject<MessageObj<JToken>>(message);
         }
-
-        var msgType = msgObject.MessageType;
-        if (msgType == WebComponentConstants.MessageTypes.INIT)
+        catch (Exception ex)
         {
+            logger.Error($"Unable to process webview message. Deserialization failed.", ex);
             return;
         }
 
-        if (msgType == WebComponentConstants.MessageTypes.COPY_CODE)
-        {
-            var handler = await VS.GetMefServiceAsync<CopyRefactoredCodeHandler>();
-            handler.CopyToRefactoredCodeToClipboard();
-            return;
-        }
+        logger.Debug($"Received message from webview: '{msgObject?.MessageType}'.");
 
-        if (msgType == WebComponentConstants.MessageTypes.SHOW_DIFF)
-        {
-            var handler = await VS.GetMefServiceAsync<ShowDiffHandler>();
-            await handler.ShowDiffWindowAsync();
-            return;
-        }
+        await ProcessMessageAsync(msgObject, logger);
+    }
 
-        if (msgType == WebComponentConstants.MessageTypes.APPLY)
+    private async Task ProcessMessageAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        switch (msgObject?.MessageType)
         {
-            var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
-            await applier.ApplyAsync();
-            return;
-        }
+            case WebComponentConstants.MessageTypes.INIT:
+                return;
 
-        if (msgType == WebComponentConstants.MessageTypes.REJECT)
-        {
-            if (_control.CloseRequested is not null)
-            {
-                await _control.CloseRequested();
-            }
-            return;
+            case WebComponentConstants.MessageTypes.COPY_CODE:
+                var copyHandler = await VS.GetMefServiceAsync<CopyRefactoredCodeHandler>();
+                copyHandler.CopyToRefactoredCodeToClipboard();
+                return;
+
+            case WebComponentConstants.MessageTypes.SHOW_DIFF:
+                var diffHandler = await VS.GetMefServiceAsync<ShowDiffHandler>();
+                await diffHandler.ShowDiffWindowAsync();
+                return;
+
+            case WebComponentConstants.MessageTypes.APPLY:
+                var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
+                await applier.ApplyAsync();
+                return;
+
+            case WebComponentConstants.MessageTypes.REJECT:
+                if (_control.CloseRequested is not null) await _control.CloseRequested();
+                return;
+
+            case WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION:
+                //TODO
+                var payload = msgObject.Payload.ToObject<GotoFunctionLocationPayload>();
+                System.Diagnostics.Debug.WriteLine($"Goto: {payload.Fn.Name} in {payload.FileName}");
+                return;
+
+            default:
+                logger.Debug($" Unable to process webview message, unknown message type: {msgObject.MessageType}.");
+                return;
         }
     }
 }

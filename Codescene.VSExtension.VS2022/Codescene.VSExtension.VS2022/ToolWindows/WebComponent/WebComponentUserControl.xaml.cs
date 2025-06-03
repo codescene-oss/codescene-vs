@@ -25,13 +25,13 @@ public partial class WebComponentUserControl : UserControl
     private const string FOLDER_LOCATION = @"ToolWindows\WebComponent";
     private const string HOST = "myapp.local";
     private static readonly string[] AllowedDomains =
-{
-    "https://refactoring.com",
-    "https://en.wikipedia.org",
-    "https://codescene.io",
-    "https://codescene.com",
-    "https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/"
-};
+    {
+        "https://refactoring.com",
+        "https://en.wikipedia.org",
+        "https://codescene.io",
+        "https://codescene.com",
+        "https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/"
+    };
 
     public WebComponentUserControl(WebComponentPayload payload, ILogger logger)
     {

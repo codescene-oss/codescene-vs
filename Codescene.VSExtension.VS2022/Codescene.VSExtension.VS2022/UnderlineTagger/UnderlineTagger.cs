@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using static Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers.ShowDocumentationParams;
 
 namespace Codescene.VSExtension.VS2022.ErrorList
 {
@@ -126,7 +127,16 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         {
             var errorTag = new ErrorTag(
                 PredefinedErrorTypeNames.Warning,
-                new UnderlineTaggerTooltip(pos.Category, pos.Details));
+                new UnderlineTaggerTooltip(
+                    new UnderlineTaggerTooltipParams(
+                        pos.Category,
+                        pos.Details,
+                        pos.Path,
+                        new CodeSmellRange(pos.StartLine, pos.EndLine, pos.StartColumn, pos.EndColumn),
+                        "functionName" //TODO: dynamic value
+                        )
+                    )
+                );
 
             return new TagSpan<IErrorTag>(span, errorTag);
         }

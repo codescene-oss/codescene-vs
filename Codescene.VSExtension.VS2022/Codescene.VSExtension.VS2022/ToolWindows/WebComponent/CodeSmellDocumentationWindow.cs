@@ -1,10 +1,14 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models.WebComponent;
+using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,33 +19,42 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentationWindow>
 {
     private static WebComponentUserControl _userControl = null;
+    private static ShowDocsPayload _pendingPayload;
 
     public override Type PaneType => typeof(Pane);
 
-    public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
+    //TODO: extract helper
+    public static string ToSnakeCase(string input)
     {
-        //var mapper = await VS.GetMefServiceAsync<WebComponentMapper>();
-        var logger = await VS.GetMefServiceAsync<ILogger>();
+        var cleaned = Regex.Replace(input, @"[^\w\s]", "");
+        return string.Join("_",
+            cleaned
+                .Split((char[])null, StringSplitOptions.RemoveEmptyEntries)
+                .Select(word => word.ToLowerInvariant()));
+    }
 
-        var payload = new ShowDocsPayload
+    public static void SetPendingPayload(ShowDocumentationParams showDocsParams)
+    {
+        //TODO: extract common logic
+        _pendingPayload = new ShowDocsPayload
         {
             IdeType = VISUAL_STUDIO_IDE_TYPE,
             View = ViewTypes.DOCS,
             Data = new ShowDocsModel
             {
-                DocType = DocTypes.DOCS_IMPROVEMENT_GUIDES_BUMPY_ROAD_AHEAD,
+                DocType = $"docs_issues_{ToSnakeCase(showDocsParams.Category)}",
                 AutoRefactor = new AutoRefactorModel
                 {
                     Activated = false,
-                    Disabled = false,
+                    Disabled = true,
                     Visible = false
                 },
                 FileData = new FileDataModel
                 {
-                    FileName = "BumpyRoadAhead.cs",
+                    Filename = Path.GetFileName(showDocsParams.Path),
                     Fn = new FunctionModel
                     {
-                        Name = "extract_identifiers",
+                        Name = showDocsParams.FunctionName,
                         Range = new RangeModel
                         {
                             StartLine = 1,
@@ -54,10 +67,10 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
                     {
                         GoToFunctionLocationPayload = new GoToFunctionLocationPayloadModel
                         {
-                            FileName = "BumpyRoadAhead.cs",
+                            Filename = Path.GetFileName(showDocsParams.Path),
                             Fn = new FunctionModel
                             {
-                                Name = "extract_identifiers",
+                                Name = showDocsParams.FunctionName,
                                 Range = new RangeModel
                                 {
                                     StartLine = 1,
@@ -71,22 +84,33 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
                 }
             }
         };
-
-        var ctrl = new WebComponentUserControl(payload, logger)
-        {
-            CloseRequested = async () =>
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                await HideAsync();
-            }
-        };
-
-        _userControl = ctrl;
-
-        return ctrl;
     }
 
-    public override string GetTitle(int toolWindowId) => "CodeScene - Code smell documentation";
+    public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
+    {
+
+        var logger = await VS.GetMefServiceAsync<ILogger>();
+
+        if (_pendingPayload != null)
+        {
+            var ctrl = new WebComponentUserControl(_pendingPayload, logger)
+            {
+                CloseRequested = async () =>
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    await HideAsync();
+                }
+            };
+
+            _userControl = ctrl;
+
+            return ctrl;
+        }
+
+        return null;
+    }
+
+    public override string GetTitle(int toolWindowId) => "Code smell documentation";
 
     public static bool IsCreated() => _userControl != null;
 

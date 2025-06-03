@@ -171,7 +171,8 @@
     <Compile Include="Commands\SignInCommand.cs" />
     <Compile Include="ToolWindows\WebComponent\AceToolWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\OnClickRefactoringHandler.cs" />
-    <Compile Include="ToolWindows\WebComponent\Handlers\MessageObj.cs" />
+    <Compile Include="ToolWindows\WebComponent\Models\GoToFunctionLocationPayload.cs" />
+    <Compile Include="ToolWindows\WebComponent\Models\MessageObj.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\ShowDiffHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\ShowDocumentationHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\SkipShowDiffHelper.cs" />
@@ -204,18 +205,18 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-	<Content Include="ToolWindows\WebComponent\index.css">
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		<IncludeInVSIX>true</IncludeInVSIX>
-	</Content>
-	<Content Include="ToolWindows\WebComponent\index.html">
-		 <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		 <IncludeInVSIX>true</IncludeInVSIX>
-	</Content>
-	  <Content Include="ToolWindows\WebComponent\index.js">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		  <IncludeInVSIX>true</IncludeInVSIX>
-	  </Content>
+    <Content Include="ToolWindows\WebComponent\index.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ToolWindows\WebComponent\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ToolWindows\WebComponent\index.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Resource Include="Resources\StatusError.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>

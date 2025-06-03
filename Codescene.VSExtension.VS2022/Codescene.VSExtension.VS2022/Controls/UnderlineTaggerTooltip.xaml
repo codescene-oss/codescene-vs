@@ -36,7 +36,7 @@
                     <Run Text=" (" FontWeight="Normal" />
                 </TextBlock>
                 <TextBlock>
-                    <Hyperlink Command="{Binding YourCommand}" CommandParameter="{Binding Category}">
+                    <Hyperlink Command="{Binding YourCommand}" CommandParameter="{Binding CommandParameter}">
                         <Run Text="{Binding Category}" />
                     </Hyperlink>
                 </TextBlock>

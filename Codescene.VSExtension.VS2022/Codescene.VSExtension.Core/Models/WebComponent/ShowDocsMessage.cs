@@ -29,7 +29,7 @@
 
     public class FileDataModel
     {
-        public string FileName { get; set; }
+        public string Filename { get; set; }
         public FunctionModel Fn { get; set; }
         public ActionModel Action { get; set; }
 
@@ -50,7 +50,7 @@
 
     public class GoToFunctionLocationPayloadModel
     {
-        public string FileName { get; set; }
+        public string Filename { get; set; }
         public FunctionModel Fn { get; set; }
     }
 
