@@ -1,99 +1,47 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent;
-using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using System;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
 public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentationWindow>
 {
     private static WebComponentUserControl _userControl = null;
-    private static ShowDocsPayload _pendingPayload;
+    private static ShowDocumentationModel _model;
 
     public override Type PaneType => typeof(Pane);
 
-    //TODO: extract helper
-    public static string ToSnakeCase(string input)
+    public static async void SetPendingPayload(ShowDocumentationModel model)
     {
-        var cleaned = Regex.Replace(input, @"[^\w\s]", "");
-        return string.Join("_",
-            cleaned
-                .Split((char[])null, StringSplitOptions.RemoveEmptyEntries)
-                .Select(word => word.ToLowerInvariant()));
-    }
-
-    public static void SetPendingPayload(ShowDocumentationParams showDocsParams)
-    {
-        //TODO: extract common logic
-        _pendingPayload = new ShowDocsPayload
-        {
-            IdeType = VISUAL_STUDIO_IDE_TYPE,
-            View = ViewTypes.DOCS,
-            Data = new ShowDocsModel
-            {
-                DocType = $"docs_issues_{ToSnakeCase(showDocsParams.Category)}",
-                AutoRefactor = new AutoRefactorModel
-                {
-                    Activated = false,
-                    Disabled = true,
-                    Visible = false
-                },
-                FileData = new FileDataModel
-                {
-                    Filename = Path.GetFileName(showDocsParams.Path),
-                    Fn = new FunctionModel
-                    {
-                        Name = showDocsParams.FunctionName,
-                        Range = new RangeModel
-                        {
-                            StartLine = 1,
-                            StartColumn = 1,
-                            EndLine = 1,
-                            EndColumn = 1,
-                        }
-                    },
-                    Action = new ActionModel
-                    {
-                        GoToFunctionLocationPayload = new GoToFunctionLocationPayloadModel
-                        {
-                            Filename = Path.GetFileName(showDocsParams.Path),
-                            Fn = new FunctionModel
-                            {
-                                Name = showDocsParams.FunctionName,
-                                Range = new RangeModel
-                                {
-                                    StartLine = 1,
-                                    StartColumn = 1,
-                                    EndLine = 1,
-                                    EndColumn = 1,
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
+        _model = model;
     }
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
-
         var logger = await VS.GetMefServiceAsync<ILogger>();
+        var mapper = await VS.GetMefServiceAsync<CodeSmellDocumentationMapper>();
 
-        if (_pendingPayload != null)
+        if (_model != null)
         {
-            var ctrl = new WebComponentUserControl(_pendingPayload, logger)
+            var payload = new WebComponentPayload<CodeSmellDocumentationComponentData>
+            {
+                IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                View = WebComponentConstants.ViewTypes.DOCS,
+                Devmode = true,
+                Data = mapper.Map(_model)
+            };
+
+            var ctrl = new WebComponentUserControl(payload, logger)
             {
                 CloseRequested = async () =>
                 {
@@ -114,7 +62,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
 
     public static bool IsCreated() => _userControl != null;
 
-    public static void UpdateView(ShowDocsMessage message)
+    public static void UpdateView(WebComponentMessage<CodeSmellDocumentationComponentData> message)
     {
         _userControl.UpdateView(message);
     }

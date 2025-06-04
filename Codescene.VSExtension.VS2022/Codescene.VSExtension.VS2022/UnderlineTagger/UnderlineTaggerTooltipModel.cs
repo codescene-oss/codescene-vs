@@ -1,4 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.VS2022.CodeLens;
 using Codescene.VSExtension.VS2022.Commands;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
@@ -6,19 +9,9 @@ using Community.VisualStudio.Toolkit;
 using System;
 using System.ComponentModel.Composition;
 using System.Windows.Input;
-using static Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers.ShowDocumentationParams;
 
 namespace Codescene.VSExtension.VS2022.UnderlineTagger
 {
-    public class TooltipCommandParameter
-    {
-        public string Category { get; set; }
-        public string Details { get; set; }
-        public string Path { get; set; }
-        public string FunctionName { get; set; }
-        public CodeSmellRange Range { get; set; }
-    }
-
     [Export(typeof(UnderlineTaggerTooltipModel))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
     public class UnderlineTaggerTooltipModel
@@ -41,13 +34,18 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             YourCommand = new RelayCommand(ExecuteYourCommand);
         }
 
-        public TooltipCommandParameter CommandParameter => new TooltipCommandParameter
+        public CodeSmellTooltipModel CommandParameter => new CodeSmellTooltipModel
         {
             Category = Category,
             Details = Details,
             Path = Path,
             FunctionName = FunctionName,
-            Range = Range
+            Range = new RangeModel(
+                Range.StartLine,
+                Range.EndLine,
+                Range.StartColumn,
+                Range.EndColumn
+            )
         };
 
         //Bindings are defined in UnderlineTaggerTooltip.xaml
@@ -57,15 +55,20 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
             try
             {
-                var cmdParam = parameter as TooltipCommandParameter;
+                var cmdParam = parameter as CodeSmellTooltipModel;
                 if (cmdParam != null && ToolWindowRegistry.CategoryToIdMap.TryGetValue(cmdParam.Category, out int toolWindowId))
                 {
                     await _showDocumentationHandler.HandleAsync(
-                        new ShowDocumentationParams(
+                        new ShowDocumentationModel(
                             cmdParam.Path,
                             cmdParam.Category,
                             cmdParam.FunctionName,
-                            cmdParam.Range
+                            new CodeSmellRange(
+                                cmdParam.Range.StartLine,
+                                cmdParam.Range.EndLine,
+                                cmdParam.Range.StartColumn,
+                                cmdParam.Range.EndColumn
+                            )
                         )
                     );
                 }

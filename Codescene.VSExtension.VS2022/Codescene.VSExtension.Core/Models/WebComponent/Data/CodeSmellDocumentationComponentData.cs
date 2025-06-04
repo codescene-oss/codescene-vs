@@ -1,19 +1,6 @@
-﻿namespace Codescene.VSExtension.Core.Models.WebComponent
+﻿namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 {
-    public class ShowDocsMessage
-    {
-        public string MessageType { get; set; }
-        public ShowDocsPayload Payload { get; set; }
-    }
-
-    public class ShowDocsPayload
-    {
-        public string IdeType { get; set; }
-        public string View { get; set; }
-        public ShowDocsModel Data { get; set; }
-    }
-
-    public class ShowDocsModel
+    public class CodeSmellDocumentationComponentData
     {
         public string DocType { get; set; }
         public AutoRefactorModel AutoRefactor { get; set; }
@@ -46,6 +33,14 @@
         public int EndLine { get; set; }
         public int StartColumn { get; set; }
         public int EndColumn { get; set; }
+
+        public RangeModel(int startLine, int endLine, int startColumn, int endColumn)
+        {
+            StartLine = startLine;
+            EndLine = endLine;
+            StartColumn = startColumn;
+            EndColumn = endColumn;
+        }
     }
 
     public class GoToFunctionLocationPayloadModel

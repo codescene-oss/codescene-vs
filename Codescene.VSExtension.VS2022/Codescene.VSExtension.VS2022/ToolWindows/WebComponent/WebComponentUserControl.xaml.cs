@@ -1,5 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models.WebComponent;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -33,14 +34,14 @@ public partial class WebComponentUserControl : UserControl
         "https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/"
     };
 
-    public WebComponentUserControl(WebComponentPayload payload, ILogger logger)
+    public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
     {
         _logger = logger;
         InitializeComponent();
         Initialize(payload, payload.View);
     }
 
-    public WebComponentUserControl(ShowDocsPayload payload, ILogger logger)
+    public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
     {
         _logger = logger;
         InitializeComponent();

@@ -1,5 +1,6 @@
 ﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.VS2022.Controls;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -8,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using static Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers.ShowDocumentationParams;
 
 namespace Codescene.VSExtension.VS2022.ErrorList
 {

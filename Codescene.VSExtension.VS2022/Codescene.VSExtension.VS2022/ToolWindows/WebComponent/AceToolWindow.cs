@@ -21,10 +21,10 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
         var logger = await VS.GetMefServiceAsync<ILogger>();
-        var mapper = await VS.GetMefServiceAsync<WebComponentMapper>();
+        var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
         var handler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
 
-        var payload = new WebComponentPayload
+        var payload = new WebComponentPayload<AceComponentData>
         {
             IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
             View = WebComponentConstants.ViewTypes.ACE,
@@ -53,7 +53,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         public Pane() => BitmapImageMoniker = KnownMonikers.StatusInformation;
     }
 
-    public static void UpdateView(WebComponentMessage message)
+    public static void UpdateView(WebComponentMessage<AceComponentData> message)
     {
         _ctrl.UpdateView(message);
     }

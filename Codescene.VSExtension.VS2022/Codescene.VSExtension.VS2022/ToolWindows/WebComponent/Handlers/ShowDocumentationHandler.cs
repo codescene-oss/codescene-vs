@@ -1,100 +1,56 @@
-﻿using Codescene.VSExtension.Core.Models.WebComponent;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.WebComponent;
+using Codescene.VSExtension.Core.Models.WebComponent;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using Codescene.VSExtension.Core.Models.WebComponent.Model;
+using Community.VisualStudio.Toolkit;
+using System;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
-using static Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers.ShowDocumentationParams;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
-
-public class ShowDocumentationParams(string path, string category, string functionName, CodeSmellRange range)
-{
-    public string Path { get; set; } = path;
-    public string Category { get; set; } = category;
-    public string FunctionName { get; set; } = functionName;
-    public CodeSmellRange Range { get; set; } = range;
-
-    public class CodeSmellRange(int startLine, int endLine, int startColumn, int endColumn)
-    {
-        public int StartLine { get; set; } = startLine;
-        public int EndLine { get; set; } = endLine;
-        public int StartColumn { get; set; } = startColumn;
-        public int EndColumn { get; set; } = endColumn;
-
-    }
-}
 
 [Export(typeof(ShowDocumentationHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class ShowDocumentationHandler
 {
-    public async Task HandleAsync(ShowDocumentationParams showDocsParams)
+    public async Task HandleAsync(ShowDocumentationModel model)
     {
         if (CodeSmellDocumentationWindow.IsCreated())
         {
-            SetViewToLoadingMode(showDocsParams);
+            await SetViewToLoadingModeAsync(model);
         }
 
-        CodeSmellDocumentationWindow.SetPendingPayload(showDocsParams);
+        CodeSmellDocumentationWindow.SetPendingPayload(model);
 
         await CodeSmellDocumentationWindow.ShowAsync();
     }
 
-    private void SetViewToLoadingMode(ShowDocumentationParams showDocsParams)
+    private async Task SetViewToLoadingModeAsync(ShowDocumentationModel model)
     {
-        //TODO: extract common logic
-        CodeSmellDocumentationWindow.UpdateView(new ShowDocsMessage
+        var logger = await VS.GetMefServiceAsync<ILogger>();
+        var mapper = await VS.GetMefServiceAsync<CodeSmellDocumentationMapper>();
+
+        try
         {
-            MessageType = MessageTypes.UPDATE_RENDERER,
-            Payload = new ShowDocsPayload
+            //loading
+            CodeSmellDocumentationWindow.UpdateView(new WebComponentMessage<CodeSmellDocumentationComponentData>
             {
-                IdeType = VISUAL_STUDIO_IDE_TYPE,
-                View = ViewTypes.DOCS,
-                Data = new ShowDocsModel
+                MessageType = MessageTypes.UPDATE_RENDERER,
+                Payload = new WebComponentPayload<CodeSmellDocumentationComponentData>
                 {
-                    DocType = $"docs_issues_{CodeSmellDocumentationWindow.ToSnakeCase(showDocsParams.Category)}",
-                    AutoRefactor = new AutoRefactorModel
-                    {
-                        Activated = false,
-                        Disabled = true,
-                        Visible = false
-                    },
-                    FileData = new FileDataModel
-                    {
-                        Filename = Path.GetFileName(showDocsParams.Path),
-                        Fn = new FunctionModel
-                        {
-                            Name = Path.GetFileName(showDocsParams.Path),
-                            Range = new RangeModel
-                            {
-                                StartLine = showDocsParams.Range.StartLine,
-                                StartColumn = showDocsParams.Range.StartColumn,
-                                EndLine = showDocsParams.Range.EndLine,
-                                EndColumn = showDocsParams.Range.EndColumn,
-                            }
-                        },
-                        Action = new ActionModel
-                        {
-                            GoToFunctionLocationPayload = new GoToFunctionLocationPayloadModel
-                            {
-                                Filename = Path.GetFileName(showDocsParams.Path),
-                                Fn = new FunctionModel
-                                {
-                                    Name = showDocsParams.FunctionName,
-                                    Range = new RangeModel
-                                    {
-                                        StartLine = showDocsParams.Range.StartLine,
-                                        StartColumn = showDocsParams.Range.StartColumn,
-                                        EndLine = showDocsParams.Range.EndLine,
-                                        EndColumn = showDocsParams.Range.EndColumn,
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    IdeType = VISUAL_STUDIO_IDE_TYPE,
+                    View = ViewTypes.DOCS,
+                    Data = mapper.Map(model),
+                    Devmode = true,
                 }
-            }
-        });
+            });
+        }
+        catch (Exception e)
+        {
+            logger.Error($"Could not update view for {model.Category}", e);
+        }
     }
 
 }

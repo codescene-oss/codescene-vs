@@ -1,9 +1,9 @@
-﻿using Codescene.VSExtension.VS2022.UnderlineTagger;
+﻿using Codescene.VSExtension.Core.Models.WebComponent.Model;
+using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using System.ComponentModel.Composition;
 using System.Windows.Controls;
-using static Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers.ShowDocumentationParams;
 
 namespace Codescene.VSExtension.VS2022.Controls
 {
