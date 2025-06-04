@@ -1,6 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
+using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 internal class WebComponentMessageHandler
 {
+    private ILogger _logger;
     private readonly WebComponentUserControl _control;
 
     public WebComponentMessageHandler(WebComponentUserControl control)
@@ -23,7 +25,8 @@ internal class WebComponentMessageHandler
     /// </summary>
     public async Task HandleAsync(string message)
     {
-        ILogger logger = await VS.GetMefServiceAsync<ILogger>();
+        _logger ??= await VS.GetMefServiceAsync<ILogger>();
+
         MessageObj<JToken> msgObject;
         try
         {
@@ -31,13 +34,13 @@ internal class WebComponentMessageHandler
         }
         catch (Exception ex)
         {
-            logger.Error($"Unable to process webview message. Deserialization failed.", ex);
+            _logger.Error($"Unable to process webview message. Deserialization failed.", ex);
             return;
         }
 
-        logger.Debug($"Received message from webview: '{msgObject?.MessageType}'.");
+        _logger.Debug($"Received message from webview: '{msgObject?.MessageType}'.");
 
-        await ProcessMessageAsync(msgObject, logger);
+        await ProcessMessageAsync(msgObject, _logger);
     }
 
     private async Task ProcessMessageAsync(MessageObj<JToken> msgObject, ILogger logger)
@@ -67,9 +70,11 @@ internal class WebComponentMessageHandler
                 return;
 
             case WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION:
-                //TODO
                 var payload = msgObject.Payload.ToObject<GotoFunctionLocationPayload>();
-                System.Diagnostics.Debug.WriteLine($"Goto: {payload.Fn.Name} in {payload.FileName}");
+                _logger.Info($"Handling '{WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION}' event for {payload.FileName}.");
+
+                await DocumentNavigator.OpenFileAndGoToLineAsync(payload.FileName, payload.Fn.Range.StartLine, _logger);
+
                 return;
 
             default:

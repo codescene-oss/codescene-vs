@@ -183,6 +183,7 @@
     <Compile Include="UnderlineTagger\UnderlineTagger.cs" />
     <Compile Include="UnderlineTagger\UnderlineTaggerProvider.cs" />
     <Compile Include="UnderlineTagger\UnderlineTaggerTooltipModel.cs" />
+    <Compile Include="Util\DocumentNavigator.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>

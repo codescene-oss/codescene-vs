@@ -40,7 +40,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                     {
                         GoToFunctionLocationPayload = new GoToFunctionLocationPayloadModel
                         {
-                            Filename = Path.GetFileName(model.Path),
+                            Filename = model.Path,
                             Fn = function,
                         }
                     }
