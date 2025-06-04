@@ -10,16 +10,13 @@ namespace Codescene.VSExtension.Core.Models
         public string FunctionName { get; set; }
         public RangeModel Range { get; set; }
 
-        public static CodeSmellTooltipModel Create(string category, string details, string path, string functionName, RangeModel range)
+        public CodeSmellTooltipModel(string category, string details, string path, string functionName, RangeModel range)
         {
-            return new CodeSmellTooltipModel
-            {
-                Category = category,
-                Details = details,
-                Path = path,
-                FunctionName = functionName,
-                Range = range
-            };
+            Category = category;
+            Details = details;
+            Path = path;
+            FunctionName = functionName;
+            Range = range;
         }
     }
 }
