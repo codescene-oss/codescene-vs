@@ -1,6 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models.WebComponent.Data;
-
-namespace Codescene.VSExtension.Core.Models
+﻿namespace Codescene.VSExtension.Core.Models
 {
     public class CodeSmellTooltipModel
     {
@@ -8,9 +6,9 @@ namespace Codescene.VSExtension.Core.Models
         public string Details { get; set; }
         public string Path { get; set; }
         public string FunctionName { get; set; }
-        public RangeModel Range { get; set; }
+        public CodeSmellRangeModel Range { get; set; }
 
-        public CodeSmellTooltipModel(string category, string details, string path, string functionName, RangeModel range)
+        public CodeSmellTooltipModel(string category, string details, string path, string functionName, CodeSmellRangeModel range)
         {
             Category = category;
             Details = details;

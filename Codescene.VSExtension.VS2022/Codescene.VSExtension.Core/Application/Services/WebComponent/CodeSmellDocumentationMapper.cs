@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Models.WebComponent.Data;
+﻿using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.Core.Models.WebComponent.Util;
 using System.ComponentModel.Composition;
@@ -15,7 +16,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
             var function = new FunctionModel
             {
                 Name = model.FunctionName,
-                Range = new RangeModel(
+                Range = new CodeSmellRangeModel(
                     model.Range.StartLine,
                     model.Range.EndLine,
                     model.Range.StartColumn,

@@ -27,22 +27,6 @@
         public GoToFunctionLocationPayloadModel GoToFunctionLocationPayload { get; set; }
     }
 
-    public class RangeModel
-    {
-        public int StartLine { get; set; }
-        public int EndLine { get; set; }
-        public int StartColumn { get; set; }
-        public int EndColumn { get; set; }
-
-        public RangeModel(int startLine, int endLine, int startColumn, int endColumn)
-        {
-            StartLine = startLine;
-            EndLine = endLine;
-            StartColumn = startColumn;
-            EndColumn = endColumn;
-        }
-    }
-
     public class GoToFunctionLocationPayloadModel
     {
         public string Filename { get; set; }
@@ -52,6 +36,6 @@
     public class FunctionModel
     {
         public string Name { get; set; }
-        public RangeModel Range { get; set; }
+        public CodeSmellRangeModel Range { get; set; }
     }
 }

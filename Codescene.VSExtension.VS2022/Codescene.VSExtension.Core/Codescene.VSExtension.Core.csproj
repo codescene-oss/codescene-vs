@@ -122,6 +122,7 @@
     <Compile Include="Models\Cli\Refactor\RefactorResponseModel.cs" />
     <Compile Include="Models\Cli\Refactor\RefactorSupportModel.cs" />
     <Compile Include="Models\Cli\Review\CliCodeHealthRulesErrorModel.cs" />
+    <Compile Include="Models\CodeSmellRangeModel.cs" />
     <Compile Include="Models\CodeSmellTooltipModel.cs" />
     <Compile Include="Models\LoginResponse.cs" />
     <Compile Include="Models\CodeSmellModel.cs" />

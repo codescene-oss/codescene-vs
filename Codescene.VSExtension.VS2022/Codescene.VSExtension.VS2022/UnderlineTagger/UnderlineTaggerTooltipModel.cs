@@ -1,6 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.VS2022.CodeLens;
 using Codescene.VSExtension.VS2022.Commands;
@@ -19,7 +18,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         public string Category { get; set; }
         public string Details { get; set; }
         public string Path { get; set; }
-        public CodeSmellRange Range { get; set; }
+        public CodeSmellRangeModel Range { get; set; }
         public string FunctionName { get; set; }
 
         public ICommand YourCommand { get; }
@@ -35,7 +34,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         }
 
         public CodeSmellTooltipModel CommandParameter => new CodeSmellTooltipModel(
-            Category, Details, Path, FunctionName, new RangeModel(
+            Category, Details, Path, FunctionName, new CodeSmellRangeModel(
                 Range.StartLine,
                 Range.EndLine,
                 Range.StartColumn,
@@ -57,12 +56,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                             cmdParam.Path,
                             cmdParam.Category,
                             cmdParam.FunctionName,
-                            new CodeSmellRange(
-                                cmdParam.Range.StartLine,
-                                cmdParam.Range.EndLine,
-                                cmdParam.Range.StartColumn,
-                                cmdParam.Range.EndColumn
-                            )
+                            cmdParam.Range
                         )
                     );
                 }

@@ -64,7 +64,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         /// </summary>
         public List<CodeSmellModel> GetCodesmellExpressions(string path, bool invalidateCache = false)
         {
-            //TODO: provide function name
             var review = Review(path, invalidateCache);
             return review.FunctionLevel.Concat(review.FileLevel).ToList();
         }
