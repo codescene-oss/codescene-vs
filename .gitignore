@@ -398,3 +398,8 @@ FodyWeavers.xsd
 *.sln.iml
 *.exe
 /Codescene.VSExtension.VS2022/Codescene.VSExtension.CodeSmells/.vscode/settings.json
+
+# Webview build assets
+**/ToolWindows/WebComponent/index.js
+**/ToolWindows/WebComponent/index.ts
+**/ToolWindows/WebComponent/index.html
