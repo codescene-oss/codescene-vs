@@ -2,6 +2,8 @@
 
 [CodeScene](http://www.codescene.com) - the only code analysis tool with a proven business impact. Now also with AI-Powered Refactoring.
 
+![Demo](screenshots/vs-preview.gif)
+
 ## Code Health Analysis
 CodeScene’s [Code Health](https://codescene.io/docs/guides/technical/code-health.html) metric is the software industry’s only code-level metric with proven business impact, measured through fact-based, winning research. It’s a metric that you can trust.
 
