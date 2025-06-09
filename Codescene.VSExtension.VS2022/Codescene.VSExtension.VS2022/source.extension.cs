@@ -9,12 +9,12 @@ namespace Codescene.VSExtension.VS2022
     internal sealed partial class Vsix
     {
         public const string Id = "CodesceneVSExtension.c90b6097-3fbd-4b82-a308-f9568074c67a";
-        public const string Name = "Codescene Visual Studio Extension";
-        public const string Description = @"Codesecene extension for Visual Studio IDE";
+        public const string Name = "CodeScene";
+        public const string Description = @"Integrates CodeScene analysis into VS. Keeps your code clean and maintainable.";
         public const string Language = "en-US";
-        public const string Version = "0.4.0";
+        public const string Version = "0.0.1";
         public const string Author = "Codescene AB";
-        public const string Tags = "";
+        public const string Tags = "ai, ai code review, code analysis, code health, code metrics, code review, code quality, technical debt";
         public const bool IsPreview = false;
     }
 }
