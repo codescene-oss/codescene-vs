@@ -34,7 +34,8 @@ public class ShowDocumentationHandler
 
         try
         {
-            //loading
+            logger.Info($"Opening doc '{model.Category}' for file {model.Path}");
+
             CodeSmellDocumentationWindow.UpdateView(new WebComponentMessage<CodeSmellDocumentationComponentData>
             {
                 MessageType = MessageTypes.UPDATE_RENDERER,
@@ -49,6 +50,7 @@ public class ShowDocumentationHandler
         }
         catch (Exception e)
         {
+            logger.Warn($"Could not open doc '{model.Category}' for file {model.Path}");
             logger.Error($"Could not update view for {model.Category}", e);
         }
     }

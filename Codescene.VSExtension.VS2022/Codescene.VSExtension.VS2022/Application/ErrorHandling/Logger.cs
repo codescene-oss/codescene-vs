@@ -48,6 +48,13 @@ internal class Logger : ILogger
         Console.WriteLine(message);
     }
 
+    public void Warn(string message)
+    {
+        Write($"[WARN] {message}");
+        VS.StatusBar.ShowMessageAsync(message).FireAndForget();
+        Console.WriteLine(message);
+    }
+
     public void Debug(string message)
     {
         Write($"[DEBUG] {message}");

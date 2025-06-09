@@ -25,6 +25,7 @@ public partial class WebComponentUserControl : UserControl
     public Func<Task> CloseRequested;
     private const string FOLDER_LOCATION = @"ToolWindows\WebComponent";
     private const string HOST = "myapp.local";
+    private const string STYLE_ELEMENT_ID = "cs-theme-vars";
     private static readonly string[] AllowedDomains =
     {
         "https://refactoring.com",
@@ -50,32 +51,102 @@ public partial class WebComponentUserControl : UserControl
 
     private void Initialize<T>(T payload, string view)
     {
-        SetWebViewBackground(null);
+        OnThemeChanged(null);
         _ = InitializeWebView2Async(payload, view);
-        VSColorTheme.ThemeChanged += SetWebViewBackground;
+        VSColorTheme.ThemeChanged += OnThemeChanged;
     }
 
-    private void SetWebViewBackground(ThemeChangedEventArgs e)
+    private void OnThemeChanged(ThemeChangedEventArgs e)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
+
         var vsColor = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
         webView.DefaultBackgroundColor = Color.FromArgb(vsColor.A, vsColor.R, vsColor.G, vsColor.B);
+
+        _ = ApplyThemeToWebViewAsync();
     }
 
+    /// <summary>
+    /// Applies the current Visual Studio theme as CSS variables into the WebView DOM.
+    /// Replaces any previously injected style element with the same ID.
+    /// </summary>
+    private async Task ApplyThemeToWebViewAsync()
+    {
+        if (webView.CoreWebView2 == null) return;
+
+        var css = GenerateCssVariablesFromTheme().Replace("`", "\\`");
+
+        string script = $@"
+        (function() {{
+            const existing = document.getElementById('{STYLE_ELEMENT_ID}');
+            if (existing) {{
+                existing.remove();
+            }}
+            const style = document.createElement('style');
+            style.id = '{STYLE_ELEMENT_ID}';
+            style.textContent = `{css}`;
+            document.head.appendChild(style);
+        }})();
+        ";
+
+        await webView.CoreWebView2.ExecuteScriptAsync(script);
+    }
+
+    /// <summary>
+    /// Generates an initialization script for setting context and injecting theme CSS into the WebView DOM.
+    /// </summary>
     private string GenerateInitialScript<T>(T payload)
     {
-        const string template = "function setContext() { window.ideContext = %ideContext% }; setContext();";
+        const string template = $@"
+        function setContext() {{
+            window.ideContext = %ideContext%;
+            const css = `%cssVars%`;
+            const style = document.createElement('style');
+            style.id = '{STYLE_ELEMENT_ID}';
+            style.textContent = css;
+            document.head.appendChild(style);
+        }}
+        setContext();
+        ";
 
         var settings = new JsonSerializerSettings
         {
             ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
             Formatting = Formatting.None
         };
-        var ideContext = JsonConvert.SerializeObject(payload, settings);
 
-        var script = template.Replace("%ideContext%", ideContext);
+        var ideContext = JsonConvert.SerializeObject(payload, settings);
+        var cssVars = GenerateCssVariablesFromTheme();
+
+        var script = template
+           .Replace("%ideContext%", ideContext)
+           .Replace("%cssVars%", cssVars.Replace("`", "\\`"));
 
         return script;
+    }
+
+    /// <summary>
+    /// Generates a CSS string defining theme variables based on the current Visual Studio color theme.
+    /// These variables are used for styling elements inside the WebView to match the IDE appearance.
+    /// </summary>
+    private static string GenerateCssVariablesFromTheme()
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var textForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
+        var secondaryBackground = VSColorTheme.GetThemedColor(EnvironmentColors.FileTabScrollBarThumbColorKey);
+        var editorBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
+        var linkForeground = VSColorTheme.GetThemedColor(EnvironmentColors.HelpHowDoIPaneLinkColorKey);
+        var codeBlockBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowCodeBlockBackgroundColorKey);
+
+        return $@"
+            :root {{
+                --cs-theme-foreground: #{textForeground.R:X2}{textForeground.G:X2}{textForeground.B:X2};
+                --cs-theme-textLink-foreground: #{linkForeground.R:X2}{linkForeground.G:X2}{linkForeground.B:X2};
+                --cs-theme-editor-background: #{editorBackground.R:X2}{editorBackground.G:X2}{editorBackground.B:X2};
+                --cs-theme-textCodeBlock-background: #{codeBlockBackground.R:X2}{codeBlockBackground.G:X2}{codeBlockBackground.B:X2};
+                --cs-theme-button-secondaryBackground: #{secondaryBackground.R:X2}{secondaryBackground.G:X2}{secondaryBackground.B:X2};
+        }}";
     }
 
     private async Task<CoreWebView2Environment> CreatePerWindowEnvAsync(string view)

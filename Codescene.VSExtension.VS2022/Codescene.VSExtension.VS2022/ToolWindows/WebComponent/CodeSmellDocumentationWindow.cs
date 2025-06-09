@@ -21,7 +21,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
 
     public override Type PaneType => typeof(Pane);
 
-    public static async void SetPendingPayload(ShowDocumentationModel model)
+    public static void SetPendingPayload(ShowDocumentationModel model)
     {
         _model = model;
     }
@@ -33,6 +33,8 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
 
         if (_model != null)
         {
+            logger.Info($"Opening doc '{_model.Category}' for file {_model.Path}");
+
             var payload = new WebComponentPayload<CodeSmellDocumentationComponentData>
             {
                 IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
@@ -55,6 +57,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
             return ctrl;
         }
 
+        logger.Warn($"Could not open doc '{_model.Category}' for file {_model.Path}");
         return null;
     }
 
