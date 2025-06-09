@@ -44,7 +44,6 @@ public class ShowDocumentationHandler
                     IdeType = VISUAL_STUDIO_IDE_TYPE,
                     View = ViewTypes.DOCS,
                     Data = mapper.Map(model),
-                    Devmode = true,
                 }
             });
         }

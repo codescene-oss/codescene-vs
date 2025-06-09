@@ -39,7 +39,6 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
             {
                 IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
                 View = WebComponentConstants.ViewTypes.DOCS,
-                Devmode = true,
                 Data = mapper.Map(_model)
             };
 
