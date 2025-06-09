@@ -16,21 +16,9 @@
 
     public class FileDataModel
     {
-        public string Filename { get; set; }
+        public string FileName { get; set; }
         public FunctionModel Fn { get; set; }
-        public ActionModel Action { get; set; }
 
-    }
-
-    public class ActionModel
-    {
-        public GoToFunctionLocationPayloadModel GoToFunctionLocationPayload { get; set; }
-    }
-
-    public class GoToFunctionLocationPayloadModel
-    {
-        public string Filename { get; set; }
-        public FunctionModel Fn { get; set; }
     }
 
     public class FunctionModel

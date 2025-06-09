@@ -3,7 +3,6 @@ using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.Core.Models.WebComponent.Util;
 using System.ComponentModel.Composition;
-using System.IO;
 
 namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 {
@@ -35,16 +34,8 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                 },
                 FileData = new FileDataModel
                 {
-                    Filename = Path.GetFileName(model.Path),
+                    FileName = model.Path,
                     Fn = function,
-                    Action = new ActionModel
-                    {
-                        GoToFunctionLocationPayload = new GoToFunctionLocationPayloadModel
-                        {
-                            Filename = model.Path,
-                            Fn = function,
-                        }
-                    }
                 }
             };
         }
