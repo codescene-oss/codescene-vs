@@ -101,7 +101,8 @@
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Application\Services\PreflightManager\IPreflightManager.cs" />
     <Compile Include="Application\Services\PreflightManager\PreflightManager.cs" />
-    <Compile Include="Application\Services\WebComponent\WebComponentMapper.cs" />
+    <Compile Include="Application\Services\WebComponent\CodeSmellDocumentationMapper.cs" />
+    <Compile Include="Application\Services\WebComponent\AceComponentMapper.cs" />
     <Compile Include="Models\Cli\Delta\ChangeDetailModel.cs" />
     <Compile Include="Models\Cli\Delta\ChangeType.cs" />
     <Compile Include="Models\Cli\Delta\DeltaResponseModel.cs" />
@@ -121,6 +122,8 @@
     <Compile Include="Models\Cli\Refactor\RefactorResponseModel.cs" />
     <Compile Include="Models\Cli\Refactor\RefactorSupportModel.cs" />
     <Compile Include="Models\Cli\Review\CliCodeHealthRulesErrorModel.cs" />
+    <Compile Include="Models\CodeSmellRangeModel.cs" />
+    <Compile Include="Models\CodeSmellTooltipModel.cs" />
     <Compile Include="Models\LoginResponse.cs" />
     <Compile Include="Models\CodeSmellModel.cs" />
     <Compile Include="Models\Cli\Review\CliCodeSmellModel.cs" />
@@ -128,12 +131,15 @@
     <Compile Include="Models\Cli\Review\CliReviewModel.cs" />
     <Compile Include="Models\Cli\Review\CliReviewFunctionModel.cs" />
     <Compile Include="Models\Cli\CliRangeModel.cs" />
-    <Compile Include="Models\WebComponent\CachedRefactoringActionModel.cs" />
-    <Compile Include="Models\WebComponent\WebComponentData.cs" />
-    <Compile Include="Models\WebComponent\WebComponentFileData.cs" />
-    <Compile Include="Models\WebComponent\WebComponentMessage.cs" />
+    <Compile Include="Models\WebComponent\Data\CodeSmellDocumentationComponentData.cs" />
+    <Compile Include="Models\WebComponent\Model\CachedRefactoringActionModel.cs" />
+    <Compile Include="Models\WebComponent\Model\ShowDocumentationModel.cs" />
+    <Compile Include="Models\WebComponent\Data\AceComponentData.cs" />
+    <Compile Include="Models\WebComponent\Data\WebComponentFileData.cs" />
+    <Compile Include="Models\WebComponent\Message\WebComponentMessage.cs" />
+    <Compile Include="Models\WebComponent\Util\TextUtils.cs" />
     <Compile Include="Models\WebComponent\WebComponentConstants.cs" />
-    <Compile Include="Models\WebComponent\WebComponentPayload.cs" />
+    <Compile Include="Models\WebComponent\Payload\WebComponentPayload.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

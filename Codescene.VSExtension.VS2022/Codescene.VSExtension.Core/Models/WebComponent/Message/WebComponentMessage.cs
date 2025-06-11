@@ -1,8 +1,8 @@
 ﻿namespace Codescene.VSExtension.Core.Models.WebComponent
 {
-    public class WebComponentMessage
+    public class WebComponentMessage<T>
     {
         public string MessageType { get; set; }
-        public WebComponentPayload Payload { get; set; }
+        public WebComponentPayload<T> Payload { get; set; }
     }
 }

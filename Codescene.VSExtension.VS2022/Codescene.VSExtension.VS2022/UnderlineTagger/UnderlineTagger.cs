@@ -95,10 +95,10 @@ namespace Codescene.VSExtension.VS2022.ErrorList
             if (!TryGetLines(snapshot, codeSmell, out var startLine, out var endLine))
                 return null;
 
-            var spanStart = CalculateSpanStart(startLine, codeSmell.StartColumn);
-            var spanEnd = codeSmell.StartLine == 1
+            var spanStart = CalculateSpanStart(startLine, codeSmell.Range.StartColumn);
+            var spanEnd = codeSmell.Range.StartLine == 1
                 ? GetEndOfFirstNonEmptyLine(snapshot, startLine.LineNumber)
-                : CalculateSpanEnd(endLine, codeSmell.EndColumn);
+                : CalculateSpanEnd(endLine, codeSmell.Range.EndColumn);
 
             if (spanEnd <= spanStart)
                 return null;
@@ -122,11 +122,20 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         /// <param name="span">The span to tag.</param>
         /// <param name="pos">The underline position info.</param>
         /// <returns>A <see cref="TagSpan{IErrorTag}"/> instance.</returns>
-        private TagSpan<IErrorTag> CreateErrorTagSpan(SnapshotSpan span, CodeSmellModel pos)
+        private TagSpan<IErrorTag> CreateErrorTagSpan(SnapshotSpan span, CodeSmellModel codeSmell)
         {
             var errorTag = new ErrorTag(
                 PredefinedErrorTypeNames.Warning,
-                new UnderlineTaggerTooltip(pos.Category, pos.Details));
+                new UnderlineTaggerTooltip(
+                    new UnderlineTaggerTooltipParams(
+                        codeSmell.Category,
+                        codeSmell.Details,
+                        codeSmell.Path,
+                        codeSmell.Range,
+                        codeSmell.FunctionName ?? ""
+                        )
+                    )
+                );
 
             return new TagSpan<IErrorTag>(span, errorTag);
         }
@@ -136,8 +145,8 @@ namespace Codescene.VSExtension.VS2022.ErrorList
             startLine = null;
             endLine = null;
 
-            int startLineIndex = codeSmell.StartLine - 1;
-            int endLineIndex = codeSmell.EndLine - 1;
+            int startLineIndex = codeSmell.Range.StartLine - 1;
+            int endLineIndex = codeSmell.Range.EndLine - 1;
 
             bool shouldGetLines = startLineIndex < 0 || endLineIndex < 0 || startLineIndex >= snapshot.LineCount || endLineIndex >= snapshot.LineCount;
             if (shouldGetLines)
