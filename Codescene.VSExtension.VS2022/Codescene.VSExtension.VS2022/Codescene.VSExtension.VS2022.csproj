@@ -160,6 +160,8 @@
     <Compile Include="DocumentEventsHandler\ExtensionEventsManager.cs" />
     <Compile Include="DocumentEventsHandler\OnStartExtensionActiveDocumentHandler.cs" />
     <Compile Include="CodeLens\ToolWindowRegistry.cs" />
+    <Compile Include="EditorMargin\CodeSceneMargin.cs" />
+    <Compile Include="EditorMargin\CodeSceneMarginProvider.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\CopyRefactoredCodeHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\RefactoringChangesApplier.cs" />
     <Compile Include="RegistryHelper.cs" />

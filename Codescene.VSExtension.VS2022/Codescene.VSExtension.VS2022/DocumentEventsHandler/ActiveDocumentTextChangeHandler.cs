@@ -18,6 +18,8 @@ public class ActiveDocumentTextChangeHandler
     private ITextBuffer _buffer;
     private Timer _timer;
     private volatile bool _changed;
+    //public event Action ScoreUpdated;
+    //public bool HasScore { get; private set; } = false;
 
     [Import]
     private readonly ICodeReviewer _reviewer;
@@ -66,6 +68,15 @@ public class ActiveDocumentTextChangeHandler
                 var newContent = _buffer.CurrentSnapshot.GetText();
                 _reviewer.UseContentOnlyType(newContent);
                 var review = _reviewer.Review(path, invalidateCache: true);
+                //if (review.Score != null)
+                //{
+                //    HasScore = true;
+                //    ScoreUpdated?.Invoke();
+                //} else
+                //{
+                //    HasScore = false;
+                //}
+                    
                 _errorListWindowHandler.Handle(review);
 
                 // Also, call RefreshCodeLensAsync on the UI thread
