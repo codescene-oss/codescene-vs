@@ -7,13 +7,12 @@ using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 
-
 [Export(typeof(OnClickRefactoringHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class OnClickRefactoringHandler
 {
     [Import]
-    private readonly WebComponentMapper _mapper;
+    private readonly AceComponentMapper _mapper;
 
     [Import]
     private readonly ICodeReviewer _reviewer;
@@ -42,10 +41,10 @@ public class OnClickRefactoringHandler
 
     private void SetViewToLoadingMode(string path)
     {
-        AceToolWindow.UpdateView(new WebComponentMessage
+        AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
         {
             MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
-            Payload = new WebComponentPayload
+            Payload = new WebComponentPayload<AceComponentData>
             {
                 IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
                 View = WebComponentConstants.ViewTypes.ACE,
@@ -60,10 +59,10 @@ public class OnClickRefactoringHandler
         {
             var content = await reader.ReadToEndAsync();
             var refactored = await _reviewer.Refactor(path: path, content: content);
-            AceToolWindow.UpdateView(new WebComponentMessage
+            AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
                 MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
-                Payload = new WebComponentPayload
+                Payload = new WebComponentPayload<AceComponentData>
                 {
                     IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
                     View = WebComponentConstants.ViewTypes.ACE,

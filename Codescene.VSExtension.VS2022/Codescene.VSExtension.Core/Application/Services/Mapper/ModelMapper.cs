@@ -22,11 +22,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Mapper
                     FilePath = filePath,
                     Score = result?.Score ?? 0,
                     FileLevel = result?.FileLevelCodeSmells?
-                        .Select(x => Map(filePath, x))
+                        .Select(smell => Map(filePath, smell))
                         .ToList() ?? new List<CodeSmellModel>(),
                     FunctionLevel = result?.FunctionLevelCodeSmells?
-                        .SelectMany(x => (x?.CodeSmells ?? Array.Empty<CliCodeSmellModel>()))
-                        .Select(y => Map(filePath, y))
+                        .Where(fun => fun.CodeSmells != null)
+                        .SelectMany(fun => fun.CodeSmells.Select(smell => Map(filePath, fun.Function, smell)))
                         .ToList() ?? new List<CodeSmellModel>()
                 };
             }
@@ -45,11 +45,21 @@ namespace Codescene.VSExtension.Core.Application.Services.Mapper
                 Path = path,
                 Category = review.Category,
                 Details = review.Details,
-                StartLine = review.Range.Startline,
-                EndLine = review.Range.EndLine,
-                StartColumn = review.Range.StartColumn,
-                EndColumn = review.Range.EndColumn
+                Range = new CodeSmellRangeModel(
+                    review.Range.Startline,
+                    review.Range.EndLine,
+                    review.Range.StartColumn,
+                    review.Range.EndColumn
+                )
             };
+        }
+
+        private CodeSmellModel Map(string path, string functionName, CliCodeSmellModel review)
+        {
+            var model = Map(path, review);
+            model.FunctionName = functionName;
+
+            return model;
         }
     }
 }
