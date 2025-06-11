@@ -1,7 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
@@ -13,31 +12,12 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class Logger : ILogger
 {
-    private IVsOutputWindowPane _pane;
-    private Guid PaneGuid = new("B76CFA36-066A-493B-8898-22EF97B0888F");
+    private readonly OutputPaneManager _outputPaneManager;
 
     [ImportingConstructor]
-    public Logger([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+    public Logger(OutputPaneManager outputPaneManager)
     {
-        InitalizePaneAsync(serviceProvider).FireAndForget();
-    }
-
-    private async Task InitalizePaneAsync(IServiceProvider serviceProvider)
-    {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        var outputWindow = serviceProvider.GetService<SVsOutputWindow, IVsOutputWindow>();
-
-        const bool isVisible = true;
-        const bool isClearedWithSolution = false;
-
-        outputWindow.CreatePane(
-            ref PaneGuid,
-            Titles.CODESCENE,
-            Convert.ToInt32(isVisible),
-            Convert.ToInt32(isClearedWithSolution)
-            );
-
-        outputWindow.GetPane(ref PaneGuid, out _pane);
+        _outputPaneManager = outputPaneManager ?? throw new ArgumentNullException(nameof(outputPaneManager));
     }
 
     public void Error(string message, Exception ex)
@@ -49,7 +29,7 @@ internal class Logger : ILogger
     public void Info(string message)
     {
         Write($"[INFO] {message}");
-        VS.StatusBar.ShowMessageAsync(message).FireAndForget();
+        VS.StatusBar.ShowMessageAsync($"{Titles.CODESCENE}: {message}").FireAndForget();
         Console.WriteLine(message);
     }
 
@@ -75,6 +55,6 @@ internal class Logger : ILogger
     private void Write(string message)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
-        _pane?.OutputStringThreadSafe($"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
+        _outputPaneManager.Pane?.OutputStringThreadSafe($"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
     }
 }
