@@ -13,13 +13,18 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class Logger : ILogger
 {
-    private readonly IVsOutputWindowPane _pane;
-    private readonly Guid PaneGuid = new("B76CFA36-066A-493B-8898-22EF97B0888F");
+    private IVsOutputWindowPane _pane;
+    private Guid PaneGuid = new("B76CFA36-066A-493B-8898-22EF97B0888F");
 
     [ImportingConstructor]
     public Logger([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
     {
-        ThreadHelper.ThrowIfNotOnUIThread();
+        InitalizePaneAsync(serviceProvider).FireAndForget();
+    }
+
+    private async Task InitalizePaneAsync(IServiceProvider serviceProvider)
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var outputWindow = serviceProvider.GetService<SVsOutputWindow, IVsOutputWindow>();
 
         const bool isVisible = true;
