@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Microsoft.VisualStudio.Shell;
@@ -7,6 +8,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
 
 namespace Codescene.VSExtension.VS2022.ErrorList
 {
@@ -18,6 +20,9 @@ namespace Codescene.VSExtension.VS2022.ErrorList
     {
         [Import]
         private readonly ICodeReviewer _reviewer;
+
+        [Import]
+        private readonly ISupportedFileChecker _supportedFileChecker;
 
         public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
         {
@@ -45,8 +50,9 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         private List<CodeSmellModel> GetLinesToUnderline(ITextBuffer textBuffer)
         {
             var path = GetPath(textBuffer);
+            bool fileNotSupported = isFileNotSupported(path);
 
-            return string.IsNullOrEmpty(path) ? [] : _reviewer.GetCodesmellExpressions(path);
+            return fileNotSupported ? [] : _reviewer.GetCodesmellExpressions(path);
         }
 
         /// <summary>
@@ -58,11 +64,20 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         private List<CodeSmellModel> GetRefreshedLinesToUnderline(ITextBuffer textBuffer)
         {
             var path = GetPath(textBuffer);
-            if (string.IsNullOrEmpty(path)) return [];
+            bool fileNotSupported = isFileNotSupported(path);
+
+            if (fileNotSupported) return [];
 
             var content = textBuffer.CurrentSnapshot.GetText();
             _reviewer.UseContentOnlyType(content);
             return _reviewer.GetCodesmellExpressions(path, invalidateCache: true);
+        }
+
+        private bool isFileNotSupported(string path)
+        {
+            var extension = Path.GetExtension(path);
+
+            return string.IsNullOrEmpty(path) || _supportedFileChecker.IsNotSupported(extension);
         }
 
         private string GetPath(ITextBuffer textBuffer)

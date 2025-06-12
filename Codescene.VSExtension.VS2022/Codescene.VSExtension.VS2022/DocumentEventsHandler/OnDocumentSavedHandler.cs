@@ -1,6 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -12,9 +11,6 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
 public class OnDocumentSavedHandler
 {
     [Import]
-    private readonly ILogger _logger;
-
-    [Import]
     private readonly ICodeReviewer _reviewer;
 
     [Import]
@@ -25,8 +21,6 @@ public class OnDocumentSavedHandler
 
     public void Handle(string path)
     {
-        _logger.Info("Opened document " + (path ?? "no name"));
-
         if (string.IsNullOrWhiteSpace(path))
         {
             throw new System.ArgumentNullException(nameof(path));

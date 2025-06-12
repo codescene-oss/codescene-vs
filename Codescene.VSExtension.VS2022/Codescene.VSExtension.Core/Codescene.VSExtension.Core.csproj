@@ -101,6 +101,7 @@
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Application\Services\PreflightManager\IPreflightManager.cs" />
     <Compile Include="Application\Services\PreflightManager\PreflightManager.cs" />
+    <Compile Include="Application\Services\Util\IDebounceService.cs" />
     <Compile Include="Application\Services\WebComponent\CodeSmellDocumentationMapper.cs" />
     <Compile Include="Application\Services\WebComponent\AceComponentMapper.cs" />
     <Compile Include="Models\Cli\Delta\ChangeDetailModel.cs" />

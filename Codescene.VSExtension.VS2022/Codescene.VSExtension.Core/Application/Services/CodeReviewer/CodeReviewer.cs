@@ -1,5 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
+using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
@@ -30,6 +32,9 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         private ReviewType _type = ReviewType.FILE_ON_PATH;
 
         [Import]
+        private readonly ILogger _logger;
+
+        [Import]
         private readonly IModelMapper _mapper;
 
         [Import]
@@ -37,6 +42,9 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
         [Import]
         private readonly IReviewedFilesCacheHandler _cache;
+
+        [Import]
+        private IDebounceService _debounceService;
 
         /// <summary>
         /// Sets the review mode to use the file saved on disk.
@@ -96,6 +104,8 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             var mapped = _mapper.Map(path, review);
 
             _cache.Add(mapped);
+
+            _debounceService.Debounce(path, p => _logger.Info($"Reviewed {p} successfully."), TimeSpan.FromSeconds(2));
 
             return mapped;
         }

@@ -1,7 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
@@ -13,68 +12,49 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class Logger : ILogger
 {
-    private IVsOutputWindowPane _pane;
-    private Guid PaneGuid = new("B76CFA36-066A-493B-8898-22EF97B0888F");
+    private readonly OutputPaneManager _outputPaneManager;
 
     [ImportingConstructor]
-    public Logger([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+    public Logger(OutputPaneManager outputPaneManager)
     {
-        InitalizePaneAsync(serviceProvider).FireAndForget();
-    }
-
-    private async Task InitalizePaneAsync(IServiceProvider serviceProvider)
-    {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        var outputWindow = serviceProvider.GetService<SVsOutputWindow, IVsOutputWindow>();
-
-        const bool isVisible = true;
-        const bool isClearedWithSolution = false;
-
-        outputWindow.CreatePane(
-            ref PaneGuid,
-            Titles.CODESCENE,
-            Convert.ToInt32(isVisible),
-            Convert.ToInt32(isClearedWithSolution)
-            );
-
-        outputWindow.GetPane(ref PaneGuid, out _pane);
+        _outputPaneManager = outputPaneManager ?? throw new ArgumentNullException(nameof(outputPaneManager));
     }
 
     public void Error(string message, Exception ex)
     {
-        Write($"[ERROR] {message}: {ex.Message}");
+        WriteAsync($"[ERROR] {message}: {ex.Message}").FireAndForget();
         ex.Log();
     }
 
     public void Info(string message)
     {
-        Write($"[INFO] {message}");
-        VS.StatusBar.ShowMessageAsync(message).FireAndForget();
+        WriteAsync($"[INFO] {message}").FireAndForget();
+        VS.StatusBar.ShowMessageAsync($"{Titles.CODESCENE}: {message}").FireAndForget();
         Console.WriteLine(message);
     }
 
     public void Warn(string message)
     {
-        Write($"[WARN] {message}");
+        WriteAsync($"[WARN] {message}").FireAndForget();
         VS.StatusBar.ShowMessageAsync(message).FireAndForget();
         Console.WriteLine(message);
     }
 
     public void Debug(string message)
     {
-        Write($"[DEBUG] {message}");
+        WriteAsync($"[DEBUG] {message}").FireAndForget();
         Console.WriteLine(message);
     }
 
     public async Task LogAsync(string message, Exception ex)
     {
-        Write($"[LOG] {message}: {ex.Message}");
+        WriteAsync($"[LOG] {message}: {ex.Message}").FireAndForget();
         await ex.LogAsync();
     }
 
-    private void Write(string message)
+    private async Task WriteAsync(string message)
     {
-        ThreadHelper.ThrowIfNotOnUIThread();
-        _pane?.OutputStringThreadSafe($"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        _outputPaneManager.Pane?.OutputStringThreadSafe($"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
     }
 }
