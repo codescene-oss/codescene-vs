@@ -50,6 +50,7 @@
     <Compile Include="Application\ErrorListWindowHandler\CustomErrorListEntry.cs" />
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
+    <Compile Include="Application\Util\DebounceService.cs" />
     <Compile Include="CodeLens\CodeLensConnection.cs" />
     <Compile Include="CodeLens\CodesceneCodelensCallbackService.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />

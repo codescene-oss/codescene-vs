@@ -22,39 +22,39 @@ internal class Logger : ILogger
 
     public void Error(string message, Exception ex)
     {
-        Write($"[ERROR] {message}: {ex.Message}");
+        WriteAsync($"[ERROR] {message}: {ex.Message}").FireAndForget();
         ex.Log();
     }
 
     public void Info(string message)
     {
-        Write($"[INFO] {message}");
+        WriteAsync($"[INFO] {message}").FireAndForget();
         VS.StatusBar.ShowMessageAsync($"{Titles.CODESCENE}: {message}").FireAndForget();
         Console.WriteLine(message);
     }
 
     public void Warn(string message)
     {
-        Write($"[WARN] {message}");
+        WriteAsync($"[WARN] {message}").FireAndForget();
         VS.StatusBar.ShowMessageAsync(message).FireAndForget();
         Console.WriteLine(message);
     }
 
     public void Debug(string message)
     {
-        Write($"[DEBUG] {message}");
+        WriteAsync($"[DEBUG] {message}").FireAndForget();
         Console.WriteLine(message);
     }
 
     public async Task LogAsync(string message, Exception ex)
     {
-        Write($"[LOG] {message}: {ex.Message}");
+        WriteAsync($"[LOG] {message}: {ex.Message}").FireAndForget();
         await ex.LogAsync();
     }
 
-    private void Write(string message)
+    private async Task WriteAsync(string message)
     {
-        ThreadHelper.ThrowIfNotOnUIThread();
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         _outputPaneManager.Pane?.OutputStringThreadSafe($"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
     }
 }
