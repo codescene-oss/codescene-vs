@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="CodesceneVSExtension.c90b6097-3fbd-4b82-a308-f9568074c67a" Version="0.4.0" Language="en-US" Publisher="Codescene AB" />
-        <DisplayName>Codescene Visual Studio Extension</DisplayName>
-        <Description xml:space="preserve">Codesecene extension for Visual Studio IDE</Description>
-        <Icon>Resources\cs-logo-small.png</Icon>
-        <PreviewImage>Resources\cs-logo.png</PreviewImage>
+        <Identity Id="CodesceneVSExtension.c90b6097-3fbd-4b82-a308-f9568074c67a" Version="0.0.2" Language="en-US" Publisher="CodeScene" />
+        <DisplayName>CodeScene</DisplayName>
+        <Description xml:space="preserve">Integrates CodeScene analysis into Visual Studio. Keeps your code clean and maintainable.</Description>
+        <Icon>Resources\cs-logo.png</Icon>
+        <PreviewImage>Resources\cs-logo-small.png</PreviewImage>
+        <Tags>ai, ai code review, code analysis, code health, code metrics, code review, code quality, technical debt</Tags>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">
@@ -17,7 +18,6 @@
     </Prerequisites>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-        <Asset Type="Microsoft.VisualStudio.CodeLensComponent" d:Source="Project" d:ProjectName="Codescene.VSExtension.CodeLensProvider" Path="|Codescene.VSExtension.CodeLensProvider|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
         <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Codescene.VSExtension.Core" Path="|Codescene.VSExtension.Core|" />
     </Assets>

@@ -1,5 +1,7 @@
 ﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
+using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using Community.VisualStudio.Toolkit;
@@ -7,6 +9,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,10 +24,16 @@ public class ActiveDocumentTextChangeHandler
     private volatile bool _changed;
 
     [Import]
+    private readonly ILogger _logger;
+
+    [Import]
     private readonly ICodeReviewer _reviewer;
 
     [Import]
     private readonly IErrorListWindowHandler _errorListWindowHandler;
+
+    [Import]
+    private readonly ISupportedFileChecker _supportedFileChecker;
 
     [Import]
     private readonly CodeSceneMarginSettingsManager _marginSettings;
@@ -43,7 +52,13 @@ public class ActiveDocumentTextChangeHandler
     public async Task SubscribeAsync(string path)
     {
         var activeDocument = await VS.Documents.GetDocumentViewAsync(path);
-        if (activeDocument != null)
+
+        if (activeDocument?.FilePath == null) return;
+
+        var extension = Path.GetExtension(activeDocument.FilePath);
+        bool fileSupported = _supportedFileChecker.IsSupported(extension);
+
+        if (activeDocument != null && fileSupported)
         {
             _timer?.Dispose();
             _timer = new Timer((state) =>

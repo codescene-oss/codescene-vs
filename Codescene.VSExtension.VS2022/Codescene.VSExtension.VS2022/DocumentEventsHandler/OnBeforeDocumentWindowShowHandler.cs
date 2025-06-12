@@ -31,15 +31,17 @@ public class OnBeforeDocumentWindowShowHandler
     public void Handle(DocumentView doc)
     {
         var path = doc.Document?.FilePath;
-        _logger.Info(path);
+        var fileName = Path.GetFileName(path);
+        var extension = Path.GetExtension(path);
 
         if (string.IsNullOrWhiteSpace(path))
         {
             throw new System.ArgumentNullException(nameof(path));
         }
 
-        if (_supportedFileChecker.IsNotSupported(Path.GetExtension(path)))
+        if (_supportedFileChecker.IsNotSupported(extension))
         {
+            _logger.Info($"File '{fileName}' is not supported for review.");
             return;
         }
 

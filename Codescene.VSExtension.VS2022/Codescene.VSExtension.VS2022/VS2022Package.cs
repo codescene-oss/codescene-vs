@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.DocumentEventsHandler;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
@@ -33,6 +34,9 @@ public sealed class VS2022Package : ToolkitPackage
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
         Instance = this;
+
+        // Logging
+        await InitializeLoggerPaneAsync();
 
         // Tool windows
         this.RegisterToolWindows();
@@ -78,6 +82,12 @@ public sealed class VS2022Package : ToolkitPackage
     {
         var eventManager = await GetServiceAsync<ExtensionEventsManager>();
         eventManager.RegisterEvents();
+    }
+
+    async Task InitializeLoggerPaneAsync()
+    {
+        var logPane = await GetServiceAsync<OutputPaneManager>();
+        await logPane.InitializeAsync();
     }
 
     async Task CheckCliFileAsync()
