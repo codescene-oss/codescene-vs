@@ -1,6 +1,6 @@
 ﻿# CodeScene - Code Analysis and Refactoring
 
-[CodeScene](http://www.codescene.com) - the only code analysis tool with a proven business impact. Now also with AI-Powered Refactoring.
+[CodeScene](http://www.codescene.com) - the only code analysis tool with a proven business impact.
 
 ![Demo](screenshots/vs-preview.gif)
 
