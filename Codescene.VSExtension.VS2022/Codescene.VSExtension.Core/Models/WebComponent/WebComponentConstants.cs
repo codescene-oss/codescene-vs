@@ -3,10 +3,13 @@
     public class WebComponentConstants
     {
         public const string VISUAL_STUDIO_IDE_TYPE = "Visual Studio";
+
         public class ViewTypes
         {
             public const string ACE = "ace";
+            public const string DOCS = "docs";
         }
+
         public class MessageTypes
         {
             public const string INIT = "init";

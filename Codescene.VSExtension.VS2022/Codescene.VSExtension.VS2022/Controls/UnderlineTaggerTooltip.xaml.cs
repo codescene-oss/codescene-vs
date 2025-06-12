@@ -1,46 +1,41 @@
-﻿using Codescene.VSExtension.VS2022.CodeLens;
-using Codescene.VSExtension.VS2022.Commands;
+﻿using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.VS2022.UnderlineTagger;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell;
+using System.ComponentModel.Composition;
 using System.Windows.Controls;
-using System.Windows.Input;
 
 namespace Codescene.VSExtension.VS2022.Controls
 {
+    public class UnderlineTaggerTooltipParams(string category, string details, string path, CodeSmellRangeModel range, string functionName)
+    {
+        public string Category { get; } = category;
+        public string Details { get; } = details;
+        public string Path { get; } = path;
+        public CodeSmellRangeModel Range { get; } = range;
+        public string FunctionName { get; } = functionName;
+    }
 
     public partial class UnderlineTaggerTooltip : UserControl
     {
-        public class UnderlineTaggerTooltipModel
-        {
-            public string Category { get; set; }
-            public string Details { get; set; }
+        [Import]
+        private UnderlineTaggerTooltipModel _viewModel { get; set; }
 
-            public ICommand YourCommand { get; }
-            public int WindowId { get; set; }
-
-            public UnderlineTaggerTooltipModel()
-            {
-                YourCommand = new RelayCommand(ExecuteYourCommand);
-            }
-
-            private async void ExecuteYourCommand(object parameter)
-            {
-                var category = parameter as string;
-                if (ToolWindowRegistry.CategoryToIdMap.TryGetValue(category, out int toolWindowId))
-                {
-                    //await UserControlWindow.HideAllUserControlWindowsAsync();
-                    //await UserControlWindow.ShowAsync(toolWindowId, true);
-                }
-            }
-
-        }
-        public UnderlineTaggerTooltip(string category, string details)
+        public UnderlineTaggerTooltip(UnderlineTaggerTooltipParams tooltipParams)
         {
             InitializeComponent();
 
-            DataContext = new UnderlineTaggerTooltipModel
-            {
-                Category = category,
-                Details = details,
-            };
+            var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));
+            var compositionService = componentModel.DefaultCompositionService;
+            compositionService.SatisfyImportsOnce(this);
+
+            _viewModel.Category = tooltipParams.Category;
+            _viewModel.Details = tooltipParams.Details;
+            _viewModel.Path = tooltipParams.Path;
+            _viewModel.Range = tooltipParams.Range;
+            _viewModel.FunctionName = tooltipParams.FunctionName;
+
+            DataContext = _viewModel;
         }
     }
 }

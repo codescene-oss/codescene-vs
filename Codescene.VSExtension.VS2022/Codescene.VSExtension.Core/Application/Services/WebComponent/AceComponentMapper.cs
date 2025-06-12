@@ -5,13 +5,13 @@ using System.IO;
 
 namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 {
-    [Export(typeof(WebComponentMapper))]
+    [Export(typeof(AceComponentMapper))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class WebComponentMapper
+    public class AceComponentMapper
     {
-        public WebComponentData Map(CachedRefactoringActionModel model)
+        public AceComponentData Map(CachedRefactoringActionModel model)
         {
-            var data = new WebComponentData
+            var data = new AceComponentData
             {
                 Loading = false,
                 FileData = new WebComponentFileData
@@ -53,10 +53,10 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
             return data;
         }
 
-        public WebComponentData Map(string path)
+        public AceComponentData Map(string path)
         {
             var fileName = Path.GetFileName(path);
-            var data = new WebComponentData
+            var data = new AceComponentData
             {
                 Loading = true,
                 FileData = new WebComponentFileData
@@ -97,7 +97,5 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 
             return data;
         }
-
-
     }
 }

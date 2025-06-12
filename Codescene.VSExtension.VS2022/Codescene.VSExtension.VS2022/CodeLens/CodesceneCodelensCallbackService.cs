@@ -68,10 +68,10 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
                 return false;
             }
 
-            return review.FunctionLevel.Any(x => x.StartLine == lineNumber);
+            return review.FunctionLevel.Any(x => x.Range.StartLine == lineNumber);
         }
 
-        return review.FunctionLevel.Any(x => x.Category == issue && x.StartLine == lineNumber);
+        return review.FunctionLevel.Any(x => x.Category == issue && x.Range.StartLine == lineNumber);
     }
 
     private bool IsSupportedAceCodelenseForCodeSmellsAndLanguage(FileReviewModel review, int lineNumber, string path)
@@ -83,7 +83,7 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
         }
 
         //Get all codesmells found for the given line number
-        var codeSmellsFoundForTheLine = review?.FunctionLevel?.Where(x => x.StartLine == lineNumber).Select(x => x.Category);
+        var codeSmellsFoundForTheLine = review?.FunctionLevel?.Where(x => x.Range.StartLine == lineNumber).Select(x => x.Category);
         if (!codeSmellsFoundForTheLine.Any())
         {
             return false;
