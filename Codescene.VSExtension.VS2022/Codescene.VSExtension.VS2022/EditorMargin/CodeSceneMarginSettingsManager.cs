@@ -18,21 +18,13 @@ public class CodeSceneMarginSettingsManager
 
     public event Action ScoreUpdated;
     public bool HasScore { get; private set; } = false;
-    public string fileInFocus { get; private set; } = null;
+    public string FileInFocus { get; private set; } = null;
 
     public void UpdateMarginData(string path)
     {
-        fileInFocus = path;
-        if (_cache.Exists(path))
-        {
-            HasScore = true;
-            ScoreUpdated?.Invoke();
-        }
-        else
-        {
-            HasScore = false;
-            ScoreUpdated?.Invoke();
-        }
+        FileInFocus = path;
+        HasScore = _cache.Exists(path);
+        ScoreUpdated?.Invoke();
     }
 }
 

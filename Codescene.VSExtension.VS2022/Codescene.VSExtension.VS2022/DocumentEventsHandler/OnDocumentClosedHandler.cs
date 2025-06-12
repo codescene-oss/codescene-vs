@@ -22,6 +22,6 @@ public class OnDocumentClosedHandler
     {
         _logger.Info("Closed document " + (path ?? "no name"));
         _cache.Remove(path);
-        _marginSettings.UpdateMarginData(path);
+        //_marginSettings.UpdateMarginData(path);
     }
 }

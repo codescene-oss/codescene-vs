@@ -2,6 +2,8 @@
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.VS2022.DocumentEventsHandler;
 using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using static Codescene.VSExtension.CodeLensProvider.Providers.Base.Constants;
 
 namespace Codescene.VSExtension.VS2022.EditorMargin;
 
@@ -30,10 +33,10 @@ public class CodeSceneMargin : IWpfTextViewMargin
 
         _label = new TextBlock
         {
-            Text = $"CodeScene Code Health Score: N/A",
+            Text = $"{Titles.CODESCENE} Code Health Score: N/A",
             Margin = new Thickness(5),
             VerticalAlignment = VerticalAlignment.Center,
-            Foreground = Brushes.White
+            Foreground = GetThemedBrush(EnvironmentColors.ToolWindowTextColorKey)
         };
 
         _rootPanel = new StackPanel 
@@ -43,9 +46,23 @@ public class CodeSceneMargin : IWpfTextViewMargin
         };
         
         _settings.ScoreUpdated += UpdateUI;
+        VSColorTheme.ThemeChanged += OnThemeChanged;
 
         UpdateUI();
     }
+
+    private void OnThemeChanged(ThemeChangedEventArgs e)
+    {
+        _label.Foreground = GetThemedBrush(EnvironmentColors.ToolWindowTextColorKey); 
+    }
+
+    private SolidColorBrush GetThemedBrush(ThemeResourceKey key)
+    {
+        var drawingColor = VSColorTheme.GetThemedColor(key);
+        var mediaColor = Color.FromArgb(drawingColor.A, drawingColor.R, drawingColor.G, drawingColor.B);
+        return new SolidColorBrush(mediaColor);
+    }
+
 
     private void UpdateUI()
     {
@@ -55,11 +72,11 @@ public class CodeSceneMargin : IWpfTextViewMargin
             _rootPanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
             if (show)
             {
-                var activeDocument = _settings.fileInFocus;
+                var activeDocument = _settings.FileInFocus;
                 if (activeDocument != null && _cache.Exists(activeDocument))
                 {
                     FileReviewModel cachedReview = _cache.Get(activeDocument);
-                    _label.Text = $"CodeScene Code Health Score: {cachedReview.Score} ({cachedReview.FilePath})";
+                    _label.Text = $"{Titles.CODESCENE} Code Health Score: {cachedReview.Score} ({Path.GetFileName(cachedReview.FilePath)})";
                 }
 
             }
@@ -72,7 +89,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
 
     public double MarginSize => _rootPanel.ActualHeight;
 
-    public string MarginName => "CodeSceneMargin";
+    public string MarginName => this.GetType().Name;
 
     public void Dispose() 
     {
