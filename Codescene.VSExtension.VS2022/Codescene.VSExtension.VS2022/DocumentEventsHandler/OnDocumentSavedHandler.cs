@@ -2,6 +2,7 @@
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
+using Codescene.VSExtension.VS2022.EditorMargin;
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -24,8 +25,8 @@ public class OnDocumentSavedHandler
     [Import]
     private readonly ISupportedFileChecker _supportedFileChecker;
 
-    public event Action ScoreUpdated;
-    public bool HasScore { get; private set; } = false;
+    [Import]
+    private readonly CodeSceneMarginSettingsManager _marginSettings;
 
     public void Handle(string path)
     {
@@ -43,15 +44,7 @@ public class OnDocumentSavedHandler
 
         _reviewer.UseFileOnPathType();
         var review = _reviewer.Review(path);
-        if (review.Score != null)
-        {
-            HasScore = true;
-            ScoreUpdated?.Invoke();
-        }
-        else
-        {
-            HasScore = false;
-        }
+        _marginSettings.UpdateMarginData(path);
         _errorListWindowHandler.Handle(review);
         //CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
     }

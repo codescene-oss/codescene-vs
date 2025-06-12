@@ -7,7 +7,7 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
     {
         public class Utils
         {
-            public const int TEXT_CHANGE_CHECK_INTERVAL_MILISECONDS = 2000;
+            public const int TEXT_CHANGE_CHECK_INTERVAL_MILISECONDS = 3000;
         }
 
         public class SupportedLanguages

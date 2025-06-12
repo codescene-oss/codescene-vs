@@ -2,6 +2,7 @@
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
+using Codescene.VSExtension.VS2022.EditorMargin;
 using Community.VisualStudio.Toolkit;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -24,6 +25,9 @@ public class OnBeforeDocumentWindowShowHandler
     [Import]
     private readonly ISupportedFileChecker _supportedFileChecker;
 
+    [Import]
+    private readonly CodeSceneMarginSettingsManager _marginSettings;
+
     public void Handle(DocumentView doc)
     {
         var path = doc.Document?.FilePath;
@@ -41,6 +45,7 @@ public class OnBeforeDocumentWindowShowHandler
 
         _reviewer.UseFileOnPathType();
         var review = _reviewer.Review(path, invalidateCache: true);
+        _marginSettings.UpdateMarginData(path);
         _errorListWindowHandler.Handle(review);
     }
 }

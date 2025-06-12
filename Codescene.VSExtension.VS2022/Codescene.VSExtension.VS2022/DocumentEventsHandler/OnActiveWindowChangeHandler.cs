@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.VS2022.EditorMargin;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using System.ComponentModel.Composition;
@@ -18,6 +19,9 @@ public class OnActiveWindowChangeHandler
     [Import]
     private readonly ISupportedFileChecker _supportedFileChecker;
 
+    [Import]
+    private readonly CodeSceneMarginSettingsManager _marginSettings;
+
     public void Handle(Window gotFocus, Window lostFocus)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
@@ -29,7 +33,8 @@ public class OnActiveWindowChangeHandler
                 return;
             }
 
-            _ = _documentHandler.SubscribeAsync();
+            _ = _documentHandler.SubscribeAsync(gotFocus.Document.FullName);
+            _marginSettings.UpdateMarginData(gotFocus.Document.FullName);
         }
 
         if (lostFocus?.Kind == DocumentKind)

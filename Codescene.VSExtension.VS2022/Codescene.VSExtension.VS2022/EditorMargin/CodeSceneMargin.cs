@@ -20,14 +20,12 @@ public class CodeSceneMargin : IWpfTextViewMargin
 {
     private readonly StackPanel _rootPanel;
     private readonly TextBlock _label;
-    private readonly OnDocumentSavedHandler _activeDocumentTextChangeHandler;
+    private readonly CodeSceneMarginSettingsManager _settings;
     private readonly IReviewedFilesCacheHandler _cache;
 
-    public CodeSceneMargin(
-        OnDocumentSavedHandler activeDocumentTextChangeHandler,
-        IReviewedFilesCacheHandler cache)
+    public CodeSceneMargin(CodeSceneMarginSettingsManager settings, IReviewedFilesCacheHandler cache)
     {
-        this._activeDocumentTextChangeHandler = activeDocumentTextChangeHandler;
+        this._settings = settings;
         this._cache = cache;
 
         _label = new TextBlock
@@ -44,7 +42,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
             Children = { _label }
         };
         
-        _activeDocumentTextChangeHandler.ScoreUpdated += UpdateUI;
+        _settings.ScoreUpdated += UpdateUI;
 
         UpdateUI();
     }
@@ -53,14 +51,14 @@ public class CodeSceneMargin : IWpfTextViewMargin
     {
         _rootPanel.Dispatcher.Invoke(async () =>
         {
-            bool show = _activeDocumentTextChangeHandler.HasScore;
+            bool show = _settings.HasScore;
             _rootPanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
             if (show)
             {
-                var activeDocument = await VS.Documents.GetActiveDocumentViewAsync();
-                if (activeDocument != null && _cache.Exists(activeDocument.FilePath))
+                var activeDocument = _settings.fileInFocus;
+                if (activeDocument != null && _cache.Exists(activeDocument))
                 {
-                    FileReviewModel cachedReview = _cache.Get(activeDocument.FilePath);
+                    FileReviewModel cachedReview = _cache.Get(activeDocument);
                     _label.Text = $"CodeScene Code Health Score: {cachedReview.Score} ({cachedReview.FilePath})";
                 }
 
@@ -78,7 +76,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
 
     public void Dispose() 
     {
-        _activeDocumentTextChangeHandler.ScoreUpdated -= UpdateUI;
+        _settings.ScoreUpdated -= UpdateUI;
     }
 
     public ITextViewMargin GetTextViewMargin(string marginName)

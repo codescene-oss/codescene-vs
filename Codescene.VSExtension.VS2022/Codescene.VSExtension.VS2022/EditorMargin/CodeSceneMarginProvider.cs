@@ -24,13 +24,13 @@ public class CodeSceneMarginProvider : IWpfTextViewMarginProvider
     private readonly IReviewedFilesCacheHandler _cache;
 
     [Import]
-    private readonly OnDocumentSavedHandler _activeDocumentTextChangeHandler;
+    private readonly CodeSceneMarginSettingsManager _settings;
 
     public IWpfTextViewMargin CreateMargin(
         IWpfTextViewHost textViewHost,
         IWpfTextViewMargin marginContainer)
     {
-        return new CodeSceneMargin(_activeDocumentTextChangeHandler, _cache) as IWpfTextViewMargin;
+        return new CodeSceneMargin(_settings, _cache) as IWpfTextViewMargin;
     }
 }
 

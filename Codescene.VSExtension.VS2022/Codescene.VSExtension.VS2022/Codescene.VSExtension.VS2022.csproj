@@ -160,6 +160,7 @@
     <Compile Include="DocumentEventsHandler\ExtensionEventsManager.cs" />
     <Compile Include="DocumentEventsHandler\OnStartExtensionActiveDocumentHandler.cs" />
     <Compile Include="CodeLens\ToolWindowRegistry.cs" />
+    <Compile Include="EditorMargin\CodeSceneMarginSettingsManager.cs" />
     <Compile Include="ToolWindows\WebComponent\CodeSmellDocumentationWindow.cs" />
     <Compile Include="EditorMargin\CodeSceneMargin.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginProvider.cs" />
