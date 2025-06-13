@@ -25,7 +25,7 @@ public class OnActiveWindowChangeHandler
     public void Handle(Window gotFocus, Window lostFocus)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
-        if (gotFocus?.Kind == DocumentKind && lostFocus?.Kind == DocumentKind)
+        if (gotFocus?.Kind == DocumentKind)
         {
             _marginSettings.ResetScore();
             var extension = Path.GetExtension(gotFocus.Document.Name);
@@ -36,12 +36,11 @@ public class OnActiveWindowChangeHandler
 
             _ = _documentHandler.SubscribeAsync(gotFocus.Document.FullName);
             _marginSettings.UpdateMarginData(gotFocus.Document.FullName);
-            _ = _documentHandler.UnsubscribeAsync(lostFocus.Document.FullName);
         }
 
-        //if (lostFocus?.Kind == DocumentKind)
-        //{
-        //    _ = _documentHandler.UnsubscribeAsync(lostFocus.Document.FullName);
-        //}
+        if (lostFocus?.Kind == DocumentKind)
+        {
+            _ = _documentHandler.UnsubscribeAsync(lostFocus.Document.FullName);
+        }
     }
 }
