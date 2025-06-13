@@ -26,9 +26,10 @@ public class OnDocumentSavedHandler
 
     public void Handle(string path)
     {
+        _marginSettings.ResetScore();
         if (string.IsNullOrWhiteSpace(path))
         {
-            throw new System.ArgumentNullException(nameof(path));
+            throw new ArgumentNullException(nameof(path));
         }
 
         if (_supportedFileChecker.IsNotSupported(Path.GetExtension(path)))

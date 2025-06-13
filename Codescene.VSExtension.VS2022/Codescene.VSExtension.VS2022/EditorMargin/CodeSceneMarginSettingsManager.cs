@@ -26,5 +26,11 @@ public class CodeSceneMarginSettingsManager
         HasScore = _cache.Exists(path);
         ScoreUpdated?.Invoke();
     }
+
+    public void ResetScore()
+    {
+        HasScore = false;
+        ScoreUpdated?.Invoke();
+    }
 }
 
