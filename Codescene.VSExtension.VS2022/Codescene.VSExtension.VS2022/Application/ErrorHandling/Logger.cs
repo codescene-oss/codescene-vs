@@ -42,7 +42,8 @@ internal class Logger : ILogger
 
     public void Debug(string message)
     {
-        WriteAsync($"[DEBUG] {message}").FireAndForget();
+        //    IVsActivityLog log = Package.GetGlobalService(typeof(SVsActivityLog)) as IVsActivityLog;
+        //    log?.LogEntry((uint)__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, "YourExtensionName", "This is a log message.");
         Console.WriteLine(message);
     }
 

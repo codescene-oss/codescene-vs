@@ -1,6 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
+using Codescene.VSExtension.VS2022.EditorMargin;
 using System.ComponentModel.Composition;
 using System.IO;
 
@@ -22,6 +23,9 @@ public class OnStartExtensionActiveDocumentHandler
     [Import]
     private readonly ActiveDocumentTextChangeHandler _documentHandler;
 
+    [Import]
+    private readonly CodeSceneMarginSettingsManager _marginSettings;
+
     public void Handle(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -37,8 +41,9 @@ public class OnStartExtensionActiveDocumentHandler
         _reviewer.UseFileOnPathType();
         var review = _reviewer.Review(path, invalidateCache: true);
         _errorListWindowHandler.Handle(review);
+        _marginSettings.UpdateMarginData(path);
         //CodesceneCodelensCallbackService.RefreshCodeLensAsync().FireAndForget();
 
-        _ = _documentHandler.SubscribeAsync();
+        _ = _documentHandler.SubscribeAsync(path);
     }
 }

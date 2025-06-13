@@ -18,10 +18,10 @@ public class General : BaseOptionModel<General>
     public const string DEFAULT_DEV_TOOLS_URL = "https://devtools.codescene.io";
 
 
-    [Category("General")]
-    [DisplayName("Enable Review Code Lenses")]
-    [Description("Show CodeLenses for review diagnostics")]
-    public bool EnableCodeLenses { get; set; } = true;
+    //[Category("General")]
+    //[DisplayName("Enable Review Code Lenses")]
+    //[Description("Show CodeLenses for review diagnostics")]
+    //public bool EnableCodeLenses { get; set; } = true;
 
     //[Category("General")]
     //[DisplayName("Preview Code Health Gate")]
@@ -33,20 +33,20 @@ public class General : BaseOptionModel<General>
     [Description("Exclude files in .gitignore from analysis")]
     public bool Gitignore { get; set; } = true;
 
-    [Category("General")]
-    [DisplayName("Enable Auto Refactor")]
-    [Description("Enable CodeScene ACE. This is currently only available for customers part of the ACE beta program")]
-    public bool EnableAutoRefactor { get; set; } = false;
+    //[Category("General")]
+    //[DisplayName("Enable Auto Refactor")]
+    //[Description("Enable CodeScene ACE. This is currently only available for customers part of the ACE beta program")]
+    //public bool EnableAutoRefactor { get; set; } = false;
 
-    [Category("General")]
-    [DisplayName("Server Url")]
-    [Description("URL of the CodeScene server")]
-    public string ServerUrl { get; set; } = DEFAULT_SERVER_URL;
+    //[Category("General")]
+    //[DisplayName("Server Url")]
+    //[Description("URL of the CodeScene server")]
+    //public string ServerUrl { get; set; } = DEFAULT_SERVER_URL;
 
-    [Category("General")]
-    [DisplayName("Devtools Portal Url")]
-    [Description("URL of the CodeScene Devtool Portal server")]
-    public string DevtoolsPortalUrl { get; set; } = DEFAULT_DEV_TOOLS_URL;
+    //[Category("General")]
+    //[DisplayName("Devtools Portal Url")]
+    //[Description("URL of the CodeScene Devtool Portal server")]
+    //public string DevtoolsPortalUrl { get; set; } = DEFAULT_DEV_TOOLS_URL;
 
     public General() : base()
     {

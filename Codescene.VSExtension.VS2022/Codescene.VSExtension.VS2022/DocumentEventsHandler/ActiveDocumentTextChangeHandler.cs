@@ -3,6 +3,7 @@ using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
+using Codescene.VSExtension.VS2022.EditorMargin;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -34,6 +35,9 @@ public class ActiveDocumentTextChangeHandler
     [Import]
     private readonly ISupportedFileChecker _supportedFileChecker;
 
+    [Import]
+    private readonly CodeSceneMarginSettingsManager _marginSettings;
+
     public async Task UnsubscribeAsync(string path)
     {
         var docView = await VS.Documents.GetDocumentViewAsync(path);
@@ -45,9 +49,9 @@ public class ActiveDocumentTextChangeHandler
 
     TimeSpan TimerInterval { get { return TimeSpan.FromMilliseconds(Constants.Utils.TEXT_CHANGE_CHECK_INTERVAL_MILISECONDS); } }
 
-    public async Task SubscribeAsync()
+    public async Task SubscribeAsync(string path)
     {
-        var activeDocument = await VS.Documents.GetActiveDocumentViewAsync();
+        var activeDocument = await VS.Documents.GetDocumentViewAsync(path);
 
         if (activeDocument?.FilePath == null) return;
 
@@ -81,6 +85,8 @@ public class ActiveDocumentTextChangeHandler
                 var newContent = _buffer.CurrentSnapshot.GetText();
                 _reviewer.UseContentOnlyType(newContent);
                 var review = _reviewer.Review(path, invalidateCache: true);
+                _marginSettings.UpdateMarginData(path);
+                    
                 _errorListWindowHandler.Handle(review);
 
                 // Also, call RefreshCodeLensAsync on the UI thread

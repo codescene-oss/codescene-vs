@@ -102,7 +102,7 @@ internal class CodesceneCodelensCallbackService : ICodeLensCallbackListener, ICo
 
     public bool IsCodeSceneLensesEnabled()
     {
-        return General.Instance.EnableCodeLenses;
+        return false; // General.Instance.EnableCodeLenses;
     }
 
     public int GetVisualStudioPid()
