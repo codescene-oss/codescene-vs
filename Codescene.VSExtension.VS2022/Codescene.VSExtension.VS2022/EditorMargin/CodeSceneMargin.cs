@@ -1,17 +1,9 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Models.ReviewModels;
-using Codescene.VSExtension.VS2022.DocumentEventsHandler;
-using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -39,12 +31,12 @@ public class CodeSceneMargin : IWpfTextViewMargin
             Foreground = GetThemedBrush(EnvironmentColors.ToolWindowTextColorKey)
         };
 
-        _rootPanel = new StackPanel 
-        { 
+        _rootPanel = new StackPanel
+        {
             Orientation = Orientation.Horizontal,
             Children = { _label }
         };
-        
+
         _settings.ScoreUpdated += UpdateUI;
         VSColorTheme.ThemeChanged += OnThemeChanged;
 
@@ -53,7 +45,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
 
     private void OnThemeChanged(ThemeChangedEventArgs e)
     {
-        _label.Foreground = GetThemedBrush(EnvironmentColors.ToolWindowTextColorKey); 
+        _label.Foreground = GetThemedBrush(EnvironmentColors.ToolWindowTextColorKey);
     }
 
     private SolidColorBrush GetThemedBrush(ThemeResourceKey key)
@@ -76,7 +68,11 @@ public class CodeSceneMargin : IWpfTextViewMargin
                 if (activeDocument != null && _cache.Exists(activeDocument))
                 {
                     FileReviewModel cachedReview = _cache.Get(activeDocument);
-                    _label.Text = $"{Titles.CODESCENE} Code Health Score: {cachedReview.Score} ({Path.GetFileName(cachedReview.FilePath)})";
+
+                    string score = cachedReview.Score.ToString();
+                    if (score.Equals("0")) score = "N/A";
+
+                    _label.Text = $"{Titles.CODESCENE} Code Health Score: {score} ({Path.GetFileName(cachedReview.FilePath)})";
                 }
 
             }
@@ -91,7 +87,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
 
     public string MarginName => this.GetType().Name;
 
-    public void Dispose() 
+    public void Dispose()
     {
         _settings.ScoreUpdated -= UpdateUI;
     }

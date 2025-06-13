@@ -220,8 +220,8 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="ToolWindows\WebComponent\index.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Resource Include="Resources\StatusError.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
