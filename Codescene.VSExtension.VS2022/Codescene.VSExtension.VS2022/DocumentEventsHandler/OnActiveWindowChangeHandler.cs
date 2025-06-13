@@ -27,6 +27,7 @@ public class OnActiveWindowChangeHandler
         ThreadHelper.ThrowIfNotOnUIThread();
         if (gotFocus?.Kind == DocumentKind)
         {
+            _marginSettings.ResetScore();
             var extension = Path.GetExtension(gotFocus.Document.Name);
             if (_supportedFileChecker.IsNotSupported(extension))
             {

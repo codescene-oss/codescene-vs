@@ -58,7 +58,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
 
     private void UpdateUI()
     {
-        _rootPanel.Dispatcher.Invoke(async () =>
+        _ = _rootPanel.Dispatcher.Invoke(async () =>
         {
             bool show = _settings.HasScore;
             _rootPanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;

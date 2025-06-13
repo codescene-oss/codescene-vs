@@ -28,6 +28,7 @@ public class OnStartExtensionActiveDocumentHandler
 
     public void Handle(string path)
     {
+        _marginSettings.ResetScore();
         if (string.IsNullOrWhiteSpace(path))
         {
             throw new System.ArgumentNullException(nameof(path));

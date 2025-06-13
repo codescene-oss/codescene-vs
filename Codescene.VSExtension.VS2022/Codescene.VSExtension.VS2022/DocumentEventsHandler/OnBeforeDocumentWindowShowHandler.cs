@@ -4,6 +4,7 @@ using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using Community.VisualStudio.Toolkit;
+using System;
 using System.ComponentModel.Composition;
 using System.IO;
 
@@ -30,13 +31,14 @@ public class OnBeforeDocumentWindowShowHandler
 
     public void Handle(DocumentView doc)
     {
+        _marginSettings.ResetScore();
         var path = doc.Document?.FilePath;
         var fileName = Path.GetFileName(path);
         var extension = Path.GetExtension(path);
 
         if (string.IsNullOrWhiteSpace(path))
         {
-            throw new System.ArgumentNullException(nameof(path));
+            throw new ArgumentNullException(nameof(path));
         }
 
         if (_supportedFileChecker.IsNotSupported(extension))
