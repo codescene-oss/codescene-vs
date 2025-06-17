@@ -41,10 +41,8 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
         public bool Exists(string path)
         {
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
+            if (string.IsNullOrWhiteSpace(path)) return false;
+
 
             return _reviews.TryGetValue(path, out _);
         }
