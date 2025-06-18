@@ -1,5 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
     public interface ICodeReviewer
     {
         void InvalidateCache(string path);
+        CliReviewModel ReviewFileContent(string path, string content);
         FileReviewModel Review(string path, bool invalidateCache = false);
         void UseFileOnPathType();
         void UseContentOnlyType(string content);

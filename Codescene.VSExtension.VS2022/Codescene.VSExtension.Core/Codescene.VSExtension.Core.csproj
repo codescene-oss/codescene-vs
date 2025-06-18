@@ -75,6 +75,12 @@
     <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IPersistenceAuthDataProvider.cs" />
     <Compile Include="Application\Services\Authentication\FakeAuthDataProvider.cs" />
+    <Compile Include="Application\Services\Cache\Review\CacheService.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\ReviewCacheEntry.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\ReviewCacheItem.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\ReviewCacheQuery.cs" />
+    <Compile Include="Application\Services\Cache\Review\ReviewCacheEvents.cs" />
+    <Compile Include="Application\Services\Cache\Review\ReviewCacheService.cs" />
     <Compile Include="Application\Services\Cli\CliCommandProvider.cs" />
     <Compile Include="Application\Services\Cli\CliExecuter.cs" />
     <Compile Include="Application\Services\Cli\CliFileChecker.cs" />

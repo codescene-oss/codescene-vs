@@ -1,7 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -26,19 +25,19 @@ namespace Codescene.VSExtension.VS2022.ErrorList
 
         public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
         {
-            if (typeof(T) != typeof(IErrorTag))
-            {
-                return null;
-            }
+            //if (typeof(T) != typeof(IErrorTag))
+            //{
+            //    return null;
+            //}
 
-            var path = textBuffer.GetFileName();
-            if (SkipShowDiffHelper.PathContainsShowDiffFolder(path))
-                return null;
+            //var path = textBuffer.GetFileName();
+            //if (SkipShowDiffHelper.PathContainsShowDiffFolder(path))
+            //    return null;
 
-            var linesToUnderline = GetLinesToUnderline(textBuffer);
+            //var linesToUnderline = GetLinesToUnderline(textBuffer);
 
-            var tagger = new UnderlineTagger(textBuffer, linesToUnderline, () => GetRefreshedLinesToUnderline(textBuffer));
-            return (ITagger<T>)tagger;
+            //var tagger = new UnderlineTagger(textBuffer, linesToUnderline, () => GetRefreshedLinesToUnderline(textBuffer));
+            return null;
         }
 
         /// <summary>

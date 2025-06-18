@@ -138,7 +138,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             return fileName;
         }
 
-        private CliReviewModel ReviewFileContent(string path, string content)
+        public CliReviewModel ReviewFileContent(string path, string content)
         {
             ValidateContent(content);
 

@@ -27,14 +27,14 @@ namespace Codescene.VSExtension.VS2022.ErrorList
             _underlinePositions = underlinePositions;
             _refreshUnderlinePositions = refreshUnderlinePositions;
 
-            _buffer.Changed += TextBuffer_Changed;
+            //_buffer.Changed += TextBuffer_Changed;
 
-            _timer = new Timer((state) =>
-            {
-                //On timer tick
-                OnTimerElapsed();
-            },
-            null, TimerInterval, TimerInterval);
+            //_timer = new Timer((state) =>
+            //{
+            //    //On timer tick
+            //    OnTimerElapsed();
+            //},
+            //null, TimerInterval, TimerInterval);
         }
 
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
@@ -59,17 +59,18 @@ namespace Codescene.VSExtension.VS2022.ErrorList
         /// <returns>An enumerable of <see cref="ITagSpan{IErrorTag}"/> representing underlined ranges.</returns>
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            bool shouldSkipTagging = _underlinePositions == null || _underlinePositions.Count == 0 || spans.Count == 0;
-            if (shouldSkipTagging)
-                yield break;
+            yield break;
+            //bool shouldSkipTagging = _underlinePositions == null || _underlinePositions.Count == 0 || spans.Count == 0;
+            //if (shouldSkipTagging)
+            //    yield break;
 
-            var snapshot = _buffer.CurrentSnapshot;
+            //var snapshot = _buffer.CurrentSnapshot;
 
-            foreach (var requestSpan in spans)
-            {
-                foreach (var tagSpan in GetIntersectingTagSpans(snapshot, requestSpan))
-                    yield return tagSpan;
-            }
+            //foreach (var requestSpan in spans)
+            //{
+            //    foreach (var tagSpan in GetIntersectingTagSpans(snapshot, requestSpan))
+            //        yield return tagSpan;
+            //}
         }
 
         private IEnumerable<ITagSpan<IErrorTag>> GetIntersectingTagSpans(ITextSnapshot snapshot, SnapshotSpan requestSpan)
