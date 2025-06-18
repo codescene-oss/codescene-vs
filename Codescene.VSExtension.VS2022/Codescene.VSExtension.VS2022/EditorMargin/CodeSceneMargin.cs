@@ -1,5 +1,6 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
-using Codescene.VSExtension.Core.Models.ReviewModels;
+﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
+using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
@@ -55,26 +56,28 @@ public class CodeSceneMargin : IWpfTextViewMargin
         return new SolidColorBrush(mediaColor);
     }
 
-
     private void UpdateUI()
     {
-        _rootPanel.Dispatcher.Invoke(async () =>
+        _rootPanel.Dispatcher.Invoke(() =>
         {
             bool show = _settings.HasScore;
             _rootPanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-            if (show)
+
+            var path = _settings.FileInFocus;
+            var code = _settings.FileInFocusContent;
+
+            if (show && path != null)
             {
-                var activeDocument = _settings.FileInFocus;
-                if (activeDocument != null && _cache.Exists(activeDocument))
+                var cache = new ReviewCacheService();
+                var item = cache.Get(new ReviewCacheQuery(code, path));
+
+                if (item != null)
                 {
-                    FileReviewModel cachedReview = _cache.Get(activeDocument);
+                    string score = item.Score.ToString();
+                    if (score == "0") score = "N/A";
 
-                    string score = cachedReview.Score.ToString();
-                    if (score.Equals("0")) score = "N/A";
-
-                    _label.Text = $"{Titles.CODESCENE} Code Health Score: {score} ({Path.GetFileName(cachedReview.FilePath)})";
+                    _label.Text = $"{Titles.CODESCENE} Score: {score} ({Path.GetFileName(path)})";
                 }
-
             }
         });
     }

@@ -1,9 +1,9 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using System.ComponentModel.Composition;
-using System.IO;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
 
@@ -14,7 +14,7 @@ public class OnActiveWindowChangeHandler
     const string DocumentKind = "Document";
 
     [Import]
-    private readonly ActiveDocumentTextChangeHandler _documentHandler;
+    private readonly ILogger _logger;
 
     [Import]
     private readonly ISupportedFileChecker _supportedFileChecker;
@@ -24,22 +24,24 @@ public class OnActiveWindowChangeHandler
 
     public void Handle(Window gotFocus, Window lostFocus)
     {
+        _logger.Info($"OnActiveWindowChangeHandler. gotFocus: {gotFocus?.Document?.FullName}; lostFocus: {lostFocus?.Document?.FullName}");
+
         ThreadHelper.ThrowIfNotOnUIThread();
         if (gotFocus?.Kind == DocumentKind)
         {
-            var extension = Path.GetExtension(gotFocus.Document.Name);
-            if (_supportedFileChecker.IsNotSupported(extension))
+            var doc = gotFocus.Document;
+            var path = gotFocus.Document.FullName;
+            var isSupportedFile = _supportedFileChecker.IsSupported(path);
+
+            if (isSupportedFile && doc.Object("TextDocument") is TextDocument textDoc)
             {
-                return;
+                // get latest content for file currently in focus and update margin
+                var editPoint = textDoc.StartPoint.CreateEditPoint();
+                string content = editPoint.GetText(textDoc.EndPoint);
+
+                _logger.Info($"Current content length: {content.Length}");
+                _marginSettings.UpdateMarginData(path, content);
             }
-
-            _ = _documentHandler.SubscribeAsync(gotFocus.Document.FullName);
-            _marginSettings.UpdateMarginData(gotFocus.Document.FullName);
-        }
-
-        if (lostFocus?.Kind == DocumentKind)
-        {
-            _ = _documentHandler.UnsubscribeAsync(lostFocus.Document.FullName);
         }
     }
 }
