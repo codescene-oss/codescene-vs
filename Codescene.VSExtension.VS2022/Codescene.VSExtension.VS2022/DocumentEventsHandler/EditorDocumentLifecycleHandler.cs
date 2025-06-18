@@ -7,6 +7,7 @@ using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.VS2022.EditorMargin;
+using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -54,7 +55,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             _logger.Info($"File opened: {filePath}. ");
             string initialContent = buffer.CurrentSnapshot.GetText();
 
-            ReviewContentAsync(filePath, initialContent).FireAndForget();
+            ReviewContentAsync(filePath, initialContent, buffer).FireAndForget();
 
             // Triggered when the file content changes (typing, etc.)
             buffer.Changed += (sender, args) =>
@@ -63,7 +64,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
                 _debounceService.Debounce(
                     filePath,
-                    () => ReviewContentAsync(filePath, currentContent).FireAndForget(),
+                    () => ReviewContentAsync(filePath, currentContent, buffer).FireAndForget(),
                     TimeSpan.FromSeconds(2));
             };
 
@@ -78,7 +79,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         /// <summary>
         /// Reviews the content of a file, updates cache and refreshes UI indicators (Code Health margin, error list, tagger).
         /// </summary>
-        private async Task ReviewContentAsync(string path, string code)
+        private async Task ReviewContentAsync(string path, string code, ITextBuffer buffer)
         {
             try
             {
@@ -92,10 +93,12 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
                 cache.Put(new ReviewCacheEntry(code, path, review));
 
-                // TODO: update tagger
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(review);
                 _marginSettings.UpdateMarginData(path, code);
+
+                if (buffer.Properties.TryGetProperty<ReviewResultTagger>(typeof(ReviewResultTagger), out var tagger))
+                    tagger.RefreshTags();
             }
             catch (Exception e)
             {

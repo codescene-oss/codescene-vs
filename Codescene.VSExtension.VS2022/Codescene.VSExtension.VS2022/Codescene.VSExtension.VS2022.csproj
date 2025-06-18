@@ -186,11 +186,9 @@
     <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">
       <DependentUpon>WebComponentUserControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UnderlineTagger\ReviewResultTagger.cs" />
-    <Compile Include="UnderlineTagger\ReviewResultTaggerProvider.cs" />
-    <Compile Include="UnderlineTagger\UnderlineTagger.cs" />
-    <Compile Include="UnderlineTagger\UnderlineTaggerProvider.cs" />
-    <Compile Include="UnderlineTagger\UnderlineTaggerTooltipModel.cs" />
+    <Compile Include="Tagger\ReviewResultTagger.cs" />
+    <Compile Include="Tagger\ReviewResultTaggerProvider.cs" />
+    <Compile Include="Tagger\ReviewResultTaggerTooltipModel.cs" />
     <Compile Include="Util\DocumentNavigator.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">

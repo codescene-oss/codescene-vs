@@ -69,6 +69,13 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             return [];
         }
 
+        public void RefreshTags()
+        {
+            var snapshot = _buffer.CurrentSnapshot;
+            var span = new SnapshotSpan(snapshot, 0, snapshot.Length);
+            TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
+        }
+
         /// <summary>
         /// Attempts to create a <see cref="SnapshotSpan"/> (a range in the text buffer)
         /// that corresponds to the location of the given <paramref name="codeSmell"/>.

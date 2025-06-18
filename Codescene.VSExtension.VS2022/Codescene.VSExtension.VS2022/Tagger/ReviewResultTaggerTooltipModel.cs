@@ -11,9 +11,9 @@ using System.Windows.Input;
 
 namespace Codescene.VSExtension.VS2022.UnderlineTagger
 {
-    [Export(typeof(UnderlineTaggerTooltipModel))]
+    [Export(typeof(ReviewResultTaggerTooltipModel))]
     [PartCreationPolicy(CreationPolicy.NonShared)]
-    public class UnderlineTaggerTooltipModel
+    public class ReviewResultTaggerTooltipModel
     {
         public string Category { get; set; }
         public string Details { get; set; }
@@ -27,7 +27,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         private readonly ShowDocumentationHandler _showDocumentationHandler;
 
         [ImportingConstructor]
-        public UnderlineTaggerTooltipModel(ShowDocumentationHandler showDocumentationHandler)
+        public ReviewResultTaggerTooltipModel(ShowDocumentationHandler showDocumentationHandler)
         {
             _showDocumentationHandler = showDocumentationHandler;
             YourCommand = new RelayCommand(ExecuteYourCommand);
