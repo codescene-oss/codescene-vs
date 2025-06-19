@@ -79,7 +79,6 @@
     <Compile Include="Application\Services\Cache\Review\Model\ReviewCacheEntry.cs" />
     <Compile Include="Application\Services\Cache\Review\Model\ReviewCacheItem.cs" />
     <Compile Include="Application\Services\Cache\Review\Model\ReviewCacheQuery.cs" />
-    <Compile Include="Application\Services\Cache\Review\ReviewCacheEvents.cs" />
     <Compile Include="Application\Services\Cache\Review\ReviewCacheService.cs" />
     <Compile Include="Application\Services\Cli\CliCommandProvider.cs" />
     <Compile Include="Application\Services\Cli\CliExecuter.cs" />
@@ -93,8 +92,6 @@
     <Compile Include="Application\Services\Cli\ICliSettingsProvider.cs" />
     <Compile Include="Application\Services\Cli\ISupportedFileChecker.cs" />
     <Compile Include="Application\Services\CodeReviewer\CodeReviewer.cs" />
-    <Compile Include="Application\Services\CodeReviewer\IReviewedFilesCacheHandler.cs" />
-    <Compile Include="Application\Services\CodeReviewer\ReviewedFilesCacheHandler.cs" />
     <Compile Include="Application\Services\CodeReviewer\ICodeReviewer.cs" />
     <Compile Include="Application\Services\ErrorHandling\ILogger.cs" />
     <Compile Include="Application\Services\Cli\CliDownloader.cs" />

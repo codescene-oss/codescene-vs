@@ -1,6 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
-using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
@@ -17,12 +16,10 @@ public class CodeSceneMargin : IWpfTextViewMargin
     private readonly StackPanel _rootPanel;
     private readonly TextBlock _label;
     private readonly CodeSceneMarginSettingsManager _settings;
-    private readonly IReviewedFilesCacheHandler _cache;
 
-    public CodeSceneMargin(CodeSceneMarginSettingsManager settings, IReviewedFilesCacheHandler cache)
+    public CodeSceneMargin(CodeSceneMarginSettingsManager settings)
     {
-        this._settings = settings;
-        this._cache = cache;
+        _settings = settings;
 
         _label = new TextBlock
         {

@@ -28,9 +28,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         [Import]
         private readonly ICliExecuter _executer;
 
-        [Import]
-        private readonly IReviewedFilesCacheHandler _cache;
-
         public FileReviewModel Review(string path, string content)
         {
             var fileName = Path.GetFileName(path);
@@ -97,7 +94,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 Refactored = refactoredFunctions
             };
 
-            _cache.Add(cacheItem);
+            //_cache.Add(cacheItem); Use new cache impl, but also, should we cache this? ACE already has cache on the API side. We don't cache it in JB.
 
             return cacheItem;
         }
@@ -125,14 +122,14 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 Refactored = refactoredFunctions
             };
 
-            _cache.Add(cacheItem);
+            //_cache.Add(cacheItem);
 
             return refactoredFunctions;
         }
 
         public CachedRefactoringActionModel GetCachedRefactoredCode()
         {
-            return _cache.GetRefactored();
+            return null;
         }
     }
 }
