@@ -88,13 +88,12 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 if (cachedResult != null) return;
 
                 _logger.Info($"Reviewing file {path}...");
-                var result = _reviewer.ReviewFileContent(path, code);
-                var review = _mapper.Map(path, result);
+                var result = _reviewer.Review(path, code);
 
-                cache.Put(new ReviewCacheEntry(code, path, review));
+                cache.Put(new ReviewCacheEntry(code, path, result));
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                _errorListWindowHandler.Handle(review);
+                _errorListWindowHandler.Handle(result);
                 _marginSettings.UpdateMarginData(path, code);
 
                 if (buffer.Properties.TryGetProperty<ReviewResultTagger>(typeof(ReviewResultTagger), out var tagger))

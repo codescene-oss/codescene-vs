@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.CodeLensProvider.Abstraction;
+﻿using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.Controls;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;

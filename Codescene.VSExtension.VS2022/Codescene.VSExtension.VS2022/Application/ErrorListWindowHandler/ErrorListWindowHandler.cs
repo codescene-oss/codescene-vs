@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using static Codescene.VSExtension.CodeLensProvider.Providers.Base.Constants;
+using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorListWindowHandler;
 

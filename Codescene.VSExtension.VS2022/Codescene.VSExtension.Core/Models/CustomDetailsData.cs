@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.CodeLensShared
+﻿namespace Codescene.VSExtension.Core.Models
 {
     public class CustomDetailsData
     {

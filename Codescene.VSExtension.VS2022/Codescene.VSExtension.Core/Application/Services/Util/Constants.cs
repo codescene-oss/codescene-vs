@@ -1,23 +1,7 @@
-﻿using Microsoft.VisualStudio.Core.Imaging;
-using Microsoft.VisualStudio.Imaging;
-
-namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
+﻿namespace Codescene.VSExtension.Core.Application.Services.Util
 {
     public class Constants
     {
-        public class Utils
-        {
-            public const int TEXT_CHANGE_CHECK_INTERVAL_MILISECONDS = 3000;
-        }
-
-        public class SupportedLanguages
-        {
-            public const string CONTENT_TYPE_CSHARP = "CSharp";
-            public const string CONTENT_TYPE_JAVA = "Java";
-            public const string CONTENT_TYPE_JAVASCRIPT = "JavaScript";
-            public const string CONTENT_TYPE_TYPESCRIPT = "TypeScript";
-        }
-
         public class Titles
         {
             public const string CODESCENE = "CodeScene";
@@ -53,12 +37,6 @@ namespace Codescene.VSExtension.CodeLensProvider.Providers.Base
 
             public const string CODE_HEALTH_MONITOR = "Code Health Monitor";
             public const string GENERAL_CODE_HEALTH = "General Code Health";
-        }
-
-        public class Images
-        {
-            public static readonly ImageId WarningImageId = new ImageId(KnownMonikers.StatusWarningNoColor.Guid, KnownMonikers.StatusWarningNoColor.Id);
-            public static readonly ImageId HeartbeatImageId = new ImageId(KnownMonikers.Wizard.Guid, KnownMonikers.Wizard.Id);
         }
     }
 }

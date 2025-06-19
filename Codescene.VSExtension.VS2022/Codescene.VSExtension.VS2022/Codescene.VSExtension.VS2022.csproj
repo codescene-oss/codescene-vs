@@ -51,8 +51,8 @@
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
-    <Compile Include="CodeLens\CodeLensConnection.cs" />
-    <Compile Include="CodeLens\CodesceneCodelensCallbackService.cs" />
+    <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
+    <Compile Include="ToolWindows\ViewElementFactory.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
     <Compile Include="Commands\SignOutCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
@@ -60,7 +60,6 @@
       <DependentUpon>BrainClass.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\BrainMethod.xaml.cs">
-      <DependentUpon>BrainMethod.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\BumpyRoadAhead.xaml.cs">
       <DependentUpon>BumpyRoadAhead.xaml</DependentUpon>
@@ -152,7 +151,6 @@
     <Compile Include="Controls\UnderlineTaggerTooltip.xaml.cs">
       <DependentUpon>UnderlineTaggerTooltip.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DocumentEventsHandler\ActiveDocumentTextChangeHandler.cs" />
     <Compile Include="DocumentEventsHandler\EditorDocumentLifecycleHandler.cs" />
     <Compile Include="DocumentEventsHandler\OnActiveWindowChangeHandler.cs" />
     <Compile Include="DocumentEventsHandler\OnBeforeDocumentWindowShowHandler.cs" />
@@ -593,18 +591,22 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Controls\BrainClass.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\BrainMethod.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\BumpyRoadAhead.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\CodeDuplication.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -617,38 +619,47 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\ComplexConditional.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\ComplexMethod.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\ConstructorOverInjection.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\DeepGlobalNestedComplexity.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\DeepNestedComplexity.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\DuplicatedAssertionBlocks.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\DuplicatedFunctionBlocks.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\ExcessNumberOfFunctionArguments.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\FileSizeIssue.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -657,62 +668,77 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\GlobalConditionals.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\HighDegreeOfCodeDuplication.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\LargeAssertionBlocks.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\LargeEmbeddedCodeBlock.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\LargeMethod.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\LinesOfCodeInASingleFile.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\LinesOfDeclarationsInASingleFile.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\LowCohesion.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\MissingArgumentsAbstractions.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\ModularityIssue.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\NumberOfFunctionsInASingleModule.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\OverallCodeComplexity.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\PotentiallyLowCohesion.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\PrimitiveObsession.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\StringHeavyFunctionArguments.xaml">
+      <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

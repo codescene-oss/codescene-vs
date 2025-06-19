@@ -8,7 +8,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using static Codescene.VSExtension.CodeLensProvider.Providers.Base.Constants;
+using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 
 namespace Codescene.VSExtension.VS2022.EditorMargin;
 

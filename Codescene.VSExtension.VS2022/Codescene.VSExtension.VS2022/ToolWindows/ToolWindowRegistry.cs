@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.CodeLensProvider.Providers.Base;
+﻿using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.VS2022.Controls;
 using System;
 using System.Collections.Generic;

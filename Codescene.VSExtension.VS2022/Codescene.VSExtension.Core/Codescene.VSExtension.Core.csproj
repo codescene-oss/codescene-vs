@@ -107,6 +107,7 @@
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Application\Services\PreflightManager\IPreflightManager.cs" />
     <Compile Include="Application\Services\PreflightManager\PreflightManager.cs" />
+    <Compile Include="Application\Services\Util\Constants.cs" />
     <Compile Include="Application\Services\Util\IDebounceService.cs" />
     <Compile Include="Application\Services\WebComponent\CodeSmellDocumentationMapper.cs" />
     <Compile Include="Application\Services\WebComponent\AceComponentMapper.cs" />
@@ -131,6 +132,7 @@
     <Compile Include="Models\Cli\Review\CliCodeHealthRulesErrorModel.cs" />
     <Compile Include="Models\CodeSmellRangeModel.cs" />
     <Compile Include="Models\CodeSmellTooltipModel.cs" />
+    <Compile Include="Models\CustomDetailsData.cs" />
     <Compile Include="Models\LoginResponse.cs" />
     <Compile Include="Models\CodeSmellModel.cs" />
     <Compile Include="Models\Cli\Review\CliCodeSmellModel.cs" />
