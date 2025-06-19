@@ -4,7 +4,6 @@ using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
-using Codescene.VSExtension.Core.Application.Services.Mapper;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
@@ -25,9 +24,6 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
     {
         [Import]
         private readonly ILogger _logger;
-
-        [Import]
-        private readonly IModelMapper _mapper;
 
         [Import]
         private readonly ICodeReviewer _reviewer;
