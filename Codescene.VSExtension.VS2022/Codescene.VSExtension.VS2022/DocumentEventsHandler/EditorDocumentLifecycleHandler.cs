@@ -52,7 +52,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
             if (!isSupportedForReview) return;
 
-            _logger.Info($"File opened: {filePath}. ");
+            _logger.Debug($"File opened: {filePath}. ");
             string initialContent = buffer.CurrentSnapshot.GetText();
 
             ReviewContentAsync(filePath, initialContent, buffer).FireAndForget();
@@ -70,8 +70,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
             textView.Closed += (sender, args) =>
             {
-                _logger.Info($"File closed: {filePath}...");
-                _marginSettings.HideMargin();
+                _logger.Debug($"File closed: {filePath}...");
                 // TODO: Stop any pending analysis for optimization?
             };
         }

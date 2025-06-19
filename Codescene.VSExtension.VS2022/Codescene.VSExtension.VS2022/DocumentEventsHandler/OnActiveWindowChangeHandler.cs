@@ -3,6 +3,7 @@ using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
+using System;
 using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
@@ -24,24 +25,39 @@ public class OnActiveWindowChangeHandler
 
     public void Handle(Window gotFocus, Window lostFocus)
     {
-        _logger.Info($"OnActiveWindowChangeHandler. gotFocus: {gotFocus?.Document?.FullName}; lostFocus: {lostFocus?.Document?.FullName}");
+        _logger.Debug($"File got focus: {gotFocus?.Document?.FullName}; File lost focus: {lostFocus?.Document?.FullName}");
 
-        ThreadHelper.ThrowIfNotOnUIThread();
-        if (gotFocus?.Kind == DocumentKind)
+        try
         {
-            var doc = gotFocus.Document;
-            var path = gotFocus.Document.FullName;
+            HandleFocusedFile(gotFocus);
+        }
+        catch (Exception e)
+        {
+            _logger.Error("Could not update margin on file re-focus", e);
+        }
+    }
+
+    private void HandleFocusedFile(Window focused)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        if (focused?.Kind == DocumentKind)
+        {
+            var doc = focused.Document;
+            var path = focused.Document.FullName;
             var isSupportedFile = _supportedFileChecker.IsSupported(path);
 
             if (isSupportedFile && doc.Object("TextDocument") is TextDocument textDoc)
             {
-                // get latest content for file currently in focus and update margin
+                // Get latest content for file currently in focus and update margin
                 var editPoint = textDoc.StartPoint.CreateEditPoint();
                 string content = editPoint.GetText(textDoc.EndPoint);
 
-                _logger.Info($"Current content length: {content.Length}");
                 _marginSettings.UpdateMarginData(path, content);
+                return;
             }
         }
+
+        _marginSettings.HideMargin(); // For unsupported files, or non-document (code) files
     }
 }
