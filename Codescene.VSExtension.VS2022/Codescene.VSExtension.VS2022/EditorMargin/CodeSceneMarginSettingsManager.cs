@@ -30,5 +30,11 @@ public class CodeSceneMarginSettingsManager
         HasScore = false;
         ScoreUpdated?.Invoke();
     }
+
+    public void ResetScore()
+    {
+        HasScore = false;
+        ScoreUpdated?.Invoke();
+    }
 }
 
