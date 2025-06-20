@@ -17,8 +17,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeReviewer : ICodeReviewer
     {
-        private string _content = string.Empty;
-
         [Import]
         private readonly ILogger _logger;
 

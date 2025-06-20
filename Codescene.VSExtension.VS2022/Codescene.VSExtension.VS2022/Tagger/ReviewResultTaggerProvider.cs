@@ -36,8 +36,7 @@ public class ReviewResultTaggerProvider : ITaggerProvider
         var isSupportedForReview = _supportedFileChecker.IsSupported(path);
         if (!isSupportedForReview)
         {
-            // TODO: debug log
-            _logger.Info($"File {path} is not supported for review. Skipping tagger creation...");
+            _logger.Debug($"File {path} is not supported for review. Skipping tagger creation...");
             return null;
         }
 

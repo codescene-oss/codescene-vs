@@ -1,6 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -29,8 +30,12 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
                 if (!File.Exists(_cliSettingsProvider.CliFileFullPath))
                 {
                     _logger.Info($"Setting up CodeScene...");
+                    var stopwatch = Stopwatch.StartNew();
+
                     await _cliDownloader.DownloadAsync();
-                    _logger.Info($"CodeScene setup complete.");
+                    stopwatch.Stop();
+
+                    _logger.Info($"CodeScene setup completed in {stopwatch.ElapsedMilliseconds} ms.");
                     return;
                 }
 

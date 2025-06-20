@@ -43,8 +43,7 @@ public class DebounceService : IDebounceService, IDisposable
                                 if (_timers.TryGetValue(key, out var currentCts) && currentCts == cts)
                                     _timers.Remove(key);
                             }
-                            //TODO: debug log
-                            _logger.Info($"Performing debounced action... [{key}]");
+                            _logger.Debug($"Performing debounced action... [{key}]");
                             action();
                         }
                         cts.Dispose();

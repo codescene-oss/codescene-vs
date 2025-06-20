@@ -86,6 +86,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 var result = _reviewer.Review(path, code);
 
                 cache.Put(new ReviewCacheEntry(code, path, result));
+                _logger.Info($"File {path} reviewed successfully.");
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(result);
