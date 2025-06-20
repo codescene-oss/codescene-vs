@@ -73,7 +73,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
                     string score = item.Score.ToString();
                     if (score == "0") score = "N/A";
 
-                    _label.Text = $"{Titles.CODESCENE} Health Score: {score} ({Path.GetFileName(path)})";
+                    _label.Text = $"{Titles.CODESCENE} Code Health Score: {score} ({Path.GetFileName(path)})";
                 }
             }
         });

@@ -61,7 +61,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 _debounceService.Debounce(
                     filePath,
                     () => ReviewContentAsync(filePath, currentContent, buffer).FireAndForget(),
-                    TimeSpan.FromSeconds(2));
+                    TimeSpan.FromSeconds(3));
             };
 
             textView.Closed += (sender, args) =>
