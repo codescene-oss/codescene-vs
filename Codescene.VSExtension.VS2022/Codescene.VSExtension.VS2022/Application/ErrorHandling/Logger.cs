@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using static Codescene.VSExtension.CodeLensProvider.Providers.Base.Constants;
+using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 
@@ -42,8 +42,8 @@ internal class Logger : ILogger
 
     public void Debug(string message)
     {
-        //    IVsActivityLog log = Package.GetGlobalService(typeof(SVsActivityLog)) as IVsActivityLog;
-        //    log?.LogEntry((uint)__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, "YourExtensionName", "This is a log message.");
+        ActivityLog.TryLogInformation(Titles.CODESCENE, message);
+
         Console.WriteLine(message);
     }
 

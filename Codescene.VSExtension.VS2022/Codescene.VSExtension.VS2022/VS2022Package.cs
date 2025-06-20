@@ -46,14 +46,8 @@ public sealed class VS2022Package : ToolkitPackage
         // Commands
         await this.RegisterCommandsAsync();
 
-        // Events
-        await RegisterEventsAsync();
-
         // Cli file
         await CheckCliFileAsync();
-
-        // Check active document
-        await CheckActiveOpenedDocumentAsync();
 
         // Subscribe on active document change event
         await SubscribeOnActiveWindowChangeAsync();
@@ -78,12 +72,6 @@ public sealed class VS2022Package : ToolkitPackage
         throw new Exception($"Can not find component {nameof(T)}");
     }
 
-    async Task RegisterEventsAsync()
-    {
-        var eventManager = await GetServiceAsync<ExtensionEventsManager>();
-        eventManager.RegisterEvents();
-    }
-
     async Task InitializeLoggerPaneAsync()
     {
         var logPane = await GetServiceAsync<OutputPaneManager>();
@@ -94,22 +82,6 @@ public sealed class VS2022Package : ToolkitPackage
     {
         var cliFileChecker = await GetServiceAsync<ICliFileChecker>();
         await cliFileChecker.Check();
-    }
-
-    async Task CheckActiveOpenedDocumentAsync()
-    {
-        await JoinableTaskFactory.SwitchToMainThreadAsync(DisposalToken);
-
-        if (await GetServiceAsync(typeof(SDTE)) is DTE dte)
-        {
-            Document activeDocument = dte.ActiveDocument;
-            if (activeDocument != null)
-            {
-                var path = activeDocument.FullName;
-                var handler = await GetServiceAsync<OnStartExtensionActiveDocumentHandler>();
-                handler.Handle(path);
-            }
-        }
     }
 
     async Task SubscribeOnActiveWindowChangeAsync()

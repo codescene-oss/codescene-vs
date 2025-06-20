@@ -2,7 +2,6 @@
 {
     public interface ISupportedFileChecker
     {
-        bool IsSupported(string extension);
-        bool IsNotSupported(string extension);
+        bool IsSupported(string filePath);
     }
 }

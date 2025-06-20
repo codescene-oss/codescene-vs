@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
@@ -8,18 +8,15 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class SupportedFileChecker : ISupportedFileChecker
     {
-        private readonly List<string> _list = new List<string> { ".cs", ".cpp", ".c", ".js", ".ts", ".java" };
+        private readonly List<string> _supportedExtensions = new List<string> { ".cs", ".cpp", ".c", ".js", ".ts", ".java" };
 
-        public bool IsNotSupported(string extension) => !IsSupported(extension);
-
-        public bool IsSupported(string extension)
+        public bool IsSupported(string filePath)
         {
-            if (string.IsNullOrWhiteSpace(extension))
-            {
-                throw new ArgumentNullException(nameof(extension));
-            }
+            if (string.IsNullOrWhiteSpace(filePath)) return false;
 
-            return _list.Contains(extension.ToLower());
+            var extension = Path.GetExtension(filePath);
+
+            return _supportedExtensions.Contains(extension.ToLower());
         }
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using static Codescene.VSExtension.CodeLensProvider.Providers.Base.Constants;
+using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 

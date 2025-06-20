@@ -19,7 +19,7 @@ namespace Codescene.VSExtension.VS2022.Controls
     public partial class UnderlineTaggerTooltip : UserControl
     {
         [Import]
-        private UnderlineTaggerTooltipModel _viewModel { get; set; }
+        private ReviewResultTaggerTooltipModel _viewModel { get; set; }
 
         public UnderlineTaggerTooltip(UnderlineTaggerTooltipParams tooltipParams)
         {

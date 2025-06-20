@@ -233,13 +233,20 @@ public partial class WebComponentUserControl : UserControl
 
     public void UpdateView<T>(T message)
     {
-        var settings = new JsonSerializerSettings
+        try
         {
-            ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
-            Formatting = Formatting.None
-        };
-        var messageString = JsonConvert.SerializeObject(message, settings);
+            var settings = new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
+                Formatting = Formatting.None
+            };
+            var messageString = JsonConvert.SerializeObject(message, settings);
 
-        webView.CoreWebView2.PostWebMessageAsJson(messageString);
+            webView.CoreWebView2.PostWebMessageAsJson(messageString);
+        }
+        catch (Exception e)
+        {
+            _logger.Error("Could not update webview.", e);
+        }
     }
 }

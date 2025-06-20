@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Models.Cli.Delta;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Newtonsoft.Json;
@@ -8,12 +9,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
     [Export(typeof(ICliExecuter))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliExecuter : ICliExecuter
     {
+        [Import]
+        private readonly ILogger _logger;
+
         [Import]
         private readonly ICliCommandProvider _cliCommandProvider;
 
@@ -37,7 +42,12 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         public CliReviewModel ReviewContent(string filename, string content)
         {
             var arguments = _cliCommandProvider.GetReviewFileContentCommand(filename);
+
+            var stopwatch = Stopwatch.StartNew();
             var result = ExecuteCommand(arguments, content: content);
+            stopwatch.Stop();
+
+            _logger.Debug($"{Titles.CODESCENE} CLI file review completed in {stopwatch.ElapsedMilliseconds} ms.");
             return JsonConvert.DeserializeObject<CliReviewModel>(result);
         }
 
@@ -82,13 +92,13 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
             var psi = new ProcessStartInfo
             {
-                FileName               = exePath,
-                Arguments              = arguments,
-                UseShellExecute        = false,
-                RedirectStandardInput  = true,
+                FileName = exePath,
+                Arguments = arguments,
+                UseShellExecute = false,
+                RedirectStandardInput = true,
                 RedirectStandardOutput = true,
-                RedirectStandardError  = true,
-                CreateNoWindow         = true
+                RedirectStandardError = true,
+                CreateNoWindow = true
             };
 
             var stdout = new StringBuilder();
@@ -98,7 +108,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
 
             proc.OutputDataReceived += (_, e) => { if (e.Data != null) stdout.AppendLine(e.Data); };
-            proc.ErrorDataReceived  += (_, e) => { if (e.Data != null) stderr.AppendLine(e.Data); };
+            proc.ErrorDataReceived += (_, e) => { if (e.Data != null) stderr.AppendLine(e.Data); };
 
             proc.Exited += (_, __) =>
             {
