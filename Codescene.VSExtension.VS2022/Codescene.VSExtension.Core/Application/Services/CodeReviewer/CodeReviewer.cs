@@ -1,6 +1,10 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
+using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Git;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.Core.Models.WebComponent;
@@ -26,6 +30,9 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         [Import]
         private readonly ICliExecuter _executer;
 
+        [Import]
+        private readonly IGitService _git;
+
         public FileReviewModel Review(string path, string content)
         {
             var fileName = Path.GetFileName(path);
@@ -39,6 +46,40 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             var review = _executer.ReviewContent(fileName, content);
 
             return _mapper.Map(path, review); ;
+        }
+
+        public DeltaResponseModel Delta(string path, string currentRawScore, string currentCode)
+        {
+            try
+            {
+                var fileName = Path.GetFileName(path);
+
+                if (string.IsNullOrWhiteSpace(fileName))
+                {
+                    _logger.Warn($"Could not review path {path}. Missing content or file path.");
+                }
+
+
+                var oldCode = _git.GetFileContentForCommit(path);
+                var cache = new DeltaCacheService();
+                var entry = cache.Get(new DeltaCacheQuery(path, oldCode, currentCode));
+
+                // If cache hit
+                if (entry.Item1) return entry.Item2;
+
+                var oldCodeReview = Review(path, oldCode);
+                var delta = _executer.ReviewDelta(oldCodeReview?.RawScore ?? "", currentRawScore ?? "");
+
+                cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, delta));
+                // Trigger webview update
+
+                return delta;
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Could not perform delta analysis on file {path}", e);
+                return null;
+            }
         }
 
         public async Task<CachedRefactoringActionModel> Refactor(string path, string content, bool invalidateCache = false)

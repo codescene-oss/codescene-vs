@@ -47,7 +47,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         public string GetReviewDeltaCommand(string oldScore, string newScore)
         {
             var scores = _creator.Create(oldScore, newScore);
-            return $"delta < {scores}";
+            return $"{scores}";
         }
     }
 }

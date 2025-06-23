@@ -5,6 +5,7 @@ using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.Shell;
@@ -88,6 +89,8 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 cache.Put(new ReviewCacheEntry(code, path, result));
                 _logger.Info($"File {path} reviewed successfully.");
 
+                DeltaReview(result, code);
+
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(result);
                 _marginSettings.UpdateMarginData(path, code);
@@ -110,6 +113,21 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             {
                 _logger.Warn("Could not get the file path. Aborting review...");
                 return "";
+            }
+        }
+
+        private void DeltaReview(FileReviewModel currentReview, string currentContent)
+        {
+            try
+            {
+                var path = currentReview.FilePath;
+
+                var deltaResult = _reviewer.Delta(path, currentReview.RawScore, currentContent);
+                _logger.Info($"Delta analysis complete: {deltaResult?.ScoreChange}");
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Could not perform delta review on file {currentReview.FilePath}.", e);
             }
         }
     }

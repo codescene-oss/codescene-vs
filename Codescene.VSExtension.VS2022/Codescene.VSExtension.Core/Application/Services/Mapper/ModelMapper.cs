@@ -19,6 +19,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Mapper
             {
                 return new FileReviewModel
                 {
+                    RawScore = result.RawScore,
                     FilePath = filePath,
                     Score = result?.Score ?? 0,
                     FileLevel = result?.FileLevelCodeSmells?

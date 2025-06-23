@@ -3,6 +3,7 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -82,6 +83,54 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             }
         }
 
+        private string ExecuteDeltaCommand(string arguments, string content = null)
+        {
+            var exePath = _cliSettingsProvider.CliFileFullPath;
+            if (!File.Exists(exePath))
+            {
+                throw new FileNotFoundException($"Executable file {exePath} cannot be found!");
+            }
+
+            var processInfo = new ProcessStartInfo
+            {
+                FileName = exePath,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardInput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (var process = new Process { StartInfo = processInfo })
+            {
+                process.Start();
+
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    // Ensure the input is written and flushed
+                    using (var sw = process.StandardInput)
+                    {
+                        sw.Write(content);
+                        sw.Flush();
+                        sw.Close(); // Very important to close input so the process knows input is done
+                    }
+                }
+
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+
+                process.WaitForExit();
+
+                if (process.ExitCode != 0)
+                {
+                    throw new Exception($"Process exited with code {process.ExitCode}. Error: {error}");
+                }
+
+                return output;
+            }
+        }
+
         private Task<(string StdOut, string StdErr, int ExitCode)> ExecuteCommandAsync(string arguments, string content = null)
         {
             var exePath = _cliSettingsProvider.CliFileFullPath;
@@ -120,7 +169,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             proc.BeginOutputReadLine();
             proc.BeginErrorReadLine();
 
-            if (!string.IsNullOrWhiteSpace(content))
+            if (!string.IsNullOrWhiteSpace(content) || arguments.Contains("delta"))
             {
                 proc.StandardInput.Write(content);
                 proc.StandardInput.Close();
@@ -178,11 +227,12 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
         }
 
-        public async Task<DeltaResponseModel> ReviewDelta(string content, string oldScore, string newScore)
+        // Either oldScore or newScore can be null, but not both since delta will fail.
+        public DeltaResponseModel ReviewDelta(string oldScore, string newScore)
         {
             var arguments = _cliCommandProvider.GetReviewDeltaCommand(oldScore: oldScore, newScore: newScore);
-            var result = await ExecuteCommandAsync(arguments, content);
-            return JsonConvert.DeserializeObject<DeltaResponseModel>(result.StdOut);
+            var result = ExecuteDeltaCommand("delta", arguments);
+            return JsonConvert.DeserializeObject<DeltaResponseModel>(result);
         }
 
         public Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells)
