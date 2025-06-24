@@ -71,9 +71,10 @@ internal class WebComponentMessageHandler
 
             case WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION:
                 var payload = msgObject.Payload.ToObject<GotoFunctionLocationPayload>();
+                var startLine = payload.Fn?.Range?.StartLine ?? 1; // When opening files without focus on specific line, Fn is null.
                 _logger.Info($"Handling '{WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION}' event for {payload.FileName}.");
 
-                await DocumentNavigator.OpenFileAndGoToLineAsync(payload.FileName, payload.Fn.Range.StartLine, _logger);
+                await DocumentNavigator.OpenFileAndGoToLineAsync(payload.FileName, startLine, _logger);
 
                 return;
 

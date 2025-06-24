@@ -113,6 +113,7 @@
     <Compile Include="Application\Services\Util\IDebounceService.cs" />
     <Compile Include="Application\Services\WebComponent\CodeSmellDocumentationMapper.cs" />
     <Compile Include="Application\Services\WebComponent\AceComponentMapper.cs" />
+    <Compile Include="Application\Services\WebComponent\CodeHealthMonitorMapper.cs" />
     <Compile Include="Models\Cli\Delta\ChangeDetailModel.cs" />
     <Compile Include="Models\Cli\Delta\ChangeType.cs" />
     <Compile Include="Models\Cli\Delta\DeltaResponseModel.cs" />
@@ -142,6 +143,7 @@
     <Compile Include="Models\Cli\Review\CliReviewModel.cs" />
     <Compile Include="Models\Cli\Review\CliReviewFunctionModel.cs" />
     <Compile Include="Models\Cli\CliRangeModel.cs" />
+    <Compile Include="Models\WebComponent\Data\CodeHealthMonitorComponentData.cs" />
     <Compile Include="Models\WebComponent\Data\CodeSmellDocumentationComponentData.cs" />
     <Compile Include="Models\WebComponent\Model\CachedRefactoringActionModel.cs" />
     <Compile Include="Models\WebComponent\Model\ShowDocumentationModel.cs" />

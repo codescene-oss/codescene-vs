@@ -1,5 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
+using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cache.Review
 {
@@ -43,6 +44,19 @@ namespace Codescene.VSExtension.Core.Application.Services.Cache.Review
             var currentContentHash = Hash(entry.CurrentFileContent);
 
             Cache[entry.FilePath] = new DeltaCacheItem(headHash, currentContentHash, entry.Delta);
+        }
+
+        public Dictionary<string, DeltaResponseModel> GetAll()
+        {
+            var result = new Dictionary<string, DeltaResponseModel>();
+
+            foreach (var pair in Cache)
+            {
+                if (pair.Value.Delta != null)
+                    result[pair.Key] = pair.Value.Delta;
+            }
+
+            return result;
         }
     }
 }

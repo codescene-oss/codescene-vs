@@ -48,18 +48,19 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             return _mapper.Map(path, review); ;
         }
 
-        public DeltaResponseModel Delta(string path, string currentRawScore, string currentCode)
+        public DeltaResponseModel Delta(FileReviewModel review, string currentCode)
         {
+            var path = review.FilePath;
+
+            var currentRawScore = review.RawScore;
+
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                _logger.Warn($"Could not review path {path}. Missing content or file path.");
+            }
+
             try
             {
-                var fileName = Path.GetFileName(path);
-
-                if (string.IsNullOrWhiteSpace(fileName))
-                {
-                    _logger.Warn($"Could not review path {path}. Missing content or file path.");
-                }
-
-
                 var oldCode = _git.GetFileContentForCommit(path);
                 var cache = new DeltaCacheService();
                 var entry = cache.Get(new DeltaCacheQuery(path, oldCode, currentCode));
@@ -71,7 +72,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 var delta = _executer.ReviewDelta(oldCodeReview?.RawScore ?? "", currentRawScore ?? "");
 
                 cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, delta));
-                // Trigger webview update
 
                 return delta;
             }

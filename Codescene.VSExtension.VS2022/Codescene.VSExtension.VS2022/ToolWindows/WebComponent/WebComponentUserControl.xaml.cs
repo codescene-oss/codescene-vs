@@ -42,6 +42,13 @@ public partial class WebComponentUserControl : UserControl
         Initialize(payload, payload.View);
     }
 
+    public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload, ILogger logger)
+    {
+        _logger = logger;
+        InitializeComponent();
+        Initialize(payload, payload.View);
+    }
+
     public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
     {
         _logger = logger;
@@ -231,7 +238,7 @@ public partial class WebComponentUserControl : UserControl
         await handler.HandleAsync(e.WebMessageAsJson);
     }
 
-    public void UpdateView<T>(T message)
+    public async Task UpdateViewAsync<T>(T message)
     {
         try
         {
@@ -242,6 +249,7 @@ public partial class WebComponentUserControl : UserControl
             };
             var messageString = JsonConvert.SerializeObject(message, settings);
 
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             webView.CoreWebView2.PostWebMessageAsJson(messageString);
         }
         catch (Exception e)

@@ -8,6 +8,7 @@
         {
             public const string ACE = "ace";
             public const string DOCS = "docs";
+            public const string HOME = "home"; // Code Health Monitor
         }
 
         public class MessageTypes

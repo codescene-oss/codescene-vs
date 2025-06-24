@@ -7,6 +7,7 @@ using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.VS2022.EditorMargin;
+using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -89,7 +90,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 cache.Put(new ReviewCacheEntry(code, path, result));
                 _logger.Info($"File {path} reviewed successfully.");
 
-                DeltaReview(result, code);
+                DeltaReviewAsync(result, code).FireAndForget();
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(result);
@@ -116,14 +117,14 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             }
         }
 
-        private void DeltaReview(FileReviewModel currentReview, string currentContent)
+        private async Task DeltaReviewAsync(FileReviewModel currentReview, string currentContent)
         {
             try
             {
-                var path = currentReview.FilePath;
-
-                var deltaResult = _reviewer.Delta(path, currentReview.RawScore, currentContent);
+                var deltaResult = _reviewer.Delta(currentReview, currentContent);
                 _logger.Info($"Delta analysis complete: {deltaResult?.ScoreChange}");
+
+                CodeSceneToolWindow.UpdateViewAsync().FireAndForget();
             }
             catch (Exception e)
             {
