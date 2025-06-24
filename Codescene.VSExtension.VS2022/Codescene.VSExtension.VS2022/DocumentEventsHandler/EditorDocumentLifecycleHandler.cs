@@ -53,7 +53,8 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             _logger.Debug($"File opened: {filePath}. ");
             string initialContent = buffer.CurrentSnapshot.GetText();
 
-            ReviewContentAsync(filePath, initialContent, buffer).FireAndForget();
+            // Run on background thread:
+            Task.Run(() => ReviewContentAsync(filePath, initialContent, buffer)).FireAndForget();
 
             // Triggered when the file content changes (typing, etc.)
             buffer.Changed += (sender, args) =>
@@ -62,7 +63,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
                 _debounceService.Debounce(
                     filePath,
-                    () => ReviewContentAsync(filePath, currentContent, buffer).FireAndForget(),
+                    () => Task.Run(() => ReviewContentAsync(filePath, initialContent, buffer)).FireAndForget(),
                     TimeSpan.FromSeconds(3));
             };
 
@@ -122,7 +123,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             try
             {
                 var deltaResult = _reviewer.Delta(currentReview, currentContent);
-                _logger.Info($"Delta analysis complete: {deltaResult?.ScoreChange}");
+                _logger.Info($"Delta analysis complete, score change: {deltaResult?.ScoreChange}");
 
                 CodeSceneToolWindow.UpdateViewAsync().FireAndForget();
             }
