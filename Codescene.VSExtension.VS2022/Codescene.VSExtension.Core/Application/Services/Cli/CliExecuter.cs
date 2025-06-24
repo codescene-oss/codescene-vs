@@ -17,6 +17,8 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliExecuter : ICliExecuter
     {
+        private readonly int DELTA_TIMEOUT = 10000; //ms
+
         [Import]
         private readonly ILogger _logger;
 
@@ -42,14 +44,22 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public CliReviewModel ReviewContent(string filename, string content)
         {
-            var arguments = _cliCommandProvider.GetReviewFileContentCommand(filename);
+            try
+            {
+                var arguments = _cliCommandProvider.GetReviewFileContentCommand(filename);
 
-            var stopwatch = Stopwatch.StartNew();
-            var result = ExecuteCommand(arguments, content: content);
-            stopwatch.Stop();
+                var stopwatch = Stopwatch.StartNew();
+                var result = ExecuteCommand(arguments, content: content);
+                stopwatch.Stop();
 
-            _logger.Debug($"{Titles.CODESCENE} CLI file review completed in {stopwatch.ElapsedMilliseconds} ms.");
-            return JsonConvert.DeserializeObject<CliReviewModel>(result);
+                _logger.Debug($"{Titles.CODESCENE} CLI file review completed in {stopwatch.ElapsedMilliseconds} ms.");
+                return JsonConvert.DeserializeObject<CliReviewModel>(result);
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Review of file {filename} failed.", e);
+                return null;
+            }
         }
 
         private string ExecuteCommand(string arguments, string content = null)
@@ -106,21 +116,23 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             {
                 process.Start();
 
-                if (!string.IsNullOrWhiteSpace(content))
+                using (var sw = process.StandardInput)
                 {
-                    // Ensure the input is written and flushed
-                    using (var sw = process.StandardInput)
+                    if (!string.IsNullOrWhiteSpace(content))
                     {
                         sw.Write(content);
                         sw.Flush();
-                        sw.Close(); // Very important to close input so the process knows input is done
                     }
+                }
+
+                if (!process.WaitForExit(DELTA_TIMEOUT))
+                {
+                    try { process.Kill(); } catch (Exception ex) { _logger.Error("Failed to kill timed-out process", ex); }
+                    throw new TimeoutException($"Process exceeded timeout of {DELTA_TIMEOUT} ms.");
                 }
 
                 string output = process.StandardOutput.ReadToEnd();
                 string error = process.StandardError.ReadToEnd();
-
-                process.WaitForExit();
 
                 if (process.ExitCode != 0)
                 {
@@ -230,12 +242,20 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         // Either oldScore or newScore can be null, but not both since delta will fail.
         public DeltaResponseModel ReviewDelta(string oldScore, string newScore)
         {
-            var arguments = _cliCommandProvider.GetReviewDeltaCommand(oldScore: oldScore, newScore: newScore);
+            try
+            {
+                var arguments = _cliCommandProvider.GetReviewDeltaCommand(oldScore: oldScore, newScore: newScore);
 
-            if (string.IsNullOrEmpty(arguments)) return null;
+                if (string.IsNullOrEmpty(arguments)) return null;
 
-            var result = ExecuteDeltaCommand("delta", arguments);
-            return JsonConvert.DeserializeObject<DeltaResponseModel>(result);
+                var result = ExecuteDeltaCommand("delta", arguments);
+                return JsonConvert.DeserializeObject<DeltaResponseModel>(result);
+            }
+            catch (Exception e)
+            {
+                _logger.Error("Delta for file failed.", e);
+                return null;
+            }
         }
 
         public Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells)
