@@ -231,6 +231,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         public DeltaResponseModel ReviewDelta(string oldScore, string newScore)
         {
             var arguments = _cliCommandProvider.GetReviewDeltaCommand(oldScore: oldScore, newScore: newScore);
+
+            if (string.IsNullOrEmpty(arguments)) return null;
+
             var result = ExecuteDeltaCommand("delta", arguments);
             return JsonConvert.DeserializeObject<DeltaResponseModel>(result);
         }

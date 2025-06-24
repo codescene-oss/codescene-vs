@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.Composition;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using System.ComponentModel.Composition;
 using System.Text;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
@@ -7,6 +8,10 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliObjectScoreCreator : ICliObjectScoreCreator
     {
+        [Import]
+        private readonly ILogger _logger;
+
+
         /// <summary>
         /// 
         /// </summary>
@@ -23,6 +28,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             // No need to run the delta command if the scores are the same
             if (oldScore == newScore)
             {
+                _logger.Debug("Scores are the same, skipping delta...");
                 return string.Empty;
             }
 
