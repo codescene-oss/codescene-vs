@@ -51,12 +51,12 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         public DeltaResponseModel Delta(FileReviewModel review, string currentCode)
         {
             var path = review.FilePath;
-
-            var currentRawScore = review.RawScore;
+            var currentRawScore = review.RawScore ?? "";
 
             if (string.IsNullOrWhiteSpace(path))
             {
-                _logger.Warn($"Could not review path {path}. Missing content or file path.");
+                _logger.Warn($"Could not review file, missing file path.");
+                return null;
             }
 
             try
@@ -69,7 +69,9 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 if (entry.Item1) return entry.Item2;
 
                 var oldCodeReview = Review(path, oldCode);
-                var delta = _executer.ReviewDelta(oldCodeReview?.RawScore ?? "", currentRawScore ?? "");
+                var oldRawScore = oldCodeReview?.RawScore ?? "";
+
+                var delta = _executer.ReviewDelta(oldRawScore, currentRawScore);
 
                 cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, delta));
 

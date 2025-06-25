@@ -74,6 +74,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
         /// <summary>
         /// Reviews the content of a file, updates cache and refreshes UI indicators (Code Health margin, error list, tagger).
+        /// Triggers delta analysis.
         /// </summary>
         private async Task ReviewContentAsync(string path, ITextBuffer buffer)
         {
@@ -89,9 +90,12 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 var result = _reviewer.Review(path, code);
 
                 cache.Put(new ReviewCacheEntry(code, path, result));
-                _logger.Info($"File {path} reviewed successfully.");
 
-                DeltaReviewAsync(result, code).FireAndForget();
+                if (result != null)
+                {
+                    _logger.Info($"File {path} reviewed successfully.");
+                    DeltaReviewAsync(result, code).FireAndForget();
+                }
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(result);
@@ -118,12 +122,18 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             }
         }
 
+        /// <summary>
+        /// Triggers delta analysis based on review of the most current content in a file.
+        /// Updates or opens the Code Health Monitor tool window.
+        /// </summary>
         private async Task DeltaReviewAsync(FileReviewModel currentReview, string currentContent)
         {
             try
             {
                 var deltaResult = _reviewer.Delta(currentReview, currentContent);
-                _logger.Info($"Delta analysis complete, score change: {deltaResult?.ScoreChange}");
+
+                var scoreChange = deltaResult?.ScoreChange.ToString() ?? "none";
+                _logger.Info($"Delta analysis complete for file {currentReview.FilePath}, Code Health score change: {scoreChange}");
 
                 CodeSceneToolWindow.UpdateViewAsync().FireAndForget();
             }

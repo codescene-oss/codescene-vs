@@ -52,12 +52,14 @@ public class GitService : IGitService
             var repoPath = Repository.Discover(path);
             if (string.IsNullOrEmpty(repoPath))
             {
-                _logger.Warn("Repository path is null");
+                _logger.Warn("Repository path is null. Aborting retrieval of file content for specific commit.");
                 return "";
             }
 
             var repo = new Repository(repoPath);
             var commitHash = GetBranchCreationCommit(path, repo);
+
+            if (string.IsNullOrEmpty(commitHash)) return "";
 
             var repoRoot = repo.Info.WorkingDirectory;
             var relativePath = GetRelativePath(repoRoot, path).Replace("\\", "/");
@@ -73,7 +75,7 @@ public class GitService : IGitService
         }
         catch (Exception e)
         {
-            _logger.Error("Could not do git stuff", e);
+            _logger.Warn($"Could get file content for specific commit: {e.Message}");
             return "";
         }
     }

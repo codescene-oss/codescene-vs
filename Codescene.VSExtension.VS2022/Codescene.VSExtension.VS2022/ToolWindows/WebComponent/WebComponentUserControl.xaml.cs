@@ -153,6 +153,7 @@ public partial class WebComponentUserControl : UserControl
                 --cs-theme-editor-background: #{editorBackground.R:X2}{editorBackground.G:X2}{editorBackground.B:X2};
                 --cs-theme-textCodeBlock-background: #{codeBlockBackground.R:X2}{codeBlockBackground.G:X2}{codeBlockBackground.B:X2};
                 --cs-theme-button-secondaryBackground: #{secondaryBackground.R:X2}{secondaryBackground.G:X2}{secondaryBackground.B:X2};
+                --cs-theme-foreground-10: #{textForeground.R:X2}{textForeground.G:X2}{textForeground.B:X2}1A;       
         }}";
     }
 
