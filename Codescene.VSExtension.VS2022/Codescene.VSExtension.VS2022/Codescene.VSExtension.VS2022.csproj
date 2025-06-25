@@ -53,6 +53,7 @@
     <Compile Include="Application\Git\GitService.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
     <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
+    <Compile Include="Handlers\SolutionEventsHandler.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
     <Compile Include="ToolWindows\ViewElementFactory.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
@@ -153,8 +154,8 @@
     <Compile Include="Controls\UnderlineTaggerTooltip.xaml.cs">
       <DependentUpon>UnderlineTaggerTooltip.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DocumentEventsHandler\EditorDocumentLifecycleHandler.cs" />
-    <Compile Include="DocumentEventsHandler\OnActiveWindowChangeHandler.cs" />
+    <Compile Include="Handlers\EditorDocumentLifecycleHandler.cs" />
+    <Compile Include="Handlers\OnActiveWindowChangeHandler.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginSettingsManager.cs" />
     <Compile Include="ToolWindows\WebComponent\CodeSceneToolWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\CodeSmellDocumentationWindow.cs" />

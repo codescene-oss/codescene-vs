@@ -1,6 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.DocumentEventsHandler;
+using Codescene.VSExtension.VS2022.Listeners;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
@@ -55,8 +56,16 @@ public sealed class VS2022Package : ToolkitPackage
 
         //Hide Windows
         await HideOpenedWindowsAsync();
+
+        // Solution events handler
+        await InitializeSolutionEventsHandlerAsync();
     }
 
+
+    async Task InitializeSolutionEventsHandlerAsync()
+    {
+        await new SolutionEventsHandler().Initialize(this);
+    }
 
     async Task HideOpenedWindowsAsync()
     {
