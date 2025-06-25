@@ -28,7 +28,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         private readonly IModelMapper _mapper;
 
         [Import]
-        private readonly ICliExecuter _executer;
+        private readonly ICliExecutor _executer;
 
         [Import]
         private readonly IGitService _git;

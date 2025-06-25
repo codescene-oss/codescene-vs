@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
-    public interface ICliExecuter
+    public interface ICliExecutor
     {
         CliReviewModel Review(string path);
         CliReviewModel ReviewContent(string filename, string content);

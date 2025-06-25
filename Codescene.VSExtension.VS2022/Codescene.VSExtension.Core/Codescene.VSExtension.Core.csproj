@@ -85,11 +85,13 @@
     <Compile Include="Application\Services\Cache\Review\Model\Review\ReviewCacheQuery.cs" />
     <Compile Include="Application\Services\Cache\Review\ReviewCacheService.cs" />
     <Compile Include="Application\Services\Cli\CliCommandProvider.cs" />
-    <Compile Include="Application\Services\Cli\CliExecuter.cs" />
+    <Compile Include="Application\Services\Cli\CliExecutor.cs" />
     <Compile Include="Application\Services\Cli\CliFileChecker.cs" />
     <Compile Include="Application\Services\Cli\CliSettingsProvider.cs" />
     <Compile Include="Application\Services\Cli\ICliObjectScoreCreator.cs" />
     <Compile Include="Application\Services\Cli\CliObjectScoreCreator.cs" />
+    <Compile Include="Application\Services\Cli\IProcessExecutor.cs" />
+    <Compile Include="Application\Services\Cli\ProcessExecutor.cs" />
     <Compile Include="Application\Services\Cli\SupportedFileChecker.cs" />
     <Compile Include="Application\Services\Cli\ICliCommandProvider.cs" />
     <Compile Include="Application\Services\Cli\ICliFileChecker.cs" />
@@ -100,7 +102,7 @@
     <Compile Include="Application\Services\ErrorHandling\ILogger.cs" />
     <Compile Include="Application\Services\Cli\CliDownloader.cs" />
     <Compile Include="Application\Services\Cli\ICliDownloader.cs" />
-    <Compile Include="Application\Services\Cli\ICliExecuter.cs" />
+    <Compile Include="Application\Services\Cli\ICliExecutor.cs" />
     <Compile Include="Application\Services\ErrorListWindowHandler\IErrorListWindowHandler.cs" />
     <Compile Include="Application\Services\Git\IGitCliService.cs" />
     <Compile Include="Application\Services\Mapper\IModelMapper.cs" />
