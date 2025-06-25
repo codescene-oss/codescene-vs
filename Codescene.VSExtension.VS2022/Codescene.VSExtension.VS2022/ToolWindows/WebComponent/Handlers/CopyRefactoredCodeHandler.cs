@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
 using System.ComponentModel.Composition;
 using System.Windows;
 
@@ -10,10 +10,10 @@ public class CopyRefactoredCodeHandler
 {
 
     [Import]
-    private readonly ICodeReviewer _reviewer;
+    private readonly IAceManager _aceManager;
     public void CopyToRefactoredCodeToClipboard()
     {
-        var cache = _reviewer.GetCachedRefactoredCode();
+        var cache = _aceManager.GetCachedRefactoredCode();
         Clipboard.SetText(cache.Refactored.Code);
     }
 }
