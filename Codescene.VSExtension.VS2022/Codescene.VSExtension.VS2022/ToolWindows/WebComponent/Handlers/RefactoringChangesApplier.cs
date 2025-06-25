@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
+using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -15,13 +16,13 @@ public class RefactoringChangesApplier
 {
 
     [Import]
-    private readonly ICodeReviewer _reviewer;
+    private readonly IAceManager _aceManager;
 
     public async Task ApplyAsync()
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        var cache = _reviewer.GetCachedRefactoredCode();
+        var cache = _aceManager.GetCachedRefactoredCode();
         var newCode = cache.Refactored.Code;
 
         var docView = await VS.Documents.OpenAsync(cache.Path);
