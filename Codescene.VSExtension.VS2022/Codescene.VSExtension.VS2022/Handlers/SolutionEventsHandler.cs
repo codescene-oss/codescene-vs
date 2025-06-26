@@ -1,5 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.VS2022.Application.Git;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio;
@@ -18,6 +19,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 {
     private uint _cookie;
     private IVsSolution _solution;
+    private BranchWatcherService _branchWatcher;
 
     /// <summary>
     /// Subscribes to solution events using the Visual Studio shell service.
@@ -63,6 +65,29 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         return VSConstants.S_OK;
     }
 
+    public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+    {
+        _ = Task.Run(async () =>
+        {
+
+            var solution = await VS.Solutions.GetCurrentSolutionAsync();
+            var solutionPath = solution?.FullPath;
+            if (string.IsNullOrEmpty(solutionPath)) return;
+
+            _branchWatcher = new BranchWatcherService();
+            _branchWatcher.StartWatching(solutionPath, async (newBranch) => await OnBranchChangedAsync(newBranch));
+        });
+
+        return VSConstants.S_OK;
+    }
+
+    public int OnBeforeCloseSolution(object pUnkReserved)
+    {
+        _branchWatcher?.Dispose();
+        _branchWatcher = null;
+        return VSConstants.S_OK;
+    }
+
     // The remaining event methods are currently unused, but required by the IVsSolutionEvents interface.
     public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) => VSConstants.S_OK;
 
@@ -76,11 +101,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
     public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy) => VSConstants.S_OK;
 
-    public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution) => VSConstants.S_OK;
-
     public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel) => VSConstants.S_OK;
-
-    public int OnBeforeCloseSolution(object pUnkReserved) => VSConstants.S_OK;
 
     public void Dispose()
     {
@@ -103,5 +124,31 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 await logAction(logger);
             }
         });
+    }
+
+    private async Task OnBranchChangedAsync(string newBranch)
+    {
+        try
+        {
+            Log(logger =>
+            {
+                logger.Info($"Branch switched to: {newBranch}");
+                return Task.CompletedTask;
+            });
+
+            var cache = new DeltaCacheService();
+            cache.Clear();
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            CodeSceneToolWindow.UpdateViewAsync().FireAndForget();
+        }
+        catch (Exception ex)
+        {
+            Log(logger =>
+            {
+                logger.Error($"Failed handling branch switch event: {newBranch}", ex);
+                return Task.CompletedTask;
+            });
+        }
     }
 }

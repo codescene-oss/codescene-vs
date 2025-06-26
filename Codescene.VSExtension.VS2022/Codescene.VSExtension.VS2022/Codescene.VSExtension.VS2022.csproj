@@ -50,6 +50,7 @@
     <Compile Include="Application\ErrorListWindowHandler\CustomErrorListEntry.cs" />
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
+    <Compile Include="Application\Git\BranchWatcherService.cs" />
     <Compile Include="Application\Git\GitService.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
     <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
