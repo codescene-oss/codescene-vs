@@ -36,7 +36,6 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 IdeType = VISUAL_STUDIO_IDE_TYPE,
                 View = ViewTypes.HOME,
                 Data = mapper.Map(deltaCache.GetAll()),
-                Devmode = true // TODO: delete
             };
 
             var ctrl = new WebComponentUserControl(payload, logger)
@@ -69,7 +68,6 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
         var deltaCache = new DeltaCacheService();
         var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
-        var logger = await VS.GetMefServiceAsync<ILogger>();
 
         var message = new WebComponentMessage<CodeHealthMonitorComponentData>
         {
@@ -79,7 +77,6 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 IdeType = VISUAL_STUDIO_IDE_TYPE,
                 View = ViewTypes.HOME,
                 Data = mapper.Map(deltaCache.GetAll()),
-                Devmode = true, // TODO: delete,
             }
         };
         _userControl.UpdateViewAsync(message).FireAndForget();

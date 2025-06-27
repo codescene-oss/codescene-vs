@@ -251,7 +251,7 @@ public partial class WebComponentUserControl : UserControl
             var messageString = JsonConvert.SerializeObject(message, settings);
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            webView.CoreWebView2.PostWebMessageAsJson(messageString);
+            webView.CoreWebView2?.PostWebMessageAsJson(messageString);
         }
         catch (Exception e)
         {

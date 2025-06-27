@@ -99,7 +99,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
                     throw new TimeoutException("Process timed out and could not be killed.", ex);
                 }
 
-                throw new TimeoutException($"Process execution exceeded the timeout of {timeout.TotalMilliseconds} ms.");
+                throw new TimeoutException($"Process execution exceeded the timeout of {timeout.TotalMilliseconds}ms.");
             }
         }
 

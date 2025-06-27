@@ -1,6 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using Codescene.VSExtension.VS2022.Util;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -31,7 +32,8 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 
             return new CodeHealthMonitorComponentData
             {
-                FileDeltaData = files
+                FileDeltaData = files,
+                Jobs = DeltaJobTracker.RunningJobs.ToList(),
             };
         }
 

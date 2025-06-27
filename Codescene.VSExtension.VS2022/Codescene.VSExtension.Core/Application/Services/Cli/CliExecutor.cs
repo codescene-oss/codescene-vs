@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return ExecuteWithTimingAndLogging<CliReviewModel>(
                 "CLI file review",
                 () => _executor.Execute(arguments, content, DEFAULT_TIMEOUT),
-                $"Review of file {filename} failed."
+                $"Review of file {filename} failed"
             );
         }
 

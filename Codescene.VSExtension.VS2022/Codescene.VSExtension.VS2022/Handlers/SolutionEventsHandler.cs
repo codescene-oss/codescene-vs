@@ -132,7 +132,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         {
             Log(logger =>
             {
-                logger.Info($"Branch switched to: {newBranch}");
+                logger.Info($"Branch switched to: '{newBranch}'. Clearing delta cache...");
                 return Task.CompletedTask;
             });
 

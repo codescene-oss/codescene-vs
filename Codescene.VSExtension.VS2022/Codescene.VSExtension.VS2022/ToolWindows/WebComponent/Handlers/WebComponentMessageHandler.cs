@@ -1,5 +1,4 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
@@ -7,6 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
+using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 internal class WebComponentMessageHandler
@@ -45,42 +45,99 @@ internal class WebComponentMessageHandler
 
     private async Task ProcessMessageAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
-        switch (msgObject?.MessageType)
+        if (msgObject?.MessageType == null)
         {
-            case WebComponentConstants.MessageTypes.INIT:
-                return;
-
-            case WebComponentConstants.MessageTypes.COPY_CODE:
-                var copyHandler = await VS.GetMefServiceAsync<CopyRefactoredCodeHandler>();
-                copyHandler.CopyToRefactoredCodeToClipboard();
-                return;
-
-            case WebComponentConstants.MessageTypes.SHOW_DIFF:
-                var diffHandler = await VS.GetMefServiceAsync<ShowDiffHandler>();
-                await diffHandler.ShowDiffWindowAsync();
-                return;
-
-            case WebComponentConstants.MessageTypes.APPLY:
-                var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
-                await applier.ApplyAsync();
-                return;
-
-            case WebComponentConstants.MessageTypes.REJECT:
-                if (_control.CloseRequested is not null) await _control.CloseRequested();
-                return;
-
-            case WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION:
-                var payload = msgObject.Payload.ToObject<GotoFunctionLocationPayload>();
-                var startLine = payload.Fn?.Range?.StartLine ?? 1; // When opening files without focus on specific line, Fn is null.
-                _logger.Info($"Handling '{WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION}' event for {payload.FileName}.");
-
-                await DocumentNavigator.OpenFileAndGoToLineAsync(payload.FileName, startLine, _logger);
-
-                return;
-
-            default:
-                logger.Debug($" Unable to process webview message, unknown message type: {msgObject.MessageType}.");
-                return;
+            logger.Debug("Unable to process webview message: missing MessageType.");
+            return;
         }
+
+        logger.Info($"Handling '{msgObject.MessageType}' message.");
+
+        try
+        {
+            switch (msgObject.MessageType)
+            {
+                case MessageTypes.INIT:
+                    await HandleInitAsync(msgObject, logger);
+                    break;
+
+                case MessageTypes.COPY_CODE:
+                    await HandleCopyCodeAsync();
+                    break;
+
+                case MessageTypes.SHOW_DIFF:
+                    await HandleShowDiffAsync();
+                    break;
+
+                case MessageTypes.APPLY:
+                    await HandleApplyAsync();
+                    break;
+
+                case MessageTypes.REJECT:
+                    await HandleRejectAsync();
+                    break;
+
+                case MessageTypes.GOTO_FUNCTION_LOCATION:
+                    await HandleGotoFunctionLocationAsync(msgObject, logger);
+                    break;
+
+                default:
+                    logger.Debug($"Unknown message type: {msgObject.MessageType}");
+                    break;
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.Error($"Unable to handle '{msgObject.MessageType}'", e);
+        }
+    }
+
+    private async Task HandleInitAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        var source = msgObject.Payload?.ToString();
+        if (string.IsNullOrEmpty(source)) return;
+
+        logger.Info($"Webview '{source}' is ready to take messages.");
+
+        if (source == ViewTypes.HOME)
+        {
+            await CodeSceneToolWindow.UpdateViewAsync().ConfigureAwait(false);
+        }
+    }
+
+    private async Task HandleCopyCodeAsync()
+    {
+        var copyHandler = await VS.GetMefServiceAsync<CopyRefactoredCodeHandler>();
+        copyHandler.CopyToRefactoredCodeToClipboard();
+    }
+
+    private async Task HandleShowDiffAsync()
+    {
+        var diffHandler = await VS.GetMefServiceAsync<ShowDiffHandler>();
+        await diffHandler.ShowDiffWindowAsync();
+    }
+
+    private async Task HandleApplyAsync()
+    {
+        var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
+        await applier.ApplyAsync();
+    }
+
+    private async Task HandleRejectAsync()
+    {
+        if (_control.CloseRequested is not null)
+            await _control.CloseRequested();
+    }
+
+    private async Task HandleGotoFunctionLocationAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        var payload = msgObject.Payload.ToObject<GotoFunctionLocationPayload>();
+        var startLine = payload.Fn?.Range?.StartLine ?? 1;  // When opening files without focus on specific line, Fn is null.
+
+        await DocumentNavigator.OpenFileAndGoToLineAsync(
+            payload.FileName,
+            startLine,
+            logger
+        );
     }
 }

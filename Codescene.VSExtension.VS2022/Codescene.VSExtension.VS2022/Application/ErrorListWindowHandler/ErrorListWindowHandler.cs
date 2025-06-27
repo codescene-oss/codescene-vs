@@ -91,9 +91,7 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
     public void Handle(FileReviewModel review)
     {
         if (review == null || string.IsNullOrWhiteSpace(review.FilePath))
-        {
-            throw new ArgumentNullException(nameof(review));
-        }
+            return;
 
         Delete(review.FilePath);
 
