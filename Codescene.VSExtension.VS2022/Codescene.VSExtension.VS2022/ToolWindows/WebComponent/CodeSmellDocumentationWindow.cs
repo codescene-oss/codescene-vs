@@ -66,7 +66,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
 
     public static void UpdateView(WebComponentMessage<CodeSmellDocumentationComponentData> message)
     {
-        _userControl.UpdateView(message);
+        _userControl.UpdateViewAsync(message).FireAndForget();
     }
 
     [Guid("D9D9979D-0D9C-439A-9062-33945D63FAF8")]

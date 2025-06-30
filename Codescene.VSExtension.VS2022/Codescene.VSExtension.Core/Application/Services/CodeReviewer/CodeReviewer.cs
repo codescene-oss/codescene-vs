@@ -24,7 +24,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         private readonly IModelMapper _mapper;
 
         [Import]
-        private readonly ICliExecuter _executer;
+        private readonly ICliExecutor _executer;
 
         public FileReviewModel Review(string path, string content)
         {

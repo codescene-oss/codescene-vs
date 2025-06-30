@@ -3,6 +3,7 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -12,10 +13,13 @@ using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
-    [Export(typeof(ICliExecuter))]
+    [Export(typeof(ICliExecutor))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class CliExecuter : ICliExecuter
+    public class CliExecutor : ICliExecutor
     {
+        private const int DEFAULT_TIMEOUT_MS = 10000;
+        private static readonly TimeSpan DEFAULT_TIMEOUT = TimeSpan.FromMilliseconds(DEFAULT_TIMEOUT_MS);
+
         [Import]
         private readonly ILogger _logger;
 
@@ -25,8 +29,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         [Import]
         private readonly ICliSettingsProvider _cliSettingsProvider;
 
+        [Import]
+        private readonly IProcessExecutor _executor;
+
         [ImportingConstructor]
-        public CliExecuter(ICliCommandProvider cliCommandProvider, ICliSettingsProvider cliSettingsProvider)
+        public CliExecutor(ICliCommandProvider cliCommandProvider, ICliSettingsProvider cliSettingsProvider)
         {
             _cliCommandProvider = cliCommandProvider;
             _cliSettingsProvider = cliSettingsProvider;
@@ -39,16 +46,39 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return JsonConvert.DeserializeObject<CliReviewModel>(result);
         }
 
+        /// <summary>
+        /// Reviews a file's content by invoking the CLI with the appropriate arguments.
+        /// </summary>
+        /// <param name="filename">The name of the file being reviewed (used for context, not passed to CLI).</param>
+        /// <param name="content">The content (code) of the file to be reviewed.</param>
+        /// <returns>A <see cref="CliReviewModel"/> containing the review results, or null if the review fails.</returns>
         public CliReviewModel ReviewContent(string filename, string content)
         {
             var arguments = _cliCommandProvider.GetReviewFileContentCommand(filename);
 
-            var stopwatch = Stopwatch.StartNew();
-            var result = ExecuteCommand(arguments, content: content);
-            stopwatch.Stop();
+            return ExecuteWithTimingAndLogging<CliReviewModel>(
+                "CLI file review",
+                () => _executor.Execute(arguments, content, DEFAULT_TIMEOUT),
+                $"Review of file {filename} failed"
+            );
+        }
 
-            _logger.Debug($"{Titles.CODESCENE} CLI file review completed in {stopwatch.ElapsedMilliseconds} ms.");
-            return JsonConvert.DeserializeObject<CliReviewModel>(result);
+        private T ExecuteWithTimingAndLogging<T>(string label, Func<string> execute, string errorMessage)
+        {
+            try
+            {
+                var stopwatch = Stopwatch.StartNew();
+                var result = execute();
+                stopwatch.Stop();
+
+                _logger.Debug($"{Titles.CODESCENE} {label} completed in {stopwatch.ElapsedMilliseconds} ms.");
+                return JsonConvert.DeserializeObject<T>(result);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(errorMessage, e);
+                return default;
+            }
         }
 
         private string ExecuteCommand(string arguments, string content = null)

@@ -10,14 +10,14 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
     public class PreflightManager : IPreflightManager
     {
         [Import]
-        private readonly ICliExecuter _executer;
+        private readonly ICliExecutor _executer;
 
         private readonly string[] _codeSmells;
         private readonly string[] _languages;
         private readonly decimal _version;
 
         [ImportingConstructor]
-        public PreflightManager(ICliExecuter executer)
+        public PreflightManager(ICliExecutor executer)
         {
             _executer = executer;
             var response = _executer.Preflight(force: true);

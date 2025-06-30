@@ -11,7 +11,7 @@ namespace Codescene.VSExtension.Tests
     [TestClass]
     public class CliExecuterTests
     {
-        private readonly CliExecuter _cliExecuter;
+        private readonly CliExecutor _cliExecuter;
         private readonly CliCommandProvider _cliCommandProvider;
         private readonly CliSettingsProvider _cliSettingsProvider;
 
@@ -19,7 +19,7 @@ namespace Codescene.VSExtension.Tests
         {
             _cliCommandProvider = new CliCommandProvider();
             _cliSettingsProvider = new CliSettingsProvider();
-            _cliExecuter = new CliExecuter(_cliCommandProvider, _cliSettingsProvider);
+            _cliExecuter = new CliExecutor(_cliCommandProvider, _cliSettingsProvider);
         }
 
 
