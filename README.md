@@ -4,6 +4,14 @@
 
 ![Demo](screenshots/vs-preview.gif)
 
+### Table of Contents
+1. [Code Health Monitor ✨**New**✨](#code-health-monitor)
+2. [Code Health Analysis](#code-health) 
+3. [Code Smells Guide](#code-smells)
+
+## Code Health Monitor
+Track code health in real-time as you work. The Monitor highlights code smells to help you improve your code.
+
 ## Code Health Analysis
 CodeScene’s [Code Health](https://codescene.io/docs/guides/technical/code-health.html) metric is the software industry’s only code-level metric with proven business impact, measured through fact-based, winning research. It’s a metric that you can trust.
 
