@@ -51,16 +51,15 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             _logger.Debug($"File opened: {filePath}. ");
             string initialContent = buffer.CurrentSnapshot.GetText();
 
-            ReviewContentAsync(filePath, initialContent, buffer).FireAndForget();
+            // Run on background thread:
+            Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget();
 
             // Triggered when the file content changes (typing, etc.)
             buffer.Changed += (sender, args) =>
             {
-                var currentContent = buffer.CurrentSnapshot.GetText();
-
                 _debounceService.Debounce(
                     filePath,
-                    () => ReviewContentAsync(filePath, currentContent, buffer).FireAndForget(),
+                    () => Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget(),
                     TimeSpan.FromSeconds(3));
             };
 
@@ -74,10 +73,12 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         /// <summary>
         /// Reviews the content of a file, updates cache and refreshes UI indicators (Code Health margin, error list, tagger).
         /// </summary>
-        private async Task ReviewContentAsync(string path, string code, ITextBuffer buffer)
+        private async Task ReviewContentAsync(string path, ITextBuffer buffer)
         {
             try
             {
+                var code = buffer.CurrentSnapshot.GetText();
+
                 var cache = new ReviewCacheService();
                 var cachedResult = cache.Get(new ReviewCacheQuery(code, path));
                 if (cachedResult != null) return;
@@ -86,7 +87,9 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 var result = _reviewer.Review(path, code);
 
                 cache.Put(new ReviewCacheEntry(code, path, result));
-                _logger.Info($"File {path} reviewed successfully.");
+
+                if (result.RawScore != null)
+                    _logger.Info($"File {path} reviewed successfully.");
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(result);

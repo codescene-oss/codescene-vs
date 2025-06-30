@@ -231,7 +231,7 @@ public partial class WebComponentUserControl : UserControl
         await handler.HandleAsync(e.WebMessageAsJson);
     }
 
-    public void UpdateView<T>(T message)
+    public async Task UpdateViewAsync<T>(T message)
     {
         try
         {
@@ -242,7 +242,8 @@ public partial class WebComponentUserControl : UserControl
             };
             var messageString = JsonConvert.SerializeObject(message, settings);
 
-            webView.CoreWebView2.PostWebMessageAsJson(messageString);
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            webView.CoreWebView2?.PostWebMessageAsJson(messageString);
         }
         catch (Exception e)
         {
