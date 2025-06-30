@@ -63,6 +63,14 @@
 					<ButtonText>Settings</ButtonText>
 				</Strings>
 			</Button>
+			<Button guid="CodeSceneCmdSet" id="OpenCodeSceneToolWindow" priority="0x0100" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
+				<Icon guid="ImageCatalogGuid" id="CodeInformation" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>Code Health Monitor</ButtonText>
+				</Strings>
+			</Button>
 		</Buttons>
 
 	</Commands>
@@ -79,10 +87,18 @@
 			<IDSymbol name="SignInCommand" value="0x0400" />
 			<IDSymbol name="OpenStatusWindowCommand" value="0x0800" />
 			<IDSymbol name="SignOutCommand" value="0x0500" />
+			<IDSymbol name="OpenCodeSceneToolWindow" value="0x0801" />
 		</GuidSymbol>
 		<!-- External Symbols -->
 		<GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">
 			<IDSymbol name="IDM_VS_MENU_EXTENSIONS" value="0x0091" />
+			<IDSymbol name="IDM_VS_MENU_VIEW" value="0x0002" />
+			<IDSymbol name="IDG_VS_WNDO_OTRWNDWS" value="0x1040" />
+		</GuidSymbol>
+
+		<GuidSymbol name="guidVSStd97" value="{5efc7975-14bc-11cf-9b2b-00aa00573819}">
+			<IDSymbol name="IDM_VIEW" value="0x0005" />
+			<IDSymbol name="IDG_VS_WNDO_OTRWNDWS" value="0x1040" />
 		</GuidSymbol>
 	</Symbols>
 

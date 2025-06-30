@@ -42,6 +42,13 @@ public partial class WebComponentUserControl : UserControl
         Initialize(payload, payload.View);
     }
 
+    public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload, ILogger logger)
+    {
+        _logger = logger;
+        InitializeComponent();
+        Initialize(payload, payload.View);
+    }
+
     public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
     {
         _logger = logger;
@@ -146,6 +153,7 @@ public partial class WebComponentUserControl : UserControl
                 --cs-theme-editor-background: #{editorBackground.R:X2}{editorBackground.G:X2}{editorBackground.B:X2};
                 --cs-theme-textCodeBlock-background: #{codeBlockBackground.R:X2}{codeBlockBackground.G:X2}{codeBlockBackground.B:X2};
                 --cs-theme-button-secondaryBackground: #{secondaryBackground.R:X2}{secondaryBackground.G:X2}{secondaryBackground.B:X2};
+                --cs-theme-foreground-10: #{textForeground.R:X2}{textForeground.G:X2}{textForeground.B:X2}1A;       
         }}";
     }
 
@@ -231,7 +239,7 @@ public partial class WebComponentUserControl : UserControl
         await handler.HandleAsync(e.WebMessageAsJson);
     }
 
-    public void UpdateView<T>(T message)
+    public async Task UpdateViewAsync<T>(T message)
     {
         try
         {
@@ -242,7 +250,8 @@ public partial class WebComponentUserControl : UserControl
             };
             var messageString = JsonConvert.SerializeObject(message, settings);
 
-            webView.CoreWebView2.PostWebMessageAsJson(messageString);
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            webView.CoreWebView2?.PostWebMessageAsJson(messageString);
         }
         catch (Exception e)
         {

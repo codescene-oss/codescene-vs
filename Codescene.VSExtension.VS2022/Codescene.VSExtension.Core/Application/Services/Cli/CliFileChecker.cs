@@ -15,7 +15,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         private readonly ILogger _logger;
 
         [Import]
-        private readonly ICliExecuter _cliExecuter;
+        private readonly ICliExecutor _cliExecuter;
 
         [Import]
         private readonly ICliSettingsProvider _cliSettingsProvider;

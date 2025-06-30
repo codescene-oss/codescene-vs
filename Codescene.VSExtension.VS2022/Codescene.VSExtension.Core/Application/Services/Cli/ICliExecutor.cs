@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
-    public interface ICliExecuter
+    public interface ICliExecutor
     {
         CliReviewModel Review(string path);
         CliReviewModel ReviewContent(string filename, string content);
-        Task<DeltaResponseModel> ReviewDelta(string content, string oldScore, string newScore);
+        DeltaResponseModel ReviewDelta(string oldScore, string newScore);
         string GetFileVersion();
         PreFlightResponseModel Preflight(bool force = true);
         IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmells);

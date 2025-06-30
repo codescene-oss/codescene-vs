@@ -55,7 +55,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
     public static void UpdateView(WebComponentMessage<AceComponentData> message)
     {
-        _ctrl.UpdateView(message);
+        _ctrl.UpdateViewAsync(message).FireAndForget();
     }
 
     public static bool IsCreated() => _ctrl != null;

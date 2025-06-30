@@ -3,6 +3,7 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -12,21 +13,27 @@ using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
-    [Export(typeof(ICliExecuter))]
+    [Export(typeof(ICliExecutor))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class CliExecuter : ICliExecuter
+    public class CliExecutor : ICliExecutor
     {
+        private const int DEFAULT_TIMEOUT_MS = 10000;
+        private static readonly TimeSpan DEFAULT_TIMEOUT = TimeSpan.FromMilliseconds(DEFAULT_TIMEOUT_MS);
+
         [Import]
         private readonly ILogger _logger;
 
         [Import]
-        private readonly ICliCommandProvider _cliCommandProvider;
+        private readonly ICliCommandProvider _cliCommandProvider; // TODO: evaulate if this is needed, if  ExecuteCommand(string arguments, string content = null) is replaced with IProcessExecutor
 
         [Import]
         private readonly ICliSettingsProvider _cliSettingsProvider;
 
+        [Import]
+        private readonly IProcessExecutor _executor;
+
         [ImportingConstructor]
-        public CliExecuter(ICliCommandProvider cliCommandProvider, ICliSettingsProvider cliSettingsProvider)
+        public CliExecutor(ICliCommandProvider cliCommandProvider, ICliSettingsProvider cliSettingsProvider)
         {
             _cliCommandProvider = cliCommandProvider;
             _cliSettingsProvider = cliSettingsProvider;
@@ -39,18 +46,66 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return JsonConvert.DeserializeObject<CliReviewModel>(result);
         }
 
+        /// <summary>
+        /// Reviews a file's content by invoking the CLI with the appropriate arguments.
+        /// </summary>
+        /// <param name="filename">The name of the file being reviewed (used for context, not passed to CLI).</param>
+        /// <param name="content">The content (code) of the file to be reviewed.</param>
+        /// <returns>A <see cref="CliReviewModel"/> containing the review results, or null if the review fails.</returns>
         public CliReviewModel ReviewContent(string filename, string content)
         {
             var arguments = _cliCommandProvider.GetReviewFileContentCommand(filename);
 
-            var stopwatch = Stopwatch.StartNew();
-            var result = ExecuteCommand(arguments, content: content);
-            stopwatch.Stop();
-
-            _logger.Debug($"{Titles.CODESCENE} CLI file review completed in {stopwatch.ElapsedMilliseconds} ms.");
-            return JsonConvert.DeserializeObject<CliReviewModel>(result);
+            return ExecuteWithTimingAndLogging<CliReviewModel>(
+                "CLI file review",
+                () => _executor.Execute(arguments, content, DEFAULT_TIMEOUT),
+                $"Review of file {filename} failed"
+            );
         }
 
+        /// <summary>
+        /// Executes a delta review between two versions of a file using their respective scores.
+        /// Either <paramref name="oldScore"/> or <paramref name="newScore"/> may be null, but not both.
+        /// </summary>
+        /// <param name="oldScore">The raw score of the old file version's review.</param>
+        /// <param name="newScore">The raw score of the new file version's review.</param>
+        /// <returns>A <see cref="DeltaResponseModel"/> containing delta results, or null if execution fails or arguments are invalid.</returns>
+        public DeltaResponseModel ReviewDelta(string oldScore, string newScore)
+        {
+            var arguments = _cliCommandProvider.GetReviewDeltaCommand(oldScore, newScore);
+
+            if (string.IsNullOrEmpty(arguments))
+            {
+                _logger.Warn("Skipping delta review. Arguments were not defined.");
+                return null;
+            }
+
+            return ExecuteWithTimingAndLogging<DeltaResponseModel>(
+                "CLI file delta review",
+                () => _executor.Execute("delta", arguments, DEFAULT_TIMEOUT),
+                "Delta for file failed."
+            );
+        }
+
+        private T ExecuteWithTimingAndLogging<T>(string label, Func<string> execute, string errorMessage)
+        {
+            try
+            {
+                var stopwatch = Stopwatch.StartNew();
+                var result = execute();
+                stopwatch.Stop();
+
+                _logger.Debug($"{Titles.CODESCENE} {label} completed in {stopwatch.ElapsedMilliseconds} ms.");
+                return JsonConvert.DeserializeObject<T>(result);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(errorMessage, e);
+                return default;
+            }
+        }
+
+        // TODO: possibly replace this implementation completely with IProcessExecutor
         private string ExecuteCommand(string arguments, string content = null)
         {
             var exePath = _cliSettingsProvider.CliFileFullPath;
@@ -59,29 +114,85 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
                 throw new FileNotFoundException($"Executable file {exePath} can not be found on the location!");
             }
 
-            var processInfo = new ProcessStartInfo()
+            var processInfo = new ProcessStartInfo
             {
                 FileName = exePath,
                 Arguments = arguments,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,
+                RedirectStandardError = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
 
-            using (var process = Process.Start(processInfo))
+            using (var process = new Process { StartInfo = processInfo })
             {
-                if (process.StandardInput != null && string.IsNullOrWhiteSpace(content) == false)
+                var outputBuilder = new StringBuilder();
+                var errorBuilder = new StringBuilder();
+
+                var outputTcs = new TaskCompletionSource<bool>();
+                var errorTcs = new TaskCompletionSource<bool>();
+
+                process.OutputDataReceived += (s, e) =>
+                {
+                    if (e.Data == null)
+                        outputTcs.TrySetResult(true);
+                    else
+                        outputBuilder.AppendLine(e.Data);
+                };
+
+                process.ErrorDataReceived += (s, e) =>
+                {
+                    if (e.Data == null)
+                        errorTcs.TrySetResult(true);
+                    else
+                        errorBuilder.AppendLine(e.Data);
+                };
+
+                process.Start();
+
+                if (!string.IsNullOrWhiteSpace(content))
                 {
                     process.StandardInput.Write(content);
-                    process.StandardInput.Close(); // Close input stream to signal end of input
+                    process.StandardInput.Close();
                 }
-                string result = process.StandardOutput.ReadToEnd();
-                process.WaitForExit();
-                return result;
+
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
+                // Wait for process exit and output read
+                var waitTask = Task.Run(() =>
+                {
+                    process.WaitForExit();
+                    outputTcs.Task.Wait();
+                    errorTcs.Task.Wait();
+                });
+
+                if (!waitTask.Wait(10000))
+                {
+                    try
+                    {
+                        process.Kill(); // true = entire process tree
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new TimeoutException("Process timed out and could not be killed.", ex);
+                    }
+
+                    throw new TimeoutException("Process execution exceeded the timeout of 10 seconds.");
+                }
+
+                if (errorBuilder.Length > 0)
+                {
+                    throw new InvalidOperationException($"Process error output: {errorBuilder}");
+                }
+
+                return outputBuilder.ToString();
             }
         }
 
+
+        // TODO: possibly replace this implementation completely with IProcessExecutor
         private Task<(string StdOut, string StdErr, int ExitCode)> ExecuteCommandAsync(string arguments, string content = null)
         {
             var exePath = _cliSettingsProvider.CliFileFullPath;
@@ -120,7 +231,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             proc.BeginOutputReadLine();
             proc.BeginErrorReadLine();
 
-            if (!string.IsNullOrWhiteSpace(content))
+            if (!string.IsNullOrWhiteSpace(content) || arguments.Contains("delta"))
             {
                 proc.StandardInput.Write(content);
                 proc.StandardInput.Close();
@@ -132,7 +243,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         public string GetFileVersion()
         {
             var arguments = _cliCommandProvider.VersionCommand;
-            var result = ExecuteCommand(arguments);
+            var result = ExecuteCommand(arguments); // TODO: possibly replace this implementation completely with IProcessExecutor
             return result.TrimEnd('\r', '\n');
         }
 
@@ -176,13 +287,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             var arguments = _cliCommandProvider.GetRefactorCommandWithDeltaResult(extension: extension, deltaResult: delta, preflight: preflight);
             var result = ExecuteCommand(arguments, content);
             return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
-        }
-
-        public async Task<DeltaResponseModel> ReviewDelta(string content, string oldScore, string newScore)
-        {
-            var arguments = _cliCommandProvider.GetReviewDeltaCommand(oldScore: oldScore, newScore: newScore);
-            var result = await ExecuteCommandAsync(arguments, content);
-            return JsonConvert.DeserializeObject<DeltaResponseModel>(result.StdOut);
         }
 
         public Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells)

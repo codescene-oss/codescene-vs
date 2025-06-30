@@ -2,7 +2,7 @@
 {
     public interface IGitService
     {
-        GitResult ExecuteGitCommand(string arguments);
+        string GetFileContentForCommit(string path);
     }
 
     public class GitResult

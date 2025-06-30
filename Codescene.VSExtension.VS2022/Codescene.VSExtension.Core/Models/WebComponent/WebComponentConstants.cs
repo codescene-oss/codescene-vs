@@ -8,6 +8,19 @@
         {
             public const string ACE = "ace";
             public const string DOCS = "docs";
+            public const string HOME = "home"; // Code Health Monitor
+        }
+
+        public class StateTypes
+        {
+            public const string RUNNING = "running";
+            public const string QUEUED = "queued";
+        }
+
+        public class JobTypes
+        {
+            public const string DELTA = "deltaAnalysis";
+            public const string ACE = "autoRefactor";
         }
 
         public class MessageTypes

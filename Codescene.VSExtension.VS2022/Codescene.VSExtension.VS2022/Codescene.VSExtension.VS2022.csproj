@@ -50,8 +50,11 @@
     <Compile Include="Application\ErrorListWindowHandler\CustomErrorListEntry.cs" />
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
-    <Compile Include="Application\Git\GitCliService.cs" />
+    <Compile Include="Application\Git\BranchWatcherService.cs" />
+    <Compile Include="Application\Git\GitService.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
+    <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
+    <Compile Include="Handlers\SolutionEventsHandler.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
     <Compile Include="ToolWindows\ViewElementFactory.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
@@ -152,9 +155,10 @@
     <Compile Include="Controls\UnderlineTaggerTooltip.xaml.cs">
       <DependentUpon>UnderlineTaggerTooltip.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DocumentEventsHandler\EditorDocumentLifecycleHandler.cs" />
-    <Compile Include="DocumentEventsHandler\OnActiveWindowChangeHandler.cs" />
+    <Compile Include="Handlers\EditorDocumentLifecycleHandler.cs" />
+    <Compile Include="Handlers\OnActiveWindowChangeHandler.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginSettingsManager.cs" />
+    <Compile Include="ToolWindows\WebComponent\CodeSceneToolWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\CodeSmellDocumentationWindow.cs" />
     <Compile Include="EditorMargin\CodeSceneMargin.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginProvider.cs" />
@@ -288,6 +292,9 @@
     </PackageReference>
     <PackageReference Include="envdte90a">
       <Version>17.14.40260</Version>
+    </PackageReference>
+    <PackageReference Include="LibGit2Sharp">
+      <Version>0.31.0</Version>
     </PackageReference>
     <PackageReference Include="Markdig">
       <Version>0.41.1</Version>
