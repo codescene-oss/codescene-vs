@@ -42,9 +42,10 @@ internal class Logger : ILogger
 
     public void Debug(string message)
     {
-        ActivityLog.TryLogInformation(Titles.CODESCENE, message);
-
         Console.WriteLine(message);
+
+        if (General.Instance.ShowDebugLogs)
+            WriteAsync($"[DEBUG] {message}").FireAndForget();
     }
 
     public async Task LogAsync(string message, Exception ex)

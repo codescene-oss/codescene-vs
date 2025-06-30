@@ -51,7 +51,7 @@ internal class WebComponentMessageHandler
             return;
         }
 
-        logger.Info($"Handling '{msgObject.MessageType}' message.");
+        logger.Debug($"Handling '{msgObject.MessageType}' message.");
 
         try
         {
@@ -97,7 +97,7 @@ internal class WebComponentMessageHandler
         var source = msgObject.Payload?.ToString();
         if (string.IsNullOrEmpty(source)) return;
 
-        logger.Info($"Webview '{source}' is ready to take messages.");
+        logger.Debug($"Webview '{source}' is ready to take messages.");
 
         if (source == ViewTypes.HOME)
         {
