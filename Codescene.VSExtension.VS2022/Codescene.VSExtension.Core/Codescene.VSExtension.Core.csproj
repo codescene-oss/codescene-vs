@@ -71,6 +71,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Application\Services\AceManager\AceManager.cs" />
+    <Compile Include="Application\Services\AceManager\IAceManager.cs" />
     <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IPersistenceAuthDataProvider.cs" />

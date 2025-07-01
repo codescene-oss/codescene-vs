@@ -1,20 +1,23 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Git;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
-using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.ReviewModels;
+using Codescene.VSExtension.Core.Models.WebComponent;
+using Newtonsoft.Json;
+using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
+namespace Codescene.VSExtension.Core.Application.Services.AceManager
 {
-    [Export(typeof(ICodeReviewer))]
+    [Export(typeof(IAceManager))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class CodeReviewer : ICodeReviewer
+    public class AceManager : IAceManager
     {
         [Import]
         private readonly ILogger _logger;
@@ -25,60 +28,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
         [Import]
         private readonly ICliExecutor _executer;
 
-        [Import]
-        private readonly IGitService _git;
-
-        public FileReviewModel Review(string path, string content)
-        {
-            var fileName = Path.GetFileName(path);
-
-            if (string.IsNullOrWhiteSpace(fileName) || string.IsNullOrWhiteSpace(content))
-            {
-                _logger.Warn($"Could not review path {path}. Missing content or file path.");
-                return null;
-            }
-
-            var review = _executer.ReviewContent(fileName, content);
-
-            return _mapper.Map(path, review); ;
-        }
-
-        public DeltaResponseModel Delta(FileReviewModel review, string currentCode)
-        {
-            var path = review.FilePath;
-            var currentRawScore = review.RawScore ?? "";
-
-            if (string.IsNullOrWhiteSpace(path))
-            {
-                _logger.Warn($"Could not review file, missing file path.");
-                return null;
-            }
-
-            try
-            {
-                var oldCode = _git.GetFileContentForCommit(path);
-                var cache = new DeltaCacheService();
-                var entry = cache.Get(new DeltaCacheQuery(path, oldCode, currentCode));
-
-                // If cache hit
-                if (entry.Item1) return entry.Item2;
-
-                var oldCodeReview = Review(path, oldCode);
-                var oldRawScore = oldCodeReview?.RawScore ?? "";
-
-                var delta = _executer.ReviewDelta(oldRawScore, currentRawScore);
-
-                cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, delta));
-
-                return delta;
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Could not perform delta analysis on file {path}", e);
-                return null;
-            }
-        }
-
         public async Task<CachedRefactoringActionModel> Refactor(string path, string content, bool invalidateCache = false)
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -87,7 +36,8 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 return null;
             }
 
-            var review = Review(path, content);
+            var cache = new ReviewCacheService();
+            var review = cache.Get(new ReviewCacheQuery(content, path));
 
             // JsonConvert.SerializeObject(review.FunctionLevelCodeSmells[0].CodeSmells);
             var codesmellsJson = "{}"; // fix
