@@ -1,8 +1,10 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Util;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.Telemetry
 {
@@ -19,34 +21,40 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
         [Import]
         private readonly IProcessExecutor _executor;
 
-        public string GetExtensionVersion()
-        {
-            throw new NotImplementedException();
+        [Import]
+        private readonly IDeviceIdStore _deviceIdStore;
 
-            /*
-             *         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        [Import]
+        private readonly ICliCommandProvider _cliCommandProvider;
 
-        var extensionManager = await VS.Services.GetExtensionManagerAsync();
-        var extensions = extensionManager.GetInstalledExtensions();
+        [Import]
+        private readonly IExtensionMetadataProvider _extensionMetadataProvider;
 
-        // Use the same ID as in your .vsixmanifest
-        const string extensionId = "CodesceneVSExtension.c90b6097-3fbd-4b82-a308-f9568074c67a";
-
-        var thisExtension = extensions.FirstOrDefault(ext =>
-            ext.Header.Identifier.Equals(extensionId, StringComparison.OrdinalIgnoreCase));
-
-        return thisExtension?.Header.Version?.ToString();             * 
-             */
-        }
-
+        /// <summary>
+        /// Checks if the user has opted in to the Visual Studio Customer Experience Improvement Program (VSCEIP) telemetry.
+        /// By relying on this official opt-in status, our extension respects the user's choice regarding telemetry.
+        /// </summary>
+        /// <remarks>
+        /// Visual Studio 2022 stores telemetry opt-in status in the registry key:
+        /// <c>HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VSCommon\17.0\SQM</c>
+        /// under the DWORD value <c>OptIn</c>.
+        /// 
+        /// Value meanings:
+        /// - 1: User has opted in to telemetry collection (enabled)
+        /// - 0: User has opted out of telemetry collection (disabled)
+        ///
+        /// For more information, see:
+        /// https://learn.microsoft.com/en-us/visualstudio/ide/visual-studio-experience-improvement-program?view=vs-2022
+        /// </remarks>
+        /// <returns>True if telemetry is enabled (opted in); otherwise, false.</returns>
         public bool IsTelemetryEnabled()
         {
             try
             {
-                const string keyPath = @"Software\Microsoft\VisualStudio\Telemetry";
+                const string keyPath = @"SOFTWARE\Wow6432Node\Microsoft\VSCommon\17.0\SQM";
                 const string valueName = "OptIn";
 
-                var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(keyPath);
+                var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(keyPath);
 
                 if (key != null)
                 {
@@ -63,20 +71,25 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
             }
         }
 
-        public async Task SendTelemetryAsync(string eventData)
+        public void SendTelemetryAsync(string eventName, Dictionary<string, object> eventData = null)
         {
             if (!IsTelemetryEnabled()) return;
 
             try
             {
-                /*
-                 * create TelemetryEvent object
-                 * get device-id from DeviceIdStore (to be added)
-                 * make send telemetry call with cli
-                */
+                var telemetryEvent = new TelemetryEvent
+                {
+                    Internal = false,
+                    EventName = eventName,
+                    UserId = _deviceIdStore.GetDeviceId(),
+                    EditorType = Constants.Telemetry.SOURCE_IDE,
+                    ExtensionVersion = _extensionMetadataProvider.GetVersion(),
+                };
 
-                var arguments = "telemetry --event {}";
-                _executor.Execute(arguments, null, TELEMETRY_TIMEOUT);
+                var eventJson = JsonConvert.SerializeObject(telemetryEvent);
+                var arguments = _cliCommandProvider.SendTelemetryCommand(eventJson);
+
+                //_executor.Execute(arguments, null, TELEMETRY_TIMEOUT);
             }
             catch (Exception e)
             {

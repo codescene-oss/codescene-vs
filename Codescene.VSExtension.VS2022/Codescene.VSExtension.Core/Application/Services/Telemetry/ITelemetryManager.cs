@@ -1,11 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Application.Services.Telemetry
 {
     public interface ITelemetryManager
     {
         bool IsTelemetryEnabled();
-        Task SendTelemetryAsync(string eventData);
-        string GetExtensionVersion();
+        void SendTelemetryAsync(string eventName, Dictionary<string, object> eventData = null);
     }
 }

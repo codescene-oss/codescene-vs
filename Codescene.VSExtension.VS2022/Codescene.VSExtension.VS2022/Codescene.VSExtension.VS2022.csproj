@@ -50,7 +50,6 @@
     <Compile Include="Application\ErrorListWindowHandler\CustomErrorListEntry.cs" />
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
-    <Compile Include="Application\Git\GitCliService.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
     <Compile Include="ToolWindows\ViewElementFactory.cs" />
@@ -175,7 +174,6 @@
     <Compile Include="Tagger\ReviewResultTaggerTooltipModel.cs" />
     <Compile Include="Util\DocumentNavigator.cs" />
     <Compile Include="Util\ExtensionMetadataProvider.cs" />
-    <Compile Include="Util\Telemetry.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>

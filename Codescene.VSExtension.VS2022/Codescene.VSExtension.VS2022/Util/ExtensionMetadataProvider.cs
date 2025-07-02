@@ -1,9 +1,14 @@
-﻿namespace Codescene.VSExtension.VS2022.Util;
+﻿using Codescene.VSExtension.Core.Application.Services.Util;
+using System.ComponentModel.Composition;
 
-public static class ExtensionMetadataProvider
+namespace Codescene.VSExtension.VS2022.Util;
+
+[Export(typeof(IExtensionMetadataProvider))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+public class VsExtensionMetadataProvider : IExtensionMetadataProvider
 {
-    public static string GetVersion() => Vsix.Version;
-    public static string GetDisplayName() => Vsix.Name;
-    public static string GetDescription() => Vsix.Description;
-    public static string GetPublisher() => Vsix.Author;
+    public string GetVersion() => Vsix.Version;
+    public string GetDisplayName() => Vsix.Name;
+    public string GetDescription() => Vsix.Description;
+    public string GetPublisher() => Vsix.Author;
 }
