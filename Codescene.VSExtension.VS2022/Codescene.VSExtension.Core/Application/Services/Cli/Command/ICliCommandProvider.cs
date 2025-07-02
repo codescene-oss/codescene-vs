@@ -5,6 +5,7 @@
         string VersionCommand { get; }
         string DeviceIdCommand { get; }
         string GetReviewPathCommand(string path);
+        string SendTelemetryCommand(string jsonEvent);
         string GetReviewFileContentCommand(string path);
     }
 }

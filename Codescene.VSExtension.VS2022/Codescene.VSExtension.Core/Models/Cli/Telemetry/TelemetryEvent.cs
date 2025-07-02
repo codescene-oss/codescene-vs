@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
 
 public class TelemetryEvent
@@ -79,55 +78,5 @@ public class TelemetryEvent
     {
         _additionalProperties[name] = JToken.FromObject(value);
         return this;
-    }
-
-    public override bool Equals(object obj)
-    {
-        if (!(obj is TelemetryEvent)) return false;
-        var other = (TelemetryEvent)obj;
-
-        return string.Equals(this.EventName, other.EventName) &&
-               string.Equals(this.UserId, other.UserId) &&
-               string.Equals(this.EditorType, other.EditorType) &&
-               string.Equals(this.ExtensionVersion, other.ExtensionVersion) &&
-               Nullable.Equals(this.Internal, other.Internal) &&
-               DictionaryEquals(this._additionalProperties, other._additionalProperties);
-    }
-
-    private static bool DictionaryEquals(IDictionary<string, JToken> d1, IDictionary<string, JToken> d2)
-    {
-        if (d1 == d2) return true;
-
-        var isEqual = d1 == null || d2 == null || d1.Count != d2.Count;
-        if (isEqual) return false;
-
-        foreach (var kvp in d1)
-        {
-            if (!d2.TryGetValue(kvp.Key, out var val2))
-                return false;
-
-            if (!JToken.DeepEquals(kvp.Value, val2))
-                return false;
-        }
-        return true;
-    }
-
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            int hash = 17;
-            hash = hash * 31 + (EventName != null ? EventName.GetHashCode() : 0);
-            hash = hash * 31 + (UserId != null ? UserId.GetHashCode() : 0);
-            hash = hash * 31 + (EditorType != null ? EditorType.GetHashCode() : 0);
-            hash = hash * 31 + (ExtensionVersion != null ? ExtensionVersion.GetHashCode() : 0);
-            hash = hash * 31 + (Internal.HasValue ? Internal.Value.GetHashCode() : 0);
-            foreach (var kv in _additionalProperties)
-            {
-                hash = hash * 31 + kv.Key.GetHashCode();
-                hash = hash * 31 + (kv.Value != null ? kv.Value.GetHashCode() : 0);
-            }
-            return hash;
-        }
     }
 }

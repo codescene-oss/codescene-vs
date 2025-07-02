@@ -69,6 +69,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             }
         }
 
+        // TODO: remove
         private string ExecuteCommand(string arguments, string content = null)
         {
             var exePath = _cliSettingsProvider.CliFileFullPath;

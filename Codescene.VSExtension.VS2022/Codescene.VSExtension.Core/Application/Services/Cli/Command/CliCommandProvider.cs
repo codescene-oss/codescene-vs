@@ -10,6 +10,8 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public string DeviceIdCommand => "telemetry --device-id";
 
+        public string SendTelemetryCommand(string jsonEvent) => $"telemetry --event {jsonEvent}";
+
         public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";
 
         public string GetReviewPathCommand(string path) => $"review {path}";
