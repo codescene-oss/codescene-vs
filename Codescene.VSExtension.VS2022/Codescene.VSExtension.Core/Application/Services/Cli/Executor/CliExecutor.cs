@@ -111,7 +111,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         {
             try
             {
-                var arguments = "telemetry --device-id";
+                var arguments = _cliCommandProvider.DeviceIdCommand;
                 var result = _executor.Execute(arguments);
 
                 return result?.Trim();

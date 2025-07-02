@@ -5,7 +5,6 @@
         public class Titles
         {
             public const string CODESCENE = "CodeScene";
-            public const string CODESCENE_ACE = "CodeScene ACE";
 
             #region Code Smell Names
             public const string BRAIN_CLASS = "Brain Class";

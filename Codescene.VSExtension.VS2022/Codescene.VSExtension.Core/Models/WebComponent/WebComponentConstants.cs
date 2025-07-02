@@ -6,7 +6,6 @@
 
         public class ViewTypes
         {
-            public const string ACE = "ace";
             public const string DOCS = "docs";
         }
 

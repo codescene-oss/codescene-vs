@@ -35,13 +35,6 @@ public partial class WebComponentUserControl : UserControl
         "https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/"
     };
 
-    public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
-    {
-        _logger = logger;
-        InitializeComponent();
-        Initialize(payload, payload.View);
-    }
-
     public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
     {
         _logger = logger;
