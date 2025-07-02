@@ -1,15 +1,10 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Models.Cli.Delta;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
@@ -37,13 +32,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         {
             _cliCommandProvider = cliCommandProvider;
             _cliSettingsProvider = cliSettingsProvider;
-        }
-
-        public CliReviewModel Review(string path)
-        {
-            var arguments = _cliCommandProvider.GetReviewPathCommand(path);
-            var result = ExecuteCommand(arguments);
-            return JsonConvert.DeserializeObject<CliReviewModel>(result);
         }
 
         /// <summary>
@@ -112,53 +100,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             }
         }
 
-        private Task<(string StdOut, string StdErr, int ExitCode)> ExecuteCommandAsync(string arguments, string content = null)
-        {
-            var exePath = _cliSettingsProvider.CliFileFullPath;
-            if (!File.Exists(exePath))
-            {
-                throw new FileNotFoundException($"Executable file {exePath} can not be found on the location!");
-            }
-
-            var psi = new ProcessStartInfo
-            {
-                FileName = exePath,
-                Arguments = arguments,
-                UseShellExecute = false,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
-
-            var stdout = new StringBuilder();
-            var stderr = new StringBuilder();
-            var tcs = new TaskCompletionSource<(string, string, int)>();
-
-            var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
-
-            proc.OutputDataReceived += (_, e) => { if (e.Data != null) stdout.AppendLine(e.Data); };
-            proc.ErrorDataReceived += (_, e) => { if (e.Data != null) stderr.AppendLine(e.Data); };
-
-            proc.Exited += (_, __) =>
-            {
-                tcs.TrySetResult((stdout.ToString(), stderr.ToString(), proc.ExitCode));
-                proc.Dispose();
-            };
-
-            proc.Start();
-            proc.BeginOutputReadLine();
-            proc.BeginErrorReadLine();
-
-            if (!string.IsNullOrWhiteSpace(content))
-            {
-                proc.StandardInput.Write(content);
-                proc.StandardInput.Close();
-            }
-
-            return tcs.Task;
-        }
-
         public string GetFileVersion()
         {
             var arguments = _cliCommandProvider.VersionCommand;
@@ -166,77 +107,20 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return result.TrimEnd('\r', '\n');
         }
 
-        public PreFlightResponseModel Preflight(bool force = true)
+        public string GetDeviceId()
         {
-            var arguments = _cliCommandProvider.GetPreflightSupportInformationCommand(force: force);
-            var result = ExecuteCommand(arguments);
-            return JsonConvert.DeserializeObject<PreFlightResponseModel>(result);
-        }
-
-        public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmells)
-        {
-            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmells);
-            var result = ExecuteCommand(arguments, content);
-            return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
-        }
-
-        public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmells, string preflight)
-        {
-            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmells, preflight);
-            var result = ExecuteCommand(arguments, content);
-            return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
-        }
-
-        public async Task<RefactorResponseModel> PostRefactoring(string fnToRefactor, bool skipCache = false, string token = null)
-        {
-            var arguments = _cliCommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: token);
-            var result = await ExecuteCommandAsync(arguments);
-            return JsonConvert.DeserializeObject<RefactorResponseModel>(result.StdOut);
-        }
-
-        public IList<FnToRefactorModel> FnsToRefactorFromDelta(string content, string extension, string delta)
-        {
-            var arguments = _cliCommandProvider.GetRefactorCommandWithDeltaResult(extension: extension, deltaResult: delta);
-            var result = ExecuteCommand(arguments, content);
-            return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
-        }
-
-        public IList<FnToRefactorModel> FnsToRefactorFromDelta(string content, string extension, string delta, string preflight)
-        {
-            var arguments = _cliCommandProvider.GetRefactorCommandWithDeltaResult(extension: extension, deltaResult: delta, preflight: preflight);
-            var result = ExecuteCommand(arguments, content);
-            return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result);
-        }
-
-        public async Task<DeltaResponseModel> ReviewDelta(string content, string oldScore, string newScore)
-        {
-            var arguments = _cliCommandProvider.GetReviewDeltaCommand(oldScore: oldScore, newScore: newScore);
-            var result = await ExecuteCommandAsync(arguments, content);
-            return JsonConvert.DeserializeObject<DeltaResponseModel>(result.StdOut);
-        }
-
-        public Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells)
-        {
-            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmells);
-            return FnsToRefactorFromCodeSmellsAsync(arguments, content);
-        }
-
-        public Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells, string preflight)
-        {
-            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmells, preflight);
-            return FnsToRefactorFromCodeSmellsAsync(arguments, content);
-        }
-
-        private async Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string arguments, string content)
-        {
-            var result = await ExecuteCommandAsync(arguments, content);
-
-            if (!string.IsNullOrWhiteSpace(result.StdErr))
+            try
             {
-                throw new System.Exception($"FnsToRefactorFromCodeSmellsAsync, error:{result.StdErr}");
-            }
+                var arguments = "telemetry --device-id";
+                var result = _executor.Execute(arguments);
 
-            return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result.StdOut);
+                return result?.Trim();
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Could not get device ID", e);
+                return "";
+            }
         }
     }
 }

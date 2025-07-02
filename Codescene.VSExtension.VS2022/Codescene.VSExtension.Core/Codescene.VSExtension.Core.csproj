@@ -110,7 +110,9 @@
     <Compile Include="Application\Services\Telemetry\ITelemetryManager.cs" />
     <Compile Include="Application\Services\Telemetry\TelemetryManager.cs" />
     <Compile Include="Application\Services\Util\Constants.cs" />
+    <Compile Include="Application\Services\Util\DeviceIdStore.cs" />
     <Compile Include="Application\Services\Util\IDebounceService.cs" />
+    <Compile Include="Application\Services\Util\IDeviceIdStore.cs" />
     <Compile Include="Application\Services\WebComponent\CodeSmellDocumentationMapper.cs" />
     <Compile Include="Application\Services\WebComponent\AceComponentMapper.cs" />
     <Compile Include="Models\Cli\Delta\ChangeDetailModel.cs" />

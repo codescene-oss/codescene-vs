@@ -7,4 +7,3 @@ public static class ExtensionMetadataProvider
     public static string GetDescription() => Vsix.Description;
     public static string GetPublisher() => Vsix.Author;
 }
-

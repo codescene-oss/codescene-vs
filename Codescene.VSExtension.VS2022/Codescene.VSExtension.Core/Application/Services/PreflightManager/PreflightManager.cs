@@ -19,11 +19,11 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
         [ImportingConstructor]
         public PreflightManager(ICliExecutor executer)
         {
-            _executer = executer;
-            var response = _executer.Preflight(force: true);
-            _version = response.Version;
-            _codeSmells = response.LanguageCommon.CodeSmells;
-            _languages = response.FileTypes;
+            //_executer = executer;
+            //var response = _executer.Preflight(force: true);
+            //_version = response.Version;
+            //_codeSmells = response.LanguageCommon.CodeSmells;
+            //_languages = response.FileTypes;
         }
         public decimal GetVersion() => _version;
 
