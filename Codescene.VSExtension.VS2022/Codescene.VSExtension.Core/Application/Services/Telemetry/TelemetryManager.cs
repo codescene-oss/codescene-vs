@@ -2,6 +2,7 @@
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -72,7 +73,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
             }
         }
 
-        public void SendTelemetryAsync(string eventName, Dictionary<string, object> eventData = null)
+        public void SendTelemetryAsync(string eventName, Dictionary<string, object> additionalEventData = null)
         {
             if (!IsTelemetryEnabled()) return;
 
@@ -84,10 +85,10 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
                     UserId = _deviceIdStore.GetDeviceId(),
                     EditorType = Constants.Telemetry.SOURCE_IDE,
                     EventName = $"{Constants.Telemetry.SOURCE_IDE}/{eventName}",
-                    ExtensionVersion = _extensionMetadataProvider.GetVersion(), // TODO: differentiate between premium and freemium?
+                    ExtensionVersion = _extensionMetadataProvider.GetVersion(), // TODO: differentiate between premium and freemium by adding '-premium' prefix to ExtensionVersion?
                 };
 
-                var eventJson = JsonConvert.SerializeObject(telemetryEvent);
+                string eventJson = Serialize(telemetryEvent, additionalEventData);
                 var arguments = _cliCommandProvider.SendTelemetryCommand(eventJson);
 
                 var result = _executor.Execute(arguments, null, TELEMETRY_TIMEOUT);
@@ -96,6 +97,21 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
             {
                 _logger.Debug($"Unable to send telemetry event: {e.Message}");
             }
+        }
+
+        private string Serialize(TelemetryEvent telemetryEvent, Dictionary<string, object> additionalProps = null)
+        {
+            var jObject = JObject.FromObject(telemetryEvent);
+
+            if (additionalProps != null)
+            {
+                foreach (var kvp in additionalProps)
+                {
+                    jObject[kvp.Key] = JToken.FromObject(kvp.Value);
+                }
+            }
+
+            return jObject.ToString(Formatting.None);
         }
     }
 }

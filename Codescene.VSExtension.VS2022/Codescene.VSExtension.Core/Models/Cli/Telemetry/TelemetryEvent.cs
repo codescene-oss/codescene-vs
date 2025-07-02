@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
 
 public class TelemetryEvent
 {
@@ -19,30 +17,7 @@ public class TelemetryEvent
     [JsonProperty("internal", NullValueHandling = NullValueHandling.Ignore)]
     public bool? Internal { get; set; }
 
-    [JsonExtensionData]
-    private IDictionary<string, JToken> _additionalProperties = new Dictionary<string, JToken>();
-
-    public IDictionary<string, JToken> AdditionalProperties
-    {
-        get { return _additionalProperties; }
-        set { _additionalProperties = value; }
-    }
-
     public TelemetryEvent() { }
-
-    public TelemetryEvent(
-        string eventName,
-        string userId,
-        string editorType,
-        string extensionVersion,
-        bool? internalFlag)
-    {
-        this.EventName = eventName;
-        this.UserId = userId;
-        this.EditorType = editorType;
-        this.ExtensionVersion = extensionVersion;
-        this.Internal = internalFlag;
-    }
 
     public TelemetryEvent WithEventName(string eventName)
     {
@@ -71,12 +46,6 @@ public class TelemetryEvent
     public TelemetryEvent WithInternal(bool? internalFlag)
     {
         this.Internal = internalFlag;
-        return this;
-    }
-
-    public TelemetryEvent WithAdditionalProperty(string name, object value)
-    {
-        _additionalProperties[name] = JToken.FromObject(value);
         return this;
     }
 }
