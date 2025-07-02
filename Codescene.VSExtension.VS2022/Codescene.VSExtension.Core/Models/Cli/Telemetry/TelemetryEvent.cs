@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
 
 public class TelemetryEvent
 {
@@ -97,7 +97,9 @@ public class TelemetryEvent
     private static bool DictionaryEquals(IDictionary<string, JToken> d1, IDictionary<string, JToken> d2)
     {
         if (d1 == d2) return true;
-        if (d1 == null || d2 == null || d1.Count != d2.Count) return false;
+
+        var isEqual = d1 == null || d2 == null || d1.Count != d2.Count;
+        if (isEqual) return false;
 
         foreach (var kvp in d1)
         {
