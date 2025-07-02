@@ -31,7 +31,8 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
         private readonly IExtensionMetadataProvider _extensionMetadataProvider;
 
         /// <summary>
-        /// Checks if the user has opted in to the Visual Studio Customer Experience Improvement Program (VSCEIP) telemetry.
+        /// Checks if the user has opted in to the Visual Studio Customer Experience Improvement Program (VSCEIP) telemetry (enabled by default).
+        /// This setting can be changed by the user via <c>Help > Privacy > Privacy Settings...</c> in Visual Studio.
         /// By relying on this official opt-in status, our extension respects the user's choice regarding telemetry.
         /// </summary>
         /// <remarks>
@@ -66,7 +67,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
             }
             catch (Exception e)
             {
-                _logger.Debug($"Unable to check if telemetry is enabled: {e.Message}");
+                _logger.Debug($"Unable to check if telemetry is enabled: {e.Message}. Defaulting to false.");
                 return false;
             }
         }
@@ -80,16 +81,16 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
                 var telemetryEvent = new TelemetryEvent
                 {
                     Internal = false,
-                    EventName = eventName,
                     UserId = _deviceIdStore.GetDeviceId(),
                     EditorType = Constants.Telemetry.SOURCE_IDE,
-                    ExtensionVersion = _extensionMetadataProvider.GetVersion(),
+                    EventName = $"{Constants.Telemetry.SOURCE_IDE}/{eventName}",
+                    ExtensionVersion = _extensionMetadataProvider.GetVersion(), // TODO: differentiate between premium and freemium?
                 };
 
                 var eventJson = JsonConvert.SerializeObject(telemetryEvent);
                 var arguments = _cliCommandProvider.SendTelemetryCommand(eventJson);
 
-                //_executor.Execute(arguments, null, TELEMETRY_TIMEOUT);
+                var result = _executor.Execute(arguments, null, TELEMETRY_TIMEOUT);
             }
             catch (Exception e)
             {
