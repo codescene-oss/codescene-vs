@@ -177,6 +177,7 @@
     <Compile Include="ToolWindows\WebComponent\Handlers\ShowDocumentationHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\SkipShowDiffHelper.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\WebComponentMessageHandler.cs" />
+    <Compile Include="ToolWindows\WebComponent\Models\OpenDocsForFunctionPayload.cs" />
     <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">
       <DependentUpon>WebComponentUserControl.xaml</DependentUpon>
     </Compile>
