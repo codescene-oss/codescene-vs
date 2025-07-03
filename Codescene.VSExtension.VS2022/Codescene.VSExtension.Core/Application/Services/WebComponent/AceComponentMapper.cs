@@ -72,24 +72,6 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                             EndLine = 0,
                             EndColumn = 0
                         }
-                    },
-                    Action = new WebComponentAction
-                    {
-                        GoToFunctionLocationPayload = new WebComponentFileDataBase
-                        {
-                            FileName = path,
-                            Fn = new WebComponentFileDataBaseFn
-                            {
-                                Name = fileName,
-                                Range = new CliRangeModel
-                                {
-                                    Startline = 0,
-                                    StartColumn = 0,
-                                    EndLine = 0,
-                                    EndColumn = 0
-                                }
-                            }
-                        }
                     }
                 },
                 AceResultData = null

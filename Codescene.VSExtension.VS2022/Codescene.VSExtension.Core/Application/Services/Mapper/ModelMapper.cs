@@ -39,6 +39,22 @@ namespace Codescene.VSExtension.Core.Application.Services.Mapper
             }
         }
 
+        public CliCodeSmellModel Map(CodeSmellModel codeSmellModel)
+        {
+            return new CliCodeSmellModel
+            {
+                Category = codeSmellModel.Category,
+                Details = codeSmellModel.Details,
+                Range = new Models.Cli.CliRangeModel()
+                {
+                    Startline = codeSmellModel.Range.StartLine,
+                    StartColumn = codeSmellModel.Range.StartColumn,
+                    EndLine = codeSmellModel.Range.EndLine,
+                    EndColumn = codeSmellModel.Range.EndColumn
+                }
+            };
+        }
+
         private CodeSmellModel Map(string path, CliCodeSmellModel review)
         {
             return new CodeSmellModel

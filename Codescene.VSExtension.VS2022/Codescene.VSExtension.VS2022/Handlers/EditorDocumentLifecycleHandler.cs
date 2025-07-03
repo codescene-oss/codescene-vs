@@ -107,6 +107,9 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
                 cache.Put(new ReviewCacheEntry(code, path, result));
 
+                // check contains refactorable functions
+
+
                 if (result.RawScore != null)
                 {
                     _logger.Info($"File {path} reviewed successfully.");
