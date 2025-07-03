@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System;
@@ -24,6 +25,8 @@ internal class Logger : ILogger
     {
         WriteAsync($"[ERROR] {message}: {ex.Message}").FireAndForget();
         ex.Log();
+
+        if (ex.Message.Contains("timeout")) SendTelemetry();
     }
 
     public void Info(string message)
@@ -58,5 +61,14 @@ internal class Logger : ILogger
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         _outputPaneManager.Pane?.OutputStringThreadSafe($"{message}{Environment.NewLine}");
+    }
+
+    private void SendTelemetry()
+    {
+        Task.Run(async () =>
+        {
+            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+            telemetryManager.SendTelemetryAsync(Telemetry.REVIEW_OR_DELTA_TIMEOUT);
+        }).FireAndForget();
     }
 }

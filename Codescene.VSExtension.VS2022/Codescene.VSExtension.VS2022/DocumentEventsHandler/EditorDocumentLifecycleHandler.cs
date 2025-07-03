@@ -26,9 +26,6 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         private readonly ILogger _logger;
 
         [Import]
-        private readonly IDeviceIdStore _deviceIdStore;
-
-        [Import]
         private readonly ICodeReviewer _reviewer;
 
         [Import]
@@ -86,9 +83,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 var cachedResult = cache.Get(new ReviewCacheQuery(code, path));
                 if (cachedResult != null) return;
 
-                var deviceId = _deviceIdStore.GetDeviceId();
-
-                _logger.Info($"Reviewing file {path}... {deviceId}");
+                _logger.Info($"Reviewing file {path}...");
                 var result = _reviewer.Review(path, code);
 
                 cache.Put(new ReviewCacheEntry(code, path, result));
