@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Newtonsoft.Json;
 using System;
@@ -12,9 +13,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliExecutor : ICliExecutor
     {
-        private const int DEFAULT_TIMEOUT_MS = 10000;
-        private static readonly TimeSpan DEFAULT_TIMEOUT = TimeSpan.FromMilliseconds(DEFAULT_TIMEOUT_MS);
-
         [Import]
         private readonly ILogger _logger;
 
@@ -46,7 +44,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
             return ExecuteWithTimingAndLogging<CliReviewModel>(
                 "CLI file review",
-                () => _executor.Execute(arguments, content, DEFAULT_TIMEOUT),
+                () => _executor.Execute(arguments, content, Constants.Timeout.DEFAULT_CLI_TIMEOUT),
                 $"Review of file {filename} failed"
             );
         }

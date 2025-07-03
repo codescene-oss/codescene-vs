@@ -126,6 +126,7 @@
     <Compile Include="Models\WebComponent\Model\ShowDocumentationModel.cs" />
     <Compile Include="Models\WebComponent\Data\WebComponentFileData.cs" />
     <Compile Include="Models\WebComponent\Message\WebComponentMessage.cs" />
+    <Compile Include="Models\WebComponent\Util\TelemetryUtils.cs" />
     <Compile Include="Models\WebComponent\Util\TextUtils.cs" />
     <Compile Include="Models\WebComponent\WebComponentConstants.cs" />
     <Compile Include="Models\WebComponent\Payload\WebComponentPayload.cs" />
