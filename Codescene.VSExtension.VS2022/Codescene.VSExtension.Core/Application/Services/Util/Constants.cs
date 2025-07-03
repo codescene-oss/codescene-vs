@@ -47,6 +47,7 @@
 
             #region Events
             public const string ON_ACTIVATE_EXTENSION = "on_activate_extension";
+            public const string ON_ACTIVATE_EXTENSION_ERROR = "on_activate_extension_error";
 
             public const string OPEN_CODE_HEALTH_DOCS = "open_code_health_docs";
             public const string OPEN_DOCS_PANEL = "open_interactive_docs_panel";

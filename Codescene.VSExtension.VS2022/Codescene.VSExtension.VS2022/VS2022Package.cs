@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.DocumentEventsHandler;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
@@ -12,6 +13,8 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+
+using CodeSceneConstants = Codescene.VSExtension.Core.Application.Services.Util.Constants;
 using Task = System.Threading.Tasks.Task;
 
 namespace Codescene.VSExtension.VS2022;
@@ -34,22 +37,36 @@ public sealed class VS2022Package : ToolkitPackage
     {
         Instance = this;
 
-        // Logging
-        await InitializeLoggerPaneAsync();
+        try
+        {
 
-        // Tool windows
-        this.RegisterToolWindows();
+            // Logging
+            await InitializeLoggerPaneAsync();
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            // Tool windows
+            this.RegisterToolWindows();
 
-        // Commands
-        await this.RegisterCommandsAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        // Cli file
-        await CheckCliFileAsync();
+            // Commands
+            await this.RegisterCommandsAsync();
 
-        // Subscribe on active document change event
-        await SubscribeOnActiveWindowChangeAsync();
+            // Cli file
+            await CheckCliFileAsync();
+
+            // Subscribe on active document change event
+            await SubscribeOnActiveWindowChangeAsync();
+
+            SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION);
+        }
+        catch (Exception e)
+        {
+            // Note: we may not be able to report every failure via telemetry
+            // (e.g. if the extension hasn't fully loaded or the CLI hasn' been downloaded yet).
+
+            System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
+            SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION_ERROR);
+        }
     }
 
     async Task<T> GetServiceAsync<T>()
@@ -60,6 +77,15 @@ public sealed class VS2022Package : ToolkitPackage
         }
 
         throw new Exception($"Can not find component {nameof(T)}");
+    }
+
+    private void SendTelemetry(string eventName)
+    {
+        Task.Run(async () =>
+        {
+            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+            telemetryManager.SendTelemetryAsync(eventName);
+        }).FireAndForget();
     }
 
     async Task InitializeLoggerPaneAsync()

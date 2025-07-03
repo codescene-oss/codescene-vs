@@ -1,13 +1,17 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Telemetry;
+using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
+using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -204,7 +208,9 @@ public partial class WebComponentUserControl : UserControl
                 });
 
                 args.Cancel = true;
+
                 _logger.Info($"Opened link '{uri}' in external browser.");
+                SendTelemetry(uri);
             }
             catch (Exception ex)
             {
@@ -242,5 +248,19 @@ public partial class WebComponentUserControl : UserControl
         {
             _logger.Error("Could not update webview.", e);
         }
+    }
+
+    private void SendTelemetry(string uri)
+    {
+        Task.Run(async () =>
+        {
+            var additionalData = new Dictionary<string, object>
+            {
+                { "url", uri }
+            };
+
+            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+            telemetryManager.SendTelemetryAsync(Constants.Telemetry.OPEN_LINK, additionalData);
+        }).FireAndForget();
     }
 }
