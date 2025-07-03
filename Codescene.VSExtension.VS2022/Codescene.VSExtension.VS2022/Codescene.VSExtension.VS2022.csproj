@@ -54,7 +54,11 @@
     <Compile Include="Application\Git\GitService.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
     <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
+    <Compile Include="Controls\AceRefactorTooltip.xaml.cs">
+      <DependentUpon>AceRefactorTooltip.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Handlers\SolutionEventsHandler.cs" />
+    <Compile Include="Tagger\AceRefactorTooltipModel.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
     <Compile Include="ToolWindows\ViewElementFactory.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
@@ -183,6 +187,7 @@
     <Compile Include="Tagger\ReviewResultTagger.cs" />
     <Compile Include="Tagger\ReviewResultTaggerProvider.cs" />
     <Compile Include="Tagger\ReviewResultTaggerTooltipModel.cs" />
+    <Compile Include="Util\AceUtils.cs" />
     <Compile Include="Util\DocumentNavigator.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">
@@ -548,6 +553,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Controls\AceRefactorTooltip.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\BrainClass.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

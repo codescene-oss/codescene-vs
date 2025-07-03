@@ -38,10 +38,10 @@ public class General : BaseOptionModel<General>
     [Description("Enable detailed debug logs in the CodeScene Output window")]
     public bool ShowDebugLogs { get; set; } = false;
 
-    //[Category("General")]
-    //[DisplayName("Enable Auto Refactor")]
-    //[Description("Enable CodeScene ACE. This is currently only available for customers part of the ACE beta program")]
-    //public bool EnableAutoRefactor { get; set; } = false;
+    [Category("General")]
+    [DisplayName("Enable Auto Refactor")]
+    [Description("Enable CodeScene ACE. This is currently only available for customers part of the ACE beta program")]
+    public bool EnableAutoRefactor { get; set; } = true;
 
     //[Category("General")]
     //[DisplayName("Server Url")]

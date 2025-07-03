@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.Controls;
@@ -53,7 +54,10 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                         yield break;
 
                     if (tagSpan.Value.IntersectsWith(visibleSpan))
+                    {
                         yield return CreateErrorTagSpan(tagSpan.Value, codeSmell);
+                        yield return CreateAceRefactorTagSpan(tagSpan.Value, codeSmell);
+                    }
                 }
             }
         }
@@ -139,6 +143,17 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             var errorTag = new ErrorTag(
                 PredefinedErrorTypeNames.Warning,
                 new UnderlineTaggerTooltip(codeSmellInfo));
+
+            return new TagSpan<IErrorTag>(span, errorTag);
+        }
+
+        private TagSpan<IErrorTag> CreateAceRefactorTagSpan(SnapshotSpan span, CodeSmellModel codeSmell)
+        {
+            var tooltipParams = new AceRefactorTooltipParams(codeSmell.Path);
+
+            var errorTag = new ErrorTag(
+                PredefinedErrorTypeNames.Warning,
+                new AceRefactorTooltip(tooltipParams));
 
             return new TagSpan<IErrorTag>(span, errorTag);
         }
