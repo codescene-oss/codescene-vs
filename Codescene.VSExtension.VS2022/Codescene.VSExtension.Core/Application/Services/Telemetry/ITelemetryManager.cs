@@ -4,6 +4,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
 {
     public interface ITelemetryManager
     {
-        void SendTelemetryAsync(string eventName, Dictionary<string, object> additionalEventData = null);
+        void SendTelemetry(string eventName, Dictionary<string, object> additionalEventData = null);
     }
 }

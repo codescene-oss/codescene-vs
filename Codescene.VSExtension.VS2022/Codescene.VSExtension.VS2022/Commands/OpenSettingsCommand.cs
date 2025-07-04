@@ -21,7 +21,7 @@ internal sealed class OpenSettingsCommand : BaseCommand<OpenSettingsCommand>
         Task.Run(async () =>
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetryAsync(Constants.Telemetry.OPEN_SETTINGS);
+            telemetryManager.SendTelemetry(Constants.Telemetry.OPEN_SETTINGS);
         }).FireAndForget();
     }
 }

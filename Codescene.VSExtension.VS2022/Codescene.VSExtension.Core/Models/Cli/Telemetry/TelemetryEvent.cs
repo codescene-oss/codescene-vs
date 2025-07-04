@@ -1,51 +1,52 @@
 ﻿using Newtonsoft.Json;
 
-public class TelemetryEvent
+namespace Codescene.VSExtension.Core.Models.Cli.Telemetry
 {
-    [JsonProperty("event-name", NullValueHandling = NullValueHandling.Ignore)]
-    public string EventName { get; set; }
-
-    [JsonProperty("user-id", NullValueHandling = NullValueHandling.Ignore)]
-    public string UserId { get; set; }
-
-    [JsonProperty("editor-type", NullValueHandling = NullValueHandling.Ignore)]
-    public string EditorType { get; set; }
-
-    [JsonProperty("extension-version", NullValueHandling = NullValueHandling.Ignore)]
-    public string ExtensionVersion { get; set; }
-
-    [JsonProperty("internal", NullValueHandling = NullValueHandling.Ignore)]
-    public bool? Internal { get; set; }
-
-    public TelemetryEvent() { }
-
-    public TelemetryEvent WithEventName(string eventName)
+    public class TelemetryEvent
     {
-        this.EventName = eventName;
-        return this;
-    }
+        [JsonProperty("event-name", NullValueHandling = NullValueHandling.Ignore)]
+        public string EventName { get; set; }
 
-    public TelemetryEvent WithUserId(string userId)
-    {
-        this.UserId = userId;
-        return this;
-    }
+        [JsonProperty("user-id", NullValueHandling = NullValueHandling.Ignore)]
+        public string UserId { get; set; }
 
-    public TelemetryEvent WithEditorType(string editorType)
-    {
-        this.EditorType = editorType;
-        return this;
-    }
+        [JsonProperty("editor-type", NullValueHandling = NullValueHandling.Ignore)]
+        public string EditorType { get; set; }
 
-    public TelemetryEvent WithExtensionVersion(string extensionVersion)
-    {
-        this.ExtensionVersion = extensionVersion;
-        return this;
-    }
+        [JsonProperty("extension-version", NullValueHandling = NullValueHandling.Ignore)]
+        public string ExtensionVersion { get; set; }
 
-    public TelemetryEvent WithInternal(bool? internalFlag)
-    {
-        this.Internal = internalFlag;
-        return this;
+        [JsonProperty("internal", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? Internal { get; set; }
+
+        public TelemetryEvent WithEventName(string eventName)
+        {
+            this.EventName = eventName;
+            return this;
+        }
+
+        public TelemetryEvent WithUserId(string userId)
+        {
+            this.UserId = userId;
+            return this;
+        }
+
+        public TelemetryEvent WithEditorType(string editorType)
+        {
+            this.EditorType = editorType;
+            return this;
+        }
+
+        public TelemetryEvent WithExtensionVersion(string extensionVersion)
+        {
+            this.ExtensionVersion = extensionVersion;
+            return this;
+        }
+
+        public TelemetryEvent WithInternal(bool? internalFlag)
+        {
+            this.Internal = internalFlag;
+            return this;
+        }
     }
 }

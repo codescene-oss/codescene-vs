@@ -1,5 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Models.Cli.Telemetry;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -16,7 +17,7 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Util
                 UserId = deviceId,
                 EditorType = Constants.Telemetry.SOURCE_IDE,
                 EventName = $"{Constants.Telemetry.SOURCE_IDE}/{eventName}",
-                ExtensionVersion = version, // TODO: differentiate between premium and freemium by adding '-premium' prefix to ExtensionVersion?
+                ExtensionVersion = version,
             };
 
             string eventJson = Serialize(telemetryEvent, additionalEventData);

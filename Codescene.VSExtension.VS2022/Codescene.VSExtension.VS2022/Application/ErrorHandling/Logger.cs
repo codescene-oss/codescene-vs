@@ -68,7 +68,7 @@ internal class Logger : ILogger
         Task.Run(async () =>
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetryAsync(Telemetry.REVIEW_OR_DELTA_TIMEOUT);
+            telemetryManager.SendTelemetry(Telemetry.REVIEW_OR_DELTA_TIMEOUT);
         }).FireAndForget();
     }
 }

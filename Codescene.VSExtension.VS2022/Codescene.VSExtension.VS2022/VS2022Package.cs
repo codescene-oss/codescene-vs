@@ -39,7 +39,6 @@ public sealed class VS2022Package : ToolkitPackage
 
         try
         {
-
             // Logging
             await InitializeLoggerPaneAsync();
 
@@ -62,7 +61,7 @@ public sealed class VS2022Package : ToolkitPackage
         catch (Exception e)
         {
             // Note: we may not be able to report every failure via telemetry
-            // (e.g. if the extension hasn't fully loaded or the CLI hasn' been downloaded yet).
+            // (e.g. if the extension hasn't fully loaded or the CLI hasn't been downloaded yet).
 
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
             SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION_ERROR);
@@ -84,7 +83,7 @@ public sealed class VS2022Package : ToolkitPackage
         Task.Run(async () =>
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetryAsync(eventName);
+            telemetryManager.SendTelemetry(eventName);
         }).FireAndForget();
     }
 

@@ -5,7 +5,6 @@ using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.Core.Application.Services.Util
 {
-
     [Export(typeof(IDeviceIdStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class DeviceIdStore : IDeviceIdStore

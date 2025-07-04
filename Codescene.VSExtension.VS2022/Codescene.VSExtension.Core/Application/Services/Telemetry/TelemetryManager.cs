@@ -27,7 +27,16 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
         [Import]
         private readonly IExtensionMetadataProvider _extensionMetadataProvider;
 
-        public void SendTelemetryAsync(string eventName, Dictionary<string, object> additionalEventData = null)
+        /// <summary>
+        /// Sends a telemetry event with the specified event name and optional additional data.
+        /// </summary>
+        /// <remarks>
+        /// This method builds a telemetry event JSON payload that includes the device ID,
+        /// extension version, and any additional data provided. It then sends the event via
+        /// a CLI command, using a defined timeout. If telemetry is disabled or an error occurs,
+        /// the method logs the issue and returns silently.
+        /// </remarks>
+        public void SendTelemetry(string eventName, Dictionary<string, object> additionalEventData = null)
         {
             if (!TelemetryUtils.IsTelemetryEnabled(_logger)) return;
 
@@ -47,6 +56,5 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
                 _logger.Debug($"Unable to send telemetry event: {e.Message}");
             }
         }
-
     }
 }
