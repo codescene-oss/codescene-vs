@@ -70,7 +70,8 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
             var extension = Path.GetExtension(fileName).Replace(".", "");
             IList<FnToRefactorModel> refactorableFunctions = await GetRefactorableFunctions(content, codesmellsJson, preflight, extension);
-            
+
+            // hardcoded to take first until refactorable functions are implemented
             var f = refactorableFunctions.First();
 
             //Fix for csharp ACE api
