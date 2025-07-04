@@ -7,8 +7,8 @@
 
         public AceRefactorableFunctionsQuery(string filePath, string fileContents)
         {
-            FileContents = fileContents;
             FilePath = filePath;
+            FileContents = fileContents;
         }
     }
 }

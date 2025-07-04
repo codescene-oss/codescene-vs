@@ -7,9 +7,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.Ace
     {
         public string FilePath { get; }
         public string FileContents { get; }
-        public List<FnToRefactorModel> Result { get; }
+        public IList<FnToRefactorModel> Result { get; }
 
-        public AceRefactorableFunctionsEntry(string filePath, string fileContents, List<FnToRefactorModel> result)
+        public AceRefactorableFunctionsEntry(string filePath, string fileContents, IList<FnToRefactorModel> result)
         {
             FileContents = fileContents;
             FilePath = filePath;

@@ -1,8 +1,11 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.VS2022.Controls;
+using Codescene.VSExtension.VS2022.Util;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -17,6 +20,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         private readonly ITextBuffer _buffer;
         private readonly string _filePath;
         private readonly ReviewCacheService _cache = new();
+        private readonly AceRefactorableFunctionsCacheService _aceRefactorableFunctionsCache = new();
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
@@ -40,9 +44,13 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
             var smells = TryLoadFromCache();
+            var refactorableFunctions = TryLoadRefactorableFunctionsFromCache();
 
             if (smells.Count == 0)
                 yield break; // No tags, exit early
+
+            var hasRefactorableFunction = false;
+            SnapshotSpan? lastTagSpan = null;
 
             foreach (var visibleSpan in spans)
             {
@@ -56,10 +64,16 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                     if (tagSpan.Value.IntersectsWith(visibleSpan))
                     {
                         yield return CreateErrorTagSpan(tagSpan.Value, codeSmell);
-                        yield return CreateAceRefactorTagSpan(tagSpan.Value, codeSmell);
+                        if (General.Instance.EnableAutoRefactor && AceUtils.GetRefactorableFunction(codeSmell, refactorableFunctions) is not null)
+                        {
+                            hasRefactorableFunction = true;
+                            lastTagSpan = tagSpan;
+                        }
                     }
                 }
             }
+            if (hasRefactorableFunction)
+                yield return CreateAceRefactorTagSpan(lastTagSpan.Value);
         }
 
         private List<CodeSmellModel> TryLoadFromCache()
@@ -71,6 +85,12 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 return cached.FileLevel.Concat(cached.FunctionLevel).ToList() ?? [];
 
             return [];
+        }
+
+        private IList<FnToRefactorModel> TryLoadRefactorableFunctionsFromCache()
+        {
+            string currentContent = _buffer.CurrentSnapshot.GetText();
+            return _aceRefactorableFunctionsCache.Get(new AceRefactorableFunctionsQuery(_filePath, currentContent));
         }
 
         public void RefreshTags()
@@ -147,9 +167,9 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             return new TagSpan<IErrorTag>(span, errorTag);
         }
 
-        private TagSpan<IErrorTag> CreateAceRefactorTagSpan(SnapshotSpan span, CodeSmellModel codeSmell)
+        private TagSpan<IErrorTag> CreateAceRefactorTagSpan(SnapshotSpan span)
         {
-            var tooltipParams = new AceRefactorTooltipParams(codeSmell.Path);
+            var tooltipParams = new AceRefactorTooltipParams(_filePath);
 
             var errorTag = new ErrorTag(
                 PredefinedErrorTypeNames.Warning,
