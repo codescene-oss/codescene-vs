@@ -6,9 +6,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.Ace
     public class AceRefactorableFunctionsItem
     {
         public string FileContentsHash { get; }
-        public List<FnToRefactorModel> Result { get; }
+        public IList<FnToRefactorModel> Result { get; }
 
-        public AceRefactorableFunctionsItem(string fileContentsHash, List<FnToRefactorModel> result)
+        public AceRefactorableFunctionsItem(string fileContentsHash, IList<FnToRefactorModel> result)
         {
             FileContentsHash = fileContentsHash;
             Result = result;

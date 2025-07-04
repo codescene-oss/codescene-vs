@@ -96,7 +96,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 cache.Put(new ReviewCacheEntry(code, path, result));
 
                 // check contains refactorable functions
-
+                var refactorableFunctions = await AceUtils.CheckContainsRefactorableFunctionsAsync(result);
 
                 if (result.RawScore != null)
                 {

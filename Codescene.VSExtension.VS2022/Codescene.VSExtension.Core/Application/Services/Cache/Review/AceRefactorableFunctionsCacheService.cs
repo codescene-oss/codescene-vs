@@ -8,9 +8,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cache.Review
         AceRefactorableFunctionsQuery, 
         AceRefactorableFunctionsEntry, 
         AceRefactorableFunctionsItem, 
-        List<FnToRefactorModel>>
+        IList<FnToRefactorModel>>
     {
-        public override List<FnToRefactorModel> Get(AceRefactorableFunctionsQuery query)
+        public override IList<FnToRefactorModel> Get(AceRefactorableFunctionsQuery query)
         {
             string filePath = query.FilePath;
             string fileContents = query.FileContents;

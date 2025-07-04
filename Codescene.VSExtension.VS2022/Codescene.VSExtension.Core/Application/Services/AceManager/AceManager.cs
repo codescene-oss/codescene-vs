@@ -3,6 +3,7 @@ using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
+using Codescene.VSExtension.Core.Application.Services.PreflightManager;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.ReviewModels;
@@ -29,6 +30,9 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
         [Import]
         private readonly ICliExecutor _executer;
+
+        [Import]
+        private readonly IPreflightManager _preflightManager;
 
         public static CachedRefactoringActionModel LastRefactoring;
 
