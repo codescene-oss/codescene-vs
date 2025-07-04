@@ -50,8 +50,8 @@
     <Compile Include="Application\ErrorListWindowHandler\CustomErrorListEntry.cs" />
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
-    <Compile Include="Application\Git\GitCliService.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
+    <Compile Include="Commands\CopyDeviceIdCommand.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
     <Compile Include="ToolWindows\ViewElementFactory.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
@@ -158,20 +158,14 @@
     <Compile Include="ToolWindows\WebComponent\CodeSmellDocumentationWindow.cs" />
     <Compile Include="EditorMargin\CodeSceneMargin.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginProvider.cs" />
-    <Compile Include="ToolWindows\WebComponent\Handlers\CopyRefactoredCodeHandler.cs" />
-    <Compile Include="ToolWindows\WebComponent\Handlers\RefactoringChangesApplier.cs" />
     <Compile Include="RegistryHelper.cs" />
     <Compile Include="Commands\Base\VSBaseCommand.cs" />
     <Compile Include="Options\General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\SignInCommand.cs" />
-    <Compile Include="ToolWindows\WebComponent\AceToolWindow.cs" />
-    <Compile Include="ToolWindows\WebComponent\Handlers\OnClickRefactoringHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Models\GoToFunctionLocationPayload.cs" />
     <Compile Include="ToolWindows\WebComponent\Models\MessageObj.cs" />
-    <Compile Include="ToolWindows\WebComponent\Handlers\ShowDiffHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\ShowDocumentationHandler.cs" />
-    <Compile Include="ToolWindows\WebComponent\Handlers\SkipShowDiffHelper.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\WebComponentMessageHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">
       <DependentUpon>WebComponentUserControl.xaml</DependentUpon>
@@ -180,6 +174,7 @@
     <Compile Include="Tagger\ReviewResultTaggerProvider.cs" />
     <Compile Include="Tagger\ReviewResultTaggerTooltipModel.cs" />
     <Compile Include="Util\DocumentNavigator.cs" />
+    <Compile Include="Util\ExtensionMetadataProvider.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>

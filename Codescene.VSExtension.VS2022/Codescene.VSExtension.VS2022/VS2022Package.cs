@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.DocumentEventsHandler;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
@@ -12,6 +13,8 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+
+using CodeSceneConstants = Codescene.VSExtension.Core.Application.Services.Util.Constants;
 using Task = System.Threading.Tasks.Task;
 
 namespace Codescene.VSExtension.VS2022;
@@ -25,7 +28,6 @@ namespace Codescene.VSExtension.VS2022;
 [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
 
 [ProvideToolWindow(typeof(MarkdownWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
-[ProvideToolWindow(typeof(AceToolWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer, Transient = true)]
 [ProvideToolWindow(typeof(CodeSmellDocumentationWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer, Transient = true)]
 public sealed class VS2022Package : ToolkitPackage
 {
@@ -35,31 +37,35 @@ public sealed class VS2022Package : ToolkitPackage
     {
         Instance = this;
 
-        // Logging
-        await InitializeLoggerPaneAsync();
+        try
+        {
+            // Logging
+            await InitializeLoggerPaneAsync();
 
-        // Tool windows
-        this.RegisterToolWindows();
+            // Tool windows
+            this.RegisterToolWindows();
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        // Commands
-        await this.RegisterCommandsAsync();
+            // Commands
+            await this.RegisterCommandsAsync();
 
-        // Cli file
-        await CheckCliFileAsync();
+            // Cli file
+            await CheckCliFileAsync();
 
-        // Subscribe on active document change event
-        await SubscribeOnActiveWindowChangeAsync();
+            // Subscribe on active document change event
+            await SubscribeOnActiveWindowChangeAsync();
 
-        //Hide Windows
-        await HideOpenedWindowsAsync();
-    }
+            SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION);
+        }
+        catch (Exception e)
+        {
+            // Note: we may not be able to report every failure via telemetry
+            // (e.g. if the extension hasn't fully loaded or the CLI hasn't been downloaded yet).
 
-
-    async Task HideOpenedWindowsAsync()
-    {
-        await AceToolWindow.HideAsync();
+            System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
+            SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION_ERROR);
+        }
     }
 
     async Task<T> GetServiceAsync<T>()
@@ -70,6 +76,15 @@ public sealed class VS2022Package : ToolkitPackage
         }
 
         throw new Exception($"Can not find component {nameof(T)}");
+    }
+
+    private void SendTelemetry(string eventName)
+    {
+        Task.Run(async () =>
+        {
+            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+            telemetryManager.SendTelemetry(eventName);
+        }).FireAndForget();
     }
 
     async Task InitializeLoggerPaneAsync()

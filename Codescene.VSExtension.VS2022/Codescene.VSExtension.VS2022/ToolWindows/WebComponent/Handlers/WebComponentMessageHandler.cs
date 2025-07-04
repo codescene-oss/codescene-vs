@@ -50,24 +50,6 @@ internal class WebComponentMessageHandler
             case WebComponentConstants.MessageTypes.INIT:
                 return;
 
-            case WebComponentConstants.MessageTypes.COPY_CODE:
-                var copyHandler = await VS.GetMefServiceAsync<CopyRefactoredCodeHandler>();
-                copyHandler.CopyToRefactoredCodeToClipboard();
-                return;
-
-            case WebComponentConstants.MessageTypes.SHOW_DIFF:
-                var diffHandler = await VS.GetMefServiceAsync<ShowDiffHandler>();
-                await diffHandler.ShowDiffWindowAsync();
-                return;
-
-            case WebComponentConstants.MessageTypes.APPLY:
-                var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
-                await applier.ApplyAsync();
-                return;
-
-            case WebComponentConstants.MessageTypes.REJECT:
-                if (_control.CloseRequested is not null) await _control.CloseRequested();
-                return;
 
             case WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION:
                 var payload = msgObject.Payload.ToObject<GotoFunctionLocationPayload>();

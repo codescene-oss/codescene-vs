@@ -127,9 +127,7 @@
   <ItemGroup>
     <Compile Include="CliCommandProviderTests.cs" />
     <Compile Include="CliDownloaderTests.cs" />
-    <Compile Include="CliExecuterTests.cs" />
     <Compile Include="CliFileCheckerTests.cs" />
-    <Compile Include="CliObjectScoreCreatorTests.cs" />
     <Compile Include="CliSettingsProviderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
