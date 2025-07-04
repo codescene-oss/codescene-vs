@@ -22,7 +22,6 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         public string FunctionName { get; set; }
 
         public ICommand YourCommand { get; }
-        public int WindowId { get; set; }
 
         private readonly ShowDocumentationHandler _showDocumentationHandler;
 

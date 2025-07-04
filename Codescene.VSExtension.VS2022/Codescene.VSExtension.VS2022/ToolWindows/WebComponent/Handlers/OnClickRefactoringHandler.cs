@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
+using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using System.ComponentModel.Composition;
@@ -15,7 +16,7 @@ public class OnClickRefactoringHandler
     private readonly AceComponentMapper _mapper;
 
     [Import]
-    private readonly ICodeReviewer _reviewer;
+    private readonly IAceManager _aceManager;
 
     private string _path = null;
 
@@ -58,7 +59,7 @@ public class OnClickRefactoringHandler
         using (var reader = File.OpenText(path))
         {
             var content = await reader.ReadToEndAsync();
-            var refactored = await _reviewer.Refactor(path: path, content: content);
+            var refactored = await _aceManager.Refactor(path: path, content: content);
             AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
                 MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,

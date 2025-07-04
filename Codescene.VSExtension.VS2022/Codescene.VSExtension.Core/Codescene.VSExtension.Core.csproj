@@ -71,12 +71,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Application\Services\AceManager\AceManager.cs" />
+    <Compile Include="Application\Services\AceManager\IAceManager.cs" />
     <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IPersistenceAuthDataProvider.cs" />
     <Compile Include="Application\Services\Authentication\FakeAuthDataProvider.cs" />
+    <Compile Include="Application\Services\Cache\Review\AceRefactorableFunctionsCacheService.cs" />
     <Compile Include="Application\Services\Cache\Review\CacheService.cs" />
     <Compile Include="Application\Services\Cache\Review\DeltaCacheService.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsEntry.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsItem.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsQuery.cs" />
     <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheEntry.cs" />
     <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheItem.cs" />
     <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheQuery.cs" />
