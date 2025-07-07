@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased
 
+## [0.0.6] - 2025-07-07
+### Changed
+- Updated webview to v1.0.1.
+- Added more styling support to webviews.
+
 ## [0.0.5] - 2025-07-04
 ### Added
 - Optional extension usage telemetry.
