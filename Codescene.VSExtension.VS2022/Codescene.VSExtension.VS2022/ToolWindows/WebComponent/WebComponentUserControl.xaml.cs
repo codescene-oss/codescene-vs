@@ -4,6 +4,7 @@ using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
+using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -92,7 +93,7 @@ public partial class WebComponentUserControl : UserControl
     /// <summary>
     /// Generates an initialization script for setting context and injecting theme CSS into the WebView DOM.
     /// </summary>
-    private string GenerateInitialScript<T>(T payload)
+    private async Task<string> GenerateInitialScriptAsync<T>(T payload)
     {
         const string template = $@"
         function setContext() {{
@@ -113,6 +114,9 @@ public partial class WebComponentUserControl : UserControl
         };
 
         var ideContext = JsonConvert.SerializeObject(payload, settings);
+
+        if (!ThreadHelper.CheckAccess()) await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
         var cssVars = GenerateCssVariablesFromTheme();
 
         var script = template
@@ -123,28 +127,10 @@ public partial class WebComponentUserControl : UserControl
     }
 
     /// <summary>
-    /// Generates a CSS string defining theme variables based on the current Visual Studio color theme.
+    /// Gets a CSS string defining theme variables based on the current Visual Studio color theme.
     /// These variables are used for styling elements inside the WebView to match the IDE appearance.
     /// </summary>
-    private static string GenerateCssVariablesFromTheme()
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-
-        var textForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
-        var secondaryBackground = VSColorTheme.GetThemedColor(EnvironmentColors.FileTabScrollBarThumbColorKey);
-        var editorBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
-        var linkForeground = VSColorTheme.GetThemedColor(EnvironmentColors.HelpHowDoIPaneLinkColorKey);
-        var codeBlockBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowCodeBlockBackgroundColorKey);
-
-        return $@"
-            :root {{
-                --cs-theme-foreground: #{textForeground.R:X2}{textForeground.G:X2}{textForeground.B:X2};
-                --cs-theme-textLink-foreground: #{linkForeground.R:X2}{linkForeground.G:X2}{linkForeground.B:X2};
-                --cs-theme-editor-background: #{editorBackground.R:X2}{editorBackground.G:X2}{editorBackground.B:X2};
-                --cs-theme-textCodeBlock-background: #{codeBlockBackground.R:X2}{codeBlockBackground.G:X2}{codeBlockBackground.B:X2};
-                --cs-theme-button-secondaryBackground: #{secondaryBackground.R:X2}{secondaryBackground.G:X2}{secondaryBackground.B:X2};
-        }}";
-    }
+    private static string GenerateCssVariablesFromTheme() => StyleHelper.GenerateCssVariablesFromTheme();
 
     private async Task<CoreWebView2Environment> CreatePerWindowEnvAsync(string view)
     {
@@ -174,7 +160,8 @@ public partial class WebComponentUserControl : UserControl
 
         webView.Source = new Uri($"https://{HOST}/index.html");
 
-        await webView.CoreWebView2.ExecuteScriptAsync(GenerateInitialScript(payload));
+        var initialScript = await GenerateInitialScriptAsync(payload);
+        await webView.CoreWebView2.ExecuteScriptAsync(initialScript);
     }
 
     /// <summary>
