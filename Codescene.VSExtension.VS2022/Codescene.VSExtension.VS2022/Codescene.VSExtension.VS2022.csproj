@@ -185,6 +185,7 @@
     <Compile Include="Tagger\ReviewResultTaggerProvider.cs" />
     <Compile Include="Tagger\ReviewResultTaggerTooltipModel.cs" />
     <Compile Include="Util\DocumentNavigator.cs" />
+    <Compile Include="Util\StyleHelper.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>
