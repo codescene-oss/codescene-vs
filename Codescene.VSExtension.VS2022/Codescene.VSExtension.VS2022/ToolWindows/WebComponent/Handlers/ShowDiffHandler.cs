@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
+using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
@@ -12,13 +13,13 @@ using System.Threading.Tasks;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class ShowDiffHandler
 {
-    [Import] private readonly ICodeReviewer _reviewer;
+    [Import] private readonly IAceManager _aceManager;
 
     public async Task ShowDiffWindowAsync()
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        var cache = _reviewer.GetCachedRefactoredCode();
+        var cache = _aceManager.GetCachedRefactoredCode();
         var newCode = cache.Refactored.Code;
         var docView = await VS.Documents.OpenAsync(cache.Path);
         if (docView?.TextBuffer is not ITextBuffer buffer)

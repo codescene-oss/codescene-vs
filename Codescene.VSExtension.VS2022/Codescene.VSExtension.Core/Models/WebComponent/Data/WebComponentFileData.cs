@@ -4,7 +4,7 @@ namespace Codescene.VSExtension.Core.Models.WebComponent
 {
     public class WebComponentFileDataBase
     {
-        public string Filename { get; set; }
+        public string FileName { get; set; }
         public WebComponentFileDataBaseFn Fn { get; set; }
     }
 

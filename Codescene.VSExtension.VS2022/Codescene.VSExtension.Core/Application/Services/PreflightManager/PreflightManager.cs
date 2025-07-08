@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -12,18 +13,29 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
         [Import]
         private readonly ICliExecutor _executer;
 
-        private readonly string[] _codeSmells;
-        private readonly string[] _languages;
-        private readonly decimal _version;
+        private PreFlightResponseModel _preflightResponse;
+        private string[] _codeSmells;
+        private string[] _languages;
+        private decimal _version;
 
-        [ImportingConstructor]
-        public PreflightManager(ICliExecutor executer)
+        //public PreflightManager(ICliExecutor executer)
+        //{
+        //    _executer = executer;
+        //    var response = _executer.Preflight(); // no need to force the response, it is already cached
+        //    _preflightResponse = response;
+        //    _version = response.Version;
+        //    _codeSmells = response.LanguageCommon.CodeSmells;
+        //    _languages = response.FileTypes;
+        //}
+
+        public PreFlightResponseModel RunPreflight(bool force = false)
         {
-            _executer = executer;
-            var response = _executer.Preflight(force: true);
+            var response = _executer.Preflight(force); // no need to force the response, it is already cached
+            _preflightResponse = response;
             _version = response.Version;
             _codeSmells = response.LanguageCommon.CodeSmells;
             _languages = response.FileTypes;
+            return response;
         }
         public decimal GetVersion() => _version;
 
@@ -31,8 +43,13 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
 
         public bool IsSupportedCodeSmell(string codeSmell) => _codeSmells.Contains(codeSmell);
 
-        public bool IsSupportedLanguage(string extenison) => _languages.Contains(extenison.Replace(".", "").ToLower());
+        public bool IsSupportedLanguage(string extension) => _languages.Contains(extension.Replace(".", "").ToLower());
 
         public bool IsSupportedLanguageAndCodeSmell(string extenison, string codeSmell) => IsSupportedLanguage(extenison) && IsSupportedCodeSmell(codeSmell);
+
+        public PreFlightResponseModel GetPreflightResponse()
+        {
+            return _preflightResponse;
+        }
     }
 }

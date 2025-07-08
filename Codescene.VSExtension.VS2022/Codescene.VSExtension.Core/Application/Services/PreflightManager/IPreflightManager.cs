@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
 {
@@ -9,5 +10,6 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
         bool IsAnyCodeSmellSupported(IEnumerable<string> codeSmells);
         bool IsSupportedLanguageAndCodeSmell(string extenison, string codeSmell);
         decimal GetVersion();
+        PreFlightResponseModel RunPreflight(bool force = false);
     }
 }
