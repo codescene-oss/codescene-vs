@@ -312,5 +312,21 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
             return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result.StdOut);
         }
+
+        public string GetDeviceId()
+        {
+            try
+            {
+                var arguments = _cliCommandProvider.DeviceIdCommand;
+                var result = _executor.Execute(arguments);
+
+                return result?.Trim();
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Could not get device ID", e);
+                return "";
+            }
+        }
     }
 }
