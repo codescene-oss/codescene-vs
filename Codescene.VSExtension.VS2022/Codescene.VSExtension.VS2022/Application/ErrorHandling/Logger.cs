@@ -57,6 +57,6 @@ internal class Logger : ILogger
     private async Task WriteAsync(string message)
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        _outputPaneManager.Pane?.OutputStringThreadSafe($"[{DateTime.Now:HH:mm:ss}] {message}{Environment.NewLine}");
+        _outputPaneManager.Pane?.OutputStringThreadSafe($"{message}{Environment.NewLine}");
     }
 }

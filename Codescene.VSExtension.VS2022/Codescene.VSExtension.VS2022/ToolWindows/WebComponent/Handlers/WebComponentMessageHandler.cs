@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
@@ -9,9 +10,13 @@ using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
+
 internal class WebComponentMessageHandler
 {
     private ILogger _logger;
+
+    private ShowDocumentationHandler _showDocsHandler;
+
     private readonly WebComponentUserControl _control;
 
     public WebComponentMessageHandler(WebComponentUserControl control)
@@ -26,6 +31,7 @@ internal class WebComponentMessageHandler
     public async Task HandleAsync(string message)
     {
         _logger ??= await VS.GetMefServiceAsync<ILogger>();
+        _showDocsHandler ??= await VS.GetMefServiceAsync<ShowDocumentationHandler>();
 
         MessageObj<JToken> msgObject;
         try
@@ -79,6 +85,10 @@ internal class WebComponentMessageHandler
 
                 case MessageTypes.GOTO_FUNCTION_LOCATION:
                     await HandleGotoFunctionLocationAsync(msgObject, logger);
+                    break;
+
+                case MessageTypes.OPEN_DOCS_FOR_FUNCTION:
+                    await HandleOpenDocsForFunctionAsync(msgObject, logger);
                     break;
 
                 default:
@@ -138,6 +148,20 @@ internal class WebComponentMessageHandler
             payload.FileName,
             startLine,
             logger
+        );
+    }
+
+    private async Task HandleOpenDocsForFunctionAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        var payload = msgObject.Payload.ToObject<OpenDocsForFunctionPayload>();
+        _logger.Debug($"Opening '{payload.DocType}'...");
+
+        await _showDocsHandler?.HandleAsync(
+        new ShowDocumentationModel(
+            payload.FileName,
+            payload.DocType,
+            payload.Fn.Name,
+            payload.Fn.Range)
         );
     }
 }
