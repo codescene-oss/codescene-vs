@@ -53,6 +53,7 @@
     <Compile Include="Application\Git\BranchWatcherService.cs" />
     <Compile Include="Application\Git\GitService.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
+    <Compile Include="Commands\CopyDeviceIdCommand.cs" />
     <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
     <Compile Include="Handlers\SolutionEventsHandler.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
