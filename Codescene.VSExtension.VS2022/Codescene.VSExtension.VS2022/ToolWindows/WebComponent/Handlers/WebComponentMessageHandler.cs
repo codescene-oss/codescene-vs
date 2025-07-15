@@ -1,11 +1,15 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Telemetry;
+using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
@@ -117,24 +121,56 @@ internal class WebComponentMessageHandler
 
     private async Task HandleCopyCodeAsync()
     {
+        // TODO: add additionalData to telemetry
+        //var additionalData = new Dictionary<string, object>
+        //{
+        //    { "traceId", ... },
+        //    { "skipCache ", ... }
+        //};
+        SendTelemetry(Constants.Telemetry.ACE_REFACTOR_COPY_CODE);
+
         var copyHandler = await VS.GetMefServiceAsync<CopyRefactoredCodeHandler>();
         copyHandler.CopyToRefactoredCodeToClipboard();
     }
 
     private async Task HandleShowDiffAsync()
     {
+        // TODO: add additionalData to telemetry
+        //var additionalData = new Dictionary<string, object>
+        //{
+        //    { "traceId", ... },
+        //    { "skipCache ", ... }
+        //};
+        SendTelemetry(Constants.Telemetry.ACE_REFACTOR_DIFF_SHOWN);
+
         var diffHandler = await VS.GetMefServiceAsync<ShowDiffHandler>();
         await diffHandler.ShowDiffWindowAsync();
     }
 
     private async Task HandleApplyAsync()
     {
+        // TODO: add additionalData to telemetry
+        //var additionalData = new Dictionary<string, object>
+        //{
+        //    { "traceId", ... },
+        //    { "skipCache ", ... }
+        //};
+        SendTelemetry(Constants.Telemetry.ACE_REFACTOR_APPLIED);
+
         var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
         await applier.ApplyAsync();
     }
 
     private async Task HandleRejectAsync()
     {
+        // TODO: add additionalData to telemetry
+        //var additionalData = new Dictionary<string, object>
+        //{
+        //    { "traceId", ... },
+        //    { "skipCache ", ... }
+        //};
+        SendTelemetry(Constants.Telemetry.ACE_REFACTOR_REJECTED);
+
         if (_control.CloseRequested is not null)
             await _control.CloseRequested();
     }
@@ -161,7 +197,16 @@ internal class WebComponentMessageHandler
             payload.FileName,
             payload.DocType,
             payload.Fn.Name,
-            payload.Fn.Range)
+            payload.Fn.Range), DocsEntryPoint.CodeHealthMonitor
         );
+    }
+
+    private void SendTelemetry(string eventName, Dictionary<string, object> additionalData = null)
+    {
+        Task.Run(async () =>
+        {
+            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+            telemetryManager.SendTelemetry(eventName, additionalData);
+        }).FireAndForget();
     }
 }
