@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Codescene.VSExtension.Core.Application.Services.Util;
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Text;
@@ -20,7 +21,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public string Execute(string arguments, string content = null, TimeSpan? timeout = null)
         {
-            var actualTimeout = timeout ?? TimeSpan.FromSeconds(10);
+            var actualTimeout = timeout ?? Constants.Timeout.DEFAULT_CLI_TIMEOUT;
 
             var processInfo = new ProcessStartInfo
             {
