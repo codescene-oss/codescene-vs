@@ -117,6 +117,7 @@
     <Compile Include="Application\Services\Telemetry\TelemetryManager.cs" />
     <Compile Include="Application\Services\Util\Constants.cs" />
     <Compile Include="Application\Services\Util\DeltaJobTracker.cs" />
+    <Compile Include="Application\Services\Util\DeltaTelemetryHelper.cs" />
     <Compile Include="Application\Services\Util\IDebounceService.cs" />
     <Compile Include="Application\Services\Util\IExtensionMetadataProvider.cs" />
     <Compile Include="Application\Services\WebComponent\CodeSmellDocumentationMapper.cs" />
