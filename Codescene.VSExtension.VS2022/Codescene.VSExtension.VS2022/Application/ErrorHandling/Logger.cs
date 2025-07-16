@@ -11,7 +11,7 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 
 [Export(typeof(ILogger))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-internal class Logger : ILogger
+public class Logger : ILogger
 {
     private readonly OutputPaneManager _outputPaneManager;
 
