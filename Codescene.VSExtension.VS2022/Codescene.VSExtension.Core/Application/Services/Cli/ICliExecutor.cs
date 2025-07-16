@@ -12,6 +12,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         CliReviewModel ReviewContent(string filename, string content);
         DeltaResponseModel ReviewDelta(string oldScore, string newScore);
         string GetFileVersion();
+        string GetDeviceId();
         PreFlightResponseModel Preflight(bool force = true);
         IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmells);
         IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmells, string preflight);
