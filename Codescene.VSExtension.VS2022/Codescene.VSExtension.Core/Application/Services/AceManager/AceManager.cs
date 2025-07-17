@@ -106,7 +106,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             return await _executer.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
         }
 
-        public async Task<RefactorResponseModel> Refactor(string path, FnToRefactorModel refactorableFunction, bool invalidateCache = false)
+        public async Task<CachedRefactoringActionModel> Refactor(string path, FnToRefactorModel refactorableFunction, bool invalidateCache = false)
         {
             if (string.IsNullOrWhiteSpace(refactorableFunction.FunctionType))
             {
@@ -131,7 +131,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
             LastRefactoring = cacheItem;
 
-            return refactoredFunctions;
+            return cacheItem;
         }
 
         public CachedRefactoringActionModel GetCachedRefactoredCode()

@@ -1,6 +1,7 @@
 using Codescene.VSExtension.Core.Application.Services.AceManager;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.VS2022.CodeLens;
 using Codescene.VSExtension.VS2022.Commands;
@@ -18,6 +19,8 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
     public class AceRefactorTooltipModel
     {
         public string Path { get; set; }
+
+        public FnToRefactorModel RefactorableFunction { get; set; }
 
         public ICommand RefactorCommand { get; }
 
@@ -38,7 +41,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             try
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                await _onClickRefactoringHandler.HandleAsync(this.Path);
+                await _onClickRefactoringHandler.HandleAsync(this.Path, this.RefactorableFunction);
             }
             catch (Exception e)
             {

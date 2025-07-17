@@ -49,7 +49,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             if (smells.Count == 0)
                 yield break; // No tags, exit early
 
-            var hasRefactorableFunction = false;
+            FnToRefactorModel? refactorableFunction = null;
             SnapshotSpan? lastTagSpan = null;
 
             foreach (var visibleSpan in spans)
@@ -64,16 +64,16 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                     if (tagSpan.Value.IntersectsWith(visibleSpan))
                     {
                         yield return CreateErrorTagSpan(tagSpan.Value, codeSmell);
-                        if (General.Instance.EnableAutoRefactor && AceUtils.GetRefactorableFunction(codeSmell, refactorableFunctions) is not null)
+                        refactorableFunction = AceUtils.GetRefactorableFunction(codeSmell, refactorableFunctions);
+                        if (General.Instance.EnableAutoRefactor && refactorableFunction  is not null)
                         {
-                            hasRefactorableFunction = true;
                             lastTagSpan = tagSpan;
                         }
                     }
                 }
             }
-            if (hasRefactorableFunction)
-                yield return CreateAceRefactorTagSpan(lastTagSpan.Value);
+            if (refactorableFunction is not null)
+                yield return CreateAceRefactorTagSpan(lastTagSpan.Value, refactorableFunction);
         }
 
         private List<CodeSmellModel> TryLoadFromCache()
@@ -167,9 +167,9 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             return new TagSpan<IErrorTag>(span, errorTag);
         }
 
-        private TagSpan<IErrorTag> CreateAceRefactorTagSpan(SnapshotSpan span)
+        private TagSpan<IErrorTag> CreateAceRefactorTagSpan(SnapshotSpan span, FnToRefactorModel refactorableFunction)
         {
-            var tooltipParams = new AceRefactorTooltipParams(_filePath);
+            var tooltipParams = new AceRefactorTooltipParams(_filePath, refactorableFunction);
 
             var errorTag = new ErrorTag(
                 PredefinedErrorTypeNames.Warning,

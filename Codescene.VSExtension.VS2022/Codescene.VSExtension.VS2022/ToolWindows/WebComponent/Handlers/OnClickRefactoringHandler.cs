@@ -1,6 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -20,7 +21,7 @@ public class OnClickRefactoringHandler
 
     private string _path = null;
 
-    public async Task HandleAsync(string path)
+    public async Task HandleAsync(string path, FnToRefactorModel refactorableFunction)
     {
         _path = path;
 
@@ -32,7 +33,7 @@ public class OnClickRefactoringHandler
         await AceToolWindow.ShowAsync();
 
 
-        await DoRefactorAndUpdateViewAsync(path);
+        await DoRefactorAndUpdateViewAsync(path, refactorableFunction);
     }
 
     public string GetPath()
@@ -54,12 +55,12 @@ public class OnClickRefactoringHandler
         });
     }
 
-    private async Task DoRefactorAndUpdateViewAsync(string path)
+    private async Task DoRefactorAndUpdateViewAsync(string path, FnToRefactorModel refactorableFunction)
     {
         using (var reader = File.OpenText(path))
         {
             var content = await reader.ReadToEndAsync();
-            var refactored = await _aceManager.Refactor(path: path, content: content);
+            var refactored = await _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction);
             AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
                 MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
