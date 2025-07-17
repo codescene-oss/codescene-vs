@@ -11,12 +11,17 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public string VersionCommand => "version --sha";
 
+        public string DeviceIdCommand => "telemetry --device-id";
+
+        public string SendTelemetryCommand(string jsonEvent) => $"telemetry --event \"{AdjustTelemetryQuotes(jsonEvent)}\"";
+
         public string GetPreflightSupportInformationCommand(bool force)
         {
             var useForceArg = force ? " --force" : string.Empty;
             return $"refactor preflight{useForceArg}";
         }
 
+        private string AdjustTelemetryQuotes(string value) => value.Replace("\"", "\\\"");
         private string AdjustQuotes(string value) => value.Replace("\"", "\"\"");
 
         public string GetRefactorCommandWithCodeSmells(string extension, string codeSmells, string preflight = null)

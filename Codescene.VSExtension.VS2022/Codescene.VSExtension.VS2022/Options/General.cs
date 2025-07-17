@@ -14,20 +14,7 @@ internal partial class OptionsProvider
 
 public class General : BaseOptionModel<General>
 {
-    public const string DEFAULT_SERVER_URL = "https://codescene.io";
-    public const string DEFAULT_DEV_TOOLS_URL = "https://devtools.codescene.io";
-
-
-    //[Category("General")]
-    //[DisplayName("Enable Review Code Lenses")]
-    //[Description("Show CodeLenses for review diagnostics")]
-    //public bool EnableCodeLenses { get; set; } = true;
-
-    //[Category("General")]
-    //[DisplayName("Preview Code Health Gate")]
-    //[Description("Preview the experimental Code Health Gate (beta)")]
-    //public bool PreviewCodeHealthGate { get; set; } = true;
-
+    // TODO: Implement this feature, or remove it from the first official release.
     [Category("General")]
     [DisplayName("Gitignore")]
     [Description("Exclude files in .gitignore from analysis")]
@@ -38,6 +25,7 @@ public class General : BaseOptionModel<General>
     [Description("Enable detailed debug logs in the CodeScene Output window")]
     public bool ShowDebugLogs { get; set; } = false;
 
+<<<<<<< HEAD
     [Category("General")]
     [DisplayName("Enable Auto Refactor")]
     [Description("Enable CodeScene ACE. This is currently only available for customers part of the ACE beta program")]
@@ -53,6 +41,8 @@ public class General : BaseOptionModel<General>
     //[Description("URL of the CodeScene Devtool Portal server")]
     //public string DevtoolsPortalUrl { get; set; } = DEFAULT_DEV_TOOLS_URL;
 
+=======
+>>>>>>> core
     public General() : base()
     {
         Saved += delegate { VS.StatusBar.ShowMessageAsync("Options Saved").FireAndForget(); };

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Codescene.VSExtension.Core.Application.Services.Util;
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Text;
@@ -20,7 +21,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public string Execute(string arguments, string content = null, TimeSpan? timeout = null)
         {
-            var actualTimeout = timeout ?? TimeSpan.FromSeconds(10);
+            var actualTimeout = timeout ?? Constants.Timeout.DEFAULT_CLI_TIMEOUT;
 
             var processInfo = new ProcessStartInfo
             {
@@ -49,7 +50,15 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
 
-                WaitForProcessOrTimeout(process, outputTcs, errorTcs, actualTimeout);
+                var timeoutArgs = new WaitForProcessOrTimeoutArgs()
+                {
+                    Process = process,
+                    OutputTcs = outputTcs,
+                    ErrorTcs = errorTcs,
+                    Timeout = actualTimeout,
+                    Command = arguments
+                };
+                WaitForProcessOrTimeout(timeoutArgs);
 
                 return HandleResult(process, outputBuilder, errorBuilder);
             }
@@ -79,27 +88,23 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             }
         }
 
-        private void WaitForProcessOrTimeout(Process process,
-            TaskCompletionSource<bool> outputTcs,
-            TaskCompletionSource<bool> errorTcs,
-            TimeSpan timeout)
+        private void WaitForProcessOrTimeout(WaitForProcessOrTimeoutArgs arguments)
         {
             var waitTask = Task.Run(() =>
             {
-                process.WaitForExit();
-                outputTcs.Task.Wait();
-                errorTcs.Task.Wait();
+                arguments.Process.WaitForExit();
+                arguments.OutputTcs.Task.Wait();
+                arguments.ErrorTcs.Task.Wait();
             });
 
-            if (!waitTask.Wait(timeout))
+            if (!waitTask.Wait(arguments.Timeout))
             {
-                try { process.Kill(); }
-                catch (Exception ex)
-                {
-                    throw new TimeoutException("Process timed out and could not be killed.", ex);
-                }
+                try { arguments.Process.Kill(); }
+                catch { return; }
+                // Ignore telemetry timeouts. Also prevent potential infinite loop since we send timeouts to Amplitude.
+                if (arguments.Command.Contains("telemetry")) return;
 
-                throw new TimeoutException($"Process execution exceeded the timeout of {timeout.TotalMilliseconds}ms.");
+                throw new TimeoutException($"Process execution exceeded the timeout of {arguments.Timeout.TotalMilliseconds}ms.");
             }
         }
 
@@ -140,6 +145,16 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             OutputTcs = outputTcs;
             ErrorTcs = errorTcs;
         }
+    }
 
+    public class WaitForProcessOrTimeoutArgs
+    {
+        public Process Process { get; set; }
+        public TaskCompletionSource<bool> OutputTcs { get; set; }
+        public TaskCompletionSource<bool> ErrorTcs { get; set; }
+        public TimeSpan Timeout { get; set; }
+        public string Command { get; set; }
+
+        public WaitForProcessOrTimeoutArgs() { }
     }
 }

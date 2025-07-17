@@ -53,6 +53,7 @@
     <Compile Include="Application\Git\BranchWatcherService.cs" />
     <Compile Include="Application\Git\GitService.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
+    <Compile Include="Commands\CopyDeviceIdCommand.cs" />
     <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
     <Compile Include="Controls\AceRefactorTooltip.xaml.cs">
       <DependentUpon>AceRefactorTooltip.xaml</DependentUpon>
@@ -190,6 +191,7 @@
     <Compile Include="Tagger\ReviewResultTaggerTooltipModel.cs" />
     <Compile Include="Util\AceUtils.cs" />
     <Compile Include="Util\DocumentNavigator.cs" />
+    <Compile Include="Util\ExtensionMetadataProvider.cs" />
     <Compile Include="Util\StyleHelper.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">

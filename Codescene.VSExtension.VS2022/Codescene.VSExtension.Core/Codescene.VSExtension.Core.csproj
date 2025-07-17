@@ -117,9 +117,15 @@
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Application\Services\PreflightManager\IPreflightManager.cs" />
     <Compile Include="Application\Services\PreflightManager\PreflightManager.cs" />
+    <Compile Include="Application\Services\Telemetry\DeviceId\DeviceIdStore.cs" />
+    <Compile Include="Application\Services\Telemetry\DeviceId\IDeviceIdStore.cs" />
+    <Compile Include="Application\Services\Telemetry\ITelemetryManager.cs" />
+    <Compile Include="Application\Services\Telemetry\TelemetryManager.cs" />
     <Compile Include="Application\Services\Util\Constants.cs" />
     <Compile Include="Application\Services\Util\DeltaJobTracker.cs" />
+    <Compile Include="Application\Services\Util\DeltaTelemetryHelper.cs" />
     <Compile Include="Application\Services\Util\IDebounceService.cs" />
+    <Compile Include="Application\Services\Util\IExtensionMetadataProvider.cs" />
     <Compile Include="Application\Services\WebComponent\CodeSmellDocumentationMapper.cs" />
     <Compile Include="Application\Services\WebComponent\AceComponentMapper.cs" />
     <Compile Include="Application\Services\WebComponent\CodeHealthMonitorMapper.cs" />
@@ -142,6 +148,7 @@
     <Compile Include="Models\Cli\Refactor\RefactorResponseModel.cs" />
     <Compile Include="Models\Cli\Refactor\RefactorSupportModel.cs" />
     <Compile Include="Models\Cli\Review\CliCodeHealthRulesErrorModel.cs" />
+    <Compile Include="Models\Cli\Telemetry\TelemetryEvent.cs" />
     <Compile Include="Models\CodeSmellRangeModel.cs" />
     <Compile Include="Models\CodeSmellTooltipModel.cs" />
     <Compile Include="Models\CustomDetailsData.cs" />
@@ -160,6 +167,7 @@
     <Compile Include="Models\WebComponent\Data\AceComponentData.cs" />
     <Compile Include="Models\WebComponent\Data\WebComponentFileData.cs" />
     <Compile Include="Models\WebComponent\Message\WebComponentMessage.cs" />
+    <Compile Include="Models\WebComponent\Util\TelemetryUtils.cs" />
     <Compile Include="Models\WebComponent\Util\TextUtils.cs" />
     <Compile Include="Models\WebComponent\WebComponentConstants.cs" />
     <Compile Include="Models\WebComponent\Payload\WebComponentPayload.cs" />

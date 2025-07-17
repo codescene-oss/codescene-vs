@@ -4,11 +4,14 @@ using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Git;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
+using Codescene.VSExtension.Core.Application.Services.Telemetry;
+using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 
@@ -26,6 +29,9 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
         [Import]
         private readonly ICliExecutor _executer;
+
+        [Import]
+        private readonly ITelemetryManager _telemetryManager;
 
         [Import]
         private readonly IGitService _git;
@@ -70,7 +76,11 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
                 var delta = _executer.ReviewDelta(oldRawScore, currentRawScore);
 
-                cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, delta));
+                var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(cache.GetAll());
+                var cacheEntry = new DeltaCacheEntry(path, oldCode, currentCode, delta);
+                cache.Put(cacheEntry);
+
+                DeltaTelemetryHelper.HandleDeltaTelemetryEvent(cacheSnapshot, cache.GetAll(), cacheEntry, _telemetryManager);
 
                 return delta;
             }
