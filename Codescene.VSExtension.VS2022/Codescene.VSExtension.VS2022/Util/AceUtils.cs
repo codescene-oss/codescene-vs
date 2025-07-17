@@ -56,11 +56,8 @@ namespace Codescene.VSExtension.VS2022.Util
 
             var extension = Path.GetExtension(fileName).Replace(".", "");
 
-            logger.Info("Dzenan 1");
-
-            if (!ShouldCheckRefactorableFunctions(extension, preflightManager))
+            if (!ShouldCheckRefactorableFunctions(extension, preflightManager, logger))
             {
-                logger.Info("Dzenan 1.1");
                 return new List<FnToRefactorModel>();
             }
 
@@ -76,16 +73,12 @@ namespace Codescene.VSExtension.VS2022.Util
             var codesmellsJson = JsonConvert.SerializeObject(cliCodeSmellModelList);
             var preflight = JsonConvert.SerializeObject(preflightManager.RunPreflight());
 
-            logger.Info("Dzenan 2");
-
             try
             {
                 using (var reader = File.OpenText(path))
                 {
                     var content = await reader.ReadToEndAsync();
                     var refactorableFunctions = await aceManager.GetRefactorableFunctions(content, codesmellsJson, preflight, extension);
-
-                    logger.Info("Dzenan 3");
 
                     if (refactorableFunctions.Any())
                     {
@@ -101,8 +94,6 @@ namespace Codescene.VSExtension.VS2022.Util
                         logger.Warn($"No refactorable functions found for path: {path}");
                         return [];
                     }
-
-                    logger.Info("Dzenan 4");
                 }
             }
             catch (Exception ex)
@@ -122,13 +113,20 @@ namespace Codescene.VSExtension.VS2022.Util
             );
         }
 
-        private static bool ShouldCheckRefactorableFunctions(string extension, IPreflightManager preflightManager)
+        private static bool ShouldCheckRefactorableFunctions(string extension, IPreflightManager preflightManager, ILogger logger)
         {
             var state = General.Instance.EnableAutoRefactor;
             if (!state)
+            {
+                logger.Debug("Auto refactor is disabled in options.");
                 return false;
-
-            return preflightManager.IsSupportedLanguage(extension);
+            }
+            if (preflightManager.IsSupportedLanguage(extension) == false)
+            {
+                logger.Debug($"Auto refactor is not supported for language: {extension}");
+                return false;
+            }
+            return true;
         }
     }
 }

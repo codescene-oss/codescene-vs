@@ -159,6 +159,8 @@ internal class WebComponentMessageHandler
 
         var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
         await applier.ApplyAsync();
+        if (_control.CloseRequested is not null)
+            await _control.CloseRequested();
     }
 
     private async Task HandleRejectAsync()
