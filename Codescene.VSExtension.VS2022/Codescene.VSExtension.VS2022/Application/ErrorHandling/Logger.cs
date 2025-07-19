@@ -4,6 +4,7 @@ using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 
@@ -14,16 +15,32 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 public class Logger : ILogger
 {
     private readonly OutputPaneManager _outputPaneManager;
+    private static readonly string LogFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Codescene",
+        "codescene-extension.log");
+    private static readonly object _fileLock = new object();
 
     [ImportingConstructor]
     public Logger(OutputPaneManager outputPaneManager)
     {
         _outputPaneManager = outputPaneManager ?? throw new ArgumentNullException(nameof(outputPaneManager));
+        Directory.CreateDirectory(Path.GetDirectoryName(LogFilePath));
+    }
+
+    private void WriteToFile(string message)
+    {
+        lock (_fileLock)
+        {
+            File.AppendAllText(LogFilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {message}{Environment.NewLine}");
+        }
     }
 
     public void Error(string message, Exception ex)
     {
-        WriteAsync($"[ERROR] {message}: {ex.Message}").FireAndForget();
+        var logMsg = $"[ERROR] {message}: {ex.Message}";
+        WriteAsync(logMsg).FireAndForget();
+        WriteToFile(logMsg);
         ex.Log();
 
         if (ex.Message.Contains("timeout")) SendTelemetry();
@@ -31,14 +48,18 @@ public class Logger : ILogger
 
     public void Info(string message)
     {
-        WriteAsync($"[INFO] {message}").FireAndForget();
+        var logMsg = $"[INFO] {message}";
+        WriteAsync(logMsg).FireAndForget();
+        WriteToFile(logMsg);
         VS.StatusBar.ShowMessageAsync($"{Titles.CODESCENE}: {message}").FireAndForget();
         Console.WriteLine(message);
     }
 
     public void Warn(string message)
     {
-        WriteAsync($"[WARN] {message}").FireAndForget();
+        var logMsg = $"[WARN] {message}";
+        WriteAsync(logMsg).FireAndForget();
+        WriteToFile(logMsg);
         VS.StatusBar.ShowMessageAsync(message).FireAndForget();
         Console.WriteLine(message);
     }
@@ -48,12 +69,18 @@ public class Logger : ILogger
         Console.WriteLine(message);
 
         if (General.Instance.ShowDebugLogs)
-            WriteAsync($"[DEBUG] {message}").FireAndForget();
+        {
+            var logMsg = $"[DEBUG] {message}";
+            WriteAsync(logMsg).FireAndForget();
+            WriteToFile(logMsg);
+        }
     }
 
     public async Task LogAsync(string message, Exception ex)
     {
-        WriteAsync($"[LOG] {message}: {ex.Message}").FireAndForget();
+        var logMsg = $"[LOG] {message}: {ex.Message}";
+        WriteAsync(logMsg).FireAndForget();
+        WriteToFile(logMsg);
         await ex.LogAsync();
     }
 
