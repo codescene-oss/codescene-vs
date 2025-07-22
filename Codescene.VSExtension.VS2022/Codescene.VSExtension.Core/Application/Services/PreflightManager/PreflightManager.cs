@@ -4,6 +4,7 @@ using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
 {
@@ -22,20 +23,16 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
         private string[] _languages;
         private decimal _version;
 
-        //public PreflightManager(ICliExecutor executer)
-        //{
-        //    _executer = executer;
-        //    var response = _executer.Preflight(); // no need to force the response, it is already cached
-        //    _preflightResponse = response;
-        //    _version = response.Version;
-        //    _codeSmells = response.LanguageCommon.CodeSmells;
-        //    _languages = response.FileTypes;
-        //}
-
-        public PreFlightResponseModel RunPreflight(bool force = false)
+        public async Task<PreFlightResponseModel> RunPreflightAsync(bool force = false)
         {
             _logger.Info($"Running preflight with force {force}");
-            var response = _executer.Preflight(force);
+            PreFlightResponseModel response = null;
+            await Task.Run(() =>
+            {
+                response = _executer.Preflight(force);
+                return Task.CompletedTask;
+            });
+
             if (response != null)
             {
                 _logger.Info("Got preflight response");
@@ -58,7 +55,13 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
 
         public PreFlightResponseModel GetPreflightResponse()
         {
-            return _preflightResponse;
+            if (_preflightResponse == null)
+            {
+                return RunPreflightAsync(true).GetAwaiter().GetResult();
+            } else
+            {
+                return _preflightResponse;
+            }
         }
     }
 }
