@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
@@ -10,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 public class AceToolWindow : BaseToolWindow<AceToolWindow>
@@ -45,7 +47,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         return ctrl;
     }
 
-    public override string GetTitle(int toolWindowId) => "Refactoring suggestion";
+    public override string GetTitle(int toolWindowId) => Titles.CODESCENE_ACE;
 
     [Guid("60f71481-a161-4512-bb43-162b852a86d1")]
     internal class Pane : ToolWindowPane

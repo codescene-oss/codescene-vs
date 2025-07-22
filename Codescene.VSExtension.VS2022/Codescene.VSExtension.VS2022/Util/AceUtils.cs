@@ -29,7 +29,7 @@ namespace Codescene.VSExtension.VS2022.Util
             var mapper = await VS.GetMefServiceAsync<IModelMapper>();
             var logger = await VS.GetMefServiceAsync<ILogger>();
 
-            preflightManager.RunPreflight();
+            preflightManager.GetPreflightResponse();
 
             var path = result.FilePath;
             var fileName = Path.GetFileName(path);

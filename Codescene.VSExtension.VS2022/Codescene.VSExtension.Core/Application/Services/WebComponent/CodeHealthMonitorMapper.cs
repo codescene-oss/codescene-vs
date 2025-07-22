@@ -33,7 +33,8 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
             return new CodeHealthMonitorComponentData
             {
                 FileDeltaData = files,
-                Jobs = DeltaJobTracker.RunningJobs.ToList(),
+                Jobs = DeltaJobTracker.RunningJobs.ToList()
+                //AutoRefactorConfig = new AutoRefactorConfig {Activated = true, Visibile = true, Disabled = false}
             };
         }
 

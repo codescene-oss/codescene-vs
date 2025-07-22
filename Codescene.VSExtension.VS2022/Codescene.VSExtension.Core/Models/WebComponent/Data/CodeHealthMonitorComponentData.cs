@@ -7,6 +7,7 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
     public class CodeHealthMonitorComponentData
     {
         public bool ShowOnboarding { get; set; } = false;
+        public AutoRefactorConfig AutoRefactor { get; set; } = new AutoRefactorConfig { Activated = true, Visibile = true, Disabled = false };
         public List<FileDeltaData> FileDeltaData { get; set; }
         public List<Job> Jobs { get; set; }
     }
@@ -29,6 +30,13 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
         public decimal OldScore { get; set; }
         public List<ChangeDetail> FileLevelFindings { get; set; }
         public List<FunctionFinding> FunctionLevelFindings { get; set; }
+    }
+
+    public class AutoRefactorConfig
+    {
+        public bool Activated { get; set; }
+        public bool Visibile { get; set; }
+        public bool Disabled { get; set; }
     }
 
     public class ChangeDetail
