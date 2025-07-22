@@ -92,7 +92,7 @@ public sealed class VS2022Package : ToolkitPackage
         Task.Run(async () =>
         {
             var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
-            preflightManager.RunPreflight(true);
+            preflightManager.RunPreflightAsync(true);
         }).FireAndForget();
     }
 
