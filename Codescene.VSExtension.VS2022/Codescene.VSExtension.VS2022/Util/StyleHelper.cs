@@ -83,9 +83,16 @@ public static class StyleHelper
             var buttonForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
             var buttonBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowButtonHoverActiveColorKey);
 
+            //var buttonForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
+            //var buttonBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowButtonActiveGlyphColorKey);
+
             var textFg = ToHex(textForeground);
             var buttonFgHex = ToHex(buttonForeground);
-            var buttonBgHex = ToHex(buttonBackground);
+            //var buttonBgHex = ToHex(buttonBackground);
+
+            var buttonBgHex = editorBackground.Name == DarkThemeColorName
+               ? DarkThemeFallbackSecondaryBg
+               : ToHex(buttonBackground);
 
             var editorBgHex = ToHex(editorBackground);
             var textLinkFgHex = ToHex(linkForeground);

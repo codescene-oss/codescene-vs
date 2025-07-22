@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -12,6 +13,9 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
     {
         [Import]
         private readonly ICliExecutor _executer;
+
+        [Import]
+        private readonly ILogger _logger;
 
         private PreFlightResponseModel _preflightResponse;
         private string[] _codeSmells;
@@ -30,7 +34,12 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
 
         public PreFlightResponseModel RunPreflight(bool force = false)
         {
-            var response = _executer.Preflight(force); // no need to force the response, it is already cached
+            _logger.Info($"Running preflight with force {force}");
+            var response = _executer.Preflight(force);
+            if (response != null)
+            {
+                _logger.Info("Got preflight response");
+            }
             _preflightResponse = response;
             _version = response.Version;
             _codeSmells = response.LanguageCommon.CodeSmells;

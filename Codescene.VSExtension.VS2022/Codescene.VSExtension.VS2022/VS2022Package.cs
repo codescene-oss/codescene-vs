@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.PreflightManager;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.DocumentEventsHandler;
@@ -73,6 +74,7 @@ public sealed class VS2022Package : ToolkitPackage
 
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
             SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION_ERROR);
+            RunPreflight();
         }
     }
 
@@ -82,6 +84,15 @@ public sealed class VS2022Package : ToolkitPackage
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
             telemetryManager.SendTelemetry(eventName);
+        }).FireAndForget();
+    }
+
+    private void RunPreflight()
+    {
+        Task.Run(async () =>
+        {
+            var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
+            preflightManager.RunPreflight(true);
         }).FireAndForget();
     }
 
