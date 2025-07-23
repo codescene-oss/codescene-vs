@@ -40,6 +40,7 @@
             public const string REQUEST_AND_PRESENT_REFACTORING = "request-and-present-refactoring";
             public const string UPDATE_RENDERER = "update-renderer";
             public const string OPEN_DOCS_FOR_FUNCTION = "open-docs-for-function";
+            public const string CANCEL = "cancel";
             public const string OPEN_SETTINGS = "open-settings";
         }
     }

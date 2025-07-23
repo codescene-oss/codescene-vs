@@ -95,6 +95,10 @@ internal class WebComponentMessageHandler
                     await HandleOpenDocsForFunctionAsync(msgObject, logger);
                     break;
 
+                case MessageTypes.CANCEL:
+                    await HandleCancelAsync();
+                    break;
+
                 case MessageTypes.OPEN_SETTINGS:
                     await HandleOpenSettingsAsync();
                     break;
@@ -177,6 +181,12 @@ internal class WebComponentMessageHandler
         //};
         SendTelemetry(Constants.Telemetry.ACE_REFACTOR_REJECTED);
 
+        if (_control.CloseRequested is not null)
+            await _control.CloseRequested();
+    }
+
+    private async Task HandleCancelAsync()
+    {
         if (_control.CloseRequested is not null)
             await _control.CloseRequested();
     }
