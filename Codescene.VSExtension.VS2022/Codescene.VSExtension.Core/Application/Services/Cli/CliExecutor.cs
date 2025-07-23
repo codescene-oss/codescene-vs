@@ -17,9 +17,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliExecutor : ICliExecutor
     {
-        private const int DEFAULT_TIMEOUT_MS = 10000;
-        private static readonly TimeSpan DEFAULT_TIMEOUT = TimeSpan.FromMilliseconds(DEFAULT_TIMEOUT_MS);
-
         [Import]
         private readonly ILogger _logger;
 
@@ -58,7 +55,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
             return ExecuteWithTimingAndLogging<CliReviewModel>(
                 "CLI file review",
-                () => _executor.Execute(arguments, content, DEFAULT_TIMEOUT),
+                () => _executor.Execute(arguments, content, Timeout.DEFAULT_CLI_TIMEOUT),
                 $"Review of file {filename} failed"
             );
         }
@@ -82,7 +79,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
             return ExecuteWithTimingAndLogging<DeltaResponseModel>(
                 "CLI file delta review",
-                () => _executor.Execute("delta", arguments, DEFAULT_TIMEOUT),
+                () => _executor.Execute("delta", arguments, Timeout.DEFAULT_CLI_TIMEOUT),
                 "Delta for file failed."
             );
         }
@@ -311,6 +308,22 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             }
 
             return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result.StdOut);
+        }
+
+        public string GetDeviceId()
+        {
+            try
+            {
+                var arguments = _cliCommandProvider.DeviceIdCommand;
+                var result = _executor.Execute(arguments);
+
+                return result?.Trim();
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Could not get device ID", e);
+                return "";
+            }
         }
     }
 }
