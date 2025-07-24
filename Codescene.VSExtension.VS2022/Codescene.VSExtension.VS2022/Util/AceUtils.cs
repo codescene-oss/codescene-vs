@@ -1,10 +1,12 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
 using Codescene.VSExtension.Core.Application.Services.PreflightManager;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.ReviewModels;
@@ -22,6 +24,7 @@ namespace Codescene.VSExtension.VS2022.Util
     public class AceUtils
     {
         private static readonly AceRefactorableFunctionsCacheService _cache = new();
+
         public static async Task<IList<FnToRefactorModel>> CheckContainsRefactorableFunctionsAsync(FileReviewModel result, string code)
         {
             var aceManager = await VS.GetMefServiceAsync<IAceManager>();

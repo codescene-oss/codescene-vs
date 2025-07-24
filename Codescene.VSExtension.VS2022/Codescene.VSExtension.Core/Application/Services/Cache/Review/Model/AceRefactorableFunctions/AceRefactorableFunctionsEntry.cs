@@ -26,7 +26,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.Ace
             }
             else
             {
-                var items = Result.Select(fn => $"{fn.Name} [{fn.FunctionType}] (Range: {fn.Range?.Startline}-{fn.Range?.EndLine})").ToList();
+                var items = Result.Select(fn => $"{fn.Name} (Range: {fn.Range?.Startline}-{fn.Range?.EndLine})").ToList();
                 resultSummary = string.Join(", ", items);
             }
 
