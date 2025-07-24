@@ -1,5 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Git;
@@ -14,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 
 namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 {
@@ -75,6 +77,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 var oldRawScore = oldCodeReview?.RawScore ?? "";
 
                 var delta = _executer.ReviewDelta(oldRawScore, currentRawScore);
+                UpdateDeltaCacheWithRefactorableFunctions(delta, path, currentCode);
 
                 var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(cache.GetAll());
                 var cacheEntry = new DeltaCacheEntry(path, oldCode, currentCode, delta);
@@ -88,6 +91,32 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             {
                 _logger.Error($"Could not perform delta analysis on file {path}", e);
                 return null;
+            }
+        }
+
+        private void UpdateDeltaCacheWithRefactorableFunctions(DeltaResponseModel delta, string path, string code)
+        {
+            AceRefactorableFunctionsCacheService cacheService = new AceRefactorableFunctionsCacheService();
+            var refactorableFunctions = cacheService.Get(new AceRefactorableFunctionsQuery(path, code));
+
+
+            if (delta == null || !refactorableFunctions.Any())
+            {
+                _logger.Debug("Delta response null or refactorable functions list is empty. Skipping update.");
+                return;
+            }
+
+            foreach (var finding in delta.FunctionLevelFindings)
+            {
+                var functionName = finding.Function?.Name;
+                if (string.IsNullOrEmpty(functionName))
+                    continue;
+
+                var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName);
+                if (match != null)
+                {
+                    finding.RefactorableFn = match;
+                }
             }
         }
     }

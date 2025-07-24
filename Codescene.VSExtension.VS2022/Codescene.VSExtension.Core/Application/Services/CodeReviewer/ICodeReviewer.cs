@@ -1,6 +1,8 @@
 ﻿using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.ReviewModels;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 {

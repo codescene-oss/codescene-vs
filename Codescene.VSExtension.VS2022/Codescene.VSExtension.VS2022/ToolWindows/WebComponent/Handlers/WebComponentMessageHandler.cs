@@ -1,4 +1,6 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -10,6 +12,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
@@ -97,6 +101,10 @@ internal class WebComponentMessageHandler
 
                 case MessageTypes.CANCEL:
                     await HandleCancelAsync();
+                    break;
+
+                case MessageTypes.REQUEST_AND_PRESENT_REFACTORING:
+                    await HandleRequestAndPresentRefactoringAsync(msgObject, logger);
                     break;
 
                 default:
@@ -211,6 +219,36 @@ internal class WebComponentMessageHandler
             payload.Fn.Name,
             payload.Fn.Range), DocsEntryPoint.CodeHealthMonitor
         );
+    }
+
+    private async Task HandleRequestAndPresentRefactoringAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        var payload = msgObject.Payload.ToObject<RequestAndPresentRefactoringPayload>();
+
+        logger.Debug($"Requesting refactoring for function '{payload.Fn.Name}' in file '{payload.FileName}'.");
+
+        var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
+
+        var cache = new AceRefactorableFunctionsCacheService();
+
+        using (var reader = File.OpenText(payload.FileName))
+        {
+            var content = await reader.ReadToEndAsync();
+
+            var refactorableFunctions = cache.Get(new AceRefactorableFunctionsQuery(
+                payload.FileName,
+                content
+            ));
+
+            logger.Debug($"Found {refactorableFunctions.Count} refactorable functions in file '{payload.FileName}'.");
+            //logger.Debug($"Refactorable functions from cache: {JsonConvert.SerializeObject(refactorableFunctions)}");
+
+            onClickRefactoringHandler.HandleAsync(
+                payload.FileName,
+                refactorableFunctions.FirstOrDefault(fn => fn.Name == payload.Fn.Name)
+            ).FireAndForget();
+        }
+
     }
 
     private void SendTelemetry(string eventName, Dictionary<string, object> additionalData = null)

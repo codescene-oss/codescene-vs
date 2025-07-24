@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.Composition;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
@@ -8,6 +9,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     {
         [Import]
         private readonly ICliObjectScoreCreator _creator;
+
+        [Import]
+        private readonly ILogger _logger;
 
         public string VersionCommand => "version --sha";
 
@@ -42,7 +46,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             var skipCacheArg = skipCache ? " --skip-cache" : string.Empty;
             var tokenArg = string.IsNullOrWhiteSpace(token) ? string.Empty : $" --token {token}";
             var escapedFnToRefactor = fnToRefactor.Replace("\\", "\\\\").Replace("\"", "\\\"");
-            return $"refactor post{useStagingArg}{skipCacheArg} --fn-to-refactor \"{escapedFnToRefactor}\"{tokenArg}";
+            string command = $"refactor post{useStagingArg}{skipCacheArg} --fn-to-refactor \"{escapedFnToRefactor}\"{tokenArg}";
+            _logger.Debug($"Generated refactor post command: {command}");
+            return command;
         }
 
         public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";

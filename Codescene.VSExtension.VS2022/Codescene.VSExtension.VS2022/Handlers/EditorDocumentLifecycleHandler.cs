@@ -6,6 +6,7 @@ using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.VS2022.EditorMargin;
@@ -17,7 +18,10 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
@@ -98,8 +102,9 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 if (result.RawScore != null)
                 {
                     _logger.Info($"File {path} reviewed successfully.");
+                    AceUtils.CheckContainsRefactorableFunctionsAsync(result, code).FireAndForget();
+                    
                     DeltaReviewAsync(result, code).FireAndForget();
-                    await AceUtils.CheckContainsRefactorableFunctionsAsync(result, code);
                 }
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -151,6 +156,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
                 var scoreChange = deltaResult?.ScoreChange.ToString() ?? "none";
                 _logger.Info($"Delta analysis complete for file {path}. Code Health score change: {scoreChange}.");
+                _logger.Debug($"Delta analysis for returned: {deltaResult.FunctionLevelFindings.First().ToString()}");
             }
             catch (Exception e)
             {
