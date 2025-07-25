@@ -64,10 +64,10 @@ namespace Codescene.VSExtension.Tests
                 var extension = Path.GetExtension(fileName).Replace(".", "");
                 var refactorableFunctions = await _cliExecuter.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
                 var f = refactorableFunctions.First();
-                if (string.IsNullOrWhiteSpace(f.FunctionType))
-                {
-                    f.FunctionType = "MemberFn";
-                }
+                //if (string.IsNullOrWhiteSpace(f.FunctionType))
+                //{
+                //    f.FunctionType = "MemberFn";
+                //}
                 var refactorableFunctionsString = JsonConvert.SerializeObject(f);
                 try
                 {

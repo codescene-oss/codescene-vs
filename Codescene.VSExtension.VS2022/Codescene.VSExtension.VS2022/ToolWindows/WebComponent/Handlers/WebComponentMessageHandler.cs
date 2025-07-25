@@ -245,12 +245,11 @@ internal class WebComponentMessageHandler
             ));
 
             logger.Debug($"Found {refactorableFunctions.Count} refactorable functions in file '{payload.FileName}'.");
-            //logger.Debug($"Refactorable functions from cache: {JsonConvert.SerializeObject(refactorableFunctions)}");
 
-            onClickRefactoringHandler.HandleAsync(
+            await onClickRefactoringHandler.HandleAsync(
                 payload.FileName,
                 refactorableFunctions.FirstOrDefault(fn => fn.Name == payload.Fn.Name)
-            ).FireAndForget();
+            );
         }
 
     }
