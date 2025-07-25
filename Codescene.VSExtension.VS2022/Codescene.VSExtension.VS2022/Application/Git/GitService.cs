@@ -73,7 +73,7 @@ public class GitService : IGitService
         }
         catch (Exception e)
         {
-            _logger.Warn($"Could get file content for specific commit: {e.Message}");
+            _logger.Warn($"Could get file content for specific commit: {e.Message} \n{e.StackTrace.Trim()}");
             return "";
         }
     }

@@ -44,7 +44,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
             if (string.IsNullOrWhiteSpace(fileName) || string.IsNullOrWhiteSpace(content))
             {
-                _logger.Warn($"Could not review path {path}. Missing content or file path.");
+                _logger.Debug($"Skipping review for '{path}'. Missing content or file path.");
                 return null;
             }
 
