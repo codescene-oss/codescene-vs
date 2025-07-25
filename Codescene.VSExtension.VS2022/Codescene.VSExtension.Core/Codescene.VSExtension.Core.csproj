@@ -150,7 +150,6 @@
     <Compile Include="Models\Cli\Refactor\RefactorSupportModel.cs" />
     <Compile Include="Models\Cli\Review\CliCodeHealthRulesErrorModel.cs" />
     <Compile Include="Models\Cli\Telemetry\TelemetryEvent.cs" />
-    <Compile Include="Models\Cli\VSCodeRangeModel.cs" />
     <Compile Include="Models\CodeSmellRangeModel.cs" />
     <Compile Include="Models\CodeSmellTooltipModel.cs" />
     <Compile Include="Models\CustomDetailsData.cs" />

@@ -69,8 +69,6 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
                 VSCodeRange = rangeList.ToArray()
             };
 
-
-
             var refactorableFunctionsString = JsonConvert.SerializeObject(functionForRefactor);
 
             var refactoredFunctions = await _executer.PostRefactoring(fnToRefactor: refactorableFunctionsString);
