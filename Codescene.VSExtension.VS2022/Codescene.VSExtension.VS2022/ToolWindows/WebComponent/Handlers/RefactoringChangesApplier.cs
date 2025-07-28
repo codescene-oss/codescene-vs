@@ -1,5 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -14,7 +15,6 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 
 public class RefactoringChangesApplier
 {
-
     [Import]
     private readonly IAceManager _aceManager;
 
@@ -30,6 +30,21 @@ public class RefactoringChangesApplier
             return;
 
         var snapshot = buffer.CurrentSnapshot;
+
+        // Check if newCode already starts with whitespace
+        bool startsWithSpace = newCode.Length > 0 && char.IsWhiteSpace(newCode[0]);
+        
+        int indentationLevel = 0;
+        if (!startsWithSpace)
+        {   
+            // If it doesn't start with whitespace, we need to determine the indentation level
+            indentationLevel = DetectIndentationLevel(snapshot, cache.RefactorableCandidate);
+        }
+        
+        if (indentationLevel > 0)
+        {
+            newCode = AdjustIndentation(newCode, indentationLevel);
+        }
 
         int start = Math.Max(1, cache.RefactorableCandidate.Range.Startline) - 1;
         int end = Math.Max(1, cache.RefactorableCandidate.Range.EndLine)   - 1;
@@ -60,5 +75,41 @@ public class RefactoringChangesApplier
         view.Selection.Select(selectionSpan, isReversed: false);
         view.Caret.MoveTo(selectionSpan.Start);
         view.ViewScroller.EnsureSpanVisible(selectionSpan);
+    }
+
+    private int DetectIndentationLevel(ITextSnapshot snapshot, FnToRefactorModel refactorableFunction)
+    {
+        // Get the line at the start of the function
+        int startLine = Math.Max(0, refactorableFunction.Range.Startline - 1);
+        if (startLine >= snapshot.LineCount)
+            return 0;
+            
+        var line = snapshot.GetLineFromLineNumber(startLine);
+        string lineText = line.GetText();
+        
+        // Count leading spaces
+        int leadingSpaces = 0;
+        while (leadingSpaces < lineText.Length && char.IsWhiteSpace(lineText[leadingSpaces]))
+        {
+            leadingSpaces++;
+        }
+        
+        return leadingSpaces ;
+    }
+
+    private string AdjustIndentation(string code, int indentationLevel)
+    {
+        var indentation = new string(' ', indentationLevel); // 4 spaces per level
+        var lines = code.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+        
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (!string.IsNullOrWhiteSpace(lines[i]))
+            {
+                lines[i] = indentation + lines[i];
+            }
+        }
+        
+        return string.Join(Environment.NewLine, lines);
     }
 }

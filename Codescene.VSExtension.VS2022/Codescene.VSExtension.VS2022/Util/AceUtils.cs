@@ -81,7 +81,7 @@ namespace Codescene.VSExtension.VS2022.Util
                 else
                 {
                     logger.Warn($"No refactorable functions found for path: {path}");
-                    return [];
+                    return new List<FnToRefactorModel>();
                 }
             }
             catch (Exception ex)

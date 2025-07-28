@@ -41,11 +41,6 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
         public async Task<CachedRefactoringActionModel> Refactor(string path, FnToRefactorModel refactorableFunction, bool invalidateCache = false)
         {
-            //if (string.IsNullOrWhiteSpace(refactorableFunction.FunctionType))
-            //{
-            //    refactorableFunction.FunctionType = "MemberFn";
-            //}
-
             var rangeList = new List<PositionModel> {
                 new PositionModel
                 {
@@ -75,11 +70,11 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
             if (refactoredFunctions == null)
             {
-                throw new Exception("Refactoring has failed!");
+                throw new Exception($"Refactoring has failed! Credits left: {refactoredFunctions.CreditsInfo.Limit - refactoredFunctions.CreditsInfo.Used}.");
             }
 
             _logger.Info($"Refactored function: {refactorableFunction.Name} in file: {path}");
-            _logger.Debug($"Refactoring trace-id: {refactoredFunctions.TraceId}");
+            _logger.Debug($"Refactoring trace-id: {refactoredFunctions.TraceId}, credits left: {refactoredFunctions.CreditsInfo.Limit - refactoredFunctions.CreditsInfo.Used}.");
 
             var cacheItem = new CachedRefactoringActionModel
             {
@@ -87,6 +82,8 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
                 RefactorableCandidate = functionForRefactor,
                 Refactored = refactoredFunctions
             };
+
+
 
             LastRefactoring = cacheItem;
 
