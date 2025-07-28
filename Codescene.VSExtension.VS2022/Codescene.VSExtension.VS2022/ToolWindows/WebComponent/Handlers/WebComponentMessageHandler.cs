@@ -8,6 +8,7 @@ using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -235,23 +236,23 @@ internal class WebComponentMessageHandler
 
         var cache = new AceRefactorableFunctionsCacheService();
 
-        using (var reader = File.OpenText(payload.FileName))
-        {
-            var content = await reader.ReadToEndAsync();
+        var docView = await VS.Documents.OpenAsync(payload.FileName);
+        if (docView?.TextBuffer is not ITextBuffer buffer)
+            return;
 
-            var refactorableFunctions = cache.Get(new AceRefactorableFunctionsQuery(
-                payload.FileName,
-                content
-            ));
+        var content = buffer.CurrentSnapshot.GetText();
 
-            logger.Debug($"Found {refactorableFunctions.Count} refactorable functions in file '{payload.FileName}'.");
+        var refactorableFunctions = cache.Get(new AceRefactorableFunctionsQuery(
+            payload.FileName,
+            content
+        ));
 
-            await onClickRefactoringHandler.HandleAsync(
-                payload.FileName,
-                refactorableFunctions.FirstOrDefault(fn => fn.Name == payload.Fn.Name)
-            );
-        }
+        logger.Debug($"Found {refactorableFunctions.Count} refactorable functions in file '{payload.FileName}'.");
 
+        await onClickRefactoringHandler.HandleAsync(
+            payload.FileName,
+            refactorableFunctions.FirstOrDefault(fn => fn.Name == payload.Fn.Name)
+        );
     }
 
     private async Task HandleOpenSettingsAsync()

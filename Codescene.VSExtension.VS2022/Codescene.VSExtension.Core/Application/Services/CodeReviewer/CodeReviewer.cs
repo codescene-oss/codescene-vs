@@ -100,9 +100,14 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             var refactorableFunctions = cacheService.Get(new AceRefactorableFunctionsQuery(path, code));
 
 
-            if (delta == null || !refactorableFunctions.Any())
+            if (delta == null)
             {
-                _logger.Debug("Delta response null or refactorable functions list is empty. Skipping update.");
+                _logger.Debug("Delta response null. Skipping update of delta cache.");
+                return;
+            }
+            if (!refactorableFunctions.Any())
+            {
+                _logger.Debug("No refactorable functions found. Skipping update of delta cache.");
                 return;
             }
 
@@ -112,7 +117,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 if (string.IsNullOrEmpty(functionName))
                     continue;
 
-                var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName);
+                var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName && fn.Range.Startline == finding.Function.Range.Startline);
                 if (match != null)
                 {
                     finding.RefactorableFn = match;

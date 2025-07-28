@@ -27,11 +27,11 @@ namespace Codescene.VSExtension.Core.Models.Cli.Delta
 
             var functionStr = Function == null
                 ? "null"
-                : $"{{Name: {Function.Name}, Range: {(Function.Range != null ? $"({Function.Range.Startline},{Function.Range.StartColumn})-({Function.Range.EndLine},{Function.Range.EndColumn})" : "null")}}}";
+                : $"{{Name: {Function.Name}, Range: {(Function.Range != null ? $"({Function.Range.Startline},{Function.Range.EndLine})-({Function.Range.StartColumn},{Function.Range.EndColumn})" : "null")}}}";
 
             var refactorableFnStr = RefactorableFn == null
                 ? "null"
-                : $"{{Name: {RefactorableFn.Name}, FileType: {RefactorableFn.FileType}, Range: {(RefactorableFn.Range != null ? $"({RefactorableFn.Range.Startline},{RefactorableFn.Range.StartColumn})-({RefactorableFn.Range.EndLine},{RefactorableFn.Range.EndColumn})" : "null")}}}";
+                : $"{{Name: {RefactorableFn.Name}, FileType: {RefactorableFn.FileType}, Range: {(RefactorableFn.Range != null ? $"({RefactorableFn.Range.Startline},{RefactorableFn.Range.EndLine})-({RefactorableFn.Range.StartColumn},{RefactorableFn.Range.EndColumn})" : "null")}}}";
 
             return $"FunctionFindingModel {{ ChangeDetails: {changeDetailsStr}, Function: {functionStr}, RefactorableFn: {refactorableFnStr} }}";
         }
