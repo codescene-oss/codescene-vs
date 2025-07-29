@@ -11,6 +11,7 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.Core.Models.WebComponent;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -99,6 +100,10 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             AceRefactorableFunctionsCacheService cacheService = new AceRefactorableFunctionsCacheService();
             var refactorableFunctions = cacheService.Get(new AceRefactorableFunctionsQuery(path, code));
 
+            _logger.Debug($"Updating delta cache with refactorable functions for {path}. Found {refactorableFunctions.Count} refactorable functions.");
+            _logger.Debug($"Delta response: {JsonConvert.SerializeObject(delta) ?? "null"}");
+            _logger.Debug($"Refactorable functions: {JsonConvert.SerializeObject(refactorableFunctions)}");
+
 
             if (delta == null)
             {
@@ -117,12 +122,19 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 if (string.IsNullOrEmpty(functionName))
                     continue;
 
-                var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName && fn.Range.Startline == finding.Function.Range.Startline);
+                var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName && checkRange(finding, fn));
                 if (match != null)
                 {
                     finding.RefactorableFn = match;
                 }
             }
+        }
+
+        private bool checkRange(FunctionFindingModel finding, FnToRefactorModel refFunction)
+        {
+            // this check is because of ComplexConditional code smell which is inside of the method
+            return refFunction.Range.Startline <= finding.Function.Range.Startline &&
+                finding.Function.Range.Startline <= refFunction.Range.EndLine;
         }
     }
 }

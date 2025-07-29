@@ -65,6 +65,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                     {
                         Name = item.RefactorableFn.Name,
                         Body = item.RefactorableFn.Body,
+                        //FunctionType = item.RefactorableFn.FunctionType,
                         Range = item.RefactorableFn.Range != null
                             ? new CodeSmellRangeModel(
                                 item.RefactorableFn.Range.Startline,
