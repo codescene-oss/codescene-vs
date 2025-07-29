@@ -102,7 +102,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 if (result.RawScore != null)
                 {
                     _logger.Info($"File {path} reviewed successfully.");
-                    AceUtils.CheckContainsRefactorableFunctionsAsync(result, code).FireAndForget();
+                    await AceUtils.CheckContainsRefactorableFunctionsAsync(result, code);
                     
                     DeltaReviewAsync(result, code).FireAndForget();
                 }

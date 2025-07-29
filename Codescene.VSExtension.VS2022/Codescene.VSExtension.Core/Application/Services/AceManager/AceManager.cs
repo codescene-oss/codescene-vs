@@ -60,7 +60,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
                 Body = refactorableFunction.Body,
                 FileType = refactorableFunction.FileType,
                 Range = refactorableFunction.Range,
-                RefactoringTargets = refactorableFunction.RefactoringTargets,  //new RefactoringTargetModel[] { refactorableFunction.RefactoringTargets.First() },
+                RefactoringTargets = refactorableFunction.RefactoringTargets,
                 VSCodeRange = rangeList.ToArray()
             };
 
