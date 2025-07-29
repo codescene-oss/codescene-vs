@@ -34,7 +34,6 @@ public class OnClickRefactoringHandler
 
         await AceToolWindow.ShowAsync();
 
-
         await DoRefactorAndUpdateViewAsync(path, refactorableFunction);
     }
 

@@ -130,6 +130,10 @@ internal class WebComponentMessageHandler
         {
             await CodeSceneToolWindow.UpdateViewAsync().ConfigureAwait(false);
         }
+        if (source == ViewTypes.ACE)
+        {
+            await AceToolWindow.UpdateViewAsync().ConfigureAwait(false);
+        }
     }
 
     private async Task HandleCopyCodeAsync()
