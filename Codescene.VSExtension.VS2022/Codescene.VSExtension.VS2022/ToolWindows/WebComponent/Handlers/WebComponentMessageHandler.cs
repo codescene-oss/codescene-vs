@@ -178,6 +178,7 @@ internal class WebComponentMessageHandler
         await applier.ApplyAsync();
         if (_control.CloseRequested is not null)
             await _control.CloseRequested();
+        
         // Refresh the view after applying changes, because of the bug with two methods with the same name 
         await CodeSceneToolWindow.UpdateViewAsync();
     }
@@ -232,7 +233,7 @@ internal class WebComponentMessageHandler
     {
         var payload = msgObject.Payload.ToObject<RequestAndPresentRefactoringPayload>();
 
-        logger.Debug($"Requesting refactoring for function '{payload.Fn.Name}' in file '{payload.FileName}'.");
+        logger.Info($"Requesting refactoring for function '{payload.Fn.Name}' in file '{payload.FileName}'.");
 
         var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
 
@@ -248,8 +249,6 @@ internal class WebComponentMessageHandler
             payload.FileName,
             content
         ));
-
-        logger.Debug($"Found {refactorableFunctions.Count} refactorable functions in file '{payload.FileName}'.");
 
         await onClickRefactoringHandler.HandleAsync(
             payload.FileName,

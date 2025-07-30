@@ -100,9 +100,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             var refactorableFunctions = cacheService.Get(new AceRefactorableFunctionsQuery(path, code));
 
             _logger.Debug($"Updating delta cache with refactorable functions for {path}. Found {refactorableFunctions.Count} refactorable functions.");
-            _logger.Debug($"Delta response: {JsonConvert.SerializeObject(delta) ?? "null"}");
-            _logger.Debug($"Refactorable functions: {JsonConvert.SerializeObject(refactorableFunctions)}");
-
 
             if (delta == null)
             {
