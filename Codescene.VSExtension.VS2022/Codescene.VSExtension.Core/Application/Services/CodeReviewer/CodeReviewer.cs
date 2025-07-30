@@ -10,8 +10,6 @@ using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.ReviewModels;
-using Codescene.VSExtension.Core.Models.WebComponent;
-using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

@@ -178,6 +178,8 @@ internal class WebComponentMessageHandler
         await applier.ApplyAsync();
         if (_control.CloseRequested is not null)
             await _control.CloseRequested();
+        // Refresh the view after applying changes, because of the bug with two methods with the same name 
+        await CodeSceneToolWindow.UpdateViewAsync();
     }
 
     private async Task HandleRejectAsync()
