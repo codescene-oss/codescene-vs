@@ -122,10 +122,14 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 if (string.IsNullOrEmpty(functionName))
                     continue;
 
-                var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName && checkRange(finding, fn));
-                if (match != null)
+                // update only if not already updated, for case when multiple methods have same name
+                if (finding.RefactorableFn == null) 
                 {
-                    finding.RefactorableFn = match;
+                    var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName && checkRange(finding, fn));
+                    if (match != null)
+                    {
+                        finding.RefactorableFn = match;
+                    }
                 }
             }
         }
