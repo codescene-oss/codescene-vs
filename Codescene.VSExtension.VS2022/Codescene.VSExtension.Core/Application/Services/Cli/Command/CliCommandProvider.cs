@@ -47,14 +47,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public string GetRefactorPostCommand(string fnToRefactor, bool skipCache, bool useStagingApi = false, string token = null)
         {
-            //var useStagingArg = useStagingApi ? " --staging" : string.Empty;
-            //var skipCacheArg = skipCache ? " --skip-cache" : string.Empty;
-            //var tokenArg = string.IsNullOrWhiteSpace(token) ? string.Empty : $" --token {token}";
-            //var escapedFnToRefactor = fnToRefactor.Replace("\\", "\\\\").Replace("\"", "\\\"");
-            //string command = $"refactor post{useStagingArg}{skipCacheArg} --fn-to-refactor \"{escapedFnToRefactor}\"{tokenArg}";
-            //_logger.Debug($"Generated refactor post command: {command}");
-            //return command;
-
             var args = new List<string> { "refactor", "post" };
             if (skipCache)
                 args.Add("--skip-cache");
@@ -63,11 +55,8 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             //if (!string.IsNullOrWhiteSpace(token))
             //    args.Add($"--token {token}");
             args.Add($"--fn-to-refactor");
-            //var escapedFnToRefactor = fnToRefactor.Replace("\\n", "\\\\n");
             args.Add(fnToRefactor);
-            var command = GetArgumentStr(args.ToArray());
-            _logger.Debug($"Generated refactor post command: {command}");
-            return command;
+            return GetArgumentStr(args.ToArray());
         }
 
         static string GetArgumentStr(params string[] args)

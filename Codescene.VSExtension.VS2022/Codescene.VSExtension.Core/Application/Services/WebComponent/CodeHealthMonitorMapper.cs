@@ -14,9 +14,6 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeHealthMonitorMapper
     {
-        //[Import]
-        //private readonly ILogger _logger;
-
         public CodeHealthMonitorComponentData Map(Dictionary<string, DeltaResponseModel> fileDeltas)
         {
             var files = fileDeltas.Select(pair => new FileDeltaData
@@ -89,8 +86,6 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                     RefactorableFn = refactorableFn
                 });
             }
-
-            //_logger.Debug($"Mapped FunctionFinding {JsonConvert.SerializeObject(result)}");
 
             return result;
         }
