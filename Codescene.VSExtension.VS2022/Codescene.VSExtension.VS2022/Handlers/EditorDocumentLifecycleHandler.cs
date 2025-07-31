@@ -156,6 +156,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
                 var scoreChange = deltaResult?.ScoreChange.ToString() ?? "none";
                 _logger.Info($"Delta analysis complete for file {path}. Code Health score change: {scoreChange}.");
+                _logger.Debug($"Delta analysis returned: {deltaResult?.FunctionLevelFindings.First().ToString()}");
             }
             catch (Exception e)
             {
