@@ -218,13 +218,14 @@ internal class WebComponentMessageHandler
     {
         var payload = msgObject.Payload.ToObject<OpenDocsForFunctionPayload>();
         _logger.Debug($"Opening '{payload.DocType}'...");
+        _logger.Debug($"Payload '{JsonConvert.SerializeObject(payload)}'...");
 
         await _showDocsHandler?.HandleAsync(
         new ShowDocumentationModel(
             payload.FileName,
             payload.DocType,
-            payload.Fn.Name,
-            payload.Fn.Range), DocsEntryPoint.CodeHealthMonitor
+            payload.Fn?.Name,
+            payload.Fn?.Range), DocsEntryPoint.CodeHealthMonitor
         );
     }
 
