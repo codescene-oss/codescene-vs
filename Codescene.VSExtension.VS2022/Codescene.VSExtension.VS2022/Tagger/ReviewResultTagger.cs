@@ -95,6 +95,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             string currentContent = _buffer.CurrentSnapshot.GetText();
             IList<FnToRefactorModel> cached = _aceRefactorableFunctionsCache.Get(new AceRefactorableFunctionsQuery(_filePath, currentContent));
 
+            //logger?.Result?.Info($"Tagger: Loaded {cached.Count} refactorable functions from cache for {_filePath}");
             return cached;
         }
 
