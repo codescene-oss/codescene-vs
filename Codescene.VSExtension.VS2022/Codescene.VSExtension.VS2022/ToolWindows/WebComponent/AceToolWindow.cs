@@ -76,16 +76,18 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
         var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
 
-        AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
+        if (AceManager.LastRefactoring != null)
         {
-            MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
-            Payload = new WebComponentPayload<AceComponentData>
+            AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
-                IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
-                View = WebComponentConstants.ViewTypes.ACE,
-                Data = mapper.Map(AceManager.LastRefactoring)
-            }
-        });
+                MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+                Payload = new WebComponentPayload<AceComponentData>
+                {
+                    IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                    View = WebComponentConstants.ViewTypes.ACE,
+                    Data = mapper.Map(AceManager.LastRefactoring)
+                }
+            });
+        }
     }
-
 }
