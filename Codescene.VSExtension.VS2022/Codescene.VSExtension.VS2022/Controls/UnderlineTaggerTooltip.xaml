@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Codescene.VSExtension.VS2022.Controls"
              mc:Ignorable="d">
     <Grid HorizontalAlignment="Stretch">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Foreground="{x:Static SystemColors.ControlLightBrush}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" x:Name="ThemedTextBlock">
             <StackPanel Orientation="Horizontal">
                 <TextBlock>
                     <Run Text="{Binding Category}" />
@@ -36,11 +36,11 @@
                     <Run Text=" (" FontWeight="Normal" />
                 </TextBlock>
                 <TextBlock>
-                    <Hyperlink Command="{Binding YourCommand}" CommandParameter="{Binding CommandParameter}">
+                    <Hyperlink x:Name="hyperlinkContrast" Command="{Binding YourCommand}" CommandParameter="{Binding CommandParameter}">
                         <Run Text="{Binding Category}" />
                     </Hyperlink>
                 </TextBlock>
-                <TextBlock Text=")" FontWeight="Light"/>
+                <TextBlock Text=")" FontWeight="Normal"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>

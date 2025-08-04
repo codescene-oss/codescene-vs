@@ -1,7 +1,10 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
@@ -12,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
+using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 public class AceToolWindow : BaseToolWindow<AceToolWindow>
@@ -61,4 +65,29 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     }
 
     public static bool IsCreated() => _ctrl != null;
+
+    public async static Task UpdateViewAsync()
+    {
+        if (_ctrl == null)
+        {
+            await ShowAsync();
+            return;
+        }
+
+        var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
+
+        if (AceManager.LastRefactoring != null)
+        {
+            AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
+            {
+                MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+                Payload = new WebComponentPayload<AceComponentData>
+                {
+                    IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                    View = WebComponentConstants.ViewTypes.ACE,
+                    Data = mapper.Map(AceManager.LastRefactoring)
+                }
+            });
+        }
+    }
 }
