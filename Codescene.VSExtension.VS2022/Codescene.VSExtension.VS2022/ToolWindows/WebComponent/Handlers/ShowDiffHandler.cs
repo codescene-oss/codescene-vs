@@ -3,6 +3,7 @@ using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using System;
 using System.ComponentModel.Composition;
@@ -41,18 +42,31 @@ public class ShowDiffHandler
         var replacement = newCode.EndsWith(Environment.NewLine) ? newCode : newCode + Environment.NewLine;
         var refactored = original.Remove(span.Start, span.Length).Insert(span.Start, replacement);
 
-        var assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-        var rootDir = Path.GetDirectoryName(assemblyPath);
-        var showDiffFolder = Path.Combine(rootDir!, SkipShowDiffHelper.SHOW_DIFF_FOLDER);
-        Directory.CreateDirectory(showDiffFolder);
+        // Write the original and refactored code to temporary files
+        var tempOriginalPath = Path.GetTempFileName();
+        var tempRefactoredPath = Path.GetTempFileName();
+        File.WriteAllText(tempOriginalPath, original);
+        File.WriteAllText(tempRefactoredPath, refactored);
 
-        var extension = Path.GetExtension(cache.Path);
-        var leftPath = Path.Combine(showDiffFolder, $"original{extension}");
-        var rightPath = Path.Combine(showDiffFolder, $"refactoring{extension}");
+        //await VS.Commands.ExecuteAsync("Tools.DiffFiles", $"\"{tempOriginalPath}\" \"{tempRefactoredPath}\"");
 
-        File.WriteAllText(leftPath, original);
-        File.WriteAllText(rightPath, refactored);
+        // Use VS.GetServiceAsync to get the difference service
+        var diffService = await VS.GetServiceAsync<SVsDifferenceService, IVsDifferenceService>();
 
-        await VS.Commands.ExecuteAsync("Tools.DiffFiles", $"\"{leftPath}\" \"{rightPath}\"");
+        // Open the diff window with the temporary files
+        diffService.OpenComparisonWindow2(
+            tempOriginalPath,
+            tempRefactoredPath,
+            "Code Comparison",
+            null,
+            Path.GetFileName(cache.Path) + " (Original)",
+            Path.GetFileName(cache.Path) + " (Refactored)",
+            null,
+            null,
+            0);
+
+        // Optionally, schedule deletion of temp files after some delay or on process exit
+        // File.Delete(tempOriginalPath);
+        // File.Delete(tempRefactoredPath);
     }
 }
