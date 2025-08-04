@@ -48,9 +48,6 @@ public class ShowDiffHandler
         File.WriteAllText(tempOriginalPath, original);
         File.WriteAllText(tempRefactoredPath, refactored);
 
-        //await VS.Commands.ExecuteAsync("Tools.DiffFiles", $"\"{tempOriginalPath}\" \"{tempRefactoredPath}\"");
-
-        // Use VS.GetServiceAsync to get the difference service
         var diffService = await VS.GetServiceAsync<SVsDifferenceService, IVsDifferenceService>();
 
         // Open the diff window with the temporary files
