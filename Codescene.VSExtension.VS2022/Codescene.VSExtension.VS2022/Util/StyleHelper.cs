@@ -12,6 +12,8 @@ public static class StyleHelper
 {
     private static string DarkThemeColorName = "ff1f1f1f";
     private static string DarkThemeFallbackSecondaryBg = "0c517b";
+    private static string BlueThemeColorName = "fff7f9fe";
+    private static string DarkAndLightThemeBtnTextColorName = "fafafa";
 
     private static Dictionary<int, string> opacityVariants = new Dictionary<int, string>
     {
@@ -87,7 +89,7 @@ public static class StyleHelper
             //var buttonBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowButtonActiveGlyphColorKey);
 
             var textFg = ToHex(textForeground);
-            var buttonFgHex = ToHex(buttonForeground);
+            var buttonFgHex = editorBackground.Name == BlueThemeColorName ? ToHex(buttonForeground) : DarkAndLightThemeBtnTextColorName;
             //var buttonBgHex = ToHex(buttonBackground);
 
             var buttonBgHex = editorBackground.Name == DarkThemeColorName
