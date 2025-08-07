@@ -29,7 +29,7 @@ public static class DocumentNavigator
         }
         catch (Exception e)
         {
-            logger.Error($"Unable to open file and focus on line {lineNumber} ", e);
+            logger.Error($"Unable to open file and focus on line {lineNumber}. Error message: {e.Message}");
         }
     }
 }

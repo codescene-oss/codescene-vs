@@ -31,7 +31,7 @@ public class OnActiveWindowChangeHandler
         }
         catch (Exception e)
         {
-            _logger.Error("Could not update margin on file re-focus", e);
+            _logger.Error($"Could not update margin on file re-focus. Error message: {e.Message}");
         }
     }
 

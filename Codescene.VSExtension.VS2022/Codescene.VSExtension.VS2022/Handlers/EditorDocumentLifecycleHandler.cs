@@ -110,7 +110,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             }
             catch (Exception e)
             {
-                _logger.Error($"Could not update cache or review file {path}", e);
+                _logger.Error($"Could not update cache or review file {path}. Error message: {e.Message}");
             }
         }
 

@@ -62,7 +62,7 @@ public class ShowDocumentationHandler
         catch (Exception e)
         {
             logger.Warn($"Could not open doc '{model.Category}' for file {model.Path}");
-            logger.Error($"Could not update view for {model.Category}", e);
+            logger.Error($"Could not update view for {model.Category}. Error message: {e.Message}");
         }
     }
 
