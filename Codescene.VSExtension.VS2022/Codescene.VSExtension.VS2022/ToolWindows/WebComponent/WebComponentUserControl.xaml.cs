@@ -201,7 +201,7 @@ public partial class WebComponentUserControl : UserControl
             }
             catch (Exception ex)
             {
-                _logger.Error($"Could not open external link: {uri}", ex);
+                _logger.Error($"Could not open external link: {uri}. Error message: {ex.Message}");
             }
         }
         else
@@ -233,7 +233,7 @@ public partial class WebComponentUserControl : UserControl
         }
         catch (Exception e)
         {
-            _logger.Error("Could not update webview.", e);
+            _logger.Error($"Could not update webview. Error message: {e.Message}");
         }
     }
 

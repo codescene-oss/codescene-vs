@@ -52,7 +52,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error("Error downloading artifact file", ex);
+                    _logger.Error($"Error downloading artifact file. Error message: {ex.Message}");
                 }
             }
         }

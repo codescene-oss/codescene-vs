@@ -34,7 +34,7 @@ internal class WebComponentMessageHandler
         }
         catch (Exception ex)
         {
-            _logger.Error($"Unable to process webview message. Deserialization failed.", ex);
+            _logger.Error($"Unable to process webview message. Deserialization failed. Error message: {ex.Message}");
             return;
         }
 

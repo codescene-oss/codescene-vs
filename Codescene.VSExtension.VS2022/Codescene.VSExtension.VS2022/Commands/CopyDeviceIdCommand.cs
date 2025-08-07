@@ -33,7 +33,7 @@ internal sealed class CopyDeviceIdCommand : BaseCommand<CopyDeviceIdCommand>
         }
         catch (Exception ex)
         {
-            logger.Error("Failed to retrieve device ID.", ex);
+            logger.Error($"Failed to retrieve device ID. Error message: {ex.Message}");
         }
     }
 }

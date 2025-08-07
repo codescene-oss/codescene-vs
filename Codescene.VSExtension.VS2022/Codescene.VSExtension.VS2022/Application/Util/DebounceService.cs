@@ -52,7 +52,7 @@ public class DebounceService : IDebounceService, IDisposable
         }
         catch (Exception e)
         {
-            _logger.Error("Unable to perform debounced action", e);
+            _logger.Error($"Unable to perform debounced action. Error message: {e.Message}");
         }
     }
 

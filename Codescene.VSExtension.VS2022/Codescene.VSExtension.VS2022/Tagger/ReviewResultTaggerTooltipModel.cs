@@ -63,7 +63,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             }
             catch (Exception e)
             {
-                logger.Error("Unable to handle tagger action.", e);
+                logger.Error($"Unable to handle tagger action. Error message: {e.Message}");
             }
         }
     }
