@@ -25,8 +25,6 @@ public class OnActiveWindowChangeHandler
 
     public void Handle(Window gotFocus, Window lostFocus)
     {
-        _logger.Debug($"File got focus: {gotFocus?.Document?.FullName}; File lost focus: {lostFocus?.Document?.FullName}");
-
         try
         {
             HandleFocusedFile(gotFocus);
