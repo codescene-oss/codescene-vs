@@ -78,7 +78,7 @@ public static class StyleHelper
             var linkForeground = VSColorTheme.GetThemedColor(EnvironmentColors.HelpHowDoIPaneLinkColorKey);
 
             var editorBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
-            var codeBlockBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowCodeBlockBackgroundColorKey);
+            var codeBlockBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBorderColorKey);
 
             var buttonForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
             var buttonBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowButtonHoverActiveColorKey);

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased
 
+## [0.1.0] - 2025-08-11
+### Fixed
+- Extension installation issues on lower VS2022 versions.
+- Device id generation algorithm
+### Changed
+- Updated webview to v1.0.6.
+- Bumped cli version to 1.1.0.
+
 ## [0.0.6] - 2025-07-07
 ### Changed
 - Updated webview to v1.0.1.
