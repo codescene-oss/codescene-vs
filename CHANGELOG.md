@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Extension installation issues on lower VS2022 versions.
 - Device id generation algorithm
+- Raise support ticket link fixed
 ### Changed
 - Updated webview to v1.0.6.
 - Bumped cli version to 1.1.0.
