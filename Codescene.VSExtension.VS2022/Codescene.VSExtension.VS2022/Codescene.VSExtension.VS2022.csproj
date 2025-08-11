@@ -167,6 +167,7 @@
     <Compile Include="ToolWindows\WebComponent\Models\MessageObj.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\ShowDocumentationHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\WebComponentMessageHandler.cs" />
+    <Compile Include="ToolWindows\WebComponent\Models\OpenExternalLinkPayload .cs" />
     <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">
       <DependentUpon>WebComponentUserControl.xaml</DependentUpon>
     </Compile>

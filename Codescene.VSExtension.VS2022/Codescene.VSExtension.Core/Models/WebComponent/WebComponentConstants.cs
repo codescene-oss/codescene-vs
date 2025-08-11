@@ -25,6 +25,7 @@
             public const string SHOW_DIFF = "showDiff";
             public const string REQUEST_AND_PRESENT_REFACTORING = "request-and-present-refactoring";
             public const string UPDATE_RENDERER = "update-renderer";
+            public const string OPEN_EXTERNAL_LINK = "open-external-link";
         }
     }
 }

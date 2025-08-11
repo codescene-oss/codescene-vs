@@ -1,12 +1,13 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
+using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 internal class WebComponentMessageHandler
@@ -47,21 +48,34 @@ internal class WebComponentMessageHandler
     {
         switch (msgObject?.MessageType)
         {
-            case WebComponentConstants.MessageTypes.INIT:
+            case MessageTypes.INIT:
                 return;
 
 
-            case WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION:
+            case MessageTypes.GOTO_FUNCTION_LOCATION:
                 var payload = msgObject.Payload.ToObject<GotoFunctionLocationPayload>();
-                _logger.Info($"Handling '{WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION}' event for {payload.FileName}.");
+                _logger.Info($"Handling '{MessageTypes.GOTO_FUNCTION_LOCATION}' event for {payload.FileName}.");
 
                 await DocumentNavigator.OpenFileAndGoToLineAsync(payload.FileName, payload.Fn.Range.StartLine, _logger);
 
                 return;
 
+            case MessageTypes.OPEN_EXTERNAL_LINK:
+                await HandleOpenExternalLinkAsync(msgObject, logger);
+                break;
+
             default:
                 logger.Debug($" Unable to process webview message, unknown message type: {msgObject.MessageType}.");
                 return;
         }
+    }
+
+    private async Task HandleOpenExternalLinkAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        var payload = msgObject.Payload.ToObject<OpenExternalLinkPayload>();
+        _logger.Debug($"Opening external link: '{payload.Link}'...");
+
+        VsShellUtilities.OpenBrowser(payload.Link);
+
     }
 }
