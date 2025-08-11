@@ -92,7 +92,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 if (result.RawScore != null)
                     _logger.Info($"File {path} reviewed successfully.");
 
-                await CodeSceneToolWindow.UpdateViewAsync(path);
+                await CodeSceneToolWindow.UpdateViewAsync();
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(result);

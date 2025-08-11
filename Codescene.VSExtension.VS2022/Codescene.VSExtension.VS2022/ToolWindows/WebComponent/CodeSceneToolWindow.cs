@@ -1,13 +1,11 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.WebComponent;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Community.VisualStudio.Toolkit;
-using Microsoft.VisualStudio.Debugger.Interop;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -35,7 +33,12 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
             {
                 IdeType = VISUAL_STUDIO_IDE_TYPE,
                 View = ViewTypes.HOME,
-                Data = new CodeHealthMonitorComponentData()
+                Data = new CodeHealthMonitorComponentData
+                {
+                    ShowOnboarding = false,
+                    FileDeltaData = new List<FileDeltaData>(),
+                    Jobs = new List<Job>()
+                }
             };
 
             var ctrl = new WebComponentUserControl(payload, logger)
@@ -58,7 +61,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         }
     }
 
-    public async static Task UpdateViewAsync(string path)
+    public async static Task UpdateViewAsync()
     {
         if (_userControl == null)
         {
@@ -73,30 +76,16 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
             {
                 IdeType = VISUAL_STUDIO_IDE_TYPE,
                 View = ViewTypes.HOME,
-                //Pro = false,
                 Data = new CodeHealthMonitorComponentData
                 {
                     ShowOnboarding = false,
-                    FileDeltaData = {
-                        new FileDeltaData {
-                            File = new File
-                            {
-                                FileName = path
-                            },
-                            Delta = new Delta
-                            {
-                                ScoreChange = 0,
-                                OldScore = 0,
-                                NewScore = 0,
-                                FileLevelFindings = new List<ChangeDetail>(),
-                                FunctionLevelFindings =new List<FunctionFinding>(),
-                            }
-                        }
-                    },
+                    FileDeltaData = new List<FileDeltaData>(),
                     Jobs = new List<Job>()
                 },
             }
         };
+        ILogger logger = await VS.GetMefServiceAsync<ILogger>();
+        logger.Debug($"Updating CodeScene tool window view with new data: {JsonConvert.SerializeObject(message)}");
         _userControl.UpdateViewAsync(message).FireAndForget();
     }
 
