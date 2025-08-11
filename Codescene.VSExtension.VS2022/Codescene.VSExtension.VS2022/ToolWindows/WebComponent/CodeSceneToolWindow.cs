@@ -85,7 +85,6 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
             }
         };
         ILogger logger = await VS.GetMefServiceAsync<ILogger>();
-        logger.Debug($"Updating CodeScene tool window view with new data: {JsonConvert.SerializeObject(message)}");
         _userControl.UpdateViewAsync(message).FireAndForget();
     }
 
