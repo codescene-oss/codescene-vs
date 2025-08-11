@@ -52,6 +52,7 @@
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />
+    <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
     <Compile Include="ToolWindows\ViewElementFactory.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
