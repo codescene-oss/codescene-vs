@@ -1,12 +1,16 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.ReviewModels;
+using Codescene.VSExtension.VS2022.Util;
+using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorListWindowHandler;
@@ -58,19 +62,34 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
 
     private void OpenDocumentWithIssue(object sender, EventArgs e, string path)
     {
-        var task = sender as ErrorTask;
-        ThreadHelper.ThrowIfNotOnUIThread();
-        VsShellUtilities.OpenDocument(VS2022Package.Instance, path, Guid.Empty, out _, out _, out IVsWindowFrame windowFrame);
-
-        windowFrame?.Show();
-
-        var textView = VsShellUtilities.GetTextView(windowFrame);
-
-        if (textView != null)
+        Task.Run(async () =>
         {
-            textView.SetCaretPos(task.Line, task.Column);
-            textView.CenterLines(task.Line, 1);
-        }
+            var logger = await VS.GetMefServiceAsync<ILogger>();
+
+            try
+            {
+                logger.Debug($"Opening document '{path}' from error list...");
+
+                var task = sender as ErrorTask;
+                var isUiThread = ThreadHelper.CheckAccess();
+
+                if (!isUiThread)
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                if (task?.Line == null)
+                {
+                    logger.Warn($"Could not open document '{path}' from error list, focus line is not valid.");
+                    return;
+                }
+
+                await DocumentNavigator.OpenFileAndGoToLineAsync(path, task.Line + 1, logger);
+                logger.Debug($"Opened document '{path}' from error list...");
+            }
+            catch (Exception e)
+            {
+                logger.Error($"Unable to open document '{path}'", e);
+            }
+        }).FireAndForget();
     }
 
     private void Delete(string path)

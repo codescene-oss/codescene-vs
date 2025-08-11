@@ -52,6 +52,7 @@
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />
+    <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
     <Compile Include="ToolWindows\ViewElementFactory.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
@@ -155,6 +156,7 @@
     <Compile Include="DocumentEventsHandler\EditorDocumentLifecycleHandler.cs" />
     <Compile Include="DocumentEventsHandler\OnActiveWindowChangeHandler.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginSettingsManager.cs" />
+    <Compile Include="ToolWindows\WebComponent\CodeSceneToolWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\CodeSmellDocumentationWindow.cs" />
     <Compile Include="EditorMargin\CodeSceneMargin.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginProvider.cs" />
@@ -238,6 +240,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="git2-3f4182d.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="VSCommandTable.vsct">
@@ -272,19 +278,19 @@
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="envdte">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="envdte100">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="envdte80">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="envdte90">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="envdte90a">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Markdig">
       <Version>0.41.1</Version>
@@ -296,7 +302,7 @@
       <Version>9.0.5</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Build.Framework">
-      <Version>17.14.8</Version>
+      <Version>17.0.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities">
       <Version>4.14.0</Version>
@@ -317,128 +323,128 @@
       <Version>5.0.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.CommandBars">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <Version>17.14.106</Version>
+      <Version>17.0.487</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Interop.10.0">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Interop.11.0">
-      <Version>17.10.40170</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Interop.12.0">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Interop.14.0">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Interop.15.0">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Interop.16.0">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Editor">
-      <Version>17.14.249</Version>
+      <Version>17.0.487</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language">
-      <Version>17.14.249</Version>
+      <Version>17.0.487</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>17.14.249</Version>
+      <Version>17.0.487</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
-      <Version>17.14.249</Version>
+      <Version>17.0.487</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
-      <Version>17.14.249</Version>
+      <Version>17.0.487</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client">
-      <Version>17.14.60</Version>
+      <Version>17.0.5158</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices">
-      <Version>4.14.0</Version>
+      <Version>4.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.OLE.Interop">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Package.LanguageService.15.0">
-      <Version>17.14.40264</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK">
       <Version>17.14.40265</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.10.0">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.11.0">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.0">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.8.0">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.9.0">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TextTemplating.VSHost">
-      <Version>17.14.40265</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Threading">
-      <Version>17.14.15</Version>
+      <Version>17.0.64</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Utilities">
-      <Version>17.14.40264</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Utilities.Internal">
-      <Version>16.3.90</Version>
+      <Version>16.3.23</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.VCProjectEngine">
-      <Version>17.14.40264</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.VSHelp">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.VSHelp80">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.WCFReference.Interop">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2094">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Web.WebView2">
-      <Version>1.0.3240.44</Version>
+      <Version>1.0.1054.31</Version>
     </PackageReference>
     <PackageReference Include="Nerdbank.Streams">
-      <Version>2.12.87</Version>
+      <Version>2.6.81</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json.Schema">
-      <Version>4.0.1</Version>
+      <Version>3.0.14</Version>
     </PackageReference>
     <PackageReference Include="stdole">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="StreamJsonRpc">
-      <Version>2.22.11</Version>
+      <Version>2.8.28</Version>
     </PackageReference>
     <PackageReference Include="System.Buffers">
       <Version>4.6.1</Version>
@@ -504,37 +510,37 @@
       <Version>4.6.1</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj100">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj110">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj140">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj150">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj157">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj158">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj165">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj2">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj80">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
     <PackageReference Include="VSLangProj90">
-      <Version>17.14.40260</Version>
+      <Version>17.0.31902.203</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

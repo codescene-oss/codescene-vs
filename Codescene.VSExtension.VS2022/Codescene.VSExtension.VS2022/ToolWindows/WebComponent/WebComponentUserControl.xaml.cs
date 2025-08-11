@@ -47,6 +47,13 @@ public partial class WebComponentUserControl : UserControl
         Initialize(payload, payload.View);
     }
 
+    public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload, ILogger logger)
+    {
+        _logger = logger;
+        InitializeComponent();
+        Initialize(payload, payload.View);
+    }
+
     private void Initialize<T>(T payload, string view)
     {
         OnThemeChanged(null);

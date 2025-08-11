@@ -7,6 +7,7 @@
         public class ViewTypes
         {
             public const string DOCS = "docs";
+            public const string HOME = "home";
         }
 
         public class MessageTypes

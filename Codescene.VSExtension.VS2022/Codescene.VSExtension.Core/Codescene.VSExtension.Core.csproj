@@ -110,11 +110,14 @@
     <Compile Include="Application\Services\Util\IDebounceService.cs" />
     <Compile Include="Application\Services\Util\IExtensionMetadataProvider.cs" />
     <Compile Include="Application\Services\WebComponent\CodeSmellDocumentationMapper.cs" />
+    <Compile Include="Models\Cli\Delta\ChangeType.cs" />
+    <Compile Include="Models\Cli\Refactor\RefactoringTargetModel.cs" />
     <Compile Include="Models\Cli\Review\CliCodeHealthRulesErrorModel.cs" />
     <Compile Include="Models\Cli\Telemetry\TelemetryEvent.cs" />
     <Compile Include="Models\CodeSmellRangeModel.cs" />
     <Compile Include="Models\CodeSmellTooltipModel.cs" />
     <Compile Include="Models\CustomDetailsData.cs" />
+    <Compile Include="Models\Job.cs" />
     <Compile Include="Models\LoginResponse.cs" />
     <Compile Include="Models\CodeSmellModel.cs" />
     <Compile Include="Models\Cli\Review\CliCodeSmellModel.cs" />
@@ -122,6 +125,7 @@
     <Compile Include="Models\Cli\Review\CliReviewModel.cs" />
     <Compile Include="Models\Cli\Review\CliReviewFunctionModel.cs" />
     <Compile Include="Models\Cli\CliRangeModel.cs" />
+    <Compile Include="Models\WebComponent\Data\CodeHealthMonitorComponentData.cs" />
     <Compile Include="Models\WebComponent\Data\CodeSmellDocumentationComponentData.cs" />
     <Compile Include="Models\WebComponent\Model\ShowDocumentationModel.cs" />
     <Compile Include="Models\WebComponent\Data\WebComponentFileData.cs" />
