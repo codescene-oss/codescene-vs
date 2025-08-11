@@ -4,6 +4,7 @@
     {
         public string IdeType { get; set; }
         public string View { get; set; }
+        //public bool Pro { get; set; } = false;
         public T Data { get; set; }
 
         /// <summary>
@@ -13,6 +14,6 @@
         /// - Allow inspection of the input data passed to the WebView.
         /// Intended for debugging purposes. Should remain <c>false</c> in production.
         /// </summary>
-        public bool Devmode { get; set; } = false;
+        public bool Devmode { get; set; } = true;
     }
 }

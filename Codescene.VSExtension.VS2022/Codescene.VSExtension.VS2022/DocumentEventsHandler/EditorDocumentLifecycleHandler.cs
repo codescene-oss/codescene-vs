@@ -6,6 +6,7 @@ using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.VS2022.EditorMargin;
+using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -90,6 +91,8 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
                 if (result.RawScore != null)
                     _logger.Info($"File {path} reviewed successfully.");
+
+                await CodeSceneToolWindow.UpdateViewAsync(path);
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(result);
