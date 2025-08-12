@@ -52,6 +52,10 @@
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />
+    <Compile Include="Commands\RevokeTermsCommand.cs" />
+    <Compile Include="Handlers\SolutionEventsHandler.cs" />
+    <Compile Include="TermsAndPolicies\InfoBarEvents.cs" />
+    <Compile Include="TermsAndPolicies\TermsAndPoliciesService.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
     <Compile Include="ToolWindows\ViewElementFactory.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />

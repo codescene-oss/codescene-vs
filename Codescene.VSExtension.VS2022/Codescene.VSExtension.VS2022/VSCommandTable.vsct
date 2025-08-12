@@ -71,6 +71,14 @@
 					<ButtonText>Copy Device ID</ButtonText>
 				</Strings>
 			</Button>
+			<Button guid="CodeSceneCmdSet" id="RevokeTerms" priority="0x9999" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
+				<Icon guid="ImageCatalogGuid" id="Remove" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>Revoke Terms and Policies</ButtonText>
+				</Strings>
+			</Button>
 		</Buttons>
 
 	</Commands>
@@ -85,6 +93,7 @@
 			<IDSymbol name="CodeSceneCommandsGroup" value="0x1022" />
 			<IDSymbol name="OpenSettings" value="0x1025" />
 			<IDSymbol name="CopyDeviceId" value="0x1026" />
+			<IDSymbol name="RevokeTerms" value="0x1027" />
 			<IDSymbol name="SignInCommand" value="0x0400" />
 			<IDSymbol name="OpenStatusWindowCommand" value="0x0800" />
 			<IDSymbol name="SignOutCommand" value="0x0500" />
