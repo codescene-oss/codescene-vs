@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased
 
+## [0.1.1] - 2025-08-12
+### Fixed
+- Hovering color on Home links
+### Changed
+- Updated webview to v1.1.1.
+
 ## [0.1.0] - 2025-08-11
 ### Fixed
 - Extension installation issues on lower VS2022 versions.
