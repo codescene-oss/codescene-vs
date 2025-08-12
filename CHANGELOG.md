@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Device id generation algorithm
 - Whitelisted supporthub.codescene domain
 ### Changed
-- Updated webview to v1.0.6.
-- Bumped cli version to 1.1.0.
+- Updated webview to v1.1.0.
+- Bumped cli version to 1.0.3.
 
 ## [0.0.6] - 2025-07-07
 ### Changed
