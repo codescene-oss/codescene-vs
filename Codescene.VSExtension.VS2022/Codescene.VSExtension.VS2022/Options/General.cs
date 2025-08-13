@@ -15,10 +15,10 @@ internal partial class OptionsProvider
 public class General : BaseOptionModel<General>
 {
     // TODO: Implement this feature, or remove it from the first official release.
-    [Category("General")]
-    [DisplayName("Gitignore")]
-    [Description("Exclude files in .gitignore from analysis")]
-    public bool Gitignore { get; set; } = true;
+    //[Category("General")]
+    //[DisplayName("Gitignore")]
+    //[Description("Exclude files in .gitignore from analysis")]
+    //public bool Gitignore { get; set; } = true;
 
     [Category("General")]
     [DisplayName("Show Debug Logs")]

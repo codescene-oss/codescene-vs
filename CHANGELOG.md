@@ -7,12 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased
 
+## [0.1.1] - 2025-08-12
+### Fixed
+- Hovering color on Home links
+### Changed
+- Updated webview to v1.1.1.
+
 ## [0.1.0] - 2025-08-11
 ### Fixed
 - Extension installation issues on lower VS2022 versions.
 - Device id generation algorithm
+- Whitelisted supporthub.codescene domain
 ### Changed
-- Updated webview to v1.0.6.
+- Updated webview to v1.1.0.
 - Bumped cli version to 1.0.3.
 
 ## [0.0.6] - 2025-07-07

@@ -37,10 +37,18 @@ public partial class WebComponentUserControl : UserControl
         "https://en.wikipedia.org",
         "https://codescene.io",
         "https://codescene.com",
-        "https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/"
+        "https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/",
+        "https://supporthub.codescene.com"
     };
 
     public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
+    {
+        _logger = logger;
+        InitializeComponent();
+        Initialize(payload, payload.View);
+    }
+
+    public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload, ILogger logger)
     {
         _logger = logger;
         InitializeComponent();

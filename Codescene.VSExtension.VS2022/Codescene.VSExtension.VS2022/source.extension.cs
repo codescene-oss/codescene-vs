@@ -8,11 +8,11 @@ namespace Codescene.VSExtension.VS2022
 {
     internal sealed partial class Vsix
     {
-        public const string Id = "CodesceneVSExtension.c90b6097-3fbd-4b82-a308-f9568074c67a";
+        public const string Id = "CodeScene.c90b6097-3fbd-4b82-a308-f9568074c67a";
         public const string Name = "CodeScene";
         public const string Description = @"Integrates CodeScene analysis into Visual Studio. Keeps your code clean and maintainable.";
         public const string Language = "en-US";
-        public const string Version = "0.1.0";
+        public const string Version = "0.1.1";
         public const string Author = "CodeScene";
         public const string Tags = "ai, ai code review, code analysis, code health, code metrics, code review, code quality, technical debt";
         public const bool IsPreview = false;

@@ -52,6 +52,7 @@
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />
+    <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
     <Compile Include="Commands\RevokeTermsCommand.cs" />
     <Compile Include="TermsAndPolicies\TermsAndPoliciesService.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
@@ -157,6 +158,7 @@
     <Compile Include="DocumentEventsHandler\EditorDocumentLifecycleHandler.cs" />
     <Compile Include="DocumentEventsHandler\OnActiveWindowChangeHandler.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginSettingsManager.cs" />
+    <Compile Include="ToolWindows\WebComponent\CodeSceneToolWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\CodeSmellDocumentationWindow.cs" />
     <Compile Include="EditorMargin\CodeSceneMargin.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginProvider.cs" />
