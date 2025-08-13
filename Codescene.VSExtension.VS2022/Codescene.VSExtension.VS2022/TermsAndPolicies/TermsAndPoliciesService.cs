@@ -36,9 +36,9 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
 
         IVsInfoBarActionItem[] actionItems =
         {
-            new InfoBarButton(CodeSceneConstants.Titles.AcceptTerms),
-            new InfoBarButton(CodeSceneConstants.Titles.DeclineTerms),
-            new InfoBarHyperlink(CodeSceneConstants.Titles.ViewTerms)
+            new InfoBarButton(CodeSceneConstants.Titles.ACCEPT_TERMS),
+            new InfoBarButton(CodeSceneConstants.Titles.DECLINE_TERMS),
+            new InfoBarHyperlink(CodeSceneConstants.Titles.VIEW_TERMS)
         };
 
         var model = new InfoBarModel(
@@ -80,16 +80,16 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
 
         switch (actionItem.Text)
         {
-            case CodeSceneConstants.Titles.AcceptTerms:
-            case CodeSceneConstants.Titles.DeclineTerms:
-                var hasAccepted = actionItem.Text == CodeSceneConstants.Titles.AcceptTerms;
+            case CodeSceneConstants.Titles.ACCEPT_TERMS:
+            case CodeSceneConstants.Titles.DECLINE_TERMS:
+                var hasAccepted = actionItem.Text == CodeSceneConstants.Titles.ACCEPT_TERMS;
                 SetAcceptedTerms(hasAccepted);
 
                 _logger.Info($"User has {(hasAccepted ? "accepted" : "declined")} Terms & Conditions.");
 
                 infoBarUIElement.Close();
                 break;
-            case CodeSceneConstants.Titles.ViewTerms:
+            case CodeSceneConstants.Titles.VIEW_TERMS:
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "https://codescene.com/policies",
@@ -116,15 +116,15 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
     {
         var store = GetOrCreateSettingsStore();
 
-        return store.PropertyExists(CodeSceneConstants.Titles.SettingsCollection, CodeSceneConstants.Titles.AcceptedTermsProperty) &&
-               store.GetBoolean(CodeSceneConstants.Titles.SettingsCollection, CodeSceneConstants.Titles.AcceptedTermsProperty);
+        return store.PropertyExists(CodeSceneConstants.Titles.SETTINGS_COLLECTION, CodeSceneConstants.Titles.ACCEPTED_TERMS_PROPERTY) &&
+               store.GetBoolean(CodeSceneConstants.Titles.SETTINGS_COLLECTION, CodeSceneConstants.Titles.ACCEPTED_TERMS_PROPERTY);
     }
 
     private void SetAcceptedTerms(bool value)
     {
         var store = GetOrCreateSettingsStore();
 
-        store.SetBoolean(CodeSceneConstants.Titles.SettingsCollection, CodeSceneConstants.Titles.AcceptedTermsProperty, value);
+        store.SetBoolean(CodeSceneConstants.Titles.SETTINGS_COLLECTION, CodeSceneConstants.Titles.ACCEPTED_TERMS_PROPERTY, value);
         _currentTermsInfoBarUiElement = null;
     }
 
@@ -135,8 +135,8 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
         var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
         var store = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
-        if (!store.CollectionExists(CodeSceneConstants.Titles.SettingsCollection))
-            store.CreateCollection(CodeSceneConstants.Titles.SettingsCollection);
+        if (!store.CollectionExists(CodeSceneConstants.Titles.SETTINGS_COLLECTION))
+            store.CreateCollection(CodeSceneConstants.Titles.SETTINGS_COLLECTION);
 
         return store;
     }

@@ -20,10 +20,10 @@ internal sealed class RevokeTermsCommand : BaseCommand<RevokeTermsCommand>
         var settingsManager = new ShellSettingsManager(package);
         var store = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
-        if (!store.CollectionExists("CodeSceneExtension"))
-            store.CreateCollection("CodeSceneExtension");
+        if (!store.CollectionExists(Constants.Titles.SETTINGS_COLLECTION))
+            store.CreateCollection(Constants.Titles.SETTINGS_COLLECTION);
 
-        store.SetBoolean("CodeSceneExtension", "AcceptedTerms", false);
+        store.SetBoolean(Constants.Titles.SETTINGS_COLLECTION, Constants.Titles.ACCEPTED_TERMS_PROPERTY, false);
 
         var logger = await VS.GetMefServiceAsync<ILogger>();
         logger.Info("Terms and Policies revoked. You will be prompted to accept CodeScene's Terms & Policies the next time the extension loads.");
