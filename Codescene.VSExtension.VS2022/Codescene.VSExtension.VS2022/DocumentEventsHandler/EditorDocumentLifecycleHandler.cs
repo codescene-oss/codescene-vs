@@ -6,6 +6,7 @@ using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.VS2022.EditorMargin;
+using Codescene.VSExtension.VS2022.TermsAndPolicies;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -40,34 +41,48 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         [Import]
         private readonly IErrorListWindowHandler _errorListWindowHandler;
 
+        [Import]
+        private readonly TermsAndPoliciesService _termsAndPoliciesService;
+
         public void TextViewCreated(IWpfTextView textView)
         {
-            var buffer = textView.TextBuffer;
-            string filePath = GetFilePath(buffer);
-            var isSupportedForReview = _supportedFileChecker.IsSupported(filePath);
-
-            if (!isSupportedForReview) return;
-
-            _logger.Debug($"File opened: {filePath}. ");
-            string initialContent = buffer.CurrentSnapshot.GetText();
-
             // Run on background thread:
-            Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget();
-
-            // Triggered when the file content changes (typing, etc.)
-            buffer.Changed += (sender, args) =>
+            Task.Run(async () =>
             {
-                _debounceService.Debounce(
-                    filePath,
-                    () => Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget(),
-                    TimeSpan.FromSeconds(3));
-            };
+                // Check if user has accepted CodeScene's Terms & Policies
+                var termsAccepted = await _termsAndPoliciesService.ShowTermsIfNeededAsync();
+                if (!termsAccepted)
+                {
+                    _logger.Warn("Skipping CodeScene analysis, Terms & Policies have not been accepted.");
+                    return;
+                }
 
-            textView.Closed += (sender, args) =>
-            {
-                _logger.Debug($"File closed: {filePath}...");
-                // TODO: Stop any pending analysis for optimization?
-            };
+                var buffer = textView.TextBuffer;
+                string filePath = GetFilePath(buffer);
+                var isSupportedForReview = _supportedFileChecker.IsSupported(filePath);
+
+                if (!isSupportedForReview) return;
+
+                _logger.Debug($"File opened: {filePath}. ");
+                string initialContent = buffer.CurrentSnapshot.GetText();
+
+                ReviewContentAsync(filePath, buffer).FireAndForget();
+
+                // Triggered when the file content changes (typing, etc.)
+                buffer.Changed += (sender, args) =>
+                {
+                    _debounceService.Debounce(
+                        filePath,
+                        () => Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget(),
+                        TimeSpan.FromSeconds(3));
+                };
+
+                textView.Closed += (sender, args) =>
+                {
+                    _logger.Debug($"File closed: {filePath}...");
+                    // TODO: Stop any pending analysis for optimization?
+                };
+            }).FireAndForget();
         }
 
         /// <summary>

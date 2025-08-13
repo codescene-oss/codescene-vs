@@ -1,40 +1,38 @@
-﻿using Microsoft.VisualStudio;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Telemetry;
+using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
-using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using CodeSceneConstants = Codescene.VSExtension.Core.Application.Services.Util.Constants;
 
 namespace Codescene.VSExtension.VS2022.TermsAndPolicies;
 
-public class TermsAndPoliciesService
+[Export(typeof(TermsAndPoliciesService))]
+[PartCreationPolicy(CreationPolicy.Shared)]
+public class TermsAndPoliciesService : IVsInfoBarUIEvents
 {
-    private readonly IServiceProvider _serviceProvider;
+    [Import]
+    private readonly ILogger _logger;
+
+    private bool _infoBarShownOnce = false;
     private IVsInfoBarUIElement? _currentTermsInfoBarUiElement;
 
-    public static readonly string SettingsCollection = "CodeSceneExtension";
-    public static readonly string AcceptedTermsProperty = "AcceptedTerms";
-
-    public TermsAndPoliciesService(IServiceProvider serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
-    public async Task ShowTermsIfNeededAsync()
+    public async Task<bool> ShowTermsIfNeededAsync()
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        // InfoBar already showing, don't add another:
-        if (_currentTermsInfoBarUiElement != null) return;
+        var termsAccepted = GetAcceptedTerms();
+        var factory = Package.GetGlobalService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
 
-        // Terms have already been accepted:
-        if (GetAcceptedTerms()) return;
-
-        if (_serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is not IVsInfoBarUIFactory factory)
-            return;
+        var skipInfoBar = termsAccepted || _currentTermsInfoBarUiElement != null || factory == null || _infoBarShownOnce;
+        if (skipInfoBar) return termsAccepted;
 
         IVsInfoBarActionItem[] actionItems =
         {
@@ -52,44 +50,94 @@ public class TermsAndPoliciesService
 
         var uiElement = factory.CreateInfoBar(model);
         if (uiElement == null)
-            return;
+            return termsAccepted;
 
         _currentTermsInfoBarUiElement = uiElement;
-        uiElement.Advise(new InfoBarEvents(SetAcceptedTerms), out _);
+        uiElement.Advise(this, out _);
 
-        if (_serviceProvider.GetService(typeof(SVsShell)) is IVsShell vsShell &&
+        var vsShell = Package.GetGlobalService(typeof(SVsShell)) as IVsShell;
+        if (vsShell != null &&
             vsShell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out var obj) == VSConstants.S_OK &&
             obj is IVsInfoBarHost mainHost)
         {
             mainHost.AddInfoBar(uiElement);
+            _infoBarShownOnce = true;
         }
+
+        return termsAccepted;
+    }
+
+    public void OnClosed(IVsInfoBarUIElement infoBarUIElement)
+    {
+        _logger.Debug("Terms & Policies bar has been closed.");
+    }
+
+    public void OnActionItemClicked(IVsInfoBarUIElement infoBarUIElement, IVsInfoBarActionItem actionItem)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        SendTelemetry(CodeSceneConstants.Telemetry.TERMS_AND_POLICIES_RESPONSE, actionItem.Text);
+
+        switch (actionItem.Text)
+        {
+            case CodeSceneConstants.Titles.AcceptTerms:
+            case CodeSceneConstants.Titles.DeclineTerms:
+                var hasAccepted = actionItem.Text == CodeSceneConstants.Titles.AcceptTerms;
+                SetAcceptedTerms(hasAccepted);
+
+                _logger.Info($"User has {(hasAccepted ? "accepted" : "declined")} Terms & Conditions.");
+
+                infoBarUIElement.Close();
+                break;
+            case CodeSceneConstants.Titles.ViewTerms:
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://codescene.com/policies",
+                    UseShellExecute = true
+                });
+                break;
+        }
+    }
+    private void SendTelemetry(string eventName, string selection = "")
+    {
+        Task.Run(async () =>
+        {
+            var additionalData = new Dictionary<string, object>
+            {
+                { "selection", selection }
+            };
+
+            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+            telemetryManager.SendTelemetry(eventName, additionalData);
+        }).FireAndForget();
     }
 
     private bool GetAcceptedTerms()
     {
-        ThreadHelper.ThrowIfNotOnUIThread();
+        var store = GetOrCreateSettingsStore();
 
-        var settingsManager = new ShellSettingsManager(_serviceProvider);
-        var store = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-
-        if (!store.CollectionExists(SettingsCollection))
-            store.CreateCollection(SettingsCollection);
-
-        return store.PropertyExists(SettingsCollection, AcceptedTermsProperty) &&
-               store.GetBoolean(SettingsCollection, AcceptedTermsProperty);
+        return store.PropertyExists(CodeSceneConstants.Titles.SettingsCollection, CodeSceneConstants.Titles.AcceptedTermsProperty) &&
+               store.GetBoolean(CodeSceneConstants.Titles.SettingsCollection, CodeSceneConstants.Titles.AcceptedTermsProperty);
     }
 
     private void SetAcceptedTerms(bool value)
     {
+        var store = GetOrCreateSettingsStore();
+
+        store.SetBoolean(CodeSceneConstants.Titles.SettingsCollection, CodeSceneConstants.Titles.AcceptedTermsProperty, value);
+        _currentTermsInfoBarUiElement = null;
+    }
+
+    private WritableSettingsStore GetOrCreateSettingsStore()
+    {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        var settingsManager = new ShellSettingsManager(_serviceProvider);
+        var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
         var store = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
-        if (!store.CollectionExists(SettingsCollection))
-            store.CreateCollection(SettingsCollection);
+        if (!store.CollectionExists(CodeSceneConstants.Titles.SettingsCollection))
+            store.CreateCollection(CodeSceneConstants.Titles.SettingsCollection);
 
-        store.SetBoolean(SettingsCollection, AcceptedTermsProperty, value);
-        _currentTermsInfoBarUiElement = null;
+        return store;
     }
 }

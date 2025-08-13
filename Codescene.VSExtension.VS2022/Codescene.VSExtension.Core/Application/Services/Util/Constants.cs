@@ -49,10 +49,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
             public const string GENERAL_CODE_HEALTH = "General Code Health";
 
             #region Terms & Policies
-
             public const string AcceptTerms = "Accept";
             public const string DeclineTerms = "Decline";
             public const string ViewTerms = "View Terms & Policies";
+            public const string SettingsCollection = "CodeSceneExtension";
+            public const string AcceptedTermsProperty = "AcceptedTerms";
             #endregion
         }
 
