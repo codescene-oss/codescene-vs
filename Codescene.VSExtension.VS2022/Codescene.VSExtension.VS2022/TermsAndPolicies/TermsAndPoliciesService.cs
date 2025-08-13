@@ -24,33 +24,31 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
     private bool _infoBarShownOnce = false;
     private IVsInfoBarUIElement? _currentTermsInfoBarUiElement;
 
-    public async Task<bool> ShowTermsIfNeededAsync()
-    {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-        var termsAccepted = GetAcceptedTerms();
-        var factory = Package.GetGlobalService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
-
-        var skipInfoBar = termsAccepted || _currentTermsInfoBarUiElement != null || factory == null || _infoBarShownOnce;
-        if (skipInfoBar) return termsAccepted;
-
-        IVsInfoBarActionItem[] actionItems =
-        {
+    private static readonly IVsInfoBarActionItem[] actionItems =
+        [
             new InfoBarButton(CodeSceneConstants.Titles.ACCEPT_TERMS),
             new InfoBarButton(CodeSceneConstants.Titles.DECLINE_TERMS),
             new InfoBarHyperlink(CodeSceneConstants.Titles.VIEW_TERMS)
-        };
-
-        var model = new InfoBarModel(
+        ];
+    private static readonly InfoBarModel model = new(
             [new InfoBarTextSpan("By using this extension you agree to CodeScene's Terms and Privacy Policy")],
             actionItems,
             KnownMonikers.StatusInformation,
             isCloseButtonVisible: false
         );
 
+    public async Task<bool> EvaulateTermsAndPoliciesAcceptance()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        var termsAccepted = GetAcceptedTerms();
+        var factory = Package.GetGlobalService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
         var uiElement = factory.CreateInfoBar(model);
-        if (uiElement == null)
-            return termsAccepted;
+
+        var setupIssue = _currentTermsInfoBarUiElement != null || factory == null || uiElement == null;
+        var skipInfoBar = setupIssue || termsAccepted || _infoBarShownOnce;
+
+        if (skipInfoBar) return termsAccepted;
 
         _currentTermsInfoBarUiElement = uiElement;
         uiElement.Advise(this, out _);
@@ -85,7 +83,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
                 var hasAccepted = actionItem.Text == CodeSceneConstants.Titles.ACCEPT_TERMS;
                 SetAcceptedTerms(hasAccepted);
 
-                _logger.Info($"User has {(hasAccepted ? "accepted" : "declined")} Terms & Conditions.");
+                _logger.Info($"User has {(hasAccepted ? "accepted" : "declined")} Terms & Policies.");
 
                 infoBarUIElement.Close();
                 break;
