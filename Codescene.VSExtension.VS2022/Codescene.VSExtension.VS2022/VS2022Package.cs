@@ -33,9 +33,6 @@ public sealed class VS2022Package : ToolkitPackage
 {
     public static VS2022Package Instance { get; private set; }
 
-    private const string SettingsCollection = "CodeSceneExtension";
-    private const string AcceptedTermsProperty = "AcceptedTerms";
-
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
         Instance = this;
