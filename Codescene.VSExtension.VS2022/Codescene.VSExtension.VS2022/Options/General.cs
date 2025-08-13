@@ -25,12 +25,6 @@ public class General : BaseOptionModel<General>
     [Description("Enable detailed debug logs in the CodeScene Output window")]
     public bool ShowDebugLogs { get; set; } = false;
 
-
-    [Category("General")]
-    [DisplayName("Show Debug Logs")]
-    [Description("Enable detailed debug logs in the CodeScene Output window")]
-    public bool TermsAndConditionsAccepted { get; set; } = false;
-
     public General() : base()
     {
         Saved += delegate { VS.StatusBar.ShowMessageAsync("Options Saved").FireAndForget(); };
