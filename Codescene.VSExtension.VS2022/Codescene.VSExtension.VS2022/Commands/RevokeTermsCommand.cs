@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Community.VisualStudio.Toolkit;
@@ -26,7 +27,10 @@ internal sealed class RevokeTermsCommand : BaseCommand<RevokeTermsCommand>
         store.SetBoolean(Constants.Titles.SETTINGS_COLLECTION, Constants.Titles.ACCEPTED_TERMS_PROPERTY, false);
 
         var logger = await VS.GetMefServiceAsync<ILogger>();
-        logger.Info("Terms and Policies revoked. You will be prompted to accept CodeScene's Terms & Policies the next time the extension loads.");
+        logger.Info("Terms & Policies revoked. Existing analysis results will be cleared upon file update or reopening. You will be prompted to accept CodeScene's Terms & Policies the next time the extension loads.");
+
+        var cache = new ReviewCacheService();
+        cache.Clear();
 
         SendTelemetry();
     }
