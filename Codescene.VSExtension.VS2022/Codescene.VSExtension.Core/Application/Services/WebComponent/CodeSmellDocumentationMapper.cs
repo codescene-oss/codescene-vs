@@ -14,12 +14,12 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
         {
             var function = new FunctionModel
             {
-                Name = model.FunctionName,
+                Name = model.FunctionName ?? "",
                 Range = new CodeSmellRangeModel(
-                    model.Range.StartLine,
-                    model.Range.EndLine,
-                    model.Range.StartColumn,
-                    model.Range.EndColumn
+                    model.Range?.StartLine ?? 1,
+                    model.Range?.EndLine ?? 1,
+                    model.Range?.StartColumn ?? 1,
+                    model.Range?.EndColumn ?? 1
                 )
             };
 

@@ -1,5 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Git;
@@ -9,14 +10,12 @@ using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.ReviewModels;
-using Codescene.VSExtension.Core.Models.WebComponent;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 {
@@ -78,6 +77,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 var oldRawScore = oldCodeReview?.RawScore ?? "";
 
                 var delta = _executer.ReviewDelta(oldRawScore, currentRawScore);
+                UpdateDeltaCacheWithRefactorableFunctions(delta, path, currentCode);
 
                 var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(cache.GetAll());
                 var cacheEntry = new DeltaCacheEntry(path, oldCode, currentCode, delta);
@@ -94,93 +94,68 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             }
         }
 
-        public async Task<CachedRefactoringActionModel> Refactor(string path, string content, bool invalidateCache = false)
+        private void UpdateDeltaCacheWithRefactorableFunctions(DeltaResponseModel delta, string path, string code)
         {
-            if (string.IsNullOrWhiteSpace(path))
+            AceRefactorableFunctionsCacheService cacheService = new AceRefactorableFunctionsCacheService();
+            var refactorableFunctions = cacheService.Get(new AceRefactorableFunctionsQuery(path, code));
+
+            _logger.Debug($"Updating delta cache with refactorable functions for {path}. Found {refactorableFunctions.Count} refactorable functions.");
+            _logger.Debug($"Delta response: {JsonConvert.SerializeObject(delta) ?? "null"}");
+            _logger.Debug($"Refactorable functions: {JsonConvert.SerializeObject(refactorableFunctions)}");
+
+            if (ShouldSkipUpdate(delta, refactorableFunctions))
             {
-                // TODO: meaningful log
-                return null;
+                return;
             }
 
-            var review = Review(path, content);
-
-            // JsonConvert.SerializeObject(review.FunctionLevelCodeSmells[0].CodeSmells);
-            var codesmellsJson = "{}"; // fix
-
-            var preflight = JsonConvert.SerializeObject(_executer.Preflight());
-
-            var fileName = Path.GetFileName(path);
-
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                // TODO: meaningful log
-                return null;
-            }
-
-            var extension = Path.GetExtension(fileName).Replace(".", "");
-
-            var refactorableFunctions = await _executer.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
-
-            var f = refactorableFunctions.First();
-
-            //Fix for csharp ACE api
-            if (string.IsNullOrWhiteSpace(f.FunctionType))
-            {
-                f.FunctionType = "MemberFn";
-            }
-
-            var refactorableFunctionsString = JsonConvert.SerializeObject(f);
-
-            var refactoredFunctions = await _executer.PostRefactoring(fnToRefactor: refactorableFunctionsString, skipCache: true);
-
-            if (refactoredFunctions == null)
-            {
-                throw new Exception("Refactoring has failed!");
-            }
-
-            var cacheItem = new CachedRefactoringActionModel
-            {
-                Path = path,
-                RefactorableCandidate = f,
-                Refactored = refactoredFunctions
-            };
-
-            //_cache.Add(cacheItem); Use new cache impl, but also, should we cache this? ACE already has cache on the API side. We don't cache it in JB.
-
-            return cacheItem;
+            UpdateFindings(delta, refactorableFunctions);
         }
 
-        public async Task<RefactorResponseModel> Refactor(string path, FnToRefactorModel refactorableFunction, bool invalidateCache = false)
+        private bool ShouldSkipUpdate(DeltaResponseModel delta, IList<FnToRefactorModel> refactorableFunctions)
         {
-            if (string.IsNullOrWhiteSpace(refactorableFunction.FunctionType))
+            if (delta == null)
             {
-                refactorableFunction.FunctionType = "MemberFn";
+                _logger.Debug("Delta response null. Skipping update of delta cache.");
+                return true;
             }
-
-            var refactorableFunctionsString = JsonConvert.SerializeObject(refactorableFunction);
-
-            var refactoredFunctions = await _executer.PostRefactoring(fnToRefactor: refactorableFunctionsString, skipCache: true);
-
-            if (refactoredFunctions == null)
+            if (!refactorableFunctions.Any())
             {
-                throw new Exception("Refactoring has failed!");
+                _logger.Debug("No refactorable functions found. Skipping update of delta cache.");
+                return true;
             }
-
-            var cacheItem = new CachedRefactoringActionModel
-            {
-                Path = path,
-                RefactorableCandidate = refactorableFunction,
-                Refactored = refactoredFunctions
-            };
-
-            //_cache.Add(cacheItem);
-
-            return refactoredFunctions;
+            return false;
         }
 
-        public CachedRefactoringActionModel GetCachedRefactoredCode()
+        private void UpdateFindings(DeltaResponseModel delta, IList<FnToRefactorModel> refactorableFunctions)
         {
-            return null;
+            foreach (var finding in delta.FunctionLevelFindings)
+            {
+                var functionName = finding.Function?.Name;
+                if (string.IsNullOrEmpty(functionName))
+                    continue;
+
+                UpdateFindingIfNotUpdated(finding, functionName, refactorableFunctions);
+            }
+        }
+
+        private void UpdateFindingIfNotUpdated(FunctionFindingModel finding, string functionName, IList<FnToRefactorModel> refactorableFunctions)
+        {
+            // update only if not already updated, for case when multiple methods have same name
+            if (finding.RefactorableFn == null)
+            {
+                var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName && checkRange(finding, fn));
+                if (match != null)
+                {
+                    finding.RefactorableFn = match;
+                }
+            }
+        }
+
+        private bool checkRange(FunctionFindingModel finding, FnToRefactorModel refFunction)
+        {
+            // this check is because of ComplexConditional code smell which is inside of the method
+            return refFunction.Range.Startline <= finding.Function.Range.Startline &&
+                finding.Function.Range.Startline <= refFunction.Range.EndLine;
         }
     }
 }

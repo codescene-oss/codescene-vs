@@ -1,4 +1,10 @@
-﻿using System.ComponentModel.Composition;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Util;
+using MediaBrowser.Model.Text;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Text;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
@@ -8,6 +14,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     {
         [Import]
         private readonly ICliObjectScoreCreator _creator;
+
+        [Import]
+        private readonly ILogger _logger;
 
         public string VersionCommand => "version --sha";
 
@@ -38,11 +47,37 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public string GetRefactorPostCommand(string fnToRefactor, bool skipCache, bool useStagingApi = false, string token = null)
         {
-            var useStagingArg = useStagingApi ? " --staging" : string.Empty;
-            var skipCacheArg = skipCache ? " --skip-cache" : string.Empty;
-            var tokenArg = string.IsNullOrWhiteSpace(token) ? string.Empty : $" --token {token}";
-            var escapedFnToRefactor = fnToRefactor.Replace("\\", "\\\\").Replace("\"", "\\\"");
-            return $"refactor post{useStagingArg}{skipCacheArg} --fn-to-refactor \"{escapedFnToRefactor}\"{tokenArg}";
+            //var useStagingArg = useStagingApi ? " --staging" : string.Empty;
+            //var skipCacheArg = skipCache ? " --skip-cache" : string.Empty;
+            //var tokenArg = string.IsNullOrWhiteSpace(token) ? string.Empty : $" --token {token}";
+            //var escapedFnToRefactor = fnToRefactor.Replace("\\", "\\\\").Replace("\"", "\\\"");
+            //string command = $"refactor post{useStagingArg}{skipCacheArg} --fn-to-refactor \"{escapedFnToRefactor}\"{tokenArg}";
+            //_logger.Debug($"Generated refactor post command: {command}");
+            //return command;
+
+            var args = new List<string> { "refactor", "post" };
+            if (skipCache)
+                args.Add("--skip-cache");
+            if (useStagingApi)
+                args.Add("--staging");
+            //if (!string.IsNullOrWhiteSpace(token))
+            //    args.Add($"--token {token}");
+            args.Add($"--fn-to-refactor");
+            //var escapedFnToRefactor = fnToRefactor.Replace("\\n", "\\\\n");
+            args.Add(fnToRefactor);
+            var command = GetArgumentStr(args.ToArray());
+            _logger.Debug($"Generated refactor post command: {command}");
+            return command;
+        }
+
+        static string GetArgumentStr(params string[] args)
+        {
+            var sb = new ValueStringBuilder();
+            foreach (var arg in args)
+            {
+                PasteArguments.AppendArgument(ref sb, arg);
+            }
+            return sb.ToString();
         }
 
         public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";

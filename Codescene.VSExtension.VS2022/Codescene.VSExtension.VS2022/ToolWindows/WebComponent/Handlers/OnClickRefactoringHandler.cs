@@ -1,6 +1,10 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
+using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
+using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Text;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading.Tasks;
@@ -15,11 +19,11 @@ public class OnClickRefactoringHandler
     private readonly AceComponentMapper _mapper;
 
     [Import]
-    private readonly ICodeReviewer _reviewer;
+    private readonly IAceManager _aceManager;
 
     private string _path = null;
 
-    public async Task HandleAsync(string path)
+    public async Task HandleAsync(string path, FnToRefactorModel refactorableFunction)
     {
         _path = path;
 
@@ -30,8 +34,7 @@ public class OnClickRefactoringHandler
 
         await AceToolWindow.ShowAsync();
 
-
-        await DoRefactorAndUpdateViewAsync(path);
+        await DoRefactorAndUpdateViewAsync(path, refactorableFunction);
     }
 
     public string GetPath()
@@ -53,22 +56,24 @@ public class OnClickRefactoringHandler
         });
     }
 
-    private async Task DoRefactorAndUpdateViewAsync(string path)
+    private async Task DoRefactorAndUpdateViewAsync(string path, FnToRefactorModel refactorableFunction)
     {
-        using (var reader = File.OpenText(path))
+        var docView = await VS.Documents.OpenAsync(path);
+        if (docView?.TextBuffer is not ITextBuffer buffer)
+            return;
+
+        var content = buffer.CurrentSnapshot.GetText();
+
+        var refactored = await _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction);
+        AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
         {
-            var content = await reader.ReadToEndAsync();
-            var refactored = await _reviewer.Refactor(path: path, content: content);
-            AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
+            MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+            Payload = new WebComponentPayload<AceComponentData>
             {
-                MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
-                Payload = new WebComponentPayload<AceComponentData>
-                {
-                    IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
-                    View = WebComponentConstants.ViewTypes.ACE,
-                    Data = _mapper.Map(refactored)
-                }
-            });
-        }
+                IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                View = WebComponentConstants.ViewTypes.ACE,
+                Data = _mapper.Map(refactored)
+            }
+        });
     }
 }
