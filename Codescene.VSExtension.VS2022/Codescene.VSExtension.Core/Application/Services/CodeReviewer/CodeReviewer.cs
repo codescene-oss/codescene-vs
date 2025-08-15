@@ -102,32 +102,50 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             _logger.Debug($"Delta response: {JsonConvert.SerializeObject(delta) ?? "null"}");
             _logger.Debug($"Refactorable functions: {JsonConvert.SerializeObject(refactorableFunctions)}");
 
+            if (ShouldSkipUpdate(delta, refactorableFunctions))
+            {
+                return;
+            }
 
+            UpdateFindings(delta, refactorableFunctions);
+        }
+
+        private bool ShouldSkipUpdate(DeltaResponseModel delta, IList<FnToRefactorModel> refactorableFunctions)
+        {
             if (delta == null)
             {
                 _logger.Debug("Delta response null. Skipping update of delta cache.");
-                return;
+                return true;
             }
             if (!refactorableFunctions.Any())
             {
                 _logger.Debug("No refactorable functions found. Skipping update of delta cache.");
-                return;
+                return true;
             }
+            return false;
+        }
 
+        private void UpdateFindings(DeltaResponseModel delta, IList<FnToRefactorModel> refactorableFunctions)
+        {
             foreach (var finding in delta.FunctionLevelFindings)
             {
                 var functionName = finding.Function?.Name;
                 if (string.IsNullOrEmpty(functionName))
                     continue;
 
-                // update only if not already updated, for case when multiple methods have same name
-                if (finding.RefactorableFn == null) 
+                UpdateFindingIfNotUpdated(finding, functionName, refactorableFunctions);
+            }
+        }
+
+        private void UpdateFindingIfNotUpdated(FunctionFindingModel finding, string functionName, IList<FnToRefactorModel> refactorableFunctions)
+        {
+            // update only if not already updated, for case when multiple methods have same name
+            if (finding.RefactorableFn == null)
+            {
+                var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName && checkRange(finding, fn));
+                if (match != null)
                 {
-                    var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName && checkRange(finding, fn));
-                    if (match != null)
-                    {
-                        finding.RefactorableFn = match;
-                    }
+                    finding.RefactorableFn = match;
                 }
             }
         }
