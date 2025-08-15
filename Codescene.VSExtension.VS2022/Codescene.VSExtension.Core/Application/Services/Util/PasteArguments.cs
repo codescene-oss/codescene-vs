@@ -1,9 +1,4 @@
 ﻿using MediaBrowser.Model.Text;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.Util
 {
@@ -29,55 +24,67 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
             }
             else
             {
-                stringBuilder.Append(Quote);
-                int idx = 0;
-                while (idx < argument.Length)
+                AppendArgumentWithQuotes(ref stringBuilder, argument);
+            }
+        }
+
+        private static void AppendArgumentWithQuotes(ref ValueStringBuilder stringBuilder, string argument)
+        {
+            stringBuilder.Append(Quote);
+            int idx = 0;
+            while (idx < argument.Length)
+            {
+                char c = argument[idx++];
+                if (c == Backslash)
                 {
-                    char c = argument[idx++];
-                    if (c == Backslash)
-                    {
-                        int numBackSlash = 1;
-                        while (idx < argument.Length && argument[idx] == Backslash)
-                        {
-                            idx++;
-                            numBackSlash++;
-                        }
-
-                        if (idx == argument.Length)
-                        {
-                            // We'll emit an end quote after this so must double the number of backslashes.
-                            stringBuilder.Append(Backslash, numBackSlash * 2);
-                        }
-                        else if (argument[idx] == Quote)
-                        {
-                            // Backslashes will be followed by a quote. Must double the number of backslashes.
-                            stringBuilder.Append(Backslash, numBackSlash * 2 + 1);
-                            stringBuilder.Append(Quote);
-                            idx++;
-                        }
-                        else
-                        {
-                            // Backslash will not be followed by a quote, so emit as normal characters.
-                            stringBuilder.Append(Backslash, numBackSlash);
-                        }
-
-                        continue;
-                    }
-
-                    if (c == Quote)
-                    {
-                        // Escape the quote so it appears as a literal. This also guarantees that we won't end up generating a closing quote followed
-                        // by another quote (which parses differently pre-2008 vs. post-2008.)
-                        stringBuilder.Append(Backslash);
-                        stringBuilder.Append(Quote);
-                        continue;
-                    }
-
+                    HandleBackslashes(ref stringBuilder, argument, ref idx);
+                }
+                else if (c == Quote)
+                {
+                    EscapeQuote(ref stringBuilder);
+                }
+                else
+                {
                     stringBuilder.Append(c);
                 }
-
-                stringBuilder.Append(Quote);
             }
+            stringBuilder.Append(Quote);
+        }
+
+        private static void HandleBackslashes(ref ValueStringBuilder stringBuilder, string argument, ref int idx)
+        {
+            int numBackSlash = 1;
+            while (idx < argument.Length && argument[idx] == Backslash)
+            {
+                idx++;
+                numBackSlash++;
+            }
+
+            if (idx == argument.Length)
+            {
+                // We'll emit an end quote after this so must double the number of backslashes.
+                stringBuilder.Append(Backslash, numBackSlash * 2);
+            }
+            else if (argument[idx] == Quote)
+            {
+                // Backslashes will be followed by a quote. Must double the number of backslashes.
+                stringBuilder.Append(Backslash, numBackSlash * 2 + 1);
+                stringBuilder.Append(Quote);
+                idx++;
+            }
+            else
+            {
+                // Backslash will not be followed by a quote, so emit as normal characters.
+                stringBuilder.Append(Backslash, numBackSlash);
+            }
+        }
+
+        private static void EscapeQuote(ref ValueStringBuilder stringBuilder)
+        {
+            // Escape the quote so it appears as a literal. This also guarantees that we won't end up generating a closing quote followed
+            // by another quote (which parses differently pre-2008 vs. post-2008.)
+            stringBuilder.Append(Backslash);
+            stringBuilder.Append(Quote);
         }
 
         private static bool ContainsNoWhitespaceOrQuotes(string s)

@@ -1,5 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
-using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;

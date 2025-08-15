@@ -1,7 +1,5 @@
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Mapper;
-using Codescene.VSExtension.Core.Application.Services.PreflightManager;
 using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
@@ -9,8 +7,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.AceManager
@@ -23,13 +19,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
         private readonly ILogger _logger;
 
         [Import]
-        private readonly IModelMapper _mapper;
-
-        [Import]
         private readonly ICliExecutor _executer;
-
-        [Import]
-        private readonly IPreflightManager _preflightManager;
 
         public static CachedRefactoringActionModel LastRefactoring;
 
