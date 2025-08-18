@@ -41,6 +41,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 IdeType = VISUAL_STUDIO_IDE_TYPE,
                 View = ViewTypes.HOME,
                 Data = mapper.Map(deltaCache.GetAll()),
+                Pro = true
             };
 
             var ctrl = new WebComponentUserControl(payload, logger)
@@ -82,6 +83,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 IdeType = VISUAL_STUDIO_IDE_TYPE,
                 View = ViewTypes.HOME,
                 Data = mapper.Map(deltaCache.GetAll()),
+                Pro = true
             }
         };
         _userControl.UpdateViewAsync(message).FireAndForget();
