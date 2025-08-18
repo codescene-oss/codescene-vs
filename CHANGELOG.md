@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased
 
+## [0.1.2] - 2025-08-14
+### Fixed
+- VS2022 compatibility.
+### Changed
+- Updated webview to v1.2.0.
+- Bumped cli version to 1.0.5.
+
 ## [0.1.1] - 2025-08-12
 ### Fixed
 - Hovering color on Home links
