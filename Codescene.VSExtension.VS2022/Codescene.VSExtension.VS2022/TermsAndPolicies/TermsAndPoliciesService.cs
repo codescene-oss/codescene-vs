@@ -61,6 +61,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
             {
                 mainHost.AddInfoBar(uiElement);
                 _infoBarShownOnce = true;
+                SendTelemetry(CodeSceneConstants.Telemetry.TERMS_AND_POLICIES_SHOWN);
             }
 
             return termsAccepted;
@@ -122,14 +123,14 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
         host = infoBarHost;
         return true;
     }
+
     private void SendTelemetry(string eventName, string selection = "")
     {
         Task.Run(async () =>
         {
-            var additionalData = new Dictionary<string, object>
-            {
-                { "selection", selection }
-            };
+            Dictionary<string, object> additionalData = null;
+            if (!string.IsNullOrEmpty(selection))
+                additionalData = new Dictionary<string, object> { { "selection", selection } };
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
             telemetryManager.SendTelemetry(eventName, additionalData);
