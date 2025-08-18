@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.Commands;
 
-[Command(PackageGuids.CodeSceneCmdSetString, PackageIds.RevokeTerms)]
+//[Command(PackageGuids.CodeSceneCmdSetString, PackageIds.RevokeTerms)]
 internal sealed class RevokeTermsCommand : BaseCommand<RevokeTermsCommand>
 {
     protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
