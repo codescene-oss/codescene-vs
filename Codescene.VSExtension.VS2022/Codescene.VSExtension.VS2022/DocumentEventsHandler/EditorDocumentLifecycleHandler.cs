@@ -82,7 +82,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         {
             try
             {
-                var termsAccepted = await _termsAndPoliciesService.EvaulateTermsAndPoliciesAcceptance();
+                var termsAccepted = await _termsAndPoliciesService.EvaulateTermsAndPoliciesAcceptanceAsync();
 
                 if (!termsAccepted)
                 {

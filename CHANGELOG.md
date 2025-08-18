@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased
 
+## [0.1.3] - 2025-08-18
+### Added
+- Introduced a Terms & Policies acceptance step. Users must review and accept before using the extension's analysis capabilities.
+
 ## [0.1.2] - 2025-08-14
 ### Fixed
 - VS2022 compatibility.

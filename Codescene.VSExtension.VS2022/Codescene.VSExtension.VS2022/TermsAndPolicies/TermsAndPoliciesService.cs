@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
@@ -37,32 +38,38 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
             isCloseButtonVisible: false
         );
 
-    public async Task<bool> EvaulateTermsAndPoliciesAcceptance()
+    public async Task<bool> EvaulateTermsAndPoliciesAcceptanceAsync()
     {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-        var termsAccepted = GetAcceptedTerms();
-        var factory = Package.GetGlobalService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
-        var uiElement = factory.CreateInfoBar(model);
-
-        var setupIssue = _currentTermsInfoBarUiElement != null || factory == null || uiElement == null;
-        var skipInfoBar = setupIssue || termsAccepted || _infoBarShownOnce;
-
-        if (skipInfoBar) return termsAccepted;
-
-        _currentTermsInfoBarUiElement = uiElement;
-        uiElement.Advise(this, out _);
-
-        var vsShell = Package.GetGlobalService(typeof(SVsShell)) as IVsShell;
-        if (vsShell != null &&
-            vsShell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out var obj) == VSConstants.S_OK &&
-            obj is IVsInfoBarHost mainHost)
+        try
         {
-            mainHost.AddInfoBar(uiElement);
-            _infoBarShownOnce = true;
-        }
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        return termsAccepted;
+            var termsAccepted = GetAcceptedTerms();
+            var factory = Package.GetGlobalService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
+            var uiElement = factory?.CreateInfoBar(model);
+
+            var setupIssue = _currentTermsInfoBarUiElement != null || factory == null || uiElement == null;
+            var skipInfoBar = setupIssue || termsAccepted || _infoBarShownOnce;
+
+            if (skipInfoBar)
+                return termsAccepted;
+
+            _currentTermsInfoBarUiElement = uiElement;
+            uiElement.Advise(this, out _);
+
+            if (TryGetMainInfoBarHost(out var mainHost))
+            {
+                mainHost.AddInfoBar(uiElement);
+                _infoBarShownOnce = true;
+            }
+
+            return termsAccepted;
+        }
+        catch (Exception e)
+        {
+            _logger?.Error("Failed to evaluate Terms & Policies acceptance.", e);
+            return false;
+        }
     }
 
     public void OnClosed(IVsInfoBarUIElement infoBarUIElement)
@@ -95,6 +102,25 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
                 });
                 break;
         }
+    }
+
+    private bool TryGetMainInfoBarHost(out IVsInfoBarHost host)
+    {
+        host = null;
+
+        if (Package.GetGlobalService(typeof(SVsShell)) is not IVsShell vsShell)
+            return false;
+
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        if (vsShell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out var obj) != VSConstants.S_OK)
+            return false;
+
+        if (obj is not IVsInfoBarHost infoBarHost)
+            return false;
+
+        host = infoBarHost;
+        return true;
     }
     private void SendTelemetry(string eventName, string selection = "")
     {
