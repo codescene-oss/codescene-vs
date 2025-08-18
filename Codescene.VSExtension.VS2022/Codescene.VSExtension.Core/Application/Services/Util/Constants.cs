@@ -52,6 +52,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
             public const string ACCEPT_TERMS = "Accept";
             public const string DECLINE_TERMS = "Decline";
             public const string VIEW_TERMS = "View Terms & Policies";
+            public const string TERMS_INFO = "By using this extension you agree to CodeScene's Terms and Privacy Policy";
             public const string SETTINGS_COLLECTION = "CodeSceneExtension";
             public const string ACCEPTED_TERMS_PROPERTY = "AcceptedTerms";
             #endregion

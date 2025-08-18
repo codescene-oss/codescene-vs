@@ -32,7 +32,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
             new InfoBarHyperlink(CodeSceneConstants.Titles.VIEW_TERMS)
         ];
     private static readonly InfoBarModel model = new(
-            [new InfoBarTextSpan("By using this extension you agree to CodeScene's Terms and Privacy Policy")],
+            [new InfoBarTextSpan(CodeSceneConstants.Titles.TERMS_INFO)],
             actionItems,
             KnownMonikers.StatusInformation,
             isCloseButtonVisible: false
