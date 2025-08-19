@@ -57,24 +57,35 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             {
                 foreach (var codeSmell in smells)
                 {
-                    var tagSpan = TryCreateTagSpan(visibleSpan, codeSmell);
-
-                    if (tagSpan == null)
-                        yield break;
-
-                    if (tagSpan.Value.IntersectsWith(visibleSpan))
+                    refactorableFunction = AceUtils.GetRefactorableFunction(codeSmell, refactorableFunctions);
+                    var tag = HandleErrorTagSpan(visibleSpan, codeSmell, refactorableFunction, ref lastTagSpan);
+                    if (tag != null)
                     {
-                        yield return CreateErrorTagSpan(tagSpan.Value, codeSmell);
-                        refactorableFunction = AceUtils.GetRefactorableFunction(codeSmell, refactorableFunctions);
-                        if (General.Instance.EnableAutoRefactor && refactorableFunction  is not null)
-                        {
-                            lastTagSpan = tagSpan;
-                        }
+                        yield return tag;
                     }
                 }
             }
-            if (refactorableFunction is not null)
+            if (refactorableFunction != null && lastTagSpan != null)
                 yield return CreateAceRefactorTagSpan(lastTagSpan.Value, refactorableFunction);
+        }
+
+        private TagSpan<IErrorTag> HandleErrorTagSpan(
+            SnapshotSpan visibleSpan, 
+            CodeSmellModel codeSmell,
+            FnToRefactorModel? refactorableFunction,
+            ref SnapshotSpan? lastTagSpan)
+        {
+            var tagSpan = TryCreateTagSpan(visibleSpan, codeSmell);
+
+            if (tagSpan != null && tagSpan.Value.IntersectsWith(visibleSpan))
+            {
+                if (General.Instance.EnableAutoRefactor && refactorableFunction != null)
+                {
+                    lastTagSpan = tagSpan;
+                }
+                return CreateErrorTagSpan(tagSpan.Value, codeSmell);
+            }
+            return null;
         }
 
         private List<CodeSmellModel> TryLoadFromCache()
