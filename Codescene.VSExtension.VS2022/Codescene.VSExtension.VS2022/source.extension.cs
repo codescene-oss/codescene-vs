@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.VS2022
 {
     internal sealed partial class Vsix
     {
-        public const string Id = "CodesceneVSExtension.c90b6097-3fbd-4b82-a308-f9568074c67a";
+        public const string Id = "CodeScene.c90b6097-3fbd-4b82-a308-f9568074c67a";
         public const string Name = "CodeScene";
         public const string Description = @"Integrates CodeScene analysis into Visual Studio. Keeps your code clean and maintainable.";
         public const string Language = "en-US";

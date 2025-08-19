@@ -9,6 +9,11 @@ namespace Codescene.VSExtension.Core.Models.WebComponent
         public T Data { get; set; }
 
         /// <summary>
+        /// Determines whether additional features for certain WebViews will be shown. 
+        /// </summary>
+        public bool Pro { get; set; } = false;
+
+        /// <summary>
         /// Enables developer mode for the WebView. When set to <c>true</c>, this will:
         /// - Log internal state changes and messages to the browser console.
         /// - Show a developer tools icon at the top of each view.
