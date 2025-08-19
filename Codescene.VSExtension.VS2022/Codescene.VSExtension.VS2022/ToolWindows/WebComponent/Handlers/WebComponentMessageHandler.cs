@@ -196,8 +196,8 @@ internal class WebComponentMessageHandler
         new ShowDocumentationModel(
             payload.FileName,
             payload.DocType,
-            payload.Fn.Name,
-            payload.Fn.Range), DocsEntryPoint.CodeHealthMonitor
+            payload.Fn?.Name,
+            payload.Fn?.Range), DocsEntryPoint.CodeHealthMonitor
         );
     }
 

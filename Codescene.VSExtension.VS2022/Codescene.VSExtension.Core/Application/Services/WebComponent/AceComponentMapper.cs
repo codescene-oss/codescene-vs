@@ -16,7 +16,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                 Loading = false,
                 FileData = new WebComponentFileData
                 {
-                    Filename = model.Path,
+                    FileName = model.Path,
                     Fn = new WebComponentFileDataBaseFn
                     {
                         Name = model.RefactorableCandidate.Name,
@@ -32,7 +32,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                     {
                         GoToFunctionLocationPayload = new WebComponentFileDataBase
                         {
-                            Filename = model.Path,
+                            FileName = model.Path,
                             Fn = new WebComponentFileDataBaseFn
                             {
                                 Name = model.RefactorableCandidate.Name,
@@ -61,7 +61,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                 Loading = true,
                 FileData = new WebComponentFileData
                 {
-                    Filename = path,
+                    FileName = path,
                     Fn = new WebComponentFileDataBaseFn
                     {
                         Name = fileName,
@@ -77,7 +77,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                     {
                         GoToFunctionLocationPayload = new WebComponentFileDataBase
                         {
-                            Filename = path,
+                            FileName = path,
                             Fn = new WebComponentFileDataBaseFn
                             {
                                 Name = fileName,
