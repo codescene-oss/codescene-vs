@@ -15,10 +15,10 @@ internal partial class OptionsProvider
 public class General : BaseOptionModel<General>
 {
     // TODO: Implement this feature, or remove it from the first official release.
-    [Category("General")]
-    [DisplayName("Gitignore")]
-    [Description("Exclude files in .gitignore from analysis")]
-    public bool Gitignore { get; set; } = true;
+    //[Category("General")]
+    //[DisplayName("Gitignore")]
+    //[Description("Exclude files in .gitignore from analysis")]
+    //public bool Gitignore { get; set; } = true;
 
     [Category("General")]
     [DisplayName("Show Debug Logs")]
@@ -27,7 +27,7 @@ public class General : BaseOptionModel<General>
 
     [Category("General")]
     [DisplayName("Enable Auto Refactor")]
-    [Description("Enable CodeScene ACE. This is currently only available for customers part of the ACE beta program")]
+    [Description("Enable CodeScene ACE Refactoring. This is currently only available for premium customers")]
     public bool EnableAutoRefactor { get; set; } = true;
 
     //[Category("General")]
