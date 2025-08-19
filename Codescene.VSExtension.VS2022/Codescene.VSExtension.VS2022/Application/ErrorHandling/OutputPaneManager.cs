@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 
 [Export(typeof(OutputPaneManager))]
 [PartCreationPolicy(CreationPolicy.Shared)]
-public class OutputPaneManager
+internal class OutputPaneManager
 {
     private IServiceProvider _serviceProvider;
     private IVsOutputWindowPane _pane;

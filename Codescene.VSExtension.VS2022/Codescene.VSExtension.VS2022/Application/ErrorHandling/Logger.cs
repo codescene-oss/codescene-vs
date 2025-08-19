@@ -10,37 +10,38 @@ using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 
+/// <summary>
+/// Contains methods for logging messages in the Visual Studio extension.
+/// Messages are logged to both the output pane and a local log file.
+/// Log rotation is implemented to manage file size and backups.
+/// File names are rotated when they exceed a specified size limit (10 MB).
+/// File logs are stored in the local application data directory under "Codescene".
+/// File name includes the extension version for easy identification (codescene-vs-extension-<version>.log).
+/// </summary>
 [Export(typeof(ILogger))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class Logger : ILogger
 {
     private readonly OutputPaneManager _outputPaneManager;
+    private static readonly string LogFileName = "codescene-vs-extension-" + Vsix.Version + ".log";
     private static readonly string LogFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Codescene",
-        "codescene-extension.log");
+        LogFileName);
     private static readonly object _fileLock = new object();
+    private const long MaxLogFileSizeBytes = 10 * 1024 * 1024; // 10 MB
+    private const int MaxBackupFiles = 3;
 
     [ImportingConstructor]
-    public Logger(OutputPaneManager outputPaneManager)
+    internal Logger(OutputPaneManager outputPaneManager)
     {
         _outputPaneManager = outputPaneManager ?? throw new ArgumentNullException(nameof(outputPaneManager));
         Directory.CreateDirectory(Path.GetDirectoryName(LogFilePath));
     }
 
-    private void WriteToFile(string message)
-    {
-        lock (_fileLock)
-        {
-            File.AppendAllText(LogFilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {message}{Environment.NewLine}");
-        }
-    }
-
     public void Error(string message, Exception ex)
     {
-        var logMsg = $"[ERROR] {message}: {ex.Message}";
-        WriteAsync(logMsg).FireAndForget();
-        WriteToFile(logMsg);
+        HandleLog(message, "ERROR");
         ex.Log();
 
         if (ex.Message.Contains("timeout")) SendTelemetry();
@@ -48,18 +49,14 @@ public class Logger : ILogger
 
     public void Info(string message)
     {
-        var logMsg = $"[INFO] {message}";
-        WriteAsync(logMsg).FireAndForget();
-        WriteToFile(logMsg);
+        HandleLog(message, "INFO");
         VS.StatusBar.ShowMessageAsync($"{Titles.CODESCENE}: {message}").FireAndForget();
         Console.WriteLine(message);
     }
 
     public void Warn(string message)
     {
-        var logMsg = $"[WARN] {message}";
-        WriteAsync(logMsg).FireAndForget();
-        WriteToFile(logMsg);
+        HandleLog(message, "WARN");
         VS.StatusBar.ShowMessageAsync(message).FireAndForget();
         Console.WriteLine(message);
     }
@@ -70,18 +67,15 @@ public class Logger : ILogger
 
         if (General.Instance.ShowDebugLogs)
         {
-            var logMsg = $"[DEBUG] {message}";
-            WriteAsync(logMsg).FireAndForget();
-            WriteToFile(logMsg);
+            HandleLog(message, "DEBUG");
         }
     }
 
-    public async Task LogAsync(string message, Exception ex)
+    private void HandleLog(string message, string level)
     {
-        var logMsg = $"[LOG] {message}: {ex.Message}";
+        var logMsg = $"[{level}] {message}";
         WriteAsync(logMsg).FireAndForget();
         WriteToFile(logMsg);
-        await ex.LogAsync();
     }
 
     private async Task WriteAsync(string message)
@@ -97,5 +91,70 @@ public class Logger : ILogger
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
             telemetryManager.SendTelemetry(Telemetry.REVIEW_OR_DELTA_TIMEOUT);
         }).FireAndForget();
+    }
+
+    private void WriteToFile(string message)
+    {
+        lock (_fileLock)
+        {
+            try
+            {
+                // Check if rotation is needed before writing
+                if (File.Exists(LogFilePath) && new FileInfo(LogFilePath).Length > MaxLogFileSizeBytes)
+                {
+                    RotateLogFiles();
+                }
+
+                File.AppendAllText(LogFilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {message}{Environment.NewLine}");
+            }
+            catch (Exception ex)
+            {
+                // Fallback to console if file writing fails
+                Console.WriteLine($"Failed to write to log file: {ex.Message}");
+                Console.WriteLine($"Original log message: {message}");
+            }
+        }
+    }
+
+    private void RotateLogFiles()
+    {
+        try
+        {
+            var logDirectory = Path.GetDirectoryName(LogFilePath);
+            var logFileName = Path.GetFileNameWithoutExtension(LogFilePath);
+            var logFileExtension = Path.GetExtension(LogFilePath);
+
+            // Remove the oldest backup if it exists
+            var oldestBackup = Path.Combine(logDirectory, $"{logFileName}-{MaxBackupFiles}{logFileExtension}");
+            if (File.Exists(oldestBackup))
+            {
+                File.Delete(oldestBackup);
+            }
+
+            // Shift existing backups
+            for (int i = MaxBackupFiles - 1; i >= 1; i--)
+            {
+                var sourceFile = Path.Combine(logDirectory, $"{logFileName}-{i}{logFileExtension}");
+                var targetFile = Path.Combine(logDirectory, $"{logFileName}-{i + 1}{logFileExtension}");
+
+                if (File.Exists(sourceFile))
+                {
+                    File.Move(sourceFile, targetFile);
+                }
+            }
+
+            // Move current log to .1 backup
+            var firstBackup = Path.Combine(logDirectory, $"{logFileName}-1{logFileExtension}");
+            if (File.Exists(LogFilePath))
+            {
+                File.Move(LogFilePath, firstBackup);
+            }
+        }
+        catch (Exception ex)
+        {
+            // If rotation fails, truncate the current file as fallback
+            Console.WriteLine($"Log rotation failed: {ex.Message}. Truncating current log file.");
+            File.WriteAllText(LogFilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [INFO] Log file truncated due to size limit{Environment.NewLine}");
+        }
     }
 }

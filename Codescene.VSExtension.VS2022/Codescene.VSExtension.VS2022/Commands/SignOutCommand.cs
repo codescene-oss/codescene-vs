@@ -35,7 +35,7 @@ internal class SignOutCommand(IAuthenticationService authService, ILogger errors
         }
         catch (Exception ex)
         {
-            await errorsHandler.LogAsync("Signing out failed", ex);
+            errorsHandler.Error("Signing out failed", ex);
         }
     }
     private async Task ShowStatusAsync(string message = "Successfully signed out.")

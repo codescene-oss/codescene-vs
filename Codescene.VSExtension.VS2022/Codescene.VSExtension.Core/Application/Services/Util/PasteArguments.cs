@@ -1,9 +1,15 @@
-﻿using MediaBrowser.Model.Text;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using MediaBrowser.Model.Text;
 
 namespace Codescene.VSExtension.Core.Application.Services.Util
 {
     internal static partial class PasteArguments
     {
+        /// <summary>
+        /// Used to escape special characters in CLI command argument. 
+        /// </summary>
         internal static void AppendArgument(ref ValueStringBuilder stringBuilder, string argument)
         {
             if (stringBuilder.Length != 0)

@@ -27,7 +27,7 @@ public class General : BaseOptionModel<General>
 
     [Category("General")]
     [DisplayName("Enable Auto Refactor")]
-    [Description("Enable CodeScene ACE. This is currently only available for customers part of the ACE beta program")]
+    [Description("Enable CodeScene ACE Refactoring. This is currently only available for premium customers")]
     public bool EnableAutoRefactor { get; set; } = true;
 
     //[Category("General")]

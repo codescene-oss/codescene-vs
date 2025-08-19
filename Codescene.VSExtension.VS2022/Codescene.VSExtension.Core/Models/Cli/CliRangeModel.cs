@@ -11,16 +11,16 @@ namespace Codescene.VSExtension.Core.Models.Cli
         public int Startline { get; set; }
 
         /// <summary>
-        /// Range end line. 1-indexed.
-        /// </summary>
-        [JsonProperty("end-line")]
-        public int EndLine { get; set; }
-
-        /// <summary>
         /// Range start column. 1-indexed.
         /// </summary>
         [JsonProperty("start-column")]
         public int StartColumn { get; set; }
+
+        /// <summary>
+        /// Range end line. 1-indexed.
+        /// </summary>
+        [JsonProperty("end-line")]
+        public int EndLine { get; set; }
 
         /// <summary>
         /// Range end column. 1-indexed.
