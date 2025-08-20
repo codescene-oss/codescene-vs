@@ -6,6 +6,7 @@ using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.VS2022.EditorMargin;
+using Codescene.VSExtension.VS2022.TermsAndPolicies;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.Shell;
@@ -40,6 +41,9 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
         [Import]
         private readonly IErrorListWindowHandler _errorListWindowHandler;
+
+        [Import]
+        private readonly TermsAndPoliciesService _termsAndPoliciesService;
 
         public void TextViewCreated(IWpfTextView textView)
         {
@@ -78,6 +82,14 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         {
             try
             {
+                var termsAccepted = await _termsAndPoliciesService.EvaulateTermsAndPoliciesAcceptanceAsync();
+
+                if (!termsAccepted)
+                {
+                    _logger.Warn("Skipping CodeScene analysis, Terms & Policies have not been accepted.");
+                    return;
+                }
+
                 var code = buffer.CurrentSnapshot.GetText();
 
                 var cache = new ReviewCacheService();

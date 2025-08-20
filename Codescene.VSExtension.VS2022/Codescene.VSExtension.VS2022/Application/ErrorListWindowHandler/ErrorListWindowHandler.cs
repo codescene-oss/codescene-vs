@@ -5,7 +5,6 @@ using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
