@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-08-20
+### Added
+- Introduced a Terms & Policies acceptance step. Users must review and accept before using the extension's analysis capabilities.
+
 ## [0.2.0] - 2025-08-19
 ### Fixed
 - Code smell finding tooltip coloring on light themes.
