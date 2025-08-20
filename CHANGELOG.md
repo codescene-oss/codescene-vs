@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.8] - 2025-08-19
+## [0.2.0] - 2025-08-19
 ### Fixed
 - Code smell finding tooltip coloring on light themes.
 - File-level code smell documentation handling in CodeScene tool window.
