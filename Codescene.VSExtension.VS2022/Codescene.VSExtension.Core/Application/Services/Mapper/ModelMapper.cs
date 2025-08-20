@@ -33,8 +33,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Mapper
             }
             catch (Exception ex)
             {
-                var r = JsonConvert.SerializeObject(result);
-                var message = $"{ex.Message}\nPath:{filePath}\nReview:{r}";
+                var message = $"{ex.Message}\nPath:{filePath}";
                 throw new InvalidOperationException(message);
             }
         }

@@ -25,12 +25,12 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
         public async Task<IList<FnToRefactorModel>> GetRefactorableFunctions(string content, string codesmellsJson, string preflight, string extension)
         {
-            //_logger.Info($"Calling GetRefactorableFunctions with arguments: content-{content}, codesmellsJson-{codesmellsJson}, preflight-{preflight}, extension-{extension}");
             return await _executer.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
         }
 
         public async Task<CachedRefactoringActionModel> Refactor(string path, FnToRefactorModel refactorableFunction, bool invalidateCache = false)
         {
+            _logger.Info($"Starting refactoring of function: {refactorableFunction.Name} in file: {path}");
             var rangeList = new List<PositionModel> {
                 new PositionModel
                 {
@@ -56,28 +56,28 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
             var refactorableFunctionsString = JsonConvert.SerializeObject(functionForRefactor);
 
-            var refactoredFunctions = await _executer.PostRefactoring(fnToRefactor: refactorableFunctionsString);
-
-            if (refactoredFunctions == null)
+            try
             {
-                throw new Exception($"Refactoring has failed! Credits left: {refactoredFunctions.CreditsInfo.Limit - refactoredFunctions.CreditsInfo.Used}.");
+                var refactoredFunctions = await _executer.PostRefactoringAsync(fnToRefactor: refactorableFunctionsString);
+
+                _logger.Info($"Refactored function: {refactorableFunction.Name}");
+                _logger.Debug($"Refactoring trace-id: {refactoredFunctions.TraceId}, credits left: {refactoredFunctions.CreditsInfo.Limit - refactoredFunctions.CreditsInfo.Used}.");
+
+                var cacheItem = new CachedRefactoringActionModel
+                {
+                    Path = path,
+                    RefactorableCandidate = functionForRefactor,
+                    Refactored = refactoredFunctions
+                };
+                LastRefactoring = cacheItem;
+
+                return cacheItem;
             }
-
-            _logger.Info($"Refactored function: {refactorableFunction.Name} in file: {path}");
-            _logger.Debug($"Refactoring trace-id: {refactoredFunctions.TraceId}, credits left: {refactoredFunctions.CreditsInfo.Limit - refactoredFunctions.CreditsInfo.Used}.");
-
-            var cacheItem = new CachedRefactoringActionModel
+            catch (Exception e)
             {
-                Path = path,
-                RefactorableCandidate = functionForRefactor,
-                Refactored = refactoredFunctions
-            };
-
-
-
-            LastRefactoring = cacheItem;
-
-            return cacheItem;
+                _logger.Error($"Error during refactoring of method {functionForRefactor.Name}", e);
+            }
+            return null;
         }
 
         public CachedRefactoringActionModel GetCachedRefactoredCode()
