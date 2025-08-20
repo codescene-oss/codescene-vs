@@ -15,9 +15,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         [Import]
         private readonly ICliObjectScoreCreator _creator;
 
-        [Import]
-        private readonly ILogger _logger;
-
         public string VersionCommand => "version --sha";
 
         public string DeviceIdCommand => "telemetry --device-id";
@@ -60,7 +57,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             args.Add($"--fn-to-refactor");
             args.Add(fnToRefactor);
             var command = GetArgumentStr(args.ToArray());
-            _logger.Debug($"Generated refactor post command: {command}");
             return command;
         }
 

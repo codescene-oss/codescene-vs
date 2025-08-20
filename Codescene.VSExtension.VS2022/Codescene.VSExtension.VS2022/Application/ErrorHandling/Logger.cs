@@ -41,7 +41,8 @@ public class Logger : ILogger
 
     public void Error(string message, Exception ex)
     {
-        HandleLog(message, "ERROR");
+        var fullMessage = $"{message}: {ex.Message}";
+        HandleLog(fullMessage, "ERROR");
         ex.Log();
 
         if (ex.Message.Contains("timeout")) SendTelemetry();

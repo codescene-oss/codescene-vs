@@ -25,17 +25,12 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
 
         public async Task<PreFlightResponseModel> RunPreflightAsync(bool force = false)
         {
-            _logger.Info($"Running preflight with force {force}");
-            PreFlightResponseModel response = null;
-            await Task.Run(() =>
-            {
-                response = _executer.Preflight(force);
-                return Task.CompletedTask;
-            });
+            _logger.Debug($"Running preflight with force {force}");
+            PreFlightResponseModel response = await _executer.PreflightAsync(force);
 
             if (response != null)
             {
-                _logger.Info("Got preflight response");
+                _logger.Info("Got preflight response. ACE service is active.");
             }
             _preflightResponse = response;
             _version = response.Version;
