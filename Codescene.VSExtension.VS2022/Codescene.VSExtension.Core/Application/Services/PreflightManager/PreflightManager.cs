@@ -19,32 +19,31 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
         private readonly ILogger _logger;
 
         private PreFlightResponseModel _preflightResponse;
-        private string[] _codeSmells;
-        private string[] _languages;
-        private decimal _version;
 
-        public async Task<PreFlightResponseModel> RunPreflightAsync(bool force = false)
+        public PreFlightResponseModel RunPreflight(bool force = false)
         {
             _logger.Debug($"Running preflight with force {force}");
-            PreFlightResponseModel response = await _executer.PreflightAsync(force);
+            PreFlightResponseModel response = _executer.Preflight(force);
 
             if (response != null)
             {
                 _logger.Info("Got preflight response. ACE service is active.");
+                _preflightResponse = response;
+                return response;
+            } else
+            {
+                _logger.Info("Problem getting preflight response. ACE service is down.");
+                _preflightResponse = null;
+                return null;
             }
-            _preflightResponse = response;
-            _version = response.Version;
-            _codeSmells = response.LanguageCommon.CodeSmells;
-            _languages = response.FileTypes;
-            return response;
         }
-        public decimal GetVersion() => _version;
+        public decimal GetVersion() => _preflightResponse?.Version ?? 0;
 
-        public bool IsAnyCodeSmellSupported(IEnumerable<string> codeSmells) => codeSmells.Intersect(_codeSmells.ToList()).Any();
+        public bool IsAnyCodeSmellSupported(IEnumerable<string> codeSmells) => codeSmells.Intersect(_preflightResponse?.LanguageCommon.CodeSmells.ToList()).Any();
 
-        public bool IsSupportedCodeSmell(string codeSmell) => _codeSmells.Contains(codeSmell);
+        public bool IsSupportedCodeSmell(string codeSmell) => _preflightResponse?.LanguageCommon.CodeSmells.Contains(codeSmell) ?? false;
 
-        public bool IsSupportedLanguage(string extension) => _languages.Contains(extension.Replace(".", "").ToLower());
+        public bool IsSupportedLanguage(string extension) => _preflightResponse?.FileTypes.Contains(extension.Replace(".", "").ToLower()) ?? false;
 
         public bool IsSupportedLanguageAndCodeSmell(string extenison, string codeSmell) => IsSupportedLanguage(extenison) && IsSupportedCodeSmell(codeSmell);
 
@@ -52,7 +51,7 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
         {
             if (_preflightResponse == null)
             {
-                return RunPreflightAsync(true).GetAwaiter().GetResult();
+                return RunPreflight(true);
             } else
             {
                 return _preflightResponse;

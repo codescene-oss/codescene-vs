@@ -13,20 +13,18 @@ namespace Codescene.VSExtension.Tests
     {
         private readonly CliExecutor _cliExecuter;
         private readonly CliCommandProvider _cliCommandProvider;
-        private readonly CliSettingsProvider _cliSettingsProvider;
 
         public CliExecuterTests()
         {
             _cliCommandProvider = new CliCommandProvider();
-            _cliSettingsProvider = new CliSettingsProvider();
-            _cliExecuter = new CliExecutor(_cliCommandProvider, _cliSettingsProvider);
+            _cliExecuter = new CliExecutor(_cliCommandProvider);
         }
 
 
         [TestMethod]
         public void Test_Preflight()
         {
-            var result = _cliExecuter.PreflightAsync();
+            var result = _cliExecuter.Preflight();
             Assert.IsNotNull(result);
         }
 
@@ -43,8 +41,8 @@ namespace Codescene.VSExtension.Tests
                 string content = reader.ReadToEnd();
                 var result = _cliExecuter.ReviewContent(fileName, content);
                 var codesmellsJson = JsonConvert.SerializeObject(result.FunctionLevelCodeSmells[0].CodeSmells);
-                var preflight = JsonConvert.SerializeObject(_cliExecuter.PreflightAsync());
-                var refactor = await _cliExecuter.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
+                var preflight = JsonConvert.SerializeObject(_cliExecuter.Preflight());
+                var refactor = _cliExecuter.FnsToRefactorFromCodeSmells(content, extension, codesmellsJson, preflight);
                 Assert.IsNotNull(result);
             }
         }
@@ -60,14 +58,14 @@ namespace Codescene.VSExtension.Tests
                 var fileName = Path.GetFileName(path);
                 var review = _cliExecuter.ReviewContent(fileName, content);
                 var codesmellsJson = JsonConvert.SerializeObject(review.FunctionLevelCodeSmells[0].CodeSmells);
-                var preflight = JsonConvert.SerializeObject(_cliExecuter.PreflightAsync());
+                var preflight = JsonConvert.SerializeObject(_cliExecuter.Preflight());
                 var extension = Path.GetExtension(fileName).Replace(".", "");
-                var refactorableFunctions = await _cliExecuter.FnsToRefactorFromCodeSmellsAsync(content, extension, codesmellsJson, preflight);
+                var refactorableFunctions = _cliExecuter.FnsToRefactorFromCodeSmells(content, extension, codesmellsJson, preflight);
                 var f = refactorableFunctions.First();
                 var refactorableFunctionsString = JsonConvert.SerializeObject(f);
                 try
                 {
-                    var refactoredFunctions = await _cliExecuter.PostRefactoringAsync(fnToRefactor: refactorableFunctionsString, skipCache: true);
+                    var refactoredFunctions = _cliExecuter.PostRefactoring(fnToRefactor: refactorableFunctionsString, skipCache: true);
                 }
                 catch (Exception ex)
                 {

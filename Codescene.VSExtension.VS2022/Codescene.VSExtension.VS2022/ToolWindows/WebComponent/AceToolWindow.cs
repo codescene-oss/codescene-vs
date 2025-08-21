@@ -1,8 +1,10 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
@@ -10,6 +12,7 @@ using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,6 +65,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     public static void UpdateView(WebComponentMessage<AceComponentData> message)
     {
         _ctrl.UpdateViewAsync(message).FireAndForget();
+        SendTelemetry(responseModel: message.Payload.Data.AceResultData);
     }
 
     public static bool IsCreated() => _ctrl != null;
@@ -89,5 +93,20 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                 }
             });
         }
+    }
+
+    private static void SendTelemetry(RefactorResponseModel responseModel)
+    {
+        Task.Run(async () =>
+        {
+            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+            var additionalData = new Dictionary<string, object>
+                {
+                    { "confidence", responseModel.Confidence.Level },
+                    { "isCached", responseModel.Metadata.Cached }
+                };
+
+            telemetryManager.SendTelemetry(Constants.Telemetry.ACE_REFACTOR_PRESENTED, additionalData);
+        });
     }
 }

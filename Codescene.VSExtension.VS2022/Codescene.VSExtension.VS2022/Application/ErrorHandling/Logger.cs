@@ -43,7 +43,6 @@ public class Logger : ILogger
     {
         var fullMessage = $"{message}: {ex.Message}";
         HandleLog(fullMessage, "ERROR");
-        ex.Log();
 
         if (ex.Message.Contains("timeout")) SendTelemetry();
     }

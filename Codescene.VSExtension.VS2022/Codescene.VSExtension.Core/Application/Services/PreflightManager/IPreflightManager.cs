@@ -11,7 +11,7 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
         bool IsAnyCodeSmellSupported(IEnumerable<string> codeSmells);
         bool IsSupportedLanguageAndCodeSmell(string extenison, string codeSmell);
         decimal GetVersion();
-        Task<PreFlightResponseModel> RunPreflightAsync(bool force = false);
+        PreFlightResponseModel RunPreflight(bool force = false);
         PreFlightResponseModel GetPreflightResponse();
     }
 }
