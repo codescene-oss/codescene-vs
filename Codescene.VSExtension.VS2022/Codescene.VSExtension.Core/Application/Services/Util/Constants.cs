@@ -6,7 +6,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
     {
         public class Timeout
         {
-            public static readonly TimeSpan DEFAULT_CLI_TIMEOUT = TimeSpan.FromMilliseconds(10000); // 10s
+            public static readonly TimeSpan DEFAULT_CLI_TIMEOUT = TimeSpan.FromMilliseconds(60000); // 60s
             public static readonly TimeSpan TELEMETRY_TIMEOUT = TimeSpan.FromMilliseconds(5000); // 5s
         }
 
