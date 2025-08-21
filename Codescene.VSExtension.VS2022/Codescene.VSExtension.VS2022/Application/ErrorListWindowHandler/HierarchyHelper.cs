@@ -10,11 +10,13 @@ public static class HierarchyHelper
     /// Returns an IVsHierarchy for the file path if that file is contained in a loaded project,
     /// or null otherwise.
     /// </summary>
-    public static IVsHierarchy GetHierarchyFromFile(IServiceProvider serviceProvider, string filePath)
+    public static IVsHierarchy GetHierarchyFromFile(string filePath)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        if (string.IsNullOrEmpty(filePath))
+        IServiceProvider serviceProvider = VS2022Package.Instance;
+
+        if (string.IsNullOrEmpty(filePath) || serviceProvider == null)
             return null;
 
         // Get the IVsUIShellOpenDocument service
@@ -25,10 +27,9 @@ public static class HierarchyHelper
         // Query if the file belongs to a project
         int hr = shellOpenDoc.IsDocumentInAProject(filePath, out IVsUIHierarchy hierarchy, out _, out _, out int found);
 
-        if (ErrorHandler.Succeeded(hr) && found != 0 && hierarchy != null)
-        {
-            return hierarchy;
-        }
+        var succeeded = ErrorHandler.Succeeded(hr) && found != 0 && hierarchy != null;
+        if (succeeded) return hierarchy;
+
         return null;
     }
 }
