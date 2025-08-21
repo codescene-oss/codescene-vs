@@ -39,7 +39,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
                     return;
                 }
 
-                var currentCliVersion = await _cliExecuter.GetFileVersionAsync();
+                var currentCliVersion = _cliExecuter.GetFileVersion();
                 if (currentCliVersion == _cliSettingsProvider.RequiredDevToolVersion)
                 {
                     return;

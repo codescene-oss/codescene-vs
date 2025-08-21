@@ -4,7 +4,9 @@ using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
+using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading.Tasks;
@@ -23,7 +25,7 @@ public class OnClickRefactoringHandler
 
     private string _path = null;
 
-    public async Task HandleAsync(string path, FnToRefactorModel refactorableFunction)
+    public async Task HandleAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint)
     {
         _path = path;
 
@@ -34,7 +36,8 @@ public class OnClickRefactoringHandler
 
         await AceToolWindow.ShowAsync();
 
-        await DoRefactorAndUpdateViewAsync(path, refactorableFunction);
+        // Run on background thread:
+        Task.Run(() => DoRefactorAndUpdateViewAsync(path, refactorableFunction, entryPoint)).FireAndForget();
     }
 
     public string GetPath()
@@ -56,15 +59,11 @@ public class OnClickRefactoringHandler
         });
     }
 
-    private async Task DoRefactorAndUpdateViewAsync(string path, FnToRefactorModel refactorableFunction)
+    private async Task DoRefactorAndUpdateViewAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint)
     {
-        var docView = await VS.Documents.OpenAsync(path);
-        if (docView?.TextBuffer is not ITextBuffer buffer)
-            return;
+        var refactored = _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction, entryPoint);
 
-        var content = buffer.CurrentSnapshot.GetText();
-
-        var refactored = await _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction);
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
         {
             MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,

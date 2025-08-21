@@ -2,6 +2,7 @@
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.Util
@@ -43,7 +44,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
                     {
                         { "scoreChange", delta.ScoreChange },
                         { "nIssues", delta.FunctionLevelFindings.Length + delta.FileLevelFindings.Length },
-                        //{ "nRefactorableFunctions", ... } TODO
+                        { "nRefactorableFunctions", delta.FunctionLevelFindings.TakeWhile(finding => finding.RefactorableFn != null).Count() }
                     };
 
                 telemetryManager?.SendTelemetry(eventName, additionalData);

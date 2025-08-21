@@ -34,18 +34,5 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
 
         [JsonProperty("vscodeRange")]
         public PositionModel[] VSCodeRange { get; set; }
-
-        public override string ToString()
-        {
-            var rangeStr = Range != null
-                ? $"StartLine={Range.Startline}, StartColumn={Range.StartColumn}, EndLine={Range.EndLine}, EndColumn={Range.EndColumn}"
-                : "null";
-
-            var targetsStr = RefactoringTargets != null
-                ? $"[{string.Join(", ", RefactoringTargets.Select(t => $"{{Category={t.Category}, Line={t.Line}}}"))}]"
-                : "null";
-
-            return $"FnToRefactorModel(Name={Name}, FileType={FileType}, BodyLength={Body?.Length ?? 0}, Range=({rangeStr}), RefactoringTargets={targetsStr})";
-        }
     }
 }

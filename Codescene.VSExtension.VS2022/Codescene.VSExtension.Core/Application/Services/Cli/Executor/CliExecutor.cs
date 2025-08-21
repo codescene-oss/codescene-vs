@@ -7,9 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
@@ -24,16 +21,12 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         private readonly ICliCommandProvider _cliCommandProvider; // TODO: evaulate if this is needed, if  ExecuteCommand(string arguments, string content = null) is replaced with IProcessExecutor
 
         [Import]
-        private readonly ICliSettingsProvider _cliSettingsProvider;
-
-        [Import]
         private readonly IProcessExecutor _executor;
 
         [ImportingConstructor]
-        public CliExecutor(ICliCommandProvider cliCommandProvider, ICliSettingsProvider cliSettingsProvider)
+        public CliExecutor(ICliCommandProvider cliCommandProvider)
         {
             _cliCommandProvider = cliCommandProvider;
-            _cliSettingsProvider = cliSettingsProvider;
         }
 
         /// <summary>
@@ -95,104 +88,69 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             }
         }
 
-        // TODO: possibly replace this implementation completely with IProcessExecutor
-        private Task<(string StdOut, string StdErr, int ExitCode)> ExecuteCommandAsync(string arguments, string content = null)
+        public string GetFileVersion()
         {
-            var exePath = _cliSettingsProvider.CliFileFullPath;
-            if (!File.Exists(exePath))
-            {
-                throw new FileNotFoundException($"Executable file {exePath} can not be found on the location!");
-            }
-
-            var psi = new ProcessStartInfo
-            {
-                FileName = exePath,
-                Arguments = arguments,
-                UseShellExecute = false,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
-
-            var stdout = new StringBuilder();
-            var stderr = new StringBuilder();
-            var tcs = new TaskCompletionSource<(string, string, int)>();
-
-            var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
-
-            proc.OutputDataReceived += (_, e) => { if (e.Data != null) stdout.AppendLine(e.Data); };
-            proc.ErrorDataReceived += (_, e) => { if (e.Data != null) stderr.AppendLine(e.Data); };
-
-            proc.Exited += (_, __) =>
-            {
-                tcs.TrySetResult((stdout.ToString(), stderr.ToString(), proc.ExitCode));
-                proc.Dispose();
-            };
-
-            proc.Start();
-            proc.BeginOutputReadLine();
-            proc.BeginErrorReadLine();
-
-            if (!string.IsNullOrWhiteSpace(content) || arguments.Contains("delta"))
-            {
-                proc.StandardInput.Write(content);
-                proc.StandardInput.Close();
-            }
-
-            return tcs.Task;
-        }
-
-        public async Task<string> GetFileVersionAsync()
-        {
-            var arguments = _cliCommandProvider.VersionCommand;
-            var result = await ExecuteCommandAsync(arguments); // TODO: possibly replace this implementation completely with IProcessExecutor
-            return result.StdOut.TrimEnd('\r', '\n');
-        }
-
-        public async Task<PreFlightResponseModel> PreflightAsync(bool force = true)
-        {
-            var arguments = _cliCommandProvider.GetPreflightSupportInformationCommand(force: force);
-            var result = await ExecuteCommandAsync(arguments);
-            return JsonConvert.DeserializeObject<PreFlightResponseModel>(result.StdOut);
-        }
-
-        public async Task<RefactorResponseModel> PostRefactoringAsync(string fnToRefactor, bool skipCache = false, string token = null)
-        {
-            var arguments = _cliCommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: token);
-            var result = await ExecuteCommandAsync(arguments);
-            if (!string.IsNullOrWhiteSpace(result.StdErr))
-            {
-                throw new Exception(result.StdErr);
-            }
-            return JsonConvert.DeserializeObject<RefactorResponseModel>(result.StdOut);
-        }
-
-        public Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells, string preflight)
-        {
-            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmells, preflight);
-            Task<IList<FnToRefactorModel>> result = null;
             try
             {
-                result = FnsToRefactorFromCodeSmellsAsync(arguments, content);
+                var arguments = _cliCommandProvider.VersionCommand;
+                var result = _executor.Execute(arguments);
+
+                return result?.TrimEnd('\r', '\n');
             }
             catch (Exception e)
             {
-                _logger.Error($"Error while getting refactorable functions from code smells", e);
+                _logger.Error($"Could not get file version", e);
+                return "";
             }
-            return result;
         }
 
-        private async Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string arguments, string content)
+        public PreFlightResponseModel Preflight(bool force = true)
         {
-            var result = await ExecuteCommandAsync(arguments, content);
-
-            if (!string.IsNullOrWhiteSpace(result.StdErr))
+            var arguments = _cliCommandProvider.GetPreflightSupportInformationCommand(force: force);
+            if (string.IsNullOrEmpty(arguments))
             {
-                throw new Exception(result.StdErr);
+                _logger.Warn("Skipping preflight. Arguments were not defined.");
+                return null;
             }
 
-            return JsonConvert.DeserializeObject<List<FnToRefactorModel>>(result.StdOut);
+            return ExecuteWithTimingAndLogging<PreFlightResponseModel>(
+                "ACE preflight",
+                () => _executor.Execute(arguments),
+                "Preflight failed."
+            );
+        }
+
+        public RefactorResponseModel PostRefactoring(string fnToRefactor, bool skipCache = false, string token = null)
+        {
+            var arguments = _cliCommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: token);
+            if (string.IsNullOrEmpty(arguments))
+            {
+                _logger.Warn("Skipping refactoring. Arguments were not defined.");
+                return null;
+            }
+
+            return ExecuteWithTimingAndLogging<RefactorResponseModel>(
+                "ACE refactoring",
+                () => _executor.Execute(arguments),
+                "Refactoring failed."
+            );
+        }
+
+        public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmells, string preflight)
+        {
+            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmells, preflight);
+
+            if (string.IsNullOrEmpty(arguments))
+            {
+                _logger.Warn("Skipping refactoring functions check. Arguments were not defined.");
+                return null;
+            }
+
+            return ExecuteWithTimingAndLogging<IList<FnToRefactorModel>>(
+                "ACE refactoring functions check",
+                () => _executor.Execute(arguments, content),
+                "Refactoring functions check failed."
+            );
         }
 
         public string GetDeviceId()

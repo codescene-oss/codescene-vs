@@ -1,5 +1,6 @@
 using Codescene.VSExtension.Core.Application.Services.AceManager;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -41,7 +42,10 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             try
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                await _onClickRefactoringHandler.HandleAsync(this.Path, this.RefactorableFunction);
+                await _onClickRefactoringHandler.HandleAsync(
+                    this.Path, 
+                    this.RefactorableFunction, 
+                    AceConstants.AceEntryPoint.INTENTION_ACTION);
             }
             catch (Exception e)
             {

@@ -10,10 +10,10 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     {
         CliReviewModel ReviewContent(string filename, string content);
         DeltaResponseModel ReviewDelta(string oldScore, string newScore);
-        Task<string> GetFileVersionAsync();
+        string GetFileVersion();
         string GetDeviceId();
-        Task<PreFlightResponseModel> PreflightAsync(bool force = true);
-        Task<RefactorResponseModel> PostRefactoringAsync(string fnToRefactor, bool skipCache = false, string token = null);
-        Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string content, string extension, string codeSmells, string preflight);
+        PreFlightResponseModel Preflight(bool force = true);
+        RefactorResponseModel PostRefactoring(string fnToRefactor, bool skipCache = false, string token = null);
+        IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmells, string preflight);
     }
 }
