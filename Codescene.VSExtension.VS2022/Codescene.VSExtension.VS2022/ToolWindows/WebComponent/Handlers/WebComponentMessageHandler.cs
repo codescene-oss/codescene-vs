@@ -235,7 +235,7 @@ internal class WebComponentMessageHandler
             content
         ));
 
-        logger.Debug($"Found {refactorableFunctions.Count} refactorable functions in file '{payload.FileName}'.");
+        logger.Debug($"Found {refactorableFunctions.Count} refactorable functions in cache for file '{payload.FileName}'.");
 
         await onClickRefactoringHandler.HandleAsync(
             payload.FileName,
