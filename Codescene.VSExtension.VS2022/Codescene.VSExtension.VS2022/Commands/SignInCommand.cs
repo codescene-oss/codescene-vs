@@ -38,7 +38,7 @@ internal class SignInCommand(IAuthenticationService authService, ILogger errorsH
         }
         catch (Exception ex)
         {
-            await errorsHandler.LogAsync("Authentication failed", ex);
+            errorsHandler.Error("Authentication failed", ex);
             await ShowFailedStatusAsync();
         }
     }

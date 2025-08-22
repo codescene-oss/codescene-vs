@@ -1,7 +1,9 @@
-﻿using Codescene.VSExtension.Core.Models;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.VS2022.Util;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -32,8 +34,10 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 
             return new CodeHealthMonitorComponentData
             {
+                AutoRefactor = new AutoRefactorConfig {Activated = true, Visibile = true, Disabled = false},
                 FileDeltaData = files,
-                Jobs = DeltaJobTracker.RunningJobs.ToList(),
+                Jobs = DeltaJobTracker.RunningJobs.ToList()
+                
             };
         }
 
@@ -63,7 +67,6 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                     {
                         Name = item.RefactorableFn.Name,
                         Body = item.RefactorableFn.Body,
-                        FunctionType = item.RefactorableFn.FunctionType,
                         Range = item.RefactorableFn.Range != null
                             ? new CodeSmellRangeModel(
                                 item.RefactorableFn.Range.Startline,

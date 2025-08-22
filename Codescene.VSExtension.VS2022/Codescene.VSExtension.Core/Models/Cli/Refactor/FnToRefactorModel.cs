@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Linq;
 
 namespace Codescene.VSExtension.Core.Models.Cli.Refactor
 {
@@ -7,6 +8,11 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
     /// </summary>
     public class FnToRefactorModel
     {
+        /// <summary>
+        /// Function name (for presentation)
+        /// </summary>
+        [JsonProperty("name")]
+        public string Name { get; set; }
 
         [JsonProperty("body")]
         public string Body { get; set; }
@@ -14,14 +20,8 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         [JsonProperty("file-type")]
         public string FileType { get; set; }
 
-        [JsonProperty("function-type")]
-        public string FunctionType { get; set; }
-
-        /// <summary>
-        /// Function name (for presentation)
-        /// </summary>
-        [JsonProperty("name")]
-        public string Name { get; set; }
+        //[JsonProperty("function-type")]
+        //public string FunctionType { get; set; }
 
         /// <summary>
         /// Range of the function. Use to keep track of what code to replace in the original file.
@@ -31,5 +31,8 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
 
         [JsonProperty("refactoring-targets")]
         public RefactoringTargetModel[] RefactoringTargets { get; set; }
+
+        [JsonProperty("vscodeRange")]
+        public PositionModel[] VSCodeRange { get; set; }
     }
 }

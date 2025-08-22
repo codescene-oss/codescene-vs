@@ -9,6 +9,5 @@ namespace Codescene.VSExtension.Core.Application.Services.ErrorHandling
         void Warn(string message);
         void Info(string message);
         void Debug(string message);
-        Task LogAsync(string message, Exception ex);
     }
 }
