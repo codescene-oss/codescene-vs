@@ -8,7 +8,10 @@ namespace Codescene.VSExtension.VS2022.Util
 {
     public class IndentationUtil
     {
-        public static IndentationInfo DetectIndentation(ITextSnapshot snapshot, FnToRefactorModel refactorableFunction)
+		/// <summary>
+		/// Used to detect the indentation style (tabs vs spaces) and level of a given function in the text snapshot.
+		/// </summary>
+		public static IndentationInfo DetectIndentation(ITextSnapshot snapshot, FnToRefactorModel refactorableFunction)
         {
             int startLine = Math.Max(0, refactorableFunction.Range.Startline - 1);
             if (startLine >= snapshot.LineCount)
@@ -53,7 +56,11 @@ namespace Codescene.VSExtension.VS2022.Util
             };
         }
 
-        public static string AdjustIndentation(string code, IndentationInfo indentationInfo)
+		/// <summary>
+		/// Used to adjust the indentation of the given code snippet returned from ACE servise.
+		/// It applies the specified indentation level and style (tabs or spaces) to each line
+		/// </summary>
+		public static string AdjustIndentation(string code, IndentationInfo indentationInfo)
         {
             if (indentationInfo.Level == 0)
                 return code;
@@ -85,19 +92,33 @@ namespace Codescene.VSExtension.VS2022.Util
         private static IndentationPattern AnalyzeIndentationPattern(ITextSnapshot snapshot, int startLine)
         {
             if (startLine >= snapshot.LineCount)
-                return new IndentationPattern { UsesTabs = false, TabSize = 4 };
+                return DefaultIndentationPattern();
 
             var line = snapshot.GetLineFromLineNumber(startLine);
             string lineText = line.GetText();
 
             if (string.IsNullOrWhiteSpace(lineText))
-                return new IndentationPattern { UsesTabs = false, TabSize = 4 };
+                return DefaultIndentationPattern();
 
+            var (tabCount, spaceCount) = CountLeadingWhitespace(lineText);
+
+            bool usesTabs = tabCount > 0;
+            int tabSize = DetermineTabSize(usesTabs, spaceCount);
+
+            return new IndentationPattern { UsesTabs = usesTabs, TabSize = tabSize };
+        }
+
+        private static IndentationPattern DefaultIndentationPattern()
+        {
+            return new IndentationPattern { UsesTabs = false, TabSize = 4 };
+        }
+
+        private static (int tabCount, int spaceCount) CountLeadingWhitespace(string lineText)
+        {
             int tabCount = 0;
             int spaceCount = 0;
             int i = 0;
 
-            // Count leading tabs and spaces
             while (i < lineText.Length && char.IsWhiteSpace(lineText[i]))
             {
                 if (lineText[i] == '\t')
@@ -107,13 +128,14 @@ namespace Codescene.VSExtension.VS2022.Util
                 i++;
             }
 
-            // Determine if tabs or spaces are used
-            bool usesTabs = tabCount > 0;
+            return (tabCount, spaceCount);
+        }
 
+        private static int DetermineTabSize(bool usesTabs, int spaceCount)
+        {
             int tabSize = 4; // Default tab size
             if (!usesTabs && spaceCount > 0)
             {
-                // Try to detect tab size based on the space count
                 var possibleTabSizes = new[] { 2, 4, 8 };
                 foreach (var size in possibleTabSizes)
                 {
@@ -124,8 +146,7 @@ namespace Codescene.VSExtension.VS2022.Util
                     }
                 }
             }
-
-            return new IndentationPattern { UsesTabs = usesTabs, TabSize = tabSize };
+            return tabSize;
         }
 
         private struct IndentationPattern
