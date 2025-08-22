@@ -70,40 +70,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             );
         }
 
-        private T ExecuteWithTimingAndLogging<T>(string label, Func<string> execute, string errorMessage)
-        {
-            try
-            {
-                var stopwatch = Stopwatch.StartNew();
-                var result = execute();
-                stopwatch.Stop();
-
-                _logger.Debug($"{Titles.CODESCENE} {label} completed in {stopwatch.ElapsedMilliseconds} ms.");
-                return JsonConvert.DeserializeObject<T>(result);
-            }
-            catch (Exception e)
-            {
-                _logger.Error(errorMessage, e);
-                return default;
-            }
-        }
-
-        public string GetFileVersion()
-        {
-            try
-            {
-                var arguments = _cliCommandProvider.VersionCommand;
-                var result = _executor.Execute(arguments);
-
-                return result?.TrimEnd('\r', '\n');
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Could not get file version", e);
-                return "";
-            }
-        }
-
         public PreFlightResponseModel Preflight(bool force = true)
         {
             var arguments = _cliCommandProvider.GetPreflightSupportInformationCommand(force: force);
@@ -155,16 +121,45 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public string GetDeviceId()
         {
+            var arguments = _cliCommandProvider.DeviceIdCommand;
+            return ExecuteSimpleCommand(arguments, "Could not get device ID");
+        }
+
+        public string GetFileVersion()
+        {
+            var arguments = _cliCommandProvider.VersionCommand;
+            return ExecuteSimpleCommand(arguments, "Could not get CLI version");
+        }
+
+        private T ExecuteWithTimingAndLogging<T>(string label, Func<string> execute, string errorMessage)
+        {
             try
             {
-                var arguments = _cliCommandProvider.DeviceIdCommand;
-                var result = _executor.Execute(arguments);
+                var stopwatch = Stopwatch.StartNew();
+                var result = execute();
+                stopwatch.Stop();
 
-                return result?.Trim();
+                _logger.Debug($"{Titles.CODESCENE} {label} completed in {stopwatch.ElapsedMilliseconds} ms.");
+                return JsonConvert.DeserializeObject<T>(result);
             }
             catch (Exception e)
             {
-                _logger.Error($"Could not get device ID", e);
+                _logger.Error(errorMessage, e);
+                return default;
+            }
+        }
+
+        private string ExecuteSimpleCommand(string arguments, string errorMessage)
+        {
+            try
+            {
+                var result = _executor.Execute(arguments);
+
+                return result?.Trim().TrimEnd('\r', '\n');
+            }
+            catch (Exception e)
+            {
+                _logger.Error(errorMessage, e);
                 return "";
             }
         }
