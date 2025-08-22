@@ -65,7 +65,8 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     public static void UpdateView(WebComponentMessage<AceComponentData> message)
     {
         _ctrl.UpdateViewAsync(message).FireAndForget();
-        SendTelemetry(responseModel: message.Payload.Data.AceResultData);
+        if (message.Payload?.Data?.AceResultData != null) // can be null when loading
+            SendTelemetry(responseModel: message.Payload.Data.AceResultData);
     }
 
     public static bool IsCreated() => _ctrl != null;
@@ -107,6 +108,6 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                 };
 
             telemetryManager.SendTelemetry(Constants.Telemetry.ACE_REFACTOR_PRESENTED, additionalData);
-        });
+        }).FireAndForget();
     }
 }

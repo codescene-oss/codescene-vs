@@ -3,47 +3,142 @@ using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.Util
 {
     public class IndentationUtil
     {
-        public static int DetectIndentation(ITextSnapshot snapshot, FnToRefactorModel refactorableFunction)
+        public static IndentationInfo DetectIndentation(ITextSnapshot snapshot, FnToRefactorModel refactorableFunction)
         {
-            // Get the line at the start of the function
             int startLine = Math.Max(0, refactorableFunction.Range.Startline - 1);
             if (startLine >= snapshot.LineCount)
-                return 0;
+                return new IndentationInfo { Level = 0, UsesTabs = false, TabSize = 4 };
 
             var line = snapshot.GetLineFromLineNumber(startLine);
             string lineText = line.GetText();
 
-            // Count leading spaces
-            int leadingSpaces = 0;
-            while (leadingSpaces < lineText.Length && char.IsWhiteSpace(lineText[leadingSpaces]))
+            // Analyze the indentation pattern
+            var indentationAnalysis = AnalyzeIndentationPattern(snapshot, startLine);
+            
+            // Count leading whitespace for this specific line
+            int leadingWhitespace = 0;
+            while (leadingWhitespace < lineText.Length && char.IsWhiteSpace(lineText[leadingWhitespace]))
             {
-                leadingSpaces++;
+                leadingWhitespace++;
             }
 
-            return leadingSpaces;
+            // Calculate the indentation level based on the detected pattern
+            int indentationLevel;
+            if (indentationAnalysis.UsesTabs)
+            {
+                // Count tabs in the leading whitespace
+                int tabCount = 0;
+                for (int i = 0; i < leadingWhitespace && i < lineText.Length; i++)
+                {
+                    if (lineText[i] == '\t') tabCount++;
+                }
+                indentationLevel = tabCount;
+            }
+            else
+            {
+                // Calculate based on spaces and detected tab size
+                indentationLevel = leadingWhitespace / indentationAnalysis.TabSize;
+            }
+
+            return new IndentationInfo 
+            { 
+                Level = indentationLevel, 
+                UsesTabs = indentationAnalysis.UsesTabs, 
+                TabSize = indentationAnalysis.TabSize 
+            };
         }
 
-        public static string AdjustIndentation(string code, int indentationLevel)
+        public static string AdjustIndentation(string code, IndentationInfo indentationInfo)
         {
-            var indentation = new string(' ', indentationLevel); // 4 spaces per level
+            if (indentationInfo.Level == 0)
+                return code;
+
+            string indentationString;
+            if (indentationInfo.UsesTabs)
+            {
+                indentationString = new string('\t', indentationInfo.Level);
+            }
+            else
+            {
+                indentationString = new string(' ', indentationInfo.Level * indentationInfo.TabSize);
+            }
+
             var lines = code.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
+            // Adjust indentation for all non-empty lines
             for (int i = 0; i < lines.Length; i++)
             {
                 if (!string.IsNullOrWhiteSpace(lines[i]))
                 {
-                    lines[i] = indentation + lines[i];
+                    lines[i] = indentationString + lines[i];
                 }
             }
 
             return string.Join(Environment.NewLine, lines);
         }
+
+        private static IndentationPattern AnalyzeIndentationPattern(ITextSnapshot snapshot, int startLine)
+        {
+            if (startLine >= snapshot.LineCount)
+                return new IndentationPattern { UsesTabs = false, TabSize = 4 };
+
+            var line = snapshot.GetLineFromLineNumber(startLine);
+            string lineText = line.GetText();
+
+            if (string.IsNullOrWhiteSpace(lineText))
+                return new IndentationPattern { UsesTabs = false, TabSize = 4 };
+
+            int tabCount = 0;
+            int spaceCount = 0;
+            int i = 0;
+
+            // Count leading tabs and spaces
+            while (i < lineText.Length && char.IsWhiteSpace(lineText[i]))
+            {
+                if (lineText[i] == '\t')
+                    tabCount++;
+                else if (lineText[i] == ' ')
+                    spaceCount++;
+                i++;
+            }
+
+            // Determine if tabs or spaces are used
+            bool usesTabs = tabCount > 0;
+
+            int tabSize = 4; // Default tab size
+            if (!usesTabs && spaceCount > 0)
+            {
+                // Try to detect tab size based on the space count
+                var possibleTabSizes = new[] { 2, 4, 8 };
+                foreach (var size in possibleTabSizes)
+                {
+                    if (spaceCount % size == 0)
+                    {
+                        tabSize = size;
+                        break;
+                    }
+                }
+            }
+
+            return new IndentationPattern { UsesTabs = usesTabs, TabSize = tabSize };
+        }
+
+        private struct IndentationPattern
+        {
+            public bool UsesTabs { get; set; }
+            public int TabSize { get; set; }
+        }
+    }
+
+    public struct IndentationInfo
+    {
+        public int Level { get; set; }
+        public bool UsesTabs { get; set; }
+        public int TabSize { get; set; }
     }
 }
