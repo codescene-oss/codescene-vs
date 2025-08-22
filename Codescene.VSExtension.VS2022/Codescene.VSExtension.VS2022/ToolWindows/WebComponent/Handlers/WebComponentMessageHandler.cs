@@ -228,6 +228,7 @@ internal class WebComponentMessageHandler
 
         var cache = new AceRefactorableFunctionsCacheService();
 
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var docView = await VS.Documents.OpenAsync(payload.FileName);
         if (docView?.TextBuffer is not ITextBuffer buffer)
             return;

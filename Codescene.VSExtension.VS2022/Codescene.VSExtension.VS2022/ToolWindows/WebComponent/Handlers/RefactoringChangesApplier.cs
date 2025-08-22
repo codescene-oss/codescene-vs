@@ -36,16 +36,16 @@ public class RefactoringChangesApplier
         // Check if newCode already starts with whitespace
         bool startsWithSpace = newCode.Length > 0 && char.IsWhiteSpace(newCode[0]);
         
-        int indentationLevel = 0;
+        IndentationInfo indentationInfo = default;
         if (!startsWithSpace)
         {   
             // If it doesn't start with whitespace, we need to determine the indentation level
-            indentationLevel = IndentationUtil.DetectIndentation(snapshot, cache.RefactorableCandidate);
+            indentationInfo = IndentationUtil.DetectIndentation(snapshot, cache.RefactorableCandidate);
         }
         
-        if (indentationLevel > 0)
+        if (indentationInfo.Level > 0)
         {
-            newCode = IndentationUtil.AdjustIndentation(newCode, indentationLevel);
+            newCode = IndentationUtil.AdjustIndentation(newCode, indentationInfo);
         }
 
         int start = Math.Max(1, cache.RefactorableCandidate.Range.Startline) - 1;
