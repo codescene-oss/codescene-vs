@@ -58,6 +58,8 @@
     <Compile Include="Controls\AceRefactorTooltip.xaml.cs">
       <DependentUpon>AceRefactorTooltip.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Commands\RevokeTermsCommand.cs" />
+    <Compile Include="TermsAndPolicies\TermsAndPoliciesService.cs" />
     <Compile Include="Handlers\SolutionEventsHandler.cs" />
     <Compile Include="Tagger\AceRefactorTooltipModel.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />

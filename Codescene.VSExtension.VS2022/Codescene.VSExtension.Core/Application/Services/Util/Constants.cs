@@ -48,6 +48,15 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
 
             public const string CODE_HEALTH_MONITOR = "Code Health Monitor";
             public const string GENERAL_CODE_HEALTH = "General Code Health";
+
+            #region Terms & Policies
+            public const string ACCEPT_TERMS = "Accept";
+            public const string DECLINE_TERMS = "Decline";
+            public const string VIEW_TERMS = "View Terms & Policies";
+            public const string TERMS_INFO = "By using this extension you agree to CodeScene's Terms and Privacy Policy";
+            public const string SETTINGS_COLLECTION = "CodeSceneExtension";
+            public const string ACCEPTED_TERMS_PROPERTY = "AcceptedTerms";
+            #endregion
         }
 
         public class Telemetry
@@ -84,6 +93,10 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
             public const string ACE_REFACTOR_REJECTED = "refactor/rejected";
             public const string ACE_REFACTOR_COPY_CODE = "refactor/copy-code";
             public const string ACE_REFACTOR_DIFF_SHOWN = "refactor/diff_shown";
+
+            public const string TERMS_AND_POLICIES_SHOWN = "terms_and_policies_shown";
+            public const string TERMS_AND_POLICIES_RESPONSE = "terms_and_policies_response";
+            public const string REVOKE_TERMS = "revoke_terms";
             #endregion
         }
     }
