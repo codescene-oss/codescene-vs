@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased
 
+## [0.1.4] - 2025-08-21
+### Changed
+- Webview message handling for file focus.
+- Review timeout from 10s to 60s.
+### Fixed
+- Code smell finding tooltip coloring on light themes.
+
 ## [0.1.3] - 2025-08-18
 ### Added
 - Introduced a Terms & Policies acceptance step. Users must review and accept before using the extension's analysis capabilities.

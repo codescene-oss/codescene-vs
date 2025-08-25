@@ -18,7 +18,20 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorListWindowHandler;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class ErrorListWindowHandler : IErrorListWindowHandler
 {
-    private readonly ErrorListProvider _errorListProvider = new(VS2022Package.Instance);
+    private ErrorListProvider? _errorListProvider;
+
+    private ErrorListProvider? ErrorListProvider
+    {
+        get
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (_errorListProvider == null && VS2022Package.Instance != null)
+                _errorListProvider = new ErrorListProvider(VS2022Package.Instance);
+
+            return _errorListProvider;
+        }
+    }
 
     private void Add(IEnumerable<CodeSmellModel> issues)
     {
@@ -50,13 +63,13 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
             Document = issue.Path,
             Line = issue.Range.StartLine - 1, //0-based field
             Column = issue.Range.StartColumn - 1, //0-based field
-            HierarchyItem = HierarchyHelper.GetHierarchyFromFile(VS2022Package.Instance, issue.Path),
+            HierarchyItem = HierarchyHelper.GetHierarchyFromFile(issue.Path),
             SubcategoryIndex = 2,
             HelpKeyword = FormatMessage(issue, false)
         };
 
         errorTask.Navigate += (sender, e) => { OpenDocumentWithIssue(sender, e, issue.Path); };
-        _errorListProvider.Tasks.Add(errorTask);
+        ErrorListProvider?.Tasks?.Add(errorTask);
     }
 
     private void OpenDocumentWithIssue(object sender, EventArgs e, string path)
@@ -93,13 +106,13 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
 
     private void Delete(string path)
     {
-        var tasksForFile = _errorListProvider.Tasks.OfType<ErrorTask>()
+        var tasksForFile = ErrorListProvider?.Tasks?.OfType<ErrorTask>()
              .Where(task => string.Equals(task.Document, path, StringComparison.OrdinalIgnoreCase))
              .ToList();
 
         foreach (var task in tasksForFile)
         {
-            _errorListProvider.Tasks.Remove(task);
+            ErrorListProvider?.Tasks?.Remove(task);
         }
     }
 

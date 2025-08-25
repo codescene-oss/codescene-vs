@@ -45,23 +45,43 @@ internal class WebComponentMessageHandler
 
     private async Task ProcessMessageAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
-        switch (msgObject?.MessageType)
+        if (msgObject?.MessageType == null)
         {
-            case WebComponentConstants.MessageTypes.INIT:
-                return;
-
-
-            case WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION:
-                var payload = msgObject.Payload.ToObject<GotoFunctionLocationPayload>();
-                _logger.Info($"Handling '{WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION}' event for {payload.FileName}.");
-
-                await DocumentNavigator.OpenFileAndGoToLineAsync(payload.FileName, payload.Fn.Range.StartLine, _logger);
-
-                return;
-
-            default:
-                logger.Debug($" Unable to process webview message, unknown message type: {msgObject.MessageType}.");
-                return;
+            logger.Debug("Unable to process webview message: missing MessageType.");
+            return;
         }
+
+        logger.Debug($"Handling '{msgObject.MessageType}' message.");
+
+        try
+        {
+            switch (msgObject?.MessageType)
+            {
+                case WebComponentConstants.MessageTypes.INIT:
+                    break;
+                case WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION:
+                    await HandleGotoFunctionLocationAsync(msgObject, logger);
+                    break;
+                default:
+                    logger.Debug($"Unknown message type: {msgObject.MessageType}.");
+                    break;
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.Error($"Unable to handle '{msgObject.MessageType}'", e);
+        }
+    }
+
+    private async Task HandleGotoFunctionLocationAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        var payload = msgObject.Payload.ToObject<GotoFunctionLocationPayload>();
+        var startLine = payload.Fn?.Range?.StartLine ?? 1;  // When opening files without focus on specific line, Fn is null.
+
+        await DocumentNavigator.OpenFileAndGoToLineAsync(
+            payload.FileName,
+            startLine,
+            logger
+        );
     }
 }
