@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Removed unnecessary .vscode folder
+- Added pipelines for publishing on VS Marketplace
 
 ## [0.1.4] - 2025-08-21
 ### Changed
