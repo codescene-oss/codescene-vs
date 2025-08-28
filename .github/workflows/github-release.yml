@@ -30,6 +30,7 @@ jobs:
         id: vsix
         run: |
           $file = Get-ChildItem -Recurse -Filter *.vsix | Select-Object -First 1
+          if (-not $file) { throw "No VSIX file found!" }
           echo "path=$($file.FullName)" >> $env:GITHUB_OUTPUT
 
       - name: GitHub Release
