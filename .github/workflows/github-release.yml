@@ -21,10 +21,10 @@ jobs:
         uses: NuGet/setup-nuget@v2
 
       - name: Restore packages
-        run: nuget restore YourSolution.sln
+        run: nuget restore Codescene.VSExtension.sln
 
       - name: Build VSIX
-        run: msbuild YourSolution.sln /p:Configuration=Release
+        run: msbuild Codescene.VSExtension.sln /p:Configuration=Release
 
       - name: Locate VSIX
         id: vsix
