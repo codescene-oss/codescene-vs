@@ -1,40 +1,57 @@
-name: Create GitHub release from tag
+name: Build and Test VSIX Extension
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
+  pull_request:
 
 jobs:
-  tagged-release:
-    name: 'Tagged Release'
+  build:
+    name: Build and Test VSIX
     runs-on: windows-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v2
+      - name: Setup VSTest
+        uses: darenm/Setup-VSTest@v1
 
-      - name: Restore packages
-        run: nuget restore Codescene.VSExtension.sln
+      - name: Restore NuGet packages
+        run: msbuild Codescene.VSExtension.sln /t:Restore
 
-      - name: Build VSIX
-        run: msbuild Codescene.VSExtension.sln /p:Configuration=Release
+      - name: Build solution
+        run: msbuild Codescene.VSExtension.sln /p:Configuration=Release /p:Platform="Any CPU"
 
-      - name: Locate VSIX
-        id: vsix
-        run: |
-          $file = Get-ChildItem -Recurse -Filter *.vsix | Select-Object -First 1
-          if (-not $file) { throw "No VSIX file found!" }
-          echo "path=$($file.FullName)" >> $env:GITHUB_OUTPUT
+      - name: Run unit tests
+        if: ${{ hashFiles('**/*Tests.dll') != '' }}
+        run: vstest.console.exe **\bin\Release\*Tests.dll /logger:trx
 
-      - name: GitHub Release
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/*.trx'
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-package
+          path: '**/*.vsix'
+
+      - name: Create GitHub Release (only on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: "Automated build for ${{ github.ref_name }}"
+          files: '**/*.vsix'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create ${{ github.ref_name }} ${{ steps.vsix.outputs.path }} --generate-notes --verify-tag
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
