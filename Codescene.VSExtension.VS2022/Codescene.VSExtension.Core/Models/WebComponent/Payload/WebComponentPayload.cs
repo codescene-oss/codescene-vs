@@ -1,4 +1,6 @@
-﻿namespace Codescene.VSExtension.Core.Models.WebComponent
+﻿using System.Collections.Generic;
+
+namespace Codescene.VSExtension.Core.Models.WebComponent
 {
     public class WebComponentPayload<T>
     {
@@ -19,5 +21,7 @@
         /// Intended for debugging purposes. Should remain <c>false</c> in production.
         /// </summary>
         public bool Devmode { get; set; } = false;
+
+        public List<string> FeatureFlags { get; set; } = new List<string> { "open-settings" };
     }
 }
