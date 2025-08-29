@@ -59,7 +59,11 @@ jobs:
               Remove-Item cs-webview -Recurse -Force
           }
           New-Item -ItemType Directory -Path cs-webview | Out-Null
-          Move-Item "$($inner.FullName)\*" cs-webview
+          Get-ChildItem $inner.FullName -File | Move-Item -Destination cs-webview
+          $assetsPath = Join-Path $inner.FullName "assets"
+          if (Test-Path $assetsPath) {
+              Get-ChildItem $assetsPath -File | Move-Item -Destination cs-webview
+          }          
           Remove-Item cs-webview-temp -Recurse -Force
         env:
           CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
