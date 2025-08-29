@@ -64,7 +64,12 @@ jobs:
         env:
           CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
 
-
+      - name: Debug file layout
+        run: |
+          echo "PWD: $PWD"
+          dir cs-webview -Recurse
+        shell: pwsh
+        
       - name: Copy web assets into project
         shell: pwsh
         run: |
