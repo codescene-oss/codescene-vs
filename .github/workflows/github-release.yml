@@ -26,34 +26,39 @@ jobs:
       - name: Download latest cs-webview release (private repo)
         shell: pwsh
         run: |
-          # Authenticate using the GitHub token
-          $headers = @{ Authorization = "token $env:GITHUB_TOKEN" }
+          $headers = @{
+            Authorization = "token $env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN"
+            Accept = "application/vnd.github+json"
+            "User-Agent" = "actions"
+          }
 
-          # Get the latest release info
-          $release = Invoke-RestMethod -Headers $headers "https://api.github.com/repos/empear-analytics/cs-webview/releases/latest"
+          Write-Host "Fetching latest release info..."
+          $release = Invoke-RestMethod -Uri "https://api.github.com/repos/empear-analytics/cs-webview/releases/latest" -Headers $headers
 
-          # Pick the first asset from the release
           $asset = $release.assets | Select-Object -First 1
+          if (-not $asset) {
+            Write-Error "No assets found in the latest release."
+            exit 1
+          }
 
-          # Download the asset zip
-          Invoke-WebRequest -Headers $headers -Uri $asset.browser_download_url -OutFile cs-webview.zip
+          Write-Host "Downloading asset: $($asset.name)"
+          Invoke-WebRequest -Uri $asset.browser_download_url -Headers $headers -OutFile cs-webview.zip
 
-          # Extract the zip
-          Expand-Archive -Path cs-webview.zip -DestinationPath cs-webview-temp
+          Expand-Archive -Path cs-webview.zip -DestinationPath cs-webview-temp -Force
 
           # Flatten the folder structure into cs-webview
           $inner = Get-ChildItem cs-webview-temp | Where-Object { $_.PSIsContainer } | Select-Object -First 1
           Move-Item "$($inner.FullName)\*" cs-webview
           Remove-Item cs-webview-temp -Recurse -Force
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
 
 
       - name: Copy web assets into project
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path Codescene.VSExtension.VS2022/ToolWindows/WebComponent
-          Copy-Item cs-webview/index.html Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          Copy-Item cs-webview/index.html Codescene.VSExtension.VS2022/ToolWindows/WebComponent/ -ErrorAction Stop
           Copy-Item cs-webview/assets/index.css Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
           Copy-Item cs-webview/assets/index.js Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
 
