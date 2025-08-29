@@ -55,6 +55,10 @@ jobs:
 
           # Flatten the folder structure into cs-webview
           $inner = Get-ChildItem cs-webview-temp | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+          if (Test-Path cs-webview) {
+              Remove-Item cs-webview -Recurse -Force
+          }
+          New-Item -ItemType Directory -Path cs-webview | Out-Null
           Move-Item "$($inner.FullName)\*" cs-webview
           Remove-Item cs-webview-temp -Recurse -Force
         env:
