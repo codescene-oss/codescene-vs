@@ -47,7 +47,7 @@ jobs:
             Accept        = "application/octet-stream"
             "User-Agent"  = "actions"
           }
-          Invoke-WebRequest -Uri "https://api.github.com/repos/empear-analytics/cs-webview/releases/$($asset.id)" `
+          Invoke-WebRequest -Uri "https://api.github.com/repos/empear-analytics/cs-webview/releases/assets/$($asset.id)" `
                             -Headers $downloadHeaders `
                             -OutFile cs-webview.zip
 
@@ -59,11 +59,17 @@ jobs:
               Remove-Item cs-webview -Recurse -Force
           }
           New-Item -ItemType Directory -Path cs-webview | Out-Null
-          Get-ChildItem $inner.FullName -File | Move-Item -Destination cs-webview
+
+          $indexHtml = Join-Path $inner.FullName "index.html"
+          if (Test-Path $indexHtml) {
+              Move-Item $indexHtml cs-webview
+          } else {
+              Write-Warning "index.html not found in the release root."
+          }
           $assetsPath = Join-Path $inner.FullName "assets"
           if (Test-Path $assetsPath) {
               Get-ChildItem $assetsPath -File | Move-Item -Destination cs-webview
-          }          
+          }       
           Remove-Item cs-webview-temp -Recurse -Force
         env:
           CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
