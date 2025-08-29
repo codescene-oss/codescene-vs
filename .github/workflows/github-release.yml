@@ -23,6 +23,27 @@ jobs:
       - name: Setup VSTest
         uses: darenm/Setup-VSTest@v1
 
+      - name: Get latest cs-webview release info
+        id: get_latest
+        run: |
+          latest_url=$(curl -s https://api.github.com/repos/empear-analytics/cs-webview/releases/latest | jq -r '.assets[0].browser_download_url')
+          echo "download_url=$latest_url" >> $GITHUB_ENV
+
+      - name: Download latest cs-webview release
+        run: |
+          echo "Downloading from $download_url"
+          curl -L -o cs-webview.zip "$download_url"
+          mkdir cs-webview
+          unzip -q cs-webview.zip -d cs-webview
+
+      - name: Copy web assets into project
+        run: |
+          mkdir -p Codescene.VSExtension.VS2022/ToolWindows/WebComponent
+          cp cs-webview/index.html Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          cp cs-webview/assets/index.css Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          cp cs-webview/assets/index.js Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+
+
       - name: Restore NuGet packages
         run: nuget restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln
 
