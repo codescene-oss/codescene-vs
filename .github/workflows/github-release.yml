@@ -28,8 +28,8 @@ jobs:
         run: |
           $headers = @{
             Authorization = "token $env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN"
-            Accept = "application/vnd.github+json"
-            "User-Agent" = "actions"
+            Accept        = "application/vnd.github+json"
+            "User-Agent"  = "actions"
           }
 
           Write-Host "Fetching latest release info..."
@@ -41,8 +41,15 @@ jobs:
             exit 1
           }
 
-          Write-Host "Downloading asset: $($asset.name)"
-          Invoke-WebRequest -Uri $asset.browser_download_url -Headers $headers -OutFile cs-webview.zip
+          Write-Host "Downloading asset via API: $($asset.name)"
+          $downloadHeaders = @{
+            Authorization = "token $env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN"
+            Accept        = "application/octet-stream"
+            "User-Agent"  = "actions"
+          }
+          Invoke-WebRequest -Uri "https://api.github.com/repos/empear-analytics/cs-webview/releases/assets/$($asset.id)" `
+                            -Headers $downloadHeaders `
+                            -OutFile cs-webview.zip
 
           Expand-Archive -Path cs-webview.zip -DestinationPath cs-webview-temp -Force
 
