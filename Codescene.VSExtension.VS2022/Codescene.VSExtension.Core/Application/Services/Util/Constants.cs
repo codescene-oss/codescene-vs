@@ -21,7 +21,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
             public const string CODE_DUPLICATION = "Code Duplication";
             public const string COMPLEX_CONDITIONAL = "Complex Conditional";
             public const string COMPLEX_METHOD = "Complex Method";
-            public const string CONSTRUCTOR_OVER_INJECTION = "Constructor Over Injection";
+            public const string CONSTRUCTOR_OVER_INJECTION = "Constructor Over-Injection";
             public const string DEEP_GLOBAL_NESTED_COMPLEXITY = "Deep Global Nested Complexity";
             public const string DEEP_NESTED_COMPLEXITY = "Deep, Nested Complexity";
             public const string DUPLICATED_ASSERTION_BLOCKS = "Duplicated Assertion Blocks";
