@@ -1,9 +1,7 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.ReviewModels;
 using Codescene.VSExtension.VS2022.Util;
-using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
@@ -11,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
+using static Codescene.VSExtension.VS2022.Util.LogHelper;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorListWindowHandler;
 
@@ -76,11 +75,9 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
     {
         Task.Run(async () =>
         {
-            var logger = await VS.GetMefServiceAsync<ILogger>();
-
             try
             {
-                logger.Debug($"Opening document '{path}' from error list...");
+                LogAsync($"Opening document '{path}' from error list...", LogLevel.Debug).FireAndForget();
 
                 var task = sender as ErrorTask;
                 var isUiThread = ThreadHelper.CheckAccess();
@@ -90,16 +87,16 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
 
                 if (task?.Line == null)
                 {
-                    logger.Warn($"Could not open document '{path}' from error list, focus line is not valid.");
+                    LogAsync($"Could not open document '{path}' from error list, focus line is not valid.", LogLevel.Warn).FireAndForget();
                     return;
                 }
 
-                await DocumentNavigator.OpenFileAndGoToLineAsync(path, task.Line + 1, logger);
-                logger.Debug($"Opened document '{path}' from error list...");
+                await DocumentNavigator.OpenFileAndGoToLineAsync(path, task.Line + 1);
+                LogAsync($"Opened document '{path}' from error list...", LogLevel.Debug).FireAndForget();
             }
             catch (Exception e)
             {
-                logger.Error($"Unable to open document '{path}'", e);
+                LogAsync($"Unable to open document '{path}'", LogLevel.Error, e).FireAndForget();
             }
         }).FireAndForget();
     }

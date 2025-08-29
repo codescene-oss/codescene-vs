@@ -1,19 +1,17 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.WebComponent;
+﻿using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
+using static Codescene.VSExtension.VS2022.Util.LogHelper;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
@@ -25,8 +23,6 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
-        var logger = await VS.GetMefServiceAsync<ILogger>();
-
         try
         {
             var payload = new WebComponentPayload<CodeHealthMonitorComponentData>
@@ -36,16 +32,15 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 Data = new CodeHealthMonitorComponentData
                 {
                     ShowOnboarding = false,
-                    FileDeltaData = new List<FileDeltaData>(),
-                    Jobs = new List<Job>()
+                    FileDeltaData = [],
+                    Jobs = []
                 }
             };
 
-            var ctrl = new WebComponentUserControl(payload, logger)
+            var ctrl = new WebComponentUserControl(payload)
             {
                 CloseRequested = async () =>
                 {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     await HideAsync();
                 }
             };
@@ -56,7 +51,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         }
         catch (Exception ex)
         {
-            logger.Error("Could not create tool window.", ex);
+            LogAsync("Could not create tool window.", LogLevel.Error, ex).FireAndForget();
             return null;
         }
     }
@@ -79,12 +74,12 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 Data = new CodeHealthMonitorComponentData
                 {
                     ShowOnboarding = false,
-                    FileDeltaData = new List<FileDeltaData>(),
-                    Jobs = new List<Job>()
+                    FileDeltaData = [],
+                    Jobs = []
                 },
             }
         };
-        ILogger logger = await VS.GetMefServiceAsync<ILogger>();
+
         _userControl.UpdateViewAsync(message).FireAndForget();
     }
 

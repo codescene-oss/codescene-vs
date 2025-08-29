@@ -1,8 +1,8 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.WebComponent;
+﻿using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
+using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using static Codescene.VSExtension.VS2022.Util.LogHelper;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
@@ -28,12 +29,11 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
-        var logger = await VS.GetMefServiceAsync<ILogger>();
         var mapper = await VS.GetMefServiceAsync<CodeSmellDocumentationMapper>();
 
         if (_model != null)
         {
-            logger.Info($"Opening doc '{_model.Category}' for file {_model.Path}");
+            LogAsync($"Opening doc '{_model.Category}' for file {_model.Path}", LogLevel.Info).FireAndForget();
 
             var payload = new WebComponentPayload<CodeSmellDocumentationComponentData>
             {
@@ -42,11 +42,10 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
                 Data = mapper.Map(_model)
             };
 
-            var ctrl = new WebComponentUserControl(payload, logger)
+            var ctrl = new WebComponentUserControl(payload)
             {
                 CloseRequested = async () =>
                 {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     await HideAsync();
                 }
             };
@@ -56,7 +55,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
             return ctrl;
         }
 
-        logger.Warn($"Could not open doc '{_model.Category}' for file {_model.Path}");
+        LogAsync($"Could not open doc '{_model.Category}' for file {_model.Path}", LogLevel.Warn).FireAndForget();
         return null;
     }
 

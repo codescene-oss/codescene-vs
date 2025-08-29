@@ -179,6 +179,7 @@
     <Compile Include="Tagger\ReviewResultTaggerTooltipModel.cs" />
     <Compile Include="Util\DocumentNavigator.cs" />
     <Compile Include="Util\ExtensionMetadataProvider.cs" />
+    <Compile Include="Util\LogHelper.cs" />
     <Compile Include="Util\StyleHelper.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">
@@ -380,12 +381,12 @@
     <PackageReference Include="Microsoft.VisualStudio.Package.LanguageService.15.0">
       <Version>17.0.31902.203</Version>
     </PackageReference>
-	  <PackageReference Include="Microsoft.VisualStudio.SDK">
-		  <Version>17.0.31902.203</Version>
-	  </PackageReference>
-	  <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
-		  <Version>17.0.31902.203</Version>
-	  </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.SDK">
+      <Version>17.0.31902.203</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
+      <Version>17.0.31902.203</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0">
       <Version>17.0.31902.203</Version>
     </PackageReference>

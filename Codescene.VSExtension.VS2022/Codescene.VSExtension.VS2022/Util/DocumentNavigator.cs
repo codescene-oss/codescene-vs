@@ -1,15 +1,15 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using EnvDTE;
+﻿using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Threading.Tasks;
+using static Codescene.VSExtension.VS2022.Util.LogHelper;
 
 namespace Codescene.VSExtension.VS2022.Util;
 
 public static class DocumentNavigator
 {
-    public static async Task OpenFileAndGoToLineAsync(string filePath, int lineNumber, ILogger logger)
+    public static async Task OpenFileAndGoToLineAsync(string filePath, int lineNumber)
     {
         try
         {
@@ -29,7 +29,8 @@ public static class DocumentNavigator
         }
         catch (Exception e)
         {
-            logger.Error($"Unable to open file and focus on line {lineNumber} ", e);
+
+            LogAsync($"Unable to open file and focus on line {lineNumber} ", LogLevel.Error, e).FireAndForget();
         }
     }
 }

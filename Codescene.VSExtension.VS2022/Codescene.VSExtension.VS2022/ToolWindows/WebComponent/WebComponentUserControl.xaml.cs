@@ -1,5 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Telemetry;
+﻿using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
@@ -19,6 +18,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using static Codescene.VSExtension.VS2022.Util.LogHelper;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 /// <summary>
@@ -26,7 +26,6 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 /// </summary>
 public partial class WebComponentUserControl : UserControl
 {
-    private ILogger _logger;
     public Func<Task> CloseRequested;
     private const string FOLDER_LOCATION = @"ToolWindows\WebComponent";
     private const string HOST = "myapp.local";
@@ -41,16 +40,14 @@ public partial class WebComponentUserControl : UserControl
         "https://supporthub.codescene.com"
     };
 
-    public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
+    public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload)
     {
-        _logger = logger;
         InitializeComponent();
         Initialize(payload, payload.View);
     }
 
-    public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload, ILogger logger)
+    public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload)
     {
-        _logger = logger;
         InitializeComponent();
         Initialize(payload, payload.View);
     }
@@ -146,7 +143,6 @@ public partial class WebComponentUserControl : UserControl
         return await CoreWebView2Environment.CreateAsync(userDataFolder: cachePath);
     }
 
-
     private async Task InitializeWebView2Async<T>(T payload, string view)
     {
         var env = await CreatePerWindowEnvAsync(view);
@@ -204,24 +200,24 @@ public partial class WebComponentUserControl : UserControl
 
                 args.Cancel = true;
 
-                _logger.Info($"Opened link '{uri}' in external browser.");
+                LogAsync($"Opened link '{uri}' in external browser.", LogLevel.Info).FireAndForget();
                 SendTelemetry(uri);
             }
             catch (Exception ex)
             {
-                _logger.Error($"Could not open external link: {uri}", ex);
+                LogAsync($"Could not open external link: {uri}", LogLevel.Error, ex).FireAndForget();
             }
         }
         else
         {
             args.Cancel = true;
-            _logger.Info($"Blocked navigation to disallowed link '{uri}'.");
+            LogAsync($"Blocked navigation to disallowed link '{uri}'.", LogLevel.Warn).FireAndForget();
         }
     }
 
     private async Task OnWebMessageReceivedAsync(object sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
-        var handler = new WebComponentMessageHandler(this);
+        var handler = new WebComponentMessageHandler();
         await handler.HandleAsync(e.WebMessageAsJson);
     }
 
@@ -241,7 +237,7 @@ public partial class WebComponentUserControl : UserControl
         }
         catch (Exception e)
         {
-            _logger.Error("Could not update webview.", e);
+            LogAsync("Could not update webview.", LogLevel.Error, e).FireAndForget();
         }
     }
 

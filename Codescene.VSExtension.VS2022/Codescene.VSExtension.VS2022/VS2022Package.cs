@@ -40,19 +40,17 @@ public sealed class VS2022Package : ToolkitPackage
 
         try
         {
+            // Cli file
+            CheckCliFileAsync().FireAndForget();
+
             // Logging
-            await InitializeLoggerPaneAsync();
+            InitializeLoggerPaneAsync().FireAndForget();
 
             // Tool windows
             this.RegisterToolWindows();
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             // Commands
             await this.RegisterCommandsAsync();
-
-            // Cli file
-            await CheckCliFileAsync();
 
             // Subscribe on active document change event
             await SubscribeOnActiveWindowChangeAsync();

@@ -1,10 +1,10 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Telemetry;
+﻿using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
+using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System;
@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
+using static Codescene.VSExtension.VS2022.Util.LogHelper;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 
@@ -41,12 +42,11 @@ public class ShowDocumentationHandler
 
     private async Task SetViewToLoadingModeAsync(ShowDocumentationModel model)
     {
-        var logger = await VS.GetMefServiceAsync<ILogger>();
         var mapper = await VS.GetMefServiceAsync<CodeSmellDocumentationMapper>();
 
         try
         {
-            logger.Info($"Opening doc '{model.Category}' for file {model.Path}");
+            LogAsync($"Opening doc '{model.Category}' for file {model.Path}", LogLevel.Info).FireAndForget();
 
             CodeSmellDocumentationWindow.UpdateView(new WebComponentMessage<CodeSmellDocumentationComponentData>
             {
@@ -61,8 +61,8 @@ public class ShowDocumentationHandler
         }
         catch (Exception e)
         {
-            logger.Warn($"Could not open doc '{model.Category}' for file {model.Path}");
-            logger.Error($"Could not update view for {model.Category}", e);
+            LogAsync($"Could not open doc '{model.Category}' for file {model.Path}", LogLevel.Warn).FireAndForget();
+            LogAsync($"Could not update view for {model.Category}", LogLevel.Error, e).FireAndForget();
         }
     }
 

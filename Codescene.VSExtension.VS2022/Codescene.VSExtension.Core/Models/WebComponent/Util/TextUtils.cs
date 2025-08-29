@@ -8,7 +8,9 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Util
     {
         public static string ToSnakeCase(string input)
         {
-            var cleaned = Regex.Replace(input, @"[^\w\s]", "");
+            var normalized = input.Replace("-", "_");
+            var cleaned = Regex.Replace(normalized, @"[^\w\s]", "");
+
             return string.Join("_",
                 cleaned
                     .Split((char[])null, StringSplitOptions.RemoveEmptyEntries)
