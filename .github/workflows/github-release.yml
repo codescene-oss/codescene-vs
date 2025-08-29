@@ -23,11 +23,13 @@ jobs:
       - name: Setup VSTest
         uses: darenm/Setup-VSTest@v1
 
-      - name: Get latest cs-webview release info
-        id: get_latest
+      - name: Get latest release URL
         run: |
-          latest_url=$(curl -s https://api.github.com/repos/empear-analytics/cs-webview/releases/latest | jq -r '.assets[0].browser_download_url')
-          echo "download_url=$latest_url" >> $GITHUB_ENV
+          $release = Invoke-RestMethod https://api.github.com/repos/empear-analytics/cs-webview/releases/latest
+          $latest_url = $release.assets[0].browser_download_url
+          Write-Host "Latest asset URL: $latest_url"
+          Invoke-WebRequest -Uri $latest_url -OutFile cs-webview.zip
+          Expand-Archive cs-webview.zip -DestinationPath cs-webview -Force
 
       - name: Download latest cs-webview release
         run: |
