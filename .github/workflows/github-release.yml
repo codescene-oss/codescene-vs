@@ -23,27 +23,26 @@ jobs:
       - name: Setup VSTest
         uses: darenm/Setup-VSTest@v1
 
-      - name: Get latest release URL
+      - name: Download latest cs-webview by tag
+        shell: pwsh
         run: |
-          $release = Invoke-RestMethod https://api.github.com/repos/empear-analytics/cs-webview/releases/latest
-          $latest_url = $release.assets[0].browser_download_url
-          Write-Host "Latest asset URL: $latest_url"
-          Invoke-WebRequest -Uri $latest_url -OutFile cs-webview.zip
-          Expand-Archive cs-webview.zip -DestinationPath cs-webview -Force
-
-      - name: Download latest cs-webview release
-        run: |
-          echo "Downloading from $download_url"
-          curl -L -o cs-webview.zip "$download_url"
-          mkdir cs-webview
-          unzip -q cs-webview.zip -d cs-webview
+          $tags = Invoke-RestMethod https://api.github.com/repos/empear-analytics/cs-webview/tags
+          $latestTag = $tags[0].name
+          $zipUrl = "https://github.com/empear-analytics/cs-webview/archive/refs/tags/$latestTag.zip"
+          Invoke-WebRequest -Uri $zipUrl -OutFile cs-webview.zip
+          Expand-Archive -Path cs-webview.zip -DestinationPath cs-webview-temp
+          # flatten folder
+          $inner = Get-ChildItem cs-webview-temp | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+          Move-Item "$($inner.FullName)\*" cs-webview
+          Remove-Item cs-webview-temp -Recurse -Force
 
       - name: Copy web assets into project
+        shell: pwsh
         run: |
-          mkdir -p Codescene.VSExtension.VS2022/ToolWindows/WebComponent
-          cp cs-webview/index.html Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
-          cp cs-webview/assets/index.css Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
-          cp cs-webview/assets/index.js Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          New-Item -ItemType Directory -Force -Path Codescene.VSExtension.VS2022/ToolWindows/WebComponent
+          Copy-Item cs-webview/index.html Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          Copy-Item cs-webview/assets/index.css Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          Copy-Item cs-webview/assets/index.js Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
 
 
       - name: Restore NuGet packages
