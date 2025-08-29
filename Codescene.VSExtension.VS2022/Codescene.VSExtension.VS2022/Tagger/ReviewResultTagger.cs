@@ -21,8 +21,6 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
         internal ReviewResultTagger(ITextBuffer buffer, string filePath)
         {
-            System.Diagnostics.Debug.WriteLine($"[TAGGER CREATED] For: {buffer.GetFileName()}");
-
             _buffer = buffer;
             _filePath = filePath;
         }
@@ -50,7 +48,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                     var tagSpan = TryCreateTagSpan(visibleSpan, codeSmell);
 
                     if (tagSpan == null)
-                        yield break;
+                        continue;
 
                     if (tagSpan.Value.IntersectsWith(visibleSpan))
                         yield return CreateErrorTagSpan(tagSpan.Value, codeSmell);

@@ -22,6 +22,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
     [Import]
     private readonly ILogger _logger;
 
+    private bool _termsAccepted = false;
     private bool _infoBarShownOnce = false;
     private IVsInfoBarUIElement? _currentTermsInfoBarUiElement;
 
@@ -40,29 +41,22 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
 
     public async Task<bool> EvaulateTermsAndPoliciesAcceptanceAsync()
     {
+        if (_termsAccepted) return _termsAccepted;
+
         try
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var termsAccepted = GetAcceptedTerms();
+            if (termsAccepted) _termsAccepted = termsAccepted; // Update cache state
+
             var factory = Package.GetGlobalService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
             var uiElement = factory?.CreateInfoBar(model);
 
-            var setupIssue = _currentTermsInfoBarUiElement != null || factory == null || uiElement == null;
-            var skipInfoBar = setupIssue || termsAccepted || _infoBarShownOnce;
-
-            if (skipInfoBar)
+            if (ShouldSkipInfoBar(termsAccepted, factory, uiElement))
                 return termsAccepted;
 
-            _currentTermsInfoBarUiElement = uiElement;
-            uiElement.Advise(this, out _);
-
-            if (TryGetMainInfoBarHost(out var mainHost))
-            {
-                mainHost.AddInfoBar(uiElement);
-                _infoBarShownOnce = true;
-                SendTelemetry(CodeSceneConstants.Telemetry.TERMS_AND_POLICIES_SHOWN);
-            }
+            AddInfoBar(uiElement);
 
             return termsAccepted;
         }
@@ -70,6 +64,28 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
         {
             _logger?.Error("Failed to evaluate Terms & Policies acceptance.", e);
             return false;
+        }
+    }
+
+    private bool ShouldSkipInfoBar(bool termsAccepted, IVsInfoBarUIFactory factory, IVsInfoBarUIElement uiElement)
+    {
+        var setupIssue = _currentTermsInfoBarUiElement != null || factory == null || uiElement == null;
+
+        return setupIssue || termsAccepted || _infoBarShownOnce;
+    }
+
+    private void AddInfoBar(IVsInfoBarUIElement uiElement)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        _currentTermsInfoBarUiElement = uiElement;
+        uiElement.Advise(this, out _);
+
+        if (TryGetMainInfoBarHost(out var mainHost))
+        {
+            mainHost.AddInfoBar(uiElement);
+            _infoBarShownOnce = true;
+            SendTelemetry(CodeSceneConstants.Telemetry.TERMS_AND_POLICIES_SHOWN);
         }
     }
 

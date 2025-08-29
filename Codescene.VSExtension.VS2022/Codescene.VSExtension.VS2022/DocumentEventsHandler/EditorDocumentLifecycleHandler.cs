@@ -47,35 +47,32 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
         public void TextViewCreated(IWpfTextView textView)
         {
-            Task.Run(() =>
+            var buffer = textView.TextBuffer;
+            string filePath = GetFilePath(buffer);
+            var isSupportedForReview = _supportedFileChecker.IsSupported(filePath);
+
+            if (!isSupportedForReview) return;
+
+            _logger.Debug($"File opened: {filePath}. ");
+            string initialContent = buffer.CurrentSnapshot.GetText();
+
+            // Kick off initial review
+            ReviewContentAsync(filePath, buffer).FireAndForget();
+
+            // Triggered when the file content changes (typing, etc.)
+            buffer.Changed += (sender, args) =>
             {
-                var buffer = textView.TextBuffer;
-                string filePath = GetFilePath(buffer);
-                var isSupportedForReview = _supportedFileChecker.IsSupported(filePath);
+                _debounceService.Debounce(
+                    filePath,
+                    () => Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget(),
+                    TimeSpan.FromSeconds(3));
+            };
 
-                if (!isSupportedForReview) return;
-
-                _logger.Debug($"File opened: {filePath}. ");
-                string initialContent = buffer.CurrentSnapshot.GetText();
-
-                // Run on background thread:
-                Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget();
-
-                // Triggered when the file content changes (typing, etc.)
-                buffer.Changed += (sender, args) =>
-                {
-                    _debounceService.Debounce(
-                        filePath,
-                        () => Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget(),
-                        TimeSpan.FromSeconds(3));
-                };
-
-                textView.Closed += (sender, args) =>
-                {
-                    _logger.Debug($"File closed: {filePath}...");
-                    // TODO: Stop any pending analysis for optimization?
-                };
-            });
+            textView.Closed += (sender, args) =>
+            {
+                _logger.Debug($"File closed: {filePath}...");
+                // TODO: Stop any pending analysis for optimization?
+            };
         }
 
         /// <summary>
@@ -107,7 +104,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 if (result.RawScore != null)
                     _logger.Info($"File {path} reviewed successfully.");
 
-                await CodeSceneToolWindow.UpdateViewAsync();
+                CodeSceneToolWindow.UpdateViewAsync().FireAndForget();
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(result);
