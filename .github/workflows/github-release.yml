@@ -23,18 +23,31 @@ jobs:
       - name: Setup VSTest
         uses: darenm/Setup-VSTest@v1
 
-      - name: Download latest cs-webview by tag
+      - name: Download latest cs-webview release (private repo)
         shell: pwsh
         run: |
-          $tags = Invoke-RestMethod https://api.github.com/repos/empear-analytics/cs-webview/tags
-          $latestTag = $tags[0].name
-          $zipUrl = "https://github.com/empear-analytics/cs-webview/archive/refs/tags/$latestTag.zip"
-          Invoke-WebRequest -Uri $zipUrl -OutFile cs-webview.zip
+          # Authenticate using the GitHub token
+          $headers = @{ Authorization = "token $env:GITHUB_TOKEN" }
+
+          # Get the latest release info
+          $release = Invoke-RestMethod -Headers $headers "https://api.github.com/repos/empear-analytics/cs-webview/releases/latest"
+
+          # Pick the first asset from the release
+          $asset = $release.assets | Select-Object -First 1
+
+          # Download the asset zip
+          Invoke-WebRequest -Headers $headers -Uri $asset.browser_download_url -OutFile cs-webview.zip
+
+          # Extract the zip
           Expand-Archive -Path cs-webview.zip -DestinationPath cs-webview-temp
-          # flatten folder
+
+          # Flatten the folder structure into cs-webview
           $inner = Get-ChildItem cs-webview-temp | Where-Object { $_.PSIsContainer } | Select-Object -First 1
           Move-Item "$($inner.FullName)\*" cs-webview
           Remove-Item cs-webview-temp -Recurse -Force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Copy web assets into project
         shell: pwsh
