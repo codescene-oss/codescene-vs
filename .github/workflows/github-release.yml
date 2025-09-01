@@ -52,15 +52,8 @@ jobs:
                             -OutFile cs-webview.zip
 
           Expand-Archive -Path cs-webview.zip -DestinationPath cs-webview-temp -Force
-
+          Write-Host "Contents of extracted ZIP:"
           Get-ChildItem -Recurse cs-webview-temp
-
-          # Locate inner folder
-          $inner = Get-ChildItem cs-webview-temp | Where-Object { $_.PSIsContainer } | Select-Object -First 1
-          if (-not $inner) {
-            Write-Error "Could not find extracted release folder."
-            exit 1
-          }
 
           # Clean old folder and create target
           if (Test-Path cs-webview) {
@@ -69,16 +62,16 @@ jobs:
           New-Item -ItemType Directory -Path cs-webview | Out-Null
 
           # Move index.html from root
-          $indexHtml = Join-Path $inner.FullName "index.html"
+          $indexHtml = Join-Path "cs-webview-temp" "index.html"
           if (Test-Path $indexHtml) {
               Move-Item $indexHtml cs-webview
           } else {
-              Write-Error "index.html not found in the release root!"
+              Write-Error "index.html not found at root of extracted ZIP!"
               exit 1
           }
 
           # Move CSS and JS from assets
-          $assetsPath = Join-Path $inner.FullName "assets"
+          $assetsPath = Join-Path "cs-webview-temp" "assets"
           if (Test-Path $assetsPath) {
               Get-ChildItem $assetsPath -File | Move-Item -Destination cs-webview
           } else {
