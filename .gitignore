@@ -402,4 +402,3 @@ FodyWeavers.xsd
 # Webview build assets
 **/ToolWindows/WebComponent/index.js
 **/ToolWindows/WebComponent/index.css
-**/ToolWindows/WebComponent/index.html

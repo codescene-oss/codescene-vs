@@ -61,15 +61,6 @@ jobs:
           }
           New-Item -ItemType Directory -Path cs-cwf | Out-Null
 
-          # Move index.html from root
-          $indexHtml = Join-Path "cs-cwf-temp" "index.html"
-          if (Test-Path $indexHtml) {
-              Move-Item $indexHtml cs-cwf
-          } else {
-              Write-Error "index.html not found at root of extracted ZIP!"
-              exit 1
-          }
-
           # Move CSS and JS from assets
           $assetsPath = Join-Path "cs-cwf-temp" "assets"
           if (Test-Path $assetsPath) {
@@ -87,8 +78,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path Codescene.VSExtension.VS2022/ToolWindows/WebComponent
-          Copy-Item cs-cwf/index.html Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/ -ErrorAction Stop
-          Copy-Item cs-cwf/index.css Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          Copy-Item cs-cwf/index.css Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/ -ErrorAction Stop
           Copy-Item cs-cwf/index.js Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
 
       - name: Get latest Codescene CLI version
