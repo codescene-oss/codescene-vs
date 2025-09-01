@@ -82,12 +82,6 @@ jobs:
           Remove-Item cs-webview-temp -Recurse -Force
         env:
           CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
-
-      - name: Debug file layout
-        run: |
-          echo "PWD: $PWD"
-          dir cs-webview -Recurse
-        shell: pwsh
         
       - name: Copy web assets into project
         shell: pwsh
@@ -97,10 +91,6 @@ jobs:
           Copy-Item cs-webview/index.css Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
           Copy-Item cs-webview/index.js Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
 
-      - name: List WebComponent folder
-        run: |
-          Get-ChildItem -Path "Codescene.VSExtension.VS2022\Codescene.VSExtension.VS2022\ToolWindows\WebComponent" -Recurse -Force
-      
       - name: Get latest Codescene CLI version
         shell: pwsh
         run: |
@@ -117,11 +107,6 @@ jobs:
           # Extract and copy cs-ide.exe into solution folder
           Expand-Archive -Path cs-ide.zip -DestinationPath ./cs-ide -Force
           Copy-Item -Path "./cs-ide/cs-ide.exe" -Destination "./Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022"
-
-      
-      - name: List Codescene.VSExtension.VS2022 folder
-        run: |
-          Get-ChildItem -Path "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022" -Recurse -Force
 
       - name: Restore NuGet packages
         run: nuget restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln
