@@ -49,37 +49,37 @@ jobs:
           }
           Invoke-WebRequest -Uri "https://api.github.com/repos/empear-analytics/cs-webview/releases/assets/$($asset.id)" `
                             -Headers $downloadHeaders `
-                            -OutFile cs-webview.zip
+                            -OutFile cs-cwf.zip
 
-          Expand-Archive -Path cs-webview.zip -DestinationPath cs-webview-temp -Force
+          Expand-Archive -Path cs-cwf.zip -DestinationPath cs-cwf-temp -Force
           Write-Host "Contents of extracted ZIP:"
-          Get-ChildItem -Recurse cs-webview-temp
+          Get-ChildItem -Recurse cs-cwf-temp
 
           # Clean old folder and create target
-          if (Test-Path cs-webview) {
-              Remove-Item cs-webview -Recurse -Force
+          if (Test-Path cs-cwf) {
+              Remove-Item cs-cwf -Recurse -Force
           }
-          New-Item -ItemType Directory -Path cs-webview | Out-Null
+          New-Item -ItemType Directory -Path cs-cwf | Out-Null
 
           # Move index.html from root
-          $indexHtml = Join-Path "cs-webview-temp" "index.html"
+          $indexHtml = Join-Path "cs-cwf-temp" "index.html"
           if (Test-Path $indexHtml) {
-              Move-Item $indexHtml cs-webview
+              Move-Item $indexHtml cs-cwf
           } else {
               Write-Error "index.html not found at root of extracted ZIP!"
               exit 1
           }
 
           # Move CSS and JS from assets
-          $assetsPath = Join-Path "cs-webview-temp" "assets"
+          $assetsPath = Join-Path "cs-cwf-temp" "assets"
           if (Test-Path $assetsPath) {
-              Get-ChildItem $assetsPath -File | Move-Item -Destination cs-webview
+              Get-ChildItem $assetsPath -File | Move-Item -Destination cs-cwf
           } else {
               Write-Warning "No 'assets' folder found in release — skipping CSS/JS move."
           }
 
           # Clean up temp extraction
-          Remove-Item cs-webview-temp -Recurse -Force
+          Remove-Item cs-cwf-temp -Recurse -Force
         env:
           CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
         
@@ -87,9 +87,9 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path Codescene.VSExtension.VS2022/ToolWindows/WebComponent
-          Copy-Item cs-webview/index.html Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/ -ErrorAction Stop
-          Copy-Item cs-webview/index.css Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
-          Copy-Item cs-webview/index.js Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          Copy-Item cs-cwf/index.html Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/ -ErrorAction Stop
+          Copy-Item cs-cwf/index.css Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          Copy-Item cs-cwf/index.js Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
 
       - name: Get latest Codescene CLI version
         shell: pwsh
