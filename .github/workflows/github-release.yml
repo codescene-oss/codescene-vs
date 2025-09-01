@@ -97,6 +97,8 @@ jobs:
           Copy-Item cs-webview/index.css Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
           Copy-Item cs-webview/index.js Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
 
+          Write-Host "Contents of WebComponent:"
+          Get-ChildItem -Recurse Codescene.VSExtension.VS2022/ToolWindows/WebComponent
 
       - name: Restore NuGet packages
         run: nuget restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln
