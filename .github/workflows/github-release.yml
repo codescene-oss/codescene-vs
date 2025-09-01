@@ -93,13 +93,13 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path Codescene.VSExtension.VS2022/ToolWindows/WebComponent
-          Copy-Item cs-webview/index.html Codescene.VSExtension.VS2022/ToolWindows/WebComponent/ -ErrorAction Stop
-          Copy-Item cs-webview/index.css Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
-          Copy-Item cs-webview/index.js Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          Copy-Item cs-webview/index.html Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/ -ErrorAction Stop
+          Copy-Item cs-webview/index.css Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          Copy-Item cs-webview/index.js Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
 
       - name: List WebComponent folder
         run: |
-          Get-ChildItem -Path "Codescene.VSExtension.VS2022\ToolWindows\WebComponent" -Recurse -Force
+          Get-ChildItem -Path "Codescene.VSExtension.VS2022\Codescene.VSExtension.VS2022\ToolWindows\WebComponent" -Recurse -Force
       
       - name: Get latest Codescene CLI version
         shell: pwsh
@@ -116,12 +116,12 @@ jobs:
 
           # Extract and copy cs-ide.exe into solution folder
           Expand-Archive -Path cs-ide.zip -DestinationPath ./cs-ide -Force
-          Copy-Item -Path "./cs-ide/cs-ide.exe" -Destination "./Codescene.VSExtension.VS2022/"
+          Copy-Item -Path "./cs-ide/cs-ide.exe" -Destination "./Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022"
 
       
-      - name: List WebComponent folder
+      - name: List Codescene.VSExtension.VS2022 folder
         run: |
-          Get-ChildItem -Path "Codescene.VSExtension.VS2022" -Recurse -Force
+          Get-ChildItem -Path "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022" -Recurse -Force
 
       - name: Restore NuGet packages
         run: nuget restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln
