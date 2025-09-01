@@ -104,29 +104,20 @@ jobs:
       - name: Get latest Codescene CLI version
         shell: pwsh
         run: |
-          $response = Invoke-RestMethod -Uri "https://devtools.codescene.io/api/cli/cs-ide"
-          Write-Host "Latest version: $($response.version)"
-          Write-Host "Latest sha: $($response.sha)"
-          Write-Host "##vso[task.setvariable variable=RequiredDevToolVersion]$($response.sha)"
+          # Get version JSON from API
+          $versionInfo = Invoke-RestMethod -Uri "https://devtools.codescene.io/api/cli/cs-ide"
+          $RequiredDevToolVersion = $versionInfo.sha
 
-      - name: Download Codescene CLI
-        shell: pwsh
-        run: |
-          $url = "https://downloads.codescene.io/enterprise/cli/cs-ide-windows-amd64-$(RequiredDevToolVersion).zip"
+          # Build URL using the variable
+          $url = "https://downloads.codescene.io/enterprise/cli/cs-ide-windows-amd64-$RequiredDevToolVersion.zip"
+
           Write-Host "Downloading from $url"
           Invoke-WebRequest -Uri $url -OutFile cs-ide.zip
 
-      - name: Extract Codescene CLI
-        shell: pwsh
-        run: |
-          Expand-Archive -Path cs-ide.zip -DestinationPath cs-ide -Force
-          Get-ChildItem -Path cs-ide -Recurse
+          # Extract and copy cs-ide.exe into solution folder
+          Expand-Archive -Path cs-ide.zip -DestinationPath ./cs-ide -Force
+          Copy-Item -Path "./cs-ide/cs-ide.exe" -Destination "./Codescene.VSExtension.VS2022/"
 
-      - name: Copy cs-ide.exe into solution
-        shell: pwsh
-        run: |
-          Copy-Item -Path "cs-ide\cs-ide.exe" -Destination "Codescene.VSExtension.VS2022\cs-ide.exe" -Force
-          Get-ChildItem -Path "Codescene.VSExtension.VS2022"
       
       - name: List WebComponent folder
         run: |
