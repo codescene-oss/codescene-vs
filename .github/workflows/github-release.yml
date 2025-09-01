@@ -94,8 +94,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path Codescene.VSExtension.VS2022/ToolWindows/WebComponent
           Copy-Item cs-webview/index.html Codescene.VSExtension.VS2022/ToolWindows/WebComponent/ -ErrorAction Stop
-          Copy-Item cs-webview/assets/index.css Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
-          Copy-Item cs-webview/assets/index.js Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          Copy-Item cs-webview/index.css Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+          Copy-Item cs-webview/index.js Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
 
 
       - name: Restore NuGet packages
