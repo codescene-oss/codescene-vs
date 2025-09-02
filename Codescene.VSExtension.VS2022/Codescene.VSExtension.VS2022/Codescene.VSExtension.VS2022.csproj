@@ -228,6 +228,7 @@
     <Resource Include="Resources\User.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <None Include="GitVersion.yml" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
       <Generator>VsixManifestGenerator</Generator>
@@ -380,12 +381,12 @@
     <PackageReference Include="Microsoft.VisualStudio.Package.LanguageService.15.0">
       <Version>17.0.31902.203</Version>
     </PackageReference>
-	  <PackageReference Include="Microsoft.VisualStudio.SDK">
-		  <Version>17.0.31902.203</Version>
-	  </PackageReference>
-	  <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
-		  <Version>17.0.31902.203</Version>
-	  </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.SDK">
+      <Version>17.0.31902.203</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
+      <Version>17.0.31902.203</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0">
       <Version>17.0.31902.203</Version>
     </PackageReference>
