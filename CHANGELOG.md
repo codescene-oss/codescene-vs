@@ -10,9 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2025-09-02
 ### Changed
 - fix release script
-- v0.2.0
-- v0.2.0
-- fix release script
 - removed Release from the title
 - added index.html into source code
 

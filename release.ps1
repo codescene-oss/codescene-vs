@@ -102,4 +102,4 @@ git tag "v$newVersion"
 
 Write-Host ""
 Write-Host "✔ Release v$newVersion created."
-Write-Host "   Push with: git push origin main --follow-tags"
+Write-Host "   Push with: git push origin --follow-tags"
