@@ -33,9 +33,9 @@ if ($parts.Count -lt 3) { throw "Expected semver (X.Y.Z), got '$currentVersion'.
 # --- 2) Ask for release type ---
 $releaseType = Read-Host "Release type (patch / minor / major)"
 switch ($releaseType) {
-  'major' { $major++; $minor=0; $patch=0 }
-  'minor' { $minor++; $patch=0 }
-  'patch' { $patch++ }
+    'major' { $major++; $minor=0; $patch=0 }
+    'minor' { $minor++; $patch=0 }
+    'patch' { $patch++ }
   default { throw "Invalid release type '$releaseType'. Use patch/minor/major." }
 }
 $newVersion = "$major.$minor.$patch"
@@ -45,7 +45,7 @@ Write-Host "New version: $newVersion"
 try { $lastTag = (git describe --tags --abbrev=0).Trim() } catch { $lastTag = "" }
 if ([string]::IsNullOrWhiteSpace($lastTag)) {
     $rawCommits = git log --pretty=format:"%s"
-} else {
+} else { 
     $rawCommits = git log "$lastTag..HEAD" --pretty=format:"%s"
 }
 
@@ -81,7 +81,7 @@ if (-not (Test-Path $changelog)) {
     if ($old -notmatch '## \[Unreleased\]') { $old = "## [Unreleased]`r`n`r`n" + $old }
     $updated = [regex]::Replace($old, '(## \[Unreleased\])', "`$1`r`n`r`n$newSection", 1)
     Set-Content -Path $changelog -Value $updated -Encoding UTF8
-}
+    }
 
 # --- 6) Update ONLY Identity/@Version in the VSIX manifest via XML ---
 [xml]$mxml = Get-Content $manifest
