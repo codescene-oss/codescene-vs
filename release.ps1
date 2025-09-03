@@ -1,9 +1,9 @@
-﻿# --- SETTINGS (adjust paths if needed) ---
+﻿# --- SETTINGS ---
 $manifest  = 'Codescene.VSExtension.VS2022/source.extension.vsixmanifest'
 $vsix = 'Codescene.VSExtension.VS2022/source.extension.cs'
 $changelog = Join-Path $PSScriptRoot "CHANGELOG.md"
 
-# --- 1) Determine current version from CHANGELOG (preferred), fallback to manifest ---
+# --- 1) Determine current version from CHANGELOG, fallback to manifest ---
 function Get-VersionFromChangelog {
     param($path)
     if (-not (Test-Path $path)) { return $null }
