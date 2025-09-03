@@ -62,6 +62,9 @@ internal class WebComponentMessageHandler
                 case WebComponentConstants.MessageTypes.GOTO_FUNCTION_LOCATION:
                     await HandleGotoFunctionLocationAsync(msgObject, logger);
                     break;
+                case WebComponentConstants.MessageTypes.OPEN_SETTINGS:
+                    await VS.Commands.ExecuteAsync(PackageGuids.CodeSceneCmdSet, PackageIds.OpenSettings);
+                    break;
                 default:
                     logger.Debug($"Unknown message type: {msgObject.MessageType}.");
                     break;
