@@ -9,13 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2025-09-02
 ### Changed
-- fix release script
-- removed Release from the title
-- added index.html into source code
-
-### Changed
 - Removed unnecessary .vscode folder
-- Added pipelines for publishing on VS Marketplace
 
 ## [0.1.4] - 2025-08-21
 ### Changed

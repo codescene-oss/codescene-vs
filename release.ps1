@@ -1,5 +1,6 @@
 ﻿# --- SETTINGS (adjust paths if needed) ---
 $manifest  = 'Codescene.VSExtension.VS2022/source.extension.vsixmanifest'
+$vsix = 'Codescene.VSExtension.VS2022/source.extension.cs'
 $changelog = Join-Path $PSScriptRoot "CHANGELOG.md"
 
 # --- 1) Determine current version from CHANGELOG (preferred), fallback to manifest ---
@@ -94,8 +95,18 @@ $utf8 = New-Object System.Text.UTF8Encoding($false)
 $sw = New-Object System.IO.StreamWriter($manifest, $false, $utf8)
 $mxml.Save($sw); $sw.Dispose()
 
+# --- 6b) Update Version in source.extension.cs ---
+if (-not (Test-Path $vsix)) { throw "source.extension.cs not found: $vsix" }
+$src = Get-Content $vsix -Raw
+$updatedSrc = [regex]::Replace(
+    $src,
+    'public const string Version = "\d+\.\d+\.\d+";',
+    "public const string Version = `"$newVersion`";"
+)
+Set-Content -Path $vsix -Value $updatedSrc -Encoding UTF8
+
 # --- 7) Commit and Tag (no literal $newVersion issues) ---
-git add -- $manifest $changelog | Out-Null
+git add -- $manifest $vsix $changelog | Out-Null
 $commitMsg = "chore(release): v$newVersion"
 git commit -m $commitMsg
 git tag "v$newVersion"
