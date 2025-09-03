@@ -1,0 +1,155 @@
+name: Fetch, Build and Test, VSIX (Release on tag)
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  # -------------------------------
+  # Job 1: Fetch required assets
+  # -------------------------------
+  fetch-docs:
+    name: Fetch Docs and Web Assets
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download latest cs-webview release (private repo)
+        shell: pwsh
+        run: |
+          $headers = @{
+            Authorization = "token $env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN"
+            Accept        = "application/vnd.github+json"
+            "User-Agent"  = "actions"
+          }
+
+          Write-Host "Fetching latest release info..."
+          $release = Invoke-RestMethod -Uri "https://api.github.com/repos/empear-analytics/cs-webview/releases/latest" -Headers $headers
+
+          $asset = $release.assets | Select-Object -First 1
+          if (-not $asset) { Write-Error "No assets found in the latest release."; exit 1 }
+
+          Write-Host "Downloading asset via API: $($asset.name)"
+          $downloadHeaders = @{
+            Authorization = "token $env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN"
+            Accept        = "application/octet-stream"
+            "User-Agent"  = "actions"
+          }
+          Invoke-WebRequest -Uri "https://api.github.com/repos/empear-analytics/cs-webview/releases/assets/$($asset.id)" `
+                            -Headers $downloadHeaders `
+                            -OutFile cs-cwf.zip
+
+          Expand-Archive -Path cs-cwf.zip -DestinationPath cs-cwf-temp -Force
+          if (Test-Path cs-cwf) { Remove-Item cs-cwf -Recurse -Force }
+          New-Item -ItemType Directory -Path cs-cwf | Out-Null
+
+          $assetsPath = Join-Path "cs-cwf-temp" "assets"
+          if (Test-Path $assetsPath) {
+              Get-ChildItem $assetsPath -File | Move-Item -Destination cs-cwf
+          }
+
+          Remove-Item cs-cwf-temp -Recurse -Force
+        env:
+          CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
+
+      - name: Get latest Codescene CLI version
+        shell: pwsh
+        run: |
+          $versionInfo = Invoke-RestMethod -Uri "https://devtools.codescene.io/api/cli/cs-ide"
+          $RequiredDevToolVersion = $versionInfo.sha
+          $url = "https://downloads.codescene.io/enterprise/cli/cs-ide-windows-amd64-$RequiredDevToolVersion.zip"
+          Write-Host "Downloading from $url"
+          Invoke-WebRequest -Uri $url -OutFile cs-ide.zip
+          Expand-Archive -Path cs-ide.zip -DestinationPath ./cs-ide -Force
+
+      - name: Upload fetched assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: fetched-assets
+          path: |
+            cs-cwf/**
+            cs-ide/**
+
+  # -------------------------------
+  # Job 2: Build and Test
+  # -------------------------------
+  build-test:
+    name: Build and Test VSIX
+    runs-on: windows-latest
+    needs: fetch-docs
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download fetched assets
+        uses: actions/download-artifact@v4
+        with:
+          name: fetched-assets
+          path: .
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup VSTest
+        uses: darenm/Setup-VSTest@v1
+
+      - name: Copy web assets into project
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path Codescene.VSExtension.VS2022/ToolWindows/WebComponent
+          Copy-Item cs-cwf/index.css Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/ -ErrorAction Stop
+          Copy-Item cs-cwf/index.js Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
+
+          Copy-Item -Path "./cs-ide/cs-ide.exe" -Destination "./Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022"
+
+      - name: Restore NuGet packages
+        run: nuget restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln
+
+      - name: Build solution
+        run: msbuild Codescene.VSExtension.VS2022/Codescene.VSExtension.sln /p:Configuration=Release /p:Platform="Any CPU"
+
+      - name: Run unit tests
+        if: ${{ hashFiles('**/*Tests.dll') != '' }}
+        run: vstest.console.exe **\bin\Release\*Tests.dll /logger:trx
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/*.trx'
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-package
+          path: '**/*.vsix'
+
+  # -------------------------------
+  # Job 3: Release
+  # -------------------------------
+  release:
+    name: Create GitHub Release
+    runs-on: windows-latest
+    needs: build-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download VSIX artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vsix-package
+          path: .
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: "Automated build for ${{ github.ref_name }}"
+          files: '**/*.vsix'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
