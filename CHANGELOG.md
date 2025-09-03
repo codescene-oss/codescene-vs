@@ -9,21 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.2] - 2025-09-03
 ### Changed
-- update release script
-- clean the script comments
-- v0.2.1
-- refactore and clean up code
-- add changes
-- removed unnecessary files
-- fixed release script
-- v0.2.0
-- fix release script
-- v0.2.0
-- resloved conflict
-- v0.2.0
-- fix release script
-- 1.1.0
-
+- Updated release script
 
 ## [0.2.1] - 2025-09-03
 ### Changed
