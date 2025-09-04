@@ -72,5 +72,5 @@ jobs:
           Write-Host "Publishing VSIX: $file"
           & "${{ steps.find-vsixpub.outputs.path }}" publish `
             -payload "$file" `
-            -publishManifest publishManifest.json `
+            -publishManifest "Codescene.VSExtension.VS2022/publishManifest.publishmanifest" `
             -personalAccessToken "${{ secrets.VISUAL_STUDIO_MARKETPLACE_PUBLISHING_TOKEN }}"
