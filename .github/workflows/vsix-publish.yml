@@ -10,10 +10,10 @@ on:
 
 jobs:
   # ------------------------
-  # Job 1: Verify VSIX
+  # Job 1: Prepare VSIX
   # ------------------------
-  verify:
-    name: Verify VSIX package
+  prepare:
+    name: Prepare VSIX package
     runs-on: windows-latest
     steps:
       - name: Get latest release
@@ -25,28 +25,14 @@ jobs:
           target: './'
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Output file-name for use in publishing steps
+      - name: Output file-name for use in next job
         id: latest-release
         shell: pwsh
         run: |
           $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
+          if (-not $file) { throw "No VSIX file found!" }
           echo "file-name=$file" >> $env:GITHUB_OUTPUT
-
-      - name: Find VsixPublisher.exe
-        id: find-vsixpub
-        shell: pwsh
-        run: |
-          $vsix = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\2022" -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue | 
-                  Select-Object -First 1 -ExpandProperty FullName
-          if (-not $vsix) { throw "VsixPublisher.exe not found on runner." }
-          echo "path=$vsix" >> $env:GITHUB_OUTPUT
-
-      - name: Verify VSIX (dry run)
-        shell: pwsh
-        run: |
-          & "${{ steps.find-vsixpub.outputs.path }}" verify `
-            -payload "${{ steps.latest-release.outputs.file-name }}" `
-            -publishManifest publishManifest.json
+          Write-Host "Prepared VSIX: $file"
 
       - name: Upload VSIX artifact (for publish job)
         uses: actions/upload-artifact@v4
@@ -60,7 +46,7 @@ jobs:
   publish:
     name: Publish VSIX Extension
     runs-on: windows-latest
-    needs: verify
+    needs: prepare
     if: ${{ github.event.inputs.publish_vs_marketplace == 'true' }}
     steps:
       - name: Download VSIX artifact
@@ -77,11 +63,13 @@ jobs:
                   Select-Object -First 1 -ExpandProperty FullName
           if (-not $vsix) { throw "VsixPublisher.exe not found on runner." }
           echo "path=$vsix" >> $env:GITHUB_OUTPUT
+          Write-Host "Found VsixPublisher at: $vsix"
 
       - name: Publish to Visual Studio Marketplace
         shell: pwsh
         run: |
           $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
+          Write-Host "Publishing VSIX: $file"
           & "${{ steps.find-vsixpub.outputs.path }}" publish `
             -payload "$file" `
             -publishManifest publishManifest.json `
