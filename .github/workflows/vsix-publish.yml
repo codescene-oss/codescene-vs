@@ -53,6 +53,12 @@ jobs:
             *.vsix
             Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.json
 
+      - name: Copy README.md for Marketplace
+        shell: pwsh
+        run: |
+          Copy-Item "README.md" "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/overview.md"
+
+
   # ------------------------
   # Job 2: Publish VSIX
   # ------------------------
