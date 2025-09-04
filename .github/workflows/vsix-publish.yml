@@ -88,7 +88,7 @@ jobs:
         shell: pwsh
         run: |
           $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
-          $manifest = (Get-ChildItem *.publishmanifest | Select-Object -First 1).FullName
+          $manifest = (Get-ChildItem -Recurse -Filter *.publishmanifest | Select-Object -First 1).FullName
 
           if (-not $manifest) { throw "publishManifest.publishmanifest not found in downloaded artifacts!" }
 
