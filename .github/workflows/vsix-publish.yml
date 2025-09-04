@@ -32,10 +32,19 @@ jobs:
           $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
           echo "file-name=$file" >> $env:GITHUB_OUTPUT
 
+      - name: Find VsixPublisher.exe
+        id: find-vsixpub
+        shell: pwsh
+        run: |
+          $vsix = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\2022" -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue | 
+                  Select-Object -First 1 -ExpandProperty FullName
+          if (-not $vsix) { throw "VsixPublisher.exe not found on runner." }
+          echo "path=$vsix" >> $env:GITHUB_OUTPUT
+
       - name: Verify VSIX (dry run)
         shell: pwsh
         run: |
-          & "C:\Program Files (x86)\Microsoft Visual Studio\2022\Professional\VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe" verify `
+          & "${{ steps.find-vsixpub.outputs.path }}" verify `
             -payload "${{ steps.latest-release.outputs.file-name }}" `
             -publishManifest publishManifest.json
 
@@ -60,11 +69,20 @@ jobs:
           name: vsix-package
           path: .
 
+      - name: Find VsixPublisher.exe
+        id: find-vsixpub
+        shell: pwsh
+        run: |
+          $vsix = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\2022" -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue | 
+                  Select-Object -First 1 -ExpandProperty FullName
+          if (-not $vsix) { throw "VsixPublisher.exe not found on runner." }
+          echo "path=$vsix" >> $env:GITHUB_OUTPUT
+
       - name: Publish to Visual Studio Marketplace
         shell: pwsh
         run: |
           $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
-          & "C:\Program Files (x86)\Microsoft Visual Studio\2022\Professional\VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe" publish `
+          & "${{ steps.find-vsixpub.outputs.path }}" publish `
             -payload "$file" `
             -publishManifest publishManifest.json `
             -personalAccessToken "${{ secrets.VISUAL_STUDIO_MARKETPLACE_PUBLISHING_TOKEN }}"
