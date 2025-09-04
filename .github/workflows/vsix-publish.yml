@@ -10,12 +10,15 @@ on:
 
 jobs:
   # ------------------------
-  # Job 1: Prepare VSIX
+  # Job 1: Prepare VSIX + PublishManifest
   # ------------------------
   prepare:
     name: Prepare VSIX package
     runs-on: windows-latest
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Get latest release
         uses: dsaltares/fetch-gh-release-asset@master
         with:
@@ -34,11 +37,21 @@ jobs:
           echo "file-name=$file" >> $env:GITHUB_OUTPUT
           Write-Host "Prepared VSIX: $file"
 
-      - name: Upload VSIX artifact (for publish job)
+      - name: Ensure publishManifest exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.publishmanifest")) {
+            throw "publishManifest.publishmanifest not found in Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022!"
+          }
+          Write-Host "Found publishManifest.publishmanifest"
+
+      - name: Upload VSIX + publishManifest artifacts
         uses: actions/upload-artifact@v4
         with:
           name: vsix-package
-          path: '*.vsix'
+          path: |
+            *.vsix
+            Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.publishmanifest
 
   # ------------------------
   # Job 2: Publish VSIX
@@ -55,6 +68,12 @@ jobs:
           name: vsix-package
           path: .
 
+      - name: Debug downloaded files
+        shell: pwsh
+        run: |
+          Write-Host "Files downloaded from prepare job:"
+          Get-ChildItem -Recurse
+
       - name: Find VsixPublisher.exe
         id: find-vsixpub
         shell: pwsh
@@ -69,8 +88,13 @@ jobs:
         shell: pwsh
         run: |
           $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
-          Write-Host "Publishing VSIX: $file"
+          $manifest = (Get-ChildItem *.publishmanifest | Select-Object -First 1).FullName
+
+          if (-not $manifest) { throw "publishManifest.publishmanifest not found in downloaded artifacts!" }
+
+          Write-Host "Publishing VSIX: $file with manifest: $manifest"
+
           & "${{ steps.find-vsixpub.outputs.path }}" publish `
             -payload "$file" `
-            -publishManifest "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.publishmanifest" `
+            -publishManifest "$manifest" `
             -personalAccessToken "${{ secrets.VISUAL_STUDIO_MARKETPLACE_PUBLISHING_TOKEN }}"
