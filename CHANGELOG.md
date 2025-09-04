@@ -7,16 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.2] - 2025-09-03
+
+## [0.2.0] - 2025-09-04
 ### Changed
 - Updated release script
-
-## [0.2.1] - 2025-09-03
-### Changed
-- Refactore and clean up code
-
-## [0.2.0] - 2025-09-02
-### Changed
+- Refactor and clean up code
 - Removed unnecessary .vscode folder
 
 ## [0.1.4] - 2025-08-21
