@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-09-04
+### Changed
+- validation fix
+- validation fix
+- indent fix
+- indent fix
+- fix for overview file
+- added ovreview file
+- corrected path to readme file
+- added overview
+- removed unsupported category
+- updated categories for manifest
+- changed manifest extension
+- resource fix
+- ensure that the publishmanfiset exsist
+- path correction
+- added publishManifest file
+- update workflow with prepare and publish jobs
+- fixing the pipeline
+- updated publishing workflow with two jobs, verify and publish
+- v.0.2.0
+- updated changelog
+- v0.2.2
+- update release script
+- clean the script comments
+- v0.2.1
+- refactore and clean up code
+- add changes
+- removed unnecessary files
+- fixed release script
+- v0.2.0
+- fix release script
+- v0.2.0
+- resloved conflict
+- v0.2.0
+- fix release script
+- 1.1.0
+- fix opening Constructor Over-Injection code smell documentation
+- remove LogHelper
+- add command to open settings from webview
+
+
 
 ## [0.2.0] - 2025-09-04
 ### Changed
@@ -78,5 +120,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code Health Review and diagnostics with squiggly lines.
 - Visibility of diagnostics in Error List and detailed hover information.
 - Initial CodeScene plugin settings.
+
 
 
