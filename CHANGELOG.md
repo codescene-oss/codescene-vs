@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-09-04
+### Fixed
+- VSIX Publish pipeline fixed
 
 ## [0.2.0] - 2025-09-04
 ### Changed
@@ -78,5 +81,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code Health Review and diagnostics with squiggly lines.
 - Visibility of diagnostics in Error List and detailed hover information.
 - Initial CodeScene plugin settings.
+
 
 
