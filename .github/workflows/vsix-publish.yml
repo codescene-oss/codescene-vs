@@ -9,10 +9,12 @@ on:
         description: Publish to Visual Studio Marketplace
 
 jobs:
-  publish:
-    name: 'Publish VSIX Extension'
+  # ------------------------
+  # Job 1: Verify VSIX
+  # ------------------------
+  verify:
+    name: Verify VSIX package
     runs-on: windows-latest
-
     steps:
       - name: Get latest release
         uses: dsaltares/fetch-gh-release-asset@master
@@ -25,13 +27,44 @@ jobs:
 
       - name: Output file-name for use in publishing steps
         id: latest-release
-        run: echo "file-name=$(Get-ChildItem *.vsix | Select-Object -First 1).FullName" >> $env:GITHUB_OUTPUT
+        shell: pwsh
+        run: |
+          $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
+          echo "file-name=$file" >> $env:GITHUB_OUTPUT
+
+      - name: Verify VSIX (dry run)
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Microsoft Visual Studio\2022\Professional\VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe" verify `
+            -payload "${{ steps.latest-release.outputs.file-name }}" `
+            -publishManifest publishManifest.json
+
+      - name: Upload VSIX artifact (for publish job)
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-package
+          path: '*.vsix'
+
+  # ------------------------
+  # Job 2: Publish VSIX
+  # ------------------------
+  publish:
+    name: Publish VSIX Extension
+    runs-on: windows-latest
+    needs: verify
+    if: ${{ github.event.inputs.publish_vs_marketplace == 'true' }}
+    steps:
+      - name: Download VSIX artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vsix-package
+          path: .
 
       - name: Publish to Visual Studio Marketplace
-        if: ${{ github.event.inputs.publish_vs_marketplace == 'true' }}
-        run: >
-          "C:\Program Files (x86)\Microsoft Visual Studio\2022\Professional\VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe"
-          publish
-          -payload ${{ steps.latest-release.outputs.file-name }}
-          -publishManifest publishManifest.json
-          -personalAccessToken ${{ secrets.VISUAL_STUDIO_MARKETPLACE_PUBLISHING_TOKEN }}
+        shell: pwsh
+        run: |
+          $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
+          & "C:\Program Files (x86)\Microsoft Visual Studio\2022\Professional\VSSDK\VisualStudioIntegration\Tools\Bin\VsixPublisher.exe" publish `
+            -payload "$file" `
+            -publishManifest publishManifest.json `
+            -personalAccessToken "${{ secrets.VISUAL_STUDIO_MARKETPLACE_PUBLISHING_TOKEN }}"
