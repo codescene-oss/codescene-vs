@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json.schemastore.org/vsix-publish",
+  "categories": [ "Coding", "Code Analysis", "AI", "Technical Debt" ],
+  "identity": {
+    "internalName": "CodeScene.c90b6097-3fbd-4b82-a308-f9568074c67a",
+    "displayName": "CodeScene"
+  },
+  "overview": "overview.md",
+  "priceCategory": "free",
+  "publisher": "CodeScene",
+  "private": false,
+  "qna": false,
+  "repo": "https://github.com/codescene-oss/codescene-vs"
+}

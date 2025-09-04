@@ -37,13 +37,13 @@ jobs:
           echo "file-name=$file" >> $env:GITHUB_OUTPUT
           Write-Host "Prepared VSIX: $file"
 
-      - name: Ensure publishManifest exists
+      - name: Ensure publishManifest.json exists
         shell: pwsh
         run: |
-          if (-not (Test-Path "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.publishmanifest")) {
-            throw "publishManifest.publishmanifest not found in Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022!"
+          if (-not (Test-Path "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.json")) {
+            throw "publishManifest.json not found in Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022!"
           }
-          Write-Host "Found publishManifest.publishmanifest"
+          Write-Host "Found publishManifest.json"
 
       - name: Upload VSIX + publishManifest artifacts
         uses: actions/upload-artifact@v4
@@ -51,7 +51,7 @@ jobs:
           name: vsix-package
           path: |
             *.vsix
-            Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.publishmanifest
+            Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.json
 
   # ------------------------
   # Job 2: Publish VSIX
@@ -88,9 +88,9 @@ jobs:
         shell: pwsh
         run: |
           $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
-          $manifest = (Get-ChildItem -Recurse -Filter *.publishmanifest | Select-Object -First 1).FullName
+          $manifest = (Get-ChildItem -Recurse -Filter publishManifest.json | Select-Object -First 1).FullName
 
-          if (-not $manifest) { throw "publishManifest.publishmanifest not found in downloaded artifacts!" }
+          if (-not $manifest) { throw "publishManifest.json not found in downloaded artifacts!" }
 
           Write-Host "Publishing VSIX: $file with manifest: $manifest"
 
