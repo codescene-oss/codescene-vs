@@ -14,7 +14,7 @@ namespace Codescene.VSExtension.VS2022
         public const string Language = "en-US";
         public const string Version = "0.2.0";
         public const string Author = "CodeScene";
-        public const string Tags = "ai, ai code review, code analysis, code health, code metrics, code review, code quality, technical debt";
+        public const string Tags = "ai code review, code analysis, technical debt";
         public const bool IsPreview = false;
     }
 }
