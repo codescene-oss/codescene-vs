@@ -45,11 +45,6 @@ jobs:
           }
           Write-Host "Found publishManifest.json"
 
-      - name: Copy README.md for Marketplace
-        shell: pwsh
-        run: |
-          Copy-Item "README.md" "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/overview.md" -Force
-
       - name: Upload VSIX + publishManifest artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -57,7 +52,6 @@ jobs:
           path: |
             *.vsix
             Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.json
-            Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/overview.md
 
   # ------------------------
   # Job 2: Publish VSIX
