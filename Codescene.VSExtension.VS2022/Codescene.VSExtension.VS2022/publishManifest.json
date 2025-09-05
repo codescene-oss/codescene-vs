@@ -2,7 +2,7 @@
   "$schema": "http://json.schemastore.org/vsix-publish",
   "categories": [ "Coding", "Programming Languages" ],
   "identity": {
-    "internalName": "CodeScene.c90b6097-3fbd-4b82-a308-f9568074c67a",
+    "internalName": "CodeScene-VS",
     "displayName": "CodeScene"
   },
   "overview": "overview.md",
