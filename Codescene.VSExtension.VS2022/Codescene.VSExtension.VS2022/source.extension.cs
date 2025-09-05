@@ -12,11 +12,12 @@ namespace Codescene.VSExtension.VS2022
         public const string Name = "CodeScene";
         public const string Description = @"Integrates CodeScene analysis into Visual Studio. Keeps your code clean and maintainable.";
         public const string Language = "en-US";
-        public const string Version = "0.2.1";
+        public const string Version = "0.2.2";
         public const string Author = "CodeScene";
         public const string Tags = "ai code review, code analysis, technical debt";
         public const bool IsPreview = false;
     }
 }
+
 
 
