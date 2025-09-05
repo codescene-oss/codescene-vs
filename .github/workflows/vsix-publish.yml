@@ -87,9 +87,20 @@ jobs:
           if (-not (Test-Path $gif)) { throw "GIF missing next to manifest: $gif" }
 
           $json = Get-Content $manifest -Raw | ConvertFrom-Json
-          $json.assetFiles = @(
+
+          # Prepare assetFiles array
+          $assetFiles = @(
             @{ pathOnDisk = $gif; targetPath = "screenshots/vs-preview.gif" }
           )
+
+          # Add property if missing, otherwise overwrite
+          if (-not $json.PSObject.Properties["assetFiles"]) {
+              $json | Add-Member -MemberType NoteProperty -Name "assetFiles" -Value $assetFiles
+          } else {
+              $json.assetFiles = $assetFiles
+          }
+
+          # Save updated JSON
           $json | ConvertTo-Json -Depth 10 | Set-Content $manifest -Encoding UTF8
 
           Write-Host "Updated assetFiles in $manifest with: $gif -> screenshots/vs-preview.gif"
