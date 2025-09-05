@@ -44,6 +44,12 @@ jobs:
             throw "publishManifest.json not found in Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022!"
           }
           Write-Host "Found publishManifest.json"
+      
+      - name: Copy README.md for Marketplace
+        shell: pwsh
+        run: |
+          Copy-Item "README.md" "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/overview.md" -Force
+          Copy-Item "screenshots" "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/screenshots" -Recurse -Force
 
       - name: Upload VSIX + publishManifest artifacts
         uses: actions/upload-artifact@v4
@@ -52,6 +58,8 @@ jobs:
           path: |
             *.vsix
             Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.json
+            Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/overview.md
+            Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/screenshots/**
 
   # ------------------------
   # Job 2: Publish VSIX
