@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2025-09-05
+### Fixed
+- Corrected publishing manifest and asset handling for Visual Studio Marketplace.
+
 ## [0.2.2] - 2025-09-05
 ### Changed
 - Fix for overview gif

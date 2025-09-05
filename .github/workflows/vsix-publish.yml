@@ -76,6 +76,24 @@ jobs:
           name: vsix-package
           path: .
 
+      - name: Inject assetFiles for overview images
+        shell: pwsh
+        run: |
+          $manifest = (Get-ChildItem -Recurse -Filter publishManifest.json | Select-Object -First 1).FullName
+          if (-not $manifest) { throw "publishManifest.json not found in downloaded artifacts!" }
+
+          $manifestDir = Split-Path $manifest -Parent
+          $gif = Join-Path $manifestDir "screenshots\vs-preview.gif"
+          if (-not (Test-Path $gif)) { throw "GIF missing next to manifest: $gif" }
+
+          $json = Get-Content $manifest -Raw | ConvertFrom-Json
+          $json.assetFiles = @(
+            @{ pathOnDisk = $gif; targetPath = "screenshots/vs-preview.gif" }
+          )
+          $json | ConvertTo-Json -Depth 10 | Set-Content $manifest -Encoding UTF8
+
+          Write-Host "Updated assetFiles in $manifest with: $gif -> screenshots/vs-preview.gif"
+
       - name: Debug downloaded files
         shell: pwsh
         run: |
