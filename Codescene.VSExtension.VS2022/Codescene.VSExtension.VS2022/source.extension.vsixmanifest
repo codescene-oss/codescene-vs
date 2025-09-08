@@ -6,7 +6,7 @@
     <Description xml:space="preserve">Integrates CodeScene analysis into Visual Studio. Keeps your code clean and maintainable.</Description>
     <Icon>Resources\cs-logo.png</Icon>
     <PreviewImage>Resources\cs-logo-small.png</PreviewImage>
-    <Tags>ai code review, code analysis, technical debt</Tags>
+    <Tags>ai;ai code review;code analysis;code health;code metrics;code review;code quality;technical debt;cyclomatic complexity;refactoring</Tags>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">
