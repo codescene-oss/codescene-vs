@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4] - 2025-09-08
+### Fixed
+- Add missing tags
+### Changed
+- Prepare asset files
+
+
 ## [0.2.3] - 2025-09-05
 ### Fixed
 - Corrected publishing manifest and asset handling for Visual Studio Marketplace.
@@ -89,6 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code Health Review and diagnostics with squiggly lines.
 - Visibility of diagnostics in Error List and detailed hover information.
 - Initial CodeScene plugin settings.
+
 
 
 
