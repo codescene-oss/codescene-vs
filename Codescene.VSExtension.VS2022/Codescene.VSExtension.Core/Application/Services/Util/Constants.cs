@@ -47,6 +47,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
 
             public const string CODE_HEALTH_MONITOR = "Code Health Monitor";
             public const string GENERAL_CODE_HEALTH = "General Code Health";
+            public const string COMMIT_BASELINE = "CommitBaseline";
 
             #region Terms & Policies
             public const string ACCEPT_TERMS = "Accept";
@@ -96,6 +97,8 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
             public const string TERMS_AND_POLICIES_SHOWN = "terms_and_policies_shown";
             public const string TERMS_AND_POLICIES_RESPONSE = "terms_and_policies_response";
             public const string REVOKE_TERMS = "revoke_terms";
+
+            public const string COMMIT_BASELINE_CHANGED = "commit_baseline_changed";
             #endregion
         }
     }

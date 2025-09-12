@@ -5,6 +5,7 @@ using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using Codescene.VSExtension.VS2022.CommitBaseline;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging;
@@ -35,12 +36,13 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         {
             var deltaCache = new DeltaCacheService();
             var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
+            var commitBaseline = new CommitBaselineService();
 
             var payload = new WebComponentPayload<CodeHealthMonitorComponentData>
             {
                 IdeType = VISUAL_STUDIO_IDE_TYPE,
                 View = ViewTypes.HOME,
-                Data = mapper.Map(deltaCache.GetAll()),
+                Data = mapper.Map(deltaCache.GetAll(), commitBaseline.GetCommitBaseline()),
                 Pro = true
             };
 
@@ -74,6 +76,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
         var deltaCache = new DeltaCacheService();
         var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
+        var commitBaseline = new CommitBaselineService();
 
         var message = new WebComponentMessage<CodeHealthMonitorComponentData>
         {
@@ -82,7 +85,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
             {
                 IdeType = VISUAL_STUDIO_IDE_TYPE,
                 View = ViewTypes.HOME,
-                Data = mapper.Map(deltaCache.GetAll()),
+                Data = mapper.Map(deltaCache.GetAll(), commitBaseline.GetCommitBaseline()),
                 Pro = true
             }
         };

@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
     public interface ICodeReviewer
     {
         FileReviewModel Review(string path, string content);
-        DeltaResponseModel Delta(FileReviewModel review, string currentCode);
+        DeltaResponseModel Delta(FileReviewModel review, string currentCode, string baselineCommitSha);
         Task<CachedRefactoringActionModel> Refactor(string path, string content, bool invalidateCache = false);
         CachedRefactoringActionModel GetCachedRefactoredCode();
         Task<RefactorResponseModel> Refactor(string path, FnToRefactorModel refactorableFunction, bool invalidateCache = false);

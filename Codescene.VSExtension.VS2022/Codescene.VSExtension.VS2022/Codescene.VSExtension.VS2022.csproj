@@ -56,6 +56,9 @@
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />
     <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
     <Compile Include="Commands\RevokeTermsCommand.cs" />
+    <Compile Include="CommitBaseline\CommitBaselineService.cs" />
+    <Compile Include="Review\IReviewService.cs" />
+    <Compile Include="Review\ReviewService.cs" />
     <Compile Include="TermsAndPolicies\TermsAndPoliciesService.cs" />
     <Compile Include="Handlers\SolutionEventsHandler.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
@@ -165,6 +168,7 @@
     <Compile Include="ToolWindows\WebComponent\CodeSmellDocumentationWindow.cs" />
     <Compile Include="EditorMargin\CodeSceneMargin.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginProvider.cs" />
+    <Compile Include="ToolWindows\WebComponent\CommitBaselineType.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\CopyRefactoredCodeHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\RefactoringChangesApplier.cs" />
     <Compile Include="RegistryHelper.cs" />
