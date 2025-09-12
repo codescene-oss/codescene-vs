@@ -31,8 +31,5 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
 
         [JsonProperty("refactoring-targets")]
         public RefactoringTargetModel[] RefactoringTargets { get; set; }
-
-        [JsonProperty("vscodeRange")]
-        public PositionModel[] VSCodeRange { get; set; }
     }
 }

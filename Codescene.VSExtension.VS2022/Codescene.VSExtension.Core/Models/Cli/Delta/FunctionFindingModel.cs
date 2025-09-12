@@ -1,7 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Codescene.VSExtension.Core.Models.Cli.Delta
 {

@@ -1,6 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
-using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Git;
@@ -8,14 +7,11 @@ using Codescene.VSExtension.Core.Application.Services.Mapper;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.ReviewModels;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
 
 namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 {
@@ -76,7 +72,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 var oldRawScore = oldCodeReview?.RawScore ?? "";
 
                 var delta = _executer.ReviewDelta(oldRawScore, currentRawScore);
-                UpdateDeltaCacheWithRefactorableFunctions(delta, path, currentCode);
+                CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, path, currentCode, _logger);
 
                 var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(cache.GetAll());
                 var cacheEntry = new DeltaCacheEntry(path, oldCode, currentCode, delta);
@@ -91,68 +87,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 _logger.Error($"Could not perform delta analysis on file {path}", e);
                 return null;
             }
-        }
-
-        private void UpdateDeltaCacheWithRefactorableFunctions(DeltaResponseModel delta, string path, string code)
-        {
-            AceRefactorableFunctionsCacheService cacheService = new AceRefactorableFunctionsCacheService();
-            var refactorableFunctions = cacheService.Get(new AceRefactorableFunctionsQuery(path, code));
-
-            _logger.Debug($"Updating delta cache with refactorable functions for {path}. Found {refactorableFunctions.Count} refactorable functions.");
-
-            if (ShouldSkipUpdate(delta, refactorableFunctions))
-            {
-                return;
-            }
-
-            UpdateFindings(delta, refactorableFunctions);
-        }
-
-        private bool ShouldSkipUpdate(DeltaResponseModel delta, IList<FnToRefactorModel> refactorableFunctions)
-        {
-            if (delta == null)
-            {
-                _logger.Debug("Delta response null. Skipping update of delta cache.");
-                return true;
-            }
-            if (!refactorableFunctions.Any())
-            {
-                _logger.Debug("No refactorable functions found. Skipping update of delta cache.");
-                return true;
-            }
-            return false;
-        }
-
-        private void UpdateFindings(DeltaResponseModel delta, IList<FnToRefactorModel> refactorableFunctions)
-        {
-            foreach (var finding in delta.FunctionLevelFindings)
-            {
-                var functionName = finding.Function?.Name;
-                if (string.IsNullOrEmpty(functionName))
-                    continue;
-
-                UpdateFindingIfNotUpdated(finding, functionName, refactorableFunctions);
-            }
-        }
-
-        private void UpdateFindingIfNotUpdated(FunctionFindingModel finding, string functionName, IList<FnToRefactorModel> refactorableFunctions)
-        {
-            // update only if not already updated, for case when multiple methods have same name
-            if (finding.RefactorableFn == null)
-            {
-                var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName && checkRange(finding, fn));
-                if (match != null)
-                {
-                    finding.RefactorableFn = match;
-                }
-            }
-        }
-
-        private bool checkRange(FunctionFindingModel finding, FnToRefactorModel refFunction)
-        {
-            // this check is because of ComplexConditional code smell which is inside of the method
-            return refFunction.Range.Startline <= finding.Function.Range.Startline &&
-                finding.Function.Range.Startline <= refFunction.Range.EndLine;
         }
     }
 }

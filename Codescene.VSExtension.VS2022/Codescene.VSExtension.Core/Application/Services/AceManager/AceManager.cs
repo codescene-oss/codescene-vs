@@ -22,7 +22,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
         private readonly ILogger _logger;
 
         [Import]
-        private readonly ICliExecutor _executer;
+        private readonly ICliExecutor _executor;
 
         [Import]
         private readonly ITelemetryManager _telemetryManager;
@@ -31,7 +31,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
         public IList<FnToRefactorModel> GetRefactorableFunctions(string content, string codesmellsJson, string preflight, string extension)
         {
-            return _executer.FnsToRefactorFromCodeSmells(content, extension, codesmellsJson, preflight);
+            return _executor.FnsToRefactorFromCodeSmells(content, extension, codesmellsJson, preflight);
         }
 
         public CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false)
@@ -39,44 +39,21 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             _logger.Info($"Starting refactoring of function: {refactorableFunction.Name} in file: {path}");
             SendTelemetry(entryPoint);
 
-            var rangeList = new List<PositionModel> {
-                new PositionModel
-                {
-                    Line = refactorableFunction.Range.Startline - 1,
-                    Character = refactorableFunction.Range.StartColumn - 1
-                },
-                new PositionModel
-                {
-                    Line = refactorableFunction.Range.EndLine - 1,
-                    Character = refactorableFunction.Range.EndColumn - 1
-                }
-            };
+            var refactorableFunctionString = JsonConvert.SerializeObject(refactorableFunction);
 
-            var functionForRefactor = new FnToRefactorModel
+			try
             {
-                Name = refactorableFunction.Name,
-                Body = refactorableFunction.Body,
-                FileType = refactorableFunction.FileType,
-                Range = refactorableFunction.Range,
-                RefactoringTargets = refactorableFunction.RefactoringTargets,
-                VSCodeRange = rangeList.ToArray()
-            };
-
-            var refactorableFunctionsString = JsonConvert.SerializeObject(functionForRefactor);
-
-            try
-            {
-                var refactoredFunctions = _executer.PostRefactoring(fnToRefactor: refactorableFunctionsString);
+                var refactoredFunctions = _executor.PostRefactoring(fnToRefactor: refactorableFunctionString);
 
                 if (refactoredFunctions != null)
                 {
                     _logger.Info($"Refactored function: {refactorableFunction.Name}");
-                    _logger.Debug($"Refactoring trace-id: {refactoredFunctions.TraceId}, credits left: {refactoredFunctions.CreditsInfo.Limit - refactoredFunctions.CreditsInfo.Used}.");
+                    _logger.Debug($"Refactoring trace-id: {refactoredFunctions.TraceId}.");
 
                     var cacheItem = new CachedRefactoringActionModel
                     {
                         Path = path,
-                        RefactorableCandidate = functionForRefactor,
+                        RefactorableCandidate = refactorableFunction,
                         Refactored = refactoredFunctions
                     };
                     LastRefactoring = cacheItem;
@@ -86,7 +63,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             }
             catch (Exception e)
             {
-                _logger.Error($"Error during refactoring of method {functionForRefactor.Name}", e);
+                _logger.Error($"Error during refactoring of method {refactorableFunction.Name}", e);
             }
             return null;
         }

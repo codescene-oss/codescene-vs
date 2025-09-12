@@ -4,7 +4,6 @@ using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
 {
@@ -23,7 +22,7 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
         public PreFlightResponseModel RunPreflight(bool force = false)
         {
             _logger.Debug($"Running preflight with force {force}");
-            PreFlightResponseModel response = _executer.Preflight(force);
+            var response = _executer.Preflight(force);
 
             if (response != null)
             {
@@ -37,25 +36,14 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
                 return null;
             }
         }
-        public decimal GetVersion() => _preflightResponse?.Version ?? 0;
-
-        public bool IsAnyCodeSmellSupported(IEnumerable<string> codeSmells) => codeSmells.Intersect(_preflightResponse?.LanguageCommon.CodeSmells.ToList()).Any();
-
-        public bool IsSupportedCodeSmell(string codeSmell) => _preflightResponse?.LanguageCommon.CodeSmells.Contains(codeSmell) ?? false;
 
         public bool IsSupportedLanguage(string extension) => _preflightResponse?.FileTypes.Contains(extension.Replace(".", "").ToLower()) ?? false;
 
-        public bool IsSupportedLanguageAndCodeSmell(string extenison, string codeSmell) => IsSupportedLanguage(extenison) && IsSupportedCodeSmell(codeSmell);
-
         public PreFlightResponseModel GetPreflightResponse()
         {
-            if (_preflightResponse == null)
-            {
-                return RunPreflight(true);
-            } else
-            {
-                return _preflightResponse;
-            }
+            if (_preflightResponse == null) return RunPreflight(true);
+            
+            return _preflightResponse;
         }
     }
 }
