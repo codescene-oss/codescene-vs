@@ -16,7 +16,7 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 /// Log rotation is implemented to manage file size and backups.
 /// File names are rotated when they exceed a specified size limit (10 MB).
 /// File logs are stored in the local application data directory under "Codescene".
-/// File name includes the extension version for easy identification (codescene-vs-extension-<version>.log).
+/// File name includes the extension version for easy identification (codescene-vs-extension-[version].log).
 /// </summary>
 [Export(typeof(ILogger))]
 [PartCreationPolicy(CreationPolicy.Shared)]
@@ -29,8 +29,8 @@ public class Logger : ILogger
         "Codescene",
         LogFileName);
     private static readonly object _fileLock = new object();
-    private const long MaxLogFileSizeBytes = 10 * 1024 * 1024; // 10 MB
-    private const int MaxBackupFiles = 3;
+    private const long MAX_LOG_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+    private const int MAX_BACKUP_FILES = 3;
 
     [ImportingConstructor]
     internal Logger(OutputPaneManager outputPaneManager)
@@ -100,7 +100,7 @@ public class Logger : ILogger
             try
             {
                 // Check if rotation is needed before writing
-                if (File.Exists(LogFilePath) && new FileInfo(LogFilePath).Length > MaxLogFileSizeBytes)
+                if (File.Exists(LogFilePath) && new FileInfo(LogFilePath).Length > MAX_LOG_FILE_SIZE_BYTES)
                 {
                     RotateLogFiles();
                 }
@@ -125,14 +125,14 @@ public class Logger : ILogger
             var logFileExtension = Path.GetExtension(LogFilePath);
 
             // Remove the oldest backup if it exists
-            var oldestBackup = Path.Combine(logDirectory, $"{logFileName}-{MaxBackupFiles}{logFileExtension}");
+            var oldestBackup = Path.Combine(logDirectory, $"{logFileName}-{MAX_BACKUP_FILES}{logFileExtension}");
             if (File.Exists(oldestBackup))
             {
                 File.Delete(oldestBackup);
             }
 
             // Shift existing backups
-            for (int i = MaxBackupFiles - 1; i >= 1; i--)
+            for (int i = MAX_BACKUP_FILES - 1; i >= 1; i--)
             {
                 var sourceFile = Path.Combine(logDirectory, $"{logFileName}-{i}{logFileExtension}");
                 var targetFile = Path.Combine(logDirectory, $"{logFileName}-{i + 1}{logFileExtension}");

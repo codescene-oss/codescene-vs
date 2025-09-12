@@ -116,6 +116,7 @@
     <Compile Include="Application\Services\Cli\ICliSettingsProvider.cs" />
     <Compile Include="Application\Services\Cli\ISupportedFileChecker.cs" />
     <Compile Include="Application\Services\CodeReviewer\CodeReviewer.cs" />
+    <Compile Include="Application\Services\CodeReviewer\CodeReviewerHelper.cs" />
     <Compile Include="Application\Services\CodeReviewer\ICodeReviewer.cs" />
     <Compile Include="Application\Services\ErrorHandling\ILogger.cs" />
     <Compile Include="Application\Services\Cli\CliDownloader.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="Application\Services\Telemetry\ITelemetryManager.cs" />
     <Compile Include="Application\Services\Telemetry\TelemetryManager.cs" />
     <Compile Include="Application\Services\Util\AceConstants.cs" />
+    <Compile Include="Application\Services\Util\CodeReviewerHelper.cs" />
     <Compile Include="Application\Services\Util\Constants.cs" />
     <Compile Include="Application\Services\Util\DeltaJobTracker.cs" />
     <Compile Include="Application\Services\Util\DeltaTelemetryHelper.cs" />

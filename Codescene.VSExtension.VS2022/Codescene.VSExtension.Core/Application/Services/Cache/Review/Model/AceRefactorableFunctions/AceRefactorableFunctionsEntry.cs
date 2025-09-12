@@ -16,21 +16,5 @@ namespace Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.Ace
             FilePath = filePath;
             Result = result;
         }
-
-        public override string ToString()
-        {
-            string resultSummary;
-            if (Result == null)
-            {
-                resultSummary = "null";
-            }
-            else
-            {
-                var items = Result.Select(fn => $"{fn.Name} (Range: {fn.Range?.Startline}-{fn.Range?.EndLine})").ToList();
-                resultSummary = string.Join(", ", items);
-            }
-
-            return $"FilePath: {FilePath}, Result: [{resultSummary}]";
-        }
     }
 }
