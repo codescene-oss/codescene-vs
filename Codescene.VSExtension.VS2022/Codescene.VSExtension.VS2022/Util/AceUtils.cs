@@ -8,6 +8,7 @@ using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.ReviewModels;
+using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
@@ -74,7 +75,8 @@ namespace Codescene.VSExtension.VS2022.Util
                     var cacheEntry = new AceRefactorableFunctionsEntry(path, code, refactorableFunctions);
                     logger.Debug($"Caching refactorable functions for path: {path}.");
                     _cache.Put(cacheEntry);
-                    return refactorableFunctions;
+					await CodeSceneToolWindow.UpdateViewAsync();
+					return refactorableFunctions;
                 }
                 else
                 {
