@@ -37,7 +37,6 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                 AutoRefactor = new AutoRefactorConfig {Activated = true, Visibile = true, Disabled = false},
                 FileDeltaData = files,
                 Jobs = DeltaJobTracker.RunningJobs.ToList()
-                
             };
         }
 
