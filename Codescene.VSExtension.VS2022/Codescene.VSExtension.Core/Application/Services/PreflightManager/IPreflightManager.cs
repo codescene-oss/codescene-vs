@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -9,5 +10,6 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
         bool IsSupportedLanguage(string extenison);
         PreFlightResponseModel RunPreflight(bool force = false);
         PreFlightResponseModel GetPreflightResponse();
-    }
+        AutoRefactorConfig GetAutoRefactorConfig();
+	}
 }
