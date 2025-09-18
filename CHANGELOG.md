@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5] - 2025-09-18
+### Fixed
+- Add missing tags
+### Changed
+- v0.2.4
+- Prepare asset files
+
+
 ## [0.2.4] - 2025-09-08
 ### Fixed
 - Add missing tags
@@ -95,6 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code Health Review and diagnostics with squiggly lines.
 - Visibility of diagnostics in Error List and detailed hover information.
 - Initial CodeScene plugin settings.
+
 
 
 
