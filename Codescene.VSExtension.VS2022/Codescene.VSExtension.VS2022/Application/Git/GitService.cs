@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Git;
 using LibGit2Sharp;
 using System;
@@ -14,56 +15,43 @@ public class GitService : IGitService
     [Import]
     private readonly ILogger _logger;
 
-    public string GetBranchCreationCommit(string repoPath, string branchName)
+    private static readonly string[] PossibleMainBranches = ["main", "master", "develop", "trunk", "dev"];
+
+
+    public string GetBranchCreationCommit(string repoPath, string currentBranch)
     {
         try
         {
-            using var repo = new Repository(repoPath);
+            var repo = new Repository(repoPath);
+            var branch = repo.Branches[currentBranch];
 
-            var branch = repo.Branches[branchName];
-            if (branch == null)
+            if (branch == null || repoPath == null)
             {
-                _logger.Warn($"Branch {branchName} not found in repo {repoPath}");
-                return null;
+                _logger.Warn($"Branch {currentBranch} not found in repo {repoPath}");
+                return "";
             }
 
-            // 1️⃣ Try reflog approach
-            try
+            if (IsMainBranch(currentBranch)) return "";
+
+
+            var reflog = repo.Refs.Log(branch.CanonicalName);
+
+            var creationEntry = reflog
+                .Reverse() // check from oldest to newest
+                .FirstOrDefault(entry =>
+                    entry.Message != null &&
+                    entry.Message.IndexOf("created from", StringComparison.OrdinalIgnoreCase) >= 0);
+
+            if (creationEntry != null)
             {
-                var reflog = repo.Refs.Log(branch.CanonicalName);
-
-                var creationEntry = reflog
-                    .Reverse() // check from oldest to newest
-                    .FirstOrDefault(entry =>
-                        entry.Message != null &&
-                        entry.Message.IndexOf("created from", StringComparison.OrdinalIgnoreCase) >= 0);
-
-                if (creationEntry != null)
-                {
-                    _logger.Debug($"Branch {branchName} creation found in reflog: {creationEntry.To.Sha}");
-                    return creationEntry.To.Sha;
-                }
+                _logger.Debug($"Branch {currentBranch} creation found in reflog: {creationEntry.To.Sha}");
+                return creationEntry.To.Sha;
             }
-            catch (Exception e)
-            {
-                _logger.Warn($"Reflog lookup failed for branch {branchName}: {e.Message}");
-            }
-
-            // 2️⃣ Fallback: commit graph approach
-            var firstCommit = repo.Commits.QueryBy(new CommitFilter { IncludeReachableFrom = branch })
-                                 .LastOrDefault();
-
-            if (firstCommit != null)
-            {
-                _logger.Debug($"Branch {branchName} creation fallback (commit graph): {firstCommit.Sha}");
-                return firstCommit.Sha;
-            }
-
-            return null;
+            return "";
         }
         catch (Exception e)
         {
-            _logger.Error($"Could not determine branch creation commit for {branchName}", e);
+            _logger.Error($"Could not determine branch creation commit for {currentBranch}", e);
             return null;
         }
     }
@@ -132,13 +120,25 @@ public class GitService : IGitService
 
     public string GetDefaultBranch(string repoPath)
     {
+        repoPath = NormalizeRepoPath(repoPath);
+        if (repoPath == null)
+            throw new InvalidOperationException($"No Git repo found for {repoPath}");
+
         using var repo = new Repository(repoPath);
         return repo.Branches["main"]?.FriendlyName
             ?? repo.Branches["master"]?.FriendlyName
             ?? repo.Branches["develop"]?.FriendlyName
             ?? repo.Branches["trunk"]?.FriendlyName
             ?? repo.Branches["dev"]?.FriendlyName
-            ?? "main"; // fallback
+            ?? "";
+    }
+
+    public static bool IsMainBranch(string currentBranch)
+    {
+        if (string.IsNullOrEmpty(currentBranch))
+            return false;
+
+        return PossibleMainBranches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase);
     }
 
     // TODO: Move to helper
@@ -155,12 +155,6 @@ public class GitService : IGitService
         if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
             return path + Path.DirectorySeparatorChar;
         return path;
-    }
-
-    private string FindRepoPathFromFile(string filePath)
-    {
-        var dir = Path.GetDirectoryName(filePath);
-        return Repository.Discover(dir); // walks up until it finds .git
     }
 
     private string NormalizeRepoPath(string repoPathOrFile)

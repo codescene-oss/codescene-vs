@@ -1,6 +1,7 @@
 ﻿
 using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
+using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
@@ -14,9 +15,12 @@ using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
@@ -99,7 +103,7 @@ namespace Codescene.VSExtension.VS2022.Review
         /// Triggers delta analysis based on review of the most current content in a file.
         /// Updates or opens the Code Health Monitor tool window.
         /// </summary>
-        private async Task DeltaReviewAsync(FileReviewModel currentReview, string currentContent)
+        public async Task DeltaReviewAsync(FileReviewModel currentReview, string currentContent)
         {
             var path = currentReview.FilePath;
             var job = new Job
@@ -115,8 +119,8 @@ namespace Codescene.VSExtension.VS2022.Review
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 var baselineType = commitBaselineService.GetCommitBaseline();
-                Enum.TryParse(baselineType, out CommitBaselineType type);
-                var baselineCommitSha = _commitBaselineService.ResolveBaseline(currentReview.FilePath, type);
+                Enum.TryParse(baselineType, true, out CommitBaselineType type);
+                var baselineCommitSha = _commitBaselineService.ResolveBaseline(path, type);
 
                 _logger.Info($"Delta analysis using baseline {baselineType} ({baselineCommitSha})");
 
@@ -149,5 +153,63 @@ namespace Codescene.VSExtension.VS2022.Review
             return _commitBaselineService;
         }
 
+        public async Task DeltaReviewOpenDocsAsync()
+        {
+            var _cache = new ReviewCacheService();
+            var _deltaCache = new DeltaCacheService();
+            var openDocs = await GetAllOpenEditorPathsAsync();
+
+            foreach (var path in _deltaCache.GetAllKeys())
+            {
+                if (!openDocs.Contains(path))
+                {
+                    _deltaCache.Remove(path);
+                }
+                var doc = await VS.Documents.GetDocumentViewAsync(path);
+                if (doc == null) continue;
+                var buffer = doc.TextBuffer;
+                var supportedFileChecker = await VS.GetMefServiceAsync<ISupportedFileChecker>();
+                var reviewService = await VS.GetMefServiceAsync<IReviewService>();
+                var code = buffer.CurrentSnapshot.GetText();
+
+                if (!supportedFileChecker.IsSupported(path)) return;
+
+                var cachedResult = _cache.Get(new ReviewCacheQuery(code, path));
+
+                _logger.Debug($"Re-reviewing {path} due to baseline change...");
+                Task.Run(() => reviewService.DeltaReviewAsync(cachedResult, code)).FireAndForget();
+            }
+        }
+
+        public static async Task<List<string>> GetAllOpenEditorPathsAsync()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var uiShell = await VS.GetServiceAsync<SVsUIShell, IVsUIShell>();
+            var paths = new List<string>();
+
+            if (uiShell == null)
+                return paths;
+
+            if (ErrorHandler.Succeeded(uiShell.GetDocumentWindowEnum(out IEnumWindowFrames enumFrames)) && enumFrames != null)
+            {
+                var frameArr = new IVsWindowFrame[1];
+                uint fetched;
+                while (enumFrames.Next(1, frameArr, out fetched) == VSConstants.S_OK && fetched == 1)
+                {
+                    var frame = frameArr[0];
+                    if (frame == null) continue;
+
+                    if (ErrorHandler.Succeeded(frame.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out object mkDoc))
+                        && mkDoc is string path
+                        && !string.IsNullOrEmpty(path))
+                    {
+                        paths.Add(path);
+                    }
+                }
+            }
+
+            return paths;
+        }
     }
 }

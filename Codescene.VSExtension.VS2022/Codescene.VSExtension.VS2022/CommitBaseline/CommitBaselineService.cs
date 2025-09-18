@@ -41,7 +41,7 @@ public class CommitBaselineService
                     ? headCommit
                     : _gitService.GetBranchCreationCommit(repoPath, currentBranch),
 
-            _ => headCommit
+            _ => ""
         };
     }
 

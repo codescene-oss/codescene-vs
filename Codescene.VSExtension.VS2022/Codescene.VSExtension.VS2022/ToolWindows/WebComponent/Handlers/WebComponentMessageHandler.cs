@@ -1,4 +1,6 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
+using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
@@ -8,7 +10,9 @@ using Codescene.VSExtension.VS2022.Review;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
+using LibGit2Sharp;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Utilities.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -216,8 +220,8 @@ internal class WebComponentMessageHandler
 
         _logger.Debug($"Commit baseline type requested from UI: '{newBaseline}'...");
 
-        var commitBaselineService = await VS.GetMefServiceAsync<CommitBaselineService>();
-        var currentBaseline = commitBaselineService.GetCommitBaseline();
+        var _commitBaselineService = await VS.GetMefServiceAsync<CommitBaselineService>();
+        var currentBaseline = _commitBaselineService.GetCommitBaseline();
 
         if (!Enum.TryParse<CommitBaselineType>(newBaseline, true, out var baselineType))
         {
@@ -227,21 +231,10 @@ internal class WebComponentMessageHandler
 
         if (currentBaseline != newBaseline)
         {
-            commitBaselineService.OnCommitBaselineChanged(newBaseline);
+            var _reviewService = await VS.GetMefServiceAsync<IReviewService>();
 
-            var docs = await VS.Documents.GetActiveDocumentViewAsync();
-            //foreach (var doc in docs)
-            //{
-            string filePath = docs.FilePath;
-            var buffer = docs.TextBuffer;
-            var supportedFileChecker = await VS.GetMefServiceAsync<ISupportedFileChecker>();
-            var reviewService = await VS.GetMefServiceAsync<IReviewService>();
-
-            if (!supportedFileChecker.IsSupported(filePath)) return;
-
-                _logger.Debug($"Re-reviewing {filePath} due to baseline change...");
-                Task.Run(() => reviewService.ReviewContentAsync(filePath, buffer)).FireAndForget();
-            //}
+            _commitBaselineService.OnCommitBaselineChanged(newBaseline);
+            await _reviewService.DeltaReviewOpenDocsAsync();
         }
         else
         {

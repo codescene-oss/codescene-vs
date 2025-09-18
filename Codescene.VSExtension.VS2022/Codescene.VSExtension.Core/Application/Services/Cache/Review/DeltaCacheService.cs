@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using System.Collections.Generic;
 

@@ -1,6 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.VS2022.Application.Git;
+using Codescene.VSExtension.VS2022.Review;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio;
@@ -26,13 +27,10 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     /// </summary>
     public async Task Initialize(IServiceProvider serviceProvider)
     {
-        var isUiThread = ThreadHelper.CheckAccess();
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        if (isUiThread)
-        {
-            _solution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
-            _solution.AdviseSolutionEvents(this, out _cookie);
-        }
+        _solution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
+        _solution.AdviseSolutionEvents(this, out _cookie);
     }
 
     /// <summary>
@@ -90,7 +88,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
     // The remaining event methods are currently unused, but required by the IVsSolutionEvents interface.
     public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) => VSConstants.S_OK;
-
     public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel) => VSConstants.S_OK;
 
     public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) => VSConstants.S_OK;
@@ -132,15 +129,14 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         {
             Log(logger =>
             {
-                logger.Info($"Branch switched to: '{newBranch}'. Clearing delta cache...");
+                logger.Info($"Branch switched to: '{newBranch}'.");
                 return Task.CompletedTask;
             });
 
-            var cache = new DeltaCacheService();
-            cache.Clear();
-
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            CodeSceneToolWindow.UpdateViewAsync().FireAndForget();
+
+            var _reviewService = await VS.GetMefServiceAsync<IReviewService>();
+            await _reviewService.DeltaReviewOpenDocsAsync();
         }
         catch (Exception ex)
         {
