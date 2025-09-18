@@ -1,4 +1,6 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.PreflightManager;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
@@ -14,7 +16,10 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeHealthMonitorMapper
     {
-        public CodeHealthMonitorComponentData Map(Dictionary<string, DeltaResponseModel> fileDeltas)
+        [Import]
+        private readonly IPreflightManager _preflightManager;
+
+		public CodeHealthMonitorComponentData Map(Dictionary<string, DeltaResponseModel> fileDeltas)
         {
             var files = fileDeltas.Select(pair => new FileDeltaData
             {
@@ -34,7 +39,8 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 
             return new CodeHealthMonitorComponentData
             {
-                AutoRefactor = new AutoRefactorConfig {Activated = true, Visibile = true, Disabled = false},
+                //AutoRefactor = new AutoRefactorConfig {Activated = true, Visibile = true, Disabled = false},
+                AutoRefactor = _preflightManager.GetAutoRefactorConfig(),
                 FileDeltaData = files,
                 Jobs = DeltaJobTracker.RunningJobs.ToList()
             };

@@ -1,6 +1,4 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
-using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
-using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -18,10 +16,16 @@ public class ShowDiffHandler
 
     public async Task ShowDiffWindowAsync()
     {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
         var cache = _aceManager.GetCachedRefactoredCode();
         var newCode = cache.Refactored.Code;
+        
+        var replacement = newCode.EndsWith(Environment.NewLine) ? newCode : newCode + Environment.NewLine;
+        var tempOriginalPath = Path.GetTempFileName();
+        var tempRefactoredPath = Path.GetTempFileName();
+
+        // Switch to UI thread only for Visual Studio API calls
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
         var docView = await VS.Documents.OpenAsync(cache.Path);
         if (docView?.TextBuffer is not ITextBuffer buffer)
             return;
@@ -39,18 +43,15 @@ public class ShowDiffHandler
         );
 
         var original = snapshot.GetText();
-        var replacement = newCode.EndsWith(Environment.NewLine) ? newCode : newCode + Environment.NewLine;
         var refactored = original.Remove(span.Start, span.Length).Insert(span.Start, replacement);
 
-        // Write the original and refactored code to temporary files
-        var tempOriginalPath = Path.GetTempFileName();
-        var tempRefactoredPath = Path.GetTempFileName();
+        // Write files (could be moved to background thread if desired, but it's fast)
         File.WriteAllText(tempOriginalPath, original);
         File.WriteAllText(tempRefactoredPath, refactored);
 
         var diffService = await VS.GetServiceAsync<SVsDifferenceService, IVsDifferenceService>();
 
-        // Open the diff window with the temporary files
+        // Open the diff window (must be on UI thread)
         diffService.OpenComparisonWindow2(
             tempOriginalPath,
             tempRefactoredPath,
