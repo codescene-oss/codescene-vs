@@ -116,7 +116,6 @@
     <Compile Include="Application\Services\Cli\ICliSettingsProvider.cs" />
     <Compile Include="Application\Services\Cli\ISupportedFileChecker.cs" />
     <Compile Include="Application\Services\CodeReviewer\CodeReviewer.cs" />
-    <Compile Include="Application\Services\CodeReviewer\CodeReviewerHelper.cs" />
     <Compile Include="Application\Services\CodeReviewer\ICodeReviewer.cs" />
     <Compile Include="Application\Services\ErrorHandling\ILogger.cs" />
     <Compile Include="Application\Services\Cli\CliDownloader.cs" />

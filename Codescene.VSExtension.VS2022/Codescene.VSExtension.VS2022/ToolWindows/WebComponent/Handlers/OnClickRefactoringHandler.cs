@@ -26,7 +26,7 @@ public class OnClickRefactoringHandler
 
         if (AceToolWindow.IsCreated())
         {
-            SetViewToLoadingMode(path);
+            SetViewToLoadingMode(path, refactorableFunction);
         }
 
         await AceToolWindow.ShowAsync();
@@ -40,7 +40,7 @@ public class OnClickRefactoringHandler
         return _path;
     }
 
-    private void SetViewToLoadingMode(string path)
+    private void SetViewToLoadingMode(string path, FnToRefactorModel refactorableFunction)
     {
         AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
         {
@@ -49,7 +49,7 @@ public class OnClickRefactoringHandler
             {
                 IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
                 View = WebComponentConstants.ViewTypes.ACE,
-                Data = _mapper.Map(path)
+                Data = _mapper.Map(path, refactorableFunction)
             }
         });
     }

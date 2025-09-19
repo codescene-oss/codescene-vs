@@ -36,7 +36,6 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 
             return new CodeHealthMonitorComponentData
             {
-                //AutoRefactor = new AutoRefactorConfig {Activated = true, Visibile = true, Disabled = false},
                 AutoRefactor = _preflightManager.GetAutoRefactorConfig(),
                 FileDeltaData = files,
                 Jobs = DeltaJobTracker.RunningJobs.ToList()

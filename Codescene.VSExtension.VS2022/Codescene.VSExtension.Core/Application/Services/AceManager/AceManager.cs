@@ -44,24 +44,24 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 				return null;
             }
             
-            SendTelemetry(entryPoint);
+            SendTelemetry(entryPoint, invalidateCache);
 
             var refactorableFunctionString = JsonConvert.SerializeObject(refactorableFunction);
 
 			try
             {
-                var refactoredFunctions = _executor.PostRefactoring(fnToRefactor: refactorableFunctionString);
+                var refactoredFunction = _executor.PostRefactoring(fnToRefactor: refactorableFunctionString);
 
-                if (refactoredFunctions != null)
+                if (refactoredFunction != null)
                 {
                     _logger.Info($"Refactored function: {refactorableFunction.Name}");
-                    _logger.Debug($"Refactoring trace-id: {refactoredFunctions.TraceId}.");
+                    _logger.Debug($"Refactoring trace-id: {refactoredFunction.TraceId}.");
 
                     var cacheItem = new CachedRefactoringActionModel
                     {
                         Path = path,
                         RefactorableCandidate = refactorableFunction,
-                        Refactored = refactoredFunctions
+                        Refactored = refactoredFunction
                     };
                     LastRefactoring = cacheItem;
 
@@ -81,14 +81,14 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             return LastRefactoring;
         }
 
-        private void SendTelemetry(string entryPoint)
+        private void SendTelemetry(string entryPoint, bool invalidateCache)
         {
             Task.Run(() =>
             {
                 var additionalData = new Dictionary<string, object>
                 {
                     { "source", entryPoint },
-                    { "skipCache", false }
+                    { "skipCache", invalidateCache }
                 };
 
                 _telemetryManager.SendTelemetry(Constants.Telemetry.ACE_REFACTOR_REQUESTED, additionalData);
