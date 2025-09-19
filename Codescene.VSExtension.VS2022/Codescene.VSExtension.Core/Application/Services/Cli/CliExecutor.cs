@@ -41,7 +41,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
             return ExecuteWithTimingAndLogging<CliReviewModel>(
                 "CLI file review",
-                () => _executor.Execute(arguments, content, Timeout.DEFAULT_CLI_TIMEOUT),
+                () => _executor.Execute(arguments, content),
                 $"Review of file {filename} failed"
             );
         }
@@ -65,7 +65,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
             return ExecuteWithTimingAndLogging<DeltaResponseModel>(
                 "CLI file delta review",
-                () => _executor.Execute("delta", arguments, Timeout.DEFAULT_CLI_TIMEOUT),
+                () => _executor.Execute("delta", arguments),
                 "Delta for file failed."
             );
         }

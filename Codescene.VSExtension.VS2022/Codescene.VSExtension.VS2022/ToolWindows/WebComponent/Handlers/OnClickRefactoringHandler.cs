@@ -1,14 +1,9 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
-using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
-using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text;
-using System;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
