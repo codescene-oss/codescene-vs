@@ -1,7 +1,7 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
-using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
+﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using System;
 using System.ComponentModel.Composition;
@@ -12,14 +12,20 @@ using System.Threading.Tasks;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class ShowDiffHandler
 {
-    [Import] private readonly ICodeReviewer _reviewer;
+    [Import] private readonly IAceManager _aceManager;
 
     public async Task ShowDiffWindowAsync()
     {
+        var cache = _aceManager.GetCachedRefactoredCode();
+        var newCode = cache.Refactored.Code;
+        
+        var replacement = newCode.EndsWith(Environment.NewLine) ? newCode : newCode + Environment.NewLine;
+        var tempOriginalPath = Path.GetTempFileName();
+        var tempRefactoredPath = Path.GetTempFileName();
+
+        // Switch to UI thread only for Visual Studio API calls
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        var cache = _reviewer.GetCachedRefactoredCode();
-        var newCode = cache.Refactored.Code;
         var docView = await VS.Documents.OpenAsync(cache.Path);
         if (docView?.TextBuffer is not ITextBuffer buffer)
             return;
@@ -37,21 +43,28 @@ public class ShowDiffHandler
         );
 
         var original = snapshot.GetText();
-        var replacement = newCode.EndsWith(Environment.NewLine) ? newCode : newCode + Environment.NewLine;
         var refactored = original.Remove(span.Start, span.Length).Insert(span.Start, replacement);
 
-        var assemblyPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-        var rootDir = Path.GetDirectoryName(assemblyPath);
-        var showDiffFolder = Path.Combine(rootDir!, SkipShowDiffHelper.SHOW_DIFF_FOLDER);
-        Directory.CreateDirectory(showDiffFolder);
+        // Write files (could be moved to background thread if desired, but it's fast)
+        File.WriteAllText(tempOriginalPath, original);
+        File.WriteAllText(tempRefactoredPath, refactored);
 
-        var extension = Path.GetExtension(cache.Path);
-        var leftPath = Path.Combine(showDiffFolder, $"original{extension}");
-        var rightPath = Path.Combine(showDiffFolder, $"refactoring{extension}");
+        var diffService = await VS.GetServiceAsync<SVsDifferenceService, IVsDifferenceService>();
 
-        File.WriteAllText(leftPath, original);
-        File.WriteAllText(rightPath, refactored);
+        // Open the diff window (must be on UI thread)
+        diffService.OpenComparisonWindow2(
+            tempOriginalPath,
+            tempRefactoredPath,
+            "Code Comparison",
+            null,
+            Path.GetFileName(cache.Path) + " (Original)",
+            Path.GetFileName(cache.Path) + " (Refactored)",
+            null,
+            null,
+            0);
 
-        await VS.Commands.ExecuteAsync("Tools.DiffFiles", $"\"{leftPath}\" \"{rightPath}\"");
+        // Optionally, schedule deletion of temp files after some delay or on process exit
+        // File.Delete(tempOriginalPath);
+        // File.Delete(tempRefactoredPath);
     }
 }

@@ -31,8 +31,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Emby.Media.Model, Version=4.8.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MediaBrowser.Common.4.8.11\lib\netstandard2.0\Emby.Media.Model.dll</HintPath>
+    </Reference>
+    <Reference Include="Emby.Web.GenericEdit, Version=4.8.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MediaBrowser.Common.4.8.11\lib\netstandard2.0\Emby.Web.GenericEdit.dll</HintPath>
+    </Reference>
     <Reference Include="Markdig, Version=0.41.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Markdig.0.41.1\lib\net462\Markdig.dll</HintPath>
+    </Reference>
+    <Reference Include="MediaBrowser.Common, Version=4.8.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MediaBrowser.Common.4.8.11\lib\netstandard2.0\MediaBrowser.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="MediaBrowser.Model, Version=4.8.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MediaBrowser.Common.4.8.11\lib\netstandard2.0\MediaBrowser.Model.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.5, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.5\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -71,12 +83,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Application\Services\AceManager\AceManager.cs" />
+    <Compile Include="Application\Services\AceManager\IAceManager.cs" />
     <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IPersistenceAuthDataProvider.cs" />
     <Compile Include="Application\Services\Authentication\FakeAuthDataProvider.cs" />
+    <Compile Include="Application\Services\Cache\Review\AceRefactorableFunctionsCacheService.cs" />
     <Compile Include="Application\Services\Cache\Review\CacheService.cs" />
     <Compile Include="Application\Services\Cache\Review\DeltaCacheService.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsEntry.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsItem.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsQuery.cs" />
     <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheEntry.cs" />
     <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheItem.cs" />
     <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheQuery.cs" />
@@ -110,16 +128,18 @@
     <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Application\Services\PreflightManager\IPreflightManager.cs" />
-    <Compile Include="Application\Services\PreflightManager\PreflightManager.cs" />
     <Compile Include="Application\Services\Telemetry\DeviceId\DeviceIdStore.cs" />
     <Compile Include="Application\Services\Telemetry\DeviceId\IDeviceIdStore.cs" />
     <Compile Include="Application\Services\Telemetry\ITelemetryManager.cs" />
     <Compile Include="Application\Services\Telemetry\TelemetryManager.cs" />
+    <Compile Include="Application\Services\Util\AceConstants.cs" />
+    <Compile Include="Application\Services\Util\CodeReviewerHelper.cs" />
     <Compile Include="Application\Services\Util\Constants.cs" />
     <Compile Include="Application\Services\Util\DeltaJobTracker.cs" />
     <Compile Include="Application\Services\Util\DeltaTelemetryHelper.cs" />
     <Compile Include="Application\Services\Util\IDebounceService.cs" />
     <Compile Include="Application\Services\Util\IExtensionMetadataProvider.cs" />
+    <Compile Include="Application\Services\Util\PasteArguments.cs" />
     <Compile Include="Application\Services\WebComponent\CodeSmellDocumentationMapper.cs" />
     <Compile Include="Application\Services\WebComponent\AceComponentMapper.cs" />
     <Compile Include="Application\Services\WebComponent\CodeHealthMonitorMapper.cs" />
@@ -128,6 +148,7 @@
     <Compile Include="Models\Cli\Delta\DeltaResponseModel.cs" />
     <Compile Include="Models\Cli\Delta\FunctionFindingModel.cs" />
     <Compile Include="Models\Cli\Delta\FunctionInfoModel.cs" />
+    <Compile Include="Models\Cli\PositionModel.cs" />
     <Compile Include="Models\Cli\Refactor\ConfidenceModel.cs" />
     <Compile Include="Models\Cli\Refactor\CreditsInfoModel.cs" />
     <Compile Include="Models\Cli\Refactor\CreditsInfoErrorModel.cs" />
@@ -165,6 +186,7 @@
     <Compile Include="Models\WebComponent\Util\TextUtils.cs" />
     <Compile Include="Models\WebComponent\WebComponentConstants.cs" />
     <Compile Include="Models\WebComponent\Payload\WebComponentPayload.cs" />
+    <Compile Include="Options\General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

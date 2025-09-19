@@ -1,7 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Authentication;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.VS2022.Commands;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
@@ -38,7 +37,7 @@ internal class SignInCommand(IAuthenticationService authService, ILogger errorsH
         }
         catch (Exception ex)
         {
-            await errorsHandler.LogAsync("Authentication failed", ex);
+            errorsHandler.Error("Authentication failed", ex);
             await ShowFailedStatusAsync();
         }
     }

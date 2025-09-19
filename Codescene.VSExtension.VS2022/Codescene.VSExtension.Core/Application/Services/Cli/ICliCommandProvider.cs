@@ -11,6 +11,6 @@
         string GetRefactorCommandWithCodeSmells(string extension, string codeSmells, string preflight = null);
         string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null);
         string GetPreflightSupportInformationCommand(bool force);
-        string GetRefactorPostCommand(string fnToRefactor, bool skipCache, bool useStagingApi = false, string token = null);
+        string GetRefactorPostCommand(string fnToRefactor, bool skipCache, string token = null);
     }
 }
