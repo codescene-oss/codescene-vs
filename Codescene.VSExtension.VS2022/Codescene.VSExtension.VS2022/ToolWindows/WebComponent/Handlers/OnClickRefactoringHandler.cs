@@ -63,16 +63,22 @@ public class OnClickRefactoringHandler
     {
         var refactored = _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction, entryPoint);
 
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
+        if (refactored != null)
         {
-            MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
-            Payload = new WebComponentPayload<AceComponentData>
+            AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
-                IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
-                View = WebComponentConstants.ViewTypes.ACE,
-                Data = _mapper.Map(refactored)
-            }
-        });
+                MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+                Payload = new WebComponentPayload<AceComponentData>
+                {
+                    IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                    View = WebComponentConstants.ViewTypes.ACE,
+                    Data = _mapper.Map(refactored)
+                }
+            });
+        }
+        else
+        {
+            AceToolWindow.CloseAsync().FireAndForget();
+        }
     }
 }

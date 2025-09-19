@@ -37,6 +37,15 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
         public CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false)
         {
             _logger.Info($"Starting refactoring of function: {refactorableFunction.Name} in file: {path}");
+            
+            // Check network connectivity before proceeding
+            if (!IsNetworkAvailable())
+            {
+                _logger.Warn("No internet connection available. Refactoring requires network access.");
+				LastRefactoring = null;
+				return null;
+            }
+            
             SendTelemetry(entryPoint);
 
             var refactorableFunctionString = JsonConvert.SerializeObject(refactorableFunction);
@@ -65,6 +74,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             {
                 _logger.Error($"Error during refactoring of method {refactorableFunction.Name}", e);
             }
+            LastRefactoring = null;
             return null;
         }
 
@@ -85,6 +95,12 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
                 _telemetryManager.SendTelemetry(Constants.Telemetry.ACE_REFACTOR_REQUESTED, additionalData);
             });
+        }
+
+        private bool IsNetworkAvailable()
+        {
+            // Implementation to check network connectivity
+            return System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
         }
     }
 }
