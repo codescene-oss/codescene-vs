@@ -1,10 +1,6 @@
-using Codescene.VSExtension.Core.Application.Services.AceManager;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Util;
-using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
-using Codescene.VSExtension.Core.Models.WebComponent.Model;
-using Codescene.VSExtension.VS2022.CodeLens;
 using Codescene.VSExtension.VS2022.Commands;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Community.VisualStudio.Toolkit;

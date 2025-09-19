@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.ErrorHandling
 {

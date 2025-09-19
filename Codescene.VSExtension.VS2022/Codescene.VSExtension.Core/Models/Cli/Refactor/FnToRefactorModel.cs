@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System.Linq;
 
 namespace Codescene.VSExtension.Core.Models.Cli.Refactor
 {

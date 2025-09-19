@@ -1,6 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions
 {

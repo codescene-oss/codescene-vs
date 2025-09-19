@@ -1,10 +1,7 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Util;
+﻿using Codescene.VSExtension.Core.Application.Services.Util;
 using MediaBrowser.Model.Text;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Text;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {

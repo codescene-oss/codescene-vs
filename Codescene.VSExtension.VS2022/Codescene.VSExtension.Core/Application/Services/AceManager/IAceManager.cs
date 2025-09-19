@@ -1,7 +1,6 @@
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Services.AceManager
 {
