@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Models.Cli;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -53,8 +54,52 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
             return data;
         }
 
-        // range hadcoded here, probably the reason why navigation doesn't work correctly
-        public AceComponentData Map(string path)
+		public AceComponentData Map(string path, FnToRefactorModel model)
+		{
+			var data = new AceComponentData
+			{
+				Loading = true,
+				FileData = new WebComponentFileData
+				{
+					FileName = path,
+					Fn = new WebComponentFileDataBaseFn
+					{
+						Name = model.Name,
+						Range = new CliRangeModel
+						{
+							Startline = model.Range.Startline,
+							StartColumn = model.Range.StartColumn,
+							EndLine = model.Range.EndLine,
+							EndColumn = model.Range.EndColumn
+						}
+					},
+					Action = new WebComponentAction
+					{
+						GoToFunctionLocationPayload = new WebComponentFileDataBase
+						{
+							FileName = path,
+							Fn = new WebComponentFileDataBaseFn
+							{
+								Name = model.Name,
+								Range = new CliRangeModel
+								{
+									Startline = model.Range.Startline,
+									StartColumn = model.Range.StartColumn,
+									EndLine = model.Range.EndLine,
+									EndColumn = model.Range.EndColumn
+								}
+							}
+						}
+					}
+				},
+				AceResultData = null
+			};
+
+			return data;
+		}
+
+		// range hadcoded here, probably the reason why navigation doesn't work correctly
+		public AceComponentData Map(string path)
         {
             var fileName = Path.GetFileName(path);
             var data = new AceComponentData

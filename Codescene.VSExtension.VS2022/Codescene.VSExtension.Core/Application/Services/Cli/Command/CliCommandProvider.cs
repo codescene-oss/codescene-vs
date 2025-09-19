@@ -39,13 +39,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return $"refactor fns-to-refactor --extension {extension}{preflightArg} --delta-result {deltaResult}";
         }
 
-        public string GetRefactorPostCommand(string fnToRefactor, bool skipCache, bool useStagingApi = false, string token = null)
+        public string GetRefactorPostCommand(string fnToRefactor, bool skipCache, string token = null)
         {
             var args = new List<string> { "refactor", "post" };
             if (skipCache)
                 args.Add("--skip-cache");
-            if (useStagingApi)
-                args.Add("--staging");
             if (!string.IsNullOrWhiteSpace(token))
             {
                 args.Add($"--token");
