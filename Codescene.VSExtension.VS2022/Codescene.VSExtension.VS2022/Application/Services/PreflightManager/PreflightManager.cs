@@ -28,7 +28,8 @@ namespace Codescene.VSExtension.VS2022.Application.Services.PreflightManager
 			var aceEnabled = General.Instance.EnableAutoRefactor;
 			if (!aceEnabled)
 			{
-				_logger.Debug("Auto refactor is disabled in options.");
+				_logger.Info("Auto refactor is disabled in options.");
+				_preflightResponse = null;
 				_autoRefactorConfig = new() { Activated = true, Visibile = true, Disabled = true };
 				return null;
 			} 

@@ -96,6 +96,12 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         }
     }
 
+    public static async Task CloseAsync()
+    {
+		if (_ctrl.CloseRequested is not null)
+			await _ctrl.CloseRequested();
+	}
+
     private static void SendTelemetry(RefactorResponseModel responseModel)
     {
         Task.Run(async () =>
