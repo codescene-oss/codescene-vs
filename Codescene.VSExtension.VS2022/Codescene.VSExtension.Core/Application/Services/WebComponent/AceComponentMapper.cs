@@ -97,33 +97,5 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 
 			return data;
 		}
-
-		// range hadcoded here, probably the reason why navigation doesn't work correctly
-		public AceComponentData Map(string path)
-        {
-            var fileName = Path.GetFileName(path);
-            var data = new AceComponentData
-            {
-                Loading = true,
-                FileData = new WebComponentFileData
-                {
-                    FileName = path,
-                    Fn = new WebComponentFileDataBaseFn
-                    {
-                        Name = fileName,
-                        Range = new CliRangeModel
-                        {
-                            Startline = 0,
-                            StartColumn = 0,
-                            EndLine = 0,
-                            EndColumn = 0
-                        }
-                    }
-                },
-                AceResultData = null
-            };
-
-            return data;
-        }
     }
 }

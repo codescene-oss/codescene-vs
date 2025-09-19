@@ -18,11 +18,14 @@ public class OnClickRefactoringHandler
     [Import]
     private readonly IAceManager _aceManager;
 
-    private string _path = null;
+    public string Path { get; private set; }
+
+    public FnToRefactorModel RefactorableFunction { get; private set; }
 
     public async Task HandleAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint)
     {
-        _path = path;
+        Path = path;
+        RefactorableFunction = refactorableFunction;
 
         if (AceToolWindow.IsCreated())
         {
@@ -33,11 +36,6 @@ public class OnClickRefactoringHandler
 
         // Run on background thread:
         Task.Run(() => DoRefactorAndUpdateViewAsync(path, refactorableFunction, entryPoint)).FireAndForget();
-    }
-
-    public string GetPath()
-    {
-        return _path;
     }
 
     private void SetViewToLoadingMode(string path, FnToRefactorModel refactorableFunction)

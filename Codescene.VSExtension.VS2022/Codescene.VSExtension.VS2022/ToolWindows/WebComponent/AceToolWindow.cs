@@ -34,7 +34,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         {
             IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
             View = WebComponentConstants.ViewTypes.ACE,
-            Data = mapper.Map(handler.GetPath())
+            Data = mapper.Map(handler.Path, handler.RefactorableFunction)
         };
 
         var ctrl = new WebComponentUserControl(payload, logger)
