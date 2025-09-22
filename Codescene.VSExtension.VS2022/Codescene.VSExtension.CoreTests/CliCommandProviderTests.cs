@@ -173,10 +173,10 @@ namespace Codescene.VSExtension.CoreTests
             var fnToRefactorJson = "function(){};";
 
             // ACT
-            var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson, useStagingApi: true);
+            var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson);
 
             // ASSERT
-            Assert.AreEqual(command, $"refactor post --staging --fn-to-refactor \"{fnToRefactorJson}\"");
+            Assert.AreEqual(command, $"refactor post --fn-to-refactor \"{fnToRefactorJson}\"");
         }
 
         [TestMethod]
