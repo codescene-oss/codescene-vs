@@ -20,5 +20,6 @@ You can find detailed information for each code smell by examining the diagnosti
 
 ## Do you want to keep using CodeScene ACE?
 
-CodeScene ACE, our AI-powered refactoring agent, was free during beta but will now be offered as an add-on to the extension. 
+CodeScene ACE, our AI-powered refactoring agent, was free during beta but will now be offered as an add-on to the extension.
+
 If you’re interested in continuing to use CodeScene ACE or would like to share feedback, [reach out](https://codescene.com/contact-us-about-codescene-ace) to our Sales team.
