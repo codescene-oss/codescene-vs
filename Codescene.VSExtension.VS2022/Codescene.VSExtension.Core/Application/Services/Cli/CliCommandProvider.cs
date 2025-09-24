@@ -1,4 +1,7 @@
-﻿using System.ComponentModel.Composition;
+﻿using Codescene.VSExtension.Core.Application.Services.Util;
+using MediaBrowser.Model.Text;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
@@ -36,13 +39,30 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return $"refactor fns-to-refactor --extension {extension}{preflightArg} --delta-result {deltaResult}";
         }
 
-        public string GetRefactorPostCommand(string fnToRefactor, bool skipCache, bool useStagingApi = false, string token = null)
+        public string GetRefactorPostCommand(string fnToRefactor, bool skipCache, string token = null)
         {
-            var useStagingArg = useStagingApi ? " --staging" : string.Empty;
-            var skipCacheArg = skipCache ? " --skip-cache" : string.Empty;
-            var tokenArg = string.IsNullOrWhiteSpace(token) ? string.Empty : $" --token {token}";
-            var escapedFnToRefactor = fnToRefactor.Replace("\\", "\\\\").Replace("\"", "\\\"");
-            return $"refactor post{useStagingArg}{skipCacheArg} --fn-to-refactor \"{escapedFnToRefactor}\"{tokenArg}";
+            var args = new List<string> { "refactor", "post" };
+            if (skipCache)
+                args.Add("--skip-cache");
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                args.Add($"--token");
+                args.Add(token);
+            }
+            args.Add($"--fn-to-refactor");
+            args.Add(fnToRefactor);
+            var command = GetArgumentStr(args.ToArray());
+            return command;
+        }
+
+        static string GetArgumentStr(params string[] args)
+        {
+            var sb = new ValueStringBuilder();
+            foreach (var arg in args)
+            {
+                PasteArguments.AppendArgument(ref sb, arg);
+            }
+            return sb.ToString();
         }
 
         public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";
