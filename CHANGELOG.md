@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.6] - 2025-09-24
+### Changed
+- Update ACE wording
+
 ## [0.2.5] - 2025-09-18
 ### Changed
 - Improve code health review time by 50% (CLI version 1.0.8)
@@ -99,3 +103,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code Health Review and diagnostics with squiggly lines.
 - Visibility of diagnostics in Error List and detailed hover information.
 - Initial CodeScene plugin settings.
+
