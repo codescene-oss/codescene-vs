@@ -40,6 +40,9 @@ public sealed class VS2022Package : ToolkitPackage
 
         try
         {
+            // Wait for shell to be fully initialized before proceeding
+            await WaitForShellInitializationAsync(cancellationToken);
+
             // Logging
             await InitializeLoggerPaneAsync();
 
@@ -66,6 +69,32 @@ public sealed class VS2022Package : ToolkitPackage
 
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
             SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION_ERROR);
+        }
+    }
+
+    private async Task WaitForShellInitializationAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        if (VsShellUtilities.ShellIsInitialized)
+        {
+            return; // Shell is already initialized
+        }
+
+        // If not initialized, wait for it using a simple polling approach
+        const int maxWaitTimeMs = 120000; // 120 seconds max wait (2 min)
+        const int pollIntervalMs = 1000;   // Check every 1s
+        int elapsedMs = 0;
+
+        while (!VsShellUtilities.ShellIsInitialized && elapsedMs < maxWaitTimeMs)
+        {
+            await Task.Delay(pollIntervalMs, cancellationToken);
+            elapsedMs += pollIntervalMs;
+        }
+
+        if (!VsShellUtilities.ShellIsInitialized)
+        {
+            throw new TimeoutException("Visual Studio shell failed to initialize within the expected time.");
         }
     }
 
