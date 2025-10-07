@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.7] - 2025-10-07
+### Fixed
+- Update extension startup to wait for IDE initialization finish
+
 ## [0.2.6] - 2025-09-24
 ### Changed
 - Update ACE wording
@@ -103,4 +107,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code Health Review and diagnostics with squiggly lines.
 - Visibility of diagnostics in Error List and detailed hover information.
 - Initial CodeScene plugin settings.
+
 
