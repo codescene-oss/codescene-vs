@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2025-09-23
+### Changed
+- Update ACE wording
+
+## [0.3.1] - 2025-09-18
+### Changed
+- Improve code health review time by 50% (CLI version 1.0.8)
+
 ## [0.3.0] - 2025-08-20
 ### Added
 - Introduced a Terms & Policies acceptance step. Users must review and accept before using the extension's analysis capabilities.
