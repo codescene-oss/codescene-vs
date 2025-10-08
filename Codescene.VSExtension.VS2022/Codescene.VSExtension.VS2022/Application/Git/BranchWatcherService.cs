@@ -7,248 +7,152 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.VS2022.Application.Git;
-
-/// <summary>
-/// Monitors changes to the current Git branch in the repository associated with a Visual Studio solution.
-/// Watches the .git/HEAD file and triggers a callback when a branch switch is detected.
-/// </summary>
-public class BranchWatcherService : IDisposable
+namespace Codescene.VSExtension.VS2022.Application.Git
 {
-    private FileSystemWatcher _headWatcher;
-    private FileSystemWatcher _branchWatcher;
-    private string _repoPath;
-    private string _gitDirPath;
-    private string _headFilePath;
-    private string _lastBranch;
-    private string _lastCommit;
-    private Action<string> _onBranchChanged;
-    private FileSystemWatcher _reflogWatcher;
-    private FileSystemWatcher _packedRefsWatcher;
-    private FileSystemWatcher _logsHeadWatcher;
-    private DateTime _lastEventTs = DateTime.MinValue;
-
     /// <summary>
-    /// Initializes branch monitoring for the Git repository containing the given solution.
+    /// Monitors a Git repository and triggers:
+    ///  - Branch change callback when current branch changes
+    ///  - Delta review when the HEAD commit changes
+    ///
+    /// Implementation detail: we only watch ".git/logs/HEAD".
+    /// That file appends on every commit and checkout (any branch, packed refs or not).
     /// </summary>
-    /// <param name="solutionPath">The full path to the solution file or folder.</param>
-    /// <param name="onBranchChanged">
-    /// A callback that is invoked with the new branch name whenever a branch switch is detected.
-    /// </param>
-    public void StartWatching(string solutionPath, Action<string> onBranchChanged)
+    public sealed class BranchWatcherService : IDisposable
     {
-        InitializeGitInformation(solutionPath);
+        private FileSystemWatcher? _logsHeadWatcher;
 
-        if (!File.Exists(_headFilePath))
+        private string _gitDirPath = string.Empty;   // canonical .git directory (repo.Info.Path)
+        private string _lastBranch = string.Empty;   // repo.Head.FriendlyName
+        private string _lastCommit = string.Empty;   // repo.Head.Tip.Sha
+        private Action<string>? _onBranchChanged;
+
+        private DateTime _lastEventTs = DateTime.MinValue;
+        private bool _started;
+
+        /// <summary>
+        /// Start watching the repo that contains 'solutionPath'. Safe to call repeatedly; subsequent calls reinitialize.
+        /// </summary>
+        public void StartWatching(string solutionPath, Action<string> onBranchChanged)
         {
-            return;
-        }
+            Stop(); // clear any existing watcher
 
-        _onBranchChanged = onBranchChanged;
-
-        InitializeGitChangeMonitor();
-        InitializeCommitChangeMonitor();
-    }
-
-    /// <summary>
-    /// Discovers the Git repository for the given solution and sets internal paths for .git tracking.
-    /// </summary>
-    /// <param name="solutionPath">The full path to the Visual Studio solution or folder.</param>
-    private void InitializeGitInformation(string solutionPath)
-    {
-        _repoPath = Repository.Discover(solutionPath);
-        if (string.IsNullOrEmpty(_repoPath))
-        {
-            Debug.WriteLine("BranchWatcherService: No git repo found.");
-            return;
-        }
-
-        using var repo = new Repository(_repoPath);
-
-        _gitDirPath = repo.Info.Path;
-        _headFilePath = Path.Combine(_gitDirPath, "HEAD");
-        _lastBranch = ReadCurrentBranch();
-    }
-
-    /// <summary>
-    /// Sets up the FileSystemWatcher to monitor the .git/HEAD file for changes.
-    /// </summary>
-    private void InitializeGitChangeMonitor()
-    {
-        _headWatcher = new FileSystemWatcher(_gitDirPath)
-        {
-            Filter = "HEAD",
-            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName
-        };
-
-        _headWatcher.Changed += OnHeadFileChanged;
-        _headWatcher.Created += OnHeadFileChanged;
-        _headWatcher.Renamed += OnHeadFileChanged;
-        _headWatcher.EnableRaisingEvents = true;
-    }
-
-    private void InitializeCommitChangeMonitor()
-    {
-        DisposeCommitWatchers();
-
-        var branchRefFile = Path.Combine(_gitDirPath, "refs", "heads", _lastBranch);
-        var branchLogFile = Path.Combine(_gitDirPath, "logs", "refs", "heads", _lastBranch);
-        var packedRefs = Path.Combine(_gitDirPath, "packed-refs");
-
-        void watch(string dir, string filter, FileSystemEventHandler handler, out FileSystemWatcher w)
-        {
-            if (!Directory.Exists(dir)) { w = null; return; }
-            w = new FileSystemWatcher(dir)
+            // Discover repo and canonical .git directory
+            var discovered = Repository.Discover(solutionPath);
+            if (string.IsNullOrEmpty(discovered))
             {
-                Filter = filter,
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName,
+                Debug.WriteLine("BranchWatcherService: No git repo found for " + solutionPath);
+                return;
+            }
+
+            using var repo = new Repository(discovered);
+            _gitDirPath = repo.Info.Path; // canonical .git dir (handles worktrees)
+            _lastBranch = repo.Head?.FriendlyName ?? string.Empty;
+            _lastCommit = repo.Head?.Tip?.Sha ?? string.Empty;
+            _onBranchChanged = onBranchChanged;
+
+            // Ensure we can watch logs directory even if HEAD log doesn't exist yet
+            var logsDir = Path.Combine(_gitDirPath, "logs");
+            if (!Directory.Exists(logsDir))
+            {
+                // No commits yet -> nothing to watch until the first commit creates logs
+                Debug.WriteLine("BranchWatcherService: '.git/logs' not found. Waiting for first commit.");
+                _started = true;
+                return;
+            }
+
+            // Watch ".git/logs" for the "HEAD" file
+            _logsHeadWatcher = new FileSystemWatcher(logsDir)
+            {
+                Filter = "HEAD",
                 IncludeSubdirectories = false,
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName,
                 InternalBufferSize = 64 * 1024
             };
-            w.Changed += handler;
-            w.Created += handler;
-            w.Renamed += (s, e) => handler(s, e);
-            w.Error += (s, e) => Debug.WriteLine($"FSW error {dir}\\{filter}: {e.GetException()?.Message}");
-            w.EnableRaisingEvents = true;
+
+            _logsHeadWatcher.Changed += OnLogsHeadChanged;
+            _logsHeadWatcher.Created += OnLogsHeadChanged;
+            _logsHeadWatcher.Renamed += OnLogsHeadChanged;
+            _logsHeadWatcher.Error += (s, e) =>
+                Debug.WriteLine($"BranchWatcherService: FSW error logs/HEAD - {e.GetException()?.Message}");
+
+            _logsHeadWatcher.EnableRaisingEvents = true;
+            _started = true;
+
+            Debug.WriteLine($"BranchWatcherService: watching {_gitDirPath}logs\\HEAD");
+            Debug.WriteLine($"BranchWatcherService: initial branch={_lastBranch}, tip={_lastCommit}");
         }
-        var logsHead = Path.Combine(_gitDirPath, "logs", "HEAD");
 
-        if (File.Exists(branchRefFile))
-            watch(Path.GetDirectoryName(branchRefFile), Path.GetFileName(branchRefFile), OnCommitIndicatorChanged, out _branchWatcher);
-
-        if (File.Exists(branchLogFile))
-            watch(Path.GetDirectoryName(branchLogFile), Path.GetFileName(branchLogFile), OnCommitIndicatorChanged, out _reflogWatcher);
-
-        if (File.Exists(packedRefs))
-            watch(Path.GetDirectoryName(packedRefs), Path.GetFileName(packedRefs), OnCommitIndicatorChanged, out _packedRefsWatcher);
-
-        if (File.Exists(logsHead))
-            watch(Path.GetDirectoryName(logsHead)!, Path.GetFileName(logsHead), OnCommitIndicatorChanged, out _logsHeadWatcher);
-
-        _lastCommit = GetHeadShaSafe(_gitDirPath);
-    }
-
-    private async void OnCommitIndicatorChanged(object sender, FileSystemEventArgs e)
-    {
-        var now = DateTime.UtcNow;
-        if ((now - _lastEventTs).TotalMilliseconds < 250) return;
-        _lastEventTs = now;
-
-        try
+        /// <summary>
+        /// Single handler for commits and checkouts via logs/HEAD.
+        /// </summary>
+        private async void OnLogsHeadChanged(object? sender, FileSystemEventArgs e)
         {
-            await Task.Delay(50);
+            // Debounce bursts (lock/write/rename yields multiple events)
+            var now = DateTime.UtcNow;
+            if ((now - _lastEventTs).TotalMilliseconds < 250) return;
+            _lastEventTs = now;
 
-            var gitDir = _gitDirPath;
-            var sha = GetHeadShaSafe(gitDir);
-            if (string.IsNullOrEmpty(sha) || sha.Equals(_lastCommit, StringComparison.OrdinalIgnoreCase))
-                return;
-
-            _lastCommit = sha;
-            Debug.WriteLine($"New commit detected: {sha}");
-
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var _reviewService = await VS.GetMefServiceAsync<IReviewService>();
-            await _reviewService.DeltaReviewOpenDocsAsync();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Commit watcher handler error: {ex.Message}");
-        }
-    }
-
-    private string GetHeadShaSafe(string gitDirOrRepoPath)
-    {
-        try
-        {
-            using var repo = new Repository(gitDirOrRepoPath);
-            return repo.Head?.Tip?.Sha ?? "";
-        }
-        catch { return ""; }
-    }
-
-    private void DisposeCommitWatchers()
-    {
-        _branchWatcher?.Dispose(); _branchWatcher = null;
-        _reflogWatcher?.Dispose(); _reflogWatcher = null;
-        _packedRefsWatcher?.Dispose(); _packedRefsWatcher = null;
-        _logsHeadWatcher?.Dispose(); _logsHeadWatcher = null;
-    }
-
-
-    /// <summary>
-    /// Handles file system events triggered when the HEAD file is modified.
-    /// Detects a branch switch and invokes the registered callback if necessary.
-    /// </summary>
-    private async void OnHeadFileChanged(object sender, FileSystemEventArgs e)
-    {
-        try
-        {
-            await Task.Delay(50); // settle
-            var current = ReadCurrentBranch();
-            if (current != _lastBranch)
+            try
             {
-                _lastBranch = current;
-                Debug.WriteLine($"BranchWatcherService: Branch changed to {current}");
-                _onBranchChanged?.Invoke(current);
+                // Let Git settle the file write/rename
+                await Task.Delay(60);
 
-                InitializeCommitChangeMonitor();         // rewire refs/heads/<branch> + logs/refs/heads/<branch>
-                _lastCommit = GetHeadShaSafe(_gitDirPath);
+                string currentBranch;
+                string currentSha;
+
+                // Query the repo state (most reliable)
+                try
+                {
+                    using var repo = new Repository(_gitDirPath);
+                    currentBranch = repo.Head?.FriendlyName ?? string.Empty;
+                    currentSha = repo.Head?.Tip?.Sha ?? string.Empty;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"BranchWatcherService: repo read failed - {ex.Message}");
+                    return;
+                }
+
+                // Detect branch change
+                if (!string.Equals(currentBranch, _lastBranch, StringComparison.Ordinal))
+                {
+                    _lastBranch = currentBranch;
+                    Debug.WriteLine($"BranchWatcherService: Branch changed -> {_lastBranch}");
+                    _onBranchChanged?.Invoke(_lastBranch);
+                }
+
+                // Detect commit change
+                if (!string.IsNullOrEmpty(currentSha) &&
+                    !string.Equals(currentSha, _lastCommit, StringComparison.OrdinalIgnoreCase))
+                {
+                    _lastCommit = currentSha;
+                    Debug.WriteLine($"BranchWatcherService: New commit -> {_lastCommit}");
+
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    var review = await VS.GetMefServiceAsync<IReviewService>();
+                    if (review != null)
+                        await review.DeltaReviewOpenDocsAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"BranchWatcherService: logs/HEAD handler error - {ex.Message}");
             }
         }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"BranchWatcherService: Error during HEAD check - {ex.Message}");
-        }
-    }
 
-    private async void OnBranchRefChanged(object sender, FileSystemEventArgs e)
-    {
-        try
+        public void Stop()
         {
-            var commitSha = File.ReadAllText(e.FullPath).Trim();
-            if (commitSha != _lastCommit)
-            {
-                _lastCommit = commitSha;
-                Debug.WriteLine($"New commit detected: {commitSha}");
-
-                // Trigger delta review
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var _reviewService = await VS.GetMefServiceAsync<IReviewService>();
-                await _reviewService.DeltaReviewOpenDocsAsync();
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine("Error watching branch ref file.", ex);
-        }
-    }
-
-    /// <summary>
-    /// Reads the current branch from the .git/HEAD file.
-    /// </summary>
-    /// <returns>The name of the currently checked-out branch, or "(detached)" if in detached HEAD state.</returns>
-    private string ReadCurrentBranch()
-    {
-        if (!File.Exists(_headFilePath))
-            return "(missing)";
-
-        var content = File.ReadAllText(_headFilePath).Trim();
-        if (content.StartsWith("ref:"))
-        {
-            return content.Replace("ref: refs/heads/", "").Trim();
+            _logsHeadWatcher?.Dispose();
+            _logsHeadWatcher = null;
+            _started = false;
         }
 
-        return "(detached)";
-    }
+        public void Dispose() => Stop();
 
-    public void Stop()
-    {
-        _headWatcher?.Dispose();
-        _headWatcher = null;
-    }
-
-    public void Dispose()
-    {
-        Stop();
+        // Optional: expose last-observed state (handy for diagnostics/telemetry)
+        public bool IsRunning => _started;
+        public string LastBranch => _lastBranch;
+        public string LastCommit => _lastCommit;
+        public string GitDirPath => _gitDirPath;
     }
 }

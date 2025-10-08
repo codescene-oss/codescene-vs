@@ -88,6 +88,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
     // The remaining event methods are currently unused, but required by the IVsSolutionEvents interface.
     public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) => VSConstants.S_OK;
+
     public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel) => VSConstants.S_OK;
 
     public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) => VSConstants.S_OK;
@@ -129,7 +130,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         {
             Log(logger =>
             {
-                logger.Info($"Branch switched to: '{newBranch}'.");
+                logger.Info($"Branch switched to: '{newBranch}'. Clearing delta cache...");
                 return Task.CompletedTask;
             });
 

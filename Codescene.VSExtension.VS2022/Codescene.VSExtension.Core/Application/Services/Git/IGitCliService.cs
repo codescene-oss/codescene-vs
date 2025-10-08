@@ -7,7 +7,6 @@
         string GetBranchCreationCommit(string repoPath, string branchName);
         string GetCurrentBranch(string repoPath);
         string GetDefaultBranch(string repoPath);
-
     }
 
     public class GitResult

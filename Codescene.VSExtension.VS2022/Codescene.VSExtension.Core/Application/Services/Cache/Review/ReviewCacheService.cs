@@ -1,7 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models.ReviewModels;
-using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cache.Review
 {

@@ -53,12 +53,13 @@ public class GitService : IGitService
                 _logger.Debug($"Branch {currentBranch} creation found in reflog: {creationEntry.To.Sha}");
                 return creationEntry.To.Sha;
             }
-            return "";
+
+            return ""; // Possibly created directly on main or unknown base
         }
         catch (Exception e)
         {
-            _logger.Error($"Could not determine branch creation commit for {currentBranch}", e);
-            return null;
+            _logger.Error($"Could not get branch creation commit for {currentBranch}", e);
+            return "";
         }
     }
 
