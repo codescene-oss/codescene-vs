@@ -1,7 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
-using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
-using Codescene.VSExtension.Core.Application.Services.Cli;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -10,9 +7,7 @@ using Codescene.VSExtension.VS2022.Review;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
-using LibGit2Sharp;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Utilities.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -251,16 +246,5 @@ internal class WebComponentMessageHandler
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
             telemetryManager.SendTelemetry(eventName, additionalData);
         }).FireAndForget();
-    }
-
-    public CommitBaselineType ConvertCommitBaselineType(string commitBaselineString)
-    {
-        return commitBaselineString switch
-        {
-            "HEAD" => CommitBaselineType.Head,
-            "branchCreate" => CommitBaselineType.BranchCreate,
-            "default" => CommitBaselineType.Default,
-            _ => CommitBaselineType.Default // fallback
-        };
     }
 }

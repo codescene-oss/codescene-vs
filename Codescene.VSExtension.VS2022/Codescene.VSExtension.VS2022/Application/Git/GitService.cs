@@ -18,10 +18,16 @@ public class GitService : IGitService
     private static readonly string[] PossibleMainBranches = ["main", "master", "develop", "trunk", "dev"];
 
 
-    public string GetBranchCreationCommit(string repoPath, string currentBranch)
+    public string GetBranchCreationCommit(string repoPathOrFile, string currentBranch)
     {
         try
         {
+            var repoPath = Repository.Discover(repoPathOrFile);
+            if (string.IsNullOrEmpty(repoPath))
+            {
+                _logger.Warn($"No git repository found for path: {repoPathOrFile}");
+                return "";
+            }
             var repo = new Repository(repoPath);
             var branch = repo.Branches[currentBranch];
 
@@ -65,6 +71,12 @@ public class GitService : IGitService
             if (string.IsNullOrEmpty(repoPath))
             {
                 _logger.Warn("Repository path is null. Aborting retrieval of file content for specific commit.");
+                return "";
+            }
+
+            if (string.IsNullOrEmpty(commitSha))
+            {
+                _logger.Warn("Commit SHA is null or empty. Cannot lookup commit.");
                 return "";
             }
 

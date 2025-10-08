@@ -25,6 +25,7 @@ public class BranchWatcherService : IDisposable
     private Action<string> _onBranchChanged;
     private FileSystemWatcher _reflogWatcher;
     private FileSystemWatcher _packedRefsWatcher;
+    private FileSystemWatcher _logsHeadWatcher;
     private DateTime _lastEventTs = DateTime.MinValue;
 
     /// <summary>
@@ -110,6 +111,7 @@ public class BranchWatcherService : IDisposable
             w.Error += (s, e) => Debug.WriteLine($"FSW error {dir}\\{filter}: {e.GetException()?.Message}");
             w.EnableRaisingEvents = true;
         }
+        var logsHead = Path.Combine(_gitDirPath, "logs", "HEAD");
 
         if (File.Exists(branchRefFile))
             watch(Path.GetDirectoryName(branchRefFile), Path.GetFileName(branchRefFile), OnCommitIndicatorChanged, out _branchWatcher);
@@ -120,20 +122,23 @@ public class BranchWatcherService : IDisposable
         if (File.Exists(packedRefs))
             watch(Path.GetDirectoryName(packedRefs), Path.GetFileName(packedRefs), OnCommitIndicatorChanged, out _packedRefsWatcher);
 
-        _lastCommit = GetHeadShaSafe(_gitDirPath); // initialize
+        if (File.Exists(logsHead))
+            watch(Path.GetDirectoryName(logsHead)!, Path.GetFileName(logsHead), OnCommitIndicatorChanged, out _logsHeadWatcher);
+
+        _lastCommit = GetHeadShaSafe(_gitDirPath);
     }
 
     private async void OnCommitIndicatorChanged(object sender, FileSystemEventArgs e)
     {
         var now = DateTime.UtcNow;
-        if ((now - _lastEventTs).TotalMilliseconds < 250) return; // debounce
+        if ((now - _lastEventTs).TotalMilliseconds < 250) return;
         _lastEventTs = now;
 
         try
         {
-            await Task.Delay(50); // let git finish writing
+            await Task.Delay(50);
 
-            var gitDir = _gitDirPath; // ensure this is the actual .git dir
+            var gitDir = _gitDirPath;
             var sha = GetHeadShaSafe(gitDir);
             if (string.IsNullOrEmpty(sha) || sha.Equals(_lastCommit, StringComparison.OrdinalIgnoreCase))
                 return;
@@ -142,8 +147,8 @@ public class BranchWatcherService : IDisposable
             Debug.WriteLine($"New commit detected: {sha}");
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var reviewService = await VS.GetMefServiceAsync<IReviewService>();
-            await reviewService.DeltaReviewOpenDocsAsync();
+            var _reviewService = await VS.GetMefServiceAsync<IReviewService>();
+            await _reviewService.DeltaReviewOpenDocsAsync();
         }
         catch (Exception ex)
         {
@@ -166,6 +171,7 @@ public class BranchWatcherService : IDisposable
         _branchWatcher?.Dispose(); _branchWatcher = null;
         _reflogWatcher?.Dispose(); _reflogWatcher = null;
         _packedRefsWatcher?.Dispose(); _packedRefsWatcher = null;
+        _logsHeadWatcher?.Dispose(); _logsHeadWatcher = null;
     }
 
 
@@ -177,12 +183,16 @@ public class BranchWatcherService : IDisposable
     {
         try
         {
+            await Task.Delay(50); // settle
             var current = ReadCurrentBranch();
             if (current != _lastBranch)
             {
                 _lastBranch = current;
                 Debug.WriteLine($"BranchWatcherService: Branch changed to {current}");
                 _onBranchChanged?.Invoke(current);
+
+                InitializeCommitChangeMonitor();         // rewire refs/heads/<branch> + logs/refs/heads/<branch>
+                _lastCommit = GetHeadShaSafe(_gitDirPath);
             }
         }
         catch (Exception ex)

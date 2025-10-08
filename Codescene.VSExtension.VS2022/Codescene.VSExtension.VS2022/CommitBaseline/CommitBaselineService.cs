@@ -6,7 +6,6 @@ using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
@@ -73,7 +72,7 @@ public class CommitBaselineService
         var store = GetOrCreateSettingsStore();
 
         return store.PropertyExists(CodeSceneConstants.Titles.SETTINGS_COLLECTION, CodeSceneConstants.Titles.COMMIT_BASELINE) ?
-               store.GetString(CodeSceneConstants.Titles.SETTINGS_COLLECTION, CodeSceneConstants.Titles.COMMIT_BASELINE) : CommitBaselineType.Default.ToString();
+               store.GetString(CodeSceneConstants.Titles.SETTINGS_COLLECTION, CodeSceneConstants.Titles.COMMIT_BASELINE) : ConvertCommitBaselineTypeToString(CommitBaselineType.Default);
     }
 
     public void SetCommitBaseline(string value)
@@ -94,5 +93,16 @@ public class CommitBaselineService
             store.CreateCollection(CodeSceneConstants.Titles.SETTINGS_COLLECTION);
 
         return store;
+    }
+
+    public string ConvertCommitBaselineTypeToString(CommitBaselineType commitBaselineType)
+    {
+        return commitBaselineType switch
+        {
+            CommitBaselineType.Head => "HEAD",
+            CommitBaselineType.BranchCreate => "branchCreate",
+            CommitBaselineType.Default => "default",
+            _ => "default"
+        };
     }
 }
