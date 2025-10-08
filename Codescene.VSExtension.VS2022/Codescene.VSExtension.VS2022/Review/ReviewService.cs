@@ -200,9 +200,7 @@ namespace Codescene.VSExtension.VS2022.Review
                     var frame = frameArr[0];
                     if (frame == null) continue;
 
-                    if (ErrorHandler.Succeeded(frame.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out object mkDoc))
-                        && mkDoc is string path
-                        && !string.IsNullOrEmpty(path))
+                    if (TryGetDocumentPath(frame, out var path))
                     {
                         paths.Add(path);
                     }
@@ -210,6 +208,21 @@ namespace Codescene.VSExtension.VS2022.Review
             }
 
             return paths;
+        }
+
+        private static bool TryGetDocumentPath(IVsWindowFrame frame, out string path)
+        {
+            path = null;
+
+            if (!ErrorHandler.Succeeded(
+                    frame.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out var mkDoc)))
+                return false;
+
+            if (mkDoc is not string s || string.IsNullOrWhiteSpace(s))
+                return false;
+
+            path = s;
+            return true;
         }
     }
 }
