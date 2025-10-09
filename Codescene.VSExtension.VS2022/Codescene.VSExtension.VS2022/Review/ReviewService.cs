@@ -166,7 +166,7 @@ namespace Codescene.VSExtension.VS2022.Review
                     _deltaCache.Remove(path);
                 }
                 var doc = await VS.Documents.GetDocumentViewAsync(path);
-                if (doc == null) continue;
+                if (doc is null) continue;
                 var buffer = doc.TextBuffer;
                 var supportedFileChecker = await VS.GetMefServiceAsync<ISupportedFileChecker>();
                 var reviewService = await VS.GetMefServiceAsync<IReviewService>();
@@ -175,6 +175,7 @@ namespace Codescene.VSExtension.VS2022.Review
                 if (!supportedFileChecker.IsSupported(path)) return;
 
                 var cachedResult = _cache.Get(new ReviewCacheQuery(code, path));
+                if (cachedResult is null) continue;
 
                 _logger.Debug($"Re-reviewing {path} due to baseline change...");
                 Task.Run(() => reviewService.DeltaReviewAsync(cachedResult, code)).FireAndForget();

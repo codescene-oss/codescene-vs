@@ -21,6 +21,6 @@ namespace Codescene.VSExtension.Core.Models.WebComponent
         /// Intended for debugging purposes. Should remain <c>false</c> in production.
         /// </summary>
         public bool Devmode { get; set; } = false;
-        public List<string> FeatureFlags { get; set; } = new List<string>() { "jobs", "commit-baseline", "open-settings" }; // Include loaders feature
+        public List<string> FeatureFlags { get; set; } = new List<string>() { "jobs", "commit-baseline" }; // Include loaders feature
     }
 }

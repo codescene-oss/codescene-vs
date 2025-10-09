@@ -1,187 +1,262 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Git;
 using LibGit2Sharp;
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 
-namespace Codescene.VSExtension.VS2022.Application.Git;
-
-[Export(typeof(IGitService))]
-public class GitService : IGitService
+namespace Codescene.VSExtension.VS2022.Application.Git
 {
-    [Import]
-    private readonly ILogger _logger;
-
-    private static readonly string[] PossibleMainBranches = ["main", "master", "develop", "trunk", "dev"];
-
-
-    public string GetBranchCreationCommit(string repoPathOrFile, string currentBranch)
+    [Export(typeof(IGitService))]
+    public class GitService : IGitService
     {
-        try
+        [Import] private readonly ILogger _logger;
+
+        private static readonly HashSet<string> PossibleMainBranches =
+            new(StringComparer.OrdinalIgnoreCase) { "main", "master", "develop", "trunk", "dev" };
+
+
+        public string GetBranchCreationCommit(string repoPathOrFile, string currentBranch)
         {
-            var repoPath = Repository.Discover(repoPathOrFile);
-            if (string.IsNullOrEmpty(repoPath))
+            try
             {
-                _logger.Warn($"No git repository found for path: {repoPathOrFile}");
+                using var repo = OpenRepository(repoPathOrFile);
+                if (repo is null)
+                {
+                    _logger.Warn($"No git repository found for path: {repoPathOrFile}");
+                    return "";
+                }
+
+                if (string.IsNullOrWhiteSpace(currentBranch))
+                    return "";
+
+                var branch = repo.Branches[currentBranch];
+                if (branch is null)
+                {
+                    _logger.Warn($"Branch '{currentBranch}' not found in repo {repo.Info.WorkingDirectory ?? repo.Info.Path}");
+                    return "";
+                }
+
+                if (IsMainBranch(currentBranch))
+                    return "";
+
+                // 1) Best effort: try reflog “created from …”
+                var created = TryGetCreatedFromReflog(repo, branch);
+                if (!string.IsNullOrEmpty(created))
+                    return created;
+
+                // 2) Fallback: compute fork-point against default branch (merge-base)
+                var def = GetDefaultBranchRef(repo);
+                if (def?.Tip != null && branch.Tip != null)
+                {
+                    var fork = repo.ObjectDatabase.FindMergeBase(branch.Tip, def.Tip);
+                    if (fork != null)
+                        return fork.Sha;
+                }
+
+                // 3) Last resort: common ancestor via divergence
+                if (def?.Tip != null && branch.Tip != null)
+                {
+                    var div = repo.ObjectDatabase.CalculateHistoryDivergence(def.Tip, branch.Tip);
+                    var common = div?.CommonAncestor;
+                    if (common != null)
+                        return common.Sha;
+                }
+
                 return "";
             }
-            var repo = new Repository(repoPath);
-            var branch = repo.Branches[currentBranch];
-
-            if (branch == null || repoPath == null)
+            catch (Exception e)
             {
-                _logger.Warn($"Branch {currentBranch} not found in repo {repoPath}");
+                _logger.Error($"Could not get branch creation commit for '{currentBranch}'", e);
                 return "";
             }
-
-            if (IsMainBranch(currentBranch)) return "";
-
-
-            var reflog = repo.Refs.Log(branch.CanonicalName);
-
-            var creationEntry = reflog
-                .Reverse() // check from oldest to newest
-                .FirstOrDefault(entry =>
-                    entry.Message != null &&
-                    entry.Message.IndexOf("created from", StringComparison.OrdinalIgnoreCase) >= 0);
-
-            if (creationEntry != null)
-            {
-                _logger.Debug($"Branch {currentBranch} creation found in reflog: {creationEntry.To.Sha}");
-                return creationEntry.To.Sha;
-            }
-
-            return ""; // Possibly created directly on main or unknown base
         }
-        catch (Exception e)
+
+        public string GetFileContentForCommit(string path, string commitSha)
         {
-            _logger.Error($"Could not get branch creation commit for {currentBranch}", e);
-            return "";
+            try
+            {
+                using var repo = OpenRepository(path);
+                if (repo is null)
+                {
+                    _logger.Warn("Repository path is null. Aborting retrieval of file content for specific commit.");
+                    return "";
+                }
+
+                if (string.IsNullOrWhiteSpace(commitSha))
+                {
+                    _logger.Warn("Commit SHA is null or empty. Cannot lookup commit.");
+                    return "";
+                }
+
+                var repoRoot = repo.Info.WorkingDirectory;
+                if (string.IsNullOrEmpty(repoRoot))
+                {
+                    _logger.Warn("Bare repository detected; cannot map workdir relative paths.");
+                    return "";
+                }
+
+                var relativePath = GetRelativePath(repoRoot, path).Replace("\\", "/");
+
+                var commit = repo.Lookup<Commit>(commitSha);
+                if (commit is null)
+                {
+                    _logger.Warn($"Commit {commitSha} not found in repository {repo.Info.WorkingDirectory ?? repo.Info.Path}");
+                    return "";
+                }
+
+                var entry = commit[relativePath];
+                if (entry is null)
+                {
+                    _logger.Warn($"File '{relativePath}' not found in commit {commitSha}");
+                    return "";
+                }
+
+                var blob = (Blob)entry.Target;
+                return blob.GetContentText(); // UTF-8
+            }
+            catch (Exception e)
+            {
+                _logger.Warn($"Could not get file content for specific commit: {e.Message}\n{e.StackTrace?.Trim()}");
+                return "";
+            }
         }
-    }
 
-
-    public string GetFileContentForCommit(string path, string commitSha)
-    {
-        try
+        public string GetHeadCommit(string repoPathOrFile)
         {
-            var repoPath = Repository.Discover(path);
-            if (string.IsNullOrEmpty(repoPath))
-            {
-                _logger.Warn("Repository path is null. Aborting retrieval of file content for specific commit.");
-                return "";
-            }
+            using var repo = OpenRepository(repoPathOrFile)
+                ?? throw new InvalidOperationException($"No Git repo found for {repoPathOrFile}");
 
-            if (string.IsNullOrEmpty(commitSha))
-            {
-                _logger.Warn("Commit SHA is null or empty. Cannot lookup commit.");
-                return "";
-            }
-
-            var repo = new Repository(repoPath);
-
-            var repoRoot = repo.Info.WorkingDirectory;
-            var relativePath = GetRelativePath(repoRoot, path).Replace("\\", "/");
-
-            var commit = repo.Lookup<Commit>(commitSha);
-            if (commit == null)
-            {
-                _logger.Warn($"Commit {commitSha} not found in repository {repoPath}");
-                return "";
-            }
-
-            var entry = commit[relativePath];
-            if (entry == null)
-            {
-                _logger.Warn($"File {relativePath} not found in commit {commitSha}");
-                return "";
-            }
-
-            var blob = (Blob)entry.Target;
-            return blob.GetContentText(); // Gets the content as UTF-8 string
+            return repo.Head?.Tip?.Sha ?? "";
         }
-        catch (Exception e)
+
+        public string GetCurrentBranch(string repoPathOrFile)
         {
-            _logger.Warn($"Could get file content for specific commit: {e.Message} \n{e.StackTrace.Trim()}");
-            return "";
+            using var repo = OpenRepository(repoPathOrFile)
+                ?? throw new InvalidOperationException($"No Git repo found for {repoPathOrFile}");
+
+            return repo.Head?.FriendlyName ?? "";
         }
-    }
 
-    public string GetHeadCommit(string repoPathOrFile)
-    {
-        var repoPath = NormalizeRepoPath(repoPathOrFile);
-        if (repoPath == null)
-            throw new InvalidOperationException($"No Git repo found for {repoPathOrFile}");
+        public string GetDefaultBranch(string repoPathOrFile)
+        {
+            using var repo = OpenRepository(repoPathOrFile)
+                ?? throw new InvalidOperationException($"No Git repo found for {repoPathOrFile}");
 
-        using var repo = new Repository(repoPath);
-        return repo.Head.Tip.Sha;
-    }
+            var def = GetDefaultBranchName(repo);
+            return def ?? "";
+        }
 
-    public string GetCurrentBranch(string repoPathOrFile)
-    {
-        var repoPath = NormalizeRepoPath(repoPathOrFile);
-        if (repoPath == null)
-            throw new InvalidOperationException($"No Git repo found for {repoPathOrFile}");
+        public static bool IsMainBranch(string currentBranch)
+        {
+            if (string.IsNullOrWhiteSpace(currentBranch)) return false;
+            return PossibleMainBranches.Contains(currentBranch);
+        }
 
-        using var repo = new Repository(repoPath);
-        return repo.Head.FriendlyName;
-    }
+        
+        private static Repository? OpenRepository(string pathOrFile)
+        {
+            if (string.IsNullOrWhiteSpace(pathOrFile)) return null;
 
+            var start = File.Exists(pathOrFile) ? Path.GetDirectoryName(pathOrFile)! : pathOrFile;
+            var discovered = Repository.Discover(start);
+            if (string.IsNullOrEmpty(discovered)) return null;
 
-    public string GetDefaultBranch(string repoPath)
-    {
-        repoPath = NormalizeRepoPath(repoPath);
-        if (repoPath == null)
-            throw new InvalidOperationException($"No Git repo found for {repoPath}");
+            // LibGit2Sharp accepts either the .git dir or the workdir; discovered points to the .git
+            return new Repository(discovered);
+        }
 
-        using var repo = new Repository(repoPath);
-        return repo.Branches["main"]?.FriendlyName
-            ?? repo.Branches["master"]?.FriendlyName
-            ?? repo.Branches["develop"]?.FriendlyName
-            ?? repo.Branches["trunk"]?.FriendlyName
-            ?? repo.Branches["dev"]?.FriendlyName
-            ?? "";
-    }
+        /// <summary>
+        /// Try to find "created from" in the branch reflog.
+        /// </summary>
+        private static string TryGetCreatedFromReflog(Repository repo, Branch branch)
+        {
+            try
+            {
+                // Branch reflog is usually at refs/heads/<name>
+                var log = repo.Refs.Log(branch.CanonicalName);
 
-    public static bool IsMainBranch(string currentBranch)
-    {
-        if (string.IsNullOrEmpty(currentBranch))
-            return false;
+                // Search oldest→newest to catch the creation entry
+                var entry = log
+                    .Reverse()
+                    .FirstOrDefault(e =>
+                        e.Message != null &&
+                        (e.Message.IndexOf("created from", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                         e.Message.StartsWith("branch:", StringComparison.OrdinalIgnoreCase) ||
+                         e.Message.StartsWith("checkout:", StringComparison.OrdinalIgnoreCase)));
 
-        return PossibleMainBranches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase);
-    }
+                // The "To" of the creation entry is the first commit at/after creation point
+                return entry?.To?.Sha ?? "";
+            }
+            catch
+            {
+                return "";
+            }
+        }
 
-    // TODO: Move to helper
-    public static string GetRelativePath(string basePath, string fullPath)
-    {
-        var baseUri = new Uri(AppendDirectorySeparatorChar(basePath));
-        var fullUri = new Uri(fullPath);
-        return Uri.UnescapeDataString(baseUri.MakeRelativeUri(fullUri).ToString().Replace('/', Path.DirectorySeparatorChar));
-    }
+        /// <summary>
+        /// Best-effort default branch (prefers remote origin/HEAD).
+        /// </summary>
+        private static Branch? GetDefaultBranchRef(Repository repo)
+        {
+            // Try origin/HEAD → points to refs/remotes/origin/<default>
+            var originHead = repo.Refs["refs/remotes/origin/HEAD"] as SymbolicReference;
+            if (originHead?.TargetIdentifier is string targetId)
+            {
+                // targetId e.g. "refs/remotes/origin/main"
+                var localName = targetId.Split('/').Last(); // "main"
+                var local = repo.Branches[localName];
+                if (local != null) return local;
 
-    // TODO: Move to helper
-    private static string AppendDirectorySeparatorChar(string path)
-    {
-        if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
-            return path + Path.DirectorySeparatorChar;
-        return path;
-    }
+                // fall back to remote branch if local doesn’t exist
+                var remote = repo.Branches[$"origin/{localName}"];
+                if (remote != null) return remote;
+            }
 
-    private string NormalizeRepoPath(string repoPathOrFile)
-    {
-        if (string.IsNullOrEmpty(repoPathOrFile))
+            // Fall back to well-known names (local first)
+            foreach (var name in PossibleMainBranches)
+            {
+                var b = repo.Branches[name] ?? repo.Branches[$"origin/{name}"];
+                if (b != null) return b;
+            }
+
+            // As a last resort, use HEAD’s upstream if any
+            var upstream = repo.Head?.TrackedBranch;
+            if (upstream != null) return upstream;
+
             return null;
+        }
 
-        // If it's a file → use its parent directory
-        var dir = File.Exists(repoPathOrFile)
-            ? Path.GetDirectoryName(repoPathOrFile)
-            : repoPathOrFile;
+        private static string? GetDefaultBranchName(Repository repo)
+        {
+            var b = GetDefaultBranchRef(repo);
+            if (b == null) return null;
 
-        // Walk upwards until a .git is found
-        return Repository.Discover(dir);
+            // Normalize to local friendly name if possible
+            if (!string.IsNullOrEmpty(b.FriendlyName))
+            {
+                // FriendlyName can be "origin/main" for remote; strip "origin/"
+                return b.FriendlyName.StartsWith("origin/", StringComparison.OrdinalIgnoreCase)
+                    ? b.FriendlyName.Substring("origin/".Length)
+                    : b.FriendlyName;
+            }
+            return b.CanonicalName?.Split('/').Last();
+        }
+
+        public static string GetRelativePath(string basePath, string fullPath)
+        {
+            var baseUri = new Uri(AppendDirectorySeparatorChar(basePath));
+            var fullUri = new Uri(fullPath);
+            return Uri.UnescapeDataString(baseUri.MakeRelativeUri(fullUri).ToString()
+                .Replace('/', Path.DirectorySeparatorChar));
+        }
+
+        private static string AppendDirectorySeparatorChar(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return Path.DirectorySeparatorChar.ToString();
+            return path.EndsWith(Path.DirectorySeparatorChar.ToString()) ? path : path + Path.DirectorySeparatorChar;
+        }
     }
-
 }
