@@ -48,23 +48,8 @@ public class CommitBaselineService
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        SendTelemetry(CodeSceneConstants.Telemetry.COMMIT_BASELINE_CHANGED, commitBaselineType);
-
         SetCommitBaseline(commitBaselineType);
 
-    }
-
-    private void SendTelemetry(string eventName, string selection = "")
-    {
-        Task.Run(async () =>
-        {
-            Dictionary<string, object> additionalData = null;
-            if (!string.IsNullOrEmpty(selection))
-                additionalData = new Dictionary<string, object> { { "selection", selection } };
-
-            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(eventName, additionalData);
-        }).FireAndForget();
     }
 
     public string GetCommitBaseline()

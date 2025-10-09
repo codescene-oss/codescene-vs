@@ -115,13 +115,11 @@ namespace Codescene.VSExtension.VS2022.Review
 
             try
             {
-                var commitBaselineService = await GetCommitBaselineServiceAsync();
-
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var commitBaselineService = await GetCommitBaselineServiceAsync();
                 var baselineType = commitBaselineService.GetCommitBaseline();
                 Enum.TryParse(baselineType, true, out CommitBaselineType type);
                 var baselineCommitSha = _commitBaselineService.ResolveBaseline(path, type);
-
                 _logger.Info($"Delta analysis using baseline {baselineType} ({baselineCommitSha})");
 
                 DeltaJobTracker.Add(job);
@@ -129,7 +127,6 @@ namespace Codescene.VSExtension.VS2022.Review
                 await CodeSceneToolWindow.UpdateViewAsync(); // Update loading state
 
                 var deltaResult = _reviewer.Delta(currentReview, currentContent, baselineCommitSha);
-
                 var scoreChange = deltaResult?.ScoreChange.ToString() ?? "none";
                 _logger.Info($"Delta analysis complete for file {path}. Code Health score change: {scoreChange}.");
             }
@@ -146,7 +143,7 @@ namespace Codescene.VSExtension.VS2022.Review
 
         private async Task<CommitBaselineService> GetCommitBaselineServiceAsync()
         {
-            if (_commitBaselineService == null)
+            if (_commitBaselineService is null)
             {
                 _commitBaselineService = await VS.GetMefServiceAsync<CommitBaselineService>();
             }
@@ -158,27 +155,27 @@ namespace Codescene.VSExtension.VS2022.Review
             var _cache = new ReviewCacheService();
             var _deltaCache = new DeltaCacheService();
             var openDocs = await GetAllOpenEditorPathsAsync();
+            var _supportedFileChecker = await VS.GetMefServiceAsync<ISupportedFileChecker>();
+            var _reviewService = await VS.GetMefServiceAsync<IReviewService>();
+
 
             foreach (var path in _deltaCache.GetAllKeys())
             {
-                if (!openDocs.Contains(path))
-                {
-                    _deltaCache.Remove(path);
-                }
+                if (!_supportedFileChecker.IsSupported(path)) return;
+
+                if (!openDocs.Contains(path)) _deltaCache.Remove(path);
+
                 var doc = await VS.Documents.GetDocumentViewAsync(path);
                 if (doc is null) continue;
-                var buffer = doc.TextBuffer;
-                var supportedFileChecker = await VS.GetMefServiceAsync<ISupportedFileChecker>();
-                var reviewService = await VS.GetMefServiceAsync<IReviewService>();
-                var code = buffer.CurrentSnapshot.GetText();
 
-                if (!supportedFileChecker.IsSupported(path)) return;
+                var buffer = doc.TextBuffer;
+                var code = buffer.CurrentSnapshot.GetText();
 
                 var cachedResult = _cache.Get(new ReviewCacheQuery(code, path));
                 if (cachedResult is null) continue;
 
                 _logger.Debug($"Re-reviewing {path} due to baseline change...");
-                Task.Run(() => reviewService.DeltaReviewAsync(cachedResult, code)).FireAndForget();
+                Task.Run(() => _reviewService.DeltaReviewAsync(cachedResult, code)).FireAndForget();
             }
         }
 
@@ -189,7 +186,7 @@ namespace Codescene.VSExtension.VS2022.Review
             var uiShell = await VS.GetServiceAsync<SVsUIShell, IVsUIShell>();
             var paths = new List<string>();
 
-            if (uiShell == null)
+            if (uiShell is null)
                 return paths;
 
             if (ErrorHandler.Succeeded(uiShell.GetDocumentWindowEnum(out IEnumWindowFrames enumFrames)) && enumFrames != null)
@@ -199,7 +196,7 @@ namespace Codescene.VSExtension.VS2022.Review
                 while (enumFrames.Next(1, frameArr, out fetched) == VSConstants.S_OK && fetched == 1)
                 {
                     var frame = frameArr[0];
-                    if (frame == null) continue;
+                    if (frame is null) continue;
 
                     if (TryGetDocumentPath(frame, out var path))
                     {

@@ -19,12 +19,12 @@ namespace Codescene.VSExtension.VS2022.Application.Git
     /// </summary>
     public sealed class BranchWatcherService : IDisposable
     {
-        private FileSystemWatcher? _logsHeadWatcher;
+        private FileSystemWatcher _logsHeadWatcher;
 
-        private string _gitDirPath = string.Empty;   // canonical .git directory (repo.Info.Path)
-        private string _lastBranch = string.Empty;   // repo.Head.FriendlyName
-        private string _lastCommit = string.Empty;   // repo.Head.Tip.Sha
-        private Action<string>? _onBranchChanged;
+        private string _gitDirPath = string.Empty;
+        private string _lastBranch = string.Empty;
+        private string _lastCommit = string.Empty;
+        private Action<string> _onBranchChanged;
 
         private DateTime _lastEventTs = DateTime.MinValue;
         private bool _started;
@@ -36,7 +36,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         {
             Stop(); // clear any existing watcher
 
-            // Discover repo and canonical .git directory
             var discovered = Repository.Discover(solutionPath);
             if (string.IsNullOrEmpty(discovered))
             {
@@ -45,7 +44,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             }
 
             using var repo = new Repository(discovered);
-            _gitDirPath = repo.Info.Path; // canonical .git dir (handles worktrees)
+            _gitDirPath = repo.Info.Path;
             _lastBranch = repo.Head?.FriendlyName ?? string.Empty;
             _lastCommit = repo.Head?.Tip?.Sha ?? string.Empty;
             _onBranchChanged = onBranchChanged;
@@ -85,22 +84,19 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         /// <summary>
         /// Single handler for commits and checkouts via logs/HEAD.
         /// </summary>
-        private async void OnLogsHeadChanged(object? sender, FileSystemEventArgs e)
+        private async void OnLogsHeadChanged(object sender, FileSystemEventArgs e)
         {
-            // Debounce bursts (lock/write/rename yields multiple events)
             var now = DateTime.UtcNow;
             if ((now - _lastEventTs).TotalMilliseconds < 250) return;
             _lastEventTs = now;
 
             try
             {
-                // Let Git settle the file write/rename
                 await Task.Delay(60);
 
                 string currentBranch;
                 string currentSha;
 
-                // Query the repo state (most reliable)
                 try
                 {
                     using var repo = new Repository(_gitDirPath);
@@ -130,7 +126,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     var review = await VS.GetMefServiceAsync<IReviewService>();
-                    if (review != null)
+                    if (review is not null)
                         await review.DeltaReviewOpenDocsAsync();
                 }
             }
@@ -149,7 +145,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         public void Dispose() => Stop();
 
-        // Optional: expose last-observed state (handy for diagnostics/telemetry)
         public bool IsRunning => _started;
         public string LastBranch => _lastBranch;
         public string LastCommit => _lastCommit;

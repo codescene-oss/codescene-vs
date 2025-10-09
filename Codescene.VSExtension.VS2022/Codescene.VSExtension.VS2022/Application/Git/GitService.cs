@@ -42,12 +42,11 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                 if (IsMainBranch(currentBranch))
                     return "";
 
-                // 1) Best effort: try reflog “created from …”
                 var created = TryGetCreatedFromReflog(repo, branch);
                 if (!string.IsNullOrEmpty(created))
                     return created;
 
-                // 2) Fallback: compute fork-point against default branch (merge-base)
+                // compute fork-point against default branch (merge-base)
                 var def = GetDefaultBranchRef(repo);
                 if (def?.Tip != null && branch.Tip != null)
                 {
@@ -56,7 +55,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                         return fork.Sha;
                 }
 
-                // 3) Last resort: common ancestor via divergence
+                // common ancestor via divergence
                 if (def?.Tip != null && branch.Tip != null)
                 {
                     var div = repo.ObjectDatabase.CalculateHistoryDivergence(def.Tip, branch.Tip);
@@ -175,7 +174,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         {
             try
             {
-                // Branch reflog is usually at refs/heads/<name>
                 var log = repo.Refs.Log(branch.CanonicalName);
 
                 // Search oldest→newest to catch the creation entry
@@ -187,7 +185,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                          e.Message.StartsWith("branch:", StringComparison.OrdinalIgnoreCase) ||
                          e.Message.StartsWith("checkout:", StringComparison.OrdinalIgnoreCase)));
 
-                // The "To" of the creation entry is the first commit at/after creation point
                 return entry?.To?.Sha ?? "";
             }
             catch
@@ -199,9 +196,8 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         /// <summary>
         /// Best-effort default branch (prefers remote origin/HEAD).
         /// </summary>
-        private static Branch? GetDefaultBranchRef(Repository repo)
+        private static Branch GetDefaultBranchRef(Repository repo)
         {
-            // Try origin/HEAD → points to refs/remotes/origin/<default>
             var originHead = repo.Refs["refs/remotes/origin/HEAD"] as SymbolicReference;
             if (originHead?.TargetIdentifier is string targetId)
             {
@@ -222,22 +218,19 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                 if (b != null) return b;
             }
 
-            // As a last resort, use HEAD’s upstream if any
             var upstream = repo.Head?.TrackedBranch;
             if (upstream != null) return upstream;
 
             return null;
         }
 
-        private static string? GetDefaultBranchName(Repository repo)
+        private static string GetDefaultBranchName(Repository repo)
         {
             var b = GetDefaultBranchRef(repo);
             if (b == null) return null;
 
-            // Normalize to local friendly name if possible
             if (!string.IsNullOrEmpty(b.FriendlyName))
             {
-                // FriendlyName can be "origin/main" for remote; strip "origin/"
                 return b.FriendlyName.StartsWith("origin/", StringComparison.OrdinalIgnoreCase)
                     ? b.FriendlyName.Substring("origin/".Length)
                     : b.FriendlyName;
