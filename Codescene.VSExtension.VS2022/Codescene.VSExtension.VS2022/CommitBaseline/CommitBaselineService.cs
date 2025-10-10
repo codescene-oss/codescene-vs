@@ -33,12 +33,12 @@ public class CommitBaselineService
             CommitBaselineType.Head => headCommit,
 
             CommitBaselineType.BranchCreate =>
-                _gitService.GetBranchCreationCommit(repoPath, currentBranch),
+                _gitService.GetBranchCreationCommit(repoPath),
 
             CommitBaselineType.Default =>
                 currentBranch == _gitService.GetDefaultBranch(repoPath)
                     ? headCommit
-                    : _gitService.GetBranchCreationCommit(repoPath, currentBranch),
+                    : _gitService.GetBranchCreationCommit(repoPath),
 
             _ => ""
         };

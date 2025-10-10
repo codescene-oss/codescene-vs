@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
@@ -179,48 +180,48 @@ namespace Codescene.VSExtension.VS2022.Review
             }
         }
 
-        public static async Task<List<string>> GetAllOpenEditorPathsAsync()
+        /// <summary>
+        /// Returns full paths of all open editor documents (includes preview tabs).
+        /// </summary>
+        public static async Task<IReadOnlyList<string>> GetAllOpenEditorPathsAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var uiShell = await VS.GetServiceAsync<SVsUIShell, IVsUIShell>();
-            var paths = new List<string>();
-
             if (uiShell is null)
-                return paths;
+                return Array.Empty<string>();
 
-            if (ErrorHandler.Succeeded(uiShell.GetDocumentWindowEnum(out IEnumWindowFrames enumFrames)) && enumFrames != null)
-            {
-                var frameArr = new IVsWindowFrame[1];
-                uint fetched;
-                while (enumFrames.Next(1, frameArr, out fetched) == VSConstants.S_OK && fetched == 1)
-                {
-                    var frame = frameArr[0];
-                    if (frame is null) continue;
+            if (!ErrorHandler.Succeeded(uiShell.GetDocumentWindowEnum(out var enumFrames)) || enumFrames is null)
+                return Array.Empty<string>();
 
-                    if (TryGetDocumentPath(frame, out var path))
-                    {
-                        paths.Add(path);
-                    }
-                }
-            }
+            var paths = Enumerate(enumFrames)
+                .Select(GetDocumentPathOrNull)
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Cast<string>()
+                .ToList();
 
             return paths;
         }
 
-        private static bool TryGetDocumentPath(IVsWindowFrame frame, out string path)
+        private static IEnumerable<IVsWindowFrame> Enumerate(IEnumWindowFrames frames)
         {
-            path = null;
+            var arr = new IVsWindowFrame[1];
+            while (frames.Next(1, arr, out var fetched) == VSConstants.S_OK && fetched == 1)
+            {
+                var frame = arr[0];
+                if (frame != null)
+                    yield return frame;
+            }
+        }
 
-            if (!ErrorHandler.Succeeded(
-                    frame.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out var mkDoc)))
-                return false;
-
-            if (mkDoc is not string s || string.IsNullOrWhiteSpace(s))
-                return false;
-
-            path = s;
-            return true;
+        private static string GetDocumentPathOrNull(IVsWindowFrame frame)
+        {
+            return ErrorHandler.Succeeded(
+                       frame.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out var mkDoc))
+                   && mkDoc is string s
+                   && !string.IsNullOrWhiteSpace(s)
+                ? s
+                : null;
         }
     }
 }
