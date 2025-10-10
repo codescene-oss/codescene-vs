@@ -1,6 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.VS2022.Application.Git;
+using Codescene.VSExtension.VS2022.Review;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio;
@@ -26,13 +27,10 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     /// </summary>
     public async Task Initialize(IServiceProvider serviceProvider)
     {
-        var isUiThread = ThreadHelper.CheckAccess();
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        if (isUiThread)
-        {
-            _solution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
-            _solution.AdviseSolutionEvents(this, out _cookie);
-        }
+        _solution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
+        _solution.AdviseSolutionEvents(this, out _cookie);
     }
 
     /// <summary>
@@ -136,11 +134,10 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 return Task.CompletedTask;
             });
 
-            var cache = new DeltaCacheService();
-            cache.Clear();
-
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            CodeSceneToolWindow.UpdateViewAsync().FireAndForget();
+
+            var _reviewService = await VS.GetMefServiceAsync<IReviewService>();
+            await _reviewService.DeltaReviewOpenDocsAsync();
         }
         catch (Exception ex)
         {

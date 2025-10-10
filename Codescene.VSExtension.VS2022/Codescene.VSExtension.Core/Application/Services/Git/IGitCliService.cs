@@ -2,7 +2,11 @@
 {
     public interface IGitService
     {
-        string GetFileContentForCommit(string path);
+        string GetFileContentForCommit(string path, string commitSha);
+        string GetHeadCommit(string repoPath);
+        string GetBranchCreationCommit(string repoPath);
+        string GetCurrentBranch(string repoPath);
+        string GetDefaultBranch(string repoPath);
     }
 
     public class GitResult

@@ -9,6 +9,7 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
         public bool ShowOnboarding { get; set; } = false;
         public List<FileDeltaData> FileDeltaData { get; set; }
         public List<Job> Jobs { get; set; }
+        public string CommitBaseline { get; set; }
     }
 
     public class FileDeltaData

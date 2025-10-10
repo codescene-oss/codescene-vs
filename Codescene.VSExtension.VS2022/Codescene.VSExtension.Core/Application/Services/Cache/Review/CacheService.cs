@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -46,6 +47,16 @@ namespace Codescene.VSExtension.Core.Application.Services.Cache.Review
         public virtual void Clear()
         {
             Cache.Clear();
+        }
+
+        public IEnumerable<string> GetAllKeys()
+        {
+            return Cache.Keys;
+        }
+
+        public virtual void Remove(string filePath)
+        {
+            Cache.TryRemove(filePath, out _);
         }
     }
 }
