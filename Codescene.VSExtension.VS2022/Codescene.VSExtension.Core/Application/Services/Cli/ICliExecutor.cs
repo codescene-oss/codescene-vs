@@ -13,7 +13,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         string GetFileVersion();
         string GetDeviceId();
         PreFlightResponseModel Preflight(bool force = true);
-        RefactorResponseModel PostRefactoring(string fnToRefactor, bool skipCache = false, string token = null);
+        RefactorResponseModel PostRefactoring(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null);
         IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmells, string preflight);
     }
 }

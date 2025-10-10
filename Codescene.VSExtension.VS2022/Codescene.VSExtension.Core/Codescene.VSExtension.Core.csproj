@@ -31,20 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Emby.Media.Model, Version=4.8.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MediaBrowser.Common.4.8.11\lib\netstandard2.0\Emby.Media.Model.dll</HintPath>
-    </Reference>
-    <Reference Include="Emby.Web.GenericEdit, Version=4.8.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MediaBrowser.Common.4.8.11\lib\netstandard2.0\Emby.Web.GenericEdit.dll</HintPath>
-    </Reference>
     <Reference Include="Markdig, Version=0.41.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Markdig.0.41.1\lib\net462\Markdig.dll</HintPath>
-    </Reference>
-    <Reference Include="MediaBrowser.Common, Version=4.8.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MediaBrowser.Common.4.8.11\lib\netstandard2.0\MediaBrowser.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="MediaBrowser.Model, Version=4.8.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MediaBrowser.Common.4.8.11\lib\netstandard2.0\MediaBrowser.Model.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.5, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.5\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>

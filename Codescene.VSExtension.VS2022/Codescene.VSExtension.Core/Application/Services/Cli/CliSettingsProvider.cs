@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliSettingsProvider : ICliSettingsProvider
     {
-        public string RequiredDevToolVersion => "0d6512606c3dd5f26a2ed3368b160592e4faff72";
+        public string RequiredDevToolVersion => "19d9f9c8fc08f36619709fa31cdca8b17de3a737";
         public string CliArtifactName => $"cs-ide-windows-amd64-{RequiredDevToolVersion}.zip";
         public string CliArtifactUrl => $"{ArtifactBaseUrl}{CliArtifactName}";
         public string CliFileName => $"cs-ide.exe";

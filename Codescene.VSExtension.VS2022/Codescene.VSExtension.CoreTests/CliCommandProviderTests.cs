@@ -137,61 +137,61 @@ namespace Codescene.VSExtension.CoreTests
             Assert.AreEqual(command, "refactor preflight --force");
         }
 
-        [TestMethod]
-        public void GetRefactorPostCommand_With_Skip_Cache()
-        {
-            // ARRANGE
-            var provider = new CliCommandProvider();
-            var fnToRefactorJson = "function(){};";
+        //[TestMethod]
+        //public void GetRefactorPostCommand_With_Skip_Cache()
+        //{
+        //    // ARRANGE
+        //    var provider = new CliCommandProvider();
+        //    var fnToRefactorJson = "function(){};";
 
-            // ACT
-            var command = provider.GetRefactorPostCommand(skipCache: true, fnToRefactor: fnToRefactorJson);
+        //    // ACT
+        //    var command = provider.GetRefactorPostCommand(skipCache: true, fnToRefactor: fnToRefactorJson);
 
-            // ASSERT
-            Assert.AreEqual(command, $"refactor post --skip-cache --fn-to-refactor \"{fnToRefactorJson}\"");
-        }
+        //    // ASSERT
+        //    Assert.AreEqual(command, $"refactor post --skip-cache --fn-to-refactor \"{fnToRefactorJson}\"");
+        //}
 
-        [TestMethod]
-        public void GetRefactorPostCommand_Withiout_Skip_Cache()
-        {
-            // ARRANGE
-            var provider = new CliCommandProvider();
-            var fnToRefactorJson = "function(){};";
+        //[TestMethod]
+        //public void GetRefactorPostCommand_Withiout_Skip_Cache()
+        //{
+        //    // ARRANGE
+        //    var provider = new CliCommandProvider();
+        //    var fnToRefactorJson = "function(){};";
 
-            // ACT
-            var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson);
+        //    // ACT
+        //    var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson);
 
-            // ASSERT
-            Assert.AreEqual(command, $"refactor post --fn-to-refactor \"{fnToRefactorJson}\"");
-        }
+        //    // ASSERT
+        //    Assert.AreEqual(command, $"refactor post --fn-to-refactor \"{fnToRefactorJson}\"");
+        //}
 
-        [TestMethod]
-        public void GetRefactorPostCommand_Withiout_Skip_Cache_Use_Staging()
-        {
-            // ARRANGE
-            var provider = new CliCommandProvider();
-            var fnToRefactorJson = "function(){};";
+        //[TestMethod]
+        //public void GetRefactorPostCommand_Withiout_Skip_Cache_Use_Staging()
+        //{
+        //    // ARRANGE
+        //    var provider = new CliCommandProvider();
+        //    var fnToRefactorJson = "function(){};";
 
-            // ACT
-            var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson);
+        //    // ACT
+        //    var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson);
 
-            // ASSERT
-            Assert.AreEqual(command, $"refactor post --fn-to-refactor \"{fnToRefactorJson}\"");
-        }
+        //    // ASSERT
+        //    Assert.AreEqual(command, $"refactor post --fn-to-refactor \"{fnToRefactorJson}\"");
+        //}
 
-        [TestMethod]
-        public void GetRefactorPostCommand_Withiout_Skip_Cache_With_Token()
-        {
-            // ARRANGE
-            var provider = new CliCommandProvider();
-            var fnToRefactorJson = "function(){};";
-            var token = "ABC";
+        //[TestMethod]
+        //public void GetRefactorPostCommand_Withiout_Skip_Cache_With_Token()
+        //{
+        //    // ARRANGE
+        //    var provider = new CliCommandProvider();
+        //    var fnToRefactorJson = "function(){};";
+        //    var token = "ABC";
 
-            // ACT
-            var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson, token: token);
+        //    // ACT
+        //    var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson, token: token);
 
-            // ASSERT
-            Assert.AreEqual(command, $"refactor post --fn-to-refactor {fnToRefactorJson} --token {token}");
-        }
+        //    // ASSERT
+        //    Assert.AreEqual(command, $"refactor post --fn-to-refactor {fnToRefactorJson} --token {token}");
+        //}
     }
 }

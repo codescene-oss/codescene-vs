@@ -2,7 +2,6 @@
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using System.ComponentModel.Composition;
-using System.IO;
 
 namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 {

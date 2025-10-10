@@ -30,7 +30,7 @@ namespace Codescene.VSExtension.VS2022.Application.Services.PreflightManager
 			{
 				_logger.Info("Auto refactor is disabled in options.");
 				_preflightResponse = null;
-				_autoRefactorConfig = new() { Activated = true, Visibile = true, Disabled = true };
+				_autoRefactorConfig = new() { Activated = true, Visible = false, Disabled = false };
 				return null;
 			} 
             else
@@ -41,14 +41,14 @@ namespace Codescene.VSExtension.VS2022.Application.Services.PreflightManager
 				{
 					_logger.Info("Got preflight response. ACE service is active.");
 					_preflightResponse = response;
-					_autoRefactorConfig = new() { Activated = true, Visibile = true, Disabled = false };
+					_autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
 					return response;
 				}
 				else
 				{
 					_logger.Info("Problem getting preflight response. ACE service is down.");
 					_preflightResponse = null;
-					_autoRefactorConfig = new() { Activated = false, Visibile = true, Disabled = false };
+					_autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
 					return null;
 				}
 			}
@@ -63,6 +63,6 @@ namespace Codescene.VSExtension.VS2022.Application.Services.PreflightManager
             return _preflightResponse;
         }
 
-		public AutoRefactorConfig GetAutoRefactorConfig() => _autoRefactorConfig ?? new() { Activated = true, Visibile = true, Disabled = false };
+		public AutoRefactorConfig GetAutoRefactorConfig() => _autoRefactorConfig ?? new() { Activated = true, Visible = true, Disabled = false };
 	}
 }
