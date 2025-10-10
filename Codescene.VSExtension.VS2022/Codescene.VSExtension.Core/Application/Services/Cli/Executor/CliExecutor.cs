@@ -86,7 +86,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             );
         }
 
-        public RefactorResponseModel PostRefactoring(string fnToRefactor, bool skipCache = false, string token = null)
+        public RefactorResponseModel PostRefactoring(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null)
         {
             var arguments = _cliCommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: token);
             if (string.IsNullOrEmpty(arguments))

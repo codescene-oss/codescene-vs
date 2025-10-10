@@ -22,6 +22,9 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         //[JsonProperty("function-type")]
         //public string FunctionType { get; set; }
 
+        [JsonProperty("nippy-b64")]
+        public string NippyB64 { get; set; }
+
         /// <summary>
         /// Range of the function. Use to keep track of what code to replace in the original file.
         /// </summary>

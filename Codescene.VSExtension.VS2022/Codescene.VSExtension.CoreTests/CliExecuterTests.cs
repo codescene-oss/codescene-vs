@@ -62,10 +62,9 @@ namespace Codescene.VSExtension.Tests
                 var extension = Path.GetExtension(fileName).Replace(".", "");
                 var refactorableFunctions = _cliExecuter.FnsToRefactorFromCodeSmells(content, extension, codesmellsJson, preflight);
                 var f = refactorableFunctions.First();
-                var refactorableFunctionsString = JsonConvert.SerializeObject(f);
                 try
                 {
-                    var refactoredFunctions = _cliExecuter.PostRefactoring(fnToRefactor: refactorableFunctionsString, skipCache: true);
+                    var refactoredFunctions = _cliExecuter.PostRefactoring(fnToRefactor: f, skipCache: true);
                 }
                 catch (Exception ex)
                 {

@@ -46,11 +46,9 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             
             SendTelemetry(entryPoint, invalidateCache);
 
-            var refactorableFunctionString = JsonConvert.SerializeObject(refactorableFunction);
-
 			try
             {
-                var refactoredFunction = _executor.PostRefactoring(fnToRefactor: refactorableFunctionString);
+                var refactoredFunction = _executor.PostRefactoring(fnToRefactor: refactorableFunction);
 
                 if (refactoredFunction != null)
                 {

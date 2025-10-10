@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using MediaBrowser.Model.Text;
+using System.Text;
 
 namespace Codescene.VSExtension.Core.Application.Services.Util
 {
@@ -10,12 +10,12 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
         /// <summary>
         /// Used to escape special characters in CLI command argument. 
         /// </summary>
-        internal static void AppendArgument(ref ValueStringBuilder stringBuilder, string argument)
+        internal static void AppendArgument(StringBuilder stringBuilder, string argument)
         {
             if (stringBuilder.Length != 0)
             {
                 stringBuilder.Append(' ');
-            }
+            }   
 
             // Parsing rules for non-argv[0] arguments:
             //   - Backslash is a normal character except followed by a quote.
@@ -30,11 +30,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
             }
             else
             {
-                AppendArgumentWithQuotes(ref stringBuilder, argument);
+                AppendArgumentWithQuotes(stringBuilder, argument);
             }
         }
 
-        private static void AppendArgumentWithQuotes(ref ValueStringBuilder stringBuilder, string argument)
+        private static void AppendArgumentWithQuotes(StringBuilder stringBuilder, string argument)
         {
             stringBuilder.Append(Quote);
             int idx = 0;
@@ -43,11 +43,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
                 char c = argument[idx++];
                 if (c == Backslash)
                 {
-                    HandleBackslashes(ref stringBuilder, argument, ref idx);
+                    HandleBackslashes(stringBuilder, argument, ref idx);
                 }
                 else if (c == Quote)
                 {
-                    EscapeQuote(ref stringBuilder);
+                    EscapeQuote(stringBuilder);
                 }
                 else
                 {
@@ -57,7 +57,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
             stringBuilder.Append(Quote);
         }
 
-        private static void HandleBackslashes(ref ValueStringBuilder stringBuilder, string argument, ref int idx)
+        private static void HandleBackslashes(StringBuilder stringBuilder, string argument, ref int idx)
         {
             int numBackSlash = 1;
             while (idx < argument.Length && argument[idx] == Backslash)
@@ -85,7 +85,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Util
             }
         }
 
-        private static void EscapeQuote(ref ValueStringBuilder stringBuilder)
+        private static void EscapeQuote(StringBuilder stringBuilder)
         {
             // Escape the quote so it appears as a literal. This also guarantees that we won't end up generating a closing quote followed
             // by another quote (which parses differently pre-2008 vs. post-2008.)

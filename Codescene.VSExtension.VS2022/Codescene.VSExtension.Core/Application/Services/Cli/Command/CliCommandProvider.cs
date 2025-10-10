@@ -1,7 +1,9 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Util;
-using MediaBrowser.Model.Text;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Text;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
@@ -39,28 +41,37 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return $"refactor fns-to-refactor --extension {extension}{preflightArg} --delta-result {deltaResult}";
         }
 
-        public string GetRefactorPostCommand(string fnToRefactor, bool skipCache, string token = null)
+        public string GetRefactorPostCommand(FnToRefactorModel fnToRefactor, bool skipCache, string token = null)
         {
             var args = new List<string> { "refactor", "post" };
             if (skipCache)
                 args.Add("--skip-cache");
             if (!string.IsNullOrWhiteSpace(token))
             {
-                args.Add($"--token");
+                args.Add("--token");
                 args.Add(token);
             }
-            args.Add($"--fn-to-refactor");
-            args.Add(fnToRefactor);
+           
+            if (!string.IsNullOrEmpty(fnToRefactor.NippyB64))
+            {
+                args.Add("--fn-to-refactor-nippy-b64");
+                args.Add(fnToRefactor.NippyB64);
+            } 
+            else
+            {
+				args.Add("--fn-to-refactor");
+                args.Add(JsonConvert.SerializeObject(fnToRefactor));
+			}
             var command = GetArgumentStr(args.ToArray());
             return command;
         }
 
         static string GetArgumentStr(params string[] args)
         {
-            var sb = new ValueStringBuilder();
+            var sb = new StringBuilder();
             foreach (var arg in args)
             {
-                PasteArguments.AppendArgument(ref sb, arg);
+                PasteArguments.AppendArgument(sb, arg);
             }
             return sb.ToString();
         }
