@@ -49,17 +49,14 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             _lastCommit = repo.Head?.Tip?.Sha ?? string.Empty;
             _onBranchChanged = onBranchChanged;
 
-            // Ensure we can watch logs directory even if HEAD log doesn't exist yet
             var logsDir = Path.Combine(_gitDirPath, "logs");
             if (!Directory.Exists(logsDir))
             {
-                // No commits yet -> nothing to watch until the first commit creates logs
                 Debug.WriteLine("BranchWatcherService: '.git/logs' not found. Waiting for first commit.");
                 _started = true;
                 return;
             }
 
-            // Watch ".git/logs" for the "HEAD" file
             _logsHeadWatcher = new FileSystemWatcher(logsDir)
             {
                 Filter = "HEAD",
@@ -81,60 +78,76 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             Debug.WriteLine($"BranchWatcherService: initial branch={_lastBranch}, tip={_lastCommit}");
         }
 
-        /// <summary>
-        /// Single handler for commits and checkouts via logs/HEAD.
-        /// </summary>
-        private async void OnLogsHeadChanged(object sender, FileSystemEventArgs e)
+        private void OnLogsHeadChanged(object sender, FileSystemEventArgs e)
+        {
+            if (!ShouldHandleLogsHeadEvent()) return;
+            _ = HandleLogsHeadChangedAsync()
+                .ContinueWith(t => Debug.WriteLine($"BranchWatcherService: logs/HEAD handler error - {t.Exception?.GetBaseException().Message}"),
+                     TaskContinuationOptions.OnlyOnFaulted);
+        }
+
+        private bool ShouldHandleLogsHeadEvent()
         {
             var now = DateTime.UtcNow;
-            if ((now - _lastEventTs).TotalMilliseconds < 250) return;
+            if ((now - _lastEventTs).TotalMilliseconds < 250) return false;
             _lastEventTs = now;
+            return true;
+        }
+
+        private async Task HandleLogsHeadChangedAsync()
+        {
+            await Task.Delay(60).ConfigureAwait(false);
+
+            if (!TryReadHead(out var currentBranch, out var currentSha))
+                return;
+
+            NotifyBranchChangeIfNeeded(currentBranch);
+            await NotifyCommitChangeIfNeededAsync(currentSha).ConfigureAwait(false);
+        }
+
+        private bool TryReadHead(out string currentBranch, out string currentSha)
+        {
+            currentBranch = string.Empty;
+            currentSha = string.Empty;
 
             try
             {
-                await Task.Delay(60);
-
-                string currentBranch;
-                string currentSha;
-
-                try
-                {
-                    using var repo = new Repository(_gitDirPath);
-                    currentBranch = repo.Head?.FriendlyName ?? string.Empty;
-                    currentSha = repo.Head?.Tip?.Sha ?? string.Empty;
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"BranchWatcherService: repo read failed - {ex.Message}");
-                    return;
-                }
-
-                // Detect branch change
-                if (!string.Equals(currentBranch, _lastBranch, StringComparison.Ordinal))
-                {
-                    _lastBranch = currentBranch;
-                    Debug.WriteLine($"BranchWatcherService: Branch changed -> {_lastBranch}");
-                    _onBranchChanged?.Invoke(_lastBranch);
-                }
-
-                // Detect commit change
-                if (!string.IsNullOrEmpty(currentSha) &&
-                    !string.Equals(currentSha, _lastCommit, StringComparison.OrdinalIgnoreCase))
-                {
-                    _lastCommit = currentSha;
-                    Debug.WriteLine($"BranchWatcherService: New commit -> {_lastCommit}");
-
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    var review = await VS.GetMefServiceAsync<IReviewService>();
-                    if (review is not null)
-                        await review.DeltaReviewOpenDocsAsync();
-                }
+                using var repo = new Repository(_gitDirPath);
+                currentBranch = repo.Head?.FriendlyName ?? string.Empty;
+                currentSha = repo.Head?.Tip?.Sha ?? string.Empty;
+                return true;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"BranchWatcherService: logs/HEAD handler error - {ex.Message}");
+                Debug.WriteLine($"BranchWatcherService: repo read failed - {ex.Message}");
+                return false;
             }
         }
+
+        private void NotifyBranchChangeIfNeeded(string currentBranch)
+        {
+            if (string.Equals(currentBranch, _lastBranch, StringComparison.Ordinal)) return;
+
+            _lastBranch = currentBranch;
+            Debug.WriteLine($"BranchWatcherService: Branch changed -> {_lastBranch}");
+            _onBranchChanged?.Invoke(_lastBranch);
+        }
+
+        private async Task NotifyCommitChangeIfNeededAsync(string currentSha)
+        {
+            if (string.IsNullOrEmpty(currentSha) ||
+                string.Equals(currentSha, _lastCommit, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            _lastCommit = currentSha;
+            Debug.WriteLine($"BranchWatcherService: New commit -> {_lastCommit}");
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var review = await VS.GetMefServiceAsync<IReviewService>();
+            if (review is not null)
+                await review.DeltaReviewOpenDocsAsync();
+        }
+
 
         public void Stop()
         {
