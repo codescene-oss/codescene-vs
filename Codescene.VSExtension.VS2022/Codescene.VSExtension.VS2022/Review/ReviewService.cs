@@ -81,23 +81,34 @@ namespace Codescene.VSExtension.VS2022.Review
 
                 cache.Put(new ReviewCacheEntry(code, path, result));
 
-                if (result.RawScore != null)
-                {
-                    _logger.Info($"File {path} reviewed successfully.");
-                    DeltaReviewAsync(result, code).FireAndForget();
-                }
+                FireDeltaAsync(result, code);
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(result);
                 _marginSettings.UpdateMarginData(path, code);
 
-                if (buffer.Properties.TryGetProperty<ReviewResultTagger>(typeof(ReviewResultTagger), out var tagger))
-                    tagger.RefreshTags();
+                RefreshTagsIfPresent(buffer);
+
             }
             catch (Exception e)
             {
                 _logger.Error($"Could not update cache or review file {path}", e);
             }
+        }
+
+        private void FireDeltaAsync(FileReviewModel result, string code)
+        {
+            if (result?.RawScore != null)
+            {
+                _logger.Info($"File {result.FilePath} reviewed successfully.");
+                DeltaReviewAsync(result, code).FireAndForget();
+            }
+        }
+
+        private static void RefreshTagsIfPresent(ITextBuffer buffer)
+        {
+            if (buffer?.Properties.TryGetProperty<ReviewResultTagger>(typeof(ReviewResultTagger), out var tagger) == true)
+                tagger.RefreshTags();
         }
 
         /// <summary>
