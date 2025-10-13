@@ -21,9 +21,9 @@ namespace Codescene.VSExtension.VS2022.Application.Git
     {
         private FileSystemWatcher _logsHeadWatcher;
 
-        private string _gitDirPath = string.Empty;
-        private string _lastBranch = string.Empty;
-        private string _lastCommit = string.Empty;
+        private string _gitDirPath;
+        private string _lastBranch;
+        private string _lastCommit;
         private Action<string> _onBranchChanged;
 
         private DateTime _lastEventTs = DateTime.MinValue;
@@ -34,8 +34,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         /// </summary>
         public void StartWatching(string solutionPath, Action<string> onBranchChanged)
         {
-            Stop(); // clear any existing watcher
-
             var discovered = Repository.Discover(solutionPath);
             if (string.IsNullOrEmpty(discovered))
             {

@@ -226,6 +226,8 @@ internal class WebComponentMessageHandler
 
         if (currentBaseline != newBaseline)
         {
+            await CodeSceneToolWindow.UpdateViewAsync();
+
             var _reviewService = await VS.GetMefServiceAsync<IReviewService>();
 
             _commitBaselineService.OnCommitBaselineChanged(newBaseline);
