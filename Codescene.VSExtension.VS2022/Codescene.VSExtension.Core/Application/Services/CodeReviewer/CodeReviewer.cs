@@ -54,7 +54,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
             return _mapper.Map(path, review); ;
         }
 
-        public DeltaResponseModel Delta(FileReviewModel review, string currentCode)
+        public DeltaResponseModel Delta(FileReviewModel review, string currentCode, string baselineCommitSha)
         {
             var path = review.FilePath;
             var currentRawScore = review.RawScore ?? "";
@@ -67,7 +67,7 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
             try
             {
-                var oldCode = _git.GetFileContentForCommit(path);
+                var oldCode = _git.GetFileContentForCommit(path, baselineCommitSha);
                 var cache = new DeltaCacheService();
                 var entry = cache.Get(new DeltaCacheQuery(path, oldCode, currentCode));
 

@@ -12,7 +12,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeHealthMonitorMapper
     {
-        public CodeHealthMonitorComponentData Map(Dictionary<string, DeltaResponseModel> fileDeltas)
+        public CodeHealthMonitorComponentData Map(Dictionary<string, DeltaResponseModel> fileDeltas, string commitBaseline)
         {
             var files = fileDeltas.Select(pair => new FileDeltaData
             {
@@ -34,6 +34,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
             {
                 FileDeltaData = files,
                 Jobs = DeltaJobTracker.RunningJobs.ToList(),
+                CommitBaseline = commitBaseline
             };
         }
 

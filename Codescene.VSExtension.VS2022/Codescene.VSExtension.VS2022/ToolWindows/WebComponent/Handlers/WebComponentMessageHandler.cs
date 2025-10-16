@@ -2,6 +2,8 @@
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
+using Codescene.VSExtension.VS2022.CommitBaseline;
+using Codescene.VSExtension.VS2022.Review;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
@@ -22,6 +24,7 @@ internal class WebComponentMessageHandler
     private ShowDocumentationHandler _showDocsHandler;
 
     private readonly WebComponentUserControl _control;
+    private readonly IReviewService _reviewService;
 
     public WebComponentMessageHandler(WebComponentUserControl control)
     {
@@ -93,6 +96,10 @@ internal class WebComponentMessageHandler
 
                 case MessageTypes.OPEN_DOCS_FOR_FUNCTION:
                     await HandleOpenDocsForFunctionAsync(msgObject, logger);
+                    break;
+
+                case MessageTypes.COMMIT_BASELINE:
+                    await HandleCommitBaselineAsync(msgObject, logger);
                     break;
 
                 default:
@@ -200,6 +207,39 @@ internal class WebComponentMessageHandler
             payload.Fn?.Range), DocsEntryPoint.CodeHealthMonitor
         );
     }
+
+    private async Task HandleCommitBaselineAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        var newBaseline = msgObject.Payload?.ToString();
+        if (string.IsNullOrEmpty(newBaseline)) return;
+
+        _logger.Debug($"Commit baseline type requested from UI: '{newBaseline}'...");
+
+        var _commitBaselineService = await VS.GetMefServiceAsync<CommitBaselineService>();
+        var currentBaseline = _commitBaselineService.GetCommitBaseline();
+
+        if (!Enum.TryParse<CommitBaselineType>(newBaseline, true, out var baselineType))
+        {
+            _logger.Warn($"Unknown baseline type received: {newBaseline}");
+            return;
+        }
+
+        if (currentBaseline != newBaseline)
+        {
+            await CodeSceneToolWindow.UpdateViewAsync();
+
+            var _reviewService = await VS.GetMefServiceAsync<IReviewService>();
+
+            _commitBaselineService.OnCommitBaselineChanged(newBaseline);
+            await _reviewService.DeltaReviewOpenDocsAsync();
+        }
+        else
+        {
+            _logger.Debug("Baseline unchanged, doing nothing.");
+        }
+    }
+
+
 
     private void SendTelemetry(string eventName, Dictionary<string, object> additionalData = null)
     {
