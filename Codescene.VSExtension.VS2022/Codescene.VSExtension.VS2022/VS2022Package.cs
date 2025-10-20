@@ -28,6 +28,7 @@ namespace Codescene.VSExtension.VS2022;
 [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
 
 [ProvideToolWindow(typeof(MarkdownWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer)]
+[ProvideToolWindow(typeof(AceToolWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer, Transient = true)]
 [ProvideToolWindow(typeof(CodeSmellDocumentationWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer, Transient = true)]
 [ProvideToolWindow(typeof(CodeSceneToolWindow.Pane), Style = VsDockStyle.Tabbed, Window = WindowGuids.SolutionExplorer)]
 public sealed class VS2022Package : ToolkitPackage
