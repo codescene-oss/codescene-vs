@@ -7,14 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.3.0] - 2025-10-20
-### Added
-- Code Health Monitor to track code quality in real-time added to Freemium.
-### Changed
-- Bump CLI version to 1.0.14
-- Improve code health review time by 50% (CLI version 1.0.8)
-
-
 ## [0.2.7] - 2025-10-07
 ### Fixed
 - Update extension startup to wait for IDE initialization finish
