@@ -92,6 +92,11 @@ public sealed class VS2022Package : ToolkitPackage
         await new SolutionEventsHandler().Initialize(this);
     }
 
+	async Task HideOpenedWindowsAsync()
+	{
+		await AceToolWindow.HideAsync();
+	}
+
 	private async Task WaitForShellInitializationAsync(CancellationToken cancellationToken)
 	{
 		await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -126,15 +131,6 @@ public sealed class VS2022Package : ToolkitPackage
         }
 
         throw new Exception($"Can not find component {nameof(T)}");
-    }
-
-    private void SendTelemetry(string eventName)
-    {
-        Task.Run(async () =>
-        {
-            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(eventName);
-        }).FireAndForget();
     }
 
     async Task InitializeLoggerPaneAsync()

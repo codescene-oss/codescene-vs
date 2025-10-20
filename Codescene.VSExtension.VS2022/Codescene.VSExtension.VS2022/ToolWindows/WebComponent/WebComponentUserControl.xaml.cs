@@ -41,7 +41,14 @@ public partial class WebComponentUserControl : UserControl
         "https://supporthub.codescene.com"
     };
 
-    public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
+	public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
+	{
+		_logger = logger;
+		InitializeComponent();
+		Initialize(payload, payload.View);
+	}
+
+	public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
     {
         _logger = logger;
         InitializeComponent();
@@ -49,13 +56,6 @@ public partial class WebComponentUserControl : UserControl
     }
 
     public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload, ILogger logger)
-    {
-        _logger = logger;
-        InitializeComponent();
-        Initialize(payload, payload.View);
-    }
-
-    public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
     {
         _logger = logger;
         InitializeComponent();
