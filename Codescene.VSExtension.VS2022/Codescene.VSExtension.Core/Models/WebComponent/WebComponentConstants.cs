@@ -7,7 +7,19 @@
         public class ViewTypes
         {
             public const string DOCS = "docs";
-            public const string HOME = "home";
+            public const string HOME = "home"; // Code Health Monitor
+        }
+
+        public class StateTypes
+        {
+            public const string RUNNING = "running";
+            public const string QUEUED = "queued";
+        }
+
+        public class JobTypes
+        {
+            public const string DELTA = "deltaAnalysis";
+            public const string ACE = "autoRefactor";
         }
 
         public class MessageTypes
@@ -26,6 +38,7 @@
             public const string SHOW_DIFF = "showDiff";
             public const string REQUEST_AND_PRESENT_REFACTORING = "request-and-present-refactoring";
             public const string UPDATE_RENDERER = "update-renderer";
+            public const string OPEN_DOCS_FOR_FUNCTION = "open-docs-for-function";
             public const string OPEN_SETTINGS = "open-settings";
         }
     }

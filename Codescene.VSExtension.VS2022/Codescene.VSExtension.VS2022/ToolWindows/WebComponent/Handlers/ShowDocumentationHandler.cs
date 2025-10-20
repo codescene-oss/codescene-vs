@@ -18,7 +18,7 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 public static class DocsEntryPoint
 {
     public const string DiagnosticItem = "diagnostic-item";
-    public const string CodeHealthMonitor = "code-health-monitor"; // Only on Premium
+    public const string CodeHealthMonitor = "code-health-monitor";
 }
 
 [Export(typeof(ShowDocumentationHandler))]

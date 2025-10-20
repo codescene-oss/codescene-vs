@@ -89,6 +89,14 @@
 				</Strings>
 			</Button>
 			-->
+			<Button guid="CodeSceneCmdSet" id="OpenCodeSceneToolWindow" priority="0x0100" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
+				<Icon guid="ImageCatalogGuid" id="CodeInformation" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>Code Health Monitor</ButtonText>
+				</Strings>
+			</Button>
 		</Buttons>
 
 	</Commands>

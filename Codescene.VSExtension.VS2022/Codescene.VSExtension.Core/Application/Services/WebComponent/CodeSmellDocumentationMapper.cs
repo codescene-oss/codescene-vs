@@ -25,7 +25,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 
             return new CodeSmellDocumentationComponentData
             {
-                DocType = $"docs_issues_{TextUtils.ToSnakeCase(model.Category)}",
+                DocType = AddDocsPrefix(model.Category),
                 AutoRefactor = new AutoRefactorModel
                 {
                     Activated = false,
@@ -38,6 +38,14 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                     Fn = function,
                 }
             };
+        }
+
+        private string AddDocsPrefix(string category)
+        {
+            if (category.Contains("docs_issues")) // When opening docs from the monitor, the category is already formatted.
+                return category;
+            else
+                return $"docs_issues_{TextUtils.ToSnakeCase(category)}";
         }
     }
 }

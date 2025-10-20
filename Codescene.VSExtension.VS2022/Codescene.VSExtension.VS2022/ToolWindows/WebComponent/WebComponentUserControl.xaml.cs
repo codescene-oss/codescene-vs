@@ -55,6 +55,13 @@ public partial class WebComponentUserControl : UserControl
         Initialize(payload, payload.View);
     }
 
+    public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
+    {
+        _logger = logger;
+        InitializeComponent();
+        Initialize(payload, payload.View);
+    }
+
     private void Initialize<T>(T payload, string view)
     {
         OnThemeChanged(null);
@@ -139,6 +146,7 @@ public partial class WebComponentUserControl : UserControl
     /// These variables are used for styling elements inside the WebView to match the IDE appearance.
     /// </summary>
     private static string GenerateCssVariablesFromTheme() => StyleHelper.GenerateCssVariablesFromTheme();
+
 
     private async Task<CoreWebView2Environment> CreatePerWindowEnvAsync(string view)
     {

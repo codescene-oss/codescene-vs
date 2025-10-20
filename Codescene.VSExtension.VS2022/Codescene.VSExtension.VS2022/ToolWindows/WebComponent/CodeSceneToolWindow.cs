@@ -1,11 +1,15 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Models;
+﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Telemetry;
+using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
-using Newtonsoft.Json;
+using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -29,16 +33,15 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
         try
         {
+            var deltaCache = new DeltaCacheService();
+            var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
+
             var payload = new WebComponentPayload<CodeHealthMonitorComponentData>
             {
                 IdeType = VISUAL_STUDIO_IDE_TYPE,
                 View = ViewTypes.HOME,
-                Data = new CodeHealthMonitorComponentData
-                {
-                    ShowOnboarding = false,
-                    FileDeltaData = new List<FileDeltaData>(),
-                    Jobs = new List<Job>()
-                }
+                Data = mapper.Map(deltaCache.GetAll()),
+                Pro = true
             };
 
             var ctrl = new WebComponentUserControl(payload, logger)
@@ -69,6 +72,9 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
             return;
         }
 
+        var deltaCache = new DeltaCacheService();
+        var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
+
         var message = new WebComponentMessage<CodeHealthMonitorComponentData>
         {
             MessageType = MessageTypes.UPDATE_RENDERER,
@@ -76,12 +82,8 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
             {
                 IdeType = VISUAL_STUDIO_IDE_TYPE,
                 View = ViewTypes.HOME,
-                Data = new CodeHealthMonitorComponentData
-                {
-                    ShowOnboarding = false,
-                    FileDeltaData = new List<FileDeltaData>(),
-                    Jobs = new List<Job>()
-                },
+                Data = mapper.Map(deltaCache.GetAll()),
+                Pro = true
             }
         };
         ILogger logger = await VS.GetMefServiceAsync<ILogger>();
@@ -91,8 +93,64 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
     public override string GetTitle(int toolWindowId) => Titles.CODESCENE;
 
     [Guid("A9FF6E0A-51FE-4713-8123-6B75EFC3E2C5")]
-    internal class Pane : ToolWindowPane
+    internal class Pane : ToolWindowPane, IVsWindowFrameNotify3
     {
+        private IDebounceService _debounceService;
+
         public Pane() => BitmapImageMoniker = KnownMonikers.StatusInformation;
+
+        public int OnClose(ref uint pgrfSaveOptions)
+        {
+            SendTelemetry(false);
+            return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// Called when the tool window is shown or its visibility changes.
+        /// See: https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.__frameshow?view=visualstudiosdk-2022
+        /// </summary>
+        /// <remarks>
+        /// This event can be triggered multiple times when the window is shown due to internal Visual Studio window management behaviors.
+        /// To avoid flooding telemetry and excessive processing, the invocation of telemetry reporting is debounced with a delay of 5 seconds.
+        /// </remarks>
+        public int OnShow(int fShow)
+        {
+            // FRAMESHOW_WinShown (1), FRAMESHOW_TabActivated (2)
+            var allowedCodes = new List<int>() { 1, 2 };
+            if (!allowedCodes.Contains(fShow)) return VSConstants.S_OK;
+
+            Task.Run(async () =>
+            {
+                _debounceService ??= await VS.GetMefServiceAsync<IDebounceService>();
+
+                _debounceService?.Debounce(
+                    nameof(CodeSceneToolWindow),
+                    () => { SendTelemetry(true); },
+                    TimeSpan.FromSeconds(5)
+                );
+            }).FireAndForget();
+
+            return VSConstants.S_OK;
+        }
+
+        public int OnMove(int x, int y, int w, int h) => VSConstants.S_OK;
+
+        public int OnSize(int x, int y, int w, int h) => VSConstants.S_OK;
+
+        public int OnDockableChange(int fDockable, int x, int y, int w, int h) => VSConstants.S_OK;
+
+        private void SendTelemetry(bool visible)
+        {
+            Task.Run(async () =>
+            {
+                var additionalData = new Dictionary<string, object>
+                {
+                    { "visible", visible }
+                };
+
+                var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+                telemetryManager.SendTelemetry(Telemetry.MONITOR_VISIBILITY, additionalData);
+            }).FireAndForget();
+        }
     }
 }

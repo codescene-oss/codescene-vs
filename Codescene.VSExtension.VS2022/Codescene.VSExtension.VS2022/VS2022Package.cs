@@ -2,6 +2,7 @@
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.DocumentEventsHandler;
+using Codescene.VSExtension.VS2022.Listeners;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
@@ -13,7 +14,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-
 using CodeSceneConstants = Codescene.VSExtension.Core.Application.Services.Util.Constants;
 using Task = System.Threading.Tasks.Task;
 
@@ -60,6 +60,12 @@ public sealed class VS2022Package : ToolkitPackage
             // Subscribe on active document change event
             await SubscribeOnActiveWindowChangeAsync();
 
+            // Hide Windows
+            await HideOpenedWindowsAsync();
+
+            // Solution events handler
+            await InitializeSolutionEventsHandlerAsync();
+
             SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION);
         }
         catch (Exception e)
@@ -72,33 +78,47 @@ public sealed class VS2022Package : ToolkitPackage
         }
     }
 
-    private async Task WaitForShellInitializationAsync(CancellationToken cancellationToken)
+    private void SendTelemetry(string eventName)
     {
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        if (VsShellUtilities.ShellIsInitialized)
+        Task.Run(async () =>
         {
-            return; // Shell is already initialized
-        }
-
-        // If not initialized, wait for it using a simple polling approach
-        const int maxWaitTimeMs = 120000; // 120 seconds max wait (2 min)
-        const int pollIntervalMs = 1000;   // Check every 1s
-        int elapsedMs = 0;
-
-        while (!VsShellUtilities.ShellIsInitialized && elapsedMs < maxWaitTimeMs)
-        {
-            await Task.Delay(pollIntervalMs, cancellationToken);
-            elapsedMs += pollIntervalMs;
-        }
-
-        if (!VsShellUtilities.ShellIsInitialized)
-        {
-            throw new TimeoutException("Visual Studio shell failed to initialize within the expected time.");
-        }
+            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+            telemetryManager.SendTelemetry(eventName);
+        }).FireAndForget();
     }
 
-    async Task<T> GetServiceAsync<T>()
+    async Task InitializeSolutionEventsHandlerAsync()
+    {
+        await new SolutionEventsHandler().Initialize(this);
+    }
+
+	private async Task WaitForShellInitializationAsync(CancellationToken cancellationToken)
+	{
+		await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+		if (VsShellUtilities.ShellIsInitialized)
+		{
+			return; // Shell is already initialized
+		}
+
+		// If not initialized, wait for it using a simple polling approach
+		const int maxWaitTimeMs = 120000; // 120 seconds max wait (2 min)
+		const int pollIntervalMs = 1000;   // Check every 1s
+		int elapsedMs = 0;
+
+		while (!VsShellUtilities.ShellIsInitialized && elapsedMs < maxWaitTimeMs)
+		{
+			await Task.Delay(pollIntervalMs, cancellationToken);
+			elapsedMs += pollIntervalMs;
+		}
+
+		if (!VsShellUtilities.ShellIsInitialized)
+		{
+			throw new TimeoutException("Visual Studio shell failed to initialize within the expected time.");
+		}
+	}
+
+	async Task<T> GetServiceAsync<T>()
     {
         if (await GetServiceAsync(typeof(SComponentModel)) is IComponentModel componentModel)
         {

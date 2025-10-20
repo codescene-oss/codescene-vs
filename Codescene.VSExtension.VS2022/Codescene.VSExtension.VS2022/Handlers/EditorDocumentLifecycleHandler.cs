@@ -5,10 +5,14 @@ using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
 using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.ReviewModels;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using Codescene.VSExtension.VS2022.TermsAndPolicies;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
+using Codescene.VSExtension.VS2022.Util;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -16,6 +20,7 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 {
@@ -77,6 +82,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
         /// <summary>
         /// Reviews the content of a file, updates cache and refreshes UI indicators (Code Health margin, error list, tagger).
+        /// Triggers delta analysis.
         /// </summary>
         private async Task ReviewContentAsync(string path, ITextBuffer buffer)
         {
@@ -102,7 +108,10 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 cache.Put(new ReviewCacheEntry(code, path, result));
 
                 if (result.RawScore != null)
+                {
                     _logger.Info($"File {path} reviewed successfully.");
+                    DeltaReviewAsync(result, code).FireAndForget();
+                }
 
                 await CodeSceneToolWindow.UpdateViewAsync();
 
@@ -128,6 +137,42 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             {
                 _logger.Warn("Could not get the file path. Aborting review...");
                 return "";
+            }
+        }
+
+        /// <summary>
+        /// Triggers delta analysis based on review of the most current content in a file.
+        /// Updates or opens the Code Health Monitor tool window.
+        /// </summary>
+        private async Task DeltaReviewAsync(FileReviewModel currentReview, string currentContent)
+        {
+            var path = currentReview.FilePath;
+            var job = new Job
+            {
+                Type = JobTypes.DELTA,
+                State = StateTypes.RUNNING,
+                File = new File { FileName = path }
+            };
+
+            try
+            {
+                DeltaJobTracker.Add(job);
+
+                await CodeSceneToolWindow.UpdateViewAsync(); // Update loading state
+
+                var deltaResult = _reviewer.Delta(currentReview, currentContent);
+
+                var scoreChange = deltaResult?.ScoreChange.ToString() ?? "none";
+                _logger.Info($"Delta analysis complete for file {path}. Code Health score change: {scoreChange}.");
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Could not perform delta review on file {currentReview.FilePath}.", e);
+            }
+            finally
+            {
+                DeltaJobTracker.Remove(job);
+                await CodeSceneToolWindow.UpdateViewAsync();
             }
         }
     }
