@@ -11,50 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Bump CLI version to 1.0.14
 - Add Code Health Monitor to Freemium
-### Changed
-- package
-- fix merge issues
-- v0.3.2
-- update cli sha
-- v0.3.1
-- bump version to 0.2.0
-- whitelist https://supporthub.codescene.com
-- propagate fixes to core: - tooltip handling on light themes, - file-level documentation handling, - bump version and update changelog
-- update CLI version
-- Update required DevTools version
-- update changelog and bump version to 0.0.7
-- adjust csproj file
-- copy git2 dll automatically
-- downgrade dependency versions, adapt code
-- update CHANGELOG
-- use timeout constants
-- handle monitor file telemetry events
-- add monitor open/close telemetry
-- add webview telemetry: - refactoring events placeholders without event properties, - open docs from monitor event.
-- add open settings command
-- add web link click event
-- add copy device id command
-- bump version and add timeout event
-- add telemetry with initial on startup event
-- update webview styling and bump version to 0.0.5
-- code health monitor improvements: - ability to open code health docs from code smell details, - update webview to version 0.16.4
-- bump version to 0.0.3 and update CHANGELOG
-- remove timestamp from log: - avoid duplication of timestamp in actual IDE
-- bump version to 0.0.2 and update CHANGELOG
-- enable showing debug logs in settings
-- adjust version, update README and CHANGELOG
-- add progress indicator for monitor loading: - add delta job tracker for pending analyses, - send list of pending jobs to webview, - include jobs feature flag in webview, - update loading state when delta analysis is triggered, - refine some logs, - refactor webview message handler
-- clear monitor on branch change: - add branch watcher service, - register watcher on solution open
-- clear monitor results when solution is closed: - keep monitor consistent to current codebase - add SolutionEventsHandler to keep track of events - delete delta cache and re-render webview
-- update CLI executing logic
-- code health monitor improvements: - improved logging & review flow - add command to open CHM tool window manually - fallback values for error states
-- send buffer directly to method in review
-- add delta timeout
-- run review and delta in background thread
-- safeguard delta analysis against empty score
-- integrate webview v1
-- integrate with delta API, add cache service, initial delta flow
-
 
 ## [0.2.7] - 2025-10-07
 ### Fixed
@@ -158,4 +114,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
-
