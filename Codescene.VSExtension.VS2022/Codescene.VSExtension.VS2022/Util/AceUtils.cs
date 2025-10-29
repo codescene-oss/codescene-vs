@@ -5,6 +5,7 @@ using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Mapper;
 using Codescene.VSExtension.Core.Application.Services.PreflightManager;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.ReviewModels;
@@ -101,7 +102,7 @@ namespace Codescene.VSExtension.VS2022.Util
             );
         }
 
-        private static bool ShouldCheckRefactorableFunctions(string extension, IPreflightManager preflightManager, ILogger logger)
+		private static bool ShouldCheckRefactorableFunctions(string extension, IPreflightManager preflightManager, ILogger logger)
         {
             var state = General.Instance.EnableAutoRefactor;
             if (!state)

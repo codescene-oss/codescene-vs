@@ -238,9 +238,17 @@ internal class WebComponentMessageHandler
 
         logger.Debug($"Found {refactorableFunctions.Count} refactorable functions in cache for file '{payload.FileName}'.");
 
+        var refactorableFunction = refactorableFunctions.FirstOrDefault(fn => fn.Name == payload.Fn.Name);
+        
+        if (refactorableFunction == null)
+        {
+            logger.Warn($"Function '{payload.Fn.Name}' not found in cache for file '{payload.FileName}'. Cannot proceed with refactoring.");
+            return;
+        }
+
         await onClickRefactoringHandler.HandleAsync(
             payload.FileName,
-            refactorableFunctions.FirstOrDefault(fn => fn.Name == payload.Fn.Name),
+            refactorableFunction,
             AceConstants.AceEntryPoint.CODE_VISION
         );
     }

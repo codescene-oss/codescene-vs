@@ -65,7 +65,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                     }
                 }
             }
-            if (refactorableFunction != null && lastTagSpan != null)
+            if (lastTagSpan != null)
                 yield return CreateAceRefactorTagSpan(lastTagSpan.Value, refactorableFunction);
         }
 
