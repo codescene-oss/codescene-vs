@@ -99,7 +99,33 @@ public sealed class VS2022Package : ToolkitPackage
         }).FireAndForget();
     }
 
-    async Task InitializeSolutionEventsHandlerAsync()
+	private async Task WaitForShellInitializationAsync(CancellationToken cancellationToken)
+	{
+		await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+		if (VsShellUtilities.ShellIsInitialized)
+		{
+			return; // Shell is already initialized
+		}
+
+		// If not initialized, wait for it using a simple polling approach
+		const int maxWaitTimeMs = 120000; // 120 seconds max wait (2 min)
+		const int pollIntervalMs = 1000;   // Check every 1s
+		int elapsedMs = 0;
+
+		while (!VsShellUtilities.ShellIsInitialized && elapsedMs < maxWaitTimeMs)
+		{
+			await Task.Delay(pollIntervalMs, cancellationToken);
+			elapsedMs += pollIntervalMs;
+		}
+
+		if (!VsShellUtilities.ShellIsInitialized)
+		{
+			throw new TimeoutException("Visual Studio shell failed to initialize within the expected time.");
+		}
+	}
+
+	async Task InitializeSolutionEventsHandlerAsync()
     {
         await new SolutionEventsHandler().Initialize(this);
     }
