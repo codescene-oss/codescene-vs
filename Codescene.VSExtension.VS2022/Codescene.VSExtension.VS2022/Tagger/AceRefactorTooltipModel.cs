@@ -39,8 +39,8 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 await _onClickRefactoringHandler.HandleAsync(
-                    this.Path, 
-                    this.RefactorableFunction, 
+                    this._onClickRefactoringHandler.Path, 
+                    this._onClickRefactoringHandler.RefactorableFunction, 
                     AceConstants.AceEntryPoint.INTENTION_ACTION);
             }
             catch (Exception e)
