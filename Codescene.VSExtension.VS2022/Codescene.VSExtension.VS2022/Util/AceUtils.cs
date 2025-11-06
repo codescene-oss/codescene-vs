@@ -76,7 +76,6 @@ namespace Codescene.VSExtension.VS2022.Util
                     var cacheEntry = new AceRefactorableFunctionsEntry(path, code, refactorableFunctions);
                     logger.Debug($"Caching refactorable functions for path: {path}.");
                     _cache.Put(cacheEntry);
-					await CodeSceneToolWindow.UpdateViewAsync();
 					return refactorableFunctions;
                 }
                 else
