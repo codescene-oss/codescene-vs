@@ -35,7 +35,7 @@ public class OnClickRefactoringHandler
         await AceToolWindow.ShowAsync();
 
         // Run on background thread:
-        Task.Run(() => DoRefactorAndUpdateViewAsync(path, refactorableFunction, entryPoint)).FireAndForget();
+        Task.Run(() => DoRefactorAndUpdateViewAsync(Path, RefactorableFunction, entryPoint)).FireAndForget();
     }
 
     private void SetViewToLoadingMode(string path, FnToRefactorModel refactorableFunction)
