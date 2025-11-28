@@ -30,9 +30,13 @@ public class General : BaseOptionModel<General>
 
     private bool _enableAutoRefactor = true;
 
+#if FEATURE_ACE
     [Category("General")]
     [DisplayName("Enable Auto Refactor")]
     [Description("Enable CodeScene ACE")]
+#else
+    [Browsable(false)]
+#endif
     public bool EnableAutoRefactor
     {
         get => _enableAutoRefactor;

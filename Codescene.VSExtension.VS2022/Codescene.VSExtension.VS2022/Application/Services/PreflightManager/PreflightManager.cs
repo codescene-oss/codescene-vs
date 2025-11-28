@@ -25,13 +25,14 @@ namespace Codescene.VSExtension.VS2022.Application.Services.PreflightManager
 		public PreFlightResponseModel RunPreflight(bool force = false)
         {
 			_logger.Debug($"Running preflight with force: {force}");
+
+#if FEATURE_ACE
 			var aceEnabled = General.Instance.EnableAutoRefactor;
 			if (!aceEnabled)
 			{
 				_logger.Info("Auto refactor is disabled in options.");
 				_preflightResponse = null;
 				_autoRefactorConfig = new() { Activated = true, Visible = false, Disabled = false };
-				return null;
 			} 
             else
             {
@@ -49,9 +50,11 @@ namespace Codescene.VSExtension.VS2022.Application.Services.PreflightManager
 					_logger.Info("Problem getting preflight response. ACE service is down.");
 					_preflightResponse = null;
 					_autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
-					return null;
 				}
 			}
+#endif
+
+            return null;
         }
 
         public bool IsSupportedLanguage(string extension) => _preflightResponse?.FileTypes.Contains(extension.Replace(".", "").ToLower()) ?? false;
