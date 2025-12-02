@@ -95,6 +95,10 @@ internal class WebComponentMessageHandler
                     await HandleOpenDocsForFunctionAsync(msgObject, logger);
                     break;
 
+                case MessageTypes.OPEN_SETTINGS:
+                    await HandleOpenSettingsAsync();
+                    break;
+
                 default:
                     logger.Debug($"Unknown message type: {msgObject.MessageType}");
                     break;
@@ -199,6 +203,14 @@ internal class WebComponentMessageHandler
             payload.Fn?.Name,
             payload.Fn?.Range), DocsEntryPoint.CodeHealthMonitor
         );
+    }
+
+    private async Task HandleOpenSettingsAsync()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await VS.Settings.OpenAsync<OptionsProvider.GeneralOptions>();
+
+        SendTelemetry(Constants.Telemetry.OPEN_SETTINGS);
     }
 
     private void SendTelemetry(string eventName, Dictionary<string, object> additionalData = null)
