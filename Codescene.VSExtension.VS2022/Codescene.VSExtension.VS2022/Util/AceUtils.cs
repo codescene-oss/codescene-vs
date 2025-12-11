@@ -103,12 +103,6 @@ namespace Codescene.VSExtension.VS2022.Util
 
 		private static bool ShouldCheckRefactorableFunctions(string extension, IPreflightManager preflightManager, ILogger logger)
         {
-            var state = General.Instance.EnableAutoRefactor;
-            if (!state)
-            {
-                logger.Debug("Auto refactor is disabled in options.");
-                return false;
-            }
             if (preflightManager.IsSupportedLanguage(extension) == false)
             {
                 logger.Debug($"Auto refactor is not supported for language: {extension}");
