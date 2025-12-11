@@ -174,7 +174,6 @@
     <Compile Include="Models\WebComponent\Util\TextUtils.cs" />
     <Compile Include="Models\WebComponent\WebComponentConstants.cs" />
     <Compile Include="Models\WebComponent\Payload\WebComponentPayload.cs" />
-    <Compile Include="Options\General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
