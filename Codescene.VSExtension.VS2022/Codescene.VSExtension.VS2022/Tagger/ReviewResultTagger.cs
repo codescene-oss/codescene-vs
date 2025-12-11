@@ -79,7 +79,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
             if (tagSpan != null && tagSpan.Value.IntersectsWith(visibleSpan))
             {
-                if (General.Instance.EnableAutoRefactor && refactorableFunction != null)
+                if (refactorableFunction != null)
                 {
                     lastTagSpan = tagSpan;
                 }

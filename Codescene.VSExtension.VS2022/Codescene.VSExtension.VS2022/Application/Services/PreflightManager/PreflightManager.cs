@@ -27,30 +27,20 @@ namespace Codescene.VSExtension.VS2022.Application.Services.PreflightManager
 			_logger.Debug($"Running preflight with force: {force}");
 
 #if FEATURE_ACE
-			var aceEnabled = General.Instance.EnableAutoRefactor;
-			if (!aceEnabled)
-			{
-				_logger.Info("Auto refactor is disabled in options.");
-				_preflightResponse = null;
-				_autoRefactorConfig = new() { Activated = true, Visible = false, Disabled = false };
-			} 
-            else
-            {
-				var response = _executer.Preflight(force);
+			var response = _executer.Preflight(force);
 
-				if (response != null)
-				{
-					_logger.Info("Got preflight response. ACE service is active.");
-					_preflightResponse = response;
-					_autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
-					return response;
-				}
-				else
-				{
-					_logger.Info("Problem getting preflight response. ACE service is down.");
-					_preflightResponse = null;
-					_autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
-				}
+			if (response != null)
+			{
+				_logger.Info("Got preflight response. ACE service is active.");
+				_preflightResponse = response;
+				_autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
+				return response;
+			}
+			else
+			{
+				_logger.Info("Problem getting preflight response. ACE service is down.");
+				_preflightResponse = null;
+				_autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
 			}
 #endif
 
