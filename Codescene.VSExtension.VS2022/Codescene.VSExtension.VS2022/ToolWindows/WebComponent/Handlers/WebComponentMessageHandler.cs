@@ -1,4 +1,7 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -6,10 +9,12 @@ using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
@@ -95,8 +100,16 @@ internal class WebComponentMessageHandler
                     await HandleOpenDocsForFunctionAsync(msgObject, logger);
                     break;
 
+                case MessageTypes.CANCEL:
+                    await HandleCancelAsync();
+                    break;
+
                 case MessageTypes.OPEN_SETTINGS:
                     await HandleOpenSettingsAsync();
+                    break;
+
+                case MessageTypes.REQUEST_AND_PRESENT_REFACTORING:
+                    await HandleRequestAndPresentRefactoringAsync(msgObject, logger);
                     break;
 
                 default:
@@ -121,17 +134,15 @@ internal class WebComponentMessageHandler
         {
             await CodeSceneToolWindow.UpdateViewAsync().ConfigureAwait(false);
         }
+        if (source == ViewTypes.ACE)
+        {
+            await AceToolWindow.UpdateViewAsync().ConfigureAwait(false);
+        }
     }
 
     private async Task HandleCopyCodeAsync()
     {
-        // TODO: add additionalData to telemetry
-        //var additionalData = new Dictionary<string, object>
-        //{
-        //    { "traceId", ... },
-        //    { "skipCache ", ... }
-        //};
-        SendTelemetry(Constants.Telemetry.ACE_REFACTOR_COPY_CODE);
+        HandleAceTelemetry(Constants.Telemetry.ACE_REFACTOR_COPY_CODE);
 
         var copyHandler = await VS.GetMefServiceAsync<CopyRefactoredCodeHandler>();
         copyHandler.CopyToRefactoredCodeToClipboard();
@@ -139,13 +150,7 @@ internal class WebComponentMessageHandler
 
     private async Task HandleShowDiffAsync()
     {
-        // TODO: add additionalData to telemetry
-        //var additionalData = new Dictionary<string, object>
-        //{
-        //    { "traceId", ... },
-        //    { "skipCache ", ... }
-        //};
-        SendTelemetry(Constants.Telemetry.ACE_REFACTOR_DIFF_SHOWN);
+        HandleAceTelemetry(Constants.Telemetry.ACE_REFACTOR_DIFF_SHOWN);
 
         var diffHandler = await VS.GetMefServiceAsync<ShowDiffHandler>();
         await diffHandler.ShowDiffWindowAsync();
@@ -153,28 +158,36 @@ internal class WebComponentMessageHandler
 
     private async Task HandleApplyAsync()
     {
-        // TODO: add additionalData to telemetry
-        //var additionalData = new Dictionary<string, object>
-        //{
-        //    { "traceId", ... },
-        //    { "skipCache ", ... }
-        //};
-        SendTelemetry(Constants.Telemetry.ACE_REFACTOR_APPLIED);
+        HandleAceTelemetry(Constants.Telemetry.ACE_REFACTOR_APPLIED);
 
         var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
         await applier.ApplyAsync();
+        if (_control.CloseRequested is not null)
+            await _control.CloseRequested();
+        // Refresh the view after applying changes, because of the bug with two methods with the same name, needs to be revalidated.
+        await CodeSceneToolWindow.UpdateViewAsync();
     }
 
     private async Task HandleRejectAsync()
     {
-        // TODO: add additionalData to telemetry
-        //var additionalData = new Dictionary<string, object>
-        //{
-        //    { "traceId", ... },
-        //    { "skipCache ", ... }
-        //};
-        SendTelemetry(Constants.Telemetry.ACE_REFACTOR_REJECTED);
+        HandleAceTelemetry(Constants.Telemetry.ACE_REFACTOR_REJECTED);
 
+        if (_control.CloseRequested is not null)
+            await _control.CloseRequested();
+    }
+
+    private void HandleAceTelemetry(string telemetryEvent)
+    {
+        var additionalData = new Dictionary<string, object>
+        {
+            { "traceId", AceManager.LastRefactoring.Refactored.TraceId },
+            { "skipCache ", false }
+        };
+        SendTelemetry(telemetryEvent, additionalData);
+    }
+
+    private async Task HandleCancelAsync()
+    {
         if (_control.CloseRequested is not null)
             await _control.CloseRequested();
     }
@@ -202,6 +215,45 @@ internal class WebComponentMessageHandler
             payload.DocType,
             payload.Fn?.Name,
             payload.Fn?.Range), DocsEntryPoint.CodeHealthMonitor
+        );
+    }
+
+    private async Task HandleRequestAndPresentRefactoringAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        var payload = msgObject.Payload.ToObject<RequestAndPresentRefactoringPayload>();
+
+        logger.Debug($"Requesting refactoring for function '{payload.Fn.Name}' in file '{payload.FileName}'.");
+
+        var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
+
+        var cache = new AceRefactorableFunctionsCacheService();
+
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        var docView = await VS.Documents.OpenAsync(payload.FileName);
+        if (docView?.TextBuffer is not ITextBuffer buffer)
+            return;
+
+        var content = buffer.CurrentSnapshot.GetText();
+
+        var refactorableFunctions = cache.Get(new AceRefactorableFunctionsQuery(
+            payload.FileName,
+            content
+        ));
+
+        logger.Debug($"Found {refactorableFunctions.Count} refactorable functions in cache for file '{payload.FileName}'.");
+
+        var refactorableFunction = refactorableFunctions.FirstOrDefault(fn => fn.Name == payload.Fn.Name);
+        
+        if (refactorableFunction == null)
+        {
+            logger.Warn($"Function '{payload.Fn.Name}' not found in cache for file '{payload.FileName}'. Cannot proceed with refactoring.");
+            return;
+        }
+
+        await onClickRefactoringHandler.HandleAsync(
+            payload.FileName,
+            refactorableFunction,
+            AceConstants.AceEntryPoint.CODE_VISION
         );
     }
 

@@ -1,6 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Authentication;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.VS2022.Commands;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
@@ -35,7 +34,7 @@ internal class SignOutCommand(IAuthenticationService authService, ILogger errors
         }
         catch (Exception ex)
         {
-            await errorsHandler.LogAsync("Signing out failed", ex);
+            errorsHandler.Error("Signing out failed", ex);
         }
     }
     private async Task ShowStatusAsync(string message = "Successfully signed out.")

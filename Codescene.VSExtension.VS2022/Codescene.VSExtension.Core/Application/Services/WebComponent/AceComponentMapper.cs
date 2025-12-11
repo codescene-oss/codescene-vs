@@ -1,7 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Models.Cli;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using System.ComponentModel.Composition;
-using System.IO;
 
 namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 {
@@ -53,49 +53,48 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
             return data;
         }
 
-        public AceComponentData Map(string path)
-        {
-            var fileName = Path.GetFileName(path);
-            var data = new AceComponentData
-            {
-                Loading = true,
-                FileData = new WebComponentFileData
-                {
-                    FileName = path,
-                    Fn = new WebComponentFileDataBaseFn
-                    {
-                        Name = fileName,
-                        Range = new CliRangeModel
-                        {
-                            Startline = 0,
-                            StartColumn = 0,
-                            EndLine = 0,
-                            EndColumn = 0
-                        }
-                    },
-                    Action = new WebComponentAction
-                    {
-                        GoToFunctionLocationPayload = new WebComponentFileDataBase
-                        {
-                            FileName = path,
-                            Fn = new WebComponentFileDataBaseFn
-                            {
-                                Name = fileName,
-                                Range = new CliRangeModel
-                                {
-                                    Startline = 0,
-                                    StartColumn = 0,
-                                    EndLine = 0,
-                                    EndColumn = 0
-                                }
-                            }
-                        }
-                    }
-                },
-                AceResultData = null
-            };
+		public AceComponentData Map(string path, FnToRefactorModel model)
+		{
+			var data = new AceComponentData
+			{
+				Loading = true,
+				FileData = new WebComponentFileData
+				{
+					FileName = path,
+					Fn = new WebComponentFileDataBaseFn
+					{
+						Name = model.Name,
+						Range = new CliRangeModel
+						{
+							Startline = model.Range.Startline,
+							StartColumn = model.Range.StartColumn,
+							EndLine = model.Range.EndLine,
+							EndColumn = model.Range.EndColumn
+						}
+					},
+					Action = new WebComponentAction
+					{
+						GoToFunctionLocationPayload = new WebComponentFileDataBase
+						{
+							FileName = path,
+							Fn = new WebComponentFileDataBaseFn
+							{
+								Name = model.Name,
+								Range = new CliRangeModel
+								{
+									Startline = model.Range.Startline,
+									StartColumn = model.Range.StartColumn,
+									EndLine = model.Range.EndLine,
+									EndColumn = model.Range.EndColumn
+								}
+							}
+						}
+					}
+				},
+				AceResultData = null
+			};
 
-            return data;
-        }
+			return data;
+		}
     }
 }

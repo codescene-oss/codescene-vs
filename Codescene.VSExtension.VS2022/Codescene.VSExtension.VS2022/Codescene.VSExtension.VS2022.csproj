@@ -3,6 +3,11 @@
   <PropertyGroup>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <LangVersion>latest</LangVersion>
+
+    <!-- Feature flags - controlled via environment variable -->
+    <!-- Only enable if explicitly set to 'true' -->
+    <EnableAceRefactoring Condition="'$(FEATURE_ACE)' == 'true'">true</EnableAceRefactoring>
+    <EnableAceRefactoring Condition="'$(FEATURE_ACE)' != 'true'">false</EnableAceRefactoring>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -44,6 +49,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+
+  <!-- Add conditional compilation symbol for features -->
+  <PropertyGroup>
+    <DefineConstants Condition="'$(EnableAceRefactoring)' == 'true'">$(DefineConstants);FEATURE_ACE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Application\ErrorHandling\Logger.cs" />
     <Compile Include="Application\ErrorHandling\OutputPaneManager.cs" />
@@ -52,12 +63,17 @@
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="Application\Git\BranchWatcherService.cs" />
     <Compile Include="Application\Git\GitService.cs" />
+    <Compile Include="Application\Services\PreflightManager\PreflightManager.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />
     <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
+    <Compile Include="Controls\AceRefactorTooltip.xaml.cs">
+      <DependentUpon>AceRefactorTooltip.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Commands\RevokeTermsCommand.cs" />
     <Compile Include="TermsAndPolicies\TermsAndPoliciesService.cs" />
     <Compile Include="Handlers\SolutionEventsHandler.cs" />
+    <Compile Include="Tagger\AceRefactorTooltipModel.cs" />
     <Compile Include="ToolWindows\ToolWindowRegistry.cs" />
     <Compile Include="ToolWindows\ViewElementFactory.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
@@ -178,17 +194,19 @@
     <Compile Include="ToolWindows\WebComponent\Models\MessageObj.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\ShowDiffHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\ShowDocumentationHandler.cs" />
-    <Compile Include="ToolWindows\WebComponent\Handlers\SkipShowDiffHelper.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\WebComponentMessageHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Models\OpenDocsForFunctionPayload.cs" />
+    <Compile Include="ToolWindows\WebComponent\Models\RequestAndPresentRefactoringPayload.cs" />
     <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">
       <DependentUpon>WebComponentUserControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tagger\ReviewResultTagger.cs" />
     <Compile Include="Tagger\ReviewResultTaggerProvider.cs" />
     <Compile Include="Tagger\ReviewResultTaggerTooltipModel.cs" />
+    <Compile Include="Util\AceUtils.cs" />
     <Compile Include="Util\DocumentNavigator.cs" />
     <Compile Include="Util\ExtensionMetadataProvider.cs" />
+    <Compile Include="Util\IndentationUtil.cs" />
     <Compile Include="Util\StyleHelper.cs" />
     <Compile Include="VS2022Package.cs" />
     <Compile Include="source.extension.cs">
@@ -223,6 +241,18 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\cs-logo-small.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\cs-logo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="git2-3f4182d.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Resource Include="Resources\StatusError.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -243,18 +273,6 @@
       <Generator>VsixManifestGenerator</Generator>
       <LastGenOutput>source.extension.cs</LastGenOutput>
     </None>
-    <Content Include="Resources\cs-logo-small.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="Resources\cs-logo.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="git2-3f4182d.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="VSCommandTable.vsct">
@@ -564,6 +582,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Controls\AceRefactorTooltip.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\BrainClass.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

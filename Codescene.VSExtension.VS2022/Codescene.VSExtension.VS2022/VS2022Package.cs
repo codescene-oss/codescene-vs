@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.PreflightManager;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.DocumentEventsHandler;
@@ -76,6 +77,7 @@ public sealed class VS2022Package : ToolkitPackage
 
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
             SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION_ERROR);
+            RunPreflight();
         }
     }
 
@@ -88,15 +90,14 @@ public sealed class VS2022Package : ToolkitPackage
         }).FireAndForget();
     }
 
-    async Task InitializeSolutionEventsHandlerAsync()
+    private void RunPreflight()
     {
-        await new SolutionEventsHandler().Initialize(this);
+        Task.Run(async () =>
+        {
+            var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
+            preflightManager.RunPreflight(true);
+        }).FireAndForget();
     }
-
-	async Task HideOpenedWindowsAsync()
-	{
-		await AceToolWindow.HideAsync();
-	}
 
 	private async Task WaitForShellInitializationAsync(CancellationToken cancellationToken)
 	{
@@ -122,6 +123,16 @@ public sealed class VS2022Package : ToolkitPackage
 		{
 			throw new TimeoutException("Visual Studio shell failed to initialize within the expected time.");
 		}
+	}
+
+	async Task InitializeSolutionEventsHandlerAsync()
+    {
+        await new SolutionEventsHandler().Initialize(this);
+    }
+
+	async Task HideOpenedWindowsAsync()
+	{
+		await AceToolWindow.HideAsync();
 	}
 
 	async Task<T> GetServiceAsync<T>()

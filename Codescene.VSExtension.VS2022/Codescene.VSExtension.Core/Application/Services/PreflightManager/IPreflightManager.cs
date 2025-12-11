@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
 
 namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
 {
     public interface IPreflightManager
     {
         bool IsSupportedLanguage(string extenison);
-        bool IsSupportedCodeSmell(string codeSmell);
-        bool IsAnyCodeSmellSupported(IEnumerable<string> codeSmells);
-        bool IsSupportedLanguageAndCodeSmell(string extenison, string codeSmell);
-        decimal GetVersion();
-    }
+        PreFlightResponseModel RunPreflight(bool force = false);
+        PreFlightResponseModel GetPreflightResponse();
+        AutoRefactorConfig GetAutoRefactorConfig();
+	}
 }

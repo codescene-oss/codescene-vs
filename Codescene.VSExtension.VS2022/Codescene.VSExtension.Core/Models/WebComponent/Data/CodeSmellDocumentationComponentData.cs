@@ -3,15 +3,8 @@
     public class CodeSmellDocumentationComponentData
     {
         public string DocType { get; set; }
-        public AutoRefactorModel AutoRefactor { get; set; }
+        public AutoRefactorConfig AutoRefactor { get; set; }
         public FileDataModel FileData { get; set; }
-    }
-
-    public class AutoRefactorModel
-    {
-        public bool Activated { get; set; }
-        public bool Disabled { get; set; }
-        public bool Visible { get; set; }
     }
 
     public class FileDataModel

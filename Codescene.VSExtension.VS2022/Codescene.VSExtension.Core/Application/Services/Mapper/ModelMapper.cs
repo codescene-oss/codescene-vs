@@ -1,7 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.ReviewModels;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -33,10 +32,25 @@ namespace Codescene.VSExtension.Core.Application.Services.Mapper
             }
             catch (Exception ex)
             {
-                var r = JsonConvert.SerializeObject(result);
-                var message = $"{ex.Message}\nPath:{filePath}\nReview:{r}";
+                var message = $"{ex.Message}\nPath:{filePath}";
                 throw new InvalidOperationException(message);
             }
+        }
+
+        public CliCodeSmellModel Map(CodeSmellModel codeSmellModel)
+        {
+            return new CliCodeSmellModel
+            {
+                Category = codeSmellModel.Category,
+                Details = codeSmellModel.Details,
+                Range = new Models.Cli.CliRangeModel()
+                {
+                    Startline = codeSmellModel.Range.StartLine,
+                    StartColumn = codeSmellModel.Range.StartColumn,
+                    EndLine = codeSmellModel.Range.EndLine,
+                    EndColumn = codeSmellModel.Range.EndColumn
+                }
+            };
         }
 
         private CodeSmellModel Map(string path, CliCodeSmellModel review)

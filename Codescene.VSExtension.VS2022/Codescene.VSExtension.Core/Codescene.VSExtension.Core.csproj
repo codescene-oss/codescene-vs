@@ -71,12 +71,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Application\Services\AceManager\AceManager.cs" />
+    <Compile Include="Application\Services\AceManager\IAceManager.cs" />
     <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IPersistenceAuthDataProvider.cs" />
     <Compile Include="Application\Services\Authentication\FakeAuthDataProvider.cs" />
+    <Compile Include="Application\Services\Cache\Review\AceRefactorableFunctionsCacheService.cs" />
     <Compile Include="Application\Services\Cache\Review\CacheService.cs" />
     <Compile Include="Application\Services\Cache\Review\DeltaCacheService.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsEntry.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsItem.cs" />
+    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsQuery.cs" />
     <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheEntry.cs" />
     <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheItem.cs" />
     <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheQuery.cs" />
@@ -110,16 +116,18 @@
     <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Application\Services\PreflightManager\IPreflightManager.cs" />
-    <Compile Include="Application\Services\PreflightManager\PreflightManager.cs" />
     <Compile Include="Application\Services\Telemetry\DeviceId\DeviceIdStore.cs" />
     <Compile Include="Application\Services\Telemetry\DeviceId\IDeviceIdStore.cs" />
     <Compile Include="Application\Services\Telemetry\ITelemetryManager.cs" />
     <Compile Include="Application\Services\Telemetry\TelemetryManager.cs" />
+    <Compile Include="Application\Services\Util\AceConstants.cs" />
+    <Compile Include="Application\Services\Util\CodeReviewerHelper.cs" />
     <Compile Include="Application\Services\Util\Constants.cs" />
     <Compile Include="Application\Services\Util\DeltaJobTracker.cs" />
     <Compile Include="Application\Services\Util\DeltaTelemetryHelper.cs" />
     <Compile Include="Application\Services\Util\IDebounceService.cs" />
     <Compile Include="Application\Services\Util\IExtensionMetadataProvider.cs" />
+    <Compile Include="Application\Services\Util\PasteArguments.cs" />
     <Compile Include="Application\Services\WebComponent\CodeSmellDocumentationMapper.cs" />
     <Compile Include="Application\Services\WebComponent\AceComponentMapper.cs" />
     <Compile Include="Application\Services\WebComponent\CodeHealthMonitorMapper.cs" />
@@ -128,6 +136,7 @@
     <Compile Include="Models\Cli\Delta\DeltaResponseModel.cs" />
     <Compile Include="Models\Cli\Delta\FunctionFindingModel.cs" />
     <Compile Include="Models\Cli\Delta\FunctionInfoModel.cs" />
+    <Compile Include="Models\Cli\PositionModel.cs" />
     <Compile Include="Models\Cli\Refactor\ConfidenceModel.cs" />
     <Compile Include="Models\Cli\Refactor\CreditsInfoModel.cs" />
     <Compile Include="Models\Cli\Refactor\CreditsInfoErrorModel.cs" />

@@ -1,4 +1,6 @@
-﻿namespace Codescene.VSExtension.Core.Application.Services.Cli
+﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+
+namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
     public interface ICliCommandProvider
     {
@@ -11,6 +13,6 @@
         string GetRefactorCommandWithCodeSmells(string extension, string codeSmells, string preflight = null);
         string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null);
         string GetPreflightSupportInformationCommand(bool force);
-        string GetRefactorPostCommand(string fnToRefactor, bool skipCache, bool useStagingApi = false, string token = null);
+        string GetRefactorPostCommand(FnToRefactorModel fnToRefactor, bool skipCache, string token = null);
     }
 }

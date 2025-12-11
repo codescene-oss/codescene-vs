@@ -1,8 +1,9 @@
-﻿using Codescene.VSExtension.Core.Application.Services.CodeReviewer;
+﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
+using Microsoft.VisualStudio.Shell;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
@@ -15,31 +16,29 @@ public class OnClickRefactoringHandler
     private readonly AceComponentMapper _mapper;
 
     [Import]
-    private readonly ICodeReviewer _reviewer;
+    private readonly IAceManager _aceManager;
 
-    private string _path = null;
+    public string Path { get; private set; }
 
-    public async Task HandleAsync(string path)
+    public FnToRefactorModel RefactorableFunction { get; private set; }
+
+    public async Task HandleAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint)
     {
-        _path = path;
+        Path = path;
+        RefactorableFunction = refactorableFunction;
 
         if (AceToolWindow.IsCreated())
         {
-            SetViewToLoadingMode(path);
+            SetViewToLoadingMode(path, refactorableFunction);
         }
 
         await AceToolWindow.ShowAsync();
 
-
-        await DoRefactorAndUpdateViewAsync(path);
+        // Run on background thread:
+        Task.Run(() => DoRefactorAndUpdateViewAsync(Path, RefactorableFunction, entryPoint)).FireAndForget();
     }
 
-    public string GetPath()
-    {
-        return _path;
-    }
-
-    private void SetViewToLoadingMode(string path)
+    private void SetViewToLoadingMode(string path, FnToRefactorModel refactorableFunction)
     {
         AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
         {
@@ -48,17 +47,17 @@ public class OnClickRefactoringHandler
             {
                 IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
                 View = WebComponentConstants.ViewTypes.ACE,
-                Data = _mapper.Map(path)
+                Data = _mapper.Map(path, refactorableFunction)
             }
         });
     }
 
-    private async Task DoRefactorAndUpdateViewAsync(string path)
+    private async Task DoRefactorAndUpdateViewAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint)
     {
-        using (var reader = File.OpenText(path))
+        var refactored = _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction, entryPoint);
+
+        if (refactored != null)
         {
-            var content = await reader.ReadToEndAsync();
-            var refactored = await _reviewer.Refactor(path: path, content: content);
             AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
                 MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
@@ -69,6 +68,10 @@ public class OnClickRefactoringHandler
                     Data = _mapper.Map(refactored)
                 }
             });
+        }
+        else
+        {
+            AceToolWindow.CloseAsync().FireAndForget();
         }
     }
 }

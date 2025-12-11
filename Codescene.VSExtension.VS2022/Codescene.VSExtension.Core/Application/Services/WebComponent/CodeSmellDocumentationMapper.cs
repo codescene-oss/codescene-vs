@@ -26,11 +26,11 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
             return new CodeSmellDocumentationComponentData
             {
                 DocType = AddDocsPrefix(model.Category),
-                AutoRefactor = new AutoRefactorModel
+                AutoRefactor = new AutoRefactorConfig
                 {
                     Activated = false,
+                    Visible = false,
                     Disabled = true,
-                    Visible = false
                 },
                 FileData = new FileDataModel
                 {
