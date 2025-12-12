@@ -13,10 +13,10 @@ namespace Codescene.VSExtension.VS2022
     /// </summary>
     internal sealed partial class PackageGuids
     {
-        public const string CodesceneExtensionString = "68d6a325-11e8-4790-a4ba-0edd001fb080";
+        public const string CodesceneExtensionString = "4731D680-A8E8-4BD9-8B7D-E670E93B29F3";
         public static Guid CodesceneExtension = new Guid(CodesceneExtensionString);
 
-        public const string CodeSceneCmdSetString = "db0701cc-1e44-41f7-97d6-29b160a70bcb";
+        public const string CodeSceneCmdSetString = "CD713357-2FDA-490D-927D-805DECD1DD76";
         public static Guid CodeSceneCmdSet = new Guid(CodeSceneCmdSetString);
 
         public const string guidSHLMainMenuString = "d309f791-903f-11d0-9efc-00a0c911004f";
