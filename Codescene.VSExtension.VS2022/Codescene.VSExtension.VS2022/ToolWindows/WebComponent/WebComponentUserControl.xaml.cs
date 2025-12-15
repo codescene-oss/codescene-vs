@@ -29,7 +29,8 @@ public partial class WebComponentUserControl : UserControl
     private ILogger _logger;
     public Func<Task> CloseRequested;
     private const string FOLDER_LOCATION = @"ToolWindows\WebComponent";
-    private const string HOST = "myapp.local";
+    // Use process ID to make host unique per VS instance to avoid conflicts when multiple instances are open
+    private static readonly string HOST = $"myapp-{System.Diagnostics.Process.GetCurrentProcess().Id}.local";
     private const string STYLE_ELEMENT_ID = "cs-theme-vars";
     private static readonly string[] AllowedDomains =
     {
