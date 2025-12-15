@@ -110,11 +110,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         private string HandleResult(Process process, StringBuilder output, StringBuilder error)
         {
-            if (error.Length > 0)
-            {
-                throw new InvalidOperationException($"Process error output: {error}");
-            }
-
             if (process.ExitCode != 0)
             {
                 throw new Exception($"Process exited with code {process.ExitCode}. Error: {error}");
