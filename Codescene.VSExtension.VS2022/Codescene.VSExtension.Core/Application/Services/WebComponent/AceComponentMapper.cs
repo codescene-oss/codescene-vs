@@ -14,6 +14,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
             var data = new AceComponentData
             {
                 Loading = false,
+                Error = null,
                 FileData = new WebComponentFileData
                 {
                     FileName = model.Path,
@@ -26,24 +27,6 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                             StartColumn = model.RefactorableCandidate.Range.StartColumn,
                             EndLine = model.RefactorableCandidate.Range.EndLine,
                             EndColumn = model.RefactorableCandidate.Range.EndColumn
-                        }
-                    },
-                    Action = new WebComponentAction
-                    {
-                        GoToFunctionLocationPayload = new WebComponentFileDataBase
-                        {
-                            FileName = model.Path,
-                            Fn = new WebComponentFileDataBaseFn
-                            {
-                                Name = model.RefactorableCandidate.Name,
-                                Range = new CliRangeModel
-                                {
-                                    Startline = model.RefactorableCandidate.Range.Startline,
-                                    StartColumn = model.RefactorableCandidate.Range.StartColumn,
-                                    EndLine = model.RefactorableCandidate.Range.EndLine,
-                                    EndColumn = model.RefactorableCandidate.Range.EndColumn
-                                }
-                            }
                         }
                     }
                 },
@@ -58,6 +41,34 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 			var data = new AceComponentData
 			{
 				Loading = true,
+				Error = null,
+				FileData = new WebComponentFileData
+				{
+					FileName = path,
+					Fn = new WebComponentFileDataBaseFn
+					{
+						Name = model.Name,
+						Range = new CliRangeModel
+						{
+							Startline = model.Range.Startline,
+							StartColumn = model.Range.StartColumn,
+							EndLine = model.Range.EndLine,
+							EndColumn = model.Range.EndColumn
+						}
+					}
+				},
+				AceResultData = null
+			};
+
+			return data;
+		}
+
+		public AceComponentData Map(string path, FnToRefactorModel model, string error)
+		{
+			var data = new AceComponentData
+			{
+				Loading = false,
+				Error = error,
 				FileData = new WebComponentFileData
 				{
 					FileName = path,
@@ -72,24 +83,6 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
 							EndColumn = model.Range.EndColumn
 						}
 					},
-					Action = new WebComponentAction
-					{
-						GoToFunctionLocationPayload = new WebComponentFileDataBase
-						{
-							FileName = path,
-							Fn = new WebComponentFileDataBaseFn
-							{
-								Name = model.Name,
-								Range = new CliRangeModel
-								{
-									Startline = model.Range.Startline,
-									StartColumn = model.Range.StartColumn,
-									EndLine = model.Range.EndLine,
-									EndColumn = model.Range.EndColumn
-								}
-							}
-						}
-					}
 				},
 				AceResultData = null
 			};

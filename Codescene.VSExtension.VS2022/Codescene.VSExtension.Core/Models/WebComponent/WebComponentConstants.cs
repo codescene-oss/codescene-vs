@@ -11,6 +11,12 @@
             public const string HOME = "home"; // Code Health Monitor
         }
 
+        public class AceViewErrorTypes
+        {
+            public const string GENERIC = "generic";
+            public const string AUTH = "auth";
+        }
+
         public class StateTypes
         {
             public const string RUNNING = "running";

@@ -3,8 +3,10 @@ using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Microsoft.VisualStudio.Shell;
+using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 
@@ -54,10 +56,15 @@ public class OnClickRefactoringHandler
 
     private async Task DoRefactorAndUpdateViewAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint)
     {
-        var refactored = _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction, entryPoint);
-
-        if (refactored != null)
+        try
         {
+            var refactored = _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction, entryPoint);
+            AceComponentData data;
+            if (refactored != null)
+                data = _mapper.Map(refactored);
+            else
+                data = _mapper.Map(path, refactorableFunction, AceViewErrorTypes.GENERIC);
+
             AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
                 MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
@@ -65,13 +72,37 @@ public class OnClickRefactoringHandler
                 {
                     IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
                     View = WebComponentConstants.ViewTypes.ACE,
-                    Data = _mapper.Map(refactored)
+                    Data = data
                 }
             });
         }
-        else
+        catch (Exception ex)
         {
-            AceToolWindow.CloseAsync().FireAndForget();
+            // Determine error type based on exception
+            string errorType = DetermineErrorType(ex);
+
+            AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
+            {
+                MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+                Payload = new WebComponentPayload<AceComponentData>
+                {
+                    IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                    View = WebComponentConstants.ViewTypes.ACE,
+                    Data = _mapper.Map(path, refactorableFunction, errorType)
+                }
+            });
         }
+    }
+
+    private string DetermineErrorType(Exception ex)
+    {
+        if (ex == null) return AceViewErrorTypes.GENERIC;
+
+        var exceptionMessage = ex.Message?.ToLowerInvariant() ?? "";
+        var exceptionType = ex.GetType().Name.ToLowerInvariant();
+
+        // TODO: "auth" error (CS-5670)
+
+        return AceViewErrorTypes.GENERIC;
     }
 }
