@@ -26,9 +26,9 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
         public static CachedRefactoringActionModel LastRefactoring;
 
-        public IList<FnToRefactorModel> GetRefactorableFunctions(string content, string codesmellsJson, string preflight, string extension)
+        public IList<FnToRefactorModel> GetRefactorableFunctions(string content, string codesmellsJson, string preflight, string fileName)
         {
-            return _executor.FnsToRefactorFromCodeSmells(content, extension, codesmellsJson, preflight);
+            return _executor.FnsToRefactorFromCodeSmells(content, fileName, codesmellsJson, preflight);
         }
 
         public CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false)
