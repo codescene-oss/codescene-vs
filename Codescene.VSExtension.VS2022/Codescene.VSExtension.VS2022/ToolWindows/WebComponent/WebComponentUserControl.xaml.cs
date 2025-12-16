@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.WebComponent;
@@ -34,6 +34,8 @@ public partial class WebComponentUserControl : UserControl
     private static string GetHost(string view) => $"myapp-{System.Diagnostics.Process.GetCurrentProcess().Id}-{view}.local";
     private string _host;
     private const string STYLE_ELEMENT_ID = "cs-theme-vars";
+    private bool _initialized = false;
+    private string _pendingMessage = null;
     private static readonly string[] AllowedDomains =
     {
         "https://refactoring.com",
@@ -259,11 +261,45 @@ public partial class WebComponentUserControl : UserControl
             var messageString = JsonConvert.SerializeObject(message, settings);
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            
+            if (!_initialized)
+            {
+                // Save the last message if webview is not yet initialized
+                _pendingMessage = messageString;
+                _logger.Debug("Webview not initialized, queuing message.");
+                return;
+            }
+
             webView.CoreWebView2?.PostWebMessageAsJson(messageString);
         }
         catch (Exception e)
         {
             _logger.Error("Could not update webview.", e);
+        }
+    }
+
+    /// <summary>
+    /// Marks the webview as initialized and processes any pending message.
+    /// Called when CWF sends an 'init' message.
+    /// </summary>
+    public async Task MarkAsInitializedAsync()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        
+        _initialized = true;
+        
+        if (_pendingMessage != null)
+        {
+            _logger.Debug("Webview initialized, sending pending message.");
+            try
+            {
+                webView.CoreWebView2?.PostWebMessageAsJson(_pendingMessage);
+                _pendingMessage = null;
+            }
+            catch (Exception e)
+            {
+                _logger.Error("Could not send pending message after initialization.", e);
+            }
         }
     }
 

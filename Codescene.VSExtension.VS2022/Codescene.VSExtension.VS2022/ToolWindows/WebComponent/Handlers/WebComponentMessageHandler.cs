@@ -130,14 +130,8 @@ internal class WebComponentMessageHandler
 
         logger.Debug($"Webview '{source}' is ready to take messages.");
 
-        if (source == ViewTypes.HOME)
-        {
-            await CodeSceneToolWindow.UpdateViewAsync().ConfigureAwait(false);
-        }
-        if (source == ViewTypes.ACE)
-        {
-            await AceToolWindow.UpdateViewAsync().ConfigureAwait(false);
-        }
+        // Mark the window as initialized, which will process any pending messages
+        await _control.MarkAsInitializedAsync();
     }
 
     private async Task HandleCopyCodeAsync()
