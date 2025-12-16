@@ -29,8 +29,10 @@ public partial class WebComponentUserControl : UserControl
     private ILogger _logger;
     public Func<Task> CloseRequested;
     private const string FOLDER_LOCATION = @"ToolWindows\WebComponent";
-    // Use process ID to make host unique per VS instance to avoid conflicts when multiple instances are open
-    private static readonly string HOST = $"myapp-{System.Diagnostics.Process.GetCurrentProcess().Id}.local";
+    // Use process ID and view type to make host unique per VS instance and view type
+    // This prevents conflicts when multiple instances are open
+    private static string GetHost(string view) => $"myapp-{System.Diagnostics.Process.GetCurrentProcess().Id}-{view}.local";
+    private string _host;
     private const string STYLE_ELEMENT_ID = "cs-theme-vars";
     private static readonly string[] AllowedDomains =
     {
@@ -163,22 +165,31 @@ public partial class WebComponentUserControl : UserControl
         await webView.EnsureCoreWebView2Async(env);
 
         webView.CoreWebView2.NavigationStarting += HandleNavigationStarting;
-        webView.NavigationCompleted += (_, __) => loadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
+        
+        webView.NavigationCompleted += (_, args) =>
+        {
+            loadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
+        };
 
         webView.CoreWebView2.WebMessageReceived += (object sender, CoreWebView2WebMessageReceivedEventArgs e) =>
         {
             _ = OnWebMessageReceivedAsync(sender, e);
         };
+        
         var exePath = Assembly.GetExecutingAssembly().Location;
         var exeFolder = Path.GetDirectoryName(exePath);
         string localFolder = Path.Combine(exeFolder, FOLDER_LOCATION);
 
-        webView.CoreWebView2.SetVirtualHostNameToFolderMapping(HOST, localFolder, CoreWebView2HostResourceAccessKind.Allow);
+        _host = GetHost(view);
+        webView.CoreWebView2.SetVirtualHostNameToFolderMapping(_host, localFolder, CoreWebView2HostResourceAccessKind.Allow);
 
-        webView.Source = new Uri($"https://{HOST}/index.html");
-
+        // Generate and inject the initialization script BEFORE navigation
+        // This ensures window.ideContext is set before React components initialize and check for it
+        // AddScriptToExecuteOnDocumentCreatedAsync runs the script before any page scripts execute
         var initialScript = await GenerateInitialScriptAsync(payload);
-        await webView.CoreWebView2.ExecuteScriptAsync(initialScript);
+        await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(initialScript);
+
+        webView.Source = new Uri($"https://{_host}/index.html");
     }
 
     /// <summary>
@@ -198,7 +209,9 @@ public partial class WebComponentUserControl : UserControl
     private void HandleNavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs args)
     {
         var uri = args.Uri;
-        if (uri.Equals($"https://{HOST}/index.html")) return;
+        // Allow navigation to our local app host
+        if (!string.IsNullOrEmpty(_host) && uri.Equals($"https://{_host}/index.html", StringComparison.OrdinalIgnoreCase)) 
+            return;
 
         bool isExternalNavigationAllowed = AllowedDomains.Any(domain => uri.StartsWith(domain, StringComparison.OrdinalIgnoreCase));
         if (isExternalNavigationAllowed)
