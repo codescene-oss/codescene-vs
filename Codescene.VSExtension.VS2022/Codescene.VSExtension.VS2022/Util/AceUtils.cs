@@ -67,7 +67,7 @@ namespace Codescene.VSExtension.VS2022.Util
 
             try
             {
-                var refactorableFunctions = aceManager.GetRefactorableFunctions(code, codesmellsJson, preflight, extension);
+                var refactorableFunctions = aceManager.GetRefactorableFunctions(code, codesmellsJson, preflight, fileName);
 
                 if (refactorableFunctions.Any())
                 {

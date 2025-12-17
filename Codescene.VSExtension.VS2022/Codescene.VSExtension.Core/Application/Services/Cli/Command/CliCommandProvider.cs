@@ -29,12 +29,14 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         private string AdjustTelemetryQuotes(string value) => value.Replace("\"", "\\\"");
         private string AdjustQuotes(string value) => value.Replace("\"", "\"\"");
 
-        public string GetRefactorCommandWithCodeSmells(string extension, string codeSmells, string preflight = null)
+        // both implementations of fns-to-refactor need --cache-path argument added later, when cli cache is going to be implemented
+        public string GetRefactorCommandWithCodeSmells(string fileName, string codeSmells, string preflight = null)
         {
             var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight \"{AdjustQuotes(preflight)}\"";
-            return $"refactor fns-to-refactor --extension {extension}{preflightArg} --code-smells \"{AdjustQuotes(codeSmells)}\"";
+            return $"refactor fns-to-refactor --file-name {fileName}{preflightArg} --code-smells \"{AdjustQuotes(codeSmells)}\"";
         }
 
+        // this implementation needs update of --extension to --file-name
         public string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null)
         {
             var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight \"{AdjustQuotes(preflight)}\"";

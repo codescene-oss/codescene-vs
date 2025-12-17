@@ -10,7 +10,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     {
         // single point of truth for CLI version
         // both, pipeline and download logic are using this value
-        public string RequiredDevToolVersion => "5e1b0e99b868bc94da2c39514fd7b8e731406bb1"; // 1.0.17
+        public string RequiredDevToolVersion => "f4041f7aa0afe699bb67f01bf296b539fca27cfb"; // 1.0.25
         public string CliArtifactName => $"cs-ide-windows-amd64-{RequiredDevToolVersion}.zip";
         public string CliArtifactUrl => $"{ArtifactBaseUrl}{CliArtifactName}";
         public string CliFileName => $"cs-ide.exe";

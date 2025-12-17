@@ -102,9 +102,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             );
         }
 
-        public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmells, string preflight)
+        public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string fileName, string codeSmells, string preflight)
         {
-            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(extension, codeSmells, preflight);
+            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(fileName, codeSmells, preflight);
 
             if (string.IsNullOrEmpty(arguments))
             {
