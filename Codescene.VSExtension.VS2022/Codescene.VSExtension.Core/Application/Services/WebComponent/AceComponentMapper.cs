@@ -11,83 +11,87 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
     {
         public AceComponentData Map(CachedRefactoringActionModel model)
         {
-            var data = new AceComponentData
-            {
-                Loading = false,
-                Error = null,
-                FileData = new WebComponentFileData
-                {
-                    FileName = model.Path,
-                    Fn = new WebComponentFileDataBaseFn
-                    {
-                        Name = model.RefactorableCandidate.Name,
-                        Range = new CliRangeModel
-                        {
-                            Startline = model.RefactorableCandidate.Range.Startline,
-                            StartColumn = model.RefactorableCandidate.Range.StartColumn,
-                            EndLine = model.RefactorableCandidate.Range.EndLine,
-                            EndColumn = model.RefactorableCandidate.Range.EndColumn
-                        }
-                    }
-                },
-                AceResultData = model.Refactored
-            };
+            var fileData = CreateFileData(
+                model.Path,
+                model.RefactorableCandidate.Name,
+                model.RefactorableCandidate.Range);
 
-            return data;
+            return CreateAceComponentData(
+                loading: false,
+                error: null,
+                fileData: fileData,
+                aceResultData: model.Refactored);
         }
 
-		public AceComponentData Map(string path, FnToRefactorModel model)
-		{
-			var data = new AceComponentData
-			{
-				Loading = true,
-				Error = null,
-				FileData = new WebComponentFileData
-				{
-					FileName = path,
-					Fn = new WebComponentFileDataBaseFn
-					{
-						Name = model.Name,
-						Range = new CliRangeModel
-						{
-							Startline = model.Range.Startline,
-							StartColumn = model.Range.StartColumn,
-							EndLine = model.Range.EndLine,
-							EndColumn = model.Range.EndColumn
-						}
-					}
-				},
-				AceResultData = null
-			};
+        public AceComponentData Map(string path, FnToRefactorModel model)
+        {
+            var fileData = CreateFileData(
+                path,
+                model.Name,
+                model.Range);
 
-			return data;
-		}
+            return CreateAceComponentData(
+                loading: true,
+                error: null,
+                fileData: fileData,
+                aceResultData: null);
+        }
 
-		public AceComponentData Map(string path, FnToRefactorModel model, string error)
-		{
-			var data = new AceComponentData
-			{
-				Loading = false,
-				Error = error,
-				FileData = new WebComponentFileData
-				{
-					FileName = path,
-					Fn = new WebComponentFileDataBaseFn
-					{
-						Name = model.Name,
-						Range = new CliRangeModel
-						{
-							Startline = model.Range.Startline,
-							StartColumn = model.Range.StartColumn,
-							EndLine = model.Range.EndLine,
-							EndColumn = model.Range.EndColumn
-						}
-					},
-				},
-				AceResultData = null
-			};
+        public AceComponentData Map(string path, FnToRefactorModel model, string error)
+        {
+            var fileData = CreateFileData(
+                path,
+                model.Name,
+                model.Range);
 
-			return data;
-		}
+            return CreateAceComponentData(
+                loading: false,
+                error: error,
+                fileData: fileData,
+                aceResultData: null);
+        }
+
+        private static CliRangeModel MapRange(CliRangeModel range)
+        {
+            return new CliRangeModel
+            {
+                Startline = range.Startline,
+                StartColumn = range.StartColumn,
+                EndLine = range.EndLine,
+                EndColumn = range.EndColumn
+            };
+        }
+
+        private static WebComponentFileData CreateFileData(
+        string fileName,
+        string fnName,
+        CliRangeModel range)
+        {
+            return new WebComponentFileData
+            {
+                FileName = fileName,
+                Fn = new WebComponentFileDataBaseFn
+                {
+                    Name = fnName,
+                    Range = MapRange(range)
+                }
+            };
+        }
+
+        private static AceComponentData CreateAceComponentData(
+        bool loading,
+        string error,
+        WebComponentFileData fileData,
+        RefactorResponseModel aceResultData)
+        {
+            return new AceComponentData
+            {
+                Loading = loading,
+                Error = error,
+                FileData = fileData,
+                AceResultData = aceResultData
+            };
+        }
+
     }
 }
