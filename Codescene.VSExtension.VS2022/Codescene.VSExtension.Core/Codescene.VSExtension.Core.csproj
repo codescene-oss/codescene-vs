@@ -167,6 +167,7 @@
     <Compile Include="Models\WebComponent\Data\CodeSmellDocumentationComponentData.cs" />
     <Compile Include="Models\WebComponent\Model\CachedRefactoringActionModel.cs" />
     <Compile Include="Models\WebComponent\Model\ShowDocumentationModel.cs" />
+    <Compile Include="Models\WebComponent\Data\AceAcknowledgeComponentData.cs" />
     <Compile Include="Models\WebComponent\Data\AceComponentData.cs" />
     <Compile Include="Models\WebComponent\Data\WebComponentFileData.cs" />
     <Compile Include="Models\WebComponent\Message\WebComponentMessage.cs" />

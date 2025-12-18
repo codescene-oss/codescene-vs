@@ -5,6 +5,7 @@ using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
+using Codescene.VSExtension.VS2022.Application.Services;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
@@ -106,6 +107,10 @@ internal class WebComponentMessageHandler
 
                 case MessageTypes.OPEN_SETTINGS:
                     await HandleOpenSettingsAsync();
+                    break;
+
+                case MessageTypes.ACKNOWLEDGED:
+                    await HandleAcknowledgedAsync(msgObject, logger);
                     break;
 
                 case MessageTypes.REQUEST_AND_PRESENT_REFACTORING:
@@ -237,7 +242,7 @@ internal class WebComponentMessageHandler
         logger.Debug($"Found {refactorableFunctions.Count} refactorable functions in cache for file '{payload.FileName}'.");
 
         var refactorableFunction = refactorableFunctions.FirstOrDefault(fn => fn.Name == payload.Fn.Name);
-        
+
         if (refactorableFunction == null)
         {
             logger.Warn($"Function '{payload.Fn.Name}' not found in cache for file '{payload.FileName}'. Cannot proceed with refactoring.");
@@ -257,6 +262,32 @@ internal class WebComponentMessageHandler
         await VS.Settings.OpenAsync<OptionsProvider.GeneralOptions>();
 
         SendTelemetry(Constants.Telemetry.OPEN_SETTINGS);
+    }
+
+    private async Task HandleAcknowledgedAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
+        acknowledgementStateService.SetAcknowledged();
+
+        var payload = msgObject.Payload.ToObject<AceAcknowledgePayload>();
+        if (payload.FnToRefactor == null)
+        {
+            _logger.Warn("Could not refactor function after acknowledging ACE: refactorable function is not present.");
+            return;
+        }
+
+        _logger?.Info($"ACE usage acknowledged. Refactoring function '{payload.FnToRefactor.Name}'...");
+
+        // Close the acknowledgement window
+        if (_control.CloseRequested is not null)
+            await _control.CloseRequested();
+
+        var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
+        await onClickRefactoringHandler.HandleAsync(
+            payload.FilePath,
+            payload.FnToRefactor,
+            AceConstants.AceEntryPoint.ACE_ACKNOWLEDGEMENT
+        );
     }
 
     private void SendTelemetry(string eventName, Dictionary<string, object> additionalData = null)

@@ -3,7 +3,6 @@
   <PropertyGroup>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <LangVersion>latest</LangVersion>
-
     <!-- Feature flags - controlled via environment variable -->
     <!-- Only enable if explicitly set to 'true' -->
     <EnableAceRefactoring Condition="'$(FEATURE_ACE)' == 'true'">true</EnableAceRefactoring>
@@ -49,12 +48,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-
   <!-- Add conditional compilation symbol for features -->
   <PropertyGroup>
     <DefineConstants Condition="'$(EnableAceRefactoring)' == 'true'">$(DefineConstants);FEATURE_ACE</DefineConstants>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="Application\ErrorHandling\Logger.cs" />
     <Compile Include="Application\ErrorHandling\OutputPaneManager.cs" />
@@ -63,6 +60,7 @@
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="Application\Git\BranchWatcherService.cs" />
     <Compile Include="Application\Git\GitService.cs" />
+    <Compile Include="Application\Services\AceAcknowledgementStateService.cs" />
     <Compile Include="Application\Services\PreflightManager\PreflightManager.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />
@@ -189,7 +187,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Commands\SignInCommand.cs" />
     <Compile Include="ToolWindows\WebComponent\AceToolWindow.cs" />
+    <Compile Include="ToolWindows\WebComponent\AceAcknowledgeToolWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\OnClickRefactoringHandler.cs" />
+    <Compile Include="ToolWindows\WebComponent\Models\AceAcknowledgePayload.cs" />
     <Compile Include="ToolWindows\WebComponent\Models\GoToFunctionLocationPayload.cs" />
     <Compile Include="ToolWindows\WebComponent\Models\MessageObj.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\ShowDiffHandler.cs" />

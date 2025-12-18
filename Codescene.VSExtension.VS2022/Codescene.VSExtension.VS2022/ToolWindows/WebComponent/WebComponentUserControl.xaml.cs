@@ -60,7 +60,14 @@ public partial class WebComponentUserControl : UserControl
         Initialize(payload, payload.View);
     }
 
-    public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload, ILogger logger)
+	public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload, ILogger logger)
+    {
+        _logger = logger;
+        InitializeComponent();
+        Initialize(payload, payload.View);
+    }
+
+    public WebComponentUserControl(WebComponentPayload<AceAcknowledgeComponentData> payload, ILogger logger)
     {
         _logger = logger;
         InitializeComponent();

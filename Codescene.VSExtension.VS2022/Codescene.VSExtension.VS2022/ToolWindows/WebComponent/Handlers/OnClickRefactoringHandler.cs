@@ -2,6 +2,8 @@
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
+using Codescene.VSExtension.VS2022.Application.Services;
+using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Composition;
@@ -28,6 +30,20 @@ public class OnClickRefactoringHandler
     {
         Path = path;
         RefactorableFunction = refactorableFunction;
+
+        // Check if user has acknowledged ACE usage
+        var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
+        if (!acknowledgementStateService.IsAcknowledged())
+        {
+            AceAcknowledgeToolWindow.UpdateRefactoringData(refactorableFunction, path);
+
+            if (AceAcknowledgeToolWindow.IsCreated())
+                await AceAcknowledgeToolWindow.UpdateViewAsync();
+            else
+                await AceAcknowledgeToolWindow.ShowAsync();
+
+            return;
+        }
 
         if (AceToolWindow.IsCreated())
         {
