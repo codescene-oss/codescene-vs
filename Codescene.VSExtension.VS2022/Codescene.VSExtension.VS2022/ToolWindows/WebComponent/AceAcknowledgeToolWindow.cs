@@ -37,7 +37,6 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
         {
             IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
             View = WebComponentConstants.ViewTypes.ACE_ACKNOWLEDGE,
-            Devmode = true,
             Data = new AceAcknowledgeComponentData
             {
                 FilePath = _filePath,
