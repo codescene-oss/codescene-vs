@@ -4,6 +4,7 @@ using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.VS2022.Application.Services;
 using Community.VisualStudio.Toolkit;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Composition;
@@ -112,12 +113,15 @@ public class OnClickRefactoringHandler
 
     private string DetermineErrorType(Exception ex)
     {
-        if (ex == null) return AceViewErrorTypes.GENERIC;
-
-        var exceptionMessage = ex.Message?.ToLowerInvariant() ?? "";
-        var exceptionType = ex.GetType().Name.ToLowerInvariant();
-
-        // TODO: "auth" error (CS-5670)
+        if (ex != null)
+        {
+            var isMissingToken = ex is MissingAuthTokenException;
+            var isAuthError = ex is DevtoolsException exception && exception.Status == 401;
+            if (isMissingToken || isAuthError)
+            {
+                return AceViewErrorTypes.AUTH;
+            }
+        }
 
         return AceViewErrorTypes.GENERIC;
     }

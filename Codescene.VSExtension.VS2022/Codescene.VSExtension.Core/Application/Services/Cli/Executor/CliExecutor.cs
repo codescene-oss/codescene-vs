@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Settings;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
+
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
     [Export(typeof(ICliExecutor))]
@@ -22,6 +24,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         [Import]
         private readonly IProcessExecutor _executor;
+
+        [Import]
+        private readonly ISettingsProvider _settingsProvider;
 
         [ImportingConstructor]
         public CliExecutor(ICliCommandProvider cliCommandProvider)
@@ -88,6 +93,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public RefactorResponseModel PostRefactoring(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null)
         {
+            token = _settingsProvider.AuthToken;
             var arguments = _cliCommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: token);
             if (string.IsNullOrEmpty(arguments))
             {
@@ -141,6 +147,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
                 _logger.Debug($"{Titles.CODESCENE} {label} completed in {stopwatch.ElapsedMilliseconds} ms.");
                 return JsonConvert.DeserializeObject<T>(result);
+            }
+            catch (DevtoolsException e)
+            {
+                _logger.Error(errorMessage, e);
+                throw e;
             }
             catch (Exception e)
             {

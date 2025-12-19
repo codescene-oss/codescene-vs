@@ -1,4 +1,6 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Util;
+﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.Util;
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -110,8 +112,14 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         private string HandleResult(Process process, StringBuilder output, StringBuilder error)
         {
-            if (process.ExitCode != 0)
+            var code = process.ExitCode;
+            if (code != 0)
             {
+                if (code == 10)
+                {
+                    throw JsonConvert.DeserializeObject<DevtoolsException>(output.ToString());
+                }
+
                 throw new Exception($"Process exited with code {process.ExitCode}. Error: {error}");
             }
 
