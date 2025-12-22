@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
+using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
@@ -17,14 +18,15 @@ public class RefactoringChangesApplier
     [Import]
     private readonly IAceManager _aceManager;
 
-    public async Task ApplyAsync()
+    public async Task ApplyAsync(ApplyPayload payload)
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        var cache = _aceManager.GetCachedRefactoredCode();
-        var newCode = cache.Refactored.Code;
+        var newCode = payload.Code;
+        var fnStartLine = payload.Fn.Range.Startline;
+        var fnEndLine = payload.Fn.Range.EndLine;
 
-        var docView = await VS.Documents.OpenAsync(cache.Path);
+        var docView = await VS.Documents.OpenAsync(payload.FilePath);
         if (docView?.TextBuffer is not ITextBuffer buffer)
             return;
 
@@ -32,21 +34,21 @@ public class RefactoringChangesApplier
 
         // Check if newCode already starts with whitespace
         bool startsWithSpace = newCode.Length > 0 && char.IsWhiteSpace(newCode[0]);
-        
+
         IndentationInfo indentationInfo = default;
         if (!startsWithSpace)
-        {   
+        {
             // If it doesn't start with whitespace, we need to determine the indentation level
-            indentationInfo = IndentationUtil.DetectIndentation(snapshot, cache.RefactorableCandidate);
+            indentationInfo = IndentationUtil.DetectIndentation(snapshot, fnStartLine);
         }
-        
+
         if (indentationInfo.Level > 0)
         {
             newCode = IndentationUtil.AdjustIndentation(newCode, indentationInfo);
         }
 
-        int start = Math.Max(1, cache.RefactorableCandidate.Range.Startline) - 1;
-        int end = Math.Max(1, cache.RefactorableCandidate.Range.EndLine)   - 1;
+        int start = Math.Max(1, fnStartLine) - 1;
+        int end = Math.Max(1, fnEndLine) - 1;
 
         if (start >= snapshot.LineCount)
             return;

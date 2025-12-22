@@ -1,19 +1,16 @@
-﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
-using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Text;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Codescene.VSExtension.VS2022.Util
 {
     public class IndentationUtil
     {
-		/// <summary>
-		/// Used to detect the indentation style (tabs vs spaces) and level of a given function in the text snapshot.
-		/// </summary>
-		public static IndentationInfo DetectIndentation(ITextSnapshot snapshot, FnToRefactorModel refactorableFunction)
+        /// <summary>
+        /// Used to detect the indentation style (tabs vs spaces) and level of a given function in the text snapshot.
+        /// </summary>
+        public static IndentationInfo DetectIndentation(ITextSnapshot snapshot, int fnStartLine)
         {
-            int startLine = Math.Max(0, refactorableFunction.Range.Startline - 1);
+            int startLine = Math.Max(0, fnStartLine - 1);
             if (startLine >= snapshot.LineCount)
                 return new IndentationInfo { Level = 0, UsesTabs = false, TabSize = 4 };
 
@@ -22,7 +19,7 @@ namespace Codescene.VSExtension.VS2022.Util
 
             // Analyze the indentation pattern
             var indentationAnalysis = AnalyzeIndentationPattern(snapshot, startLine);
-            
+
             // Count leading whitespace for this specific line
             int leadingWhitespace = 0;
             while (leadingWhitespace < lineText.Length && char.IsWhiteSpace(lineText[leadingWhitespace]))
@@ -48,19 +45,19 @@ namespace Codescene.VSExtension.VS2022.Util
                 indentationLevel = leadingWhitespace / indentationAnalysis.TabSize;
             }
 
-            return new IndentationInfo 
-            { 
-                Level = indentationLevel, 
-                UsesTabs = indentationAnalysis.UsesTabs, 
-                TabSize = indentationAnalysis.TabSize 
+            return new IndentationInfo
+            {
+                Level = indentationLevel,
+                UsesTabs = indentationAnalysis.UsesTabs,
+                TabSize = indentationAnalysis.TabSize
             };
         }
 
-		/// <summary>
-		/// Used to adjust the indentation of the given code snippet returned from ACE servise.
-		/// It applies the specified indentation level and style (tabs or spaces) to each line
-		/// </summary>
-		public static string AdjustIndentation(string code, IndentationInfo indentationInfo)
+        /// <summary>
+        /// Used to adjust the indentation of the given code snippet returned from ACE servise.
+        /// It applies the specified indentation level and style (tabs or spaces) to each line
+        /// </summary>
+        public static string AdjustIndentation(string code, IndentationInfo indentationInfo)
         {
             if (indentationInfo.Level == 0)
                 return code;
