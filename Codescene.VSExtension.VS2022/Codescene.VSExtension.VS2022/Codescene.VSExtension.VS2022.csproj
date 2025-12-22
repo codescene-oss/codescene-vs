@@ -180,7 +180,6 @@
     <Compile Include="ToolWindows\WebComponent\CodeSmellDocumentationWindow.cs" />
     <Compile Include="EditorMargin\CodeSceneMargin.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginProvider.cs" />
-    <Compile Include="ToolWindows\WebComponent\Handlers\CopyRefactoredCodeHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\RefactoringChangesApplier.cs" />
     <Compile Include="RegistryHelper.cs" />
     <Compile Include="Commands\Base\VSBaseCommand.cs" />
@@ -191,6 +190,7 @@
     <Compile Include="ToolWindows\WebComponent\AceAcknowledgeToolWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\OnClickRefactoringHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Models\AceAcknowledgePayload.cs" />
+    <Compile Include="ToolWindows\WebComponent\Models\CopyCodePayload.cs" />
     <Compile Include="ToolWindows\WebComponent\Models\GoToFunctionLocationPayload.cs" />
     <Compile Include="ToolWindows\WebComponent\Models\MessageObj.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\ShowDiffHandler.cs" />

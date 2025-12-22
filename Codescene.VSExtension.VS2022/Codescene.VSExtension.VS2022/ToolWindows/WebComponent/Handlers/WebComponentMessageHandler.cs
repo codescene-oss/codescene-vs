@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
@@ -78,7 +79,7 @@ internal class WebComponentMessageHandler
                     break;
 
                 case MessageTypes.COPY_CODE:
-                    await HandleCopyCodeAsync();
+                    await HandleCopyCodeAsync(msgObject, logger);
                     break;
 
                 case MessageTypes.SHOW_DIFF:
@@ -139,12 +140,19 @@ internal class WebComponentMessageHandler
         await _control.MarkAsInitializedAsync();
     }
 
-    private async Task HandleCopyCodeAsync()
+    private async Task HandleCopyCodeAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
+        var payload = msgObject.Payload.ToObject<CopyCodePayload>();
         HandleAceTelemetry(Constants.Telemetry.ACE_REFACTOR_COPY_CODE);
 
-        var copyHandler = await VS.GetMefServiceAsync<CopyRefactoredCodeHandler>();
-        copyHandler.CopyToRefactoredCodeToClipboard();
+        if (payload.Code == null)
+        {
+            logger.Warn("Cannot copy refactored code as it is undefined.");
+            return;
+        }
+
+        logger.Info($"Copied refactored code from function '{payload.Fn.Name}'.");
+        Clipboard.SetText(payload.Code);
     }
 
     private async Task HandleShowDiffAsync()
