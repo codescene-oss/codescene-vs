@@ -87,7 +87,7 @@ internal class WebComponentMessageHandler
                     break;
 
                 case MessageTypes.APPLY:
-                    await HandleApplyAsync();
+                    await HandleApplyAsync(msgObject, logger);
                     break;
 
                 case MessageTypes.REJECT:
@@ -163,14 +163,17 @@ internal class WebComponentMessageHandler
         await diffHandler.ShowDiffWindowAsync();
     }
 
-    private async Task HandleApplyAsync()
+    private async Task HandleApplyAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
+        var payload = msgObject.Payload.ToObject<ApplyPayload>();
         HandleAceTelemetry(Constants.Telemetry.ACE_REFACTOR_APPLIED);
 
         var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
-        await applier.ApplyAsync();
+        await applier.ApplyAsync(payload);
+
         if (_control.CloseRequested is not null)
             await _control.CloseRequested();
+
         // Refresh the view after applying changes, because of the bug with two methods with the same name, needs to be revalidated.
         await CodeSceneToolWindow.UpdateViewAsync();
     }
