@@ -75,6 +75,8 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                                 item.RefactorableFn.Range.StartColumn,
                                 item.RefactorableFn.Range.EndColumn)
                             : null,
+                        NippyB64 = item.RefactorableFn.NippyB64,
+                        FunctionType = item.RefactorableFn.FileType,
                         RefactoringTargets = item.RefactorableFn.RefactoringTargets?.ToList()
                     }
                     : null;
