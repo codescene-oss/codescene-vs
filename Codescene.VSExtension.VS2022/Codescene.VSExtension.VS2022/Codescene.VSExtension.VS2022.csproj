@@ -199,6 +199,7 @@
     <Compile Include="ToolWindows\WebComponent\Handlers\WebComponentMessageHandler.cs" />
     <Compile Include="ToolWindows\WebComponent\Models\OpenDocsForFunctionPayload.cs" />
     <Compile Include="ToolWindows\WebComponent\Models\RequestAndPresentRefactoringPayload.cs" />
+    <Compile Include="ToolWindows\WebComponent\Models\RetryPayload.cs" />
     <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">
       <DependentUpon>WebComponentUserControl.xaml</DependentUpon>
     </Compile>

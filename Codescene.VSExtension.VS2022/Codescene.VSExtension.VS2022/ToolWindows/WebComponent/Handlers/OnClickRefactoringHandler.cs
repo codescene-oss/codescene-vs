@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
@@ -19,6 +20,9 @@ public class OnClickRefactoringHandler
 {
     [Import]
     private readonly AceComponentMapper _mapper;
+
+    [Import]
+    private readonly ILogger _logger;
 
     [Import]
     private readonly IAceManager _aceManager;
@@ -61,11 +65,11 @@ public class OnClickRefactoringHandler
     {
         AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
         {
-            MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+            MessageType = MessageTypes.UPDATE_RENDERER,
             Payload = new WebComponentPayload<AceComponentData>
             {
-                IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
-                View = WebComponentConstants.ViewTypes.ACE,
+                IdeType = VISUAL_STUDIO_IDE_TYPE,
+                View = ViewTypes.ACE,
                 Data = _mapper.Map(path, refactorableFunction)
             }
         });
@@ -84,27 +88,29 @@ public class OnClickRefactoringHandler
 
             AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
-                MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+                MessageType = MessageTypes.UPDATE_RENDERER,
                 Payload = new WebComponentPayload<AceComponentData>
                 {
-                    IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
-                    View = WebComponentConstants.ViewTypes.ACE,
+                    IdeType = VISUAL_STUDIO_IDE_TYPE,
+                    View = ViewTypes.ACE,
                     Data = data
                 }
             });
         }
         catch (Exception ex)
         {
+            _logger.Error("Error ocurred during ACE refactoring", ex);
+
             // Determine error type based on exception
             string errorType = DetermineErrorType(ex);
 
             AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
-                MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+                MessageType = MessageTypes.UPDATE_RENDERER,
                 Payload = new WebComponentPayload<AceComponentData>
                 {
-                    IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
-                    View = WebComponentConstants.ViewTypes.ACE,
+                    IdeType = VISUAL_STUDIO_IDE_TYPE,
+                    View = ViewTypes.ACE,
                     Data = _mapper.Map(path, refactorableFunction, errorType)
                 }
             });

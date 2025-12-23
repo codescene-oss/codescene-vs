@@ -8,7 +8,6 @@ using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -92,6 +91,10 @@ internal class WebComponentMessageHandler
                     await HandleRejectAsync();
                     break;
 
+                case MessageTypes.RETRY:
+                    await HandleRetryRefactoring(msgObject, logger);
+                    break;
+
                 case MessageTypes.GOTO_FUNCTION_LOCATION:
                     await HandleGotoFunctionLocationAsync(msgObject, logger);
                     break;
@@ -102,6 +105,10 @@ internal class WebComponentMessageHandler
 
                 case MessageTypes.CANCEL:
                     await HandleCancelAsync();
+                    break;
+
+                case MessageTypes.CLOSE:
+                    await HandleCloseAsync();
                     break;
 
                 case MessageTypes.OPEN_SETTINGS:
@@ -174,6 +181,20 @@ internal class WebComponentMessageHandler
 
         // Refresh the view after applying changes, because of the bug with two methods with the same name, needs to be revalidated.
         await CodeSceneToolWindow.UpdateViewAsync();
+    }
+
+    private async Task HandleRetryRefactoring(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        var payload = msgObject.Payload.ToObject<RetryPayload>();
+
+        logger.Info($"Triggered retry refactoring for '{payload.FnToRefactor.Name}'.");
+
+        var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
+        await onClickRefactoringHandler.HandleAsync(
+            payload.FilePath,
+            payload.FnToRefactor,
+            AceConstants.AceEntryPoint.RETRY
+        );
     }
 
     private async Task HandleRejectAsync()
@@ -255,6 +276,13 @@ internal class WebComponentMessageHandler
         SendTelemetry(Constants.Telemetry.OPEN_SETTINGS);
     }
 
+    // Currently, we only receive this message from the ACE view if the content is marked as 'stale'.
+    private async Task HandleCloseAsync()
+    {
+        if (_control.CloseRequested is not null)
+            await _control.CloseRequested();
+    }
+    
     private async Task HandleAcknowledgedAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
         var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
