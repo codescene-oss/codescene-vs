@@ -1,6 +1,4 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
-using Codescene.VSExtension.Core.Application.Services.Cache.Review;
-using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
@@ -231,38 +229,20 @@ internal class WebComponentMessageHandler
     private async Task HandleRequestAndPresentRefactoringAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
         var payload = msgObject.Payload.ToObject<RequestAndPresentRefactoringPayload>();
+        var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
 
         logger.Debug($"Requesting refactoring for function '{payload.Fn.Name}' in file '{payload.FileName}'.");
 
-        var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
-
-        var cache = new AceRefactorableFunctionsCacheService();
-
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        var docView = await VS.Documents.OpenAsync(payload.FileName);
-        if (docView?.TextBuffer is not ITextBuffer buffer)
-            return;
-
-        var content = buffer.CurrentSnapshot.GetText();
-
-        var refactorableFunctions = cache.Get(new AceRefactorableFunctionsQuery(
-            payload.FileName,
-            content
-        ));
-
-        logger.Debug($"Found {refactorableFunctions.Count} refactorable functions in cache for file '{payload.FileName}'.");
-
-        var refactorableFunction = refactorableFunctions.FirstOrDefault(fn => fn.Name == payload.Fn.Name);
-
-        if (refactorableFunction == null)
+        if (payload.FnToRefactor == null)
         {
-            logger.Warn($"Function '{payload.Fn.Name}' not found in cache for file '{payload.FileName}'. Cannot proceed with refactoring.");
+            logger.Warn($"Function to refactor not found. Cannot proceed with refactoring.");
             return;
         }
 
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         await onClickRefactoringHandler.HandleAsync(
             payload.FileName,
-            refactorableFunction,
+            payload.FnToRefactor,
             AceConstants.AceEntryPoint.CODE_VISION
         );
     }

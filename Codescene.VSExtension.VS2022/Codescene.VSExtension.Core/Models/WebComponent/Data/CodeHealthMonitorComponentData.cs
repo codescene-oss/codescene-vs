@@ -64,6 +64,7 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
     {
         public string Name { get; set; }
         public string Body { get; set; }
+        public string NippyB64 { get; set; }
         public string FunctionType { get; set; }
         public CodeSmellRangeModel Range { get; set; }
         public List<RefactoringTargetModel> RefactoringTargets { get; set; }
