@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 
 namespace Codescene.VSExtension.VS2022;
+
 internal partial class OptionsProvider
 {
     // Register the options with this attribute on your package class:
@@ -14,26 +15,16 @@ internal partial class OptionsProvider
 
 public class General : BaseOptionModel<General>
 {
-    // TODO: Implement this feature, or remove it from the first official release.
-    //[Category("General")]
-    //[DisplayName("Gitignore")]
-    //[Description("Exclude files in .gitignore from analysis")]
-    //public bool Gitignore { get; set; } = true;
-
     [Category("General")]
     [DisplayName("Show Debug Logs")]
     [Description("Enable detailed debug logs in the CodeScene Output window")]
     public bool ShowDebugLogs { get; set; } = false;
 
-    //[Category("General")]
-    //[DisplayName("Server Url")]
-    //[Description("URL of the CodeScene server")]
-    //public string ServerUrl { get; set; } = DEFAULT_SERVER_URL;
-
-    //[Category("General")]
-    //[DisplayName("Devtools Portal Url")]
-    //[Description("URL of the CodeScene Devtool Portal server")]
-    //public string DevtoolsPortalUrl { get; set; } = DEFAULT_DEV_TOOLS_URL;
+    [Category("Authentication")]
+    [DisplayName("Auth Token")]
+    [Description("Authentication token for CodeScene ACE. Note: Token is stored securely in Windows Credential Manager.")]
+    [PasswordPropertyText(true)]
+    public string AuthToken { get; set; } = string.Empty;
 
     public General() : base()
     {

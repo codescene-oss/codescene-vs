@@ -68,6 +68,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             catch (Exception e)
             {
                 _logger.Error($"Error during refactoring of method {refactorableFunction.Name}", e);
+                throw e;
             }
             LastRefactoring = null;
             return null;
