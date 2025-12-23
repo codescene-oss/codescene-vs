@@ -15,12 +15,16 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                 model.Path,
                 model.RefactorableCandidate.Name,
                 model.RefactorableCandidate.Range);
+            var aceParams = new CreateAceComponentDataParams
+            {
+                Loading = false,
+                Error = null,
+                FileData = fileData,
+                AceResultData = model.Refactored,
+                FnToRefactor = model.RefactorableCandidate
+            };
 
-            return CreateAceComponentData(
-                loading: false,
-                error: null,
-                fileData: fileData,
-                aceResultData: model.Refactored);
+            return CreateAceComponentData(aceParams);
         }
 
         public AceComponentData Map(string path, FnToRefactorModel model)
@@ -29,12 +33,16 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                 path,
                 model.Name,
                 model.Range);
+            var aceParams = new CreateAceComponentDataParams
+            {
+                Loading = true,
+                Error = null,
+                FileData = fileData,
+                AceResultData = null,
+                FnToRefactor = model
+            };
 
-            return CreateAceComponentData(
-                loading: true,
-                error: null,
-                fileData: fileData,
-                aceResultData: null);
+            return CreateAceComponentData(aceParams);
         }
 
         public AceComponentData Map(string path, FnToRefactorModel model, string error)
@@ -43,12 +51,16 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                 path,
                 model.Name,
                 model.Range);
+            var aceParams = new CreateAceComponentDataParams
+            {
+                Loading = false,
+                Error = error,
+                FileData = fileData,
+                AceResultData = null,
+                FnToRefactor = model
+            };
 
-            return CreateAceComponentData(
-                loading: false,
-                error: error,
-                fileData: fileData,
-                aceResultData: null);
+            return CreateAceComponentData(aceParams);
         }
 
         private static CliRangeModel MapRange(CliRangeModel range)
@@ -78,18 +90,24 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
             };
         }
 
-        private static AceComponentData CreateAceComponentData(
-        bool loading,
-        string error,
-        WebComponentFileData fileData,
-        RefactorResponseModel aceResultData)
+        sealed class CreateAceComponentDataParams
+        {
+            public bool Loading { get; set; }
+            public string Error { get; set; }
+            public WebComponentFileData FileData { get; set; }
+            public FnToRefactorModel FnToRefactor { get; set; }
+            public RefactorResponseModel AceResultData { get; set; }
+        }
+
+        private static AceComponentData CreateAceComponentData(CreateAceComponentDataParams aceParams)
         {
             return new AceComponentData
             {
-                Loading = loading,
-                Error = error,
-                FileData = fileData,
-                AceResultData = aceResultData
+                Error = aceParams.Error,
+                Loading = aceParams.Loading,
+                FileData = aceParams.FileData,
+                FnToRefactor = aceParams.FnToRefactor,
+                AceResultData = aceParams.AceResultData,
             };
         }
 

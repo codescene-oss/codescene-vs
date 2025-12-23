@@ -34,7 +34,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
         public CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false)
         {
             _logger.Info($"Starting refactoring of function: {refactorableFunction.Name} in file: {path}");
-            
+         
             // Check network connectivity before proceeding
             if (!IsNetworkAvailable())
             {
@@ -51,7 +51,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
                 if (refactoredFunction != null)
                 {
-                    _logger.Info($"Refactored function: {refactorableFunction.Name}");
+                    _logger.Info($"Refactoring function: {refactorableFunction.Name}...");
                     _logger.Debug($"Refactoring trace-id: {refactoredFunction.TraceId}.");
 
                     var cacheItem = new CachedRefactoringActionModel

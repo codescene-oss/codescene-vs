@@ -32,6 +32,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
         var payload = new WebComponentPayload<AceComponentData>
         {
+            Devmode = true,
             IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
             View = WebComponentConstants.ViewTypes.ACE,
             Data = mapper.Map(handler.Path, handler.RefactorableFunction)
@@ -80,7 +81,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
         if (AceManager.LastRefactoring != null)
         {
-            AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
+            UpdateView(new WebComponentMessage<AceComponentData>
             {
                 MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
                 Payload = new WebComponentPayload<AceComponentData>
@@ -95,9 +96,9 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
     public static async Task CloseAsync()
     {
-		if (_ctrl.CloseRequested is not null)
-			await _ctrl.CloseRequested();
-	}
+        if (_ctrl.CloseRequested is not null)
+            await _ctrl.CloseRequested();
+    }
 
     private static void SendTelemetry(RefactorResponseModel responseModel)
     {
