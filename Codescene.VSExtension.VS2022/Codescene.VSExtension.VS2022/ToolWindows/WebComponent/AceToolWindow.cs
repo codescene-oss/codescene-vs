@@ -32,7 +32,6 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
         var payload = new WebComponentPayload<AceComponentData>
         {
-            Devmode = true,
             IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
             View = WebComponentConstants.ViewTypes.ACE,
             Data = mapper.Map(handler.Path, handler.RefactorableFunction)
