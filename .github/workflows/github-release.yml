@@ -21,69 +21,13 @@ jobs:
 
       - name: Download latest cs-webview release (private repo)
         shell: pwsh
-        run: |
-          $headers = @{
-            Authorization = "token $env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN"
-            Accept        = "application/vnd.github+json"
-            "User-Agent"  = "actions"
-          }
-
-          Write-Host "Fetching latest release info..."
-          $release = Invoke-RestMethod -Uri "https://api.github.com/repos/empear-analytics/cs-webview/releases/latest" -Headers $headers
-
-          $asset = $release.assets | Select-Object -First 1
-          if (-not $asset) { Write-Error "No assets found in the latest release."; exit 1 }
-
-          Write-Host "Downloading asset via API: $($asset.name)"
-          $downloadHeaders = @{
-            Authorization = "token $env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN"
-            Accept        = "application/octet-stream"
-            "User-Agent"  = "actions"
-          }
-          Invoke-WebRequest -Uri "https://api.github.com/repos/empear-analytics/cs-webview/releases/assets/$($asset.id)" `
-                            -Headers $downloadHeaders `
-                            -OutFile cs-cwf.zip
-
-          Expand-Archive -Path cs-cwf.zip -DestinationPath cs-cwf-temp -Force
-          if (Test-Path cs-cwf) { Remove-Item cs-cwf -Recurse -Force }
-          New-Item -ItemType Directory -Path cs-cwf | Out-Null
-
-          $assetsPath = Join-Path "cs-cwf-temp" "assets"
-          if (Test-Path $assetsPath) {
-              Get-ChildItem $assetsPath -File | Move-Item -Destination cs-cwf
-          }
-
-          Remove-Item cs-cwf-temp -Recurse -Force
+        run: powershell.exe -File .github/cwf.ps1 -Token "$env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN"
         env:
           CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
 
       - name: Get latest Codescene CLI version
         shell: pwsh
-        run: |
-          $cliSettingsPath = "Codescene.VSExtension.VS2022/Codescene.VSExtension.Core/Application/Services/Cli/SettingsProvider/CliSettingsProvider.cs"
-          
-          if (-not (Test-Path $cliSettingsPath)) {
-              Write-Error "CliSettingsProvider.cs not found at: $cliSettingsPath"
-              Write-Host "Current directory: $(Get-Location)"
-              Write-Host "Available files:"
-              Get-ChildItem -Recurse -Filter "CliSettingsProvider.cs" | Select-Object -ExpandProperty FullName
-              exit 1
-          }
-          
-          $content = Get-Content $cliSettingsPath -Raw
-          
-          if ($content -match 'RequiredDevToolVersion\s*=>\s*"([^"]+)"') {
-              $RequiredDevToolVersion = $matches[1]
-              Write-Host "Found CLI version: $RequiredDevToolVersion"
-          } else {
-              Write-Error "Could not extract RequiredDevToolVersion from CliSettingsProvider.cs"
-              exit 1
-          }
-          
-          $url = "https://downloads.codescene.io/enterprise/cli/cs-ide-windows-amd64-$RequiredDevToolVersion.zip"
-          Write-Host "Downloading from $url"
-          Invoke-WebRequest -Uri $url -OutFile cs-ide.zip
-          Expand-Archive -Path cs-ide.zip -DestinationPath ./cs-ide -Force
+        run: powershell.exe -File .github/cli.ps1
 
       - name: Upload fetched assets
         uses: actions/upload-artifact@v4
@@ -120,12 +64,7 @@ jobs:
 
       - name: Copy web assets into project
         shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path Codescene.VSExtension.VS2022/ToolWindows/WebComponent
-          Copy-Item cs-cwf/index.css Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/ -ErrorAction Stop
-          Copy-Item cs-cwf/index.js Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent/
-
-          Copy-Item -Path "./cs-ide/cs-ide.exe" -Destination "./Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022"
+        run: powershell.exe -File .github/copy-assets.ps1
 
       - name: Restore NuGet packages
         run: nuget restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln

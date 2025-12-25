@@ -405,3 +405,11 @@ FodyWeavers.xsd
 **/ToolWindows/WebComponent/index.html
 
 git2-3f4182d.dll
+*.swp
+/cs-cwf
+/cs-cwf/index.css
+/cs-cwf/index.js
+/cs-cwf.zip
+/cs-ide
+/cs-ide/vcruntime140.dll
+/cs-ide.zip
