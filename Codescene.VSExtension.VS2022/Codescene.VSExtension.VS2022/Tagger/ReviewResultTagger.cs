@@ -50,15 +50,14 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             if (smells.Count == 0)
                 yield break; // No tags, exit early
 
-            FnToRefactorModel? refactorableFunction = null;
+            FnToRefactorModel? lastRefactorableFunction = null;
             SnapshotSpan? lastTagSpan = null;
 
             foreach (var visibleSpan in spans)
             {
                 foreach (var codeSmell in smells)
                 {
-                    refactorableFunction = AceUtils.GetRefactorableFunction(codeSmell, refactorableFunctions);
-                    var tag = HandleErrorTagSpan(visibleSpan, codeSmell, refactorableFunction, ref lastTagSpan);
+                    var tag = HandleErrorTagSpan(visibleSpan, codeSmell, ref lastRefactorableFunction, ref lastTagSpan, refactorableFunctions);
                     if (tag != null)
                     {
                         yield return tag;
@@ -66,22 +65,25 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 }
             }
             if (lastTagSpan != null)
-                yield return CreateAceRefactorTagSpan(lastTagSpan.Value, refactorableFunction);
+                yield return CreateAceRefactorTagSpan(lastTagSpan.Value, lastRefactorableFunction);
         }
 
         private TagSpan<IErrorTag> HandleErrorTagSpan(
             SnapshotSpan visibleSpan, 
             CodeSmellModel codeSmell,
-            FnToRefactorModel? refactorableFunction,
-            ref SnapshotSpan? lastTagSpan)
+            ref FnToRefactorModel? lastRefactorableFunction,
+            ref SnapshotSpan? lastTagSpan,
+            IList<FnToRefactorModel> refactorableFunctions)
         {
             var tagSpan = TryCreateTagSpan(visibleSpan, codeSmell);
+            var refactorableFunction = AceUtils.GetRefactorableFunction(codeSmell, refactorableFunctions);
 
             if (tagSpan != null && tagSpan.Value.IntersectsWith(visibleSpan))
             {
                 if (refactorableFunction != null)
                 {
                     lastTagSpan = tagSpan;
+                    lastRefactorableFunction = refactorableFunction;
                 }
                 return CreateErrorTagSpan(tagSpan.Value, codeSmell);
             }
