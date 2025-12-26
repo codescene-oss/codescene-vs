@@ -36,5 +36,11 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         /// </summary>
         [JsonProperty("trace-id")]
         public string TraceId { get; set; }
+
+        /// <summary>
+        /// C++ declarations
+        /// </summary>
+        [JsonProperty("declarations")]
+        public string Declarations { get; set; } = null;
     }
 }
