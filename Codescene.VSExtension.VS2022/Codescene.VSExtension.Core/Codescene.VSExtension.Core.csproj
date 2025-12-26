@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -15,7 +15,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+	<DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -110,7 +110,7 @@
     <Compile Include="Application\Services\Cli\Downloader\CliDownloader.cs" />
     <Compile Include="Application\Services\Cli\Downloader\ICliDownloader.cs" />
     <Compile Include="Application\Services\Cli\Executor\ICliExecutor.cs" />
-    <Compile Include="Application\Services\ErrorHandling\MissingAuthTokenException.cs" />
+	<Compile Include="Application\Services\ErrorHandling\MissingAuthTokenException.cs" />
     <Compile Include="Application\Services\ErrorListWindowHandler\IErrorListWindowHandler.cs" />
     <Compile Include="Application\Services\Git\IGitCliService.cs" />
     <Compile Include="Application\Services\Mapper\IModelMapper.cs" />
@@ -118,7 +118,7 @@
     <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
     <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
     <Compile Include="Application\Services\PreflightManager\IPreflightManager.cs" />
-    <Compile Include="Application\Services\Settings\ISettingsProvider.cs" />
+	<Compile Include="Application\Services\Settings\ISettingsProvider.cs" />
     <Compile Include="Application\Services\Telemetry\DeviceId\DeviceIdStore.cs" />
     <Compile Include="Application\Services\Telemetry\DeviceId\IDeviceIdStore.cs" />
     <Compile Include="Application\Services\Telemetry\ITelemetryManager.cs" />
@@ -184,8 +184,23 @@
     <Content Include="Monikers.imagemanifest">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <PackageReference Include="Markdig">
+      <Version>0.41.1</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
+      <Version>9.0.5</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="System.Memory">
+      <Version>4.6.3</Version>
+    </PackageReference>
+    <PackageReference Include="System.Threading.Tasks.Extensions">
+      <Version>4.6.3</Version>
+    </PackageReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
