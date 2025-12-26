@@ -50,15 +50,14 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             if (smells.Count == 0)
                 yield break; // No tags, exit early
 
-            FnToRefactorModel? refactorableFunction = null;
+            FnToRefactorModel? lastRefactorableFunction = null;
             SnapshotSpan? lastTagSpan = null;
 
             foreach (var visibleSpan in spans)
             {
                 foreach (var codeSmell in smells)
                 {
-                    refactorableFunction = AceUtils.GetRefactorableFunction(codeSmell, refactorableFunctions);
-                    var tag = HandleErrorTagSpan(visibleSpan, codeSmell, refactorableFunction, ref lastTagSpan);
+                    var tag = HandleErrorTagSpan(new TagSpanParams(visibleSpan, codeSmell), ref lastRefactorableFunction, ref lastTagSpan, refactorableFunctions);
                     if (tag != null)
                     {
                         yield return tag;
@@ -66,24 +65,26 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 }
             }
             if (lastTagSpan != null)
-                yield return CreateAceRefactorTagSpan(lastTagSpan.Value, refactorableFunction);
+                yield return CreateAceRefactorTagSpan(lastTagSpan.Value, lastRefactorableFunction);
         }
 
         private TagSpan<IErrorTag> HandleErrorTagSpan(
-            SnapshotSpan visibleSpan, 
-            CodeSmellModel codeSmell,
-            FnToRefactorModel? refactorableFunction,
-            ref SnapshotSpan? lastTagSpan)
+            TagSpanParams tagSpanParams,
+            ref FnToRefactorModel? lastRefactorableFunction,
+            ref SnapshotSpan? lastTagSpan,
+            IList<FnToRefactorModel> refactorableFunctions)
         {
-            var tagSpan = TryCreateTagSpan(visibleSpan, codeSmell);
+            var tagSpan = TryCreateTagSpan(tagSpanParams);
+            var refactorableFunction = AceUtils.GetRefactorableFunction(tagSpanParams.CodeSmell, refactorableFunctions);
 
-            if (tagSpan != null && tagSpan.Value.IntersectsWith(visibleSpan))
+            if (tagSpan != null && tagSpan.Value.IntersectsWith(tagSpanParams.Span))
             {
                 if (refactorableFunction != null)
                 {
                     lastTagSpan = tagSpan;
+                    lastRefactorableFunction = refactorableFunction;
                 }
-                return CreateErrorTagSpan(tagSpan.Value, codeSmell);
+                return CreateErrorTagSpan(new TagSpanParams(tagSpan.Value, tagSpanParams.CodeSmell));
             }
             return null;
         }
@@ -101,7 +102,6 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
         private IList<FnToRefactorModel> TryLoadRefactorableFunctionsFromCache()
         {
-            var logger = VS.GetMefServiceAsync<ILogger>();
             string currentContent = _buffer.CurrentSnapshot.GetText();
             IList<FnToRefactorModel> cached = _aceRefactorableFunctionsCache.Get(new AceRefactorableFunctionsQuery(_filePath, currentContent));
 
@@ -127,15 +127,15 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         /// - The calculated span is invalid (e.g., end before start).
         /// - An exception occurs during span creation.
         /// </summary>
-        private SnapshotSpan? TryCreateTagSpan(SnapshotSpan requestSpan, CodeSmellModel codeSmell)
+        private SnapshotSpan? TryCreateTagSpan(TagSpanParams tagSpanParams)
         {
             try
             {
-                var snapshot = requestSpan.Snapshot;
-                var codeSmellStartLine = codeSmell.Range.StartLine - 1;
-                var codeSmellEndLine = codeSmell.Range.EndLine - 1;
-                var codeSmellStartColumn = codeSmell.Range.StartColumn - 1;
-                var codeSmellEndColumn = codeSmell.Range.EndColumn;
+                var snapshot = tagSpanParams.Span.Snapshot;
+                var codeSmellStartLine = tagSpanParams.CodeSmell.Range.StartLine - 1;
+                var codeSmellEndLine = tagSpanParams.CodeSmell.Range.EndLine - 1;
+                var codeSmellStartColumn = tagSpanParams.CodeSmell.Range.StartColumn - 1;
+                var codeSmellEndColumn = tagSpanParams.CodeSmell.Range.EndColumn;
 
                 if (codeSmellStartLine < 0 || codeSmellEndLine >= snapshot.LineCount)
                     return null;
@@ -166,20 +166,20 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         /// <param name="span">The span to tag.</param>
         /// <param name="pos">The underline position info.</param>
         /// <returns>A <see cref="TagSpan{IErrorTag}"/> instance.</returns>
-        private TagSpan<IErrorTag> CreateErrorTagSpan(SnapshotSpan span, CodeSmellModel codeSmell)
+        private TagSpan<IErrorTag> CreateErrorTagSpan(TagSpanParams tagSpanParams)
         {
             var codeSmellInfo = new UnderlineTaggerTooltipParams(
-                codeSmell.Category,
-                codeSmell.Details,
-                codeSmell.Path,
-                codeSmell.Range,
-                codeSmell.FunctionName ?? "");
+                tagSpanParams.CodeSmell.Category,
+                tagSpanParams.CodeSmell.Details,
+                tagSpanParams.CodeSmell.Path,
+                tagSpanParams.CodeSmell.Range,
+                tagSpanParams.CodeSmell.FunctionName ?? "");
 
             var errorTag = new ErrorTag(
                 PredefinedErrorTypeNames.Warning,
                 new UnderlineTaggerTooltip(codeSmellInfo));
 
-            return new TagSpan<IErrorTag>(span, errorTag);
+            return new TagSpan<IErrorTag>(tagSpanParams.Span, errorTag);
         }
 
         private TagSpan<IErrorTag> CreateAceRefactorTagSpan(SnapshotSpan span, FnToRefactorModel refactorableFunction)
@@ -191,6 +191,12 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 new AceRefactorTooltip(tooltipParams));
 
             return new TagSpan<IErrorTag>(span, errorTag);
+        }
+
+        internal class TagSpanParams(SnapshotSpan span, CodeSmellModel codeSmell)
+        {
+            public SnapshotSpan Span { get; set; } = span;
+            public CodeSmellModel CodeSmell { get; set; } = codeSmell;
         }
     }
 }
