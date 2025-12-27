@@ -60,7 +60,7 @@ namespace Codescene.VSExtension.CoreTests
             var command = provider.GetRefactorCommandWithCodeSmells(extension, codeSmellsJson);
 
             // ASSERT
-            Assert.AreEqual(command, $"refactor fns-to-refactor --extension {extension} --code-smells {codeSmellsJson}");
+            Assert.AreEqual(command, $"refactor fns-to-refactor --file-name {extension} --code-smells \"{codeSmellsJson}\"");
         }
 
         [TestMethod]
@@ -76,7 +76,7 @@ namespace Codescene.VSExtension.CoreTests
             var command = provider.GetRefactorCommandWithCodeSmells(extension, codeSmellsJson, preflight);
 
             // ASSERT
-            Assert.AreEqual(command, $"refactor fns-to-refactor --extension {extension} --preflight {preflight} --code-smells {codeSmellsJson}");
+            Assert.AreEqual(command, $"refactor fns-to-refactor --file-name {extension} --preflight \"{preflight}\" --code-smells \"{codeSmellsJson}\"");
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace Codescene.VSExtension.CoreTests
             var command = provider.GetRefactorCommandWithDeltaResult(extension, deltaresult);
 
             // ASSERT
-            Assert.AreEqual(command, $"refactor fns-to-refactor --extension {extension} --delta-result {deltaresult}");
+            Assert.AreEqual(command, $"refactor fns-to-refactor --extension {extension} --delta-result \"{deltaresult}\"");
         }
 
         [TestMethod]
@@ -107,7 +107,7 @@ namespace Codescene.VSExtension.CoreTests
             var command = provider.GetRefactorCommandWithDeltaResult(extension, deltaresult, preflight);
 
             // ASSERT
-            Assert.AreEqual(command, $"refactor fns-to-refactor --extension {extension} --preflight {preflight} --delta-result {deltaresult}");
+            Assert.AreEqual(command, $"refactor fns-to-refactor --extension {extension} --preflight \"{preflight}\" --delta-result \"{deltaresult}\"");
         }
 
 
