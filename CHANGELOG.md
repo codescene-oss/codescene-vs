@@ -10,30 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.0] - 2025-12-31
 ### Added
 - Enable CodeScene ACE feature
-- extend CWF with declarations payload
-- enhance retry payload
-- enhance request-and-present-refactoring payload
-- enhance apply payload
-- enhance copy code payload
+- Extend CWF with declarations payload
+- Enhance ACE payloads
 - Add Auth Token to settings
-- add ACE acknowledgement view
-- add generic ACE error view, clean up mapper
+- Add ACE acknowledgement view
+- Add generic ACE error view, clean up mapper
 ### Fixed
 - Fix ACE tooltip to trigger refactoring for correct function
 - Update refactorable functions logic with --file-name parameter
 - Update process executor logic to work with latest CLI
-- distinguish host by view
+- Distinguish host by view
 - Use process ID to make host unique per VS instance to avoid conflicts
-- make CS GUIDs unique in menu actions
-### Changed
-- Fix pipeline failure
-- remove devmode from ACE
-- add misc improvements: - add logging to ACE ack. logic, - guard ACE ack. registry access against exceptions, - remove devmode from ACE ack. view
-- reorganize ace component mapper
-- feature: add initialized state in tool windows (cwf)
-- Disable devmode
-- Update CLI to version 1.0.25
-
+- Make CS GUIDs unique in menu actions
 
 ## [0.3.1] - 2025-12-12
 ### Fixed
