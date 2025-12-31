@@ -101,7 +101,7 @@ jobs:
     runs-on: windows-latest
     needs: fetch-docs
     env:
-      FEATURE_ACE: false  # ACE feature disabled 
+      FEATURE_ACE: true  # ACE feature enabled 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
