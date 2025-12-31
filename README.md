@@ -8,6 +8,7 @@
 1. [Code Health Monitor ✨**New**✨](#code-health-monitor)
 2. [Code Health Analysis](#code-health) 
 3. [Code Smells Guide](#code-smells)
+4. [CodeScene ACE ✨**New**✨](#do-you-want-to-keep-using-codescene-ace)
 
 ## Code Health Monitor
 Track code health in real-time as you work. The Monitor highlights code smells to help you improve your code.
