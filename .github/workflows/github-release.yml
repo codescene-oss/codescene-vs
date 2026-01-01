@@ -67,7 +67,7 @@ jobs:
         run: powershell.exe -File .github/copy-assets.ps1
 
       - name: Restore NuGet packages
-        run: nuget restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln
+        run: dotnet restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln
 
       - name: Build solution
         run: msbuild Codescene.VSExtension.VS2022/Codescene.VSExtension.sln /p:Configuration=Release /p:Platform="Any CPU"
