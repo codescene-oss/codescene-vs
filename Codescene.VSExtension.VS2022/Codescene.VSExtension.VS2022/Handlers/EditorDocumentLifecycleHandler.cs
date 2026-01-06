@@ -107,7 +107,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
                 cache.Put(new ReviewCacheEntry(code, path, result));
 
-                if (result.RawScore != null)
+                if (result != null && result.RawScore != null)
                 {
                     _logger.Info($"File {path} reviewed successfully.");
 #if FEATURE_ACE
@@ -115,8 +115,12 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                     // happening in 17.0.0
                     await AceUtils.CheckContainsRefactorableFunctionsAsync(result, code);
 #endif
-                    
+
                     DeltaReviewAsync(result, code).FireAndForget();
+                }
+                else
+                {
+                    _logger.Warn($"Review of file {path} returned no results.");
                 }
 
                 await CodeSceneToolWindow.UpdateViewAsync();
