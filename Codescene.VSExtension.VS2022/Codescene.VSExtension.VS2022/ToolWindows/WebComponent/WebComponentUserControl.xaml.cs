@@ -43,7 +43,9 @@ public partial class WebComponentUserControl : UserControl
         "https://codescene.io",
         "https://codescene.com",
         "https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/",
-        "https://supporthub.codescene.com"
+        "https://supporthub.codescene.com",
+        "https://forms.clickup.com",
+        "https://helpcenter.codescene.com"
     };
 
 	public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
