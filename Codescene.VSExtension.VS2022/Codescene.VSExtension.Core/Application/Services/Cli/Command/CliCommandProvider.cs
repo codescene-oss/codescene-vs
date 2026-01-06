@@ -27,20 +27,39 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         }
 
         private string AdjustTelemetryQuotes(string value) => value.Replace("\"", "\\\"");
-        private string AdjustQuotes(string value) => value.Replace("\"", "\"\"");
 
         // both implementations of fns-to-refactor need --cache-path argument added later, when cli cache is going to be implemented
         public string GetRefactorCommandWithCodeSmells(string fileName, string codeSmells, string preflight = null)
         {
-            var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight \"{AdjustQuotes(preflight)}\"";
-            return $"refactor fns-to-refactor --file-name {fileName}{preflightArg} --code-smells \"{AdjustQuotes(codeSmells)}\"";
+            var args = new List<string> { "refactor", "fns-to-refactor", "--file-name", fileName };
+            
+            if (!string.IsNullOrWhiteSpace(preflight))
+            {
+                args.Add("--preflight");
+                args.Add(preflight);
+            }
+            
+            args.Add("--code-smells");
+            args.Add(codeSmells);
+            
+            return GetArgumentStr(args.ToArray());
         }
 
         // this implementation needs update of --extension to --file-name
         public string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null)
         {
-            var preflightArg = string.IsNullOrWhiteSpace(preflight) ? string.Empty : $" --preflight \"{AdjustQuotes(preflight)}\"";
-            return $"refactor fns-to-refactor --extension {extension}{preflightArg} --delta-result {deltaResult}";
+            var args = new List<string> { "refactor", "fns-to-refactor", "--extension", extension };
+            
+            if (!string.IsNullOrWhiteSpace(preflight))
+            {
+                args.Add("--preflight");
+                args.Add(preflight);
+            }
+            
+            args.Add("--delta-result");
+            args.Add(deltaResult);
+            
+            return GetArgumentStr(args.ToArray());
         }
 
         public string GetRefactorPostCommand(FnToRefactorModel fnToRefactor, bool skipCache, string token = null)
@@ -78,9 +97,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return sb.ToString();
         }
 
-        public string GetReviewFileContentCommand(string path) => $"review --file-name {path}";
+        public string GetReviewFileContentCommand(string path) => GetArgumentStr("review", "--file-name", path);
 
-        public string GetReviewPathCommand(string path) => $"review {path}";
+        public string GetReviewPathCommand(string path) => GetArgumentStr("review", path);
 
         public string GetReviewDeltaCommand(string oldScore, string newScore)
         {
