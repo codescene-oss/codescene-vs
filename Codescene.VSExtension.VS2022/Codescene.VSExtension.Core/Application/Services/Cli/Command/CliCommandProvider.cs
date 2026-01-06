@@ -28,17 +28,22 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         private string AdjustTelemetryQuotes(string value) => value.Replace("\"", "\\\"");
 
+        private void AddPreflightInfo(List<string> arguments, string preflight)
+        {
+            if (!string.IsNullOrWhiteSpace(preflight))
+            {
+                arguments.Add("--preflight");
+                arguments.Add(preflight);
+            }
+        }
+
         // both implementations of fns-to-refactor need --cache-path argument added later, when cli cache is going to be implemented
         public string GetRefactorCommandWithCodeSmells(string fileName, string codeSmells, string preflight = null)
         {
             var args = new List<string> { "refactor", "fns-to-refactor", "--file-name", fileName };
-            
-            if (!string.IsNullOrWhiteSpace(preflight))
-            {
-                args.Add("--preflight");
-                args.Add(preflight);
-            }
-            
+
+            AddPreflightInfo(args, preflight);
+
             args.Add("--code-smells");
             args.Add(codeSmells);
             
@@ -49,13 +54,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         public string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null)
         {
             var args = new List<string> { "refactor", "fns-to-refactor", "--extension", extension };
-            
-            if (!string.IsNullOrWhiteSpace(preflight))
-            {
-                args.Add("--preflight");
-                args.Add(preflight);
-            }
-            
+
+            AddPreflightInfo(args, preflight);
+
             args.Add("--delta-result");
             args.Add(deltaResult);
             
