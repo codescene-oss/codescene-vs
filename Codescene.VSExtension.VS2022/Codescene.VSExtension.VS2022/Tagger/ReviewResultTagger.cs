@@ -173,7 +173,8 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 tagSpanParams.CodeSmell.Details,
                 tagSpanParams.CodeSmell.Path,
                 tagSpanParams.CodeSmell.Range,
-                tagSpanParams.CodeSmell.FunctionName ?? "");
+                tagSpanParams.CodeSmell.FunctionName ?? "",
+                tagSpanParams.CodeSmell.FunctionRange);
 
             var errorTag = new ErrorTag(
                 PredefinedErrorTypeNames.Warning,
