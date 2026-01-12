@@ -217,6 +217,13 @@ internal class WebComponentMessageHandler
 
     private async Task HandleCancelAsync()
     {
+        var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
+
+        if (onClickRefactoringHandler != null)
+        {
+            onClickRefactoringHandler.HandleCancel();
+        }
+
         if (_control.CloseRequested is not null)
             await _control.CloseRequested();
     }
