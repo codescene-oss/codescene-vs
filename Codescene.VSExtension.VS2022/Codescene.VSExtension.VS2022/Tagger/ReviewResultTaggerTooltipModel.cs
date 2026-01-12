@@ -19,6 +19,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         public string Details { get; set; }
         public string Path { get; set; }
         public CodeSmellRangeModel Range { get; set; }
+        public CodeSmellRangeModel FunctionRange { get; set; }
         public string FunctionName { get; set; }
 
         public ICommand YourCommand { get; }
@@ -33,12 +34,25 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         }
 
         public CodeSmellTooltipModel CommandParameter => new CodeSmellTooltipModel(
-            Category, Details, Path, FunctionName, new CodeSmellRangeModel(
+            Category,
+            Details,
+            Path,
+            FunctionName,
+            new CodeSmellRangeModel(
                 Range.StartLine,
                 Range.EndLine,
                 Range.StartColumn,
                 Range.EndColumn
-            ));
+            ),
+            FunctionRange is null
+                ? null
+                : new CodeSmellRangeModel(
+                    FunctionRange.StartLine,
+                    FunctionRange.EndLine,
+                    FunctionRange.StartColumn,
+                    FunctionRange.EndColumn
+                )
+        );
 
         //Bindings are defined in UnderlineTaggerTooltip.xaml
         private async void ExecuteYourCommand(object parameter)
@@ -55,7 +69,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                             cmdParam.Path,
                             cmdParam.Category,
                             cmdParam.FunctionName,
-                            cmdParam.Range
+                            cmdParam.FunctionRange
                         )
                     );
                 }
