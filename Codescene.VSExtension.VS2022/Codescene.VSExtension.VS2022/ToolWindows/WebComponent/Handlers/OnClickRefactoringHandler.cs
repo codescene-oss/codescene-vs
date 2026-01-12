@@ -11,6 +11,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
+using System.Threading;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 
@@ -26,6 +27,8 @@ public class OnClickRefactoringHandler
 
     [Import]
     private readonly IAceManager _aceManager;
+
+    private CancellationTokenSource _cancellationTokenSource = null;
 
     public string Path { get; private set; }
 
@@ -57,8 +60,25 @@ public class OnClickRefactoringHandler
 
         await AceToolWindow.ShowAsync();
 
+        _cancellationTokenSource = new CancellationTokenSource();
         // Run on background thread:
-        Task.Run(() => DoRefactorAndUpdateViewAsync(Path, RefactorableFunction, entryPoint)).FireAndForget();
+        Task.Run(() => DoRefactorAndUpdateViewAsync(Path, RefactorableFunction, entryPoint, _cancellationTokenSource.Token), _cancellationTokenSource.Token).FireAndForget();
+    }
+
+    public void HandleCancel()
+    {
+        try
+        {
+            if (_cancellationTokenSource != null && _cancellationTokenSource.Token.CanBeCanceled)
+            {
+                _logger.Debug("Cancelling ACE refactoring");
+                _cancellationTokenSource.Cancel();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("Error ocurred during ACE refactoring cancellation", ex);
+        }
     }
 
     private void SetViewToLoadingMode(string path, FnToRefactorModel refactorableFunction)
@@ -75,16 +95,24 @@ public class OnClickRefactoringHandler
         });
     }
 
-    private async Task DoRefactorAndUpdateViewAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint)
+    private async Task DoRefactorAndUpdateViewAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint, CancellationToken cancellationToken)
     {
         try
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
             var refactored = _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction, entryPoint);
             AceComponentData data;
             if (refactored != null)
                 data = _mapper.Map(refactored);
             else
                 data = _mapper.Map(path, refactorableFunction, AceViewErrorTypes.GENERIC);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
 
             AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
@@ -114,6 +142,11 @@ public class OnClickRefactoringHandler
                     Data = _mapper.Map(path, refactorableFunction, errorType)
                 }
             });
+        }
+        finally
+        {
+            _cancellationTokenSource.Dispose();
+            _cancellationTokenSource = null;
         }
     }
 
