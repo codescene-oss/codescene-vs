@@ -33,26 +33,27 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             YourCommand = new RelayCommand(ExecuteYourCommand);
         }
 
-        public CodeSmellTooltipModel CommandParameter => new CodeSmellTooltipModel(
-            Category,
-            Details,
-            Path,
-            FunctionName,
-            new CodeSmellRangeModel(
+        public CodeSmellTooltipModel CommandParameter => new()
+        {
+            Category = Category,
+            Details = Details,
+            Path = Path,
+            FunctionName = FunctionName,
+            Range = new CodeSmellRangeModel(
                 Range.StartLine,
                 Range.EndLine,
                 Range.StartColumn,
                 Range.EndColumn
             ),
-            FunctionRange is null
-                ? null
-                : new CodeSmellRangeModel(
-                    FunctionRange.StartLine,
-                    FunctionRange.EndLine,
-                    FunctionRange.StartColumn,
-                    FunctionRange.EndColumn
-                )
-        );
+            FunctionRange = FunctionRange is null
+            ? null
+            : new CodeSmellRangeModel(
+                FunctionRange.StartLine,
+                FunctionRange.EndLine,
+                FunctionRange.StartColumn,
+                FunctionRange.EndColumn
+            )
+        };
 
         //Bindings are defined in UnderlineTaggerTooltip.xaml
         private async void ExecuteYourCommand(object parameter)
