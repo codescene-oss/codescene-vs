@@ -2,6 +2,9 @@
 
 namespace Codescene.VSExtension.Core.Application.Services.Cache
 {
+    /// <summary>
+    /// Cache storage used by the CLI. Cache locations are sent as parameters
+    /// </summary>
     public interface ICacheStorageService
     {
         /// <summary>
