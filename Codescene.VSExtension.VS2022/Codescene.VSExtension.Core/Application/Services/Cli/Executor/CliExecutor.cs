@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Application.Services.Cache;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Settings;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
@@ -28,6 +29,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         [Import]
         private readonly ISettingsProvider _settingsProvider;
 
+        [Import]
+        private readonly ICacheStorageService _cacheStorageService;
+
         [ImportingConstructor]
         public CliExecutor(ICliCommandProvider cliCommandProvider)
         {
@@ -42,11 +46,12 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         /// <returns>A <see cref="CliReviewModel"/> containing the review results, or null if the review fails.</returns>
         public CliReviewModel ReviewContent(string filename, string content)
         {
-            var arguments = _cliCommandProvider.GetReviewFileContentCommand(filename);
+            var command = _cliCommandProvider.ReviewFileContentCommand;
+            var payload = _cliCommandProvider.GetReviewFileContentPayload(filename, content, _cacheStorageService.GetSolutionReviewCacheLocation());
 
             return ExecuteWithTimingAndLogging<CliReviewModel>(
-                "CLI file review",
-                () => _executor.Execute(arguments, content),
+                $"CLI file review",
+                () => _executor.Execute(command, payload),
                 $"Review of file {filename} failed"
             );
         }
@@ -108,19 +113,23 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             );
         }
 
-        public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string fileName, string codeSmells, string preflight)
+        public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
         {
-            var arguments = _cliCommandProvider.GetRefactorCommandWithCodeSmells(fileName, codeSmells, preflight);
+            var cachePath = _cacheStorageService.GetSolutionReviewCacheLocation();
+            _cacheStorageService.RemoveOldReviewCacheEntries();
 
-            if (string.IsNullOrEmpty(arguments))
+            var command = _cliCommandProvider.RefactorCommand;
+            var content = _cliCommandProvider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codeSmells, preflight);
+
+            if (string.IsNullOrEmpty(content))
             {
-                _logger.Warn("Skipping refactoring functions check. Arguments were not defined.");
+                _logger.Warn("Skipping refactoring functions check. Payload content was not defined.");
                 return null;
             }
 
             return ExecuteWithTimingAndLogging<IList<FnToRefactorModel>>(
                 "ACE refactoring functions check",
-                () => _executor.Execute(arguments, content),
+                () => _executor.Execute(command, content),
                 "Refactoring functions check failed."
             );
         }

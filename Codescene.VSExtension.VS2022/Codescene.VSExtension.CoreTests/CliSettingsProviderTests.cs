@@ -13,7 +13,7 @@ namespace Codescene.VSExtension.CoreTests
         {
             // ARRANGE: Create an instance of CliSettingsProvider
             var provider = new CliSettingsProvider();
-            var expectedVersion = "f4041f7aa0afe699bb67f01bf296b539fca27cfb";
+            var expectedVersion = "b98bdcaf4ac46597a73113d6fca6635d3f3393a5";
 
             // ACT: Get the value of RequiredDevToolVersion
             var actualVersion = provider.RequiredDevToolVersion;
@@ -28,7 +28,7 @@ namespace Codescene.VSExtension.CoreTests
         {
             // ARRANGE: Create an instance and define the expected artifact name
             var provider = new CliSettingsProvider();
-            var expectedArtifactName = "cs-ide-windows-amd64-f4041f7aa0afe699bb67f01bf296b539fca27cfb.zip";
+            var expectedArtifactName = "cs-ide-windows-amd64-b98bdcaf4ac46597a73113d6fca6635d3f3393a5.zip";
 
             // ACT: Get the value of CliArtifactName
             var actualArtifactName = provider.CliArtifactName;
@@ -43,7 +43,7 @@ namespace Codescene.VSExtension.CoreTests
         {
             // ARRANGE: Create an instance and set the expected URL
             var provider = new CliSettingsProvider();
-            var expectedArtifactUrl = "https://downloads.codescene.io/enterprise/cli/cs-ide-windows-amd64-f4041f7aa0afe699bb67f01bf296b539fca27cfb.zip";
+            var expectedArtifactUrl = "https://downloads.codescene.io/enterprise/cli/cs-ide-windows-amd64-b98bdcaf4ac46597a73113d6fca6635d3f3393a5.zip";
 
             // ACT: Get the value of CliArtifactUrl
             var actualArtifactUrl = provider.CliArtifactUrl;

@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+﻿using Codescene.VSExtension.Core.Application.Services.Cache;
+using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.PreflightManager;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
@@ -69,6 +70,9 @@ public sealed class VS2022Package : ToolkitPackage
             // Solution events handler
             await InitializeSolutionEventsHandlerAsync();
 
+            // File-based cache storage for CLI
+            await InitializeCacheStorageServiceAsync();
+
             SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION);
         }
         catch (Exception e)
@@ -80,6 +84,12 @@ public sealed class VS2022Package : ToolkitPackage
             SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION_ERROR);
             RunPreflight();
         }
+    }
+
+    private async Task InitializeCacheStorageServiceAsync()
+    {
+        var cacheManager = await VS.GetMefServiceAsync<ICacheStorageService>();
+        await cacheManager.InitializeAsync();
     }
 
     private void SendTelemetry(string eventName)

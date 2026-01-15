@@ -1,4 +1,7 @@
-﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+﻿using Codescene.VSExtension.Core.Models.Cli.Delta;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cli.Review;
+using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Application.Services.Cli
 {
@@ -6,12 +9,15 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     {
         string VersionCommand { get; }
         string DeviceIdCommand { get; }
+        string RefactorCommand { get; }
+        string ReviewFileContentCommand { get; }
+
         string GetReviewPathCommand(string path);
         string SendTelemetryCommand(string jsonEvent);
-        string GetReviewFileContentCommand(string path);
+        string GetReviewFileContentPayload(string filePath, string fileContent, string cachePath);
         string GetReviewDeltaCommand(string oldScore, string newScore);
-        string GetRefactorCommandWithCodeSmells(string extension, string codeSmells, string preflight = null);
-        string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null);
+        string GetRefactorWithDeltaResultPayload(string fileName, string fileContent, string cachePath, DeltaResponseModel deltaResult, PreFlightResponseModel preflight = null);
+        string GetRefactorWithCodeSmellsPayload(string fileName, string fileContent, string cachePath, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight = null);
         string GetPreflightSupportInformationCommand(bool force);
         string GetRefactorPostCommand(FnToRefactorModel fnToRefactor, bool skipCache, string token = null);
     }
