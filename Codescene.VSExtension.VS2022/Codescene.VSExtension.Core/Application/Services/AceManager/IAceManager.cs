@@ -1,4 +1,6 @@
+using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using System.Collections.Generic;
 
@@ -8,6 +10,6 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
     {
         CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false);
         CachedRefactoringActionModel GetCachedRefactoredCode();
-        IList<FnToRefactorModel> GetRefactorableFunctions(string content, string codesmellsJson, string preflight, string extension);
+        IList<FnToRefactorModel> GetRefactorableFunctions(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight);
     }
 }

@@ -75,6 +75,7 @@
     <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
     <Compile Include="Application\Services\Authentication\IPersistenceAuthDataProvider.cs" />
     <Compile Include="Application\Services\Authentication\FakeAuthDataProvider.cs" />
+    <Compile Include="Application\Services\Cache\ICacheStorageService.cs" />
     <Compile Include="Application\Services\Cache\Review\AceRefactorableFunctionsCacheService.cs" />
     <Compile Include="Application\Services\Cache\Review\CacheService.cs" />
     <Compile Include="Application\Services\Cache\Review\DeltaCacheService.cs" />
@@ -141,6 +142,9 @@
     <Compile Include="Models\Cli\Refactor\ConfidenceModel.cs" />
     <Compile Include="Models\Cli\Refactor\CreditsInfoModel.cs" />
     <Compile Include="Models\Cli\Refactor\CreditsInfoErrorModel.cs" />
+    <Compile Include="Models\Cli\Refactor\FnsToRefactorCodeSmellRequestModel.cs" />
+    <Compile Include="Models\Cli\Refactor\FnsToRefactorDeltaRequestModel.cs" />
+    <Compile Include="Models\Cli\Refactor\FnsToRefactorRequestModel.cs" />
     <Compile Include="Models\Cli\Refactor\FnToRefactorModel.cs" />
     <Compile Include="Models\Cli\Refactor\MetadataModel.cs" />
     <Compile Include="Models\Cli\Refactor\PreFlightResponseModel.cs" />
@@ -152,6 +156,7 @@
     <Compile Include="Models\Cli\Refactor\RefactorResponseModel.cs" />
     <Compile Include="Models\Cli\Refactor\RefactorSupportModel.cs" />
     <Compile Include="Models\Cli\Review\CliCodeHealthRulesErrorModel.cs" />
+    <Compile Include="Models\Cli\Review\ReviewRequestModel.cs" />
     <Compile Include="Models\Cli\Telemetry\TelemetryEvent.cs" />
     <Compile Include="Models\CodeSmellRangeModel.cs" />
     <Compile Include="Models\CodeSmellTooltipModel.cs" />

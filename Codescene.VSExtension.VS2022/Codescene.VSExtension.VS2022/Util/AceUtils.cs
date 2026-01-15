@@ -62,12 +62,11 @@ namespace Codescene.VSExtension.VS2022.Util
                 cliCodeSmellModelList.Add(cliCodeSmellModel);
             }
 
-            var codesmellsJson = JsonConvert.SerializeObject(cliCodeSmellModelList);
-            var preflight = JsonConvert.SerializeObject(preflightManager.GetPreflightResponse());
+            var preflight = preflightManager.GetPreflightResponse();
 
             try
             {
-                var refactorableFunctions = aceManager.GetRefactorableFunctions(code, codesmellsJson, preflight, fileName);
+                var refactorableFunctions = aceManager.GetRefactorableFunctions(fileName, code, cliCodeSmellModelList, preflight);
 
                 if (refactorableFunctions.Any())
                 {

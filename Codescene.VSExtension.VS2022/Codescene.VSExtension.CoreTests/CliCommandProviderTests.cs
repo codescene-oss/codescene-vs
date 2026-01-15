@@ -1,5 +1,11 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cli.Review;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 
 namespace Codescene.VSExtension.CoreTests
 {
@@ -49,65 +55,96 @@ namespace Codescene.VSExtension.CoreTests
         }
 
         [TestMethod]
-        public void GetRefactorCommandWithCodeSmells_Without_Preflight_Parameter()
+        public void GetReviewFileContentPayload()
         {
             // ARRANGE
-            var extension = "js";
-            var codeSmellsJson = "{ id = 1 }";
             var provider = new CliCommandProvider();
+            var filePath = "js";
+            var fileContent = "content";
+            var cachePath = "/home/user/cache";
 
             // ACT
-            var command = provider.GetRefactorCommandWithCodeSmells(extension, codeSmellsJson);
+            var command = provider.GetReviewFileContentPayload(filePath, fileContent, cachePath);
 
             // ASSERT
-            Assert.AreEqual(command, $"refactor fns-to-refactor --file-name {extension} --code-smells \"{codeSmellsJson}\"");
+            Assert.AreEqual($"{{\"path\":\"{filePath}\",\"file-content\":\"{fileContent}\",\"cache-path\":\"{cachePath}\"}}", command);
         }
 
         [TestMethod]
-        public void GetRefactorCommandWithCodeSmells_With_Preflight_Parameter()
+        public void GetRefactorWithCodeSmellsPayload_Without_Preflight_Parameter()
         {
             // ARRANGE
-            var extension = "js";
-            var codeSmellsJson = "{ id = 1 }";
-            var preflight = "{ id = 5 }";
+            var fileName = "js";
+            var fileContent = "content";
+            var cachePath = "/home/user/cache";
+            var codesmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "test" } };
+
             var provider = new CliCommandProvider();
 
             // ACT
-            var command = provider.GetRefactorCommandWithCodeSmells(extension, codeSmellsJson, preflight);
+            var content = provider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codesmells, null);
 
             // ASSERT
-            Assert.AreEqual(command, $"refactor fns-to-refactor --file-name {extension} --preflight \"{preflight}\" --code-smells \"{codeSmellsJson}\"");
+            Assert.AreEqual(content, $"{{\"code-smells\":[{{\"category\":\"{codesmells.First().Category}\"}}],\"file-name\":\"{fileName}\",\"file-content\":\"{fileContent}\",\"cache-path\":\"{cachePath}\"}}");
         }
 
         [TestMethod]
-        public void GetRefactorCommandWithDeltaResult_Without_Preflight_Parameter()
+        public void GetRefactorWithCodeSmellsPayload_With_Preflight_Parameter()
         {
             // ARRANGE
-            var extension = "js";
-            var deltaresult = "{ id = 1 }";
+            var fileName = "js";
+            var fileContent = "content";
+            var cachePath = "/home/user/cache";
+            var codesmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "test" } };
+            var preflight = new PreFlightResponseModel { FileTypes = new string[] { ".js" } };
+
             var provider = new CliCommandProvider();
 
             // ACT
-            var command = provider.GetRefactorCommandWithDeltaResult(extension, deltaresult);
+            var content = provider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codesmells, preflight);
+
 
             // ASSERT
-            Assert.AreEqual(command, $"refactor fns-to-refactor --extension {extension} --delta-result \"{deltaresult}\"");
+            Assert.AreEqual(content, $"{{\"code-smells\":[{{\"category\":\"{codesmells.First().Category}\"}}],\"file-name\":\"{fileName}\",\"file-content\":\"{fileContent}\",\"preflight\":{{\"file-types\":[\"{preflight.FileTypes.First()}\"]}},\"cache-path\":\"{cachePath}\"}}");
         }
 
         [TestMethod]
-        public void GetRefactorCommandWithDeltaResult_With_Preflight_Parameter()
+        public void GetRefactorWithDeltaResultPayload_Without_Preflight_Parameter()
         {
             // ARRANGE
-            var extension = "js";
-            var deltaresult = "{ id = 1 }";
-            var preflight = "{ id = 5 }";
+            var fileName = "js";
+            var fileContent = "content";
+            var cachePath = "/home/user/cache";
+            var deltaResult = new DeltaResponseModel { NewScore = 2, OldScore = 3 };
+            var codesmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "test" } };
+
             var provider = new CliCommandProvider();
 
             // ACT
-            var command = provider.GetRefactorCommandWithDeltaResult(extension, deltaresult, preflight);
+            var content = provider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, null);
 
             // ASSERT
-            Assert.AreEqual(command, $"refactor fns-to-refactor --extension {extension} --preflight \"{preflight}\" --delta-result \"{deltaresult}\"");
+            Assert.AreEqual(content, $"{{\"delta-result\":{{\"new-score\":{deltaResult.NewScore.ToString("0.0", CultureInfo.InvariantCulture)},\"old-score\":{deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture)}}},\"file-name\":\"{fileName}\",\"file-content\":\"{fileContent}\",\"cache-path\":\"{cachePath}\"}}");
+        }
+
+        [TestMethod]
+        public void GetRefactorWithDeltaResultPayload_With_Preflight_Parameter()
+        {
+            // ARRANGE
+            var fileName = "js";
+            var fileContent = "content";
+            var cachePath = "/home/user/cache";
+            var deltaResult = new DeltaResponseModel { NewScore = 2, OldScore = 3 };
+            var preflight = new PreFlightResponseModel { FileTypes = new string[] { ".js" } };
+
+            var provider = new CliCommandProvider();
+
+            // ACT
+            var content = provider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, preflight);
+
+
+            // ASSERT
+            Assert.AreEqual(content, $"{{\"delta-result\":{{\"new-score\":{deltaResult.NewScore.ToString("0.0", CultureInfo.InvariantCulture)},\"old-score\":{deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture)}}},\"file-name\":\"{fileName}\",\"file-content\":\"{fileContent}\",\"preflight\":{{\"file-types\":[\"{preflight.FileTypes.First()}\"]}},\"cache-path\":\"{cachePath}\"}}");
         }
 
 
