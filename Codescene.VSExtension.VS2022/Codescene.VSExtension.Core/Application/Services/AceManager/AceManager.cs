@@ -3,6 +3,7 @@ using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using System;
 using System.Collections.Generic;
@@ -26,9 +27,9 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
 
         public static CachedRefactoringActionModel LastRefactoring;
 
-        public IList<FnToRefactorModel> GetRefactorableFunctions(string content, string codesmellsJson, string preflight, string fileName)
+        public IList<FnToRefactorModel> GetRefactorableFunctions(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
         {
-            return _executor.FnsToRefactorFromCodeSmells(content, fileName, codesmellsJson, preflight);
+            return _executor.FnsToRefactorFromCodeSmells(fileName, fileContent, codeSmells, preflight);
         }
 
         public CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false)

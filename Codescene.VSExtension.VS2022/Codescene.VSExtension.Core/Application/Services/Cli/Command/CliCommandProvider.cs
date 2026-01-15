@@ -1,5 +1,7 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cli.Review;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -11,12 +13,16 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliCommandProvider : ICliCommandProvider
     {
+        private static readonly JsonSerializerSettings RefactorSerializerSettings = new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore };
+
         [Import]
         private readonly ICliObjectScoreCreator _creator;
 
         public string VersionCommand => "version --sha";
 
         public string DeviceIdCommand => "telemetry --device-id";
+        public string RefactorCommand => "run-command fns-to-refactor";
+        public string ReviewFileContentCommand => "run-command review";
 
         public string SendTelemetryCommand(string jsonEvent) => $"telemetry --event \"{AdjustTelemetryQuotes(jsonEvent)}\"";
 
@@ -28,39 +34,30 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         private string AdjustTelemetryQuotes(string value) => value.Replace("\"", "\\\"");
 
-        private void AddPreflightInfo(List<string> arguments, string preflight)
+        public string GetRefactorWithCodeSmellsPayload(string fileName, string fileContent, string cachePath, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight = null)
         {
-            if (!string.IsNullOrWhiteSpace(preflight))
+            var request = new FnsToRefactorCodeSmellRequestModel
             {
-                arguments.Add("--preflight");
-                arguments.Add(preflight);
-            }
+                FileName = fileName,
+                FileContent = fileContent,
+                CachePath = cachePath,
+                CodeSmells = codeSmells,
+                Preflight = preflight
+            };
+            return JsonConvert.SerializeObject(request, RefactorSerializerSettings);
         }
 
-        // both implementations of fns-to-refactor need --cache-path argument added later, when cli cache is going to be implemented
-        public string GetRefactorCommandWithCodeSmells(string fileName, string codeSmells, string preflight = null)
+        public string GetRefactorWithDeltaResultPayload(string fileName, string fileContent, string cachePath, DeltaResponseModel deltaResult, PreFlightResponseModel preflight = null)
         {
-            var args = new List<string> { "refactor", "fns-to-refactor", "--file-name", fileName };
-
-            AddPreflightInfo(args, preflight);
-
-            args.Add("--code-smells");
-            args.Add(codeSmells);
-            
-            return GetArgumentStr(args.ToArray());
-        }
-
-        // this implementation needs update of --extension to --file-name
-        public string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null)
-        {
-            var args = new List<string> { "refactor", "fns-to-refactor", "--extension", extension };
-
-            AddPreflightInfo(args, preflight);
-
-            args.Add("--delta-result");
-            args.Add(deltaResult);
-            
-            return GetArgumentStr(args.ToArray());
+            var request = new FnsToRefactorDeltaRequestModel
+            {
+                FileName = fileName,
+                FileContent = fileContent,
+                CachePath = cachePath,
+                DeltaResult = deltaResult,
+                Preflight = preflight
+            };
+            return JsonConvert.SerializeObject(request, RefactorSerializerSettings);
         }
 
         public string GetRefactorPostCommand(FnToRefactorModel fnToRefactor, bool skipCache, string token = null)
@@ -99,6 +96,16 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         }
 
         public string GetReviewFileContentCommand(string path) => GetArgumentStr("review", "--file-name", path);
+        public string GetReviewFileContentPayload(string filePath, string fileContent, string cachePath)
+        {
+            var request = new ReviewRequestModel
+            {
+                FilePath = filePath,
+                FileContent = fileContent,
+                CachePath = cachePath
+            };
+            return JsonConvert.SerializeObject(request);
+        }
 
         public string GetReviewPathCommand(string path) => GetArgumentStr("review", path);
 

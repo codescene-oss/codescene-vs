@@ -65,6 +65,7 @@
     <Compile Include="Application\Services\AceAcknowledgementStateService.cs" />
     <Compile Include="Application\Services\PreflightManager\PreflightManager.cs" />
     <Compile Include="Application\Util\DebounceService.cs" />
+    <Compile Include="Cache\CacheStorageService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />
     <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
     <Compile Include="Controls\AceRefactorTooltip.xaml.cs">
