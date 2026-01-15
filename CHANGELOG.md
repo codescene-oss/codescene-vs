@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-01-15
+### Fixed
+- pass function range into function-level code smell docs
+- Cancel refactoring timing fixes
+- handle arguments with empty spaces
+- enable help center and clickup navigation via cwf
+### Changed
+- fix constructor over-injection code smell
+- prefer `dotnet` command
+- fix failing tests
+- homogeneize .csproj files
+- migrate packages.config files to .csproj format
+- extract scripts to standalone files
+- fix code duplication
+
+
 ## [0.4.0] - 2025-12-31
 ### Added
 - Enable CodeScene ACE feature
@@ -134,5 +150,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 
 
