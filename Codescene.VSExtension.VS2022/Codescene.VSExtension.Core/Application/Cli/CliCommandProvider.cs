@@ -42,27 +42,22 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public string GetRefactorWithCodeSmellsPayload(string fileName, string fileContent, string cachePath, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight = null)
         {
-            var request = new FnsToRefactorCodeSmellRequestModel
-            {
-                FileName = fileName,
-                FileContent = fileContent,
-                CachePath = cachePath,
-                CodeSmells = codeSmells,
-                Preflight = preflight
-            };
-            return JsonConvert.SerializeObject(request, RefactorSerializerSettings);
+            var request = new FnsToRefactorCodeSmellRequestModel { CodeSmells = codeSmells };
+            return SerializeRefactorRequest(request, fileName, fileContent, cachePath, preflight);
         }
 
         public string GetRefactorWithDeltaResultPayload(string fileName, string fileContent, string cachePath, DeltaResponseModel deltaResult, PreFlightResponseModel preflight = null)
         {
-            var request = new FnsToRefactorDeltaRequestModel
-            {
-                FileName = fileName,
-                FileContent = fileContent,
-                CachePath = cachePath,
-                DeltaResult = deltaResult,
-                Preflight = preflight
-            };
+            var request = new FnsToRefactorDeltaRequestModel { DeltaResult = deltaResult };
+            return SerializeRefactorRequest(request, fileName, fileContent, cachePath, preflight);
+        }
+
+        private string SerializeRefactorRequest(FnsToRefactorRequestModel request, string fileName, string fileContent, string cachePath, PreFlightResponseModel preflight)
+        {
+            request.FileName = fileName;
+            request.FileContent = fileContent;
+            request.CachePath = cachePath;
+            request.Preflight = preflight;
             return JsonConvert.SerializeObject(request, RefactorSerializerSettings);
         }
 
