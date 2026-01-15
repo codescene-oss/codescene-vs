@@ -31,6 +31,11 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             return _executor.FnsToRefactorFromCodeSmells(content, fileName, codesmellsJson, preflight);
         }
 
+        public IList<FnToRefactorModel> GetRefactorableFunctionsFromDelta(string content, string deltaJson, string preflight, string fileName)
+        {
+            return _executor.FnsToRefactorFromDelta(content, fileName, deltaJson, preflight);
+        }
+
         public CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false)
         {
             _logger.Info($"Starting refactoring of function: {refactorableFunction.Name} in file: {path}");

@@ -125,6 +125,23 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             );
         }
 
+        public IList<FnToRefactorModel> FnsToRefactorFromDelta(string content, string fileName, string deltaResult, string preflight)
+        {
+            var arguments = _cliCommandProvider.GetRefactorCommandWithDeltaResult(fileName, deltaResult, preflight);
+
+            if (string.IsNullOrEmpty(arguments))
+            {
+                _logger.Warn("Skipping refactoring functions from delta check. Arguments were not defined.");
+                return null;
+            }
+
+            return ExecuteWithTimingAndLogging<IList<FnToRefactorModel>>(
+                "ACE refactoring functions check from delta",
+                () => _executor.Execute(arguments, content),
+                "Refactoring functions check from delta failed."
+            );
+        }
+
         public string GetDeviceId()
         {
             var arguments = _cliCommandProvider.DeviceIdCommand;

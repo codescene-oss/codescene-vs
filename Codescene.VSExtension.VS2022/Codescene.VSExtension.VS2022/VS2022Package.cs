@@ -58,7 +58,7 @@ public sealed class VS2022Package : ToolkitPackage
             await this.RegisterCommandsAsync();
 
             // Cli file
-            await CheckCliFileAsync();
+            //await CheckCliFileAsync();
 
             // Subscribe on active document change event
             await SubscribeOnActiveWindowChangeAsync();

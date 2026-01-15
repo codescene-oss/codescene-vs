@@ -13,6 +13,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         string GetDeviceId();
         PreFlightResponseModel Preflight(bool force = true);
         RefactorResponseModel PostRefactoring(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null);
-        IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string extension, string codeSmells, string preflight);
+        IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string content, string fileName, string codeSmells, string preflight);
+        IList<FnToRefactorModel> FnsToRefactorFromDelta(string content, string fileName, string deltaResult, string preflight);
     }
 }

@@ -72,7 +72,6 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
                 var oldRawScore = oldCodeReview?.RawScore ?? "";
 
                 var delta = _executer.ReviewDelta(oldRawScore, currentRawScore);
-                CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, path, currentCode, _logger);
 
                 var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(cache.GetAll());
                 var cacheEntry = new DeltaCacheEntry(path, oldCode, currentCode, delta);

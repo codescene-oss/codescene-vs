@@ -10,8 +10,8 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         string SendTelemetryCommand(string jsonEvent);
         string GetReviewFileContentCommand(string path);
         string GetReviewDeltaCommand(string oldScore, string newScore);
-        string GetRefactorCommandWithCodeSmells(string extension, string codeSmells, string preflight = null);
-        string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null);
+        string GetRefactorCommandWithCodeSmells(string fileName, string codeSmells, string preflight = null);
+        string GetRefactorCommandWithDeltaResult(string fileName, string deltaResult, string preflight = null);
         string GetPreflightSupportInformationCommand(bool force);
         string GetRefactorPostCommand(FnToRefactorModel fnToRefactor, bool skipCache, string token = null);
     }

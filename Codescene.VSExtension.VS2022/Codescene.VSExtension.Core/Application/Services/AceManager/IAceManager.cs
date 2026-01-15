@@ -8,6 +8,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
     {
         CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false);
         CachedRefactoringActionModel GetCachedRefactoredCode();
-        IList<FnToRefactorModel> GetRefactorableFunctions(string content, string codesmellsJson, string preflight, string extension);
+        IList<FnToRefactorModel> GetRefactorableFunctions(string content, string codesmellsJson, string preflight, string fileName);
+        IList<FnToRefactorModel> GetRefactorableFunctionsFromDelta(string content, string deltaJson, string preflight, string fileName);
     }
 }

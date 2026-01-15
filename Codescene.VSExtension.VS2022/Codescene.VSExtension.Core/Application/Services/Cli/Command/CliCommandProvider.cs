@@ -50,10 +50,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             return GetArgumentStr(args.ToArray());
         }
 
-        // this implementation needs update of --extension to --file-name
-        public string GetRefactorCommandWithDeltaResult(string extension, string deltaResult, string preflight = null)
+        public string GetRefactorCommandWithDeltaResult(string fileName, string deltaResult, string preflight = null)
         {
-            var args = new List<string> { "refactor", "fns-to-refactor", "--extension", extension };
+            var args = new List<string> { "refactor", "fns-to-refactor", "--file-name", fileName };
 
             AddPreflightInfo(args, preflight);
 
