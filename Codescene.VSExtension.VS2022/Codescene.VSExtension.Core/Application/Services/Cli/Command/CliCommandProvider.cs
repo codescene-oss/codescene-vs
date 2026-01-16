@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
@@ -18,6 +18,12 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         [Import]
         private readonly ICliObjectScoreCreator _creator;
 
+        [ImportingConstructor]
+        public CliCommandProvider(ICliObjectScoreCreator creator)
+        {
+            _creator = creator;
+        }
+
         public string VersionCommand => "version --sha";
 
         public string DeviceIdCommand => "telemetry --device-id";
@@ -36,27 +42,22 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         public string GetRefactorWithCodeSmellsPayload(string fileName, string fileContent, string cachePath, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight = null)
         {
-            var request = new FnsToRefactorCodeSmellRequestModel
-            {
-                FileName = fileName,
-                FileContent = fileContent,
-                CachePath = cachePath,
-                CodeSmells = codeSmells,
-                Preflight = preflight
-            };
-            return JsonConvert.SerializeObject(request, RefactorSerializerSettings);
+            var request = new FnsToRefactorCodeSmellRequestModel { CodeSmells = codeSmells };
+            return SerializeRefactorRequest(request, fileName, fileContent, cachePath, preflight);
         }
 
         public string GetRefactorWithDeltaResultPayload(string fileName, string fileContent, string cachePath, DeltaResponseModel deltaResult, PreFlightResponseModel preflight = null)
         {
-            var request = new FnsToRefactorDeltaRequestModel
-            {
-                FileName = fileName,
-                FileContent = fileContent,
-                CachePath = cachePath,
-                DeltaResult = deltaResult,
-                Preflight = preflight
-            };
+            var request = new FnsToRefactorDeltaRequestModel { DeltaResult = deltaResult };
+            return SerializeRefactorRequest(request, fileName, fileContent, cachePath, preflight);
+        }
+
+        private string SerializeRefactorRequest(FnsToRefactorRequestModel request, string fileName, string fileContent, string cachePath, PreFlightResponseModel preflight)
+        {
+            request.FileName = fileName;
+            request.FileContent = fileContent;
+            request.CachePath = cachePath;
+            request.Preflight = preflight;
             return JsonConvert.SerializeObject(request, RefactorSerializerSettings);
         }
 
@@ -75,12 +76,12 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
             {
                 args.Add("--fn-to-refactor-nippy-b64");
                 args.Add(fnToRefactor.NippyB64);
-            } 
+            }
             else
             {
-				args.Add("--fn-to-refactor");
+                args.Add("--fn-to-refactor");
                 args.Add(JsonConvert.SerializeObject(fnToRefactor));
-			}
+            }
             var command = GetArgumentStr(args.ToArray());
             return command;
         }

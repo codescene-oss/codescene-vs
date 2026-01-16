@@ -25,6 +25,14 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
         [Import]
         private readonly ITelemetryManager _telemetryManager;
 
+        [ImportingConstructor]
+        public AceManager(ILogger logger, ICliExecutor executor, ITelemetryManager telemetryManager)
+        {
+            _logger = logger;
+            _executor = executor;
+            _telemetryManager = telemetryManager;
+        }
+
         public static CachedRefactoringActionModel LastRefactoring;
 
         public IList<FnToRefactorModel> GetRefactorableFunctions(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)

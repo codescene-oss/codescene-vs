@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.PreflightManager;
+using Codescene.VSExtension.Core.Application.Services.PreflightManager;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
@@ -15,6 +15,12 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
     {
         [Import]
         private readonly IPreflightManager _preflightManager;
+
+        [ImportingConstructor]
+        public CodeHealthMonitorMapper(IPreflightManager preflightManager)
+        {
+            _preflightManager = preflightManager;
+        }
 
 		public CodeHealthMonitorComponentData Map(Dictionary<string, DeltaResponseModel> fileDeltas)
         {

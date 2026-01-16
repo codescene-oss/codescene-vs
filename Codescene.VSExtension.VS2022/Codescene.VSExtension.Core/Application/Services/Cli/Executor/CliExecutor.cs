@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache;
+using Codescene.VSExtension.Core.Application.Services.Cache;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Settings;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
@@ -33,9 +33,18 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         private readonly ICacheStorageService _cacheStorageService;
 
         [ImportingConstructor]
-        public CliExecutor(ICliCommandProvider cliCommandProvider)
+        public CliExecutor(
+            ILogger logger,
+            ICliCommandProvider cliCommandProvider,
+            IProcessExecutor executor,
+            ISettingsProvider settingsProvider,
+            ICacheStorageService cacheStorageService)
         {
+            _logger = logger;
             _cliCommandProvider = cliCommandProvider;
+            _executor = executor;
+            _settingsProvider = settingsProvider;
+            _cacheStorageService = cacheStorageService;
         }
 
         /// <summary>

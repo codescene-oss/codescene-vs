@@ -1,220 +1,172 @@
-﻿//using Codescene.VSExtension.Core.Application.Services.Cli;
-//using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-//using Codescene.VSExtension.Core.Models;
-//using Codescene.VSExtension.Core.Models.ReviewResultModel;
-//using Microsoft.VisualStudio.TestTools.UnitTesting;
-//using System;
-//using System.Collections.Generic;
-//using System.IO;
-//using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
-//namespace Codescene.VSExtension.CoreTests
-//{
-//    [TestClass]
-//    public class CliFileCheckerTests
-//    {
-//        // Fake implementation of ILogger to record log messages.
-//        private class FakeLogger : ILogger
-//        {
-//            public readonly System.Collections.Generic.List<string> InfoMessages = new System.Collections.Generic.List<string>();
-//            public readonly System.Collections.Generic.List<(string Message, Exception Ex)> ErrorMessages = new System.Collections.Generic.List<(string, Exception)>();
+namespace Codescene.VSExtension.CoreTests
+{
+    [TestClass]
+    public class CliFileCheckerTests
+    {
+        private Mock<ILogger> _mockLogger;
+        private Mock<ICliExecutor> _mockCliExecutor;
+        private Mock<ICliSettingsProvider> _mockCliSettingsProvider;
+        private Mock<ICliDownloader> _mockCliDownloader;
+        private CliFileChecker _fileChecker;
 
-//            public void Info(string message)
-//            {
-//                InfoMessages.Add(message);
-//            }
+        private string _tempFilePath;
 
-//            public void Error(string message, Exception ex)
-//            {
-//                ErrorMessages.Add((message, ex));
-//            }
+        [TestInitialize]
+        public void Setup()
+        {
+            _mockLogger = new Mock<ILogger>();
+            _mockCliExecutor = new Mock<ICliExecutor>();
+            _mockCliSettingsProvider = new Mock<ICliSettingsProvider>();
+            _mockCliDownloader = new Mock<ICliDownloader>();
 
-//            public Task LogAsync(string message, Exception ex)
-//            {
-//                throw new NotImplementedException();
-//            }
-//        }
+            _fileChecker = new CliFileChecker(
+                _mockLogger.Object,
+                _mockCliExecutor.Object,
+                _mockCliSettingsProvider.Object,
+                _mockCliDownloader.Object);
 
-//        // Fake settings provider that lets us set the CliFileFullPath.
-//        private class FakeCliSettingsProvider : ICliSettingsProvider
-//        {
-//            public string RequiredDevToolVersion => "3b28b97d2f4a17d596c6f2ec5cf2e86363c08d21";
-//            public string CliArtifactName => $"cs-ide-windows-amd64-{RequiredDevToolVersion}.zip";
-//            public string CliArtifactUrl => $"{ArtifactBaseUrl}{CliArtifactName}";
-//            public string CliFileName => "cs-ide.exe";
-//            public string ArtifactBaseUrl => "https://downloads.codescene.io/enterprise/cli/";
-//            // Allow file path override for testing
-//            public string CliFileFullPath { get; set; }
-//        }
+            // Create a temp file path for testing
+            _tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".exe");
+        }
 
-//        // Fake CLI executer that returns a version we can control.
-//        private class FakeCliExecuter : ICliExecuter
-//        {
-//            public string VersionToReturn { get; set; }
+        [TestCleanup]
+        public void Cleanup()
+        {
+            // Clean up temp file if it exists
+            if (File.Exists(_tempFilePath))
+            {
+                File.Delete(_tempFilePath);
+            }
+        }
 
-//            public void AddToActiveReviewList(string documentPath)
-//            {
-//                throw new NotImplementedException();
-//            }
+        [TestMethod]
+        public async Task Check_FileDoesNotExist_ShouldDownloadFile()
+        {
+            // Arrange
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
+            _mockCliDownloader.Setup(x => x.DownloadAsync()).Returns(Task.CompletedTask);
 
-//            public void AddToActiveReviewList(string documentPath, string content)
-//            {
-//                throw new NotImplementedException();
-//            }
+            // Act
+            await _fileChecker.Check();
 
-//            public string GetFileVersion() => VersionToReturn;
+            // Assert
+            _mockCliDownloader.Verify(x => x.DownloadAsync(), Times.Once);
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Setting up CodeScene"))), Times.Once);
+        }
 
-//            public ReviewMapModel GetReviewObject(string filePath)
-//            {
-//                throw new NotImplementedException();
-//            }
+        [TestMethod]
+        public async Task Check_FileExistsAndVersionMatches_ShouldNotDownload()
+        {
+            // Arrange
+            var requiredVersion = "abc123";
+            File.WriteAllText(_tempFilePath, "dummy content");
 
-//            public List<ReviewModel> GetTaggerItems(string filePath)
-//            {
-//                throw new NotImplementedException();
-//            }
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
+            _mockCliSettingsProvider.Setup(x => x.RequiredDevToolVersion).Returns(requiredVersion);
+            _mockCliExecutor.Setup(x => x.GetFileVersion()).Returns(requiredVersion);
 
-//            public void RemoveFromActiveReviewList(string documentPath)
-//            {
-//                throw new NotImplementedException();
-//            }
+            // Act
+            await _fileChecker.Check();
 
-//            public ReviewMapModel Review(string path)
-//            {
-//                throw new NotImplementedException();
-//            }
-//        }
+            // Assert
+            _mockCliDownloader.Verify(x => x.DownloadAsync(), Times.Never);
+        }
 
-//        // Fake CLI downloader that records whether DownloadAsync was called.
-//        private class FakeCliDownloader : ICliDownloader
-//        {
-//            public bool DownloadCalled { get; private set; }
-//            // When set to true, DownloadAsync will throw an exception.
-//            public bool ThrowException { get; set; }
-//            public Task DownloadAsync()
-//            {
-//                if (ThrowException)
-//                    throw new InvalidOperationException("Download failed");
-//                DownloadCalled = true;
-//                return Task.CompletedTask;
-//            }
-//        }
+        [TestMethod]
+        public async Task Check_FileExistsButVersionMismatch_ShouldDeleteAndDownload()
+        {
+            // Arrange
+            var requiredVersion = "newversion123";
+            var currentVersion = "oldversion456";
+            File.WriteAllText(_tempFilePath, "dummy content");
 
-//        // Test scenario: CLI file does not exist, so it should download the file.
-//        [TestMethod]
-//        public async Task Check_FileDoesNotExist_ShouldDownloadFile()
-//        {
-//            // ARRANGE
-//            var fakeLogger = new FakeLogger();
-//            var fakeSettings = new FakeCliSettingsProvider();
-//            // Create a random file path that does not exist.
-//            var tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".exe");
-//            fakeSettings.CliFileFullPath = tempFilePath;
-//            if (File.Exists(tempFilePath))
-//                File.Delete(tempFilePath);
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
+            _mockCliSettingsProvider.Setup(x => x.RequiredDevToolVersion).Returns(requiredVersion);
+            _mockCliExecutor.Setup(x => x.GetFileVersion()).Returns(currentVersion);
+            _mockCliDownloader.Setup(x => x.DownloadAsync()).Returns(Task.CompletedTask);
 
-//            var fakeExecuter = new FakeCliExecuter { VersionToReturn = fakeSettings.RequiredDevToolVersion };
-//            var fakeDownloader = new FakeCliDownloader();
+            // Act
+            await _fileChecker.Check();
 
-//            var fileChecker = new CliFileChecker(fakeLogger, fakeSettings, fakeExecuter, fakeDownloader);
+            // Assert
+            _mockCliDownloader.Verify(x => x.DownloadAsync(), Times.Once);
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Updating CodeScene tool"))), Times.Once);
+            Assert.IsFalse(File.Exists(_tempFilePath), "Old CLI file should be deleted");
+        }
 
-//            // ACT
-//            await fileChecker.Check();
+        [TestMethod]
+        public async Task Check_WhenDownloadThrows_ShouldLogError()
+        {
+            // Arrange
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
+            _mockCliDownloader.Setup(x => x.DownloadAsync())
+                .ThrowsAsync(new Exception("Download failed"));
 
-//            // ASSERT
-//            Assert.IsTrue(fakeDownloader.DownloadCalled, "DownloadAsync should have been called when the CLI file does not exist.");
-//            CollectionAssert.Contains(fakeLogger.InfoMessages, "Cli file doesn't exist. Downloading file...",
-//                "Logger should record that the CLI file does not exist.");
-//            CollectionAssert.Contains(fakeLogger.InfoMessages, "Downloaded cli file.",
-//                "Logger should record that the CLI file was downloaded.");
-//        }
+            // Act
+            await _fileChecker.Check();
 
-//        // Test scenario: CLI file exists and its version matches the required version.
-//        [TestMethod]
-//        public async Task Check_FileExistsAndVersionMatches_ShouldNotDownloadOrDeleteFile()
-//        {
-//            // ARRANGE
-//            var fakeLogger = new FakeLogger();
-//            var fakeSettings = new FakeCliSettingsProvider();
-//            // Create a temporary file to simulate an existing CLI file.
-//            var tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".exe");
-//            File.WriteAllText(tempFilePath, "dummy content");
-//            fakeSettings.CliFileFullPath = tempFilePath;
+            // Assert
+            _mockLogger.Verify(l => l.Error(
+                It.Is<string>(s => s.Contains("Failed to set up")),
+                It.IsAny<Exception>()), Times.Once);
+        }
 
-//            var fakeExecuter = new FakeCliExecuter { VersionToReturn = fakeSettings.RequiredDevToolVersion };
-//            var fakeDownloader = new FakeCliDownloader();
+        [TestMethod]
+        public async Task Check_WhenGetFileVersionThrows_ShouldLogError()
+        {
+            // Arrange
+            File.WriteAllText(_tempFilePath, "dummy content");
 
-//            var fileChecker = new CliFileChecker(fakeLogger, fakeSettings, fakeExecuter, fakeDownloader);
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
+            _mockCliExecutor.Setup(x => x.GetFileVersion()).Throws(new Exception("Version check failed"));
 
-//            // ACT
-//            await fileChecker.Check();
+            // Act
+            await _fileChecker.Check();
 
-//            // ASSERT
-//            Assert.IsFalse(fakeDownloader.DownloadCalled, "DownloadAsync should not be called when the CLI file exists and its version matches.");
-//            CollectionAssert.Contains(fakeLogger.InfoMessages, $"File with required version:{fakeSettings.RequiredDevToolVersion} already exists.",
-//                "Logger should record that the file with the required version already exists.");
+            // Assert
+            _mockLogger.Verify(l => l.Error(
+                It.Is<string>(s => s.Contains("Failed to set up")),
+                It.IsAny<Exception>()), Times.Once);
+        }
 
-//            // Cleanup
-//            if (File.Exists(tempFilePath))
-//                File.Delete(tempFilePath);
-//        }
+        [TestMethod]
+        public async Task Check_SuccessfulDownload_ShouldLogCompletionTime()
+        {
+            // Arrange
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
+            _mockCliDownloader.Setup(x => x.DownloadAsync()).Returns(Task.CompletedTask);
 
-//        // Test scenario: CLI file exists but its version is outdated.
-//        [TestMethod]
-//        public async Task Check_FileExistsAndVersionMismatch_ShouldDeleteAndDownloadFile()
-//        {
-//            // ARRANGE
-//            var fakeLogger = new FakeLogger();
-//            var fakeSettings = new FakeCliSettingsProvider();
-//            // Create a temporary file to simulate an existing CLI file.
-//            var tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".exe");
-//            File.WriteAllText(tempFilePath, "dummy content");
-//            fakeSettings.CliFileFullPath = tempFilePath;
+            // Act
+            await _fileChecker.Check();
 
-//            // Return a different version to simulate mismatch.
-//            var fakeExecuter = new FakeCliExecuter { VersionToReturn = "different_version" };
-//            var fakeDownloader = new FakeCliDownloader();
+            // Assert
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("setup completed"))), Times.Once);
+        }
 
-//            var fileChecker = new CliFileChecker(fakeLogger, fakeSettings, fakeExecuter, fakeDownloader);
+        [TestMethod]
+        public async Task Check_SuccessfulUpdate_ShouldLogToolUpdated()
+        {
+            // Arrange
+            File.WriteAllText(_tempFilePath, "dummy content");
 
-//            // ACT
-//            await fileChecker.Check();
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
+            _mockCliSettingsProvider.Setup(x => x.RequiredDevToolVersion).Returns("new");
+            _mockCliExecutor.Setup(x => x.GetFileVersion()).Returns("old");
+            _mockCliDownloader.Setup(x => x.DownloadAsync()).Returns(Task.CompletedTask);
 
-//            // ASSERT: The file should have been deleted and a new download initiated.
-//            Assert.IsFalse(File.Exists(tempFilePath), "The CLI file should have been deleted due to version mismatch.");
-//            Assert.IsTrue(fakeDownloader.DownloadCalled, "DownloadAsync should have been called after deleting the outdated CLI file.");
-//            CollectionAssert.Contains(fakeLogger.InfoMessages, "Downloaded a new version of cli file.",
-//                "Logger should record that a new version of the CLI file was downloaded.");
-//        }
+            // Act
+            await _fileChecker.Check();
 
-//        // Test scenario: An exception occurs during the download process.
-//        [TestMethod]
-//        public async Task Check_WhenExceptionThrown_ShouldLogError()
-//        {
-//            // ARRANGE
-//            var fakeLogger = new FakeLogger();
-//            var fakeSettings = new FakeCliSettingsProvider();
-//            // Use a file path that does not exist.
-//            var tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".exe");
-//            fakeSettings.CliFileFullPath = tempFilePath;
-//            if (File.Exists(tempFilePath))
-//                File.Delete(tempFilePath);
-
-//            var fakeExecuter = new FakeCliExecuter { VersionToReturn = fakeSettings.RequiredDevToolVersion };
-//            // Configure downloader to throw an exception.
-//            var fakeDownloader = new FakeCliDownloader { ThrowException = true };
-
-//            var fileChecker = new CliFileChecker(fakeLogger, fakeSettings, fakeExecuter, fakeDownloader);
-
-//            // ACT
-//            await fileChecker.Check();
-
-//            // ASSERT: An error should have been logged.
-//            Assert.IsTrue(fakeLogger.ErrorMessages.Count > 0, "An error should be logged when an exception occurs during download.");
-//            var errorLog = fakeLogger.ErrorMessages[0];
-//            StringAssert.Contains(errorLog.Message, "Error downloading artifact file",
-//                "Logger should record an error message regarding the download failure.");
-//            Assert.IsInstanceOfType(errorLog.Ex, typeof(InvalidOperationException));
-//        }
-//    }
-//}
+            // Assert
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("tool updated"))), Times.Once);
+        }
+    }
+}

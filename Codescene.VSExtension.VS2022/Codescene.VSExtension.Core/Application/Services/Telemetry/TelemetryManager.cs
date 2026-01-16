@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.WebComponent.Util;
@@ -26,6 +26,21 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
 
         [Import]
         private readonly IExtensionMetadataProvider _extensionMetadataProvider;
+
+        [ImportingConstructor]
+        public TelemetryManager(
+            ILogger logger,
+            IProcessExecutor executor,
+            IDeviceIdStore deviceIdStore,
+            ICliCommandProvider cliCommandProvider,
+            IExtensionMetadataProvider extensionMetadataProvider)
+        {
+            _logger = logger;
+            _executor = executor;
+            _deviceIdStore = deviceIdStore;
+            _cliCommandProvider = cliCommandProvider;
+            _extensionMetadataProvider = extensionMetadataProvider;
+        }
 
         /// <summary>
         /// Sends a telemetry event with the specified event name and optional additional data.

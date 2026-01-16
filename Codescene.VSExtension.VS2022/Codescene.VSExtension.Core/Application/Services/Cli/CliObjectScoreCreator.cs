@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using System.ComponentModel.Composition;
 using System.Text;
 
@@ -11,6 +11,11 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
         [Import]
         private readonly ILogger _logger;
 
+        [ImportingConstructor]
+        public CliObjectScoreCreator(ILogger logger)
+        {
+            _logger = logger;
+        }
 
         /// <summary>
         /// 

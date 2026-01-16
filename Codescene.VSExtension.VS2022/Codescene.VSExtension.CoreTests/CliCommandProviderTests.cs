@@ -1,8 +1,10 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -12,14 +14,20 @@ namespace Codescene.VSExtension.CoreTests
     [TestClass]
     public class CliCommandProviderTests
     {
+        private CliCommandProvider _commandProvider;
+        private Mock<ILogger> _mockLogger;
+        [TestInitialize]
+        public void Initialize()
+        {
+            _mockLogger = new Mock<ILogger>();
+            _commandProvider = new CliCommandProvider(new CliObjectScoreCreator(_mockLogger.Object));
+        }
+
         [TestMethod]
         public void VersionCommand_ShouldReturnCorrectString()
         {
-            // ARRANGE
-            var provider = new CliCommandProvider();
-
             // ACT
-            var command = provider.VersionCommand;
+            var command = _commandProvider.VersionCommand;
 
             // ASSERT
             Assert.AreEqual("version --sha", command,
@@ -30,11 +38,10 @@ namespace Codescene.VSExtension.CoreTests
         public void GetReviewFileContentCommand_ShouldIncludeIdeApiAndFilename()
         {
             // ARRANGE
-            var provider = new CliCommandProvider();
             var testPath = "testfile.txt";
 
             // ACT
-            var command = provider.GetReviewFileContentCommand(testPath);
+            var command = _commandProvider.GetReviewFileContentCommand(testPath);
 
             // ASSERT
             Assert.AreEqual("review --file-name testfile.txt", command, "GetReviewFileContentCommand didn't return the expected string.");
@@ -44,11 +51,10 @@ namespace Codescene.VSExtension.CoreTests
         public void GetReviewPathCommand_ShouldIncludeIdeApiAndPath()
         {
             // ARRANGE
-            var provider = new CliCommandProvider();
             var testPath = "some/path";
 
             // ACT
-            var command = provider.GetReviewPathCommand(testPath);
+            var command = _commandProvider.GetReviewPathCommand(testPath);
 
             // ASSERT
             Assert.AreEqual("review some/path", command, "GetReviewPathCommand didn't return the expected string.");
@@ -58,13 +64,12 @@ namespace Codescene.VSExtension.CoreTests
         public void GetReviewFileContentPayload()
         {
             // ARRANGE
-            var provider = new CliCommandProvider();
             var filePath = "js";
             var fileContent = "content";
             var cachePath = "/home/user/cache";
 
             // ACT
-            var command = provider.GetReviewFileContentPayload(filePath, fileContent, cachePath);
+            var command = _commandProvider.GetReviewFileContentPayload(filePath, fileContent, cachePath);
 
             // ASSERT
             Assert.AreEqual($"{{\"path\":\"{filePath}\",\"file-content\":\"{fileContent}\",\"cache-path\":\"{cachePath}\"}}", command);
@@ -79,10 +84,8 @@ namespace Codescene.VSExtension.CoreTests
             var cachePath = "/home/user/cache";
             var codesmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "test" } };
 
-            var provider = new CliCommandProvider();
-
             // ACT
-            var content = provider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codesmells, null);
+            var content = _commandProvider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codesmells, null);
 
             // ASSERT
             Assert.AreEqual(content, $"{{\"code-smells\":[{{\"category\":\"{codesmells.First().Category}\"}}],\"file-name\":\"{fileName}\",\"file-content\":\"{fileContent}\",\"cache-path\":\"{cachePath}\"}}");
@@ -98,10 +101,8 @@ namespace Codescene.VSExtension.CoreTests
             var codesmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "test" } };
             var preflight = new PreFlightResponseModel { FileTypes = new string[] { ".js" } };
 
-            var provider = new CliCommandProvider();
-
             // ACT
-            var content = provider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codesmells, preflight);
+            var content = _commandProvider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codesmells, preflight);
 
 
             // ASSERT
@@ -118,10 +119,8 @@ namespace Codescene.VSExtension.CoreTests
             var deltaResult = new DeltaResponseModel { NewScore = 2, OldScore = 3 };
             var codesmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "test" } };
 
-            var provider = new CliCommandProvider();
-
             // ACT
-            var content = provider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, null);
+            var content = _commandProvider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, null);
 
             // ASSERT
             Assert.AreEqual(content, $"{{\"delta-result\":{{\"new-score\":{deltaResult.NewScore.ToString("0.0", CultureInfo.InvariantCulture)},\"old-score\":{deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture)}}},\"file-name\":\"{fileName}\",\"file-content\":\"{fileContent}\",\"cache-path\":\"{cachePath}\"}}");
@@ -137,10 +136,8 @@ namespace Codescene.VSExtension.CoreTests
             var deltaResult = new DeltaResponseModel { NewScore = 2, OldScore = 3 };
             var preflight = new PreFlightResponseModel { FileTypes = new string[] { ".js" } };
 
-            var provider = new CliCommandProvider();
-
             // ACT
-            var content = provider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, preflight);
+            var content = _commandProvider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, preflight);
 
 
             // ASSERT
@@ -151,11 +148,8 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void GetPreflightSupportInformationCommand_Without_Force_Parameter()
         {
-            // ARRANGE
-            var provider = new CliCommandProvider();
-
             // ACT
-            var command = provider.GetPreflightSupportInformationCommand(force: false);
+            var command = _commandProvider.GetPreflightSupportInformationCommand(force: false);
 
             // ASSERT
             Assert.AreEqual(command, "refactor preflight");
@@ -164,11 +158,8 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void GetPreflightSupportInformationCommand_With_Force_Parameter()
         {
-            // ARRANGE
-            var provider = new CliCommandProvider();
-
             // ACT
-            var command = provider.GetPreflightSupportInformationCommand(force: true);
+            var command = _commandProvider.GetPreflightSupportInformationCommand(force: true);
 
             // ASSERT
             Assert.AreEqual(command, "refactor preflight --force");
