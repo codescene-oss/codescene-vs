@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -17,6 +17,13 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         [Import]
         private readonly ICliSettingsProvider _cliSettingsProvider;
+
+        [ImportingConstructor]
+        public CliDownloader(ILogger logger, ICliSettingsProvider cliSettingsProvider)
+        {
+            _logger = logger;
+            _cliSettingsProvider = cliSettingsProvider;
+        }
 
         private readonly string _workingDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         private string DownloadedArtifactFilePath => Path.Combine(_workingDirectory, _cliSettingsProvider.CliArtifactName);

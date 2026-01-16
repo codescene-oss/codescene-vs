@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Net;
@@ -11,6 +11,12 @@ namespace Codescene.VSExtension.Core.Application.Services.Authentication
     {
         [Import]
         private readonly IPersistenceAuthDataProvider _persistenceDataProvider;
+
+        [ImportingConstructor]
+        public AuthenticationService(IPersistenceAuthDataProvider persistenceDataProvider)
+        {
+            _persistenceDataProvider = persistenceDataProvider;
+        }
 
         const string NEXT = "/configuration/devtools-tokens/add/vscode";//change later with visual studio next parameter
 

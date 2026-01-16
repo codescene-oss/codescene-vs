@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
+using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
@@ -33,6 +33,21 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
 
         [Import]
         private readonly IGitService _git;
+
+        [ImportingConstructor]
+        public CodeReviewer(
+            ILogger logger,
+            IModelMapper mapper,
+            ICliExecutor executer,
+            ITelemetryManager telemetryManager,
+            IGitService git)
+        {
+            _logger = logger;
+            _mapper = mapper;
+            _executer = executer;
+            _telemetryManager = telemetryManager;
+            _git = git;
+        }
 
         public FileReviewModel Review(string path, string content)
         {

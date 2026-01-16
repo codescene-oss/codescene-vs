@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -22,6 +22,19 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
 
         [Import]
         private readonly ICliDownloader _cliDownloader;
+
+        [ImportingConstructor]
+        public CliFileChecker(
+            ILogger logger,
+            ICliExecutor cliExecuter,
+            ICliSettingsProvider cliSettingsProvider,
+            ICliDownloader cliDownloader)
+        {
+            _logger = logger;
+            _cliExecuter = cliExecuter;
+            _cliSettingsProvider = cliSettingsProvider;
+            _cliDownloader = cliDownloader;
+        }
 
         public async Task Check()
         {

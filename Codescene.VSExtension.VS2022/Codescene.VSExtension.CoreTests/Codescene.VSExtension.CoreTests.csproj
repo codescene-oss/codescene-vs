@@ -56,11 +56,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AceManagerTests.cs" />
+    <Compile Include="AuthenticationServiceTests.cs" />
     <Compile Include="CliCommandProviderTests.cs" />
     <Compile Include="CliDownloaderTests.cs" />
+    <Compile Include="CliExecutorTests.cs" />
     <Compile Include="CliFileCheckerTests.cs" />
     <Compile Include="CliSettingsProviderTests.cs" />
+    <Compile Include="CodeReviewerHelperTests.cs" />
+    <Compile Include="CodeReviewerTests.cs" />
+    <Compile Include="DeltaCacheServiceTests.cs" />
+    <Compile Include="DeltaTelemetryHelperTests.cs" />
+    <Compile Include="DeviceIdStoreTests.cs" />
+    <Compile Include="ModelMapperTests.cs" />
+    <Compile Include="PasteArgumentsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReviewCacheServiceTests.cs" />
+    <Compile Include="SerializationTests.cs" />
+    <Compile Include="SupportedFileCheckerTests.cs" />
+    <Compile Include="TelemetryManagerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Codescene.VSExtension.Core\Codescene.VSExtension.Core.csproj">
@@ -74,6 +88,9 @@
     </PackageReference>
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel">
       <Version>17.14.0</Version>
+    </PackageReference>
+    <PackageReference Include="Moq">
+      <Version>4.20.72</Version>
     </PackageReference>
     <PackageReference Include="MSTest.TestAdapter">
       <Version>3.9.0</Version>
