@@ -83,6 +83,18 @@ jobs:
           path: |
             **/*.trx
             **/*.cobertura.xml
+      - name: Install cs tool
+        run: curl https://downloads.codescene.io/enterprise/cli/install-cs-coverage-tool.sh | bash -s -- -y
+
+      - name: Add ~/.local/bin to PATH
+        shell: pwsh
+        run: |
+          "$HOME\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          
+      - name: Upload coverage data to CodeScene
+        run: cs-coverage upload --format "lcov" --metric "line-coverage" "coverage/code-coverage.lcov"
+        env:
+          CS_ACCESS_TOKEN: ${{ secrets.CS_ACCESS_TOKEN }}
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
