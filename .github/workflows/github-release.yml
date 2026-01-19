@@ -85,9 +85,9 @@ jobs:
       - uses: ./.github/actions/check-coverage
         if: always()
         with:
-          access-token: ${{ secrets.CS_API_TOKEN }}
+          access-token: ${{ secrets.CS_ACCESS_TOKEN }}
           project-url: "https://api.codescene.io/v2/projects/66574"
-          coverage-files: "**/TestResults/*/.cobertura.xml"
+          coverage-files: "**/TestResults/*/*.cobertura.xml"
           
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
