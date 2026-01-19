@@ -5,16 +5,29 @@
 		<LangVersion>latest</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisMode>Recommended</AnalysisMode>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="coverlet.collector" Version="6.0.4" />
+		<PackageReference Include="LibGit2Sharp" Version="0.31.0" />
 		<PackageReference Include="Moq" Version="4.20.72" />
 		<PackageReference Include="MSTest" Version="4.0.2" />
+		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118" Condition="'$(RunStyleCopAnalyzers)' == 'true'">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<AdditionalFiles Include="..\stylecop.json" Link="stylecop.json" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Codescene.VSExtension.Core\Codescene.VSExtension.Core.csproj" />
+	  <ProjectReference Include="..\Codescene.VSExtension.VS2022\Codescene.VSExtension.VS2022.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
