@@ -1,4 +1,6 @@
-﻿namespace Codescene.VSExtension.Core.Models.WebComponent.Data
+﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+
+namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 {
     public class CodeSmellDocumentationComponentData
     {
@@ -11,6 +13,7 @@
     {
         public string FileName { get; set; }
         public FunctionModel Fn { get; set; }
+        public FnToRefactorModel FnToRefactor { get; set; } = null;
 
     }
 

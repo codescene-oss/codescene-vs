@@ -250,7 +250,9 @@ internal class WebComponentMessageHandler
             payload.FileName,
             payload.DocType,
             payload.Fn?.Name,
-            payload.Fn?.Range), DocsEntryPoint.CodeHealthMonitor
+            payload.Fn?.Range),
+        null, // TODO: CS-6070
+        DocsEntryPoint.CodeHealthMonitor
         );
     }
 
@@ -259,13 +261,16 @@ internal class WebComponentMessageHandler
         var payload = msgObject.Payload.ToObject<RequestAndPresentRefactoringPayload>();
         var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
 
-        logger.Debug($"Requesting refactoring for function '{payload.Fn.Name}' in file '{payload.FileName}'.");
+        logger.Debug($"Requesting refactoring for function '{payload.Fn.Name}' in file '{payload.FileName}' from '{payload.Source}' view.");
 
         if (payload.FnToRefactor == null)
         {
             logger.Warn($"Function to refactor not found. Cannot proceed with refactoring.");
             return;
         }
+
+        if (payload.Source == "docs" && _control.CloseRequested is not null)
+            await _control.CloseRequested();
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         await onClickRefactoringHandler.HandleAsync(
@@ -289,7 +294,7 @@ internal class WebComponentMessageHandler
         if (_control.CloseRequested is not null)
             await _control.CloseRequested();
     }
-    
+
     private async Task HandleAcknowledgedAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
         var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();

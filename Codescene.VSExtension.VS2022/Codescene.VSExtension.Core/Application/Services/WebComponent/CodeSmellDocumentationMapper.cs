@@ -1,4 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.Core.Models.WebComponent.Util;
@@ -10,7 +11,7 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeSmellDocumentationMapper
     {
-        public CodeSmellDocumentationComponentData Map(ShowDocumentationModel model)
+        public CodeSmellDocumentationComponentData Map(ShowDocumentationModel model, FnToRefactorModel fnToRefactor, bool aceAcknowledged = false)
         {
             var function = new FunctionModel
             {
@@ -28,14 +29,15 @@ namespace Codescene.VSExtension.Core.Application.Services.WebComponent
                 DocType = AddDocsPrefix(model.Category),
                 AutoRefactor = new AutoRefactorConfig
                 {
-                    Activated = false,
-                    Visible = false,
-                    Disabled = true,
+                    Visible = true,
+                    Activated = aceAcknowledged,
+                    Disabled = fnToRefactor == null,
                 },
                 FileData = new FileDataModel
                 {
                     FileName = model.Path,
                     Fn = function,
+                    FnToRefactor = fnToRefactor
                 }
             };
         }
