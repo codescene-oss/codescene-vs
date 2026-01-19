@@ -74,13 +74,15 @@ jobs:
 
       - name: Run unit tests
         if: ${{ hashFiles('**/*Tests.dll') != '' }}
-        run: vstest.console.exe **\bin\Release\*Tests.dll /logger:trx
+        run: vstest.console.exe **\bin\Release\*Tests.dll /logger:trx /collect:"Code Coverage;Format=Cobertura
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: '**/*.trx'
+          path: |
+            '**/*.trx'
+            '**/*.cobertura.xml
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
