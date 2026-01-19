@@ -74,7 +74,7 @@ jobs:
 
       - name: Run unit tests
         if: ${{ hashFiles('**/*Tests.dll') != '' }}
-        run: vstest.console.exe **\bin\Release\*Tests.dll /logger:trx /collect:"Code Coverage;Format=Cobertura
+        run: vstest.console.exe **\bin\Release\*Tests.dll /logger:trx /collect:"Code Coverage;Format=Cobertura"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
