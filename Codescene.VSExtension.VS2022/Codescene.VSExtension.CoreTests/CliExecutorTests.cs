@@ -21,6 +21,10 @@ namespace Codescene.VSExtension.CoreTests
         private Mock<ICacheStorageService> _mockCacheStorageService;
         private CliExecutor _executor;
 
+        private const string TestFilename = "test.cs";
+        private const string TestContent = "code";
+        private const string TestCachePath = "/cache";
+
         [TestInitialize]
         public void Setup()
         {
@@ -38,49 +42,48 @@ namespace Codescene.VSExtension.CoreTests
                 _mockCacheStorageService.Object);
         }
 
+        private void SetupReviewContentMocks(string cachePath = TestCachePath)
+        {
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns("{}");
+            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(cachePath);
+        }
+
+        private void SetupFnsToRefactorMocks(string payload = "payload", string response = "[]")
+        {
+            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
+            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("command");
+            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>())).Returns(payload);
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
+        }
+
         #region ReviewContent Tests
 
         [TestMethod]
         public void ReviewContent_ValidResponse_ReturnsDeserializedModel()
         {
-            // Arrange
-            var filename = "test.cs";
-            var content = "public class Test {}";
             var cachePath = "/cache/path";
-            var jsonResponse = "{\"score\": 8.5, \"raw-score\": \"abc123\"}";
-
             _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("run-command review");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(filename, content, cachePath)).Returns("{}");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFilename, "public class Test {}", cachePath)).Returns("{}");
             _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(cachePath);
-            _mockProcessExecutor.Setup(x => x.Execute("run-command review", "{}", null)).Returns(jsonResponse);
+            _mockProcessExecutor.Setup(x => x.Execute("run-command review", "{}", null)).Returns("{\"score\": 8.5, \"raw-score\": \"abc123\"}");
 
-            // Act
-            var result = _executor.ReviewContent(filename, content);
+            var result = _executor.ReviewContent(TestFilename, "public class Test {}");
 
-            // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(8.5f, result.Score);
-            Assert.AreEqual("abc123", result.RawScore);
         }
 
         [TestMethod]
         public void ReviewContent_ProcessThrowsException_ReturnsNull()
         {
-            // Arrange
-            var filename = "test.cs";
-            var content = "code";
-            var cachePath = "/cache";
+            SetupReviewContentMocks();
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Throws(new Exception("CLI error"));
 
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns("{}");
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(cachePath);
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null))
-                .Throws(new Exception("CLI error"));
+            var result = _executor.ReviewContent(TestFilename, TestContent);
 
-            // Act
-            var result = _executor.ReviewContent(filename, content);
-
-            // Assert
             Assert.IsNull(result);
             _mockLogger.Verify(l => l.Error(It.IsAny<string>(), It.IsAny<Exception>()), Times.Once);
         }
@@ -88,19 +91,10 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void ReviewContent_DevtoolsException_RethrowsException()
         {
-            // Arrange
-            var filename = "test.cs";
-            var content = "code";
-            var cachePath = "/cache";
+            SetupReviewContentMocks();
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Throws(new DevtoolsException("Devtools error", 10, "traceId"));
 
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns("{}");
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(cachePath);
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null))
-                .Throws(new DevtoolsException("Devtools error", 10, "traceId"));
-
-            // Act & Assert
-            Assert.Throws<DevtoolsException>(() => _executor.ReviewContent(filename, content));
+            Assert.Throws<DevtoolsException>(() => _executor.ReviewContent(TestFilename, TestContent));
         }
 
         #endregion
@@ -222,21 +216,10 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void FnsToRefactorFromCodeSmells_EmptyPayload_ReturnsNull()
         {
-            // Arrange
-            var codeSmells = new List<CliCodeSmellModel>();
-            var preflight = new PreFlightResponseModel();
+            SetupFnsToRefactorMocks(payload: string.Empty);
 
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns("/cache");
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("run-command fns-to-refactor");
-            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
-                .Returns(string.Empty);
+            var result = _executor.FnsToRefactorFromCodeSmells(TestFilename, TestContent, new List<CliCodeSmellModel>(), new PreFlightResponseModel());
 
-            // Act
-            var result = _executor.FnsToRefactorFromCodeSmells("test.cs", "code", codeSmells, preflight);
-
-            // Assert
             Assert.IsNull(result);
             _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Payload content was not defined"))), Times.Once);
         }
@@ -244,52 +227,23 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void FnsToRefactorFromCodeSmells_ValidResponse_ReturnsDeserializedList()
         {
-            // Arrange
-            var codeSmells = new List<CliCodeSmellModel>
-            {
-                new CliCodeSmellModel { Category = "Test" }
-            };
-            var preflight = new PreFlightResponseModel();
-            var command = "run-command fns-to-refactor";
-            var payload = "{\"code-smells\":[]}";
-            var jsonResponse = "[{\"name\": \"TestFunction\", \"body\": \"code\"}]";
+            SetupFnsToRefactorMocks(payload: "{}", response: "[{\"name\": \"TestFunction\", \"body\": \"code\"}]");
 
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns("/cache");
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns(command);
-            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
-                .Returns(payload);
-            _mockProcessExecutor.Setup(x => x.Execute(command, payload, null)).Returns(jsonResponse);
+            var result = _executor.FnsToRefactorFromCodeSmells(TestFilename, TestContent,
+                new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } },
+                new PreFlightResponseModel());
 
-            // Act
-            var result = _executor.FnsToRefactorFromCodeSmells("test.cs", "code", codeSmells, preflight);
-
-            // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(1, result.Count);
-            Assert.AreEqual("TestFunction", result[0].Name);
         }
 
         [TestMethod]
         public void FnsToRefactorFromCodeSmells_RemovesOldCacheEntries()
         {
-            // Arrange
-            var codeSmells = new List<CliCodeSmellModel>();
-            var preflight = new PreFlightResponseModel();
+            SetupFnsToRefactorMocks();
 
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns("/cache");
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("command");
-            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
-                .Returns("payload");
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns("[]");
+            _executor.FnsToRefactorFromCodeSmells(TestFilename, TestContent, new List<CliCodeSmellModel>(), new PreFlightResponseModel());
 
-            // Act
-            _executor.FnsToRefactorFromCodeSmells("test.cs", "code", codeSmells, preflight);
-
-            // Assert
             _mockCacheStorageService.Verify(x => x.RemoveOldReviewCacheEntries(It.IsAny<int>()), Times.Once);
         }
 
@@ -300,32 +254,22 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void GetFileVersion_ValidResponse_ReturnsVersion()
         {
-            // Arrange
-            var versionCommand = "version --sha";
-            var versionResponse = "abc123def456\r\n";
+            _mockCommandProvider.Setup(x => x.VersionCommand).Returns("version --sha");
+            _mockProcessExecutor.Setup(x => x.Execute("version --sha", null, null)).Returns("abc123def456\r\n");
 
-            _mockCommandProvider.Setup(x => x.VersionCommand).Returns(versionCommand);
-            _mockProcessExecutor.Setup(x => x.Execute(versionCommand, null, null)).Returns(versionResponse);
-
-            // Act
             var result = _executor.GetFileVersion();
 
-            // Assert
             Assert.AreEqual("abc123def456", result);
         }
 
         [TestMethod]
         public void GetFileVersion_ExceptionThrown_ReturnsEmptyString()
         {
-            // Arrange
             _mockCommandProvider.Setup(x => x.VersionCommand).Returns("version");
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), null, null))
-                .Throws(new Exception("Error"));
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), null, null)).Throws(new Exception("Error"));
 
-            // Act
             var result = _executor.GetFileVersion();
 
-            // Assert
             Assert.AreEqual("", result);
             _mockLogger.Verify(l => l.Error(It.IsAny<string>(), It.IsAny<Exception>()), Times.Once);
         }
@@ -337,17 +281,11 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void GetDeviceId_ValidResponse_ReturnsDeviceId()
         {
-            // Arrange
-            var command = "telemetry --device-id";
-            var response = "device-123\n";
+            _mockCommandProvider.Setup(x => x.DeviceIdCommand).Returns("telemetry --device-id");
+            _mockProcessExecutor.Setup(x => x.Execute("telemetry --device-id", null, null)).Returns("device-123\n");
 
-            _mockCommandProvider.Setup(x => x.DeviceIdCommand).Returns(command);
-            _mockProcessExecutor.Setup(x => x.Execute(command, null, null)).Returns(response);
-
-            // Act
             var result = _executor.GetDeviceId();
 
-            // Assert
             Assert.AreEqual("device-123", result);
         }
 

@@ -15,56 +15,108 @@ namespace Codescene.VSExtension.CoreTests
     public class CodeReviewerHelperTests
     {
         private Mock<ILogger> _mockLogger;
+        private AceRefactorableFunctionsCacheService _cacheService;
+
+        private const string DefaultPath = "test/file.cs";
+        private const string DefaultCode = "public void TestFunction() { }";
+        private const string DefaultFunctionName = "TestFunction";
 
         [TestInitialize]
         public void Setup()
         {
             _mockLogger = new Mock<ILogger>();
+            _cacheService = new AceRefactorableFunctionsCacheService();
+            _cacheService.Clear();
         }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            _cacheService?.Clear();
+        }
+
+        #region Helper Methods
+
+        private static FnToRefactorModel CreateRefactorableFunction(string name, int startLine, int endLine)
+        {
+            return new FnToRefactorModel
+            {
+                Name = name,
+                Range = new CliRangeModel { Startline = startLine, EndLine = endLine }
+            };
+        }
+
+        private static FunctionFindingModel CreateFunctionFinding(string name, int startLine, int endLine, FnToRefactorModel refactorableFn = null)
+        {
+            return new FunctionFindingModel
+            {
+                Function = new FunctionInfoModel
+                {
+                    Name = name,
+                    Range = new CliRangeModel { Startline = startLine, EndLine = endLine }
+                },
+                RefactorableFn = refactorableFn
+            };
+        }
+
+        private static FunctionFindingModel CreateFindingWithRange(int startLine, int endLine)
+        {
+            return new FunctionFindingModel
+            {
+                Function = new FunctionInfoModel
+                {
+                    Range = new CliRangeModel { Startline = startLine, EndLine = endLine }
+                }
+            };
+        }
+
+        private static DeltaResponseModel CreateDeltaWithFindings(params FunctionFindingModel[] findings)
+        {
+            return new DeltaResponseModel { FunctionLevelFindings = findings };
+        }
+
+        private void SetupCacheWithFunctions(string path, string code, params FnToRefactorModel[] functions)
+        {
+            var entry = new AceRefactorableFunctionsEntry(path, code, new List<FnToRefactorModel>(functions));
+            _cacheService.Put(entry);
+        }
+
+        private void VerifyLogContains(string expectedContent)
+        {
+            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains(expectedContent))), Times.Once);
+        }
+
+        #endregion
 
         #region ShouldSkipUpdate Tests
 
         [TestMethod]
         public void ShouldSkipUpdate_NullDelta_ReturnsTrue()
         {
-            // Arrange
-            DeltaResponseModel delta = null;
             var refactorableFunctions = new List<FnToRefactorModel> { new FnToRefactorModel() };
 
-            // Act
-            var result = CodeReviewerHelper.ShouldSkipUpdate(delta, refactorableFunctions, _mockLogger.Object);
+            var result = CodeReviewerHelper.ShouldSkipUpdate(null, refactorableFunctions, _mockLogger.Object);
 
-            // Assert
             Assert.IsTrue(result);
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Delta response null"))), Times.Once);
+            VerifyLogContains("Delta response null");
         }
 
         [TestMethod]
         public void ShouldSkipUpdate_EmptyRefactorableFunctions_ReturnsTrue()
         {
-            // Arrange
-            var delta = new DeltaResponseModel();
-            var refactorableFunctions = new List<FnToRefactorModel>();
+            var result = CodeReviewerHelper.ShouldSkipUpdate(new DeltaResponseModel(), new List<FnToRefactorModel>(), _mockLogger.Object);
 
-            // Act
-            var result = CodeReviewerHelper.ShouldSkipUpdate(delta, refactorableFunctions, _mockLogger.Object);
-
-            // Assert
             Assert.IsTrue(result);
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("No refactorable functions found"))), Times.Once);
+            VerifyLogContains("No refactorable functions found");
         }
 
         [TestMethod]
         public void ShouldSkipUpdate_ValidDeltaAndFunctions_ReturnsFalse()
         {
-            // Arrange
-            var delta = new DeltaResponseModel();
             var refactorableFunctions = new List<FnToRefactorModel> { new FnToRefactorModel() };
 
-            // Act
-            var result = CodeReviewerHelper.ShouldSkipUpdate(delta, refactorableFunctions, _mockLogger.Object);
+            var result = CodeReviewerHelper.ShouldSkipUpdate(new DeltaResponseModel(), refactorableFunctions, _mockLogger.Object);
 
-            // Assert
             Assert.IsFalse(result);
         }
 
@@ -72,119 +124,21 @@ namespace Codescene.VSExtension.CoreTests
 
         #region CheckRange Tests
 
-        [TestMethod]
-        public void CheckRange_FunctionStartsInsideRefactorableRange_ReturnsTrue()
+        [DataTestMethod]
+        [DataRow(15, 25, 10, 30, true, DisplayName = "FunctionStartsInsideRefactorableRange")]
+        [DataRow(10, 25, 10, 30, true, DisplayName = "FunctionStartsAtRefactorableStart")]
+        [DataRow(30, 35, 10, 30, true, DisplayName = "FunctionStartsAtRefactorableEnd")]
+        [DataRow(5, 25, 10, 30, false, DisplayName = "FunctionStartsBeforeRefactorableRange")]
+        [DataRow(35, 40, 10, 30, false, DisplayName = "FunctionStartsAfterRefactorableRange")]
+        public void CheckRange_VariousRanges_ReturnsExpectedResult(
+            int findingStart, int findingEnd, int refStart, int refEnd, bool expectedResult)
         {
-            // Arrange
-            var finding = new FunctionFindingModel
-            {
-                Function = new FunctionInfoModel
-                {
-                    Range = new CliRangeModel { Startline = 15, EndLine = 25 }
-                }
-            };
-            var refFunction = new FnToRefactorModel
-            {
-                Range = new CliRangeModel { Startline = 10, EndLine = 30 }
-            };
+            var finding = CreateFindingWithRange(findingStart, findingEnd);
+            var refFunction = CreateRefactorableFunction(null, refStart, refEnd);
 
-            // Act
             var result = CodeReviewerHelper.CheckRange(finding, refFunction);
 
-            // Assert
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod]
-        public void CheckRange_FunctionStartsAtRefactorableStart_ReturnsTrue()
-        {
-            // Arrange
-            var finding = new FunctionFindingModel
-            {
-                Function = new FunctionInfoModel
-                {
-                    Range = new CliRangeModel { Startline = 10, EndLine = 25 }
-                }
-            };
-            var refFunction = new FnToRefactorModel
-            {
-                Range = new CliRangeModel { Startline = 10, EndLine = 30 }
-            };
-
-            // Act
-            var result = CodeReviewerHelper.CheckRange(finding, refFunction);
-
-            // Assert
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod]
-        public void CheckRange_FunctionStartsAtRefactorableEnd_ReturnsTrue()
-        {
-            // Arrange
-            var finding = new FunctionFindingModel
-            {
-                Function = new FunctionInfoModel
-                {
-                    Range = new CliRangeModel { Startline = 30, EndLine = 35 }
-                }
-            };
-            var refFunction = new FnToRefactorModel
-            {
-                Range = new CliRangeModel { Startline = 10, EndLine = 30 }
-            };
-
-            // Act
-            var result = CodeReviewerHelper.CheckRange(finding, refFunction);
-
-            // Assert
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod]
-        public void CheckRange_FunctionStartsBeforeRefactorableRange_ReturnsFalse()
-        {
-            // Arrange
-            var finding = new FunctionFindingModel
-            {
-                Function = new FunctionInfoModel
-                {
-                    Range = new CliRangeModel { Startline = 5, EndLine = 25 }
-                }
-            };
-            var refFunction = new FnToRefactorModel
-            {
-                Range = new CliRangeModel { Startline = 10, EndLine = 30 }
-            };
-
-            // Act
-            var result = CodeReviewerHelper.CheckRange(finding, refFunction);
-
-            // Assert
-            Assert.IsFalse(result);
-        }
-
-        [TestMethod]
-        public void CheckRange_FunctionStartsAfterRefactorableRange_ReturnsFalse()
-        {
-            // Arrange
-            var finding = new FunctionFindingModel
-            {
-                Function = new FunctionInfoModel
-                {
-                    Range = new CliRangeModel { Startline = 35, EndLine = 40 }
-                }
-            };
-            var refFunction = new FnToRefactorModel
-            {
-                Range = new CliRangeModel { Startline = 10, EndLine = 30 }
-            };
-
-            // Act
-            var result = CodeReviewerHelper.CheckRange(finding, refFunction);
-
-            // Assert
-            Assert.IsFalse(result);
+            Assert.AreEqual(expectedResult, result);
         }
 
         #endregion
@@ -194,110 +148,45 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void UpdateFindingIfNotUpdated_MatchingFunctionFound_SetsRefactorableFn()
         {
-            // Arrange
-            var finding = new FunctionFindingModel
-            {
-                Function = new FunctionInfoModel
-                {
-                    Name = "TestFunction",
-                    Range = new CliRangeModel { Startline = 15, EndLine = 25 }
-                },
-                RefactorableFn = null
-            };
-            var refactorableFn = new FnToRefactorModel
-            {
-                Name = "TestFunction",
-                Range = new CliRangeModel { Startline = 10, EndLine = 30 }
-            };
-            var refactorableFunctions = new List<FnToRefactorModel> { refactorableFn };
+            var finding = CreateFunctionFinding(DefaultFunctionName, 15, 25);
+            var refactorableFn = CreateRefactorableFunction(DefaultFunctionName, 10, 30);
 
-            // Act
-            CodeReviewerHelper.UpdateFindingIfNotUpdated(finding, "TestFunction", refactorableFunctions);
+            CodeReviewerHelper.UpdateFindingIfNotUpdated(finding, DefaultFunctionName, new List<FnToRefactorModel> { refactorableFn });
 
-            // Assert
-            Assert.IsNotNull(finding.RefactorableFn);
             Assert.AreEqual(refactorableFn, finding.RefactorableFn);
         }
 
         [TestMethod]
         public void UpdateFindingIfNotUpdated_NoMatchingFunction_RefactorableFnRemainsNull()
         {
-            // Arrange
-            var finding = new FunctionFindingModel
-            {
-                Function = new FunctionInfoModel
-                {
-                    Name = "TestFunction",
-                    Range = new CliRangeModel { Startline = 15, EndLine = 25 }
-                },
-                RefactorableFn = null
-            };
-            var refactorableFn = new FnToRefactorModel
-            {
-                Name = "DifferentFunction",
-                Range = new CliRangeModel { Startline = 10, EndLine = 30 }
-            };
-            var refactorableFunctions = new List<FnToRefactorModel> { refactorableFn };
+            var finding = CreateFunctionFinding(DefaultFunctionName, 15, 25);
+            var refactorableFn = CreateRefactorableFunction("DifferentFunction", 10, 30);
 
-            // Act
-            CodeReviewerHelper.UpdateFindingIfNotUpdated(finding, "TestFunction", refactorableFunctions);
+            CodeReviewerHelper.UpdateFindingIfNotUpdated(finding, DefaultFunctionName, new List<FnToRefactorModel> { refactorableFn });
 
-            // Assert
             Assert.IsNull(finding.RefactorableFn);
         }
 
         [TestMethod]
         public void UpdateFindingIfNotUpdated_AlreadyHasRefactorableFn_DoesNotUpdate()
         {
-            // Arrange
             var existingRefactorableFn = new FnToRefactorModel { Name = "Existing" };
-            var finding = new FunctionFindingModel
-            {
-                Function = new FunctionInfoModel
-                {
-                    Name = "TestFunction",
-                    Range = new CliRangeModel { Startline = 15, EndLine = 25 }
-                },
-                RefactorableFn = existingRefactorableFn
-            };
-            var newRefactorableFn = new FnToRefactorModel
-            {
-                Name = "TestFunction",
-                Range = new CliRangeModel { Startline = 10, EndLine = 30 }
-            };
-            var refactorableFunctions = new List<FnToRefactorModel> { newRefactorableFn };
+            var finding = CreateFunctionFinding(DefaultFunctionName, 15, 25, existingRefactorableFn);
+            var newRefactorableFn = CreateRefactorableFunction(DefaultFunctionName, 10, 30);
 
-            // Act
-            CodeReviewerHelper.UpdateFindingIfNotUpdated(finding, "TestFunction", refactorableFunctions);
+            CodeReviewerHelper.UpdateFindingIfNotUpdated(finding, DefaultFunctionName, new List<FnToRefactorModel> { newRefactorableFn });
 
-            // Assert
             Assert.AreEqual(existingRefactorableFn, finding.RefactorableFn);
         }
 
         [TestMethod]
         public void UpdateFindingIfNotUpdated_MatchingNameButOutOfRange_DoesNotUpdate()
         {
-            // Arrange
-            var finding = new FunctionFindingModel
-            {
-                Function = new FunctionInfoModel
-                {
-                    Name = "TestFunction",
-                    Range = new CliRangeModel { Startline = 50, EndLine = 60 }
-                },
-                RefactorableFn = null
-            };
-            var refactorableFn = new FnToRefactorModel
-            {
-                Name = "TestFunction",
-                Range = new CliRangeModel { Startline = 10, EndLine = 30 }
-            };
-            var refactorableFunctions = new List<FnToRefactorModel> { refactorableFn };
+            var finding = CreateFunctionFinding(DefaultFunctionName, 50, 60);
+            var refactorableFn = CreateRefactorableFunction(DefaultFunctionName, 10, 30);
 
-            // Act
-            CodeReviewerHelper.UpdateFindingIfNotUpdated(finding, "TestFunction", refactorableFunctions);
+            CodeReviewerHelper.UpdateFindingIfNotUpdated(finding, DefaultFunctionName, new List<FnToRefactorModel> { refactorableFn });
 
-            // Assert
             Assert.IsNull(finding.RefactorableFn);
         }
 
@@ -308,126 +197,49 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void UpdateFindings_MultipleFindingsWithMatches_UpdatesAll()
         {
-            // Arrange
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new[]
-                {
-                    new FunctionFindingModel
-                    {
-                        Function = new FunctionInfoModel
-                        {
-                            Name = "Function1",
-                            Range = new CliRangeModel { Startline = 10, EndLine = 20 }
-                        }
-                    },
-                    new FunctionFindingModel
-                    {
-                        Function = new FunctionInfoModel
-                        {
-                            Name = "Function2",
-                            Range = new CliRangeModel { Startline = 30, EndLine = 40 }
-                        }
-                    }
-                }
-            };
+            var delta = CreateDeltaWithFindings(
+                CreateFunctionFinding("Function1", 10, 20),
+                CreateFunctionFinding("Function2", 30, 40)
+            );
             var refactorableFunctions = new List<FnToRefactorModel>
             {
-                new FnToRefactorModel { Name = "Function1", Range = new CliRangeModel { Startline = 5, EndLine = 25 } },
-                new FnToRefactorModel { Name = "Function2", Range = new CliRangeModel { Startline = 25, EndLine = 45 } }
+                CreateRefactorableFunction("Function1", 5, 25),
+                CreateRefactorableFunction("Function2", 25, 45)
             };
 
-            // Act
             CodeReviewerHelper.UpdateFindings(delta, refactorableFunctions);
 
-            // Assert
             Assert.IsNotNull(delta.FunctionLevelFindings[0].RefactorableFn);
             Assert.IsNotNull(delta.FunctionLevelFindings[1].RefactorableFn);
         }
 
-        [TestMethod]
-        public void UpdateFindings_FunctionWithNullName_Skipped()
+        [DataTestMethod]
+        [DataRow(null, DisplayName = "NullName")]
+        [DataRow("", DisplayName = "EmptyName")]
+        public void UpdateFindings_InvalidFunctionName_Skipped(string functionName)
         {
-            // Arrange
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new[]
-                {
-                    new FunctionFindingModel
-                    {
-                        Function = new FunctionInfoModel
-                        {
-                            Name = null,
-                            Range = new CliRangeModel { Startline = 10, EndLine = 20 }
-                        }
-                    }
-                }
-            };
+            var delta = CreateDeltaWithFindings(CreateFunctionFinding(functionName, 10, 20));
             var refactorableFunctions = new List<FnToRefactorModel>
             {
-                new FnToRefactorModel { Name = "SomeFunction", Range = new CliRangeModel { Startline = 5, EndLine = 25 } }
+                CreateRefactorableFunction("SomeFunction", 5, 25)
             };
 
-            // Act
             CodeReviewerHelper.UpdateFindings(delta, refactorableFunctions);
 
-            // Assert
-            Assert.IsNull(delta.FunctionLevelFindings[0].RefactorableFn);
-        }
-
-        [TestMethod]
-        public void UpdateFindings_FunctionWithEmptyName_Skipped()
-        {
-            // Arrange
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new[]
-                {
-                    new FunctionFindingModel
-                    {
-                        Function = new FunctionInfoModel
-                        {
-                            Name = "",
-                            Range = new CliRangeModel { Startline = 10, EndLine = 20 }
-                        }
-                    }
-                }
-            };
-            var refactorableFunctions = new List<FnToRefactorModel>
-            {
-                new FnToRefactorModel { Name = "SomeFunction", Range = new CliRangeModel { Startline = 5, EndLine = 25 } }
-            };
-
-            // Act
-            CodeReviewerHelper.UpdateFindings(delta, refactorableFunctions);
-
-            // Assert
             Assert.IsNull(delta.FunctionLevelFindings[0].RefactorableFn);
         }
 
         [TestMethod]
         public void UpdateFindings_NullFunctionInfo_Skipped()
         {
-            // Arrange
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new[]
-                {
-                    new FunctionFindingModel
-                    {
-                        Function = null
-                    }
-                }
-            };
+            var delta = CreateDeltaWithFindings(new FunctionFindingModel { Function = null });
             var refactorableFunctions = new List<FnToRefactorModel>
             {
-                new FnToRefactorModel { Name = "SomeFunction", Range = new CliRangeModel { Startline = 5, EndLine = 25 } }
+                CreateRefactorableFunction("SomeFunction", 5, 25)
             };
 
-            // Act
             CodeReviewerHelper.UpdateFindings(delta, refactorableFunctions);
 
-            // Assert
             Assert.IsNull(delta.FunctionLevelFindings[0].RefactorableFn);
         }
 
@@ -435,285 +247,103 @@ namespace Codescene.VSExtension.CoreTests
 
         #region UpdateDeltaCacheWithRefactorableFunctions Tests
 
-        private AceRefactorableFunctionsCacheService _cacheService;
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            // Clear the static cache after each test to avoid test pollution
-            _cacheService?.Clear();
-        }
-
         [TestMethod]
         public void UpdateDeltaCacheWithRefactorableFunctions_WithMatchingCacheEntry_UpdatesDeltaFindings()
         {
-            // Arrange
-            _cacheService = new AceRefactorableFunctionsCacheService();
-            var path = "test/file.cs";
-            var code = "public void TestFunction() { }";
-            var refactorableFn = new FnToRefactorModel
-            {
-                Name = "TestFunction",
-                Range = new CliRangeModel { Startline = 1, EndLine = 10 }
-            };
-            var entry = new AceRefactorableFunctionsEntry(path, code, new List<FnToRefactorModel> { refactorableFn });
-            _cacheService.Put(entry);
+            SetupCacheWithFunctions(DefaultPath, DefaultCode, CreateRefactorableFunction(DefaultFunctionName, 1, 10));
+            var delta = CreateDeltaWithFindings(CreateFunctionFinding(DefaultFunctionName, 1, 10));
 
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new[]
-                {
-                    new FunctionFindingModel
-                    {
-                        Function = new FunctionInfoModel
-                        {
-                            Name = "TestFunction",
-                            Range = new CliRangeModel { Startline = 1, EndLine = 10 }
-                        }
-                    }
-                }
-            };
+            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, DefaultPath, DefaultCode, _mockLogger.Object);
 
-            // Act
-            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, path, code, _mockLogger.Object);
-
-            // Assert
             Assert.IsNotNull(delta.FunctionLevelFindings[0].RefactorableFn);
-            Assert.AreEqual("TestFunction", delta.FunctionLevelFindings[0].RefactorableFn.Name);
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Found 1 refactorable functions"))), Times.Once);
+            Assert.AreEqual(DefaultFunctionName, delta.FunctionLevelFindings[0].RefactorableFn.Name);
+            VerifyLogContains("Found 1 refactorable functions");
         }
 
         [TestMethod]
         public void UpdateDeltaCacheWithRefactorableFunctions_WithEmptyCache_DoesNotUpdateDelta()
         {
-            // Arrange
-            _cacheService = new AceRefactorableFunctionsCacheService();
-            _cacheService.Clear(); // Ensure cache is empty
-            var path = "test/file.cs";
-            var code = "public void TestFunction() { }";
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new[]
-                {
-                    new FunctionFindingModel
-                    {
-                        Function = new FunctionInfoModel
-                        {
-                            Name = "TestFunction",
-                            Range = new CliRangeModel { Startline = 1, EndLine = 10 }
-                        }
-                    }
-                }
-            };
+            var delta = CreateDeltaWithFindings(CreateFunctionFinding(DefaultFunctionName, 1, 10));
 
-            // Act
-            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, path, code, _mockLogger.Object);
+            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, DefaultPath, DefaultCode, _mockLogger.Object);
 
-            // Assert
             Assert.IsNull(delta.FunctionLevelFindings[0].RefactorableFn);
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("No refactorable functions found"))), Times.Once);
+            VerifyLogContains("No refactorable functions found");
         }
 
         [TestMethod]
         public void UpdateDeltaCacheWithRefactorableFunctions_WithNullDelta_SkipsUpdate()
         {
-            // Arrange
-            _cacheService = new AceRefactorableFunctionsCacheService();
-            var path = "test/file.cs";
-            var code = "public void TestFunction() { }";
-            var refactorableFn = new FnToRefactorModel
-            {
-                Name = "TestFunction",
-                Range = new CliRangeModel { Startline = 1, EndLine = 10 }
-            };
-            var entry = new AceRefactorableFunctionsEntry(path, code, new List<FnToRefactorModel> { refactorableFn });
-            _cacheService.Put(entry);
+            SetupCacheWithFunctions(DefaultPath, DefaultCode, CreateRefactorableFunction(DefaultFunctionName, 1, 10));
 
-            DeltaResponseModel delta = null;
+            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(null, DefaultPath, DefaultCode, _mockLogger.Object);
 
-            // Act
-            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, path, code, _mockLogger.Object);
-
-            // Assert
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Delta response null"))), Times.Once);
+            VerifyLogContains("Delta response null");
         }
 
         [TestMethod]
         public void UpdateDeltaCacheWithRefactorableFunctions_WithMismatchedCode_DoesNotUpdateDelta()
         {
-            // Arrange
-            _cacheService = new AceRefactorableFunctionsCacheService();
-            var path = "test/file.cs";
-            var originalCode = "public void TestFunction() { }";
-            var differentCode = "public void DifferentFunction() { }";
-            var refactorableFn = new FnToRefactorModel
-            {
-                Name = "TestFunction",
-                Range = new CliRangeModel { Startline = 1, EndLine = 10 }
-            };
-            var entry = new AceRefactorableFunctionsEntry(path, originalCode, new List<FnToRefactorModel> { refactorableFn });
-            _cacheService.Put(entry);
+            SetupCacheWithFunctions(DefaultPath, DefaultCode, CreateRefactorableFunction(DefaultFunctionName, 1, 10));
+            var delta = CreateDeltaWithFindings(CreateFunctionFinding(DefaultFunctionName, 1, 10));
 
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new[]
-                {
-                    new FunctionFindingModel
-                    {
-                        Function = new FunctionInfoModel
-                        {
-                            Name = "TestFunction",
-                            Range = new CliRangeModel { Startline = 1, EndLine = 10 }
-                        }
-                    }
-                }
-            };
+            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, DefaultPath, "different code", _mockLogger.Object);
 
-            // Act - Use different code which won't match the cache hash
-            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, path, differentCode, _mockLogger.Object);
-
-            // Assert - Cache returns empty list when hash doesn't match
             Assert.IsNull(delta.FunctionLevelFindings[0].RefactorableFn);
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("No refactorable functions found"))), Times.Once);
+            VerifyLogContains("No refactorable functions found");
         }
 
         [TestMethod]
         public void UpdateDeltaCacheWithRefactorableFunctions_WithMultipleFunctions_UpdatesMatchingFindings()
         {
-            // Arrange
-            _cacheService = new AceRefactorableFunctionsCacheService();
-            var path = "test/file.cs";
             var code = "public void Func1() { } public void Func2() { }";
-            var refactorableFunctions = new List<FnToRefactorModel>
-            {
-                new FnToRefactorModel { Name = "Func1", Range = new CliRangeModel { Startline = 1, EndLine = 10 } },
-                new FnToRefactorModel { Name = "Func2", Range = new CliRangeModel { Startline = 12, EndLine = 20 } },
-                new FnToRefactorModel { Name = "Func3", Range = new CliRangeModel { Startline = 22, EndLine = 30 } }
-            };
-            var entry = new AceRefactorableFunctionsEntry(path, code, refactorableFunctions);
-            _cacheService.Put(entry);
+            SetupCacheWithFunctions(DefaultPath, code,
+                CreateRefactorableFunction("Func1", 1, 10),
+                CreateRefactorableFunction("Func2", 12, 20),
+                CreateRefactorableFunction("Func3", 22, 30)
+            );
+            var delta = CreateDeltaWithFindings(
+                CreateFunctionFinding("Func1", 5, 8),
+                CreateFunctionFinding("Func2", 15, 18),
+                CreateFunctionFinding("NonExistentFunc", 50, 60)
+            );
 
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new[]
-                {
-                    new FunctionFindingModel
-                    {
-                        Function = new FunctionInfoModel
-                        {
-                            Name = "Func1",
-                            Range = new CliRangeModel { Startline = 5, EndLine = 8 }
-                        }
-                    },
-                    new FunctionFindingModel
-                    {
-                        Function = new FunctionInfoModel
-                        {
-                            Name = "Func2",
-                            Range = new CliRangeModel { Startline = 15, EndLine = 18 }
-                        }
-                    },
-                    new FunctionFindingModel
-                    {
-                        Function = new FunctionInfoModel
-                        {
-                            Name = "NonExistentFunc",
-                            Range = new CliRangeModel { Startline = 50, EndLine = 60 }
-                        }
-                    }
-                }
-            };
+            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, DefaultPath, code, _mockLogger.Object);
 
-            // Act
-            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, path, code, _mockLogger.Object);
-
-            // Assert
-            Assert.IsNotNull(delta.FunctionLevelFindings[0].RefactorableFn);
-            Assert.AreEqual("Func1", delta.FunctionLevelFindings[0].RefactorableFn.Name);
-            Assert.IsNotNull(delta.FunctionLevelFindings[1].RefactorableFn);
-            Assert.AreEqual("Func2", delta.FunctionLevelFindings[1].RefactorableFn.Name);
-            Assert.IsNull(delta.FunctionLevelFindings[2].RefactorableFn); // Non-matching function
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Found 3 refactorable functions"))), Times.Once);
+            Assert.AreEqual("Func1", delta.FunctionLevelFindings[0].RefactorableFn?.Name);
+            Assert.AreEqual("Func2", delta.FunctionLevelFindings[1].RefactorableFn?.Name);
+            Assert.IsNull(delta.FunctionLevelFindings[2].RefactorableFn);
+            VerifyLogContains("Found 3 refactorable functions");
         }
 
         [TestMethod]
         public void UpdateDeltaCacheWithRefactorableFunctions_WithEmptyFunctionLevelFindings_DoesNotThrow()
         {
-            // Arrange
-            _cacheService = new AceRefactorableFunctionsCacheService();
-            var path = "test/file.cs";
-            var code = "public void TestFunction() { }";
-            var refactorableFn = new FnToRefactorModel
-            {
-                Name = "TestFunction",
-                Range = new CliRangeModel { Startline = 1, EndLine = 10 }
-            };
-            var entry = new AceRefactorableFunctionsEntry(path, code, new List<FnToRefactorModel> { refactorableFn });
-            _cacheService.Put(entry);
+            SetupCacheWithFunctions(DefaultPath, DefaultCode, CreateRefactorableFunction(DefaultFunctionName, 1, 10));
+            var delta = CreateDeltaWithFindings();
 
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new FunctionFindingModel[0]
-            };
-
-            // Act & Assert - Should not throw
-            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, path, code, _mockLogger.Object);
+            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, DefaultPath, DefaultCode, _mockLogger.Object);
         }
 
         [TestMethod]
         public void UpdateDeltaCacheWithRefactorableFunctions_LogsCorrectPath()
         {
-            // Arrange
-            _cacheService = new AceRefactorableFunctionsCacheService();
             var path = "specific/test/path.cs";
-            var code = "code content";
+            var delta = CreateDeltaWithFindings();
 
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new FunctionFindingModel[0]
-            };
+            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, path, "code", _mockLogger.Object);
 
-            // Act
-            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, path, code, _mockLogger.Object);
-
-            // Assert
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains(path))), Times.Once);
+            VerifyLogContains(path);
         }
 
         [TestMethod]
         public void UpdateDeltaCacheWithRefactorableFunctions_WithFunctionOutOfRange_DoesNotUpdate()
         {
-            // Arrange
-            _cacheService = new AceRefactorableFunctionsCacheService();
-            var path = "test/file.cs";
-            var code = "public void TestFunction() { }";
-            var refactorableFn = new FnToRefactorModel
-            {
-                Name = "TestFunction",
-                Range = new CliRangeModel { Startline = 100, EndLine = 110 }
-            };
-            var entry = new AceRefactorableFunctionsEntry(path, code, new List<FnToRefactorModel> { refactorableFn });
-            _cacheService.Put(entry);
+            SetupCacheWithFunctions(DefaultPath, DefaultCode, CreateRefactorableFunction(DefaultFunctionName, 100, 110));
+            var delta = CreateDeltaWithFindings(CreateFunctionFinding(DefaultFunctionName, 1, 10));
 
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new[]
-                {
-                    new FunctionFindingModel
-                    {
-                        Function = new FunctionInfoModel
-                        {
-                            Name = "TestFunction",
-                            Range = new CliRangeModel { Startline = 1, EndLine = 10 }
-                        }
-                    }
-                }
-            };
+            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, DefaultPath, DefaultCode, _mockLogger.Object);
 
-            // Act
-            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, path, code, _mockLogger.Object);
-
-            // Assert - Name matches but range doesn't
             Assert.IsNull(delta.FunctionLevelFindings[0].RefactorableFn);
         }
 
