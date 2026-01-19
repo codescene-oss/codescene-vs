@@ -21,7 +21,7 @@ runs:
         
     - name: Upload coverage data to CodeScene
       shell: pwsh
-      run: 'cs-coverage check --verbose --coverage-files "${{ inputs.coverage-files }}"'
+      run: 'cs-coverage check --verbose --format "cobertura" --coverage-files "${{ inputs.coverage-files }}"'
       env:
         CS_PROJECT_URL: ${{ inputs.project-url }}
         CS_ACCESS_TOKEN: ${{ inputs.access-token }} 
