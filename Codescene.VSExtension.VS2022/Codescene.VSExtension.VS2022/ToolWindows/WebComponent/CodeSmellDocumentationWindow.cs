@@ -1,8 +1,10 @@
 ﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
+using Codescene.VSExtension.VS2022.Application.Services;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
@@ -18,18 +20,23 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
 {
     private static WebComponentUserControl _userControl = null;
     private static ShowDocumentationModel _model;
+    private static FnToRefactorModel _fnToRefactor;
 
     public override Type PaneType => typeof(Pane);
 
-    public static void SetPendingPayload(ShowDocumentationModel model)
+    public static void SetPendingPayload(ShowDocumentationModel model, FnToRefactorModel fnToRefactor)
     {
         _model = model;
+        _fnToRefactor = fnToRefactor;
     }
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
         var logger = await VS.GetMefServiceAsync<ILogger>();
         var mapper = await VS.GetMefServiceAsync<CodeSmellDocumentationMapper>();
+
+        var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
+        var aceAcknowledged = acknowledgementStateService.IsAcknowledged();
 
         if (_model != null)
         {
@@ -39,7 +46,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
             {
                 IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
                 View = WebComponentConstants.ViewTypes.DOCS,
-                Data = mapper.Map(_model)
+                Data = mapper.Map(_model, _fnToRefactor, aceAcknowledged)
             };
 
             var ctrl = new WebComponentUserControl(payload, logger)

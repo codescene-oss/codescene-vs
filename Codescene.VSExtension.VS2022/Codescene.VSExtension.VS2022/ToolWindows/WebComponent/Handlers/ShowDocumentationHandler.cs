@@ -2,9 +2,11 @@
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Application.Services.WebComponent;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
+using Codescene.VSExtension.VS2022.Application.Services;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System;
@@ -25,24 +27,27 @@ public static class DocsEntryPoint
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class ShowDocumentationHandler
 {
-    public async Task HandleAsync(ShowDocumentationModel model, string entryPoint = DocsEntryPoint.DiagnosticItem)
+    public async Task HandleAsync(ShowDocumentationModel model, FnToRefactorModel fnToRefactor, string entryPoint = DocsEntryPoint.DiagnosticItem)
     {
         SendTelemetry(entryPoint, model.Category);
 
         if (CodeSmellDocumentationWindow.IsCreated())
         {
-            await SetViewToLoadingModeAsync(model);
+            await SetViewToLoadingModeAsync(model, fnToRefactor);
         }
 
-        CodeSmellDocumentationWindow.SetPendingPayload(model);
+        CodeSmellDocumentationWindow.SetPendingPayload(model, fnToRefactor);
 
         await CodeSmellDocumentationWindow.ShowAsync();
     }
 
-    private async Task SetViewToLoadingModeAsync(ShowDocumentationModel model)
+    private async Task SetViewToLoadingModeAsync(ShowDocumentationModel model, FnToRefactorModel fnToRefactor)
     {
         var logger = await VS.GetMefServiceAsync<ILogger>();
         var mapper = await VS.GetMefServiceAsync<CodeSmellDocumentationMapper>();
+
+        var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
+        var aceAcknowledged = acknowledgementStateService.IsAcknowledged();
 
         try
         {
@@ -55,7 +60,7 @@ public class ShowDocumentationHandler
                 {
                     IdeType = VISUAL_STUDIO_IDE_TYPE,
                     View = ViewTypes.DOCS,
-                    Data = mapper.Map(model),
+                    Data = mapper.Map(model, fnToRefactor, aceAcknowledged),
                 }
             });
         }
