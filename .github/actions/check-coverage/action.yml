@@ -11,6 +11,7 @@ runs:
   using: "composite"
   steps:
     - name: Install cs tool
+      shell: pwsh
       run: curl https://downloads.codescene.io/enterprise/cli/install-cs-coverage-tool.sh | bash -s -- -y
       
     - name: Add ~/.local/bin to PATH
