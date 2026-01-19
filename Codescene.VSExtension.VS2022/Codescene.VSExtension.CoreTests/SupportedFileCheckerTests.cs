@@ -1,158 +1,179 @@
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 
 namespace Codescene.VSExtension.CoreTests
 {
     [TestClass]
     public class SupportedFileCheckerTests
     {
-        private readonly SupportedFileChecker _checker;
+        private readonly SupportedFileChecker _checker = new SupportedFileChecker();
 
-        public SupportedFileCheckerTests()
+        #region Supported Language Extensions
+
+        private static readonly string[] JavaScriptTypeScriptExtensions = { ".js", ".mjs", ".jsx", ".ts", ".tsx", ".vue" };
+        private static readonly string[] CFamilyExtensions = { ".c", ".h", ".cc", ".cpp", ".cxx", ".hpp", ".c++", ".m", ".mm" };
+        private static readonly string[] DotNetExtensions = { ".cs", ".vb" };
+        private static readonly string[] JvmExtensions = { ".java", ".kt", ".groovy", ".scala", ".clj", ".cljc", ".cljs" };
+        private static readonly string[] OtherLanguageExtensions = { ".py", ".rb", ".go", ".rs", ".swift", ".php", ".erl", ".dart" };
+        private static readonly string[] ScriptingExtensions = { ".pl", ".pm", ".ps1", ".psd1", ".psm1" };
+        private static readonly string[] SalesforceExtensions = { ".cls", ".trigger", ".tgr" };
+
+        private static readonly string[] UnsupportedExtensions = { ".txt", ".md", ".json", ".xml", ".yaml", ".yml", ".html", ".css", ".sql", ".sh", ".bat", ".exe", ".dll" };
+
+        [TestMethod]
+        public void IsSupported_JavaScriptTypeScript_ReturnsTrue()
         {
-            _checker = new SupportedFileChecker();
+            AssertExtensionsSupported(JavaScriptTypeScriptExtensions);
         }
 
-        // JavaScript/TypeScript
-        [DataTestMethod]
-        [DataRow("test.js", true)]
-        [DataRow("test.mjs", true)]
-        [DataRow("test.jsx", true)]
-        [DataRow("test.ts", true)]
-        [DataRow("test.tsx", true)]
-        [DataRow("test.vue", true)]
-        public void IsSupported_JavaScriptTypeScript_ReturnsTrue(string filePath, bool expected)
+        [TestMethod]
+        public void IsSupported_CFamily_ReturnsTrue()
         {
-            Assert.AreEqual(expected, _checker.IsSupported(filePath));
+            AssertExtensionsSupported(CFamilyExtensions);
         }
 
-        // C-family languages
-        [DataTestMethod]
-        [DataRow("test.c", true)]
-        [DataRow("test.h", true)]
-        [DataRow("test.cc", true)]
-        [DataRow("test.cpp", true)]
-        [DataRow("test.cxx", true)]
-        [DataRow("test.hpp", true)]
-        [DataRow("test.c++", true)]
-        [DataRow("test.m", true)]
-        [DataRow("test.mm", true)]
-        public void IsSupported_CFamily_ReturnsTrue(string filePath, bool expected)
+        [TestMethod]
+        public void IsSupported_DotNet_ReturnsTrue()
         {
-            Assert.AreEqual(expected, _checker.IsSupported(filePath));
+            AssertExtensionsSupported(DotNetExtensions);
         }
 
-        // .NET languages
-        [DataTestMethod]
-        [DataRow("test.cs", true)]
-        [DataRow("test.vb", true)]
-        public void IsSupported_DotNet_ReturnsTrue(string filePath, bool expected)
+        [TestMethod]
+        public void IsSupported_JvmLanguages_ReturnsTrue()
         {
-            Assert.AreEqual(expected, _checker.IsSupported(filePath));
+            AssertExtensionsSupported(JvmExtensions);
         }
 
-        // JVM languages
-        [DataTestMethod]
-        [DataRow("test.java", true)]
-        [DataRow("test.kt", true)]
-        [DataRow("test.groovy", true)]
-        [DataRow("test.scala", true)]
-        [DataRow("test.clj", true)]
-        [DataRow("test.cljc", true)]
-        [DataRow("test.cljs", true)]
-        public void IsSupported_JvmLanguages_ReturnsTrue(string filePath, bool expected)
+        [TestMethod]
+        public void IsSupported_OtherLanguages_ReturnsTrue()
         {
-            Assert.AreEqual(expected, _checker.IsSupported(filePath));
+            AssertExtensionsSupported(OtherLanguageExtensions);
         }
 
-        // Other languages
-        [DataTestMethod]
-        [DataRow("test.py", true)]
-        [DataRow("test.rb", true)]
-        [DataRow("test.go", true)]
-        [DataRow("test.rs", true)]
-        [DataRow("test.swift", true)]
-        [DataRow("test.php", true)]
-        [DataRow("test.erl", true)]
-        [DataRow("test.dart", true)]
-        public void IsSupported_OtherLanguages_ReturnsTrue(string filePath, bool expected)
+        [TestMethod]
+        public void IsSupported_ScriptingLanguages_ReturnsTrue()
         {
-            Assert.AreEqual(expected, _checker.IsSupported(filePath));
+            AssertExtensionsSupported(ScriptingExtensions);
         }
 
-        // Scripting languages
-        [DataTestMethod]
-        [DataRow("test.pl", true)]
-        [DataRow("test.pm", true)]
-        [DataRow("test.ps1", true)]
-        [DataRow("test.psd1", true)]
-        [DataRow("test.psm1", true)]
-        public void IsSupported_ScriptingLanguages_ReturnsTrue(string filePath, bool expected)
+        [TestMethod]
+        public void IsSupported_Salesforce_ReturnsTrue()
         {
-            Assert.AreEqual(expected, _checker.IsSupported(filePath));
+            AssertExtensionsSupported(SalesforceExtensions);
         }
 
-        // Salesforce
-        [DataTestMethod]
-        [DataRow("test.cls", true)]
-        [DataRow("test.trigger", true)]
-        [DataRow("test.tgr", true)]
-        public void IsSupported_Salesforce_ReturnsTrue(string filePath, bool expected)
+        [TestMethod]
+        public void IsSupported_UnsupportedTypes_ReturnsFalse()
         {
-            Assert.AreEqual(expected, _checker.IsSupported(filePath));
+            AssertExtensionsNotSupported(UnsupportedExtensions);
         }
 
-        // Unsupported file types
-        [DataTestMethod]
-        [DataRow("test.txt", false)]
-        [DataRow("test.md", false)]
-        [DataRow("test.json", false)]
-        [DataRow("test.xml", false)]
-        [DataRow("test.yaml", false)]
-        [DataRow("test.yml", false)]
-        [DataRow("test.html", false)]
-        [DataRow("test.css", false)]
-        [DataRow("test.sql", false)]
-        [DataRow("test.sh", false)]
-        [DataRow("test.bat", false)]
-        [DataRow("test.exe", false)]
-        [DataRow("test.dll", false)]
-        public void IsSupported_UnsupportedTypes_ReturnsFalse(string filePath, bool expected)
+        #endregion
+
+        #region Edge Cases
+
+        [TestMethod]
+        public void IsSupported_NullPath_ReturnsFalse()
         {
-            Assert.AreEqual(expected, _checker.IsSupported(filePath));
+            Assert.IsFalse(_checker.IsSupported(null));
         }
 
-        // Edge cases
-        [DataTestMethod]
-        [DataRow(null, false)]
-        [DataRow("", false)]
-        [DataRow("   ", false)]
-        [DataRow("noextension", false)]
-        public void IsSupported_EdgeCases_ReturnsFalse(string filePath, bool expected)
+        [TestMethod]
+        public void IsSupported_EmptyPath_ReturnsFalse()
         {
-            Assert.AreEqual(expected, _checker.IsSupported(filePath));
+            Assert.IsFalse(_checker.IsSupported(""));
         }
 
-        // Case insensitivity
-        [DataTestMethod]
-        [DataRow("test.CS", true)]
-        [DataRow("test.Cs", true)]
-        [DataRow("test.JS", true)]
-        [DataRow("test.PY", true)]
-        public void IsSupported_CaseInsensitive_ReturnsTrue(string filePath, bool expected)
+        [TestMethod]
+        public void IsSupported_WhitespacePath_ReturnsFalse()
         {
-            Assert.AreEqual(expected, _checker.IsSupported(filePath));
+            Assert.IsFalse(_checker.IsSupported("   "));
         }
 
-        // Full paths
-        [DataTestMethod]
-        [DataRow("C:\\Projects\\MyApp\\src\\Program.cs", true)]
-        [DataRow("/home/user/projects/app/main.py", true)]
-        [DataRow("./relative/path/to/file.java", true)]
-        [DataRow("../parent/path/to/file.txt", false)]
-        public void IsSupported_FullPaths_ReturnsExpected(string filePath, bool expected)
+        [TestMethod]
+        public void IsSupported_NoExtension_ReturnsFalse()
         {
-            Assert.AreEqual(expected, _checker.IsSupported(filePath));
+            Assert.IsFalse(_checker.IsSupported("noextension"));
         }
+
+        #endregion
+
+        #region Case Insensitivity
+
+        [TestMethod]
+        public void IsSupported_CaseInsensitive_UpperCase_ReturnsTrue()
+        {
+            AssertAllSupported(new[] { "test.CS", "test.JS", "test.PY" });
+        }
+
+        [TestMethod]
+        public void IsSupported_CaseInsensitive_MixedCase_ReturnsTrue()
+        {
+            Assert.IsTrue(_checker.IsSupported("test.Cs"));
+        }
+
+        #endregion
+
+        #region Full Paths
+
+        [TestMethod]
+        public void IsSupported_WindowsFullPath_ReturnsTrue()
+        {
+            Assert.IsTrue(_checker.IsSupported("C:\\Projects\\MyApp\\src\\Program.cs"));
+        }
+
+        [TestMethod]
+        public void IsSupported_UnixFullPath_ReturnsTrue()
+        {
+            Assert.IsTrue(_checker.IsSupported("/home/user/projects/app/main.py"));
+        }
+
+        [TestMethod]
+        public void IsSupported_RelativePath_ReturnsExpected()
+        {
+            Assert.IsTrue(_checker.IsSupported("./relative/path/to/file.java"));
+            Assert.IsFalse(_checker.IsSupported("../parent/path/to/file.txt"));
+        }
+
+        #endregion
+
+        #region Helper Methods
+
+        private void AssertExtensionsSupported(IEnumerable<string> extensions)
+        {
+            var unsupportedExtensions = new List<string>();
+            foreach (var ext in extensions)
+            {
+                var fileName = "test" + ext;
+                if (!_checker.IsSupported(fileName))
+                    unsupportedExtensions.Add(ext);
+            }
+
+            Assert.AreEqual(0, unsupportedExtensions.Count,
+                $"Expected extensions to be supported: {string.Join(", ", unsupportedExtensions)}");
+        }
+
+        private void AssertExtensionsNotSupported(IEnumerable<string> extensions)
+        {
+            var supportedExtensions = new List<string>();
+            foreach (var ext in extensions)
+            {
+                var fileName = "test" + ext;
+                if (_checker.IsSupported(fileName))
+                    supportedExtensions.Add(ext);
+            }
+
+            Assert.AreEqual(0, supportedExtensions.Count,
+                $"Expected extensions NOT to be supported: {string.Join(", ", supportedExtensions)}");
+        }
+
+        private void AssertAllSupported(IEnumerable<string> filePaths)
+        {
+            foreach (var path in filePaths)
+                Assert.IsTrue(_checker.IsSupported(path), $"{path} should be supported");
+        }
+
+        #endregion
     }
 }

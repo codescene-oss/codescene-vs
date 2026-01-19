@@ -26,100 +26,77 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileAddedToCache_SendsMonitorFileAddedEvent()
         {
-            // Arrange
-            var previousSnapshot = new Dictionary<string, DeltaResponseModel>();
-            var currentCache = new Dictionary<string, DeltaResponseModel>
-            {
-                { "newfile.cs", CreateDeltaResponse(0.5m) }
-            };
-            var entry = new DeltaCacheEntry("newfile.cs", "old", "new", CreateDeltaResponse(0.5m));
-
-            // Act
-            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-
-            // Wait for async Task.Run to complete
-            await Task.Delay(100);
-
-            // Assert
-            _mockTelemetryManager.Verify(
-                t => t.SendTelemetry(Constants.Telemetry.MONITOR_FILE_ADDED, It.IsAny<Dictionary<string, object>>()),
-                Times.Once);
+            var scenario = TelemetryScenario.FileAdded("newfile.cs");
+            await AssertTelemetryEventSent(scenario, Constants.Telemetry.MONITOR_FILE_ADDED);
         }
 
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileRemovedFromCache_SendsMonitorFileRemovedEvent()
         {
-            // Arrange
-            var previousSnapshot = new Dictionary<string, DeltaResponseModel>
-            {
-                { "removedfile.cs", CreateDeltaResponse(-1.0m) }
-            };
-            var currentCache = new Dictionary<string, DeltaResponseModel>(); // File no longer present
-            var entry = new DeltaCacheEntry("removedfile.cs", "old", "new", null);
-
-            // Act
-            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-
-            // Wait for async Task.Run to complete
-            await Task.Delay(100);
-
-            // Assert
-            _mockTelemetryManager.Verify(
-                t => t.SendTelemetry(Constants.Telemetry.MONITOR_FILE_REMOVED, It.IsAny<Dictionary<string, object>>()),
-                Times.Once);
+            var scenario = TelemetryScenario.FileRemoved("removedfile.cs");
+            await AssertTelemetryEventSent(scenario, Constants.Telemetry.MONITOR_FILE_REMOVED);
         }
 
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileUpdatedInCache_SendsMonitorFileUpdatedEvent()
         {
-            // Arrange
-            var previousSnapshot = new Dictionary<string, DeltaResponseModel>
-            {
-                { "existingfile.cs", CreateDeltaResponse(-0.5m) }
-            };
-            var currentCache = new Dictionary<string, DeltaResponseModel>
-            {
-                { "existingfile.cs", CreateDeltaResponse(-1.0m) } // Updated
-            };
-            var entry = new DeltaCacheEntry("existingfile.cs", "old", "new", CreateDeltaResponse(-1.0m));
-
-            // Act
-            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-
-            // Wait for async Task.Run to complete
-            await Task.Delay(100);
-
-            // Assert
-            _mockTelemetryManager.Verify(
-                t => t.SendTelemetry(Constants.Telemetry.MONITOR_FILE_UPDATED, It.IsAny<Dictionary<string, object>>()),
-                Times.Once);
+            var scenario = TelemetryScenario.FileUpdated("existingfile.cs");
+            await AssertTelemetryEventSent(scenario, Constants.Telemetry.MONITOR_FILE_UPDATED);
         }
 
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileNotInEitherSnapshot_DoesNotSendEvent()
         {
-            // Arrange
-            var previousSnapshot = new Dictionary<string, DeltaResponseModel>
-            {
-                { "otherfile.cs", CreateDeltaResponse(0.0m) }
-            };
-            var currentCache = new Dictionary<string, DeltaResponseModel>
-            {
-                { "otherfile.cs", CreateDeltaResponse(0.0m) }
-            };
-            // Entry for a file that's not in either snapshot
+            var (previousSnapshot, currentCache) = CreateSnapshots(new[] { "otherfile.cs" }, new[] { "otherfile.cs" });
             var entry = new DeltaCacheEntry("unknownfile.cs", "old", "new", CreateDeltaResponse(0.0m));
 
-            // Act
             DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-
-            // Wait for async Task.Run to complete
             await Task.Delay(100);
 
-            // Assert - no telemetry should be sent
             _mockTelemetryManager.Verify(
                 t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
                 Times.Never);
+        }
+
+        private async Task AssertTelemetryEventSent(TelemetryScenario scenario, string expectedEvent)
+        {
+            var (previousSnapshot, currentCache) = CreateSnapshots(scenario.PreviousFiles, scenario.CurrentFiles);
+            var entry = new DeltaCacheEntry(scenario.EntryFile, "old", "new", scenario.EntryDelta ?? CreateDeltaResponse(0.5m));
+
+            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
+            await Task.Delay(100);
+
+            _mockTelemetryManager.Verify(t => t.SendTelemetry(expectedEvent, It.IsAny<Dictionary<string, object>>()), Times.Once);
+        }
+
+        private (Dictionary<string, DeltaResponseModel> previous, Dictionary<string, DeltaResponseModel> current) CreateSnapshots(string[] previousFiles, string[] currentFiles)
+        {
+            var previous = new Dictionary<string, DeltaResponseModel>();
+            foreach (var file in previousFiles)
+                previous[file] = CreateDeltaResponse(-0.5m);
+
+            var current = new Dictionary<string, DeltaResponseModel>();
+            foreach (var file in currentFiles)
+                current[file] = CreateDeltaResponse(-1.0m);
+
+            return (previous, current);
+        }
+
+        private class TelemetryScenario
+        {
+            public string[] PreviousFiles { get; private set; }
+            public string[] CurrentFiles { get; private set; }
+            public string EntryFile { get; private set; }
+            public DeltaResponseModel EntryDelta { get; private set; }
+
+            public static TelemetryScenario FileAdded(string file) =>
+                new TelemetryScenario { PreviousFiles = new string[0], CurrentFiles = new[] { file }, EntryFile = file };
+
+            public static TelemetryScenario FileRemoved(string file) =>
+                new TelemetryScenario { PreviousFiles = new[] { file }, CurrentFiles = new string[0], EntryFile = file, EntryDelta = null };
+
+            public static TelemetryScenario FileUpdated(string file) =>
+                new TelemetryScenario { PreviousFiles = new[] { file }, CurrentFiles = new[] { file }, EntryFile = file };
         }
 
         #endregion
@@ -129,26 +106,9 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileAdded_IncludesScoreChangeInAdditionalData()
         {
-            // Arrange
-            var previousSnapshot = new Dictionary<string, DeltaResponseModel>();
             var delta = CreateDeltaResponse(-2.5m);
-            var currentCache = new Dictionary<string, DeltaResponseModel>
-            {
-                { "newfile.cs", delta }
-            };
-            var entry = new DeltaCacheEntry("newfile.cs", "old", "new", delta);
+            var capturedData = await CaptureAdditionalDataForFileAdded(delta);
 
-            Dictionary<string, object> capturedData = null;
-            _mockTelemetryManager.Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, data) => capturedData = data);
-
-            // Act
-            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-
-            // Wait for async Task.Run to complete
-            await Task.Delay(100);
-
-            // Assert
             Assert.IsNotNull(capturedData);
             Assert.IsTrue(capturedData.ContainsKey("scoreChange"));
             Assert.AreEqual(-2.5m, capturedData["scoreChange"]);
@@ -157,31 +117,9 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileAdded_IncludesIssueCountInAdditionalData()
         {
-            // Arrange
-            var previousSnapshot = new Dictionary<string, DeltaResponseModel>();
-            var delta = new DeltaResponseModel
-            {
-                ScoreChange = -1.0m,
-                FileLevelFindings = new ChangeDetailModel[] { new ChangeDetailModel(), new ChangeDetailModel() },
-                FunctionLevelFindings = new FunctionFindingModel[] { new FunctionFindingModel() }
-            };
-            var currentCache = new Dictionary<string, DeltaResponseModel>
-            {
-                { "newfile.cs", delta }
-            };
-            var entry = new DeltaCacheEntry("newfile.cs", "old", "new", delta);
+            var delta = CreateDeltaWithFindings(fileLevelCount: 2, functionLevelCount: 1);
+            var capturedData = await CaptureAdditionalDataForFileAdded(delta);
 
-            Dictionary<string, object> capturedData = null;
-            _mockTelemetryManager.Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, data) => capturedData = data);
-
-            // Act
-            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-
-            // Wait for async Task.Run to complete
-            await Task.Delay(100);
-
-            // Assert
             Assert.IsNotNull(capturedData);
             Assert.IsTrue(capturedData.ContainsKey("nIssues"));
             Assert.AreEqual(3, capturedData["nIssues"]); // 2 file-level + 1 function-level
@@ -190,64 +128,83 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileAdded_IncludesRefactorableFunctionCount()
         {
-            // Arrange
-            var previousSnapshot = new Dictionary<string, DeltaResponseModel>();
-            var delta = new DeltaResponseModel
-            {
-                ScoreChange = -1.0m,
-                FileLevelFindings = new ChangeDetailModel[0],
-                FunctionLevelFindings = new FunctionFindingModel[]
-                {
-                    new FunctionFindingModel { RefactorableFn = new FnToRefactorModel { Name = "Func1" } },
-                    new FunctionFindingModel { RefactorableFn = new FnToRefactorModel { Name = "Func2" } },
-                    new FunctionFindingModel { RefactorableFn = null } // Not refactorable
-                }
-            };
-            var currentCache = new Dictionary<string, DeltaResponseModel>
-            {
-                { "newfile.cs", delta }
-            };
-            var entry = new DeltaCacheEntry("newfile.cs", "old", "new", delta);
+            var delta = CreateDeltaWithRefactorableFunctions(refactorableCount: 2, nonRefactorableCount: 1);
+            var capturedData = await CaptureAdditionalDataForFileAdded(delta);
 
-            Dictionary<string, object> capturedData = null;
-            _mockTelemetryManager.Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, data) => capturedData = data);
-
-            // Act
-            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-
-            // Wait for async Task.Run to complete
-            await Task.Delay(100);
-
-            // Assert
             Assert.IsNotNull(capturedData);
             Assert.IsTrue(capturedData.ContainsKey("nRefactorableFunctions"));
-            Assert.AreEqual(2, capturedData["nRefactorableFunctions"]); // Only 2 have RefactorableFn set
+            Assert.AreEqual(2, capturedData["nRefactorableFunctions"]);
         }
 
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileRemoved_DoesNotIncludeAdditionalData()
         {
-            // Arrange
-            var previousSnapshot = new Dictionary<string, DeltaResponseModel>
-            {
-                { "removedfile.cs", CreateDeltaResponse(-1.0m) }
-            };
-            var currentCache = new Dictionary<string, DeltaResponseModel>();
+            var (previousSnapshot, _) = CreateSnapshots(previousFiles: new[] { "removedfile.cs" }, currentFiles: new string[] { });
             var entry = new DeltaCacheEntry("removedfile.cs", "old", "new", CreateDeltaResponse(-1.0m));
 
             Dictionary<string, object> capturedData = null;
-            _mockTelemetryManager.Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, data) => capturedData = data);
+            SetupTelemetryCapture(data => capturedData = data);
 
-            // Act
-            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-
-            // Wait for async Task.Run to complete
+            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, new Dictionary<string, DeltaResponseModel>(), entry, _mockTelemetryManager.Object);
             await Task.Delay(100);
 
-            // Assert - REMOVED events should not have additional data
             Assert.IsNull(capturedData);
+        }
+
+        private async Task<Dictionary<string, object>> CaptureAdditionalDataForFileAdded(DeltaResponseModel delta)
+        {
+            var uniqueFile = "newfile_" + System.Guid.NewGuid() + ".cs";
+            var previousSnapshot = new Dictionary<string, DeltaResponseModel>();
+            var currentCache = new Dictionary<string, DeltaResponseModel> { { uniqueFile, delta } };
+            var entry = new DeltaCacheEntry(uniqueFile, "old", "new", delta);
+
+            Dictionary<string, object> capturedData = null;
+            SetupTelemetryCapture(data => capturedData = data);
+
+            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
+            await Task.Delay(200);
+
+            return capturedData;
+        }
+
+        private void SetupTelemetryCapture(System.Action<Dictionary<string, object>> captureAction)
+        {
+            _mockTelemetryManager.Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Callback<string, Dictionary<string, object>>((_, data) => captureAction(data));
+        }
+
+        private static DeltaResponseModel CreateDeltaWithFindings(int fileLevelCount, int functionLevelCount)
+        {
+            var fileFindings = new ChangeDetailModel[fileLevelCount];
+            for (int i = 0; i < fileLevelCount; i++)
+                fileFindings[i] = new ChangeDetailModel();
+
+            var functionFindings = new FunctionFindingModel[functionLevelCount];
+            for (int i = 0; i < functionLevelCount; i++)
+                functionFindings[i] = new FunctionFindingModel();
+
+            return new DeltaResponseModel
+            {
+                ScoreChange = -1.0m,
+                FileLevelFindings = fileFindings,
+                FunctionLevelFindings = functionFindings
+            };
+        }
+
+        private static DeltaResponseModel CreateDeltaWithRefactorableFunctions(int refactorableCount, int nonRefactorableCount)
+        {
+            var findings = new List<FunctionFindingModel>();
+            for (int i = 0; i < refactorableCount; i++)
+                findings.Add(new FunctionFindingModel { RefactorableFn = new FnToRefactorModel { Name = $"Func{i}" } });
+            for (int i = 0; i < nonRefactorableCount; i++)
+                findings.Add(new FunctionFindingModel { RefactorableFn = null });
+
+            return new DeltaResponseModel
+            {
+                ScoreChange = -1.0m,
+                FileLevelFindings = new ChangeDetailModel[0],
+                FunctionLevelFindings = findings.ToArray()
+            };
         }
 
         #endregion

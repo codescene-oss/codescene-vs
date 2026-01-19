@@ -124,21 +124,44 @@ namespace Codescene.VSExtension.CoreTests
 
         #region CheckRange Tests
 
-        [DataTestMethod]
-        [DataRow(15, 25, 10, 30, true, DisplayName = "FunctionStartsInsideRefactorableRange")]
-        [DataRow(10, 25, 10, 30, true, DisplayName = "FunctionStartsAtRefactorableStart")]
-        [DataRow(30, 35, 10, 30, true, DisplayName = "FunctionStartsAtRefactorableEnd")]
-        [DataRow(5, 25, 10, 30, false, DisplayName = "FunctionStartsBeforeRefactorableRange")]
-        [DataRow(35, 40, 10, 30, false, DisplayName = "FunctionStartsAfterRefactorableRange")]
-        public void CheckRange_VariousRanges_ReturnsExpectedResult(
-            int findingStart, int findingEnd, int refStart, int refEnd, bool expectedResult)
+        [TestMethod]
+        public void CheckRange_FunctionStartsInsideRefactorableRange_ReturnsTrue()
         {
-            var finding = CreateFindingWithRange(findingStart, findingEnd);
-            var refFunction = CreateRefactorableFunction(null, refStart, refEnd);
+            AssertCheckRangeResult(findingRange: (15, 25), refactorableRange: (10, 30), expected: true);
+        }
+
+        [TestMethod]
+        public void CheckRange_FunctionStartsAtRefactorableStart_ReturnsTrue()
+        {
+            AssertCheckRangeResult(findingRange: (10, 25), refactorableRange: (10, 30), expected: true);
+        }
+
+        [TestMethod]
+        public void CheckRange_FunctionStartsAtRefactorableEnd_ReturnsTrue()
+        {
+            AssertCheckRangeResult(findingRange: (30, 35), refactorableRange: (10, 30), expected: true);
+        }
+
+        [TestMethod]
+        public void CheckRange_FunctionStartsBeforeRefactorableRange_ReturnsFalse()
+        {
+            AssertCheckRangeResult(findingRange: (5, 25), refactorableRange: (10, 30), expected: false);
+        }
+
+        [TestMethod]
+        public void CheckRange_FunctionStartsAfterRefactorableRange_ReturnsFalse()
+        {
+            AssertCheckRangeResult(findingRange: (35, 40), refactorableRange: (10, 30), expected: false);
+        }
+
+        private void AssertCheckRangeResult((int start, int end) findingRange, (int start, int end) refactorableRange, bool expected)
+        {
+            var finding = CreateFindingWithRange(findingRange.start, findingRange.end);
+            var refFunction = CreateRefactorableFunction(null, refactorableRange.start, refactorableRange.end);
 
             var result = CodeReviewerHelper.CheckRange(finding, refFunction);
 
-            Assert.AreEqual(expectedResult, result);
+            Assert.AreEqual(expected, result);
         }
 
         #endregion
@@ -213,26 +236,27 @@ namespace Codescene.VSExtension.CoreTests
             Assert.IsNotNull(delta.FunctionLevelFindings[1].RefactorableFn);
         }
 
-        [DataTestMethod]
-        [DataRow(null, DisplayName = "NullName")]
-        [DataRow("", DisplayName = "EmptyName")]
-        public void UpdateFindings_InvalidFunctionName_Skipped(string functionName)
+        [TestMethod]
+        public void UpdateFindings_NullFunctionName_Skipped()
         {
-            var delta = CreateDeltaWithFindings(CreateFunctionFinding(functionName, 10, 20));
-            var refactorableFunctions = new List<FnToRefactorModel>
-            {
-                CreateRefactorableFunction("SomeFunction", 5, 25)
-            };
+            AssertInvalidFindingIsSkipped(CreateFunctionFinding(null, 10, 20));
+        }
 
-            CodeReviewerHelper.UpdateFindings(delta, refactorableFunctions);
-
-            Assert.IsNull(delta.FunctionLevelFindings[0].RefactorableFn);
+        [TestMethod]
+        public void UpdateFindings_EmptyFunctionName_Skipped()
+        {
+            AssertInvalidFindingIsSkipped(CreateFunctionFinding("", 10, 20));
         }
 
         [TestMethod]
         public void UpdateFindings_NullFunctionInfo_Skipped()
         {
-            var delta = CreateDeltaWithFindings(new FunctionFindingModel { Function = null });
+            AssertInvalidFindingIsSkipped(new FunctionFindingModel { Function = null });
+        }
+
+        private void AssertInvalidFindingIsSkipped(FunctionFindingModel invalidFinding)
+        {
+            var delta = CreateDeltaWithFindings(invalidFinding);
             var refactorableFunctions = new List<FnToRefactorModel>
             {
                 CreateRefactorableFunction("SomeFunction", 5, 25)
@@ -263,12 +287,7 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void UpdateDeltaCacheWithRefactorableFunctions_WithEmptyCache_DoesNotUpdateDelta()
         {
-            var delta = CreateDeltaWithFindings(CreateFunctionFinding(DefaultFunctionName, 1, 10));
-
-            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, DefaultPath, DefaultCode, _mockLogger.Object);
-
-            Assert.IsNull(delta.FunctionLevelFindings[0].RefactorableFn);
-            VerifyLogContains("No refactorable functions found");
+            AssertDeltaFindingNotUpdated(codeToQuery: DefaultCode, expectedLogMessage: "No refactorable functions found");
         }
 
         [TestMethod]
@@ -285,12 +304,17 @@ namespace Codescene.VSExtension.CoreTests
         public void UpdateDeltaCacheWithRefactorableFunctions_WithMismatchedCode_DoesNotUpdateDelta()
         {
             SetupCacheWithFunctions(DefaultPath, DefaultCode, CreateRefactorableFunction(DefaultFunctionName, 1, 10));
+            AssertDeltaFindingNotUpdated(codeToQuery: "different code", expectedLogMessage: "No refactorable functions found");
+        }
+
+        private void AssertDeltaFindingNotUpdated(string codeToQuery, string expectedLogMessage)
+        {
             var delta = CreateDeltaWithFindings(CreateFunctionFinding(DefaultFunctionName, 1, 10));
 
-            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, DefaultPath, "different code", _mockLogger.Object);
+            CodeReviewerHelper.UpdateDeltaCacheWithRefactorableFunctions(delta, DefaultPath, codeToQuery, _mockLogger.Object);
 
             Assert.IsNull(delta.FunctionLevelFindings[0].RefactorableFn);
-            VerifyLogContains("No refactorable functions found");
+            VerifyLogContains(expectedLogMessage);
         }
 
         [TestMethod]

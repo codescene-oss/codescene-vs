@@ -25,130 +25,102 @@ namespace Codescene.VSExtension.CoreTests
 
         #region Get Tests
 
+        private const string DefaultFilePath = "test.cs";
+        private const string DefaultBaseline = "baseline code";
+        private const string DefaultCurrent = "current code";
+
         [TestMethod]
         public void Get_EmptyCache_ReturnsFalseAndNull()
         {
-            // Arrange
-            var query = new DeltaCacheQuery("test.cs", "baseline content", "current content");
+            var result = _cacheService.Get(new DeltaCacheQuery("test.cs", "baseline content", "current content"));
 
-            // Act
-            var result = _cacheService.Get(query);
-
-            // Assert
-            Assert.IsFalse(result.Item1);
-            Assert.IsNull(result.Item2);
+            AssertCacheMiss(result);
         }
 
         [TestMethod]
         public void Get_CacheHitWithMatchingHashes_ReturnsTrueAndDelta()
         {
-            // Arrange
-            var filePath = "test.cs";
-            var baselineContent = "old code";
-            var currentContent = "new code";
-            var delta = new DeltaResponseModel
-            {
-                OldScore = 8.0m,
-                NewScore = 7.5m,
-                ScoreChange = -0.5m
-            };
+            var delta = CreateDelta(-0.5m);
+            PutCacheEntry(DefaultFilePath, DefaultBaseline, DefaultCurrent, delta);
 
-            var entry = new DeltaCacheEntry(filePath, baselineContent, currentContent, delta);
-            _cacheService.Put(entry);
+            var result = _cacheService.Get(new DeltaCacheQuery(DefaultFilePath, DefaultBaseline, DefaultCurrent));
 
-            var query = new DeltaCacheQuery(filePath, baselineContent, currentContent);
-
-            // Act
-            var result = _cacheService.Get(query);
-
-            // Assert
-            Assert.IsTrue(result.Item1);
-            Assert.IsNotNull(result.Item2);
-            Assert.AreEqual(-0.5m, result.Item2.ScoreChange);
+            AssertCacheHit(result, -0.5m);
         }
 
         [TestMethod]
         public void Get_CacheHitWithNullDelta_ReturnsTrueAndNull()
         {
-            // Arrange
-            var filePath = "test.cs";
-            var baselineContent = "old code";
-            var currentContent = "new code";
+            PutCacheEntry(DefaultFilePath, DefaultBaseline, DefaultCurrent, delta: null);
 
-            var entry = new DeltaCacheEntry(filePath, baselineContent, currentContent, null);
-            _cacheService.Put(entry);
+            var result = _cacheService.Get(new DeltaCacheQuery(DefaultFilePath, DefaultBaseline, DefaultCurrent));
 
-            var query = new DeltaCacheQuery(filePath, baselineContent, currentContent);
-
-            // Act
-            var result = _cacheService.Get(query);
-
-            // Assert
             Assert.IsTrue(result.Item1); // Cache hit
             Assert.IsNull(result.Item2); // But delta was null
         }
 
         [TestMethod]
-        public void Get_DifferentBaselineContent_ReturnsFalse()
+        public void Get_DifferentBaselineContent_ReturnsStaleEntry()
         {
-            // Arrange
-            var filePath = "test.cs";
-            var originalBaseline = "original baseline";
-            var currentContent = "current code";
-            var delta = new DeltaResponseModel { ScoreChange = -1.0m };
+            var uniquePath = "baseline_test_" + System.Guid.NewGuid() + ".cs";
+            PutCacheEntry(uniquePath, "original baseline", DefaultCurrent, CreateDelta(-1.0m));
 
-            var entry = new DeltaCacheEntry(filePath, originalBaseline, currentContent, delta);
-            _cacheService.Put(entry);
+            var result = _cacheService.Get(new DeltaCacheQuery(uniquePath, "different baseline", DefaultCurrent));
 
-            var query = new DeltaCacheQuery(filePath, "different baseline", currentContent);
-
-            // Act
-            var result = _cacheService.Get(query);
-
-            // Assert
-            Assert.IsFalse(result.Item1); // Cache miss due to different baseline hash
+            // Cache returns stale entry (found=false) but still provides old delta for reference
+            AssertStaleEntry(result, expectedScoreChange: -1.0m);
         }
 
         [TestMethod]
-        public void Get_DifferentCurrentContent_ReturnsFalse()
+        public void Get_DifferentCurrentContent_ReturnsStaleEntry()
         {
-            // Arrange
-            var filePath = "test.cs";
-            var baselineContent = "baseline code";
-            var originalCurrent = "original current";
-            var delta = new DeltaResponseModel { ScoreChange = -1.0m };
+            var uniquePath = "current_test_" + System.Guid.NewGuid() + ".cs";
+            PutCacheEntry(uniquePath, DefaultBaseline, "original current", CreateDelta(-1.0m));
 
-            var entry = new DeltaCacheEntry(filePath, baselineContent, originalCurrent, delta);
-            _cacheService.Put(entry);
+            var result = _cacheService.Get(new DeltaCacheQuery(uniquePath, DefaultBaseline, "different current"));
 
-            var query = new DeltaCacheQuery(filePath, baselineContent, "different current");
-
-            // Act
-            var result = _cacheService.Get(query);
-
-            // Assert
-            Assert.IsFalse(result.Item1); // Cache miss due to different current hash
+            // Cache returns stale entry (found=false) but still provides old delta for reference
+            AssertStaleEntry(result, expectedScoreChange: -1.0m);
         }
 
         [TestMethod]
         public void Get_DifferentFilePath_ReturnsFalse()
         {
-            // Arrange
-            var baselineContent = "baseline";
-            var currentContent = "current";
-            var delta = new DeltaResponseModel { ScoreChange = -1.0m };
+            PutCacheEntry("file1.cs", DefaultBaseline, DefaultCurrent, CreateDelta(-1.0m));
 
-            var entry = new DeltaCacheEntry("file1.cs", baselineContent, currentContent, delta);
-            _cacheService.Put(entry);
+            var result = _cacheService.Get(new DeltaCacheQuery("file2.cs", DefaultBaseline, DefaultCurrent));
 
-            var query = new DeltaCacheQuery("file2.cs", baselineContent, currentContent);
+            AssertCacheMiss(result);
+        }
 
-            // Act
-            var result = _cacheService.Get(query);
+        private void PutCacheEntry(string path, string baseline, string current, DeltaResponseModel delta)
+        {
+            _cacheService.Put(new DeltaCacheEntry(path, baseline, current, delta));
+        }
 
-            // Assert
-            Assert.IsFalse(result.Item1);
-            Assert.IsNull(result.Item2);
+        private static DeltaResponseModel CreateDelta(decimal scoreChange)
+        {
+            return new DeltaResponseModel { ScoreChange = scoreChange };
+        }
+
+        private static void AssertCacheHit((bool found, DeltaResponseModel delta) result, decimal expectedScoreChange)
+        {
+            Assert.IsTrue(result.found);
+            Assert.IsNotNull(result.delta);
+            Assert.AreEqual(expectedScoreChange, result.delta.ScoreChange);
+        }
+
+        private static void AssertCacheMiss((bool found, DeltaResponseModel delta) result)
+        {
+            Assert.IsFalse(result.found);
+            Assert.IsNull(result.delta);
+        }
+
+        private static void AssertStaleEntry((bool found, DeltaResponseModel delta) result, decimal expectedScoreChange)
+        {
+            Assert.IsFalse(result.found, "Stale entry should return found=false");
+            Assert.IsNotNull(result.delta, "Stale entry should still return the old delta for reference");
+            Assert.AreEqual(expectedScoreChange, result.delta.ScoreChange);
         }
 
         #endregion
@@ -203,10 +175,8 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void GetAll_EmptyCache_ReturnsEmptyDictionary()
         {
-            // Act
             var result = _cacheService.GetAll();
 
-            // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(0, result.Count);
         }
@@ -214,45 +184,40 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public void GetAll_WithMultipleEntries_ReturnsAllNonNullDeltas()
         {
-            // Arrange
-            var entry1 = new DeltaCacheEntry("file1.cs", "b1", "c1", new DeltaResponseModel { ScoreChange = 1.0m });
-            var entry2 = new DeltaCacheEntry("file2.cs", "b2", "c2", new DeltaResponseModel { ScoreChange = 2.0m });
-            var entry3 = new DeltaCacheEntry("file3.cs", "b3", "c3", new DeltaResponseModel { ScoreChange = 3.0m });
+            PutMultipleCacheEntries(("file1.cs", 1.0m), ("file2.cs", 2.0m), ("file3.cs", 3.0m));
 
-            _cacheService.Put(entry1);
-            _cacheService.Put(entry2);
-            _cacheService.Put(entry3);
-
-            // Act
             var result = _cacheService.GetAll();
 
-            // Assert
-            Assert.AreEqual(3, result.Count);
-            Assert.IsTrue(result.ContainsKey("file1.cs"));
-            Assert.IsTrue(result.ContainsKey("file2.cs"));
-            Assert.IsTrue(result.ContainsKey("file3.cs"));
+            AssertCacheContains(result, expectedCount: 3, expectedFiles: new[] { "file1.cs", "file2.cs", "file3.cs" });
         }
 
         [TestMethod]
         public void GetAll_ExcludesEntriesWithNullDelta()
         {
-            // Arrange
-            var entry1 = new DeltaCacheEntry("file1.cs", "b1", "c1", new DeltaResponseModel { ScoreChange = 1.0m });
-            var entry2 = new DeltaCacheEntry("file2.cs", "b2", "c2", null); // null delta
-            var entry3 = new DeltaCacheEntry("file3.cs", "b3", "c3", new DeltaResponseModel { ScoreChange = 3.0m });
+            PutCacheEntry("file1.cs", "b1", "c1", CreateDelta(1.0m));
+            PutCacheEntry("file2.cs", "b2", "c2", delta: null); // Should be excluded
+            PutCacheEntry("file3.cs", "b3", "c3", CreateDelta(3.0m));
 
-            _cacheService.Put(entry1);
-            _cacheService.Put(entry2);
-            _cacheService.Put(entry3);
-
-            // Act
             var result = _cacheService.GetAll();
 
-            // Assert
-            Assert.AreEqual(2, result.Count);
-            Assert.IsTrue(result.ContainsKey("file1.cs"));
-            Assert.IsFalse(result.ContainsKey("file2.cs")); // Should be excluded
-            Assert.IsTrue(result.ContainsKey("file3.cs"));
+            AssertCacheContains(result, expectedCount: 2, expectedFiles: new[] { "file1.cs", "file3.cs" });
+            Assert.IsFalse(result.ContainsKey("file2.cs"));
+        }
+
+        private void PutMultipleCacheEntries(params (string file, decimal scoreChange)[] entries)
+        {
+            for (int i = 0; i < entries.Length; i++)
+            {
+                var (file, scoreChange) = entries[i];
+                PutCacheEntry(file, $"b{i + 1}", $"c{i + 1}", CreateDelta(scoreChange));
+            }
+        }
+
+        private static void AssertCacheContains(System.Collections.Generic.Dictionary<string, DeltaResponseModel> result, int expectedCount, string[] expectedFiles)
+        {
+            Assert.AreEqual(expectedCount, result.Count);
+            foreach (var file in expectedFiles)
+                Assert.IsTrue(result.ContainsKey(file), $"Cache should contain {file}");
         }
 
         #endregion

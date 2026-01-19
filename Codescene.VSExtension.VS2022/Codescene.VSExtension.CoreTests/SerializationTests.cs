@@ -20,13 +20,26 @@ namespace Codescene.VSExtension.CoreTests
             return result;
         }
 
-        private static void AssertRange(CliRangeModel range, int startLine, int startCol, int endLine, int endCol)
+        private static void AssertRangeEquals(CliRangeModel actual, CliRangeModel expected)
         {
-            Assert.AreEqual(startLine, range.Startline, "StartLine mismatch");
-            Assert.AreEqual(startCol, range.StartColumn, "StartColumn mismatch");
-            Assert.AreEqual(endLine, range.EndLine, "EndLine mismatch");
-            Assert.AreEqual(endCol, range.EndColumn, "EndColumn mismatch");
+            AssertStartPosition(actual, expected);
+            AssertEndPosition(actual, expected);
         }
+
+        private static void AssertStartPosition(CliRangeModel actual, CliRangeModel expected)
+        {
+            Assert.AreEqual(expected.Startline, actual.Startline, "StartLine mismatch");
+            Assert.AreEqual(expected.StartColumn, actual.StartColumn, "StartColumn mismatch");
+        }
+
+        private static void AssertEndPosition(CliRangeModel actual, CliRangeModel expected)
+        {
+            Assert.AreEqual(expected.EndLine, actual.EndLine, "EndLine mismatch");
+            Assert.AreEqual(expected.EndColumn, actual.EndColumn, "EndColumn mismatch");
+        }
+
+        private static CliRangeModel CreateExpectedRange(int startLine, int startCol, int endLine, int endCol) =>
+            new CliRangeModel { Startline = startLine, StartColumn = startCol, EndLine = endLine, EndColumn = endCol };
 
         private static void AssertJsonContainsProperties(string json, params string[] properties)
         {
@@ -52,8 +65,23 @@ namespace Codescene.VSExtension.CoreTests
 
             var result = DeserializeJson<CliReviewModel>(json);
 
+            AssertCliReviewModelFields(result);
+        }
+
+        private static void AssertCliReviewModelFields(CliReviewModel result)
+        {
+            AssertCliReviewScores(result);
+            AssertCliReviewCodeSmells(result);
+        }
+
+        private static void AssertCliReviewScores(CliReviewModel result)
+        {
             Assert.AreEqual(8.5f, result.Score);
             Assert.AreEqual("abc123", result.RawScore);
+        }
+
+        private static void AssertCliReviewCodeSmells(CliReviewModel result)
+        {
             Assert.AreEqual("Large File", result.FileLevelCodeSmells[0].Category);
             Assert.AreEqual("ProcessData", result.FunctionLevelCodeSmells[0].Function);
         }
@@ -83,10 +111,15 @@ namespace Codescene.VSExtension.CoreTests
 
             var result = DeserializeJson<DeltaResponseModel>(json);
 
-            Assert.AreEqual((decimal)-0.5f, result.ScoreChange);
-            Assert.AreEqual((decimal)8.0f, result.OldScore);
-            Assert.AreEqual((decimal)7.5f, result.NewScore);
+            AssertDeltaScoreFields(result, expectedScoreChange: -0.5m, expectedOldScore: 8.0m, expectedNewScore: 7.5m);
             Assert.AreEqual("Calculate", result.FunctionLevelFindings[0].Function.Name);
+        }
+
+        private static void AssertDeltaScoreFields(DeltaResponseModel result, decimal expectedScoreChange, decimal expectedOldScore, decimal expectedNewScore)
+        {
+            Assert.AreEqual(expectedScoreChange, result.ScoreChange);
+            Assert.AreEqual(expectedOldScore, result.OldScore);
+            Assert.AreEqual(expectedNewScore, result.NewScore);
         }
 
         #endregion
@@ -118,11 +151,30 @@ namespace Codescene.VSExtension.CoreTests
 
             var result = DeserializeJson<FnToRefactorModel>(json);
 
-            Assert.AreEqual("ProcessOrder", result.Name);
-            Assert.AreEqual("function body here", result.Body);
-            Assert.AreEqual("cs", result.FileType);
-            Assert.AreEqual("base64data", result.NippyB64);
-            AssertRange(result.Range, 10, 5, 50, 5);
+            var expected = CreateExpectedFnToRefactor("ProcessOrder", "function body here", "cs", "base64data");
+            AssertFnToRefactorModelEquals(result, expected);
+            AssertRangeEquals(result.Range, CreateExpectedRange(10, 5, 50, 5));
+        }
+
+        private static FnToRefactorModel CreateExpectedFnToRefactor(string name, string body, string fileType, string nippyB64) =>
+            new FnToRefactorModel { Name = name, Body = body, FileType = fileType, NippyB64 = nippyB64 };
+
+        private static void AssertFnToRefactorModelEquals(FnToRefactorModel actual, FnToRefactorModel expected)
+        {
+            AssertFnIdentity(actual, expected);
+            AssertFnContent(actual, expected);
+        }
+
+        private static void AssertFnIdentity(FnToRefactorModel actual, FnToRefactorModel expected)
+        {
+            Assert.AreEqual(expected.Name, actual.Name);
+            Assert.AreEqual(expected.FileType, actual.FileType);
+        }
+
+        private static void AssertFnContent(FnToRefactorModel actual, FnToRefactorModel expected)
+        {
+            Assert.AreEqual(expected.Body, actual.Body);
+            Assert.AreEqual(expected.NippyB64, actual.NippyB64);
         }
 
         [TestMethod]
@@ -139,9 +191,14 @@ namespace Codescene.VSExtension.CoreTests
             var json = JsonConvert.SerializeObject(model);
             var deserialized = JsonConvert.DeserializeObject<FnToRefactorModel>(json);
 
-            Assert.AreEqual(model.Name, deserialized.Name);
-            Assert.AreEqual(model.Body, deserialized.Body);
-            Assert.AreEqual(model.FileType, deserialized.FileType);
+            AssertFnToRefactorRoundTrip(model, deserialized);
+        }
+
+        private static void AssertFnToRefactorRoundTrip(FnToRefactorModel original, FnToRefactorModel deserialized)
+        {
+            Assert.AreEqual(original.Name, deserialized.Name);
+            Assert.AreEqual(original.Body, deserialized.Body);
+            Assert.AreEqual(original.FileType, deserialized.FileType);
         }
 
         #endregion
@@ -182,7 +239,7 @@ namespace Codescene.VSExtension.CoreTests
 
             var result = DeserializeJson<CliRangeModel>(json);
 
-            AssertRange(result, 10, 5, 20, 15);
+            AssertRangeEquals(result, CreateExpectedRange(10, 5, 20, 15));
         }
 
         [TestMethod]
@@ -210,10 +267,25 @@ namespace Codescene.VSExtension.CoreTests
 
             var result = DeserializeJson<CliCodeSmellModel>(json);
 
-            Assert.AreEqual("Deep Nesting", result.Category);
-            Assert.AreEqual("Depth: 5", result.Details);
+            AssertCodeSmellFields(result, expectedCategory: "Deep Nesting", expectedDetails: "Depth: 5", expectedRangeStartLine: 15);
+        }
+
+        private static void AssertCodeSmellFields(CliCodeSmellModel result, string expectedCategory, string expectedDetails, int expectedRangeStartLine)
+        {
+            AssertCodeSmellMetadata(result, expectedCategory, expectedDetails);
+            AssertCodeSmellRange(result, expectedRangeStartLine);
+        }
+
+        private static void AssertCodeSmellMetadata(CliCodeSmellModel result, string expectedCategory, string expectedDetails)
+        {
+            Assert.AreEqual(expectedCategory, result.Category);
+            Assert.AreEqual(expectedDetails, result.Details);
+        }
+
+        private static void AssertCodeSmellRange(CliCodeSmellModel result, int expectedRangeStartLine)
+        {
             Assert.IsNotNull(result.Range);
-            Assert.AreEqual(15, result.Range.Startline);
+            Assert.AreEqual(expectedRangeStartLine, result.Range.Startline);
         }
 
         #endregion
