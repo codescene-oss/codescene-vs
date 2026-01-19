@@ -82,7 +82,7 @@ jobs:
           name: test-results
           path: |
             '**/*.trx'
-            '**/*.cobertura.xml
+            '**/*.cobertura.xml'
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
