@@ -1,9 +1,8 @@
 using Codescene.VSExtension.Core.Application.Services.Cache.Review;
 using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
     public class DeltaCacheServiceTests

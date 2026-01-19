@@ -2,11 +2,9 @@ using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using System.Collections.Generic;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
     public class SerializationTests

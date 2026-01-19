@@ -5,11 +5,9 @@ using Codescene.VSExtension.Core.Application.Services.Util;
 using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System.Collections.Generic;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
     public class CodeReviewerHelperTests

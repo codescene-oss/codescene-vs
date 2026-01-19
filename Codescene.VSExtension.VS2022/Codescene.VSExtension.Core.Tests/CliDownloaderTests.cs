@@ -1,9 +1,8 @@
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.Core.Tests
 {
     /// <summary>
     /// Unit tests for CliDownloader.

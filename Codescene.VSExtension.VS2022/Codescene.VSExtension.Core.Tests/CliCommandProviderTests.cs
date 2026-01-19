@@ -3,13 +3,10 @@ using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
     public class CliCommandProviderTests
