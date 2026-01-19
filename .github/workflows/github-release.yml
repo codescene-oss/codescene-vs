@@ -80,13 +80,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: '**/*.trx'
-          
-      - name: Upload code coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-coverage
-          path: '**/*.cobertura.xml'
+          path: |
+            **/*.trx
+            **/*.cobertura.xml
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
