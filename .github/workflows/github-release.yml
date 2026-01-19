@@ -80,25 +80,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: |
-            **/*.trx
-            **/*.cobertura.xml
-      - name: Install cs tool
-        run: curl https://downloads.codescene.io/enterprise/cli/install-cs-coverage-tool.sh | bash -s -- -y
+          path: '**/*.trx'
 
-      - name: Add ~/.local/bin to PATH
-        shell: pwsh
-        run: |
-          "$HOME\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - uses: ./.github/actions/check-coverage
+        if: always()
+        with:
+          access-token: ${{ secrets.CS_API_TOKEN }}
+          project-url: "https://api.codescene.io/v2/projects/66574"
+          coverage-files: "**/TestResults/*/.cobertura.xml"
           
-      - name: Upload coverage data to CodeScene
-        shell: pwsh
-        run: |
-          $file = Get-ChildItem -Path "TestResults" -Filter "*.cobertura.xml" -Recurse | Select-Object -First 1
-          cs-coverage upload --format "cobertura" --metric "line-coverage" $file.FullName
-        env:
-          CS_ACCESS_TOKEN: ${{ secrets.CS_ACCESS_TOKEN }}
-
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
