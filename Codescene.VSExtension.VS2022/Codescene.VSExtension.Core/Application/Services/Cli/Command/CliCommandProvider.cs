@@ -15,7 +15,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     {
         private static readonly JsonSerializerSettings RefactorSerializerSettings = new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore };
 
-        [Import]
         private readonly ICliObjectScoreCreator _creator;
 
         [ImportingConstructor]

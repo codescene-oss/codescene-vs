@@ -7,8 +7,6 @@ namespace Codescene.VSExtension.Core.Tests
     {
         private readonly SupportedFileChecker _checker = new SupportedFileChecker();
 
-        #region Supported Language Extensions
-
         private static readonly string[] JavaScriptTypeScriptExtensions = { ".js", ".mjs", ".jsx", ".ts", ".tsx", ".vue" };
         private static readonly string[] CFamilyExtensions = { ".c", ".h", ".cc", ".cpp", ".cxx", ".hpp", ".c++", ".m", ".mm" };
         private static readonly string[] DotNetExtensions = { ".cs", ".vb" };
@@ -67,10 +65,6 @@ namespace Codescene.VSExtension.Core.Tests
             AssertExtensionsNotSupported(UnsupportedExtensions);
         }
 
-        #endregion
-
-        #region Edge Cases
-
         [TestMethod]
         public void IsSupported_NullPath_ReturnsFalse()
         {
@@ -95,10 +89,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsFalse(_checker.IsSupported("noextension"));
         }
 
-        #endregion
-
-        #region Case Insensitivity
-
         [TestMethod]
         public void IsSupported_CaseInsensitive_UpperCase_ReturnsTrue()
         {
@@ -110,10 +100,6 @@ namespace Codescene.VSExtension.Core.Tests
         {
             Assert.IsTrue(_checker.IsSupported("test.Cs"));
         }
-
-        #endregion
-
-        #region Full Paths
 
         [TestMethod]
         public void IsSupported_WindowsFullPath_ReturnsTrue()
@@ -133,10 +119,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsTrue(_checker.IsSupported("./relative/path/to/file.java"));
             Assert.IsFalse(_checker.IsSupported("../parent/path/to/file.txt"));
         }
-
-        #endregion
-
-        #region Helper Methods
 
         private void AssertExtensionsSupported(IEnumerable<string> extensions)
         {
@@ -171,7 +153,5 @@ namespace Codescene.VSExtension.Core.Tests
             foreach (var path in filePaths)
                 Assert.IsTrue(_checker.IsSupported(path), $"{path} should be supported");
         }
-
-        #endregion
     }
 }

@@ -17,8 +17,6 @@ namespace Codescene.VSExtension.Core.Tests
             _authService = new AuthenticationService(_mockPersistenceProvider.Object);
         }
 
-        #region IsLoggedIn Tests
-
         [TestMethod]
         public void IsLoggedIn_WhenNoDataInMemoryAndProviderReturnsNull_ReturnsFalse()
         {
@@ -97,10 +95,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mockPersistenceProvider.Verify(x => x.GetData(), Times.Never);
         }
 
-        #endregion
-
-        #region GetData Tests
-
         [TestMethod]
         public void GetData_WhenNotLoggedIn_ReturnsNull()
         {
@@ -136,10 +130,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual("CachedUser", result.Name);
             Assert.AreEqual("456", result.UserId);
         }
-
-        #endregion
-
-        #region SignOut Tests
 
         [TestMethod]
         public void SignOut_ClearsInMemoryData()
@@ -205,7 +195,5 @@ namespace Codescene.VSExtension.Core.Tests
             _mockPersistenceProvider.Verify(x => x.Clear(), Times.Once);
             Assert.IsTrue(eventFired);
         }
-
-        #endregion
     }
 }

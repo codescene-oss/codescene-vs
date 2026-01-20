@@ -37,8 +37,6 @@ namespace Codescene.VSExtension.Core.Tests
                 _mockGitService.Object);
         }
 
-        #region Review Tests
-
         [TestMethod]
         public void Review_NullPath_ReturnsNull()
         {
@@ -166,10 +164,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mockExecutor.Verify(x => x.ReviewContent("MyFile.cs", content), Times.Once);
         }
 
-        #endregion
-
-        #region Delta Tests
-
         [TestMethod]
         public void Delta_NullFilePath_ReturnsNull()
         {
@@ -250,7 +244,5 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert - verify ReviewDelta was called with empty string for current raw score
             _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), ""), Times.Once);
         }
-
-        #endregion
     }
 }

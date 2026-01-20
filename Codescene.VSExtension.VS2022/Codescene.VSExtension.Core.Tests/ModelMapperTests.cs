@@ -12,8 +12,6 @@ namespace Codescene.VSExtension.Core.Tests
         private readonly ModelMapper _mapper = new ModelMapper();
         private const string DefaultFilePath = "test.cs";
 
-        #region Helper Methods
-
         private static CliRangeModel CreateRange(int startLine, int endLine)
         {
             return new CliRangeModel { Startline = startLine, EndLine = endLine, StartColumn = 1, EndColumn = 1 };
@@ -34,9 +32,6 @@ namespace Codescene.VSExtension.Core.Tests
             return _mapper.Map(path, cliReview);
         }
 
-        #endregion
-
-        [TestMethod]
         public void Map_NullCliReviewModel_ReturnsEmptyFileReviewModel()
         {
             var result = MapReview(null);

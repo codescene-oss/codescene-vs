@@ -9,7 +9,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Authentication
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class AuthenticationService : IAuthenticationService
     {
-        [Import]
         private readonly IPersistenceAuthDataProvider _persistenceDataProvider;
 
         [ImportingConstructor]

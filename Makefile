@@ -21,4 +21,8 @@ build: copy-assets restore
 	MSBuild.exe Codescene.VSExtension.VS2022/Codescene.VSExtension.sln /p:Configuration=Release /p:Platform="Any CPU"
 
 test: build
-	vstest.console.exe '**\bin\Release\*Tests.dll' /logger:trx
+	dotnet.exe test Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --configuration Release --no-build --results-directory ./Codescene.VSExtension.VS2022/TestResults/ --logger trx
+
+test-code-coverage: build
+	dotnet.exe test Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --configuration Release --no-build --results-directory ./Codescene.VSExtension.VS2022/TestResults/ --logger trx  --collect "XPlat Code Coverage"
+	

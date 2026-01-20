@@ -33,8 +33,6 @@ namespace Codescene.VSExtension.Core.Tests
             _cacheService?.Clear();
         }
 
-        #region Helper Methods
-
         private static FnToRefactorModel CreateRefactorableFunction(string name, int startLine, int endLine)
         {
             return new FnToRefactorModel
@@ -84,10 +82,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains(expectedContent))), Times.Once);
         }
 
-        #endregion
-
-        #region ShouldSkipUpdate Tests
-
         [TestMethod]
         public void ShouldSkipUpdate_NullDelta_ReturnsTrue()
         {
@@ -117,10 +111,6 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsFalse(result);
         }
-
-        #endregion
-
-        #region CheckRange Tests
 
         [TestMethod]
         public void CheckRange_FunctionStartsInsideRefactorableRange_ReturnsTrue()
@@ -161,10 +151,6 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.AreEqual(expected, result);
         }
-
-        #endregion
-
-        #region UpdateFindingIfNotUpdated Tests
 
         [TestMethod]
         public void UpdateFindingIfNotUpdated_MatchingFunctionFound_SetsRefactorableFn()
@@ -210,10 +196,6 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsNull(finding.RefactorableFn);
         }
-
-        #endregion
-
-        #region UpdateFindings Tests
 
         [TestMethod]
         public void UpdateFindings_MultipleFindingsWithMatches_UpdatesAll()
@@ -264,10 +246,6 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsNull(delta.FunctionLevelFindings[0].RefactorableFn);
         }
-
-        #endregion
-
-        #region UpdateDeltaCacheWithRefactorableFunctions Tests
 
         [TestMethod]
         public void UpdateDeltaCacheWithRefactorableFunctions_WithMatchingCacheEntry_UpdatesDeltaFindings()
@@ -369,6 +347,5 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNull(delta.FunctionLevelFindings[0].RefactorableFn);
         }
 
-        #endregion
     }
 }

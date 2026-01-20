@@ -39,8 +39,6 @@ namespace Codescene.VSExtension.Core.Tests
             AceManager.LastRefactoring = null;
         }
 
-        #region GetRefactorableFunctions Tests
-
         [TestMethod]
         public void GetRefactorableFunctions_DelegatesToExecutor()
         {
@@ -85,10 +83,6 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert
             Assert.IsNull(result);
         }
-
-        #endregion
-
-        #region Refactor Tests
 
         [TestMethod]
         public void Refactor_WhenExecutorReturnsNull_ReturnsNull()
@@ -154,10 +148,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("MyFunction") && s.Contains("test.cs"))), Times.Once);
         }
 
-        #endregion
-
-        #region GetCachedRefactoredCode Tests
-
         [TestMethod]
         public void GetCachedRefactoredCode_WhenNoCachedResult_ReturnsNull()
         {
@@ -193,6 +183,5 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual("refactored code", result.Refactored.Code);
         }
 
-        #endregion
     }
 }

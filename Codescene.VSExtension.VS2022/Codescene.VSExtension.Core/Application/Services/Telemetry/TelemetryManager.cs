@@ -12,19 +12,10 @@ namespace Codescene.VSExtension.Core.Application.Services.Telemetry
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class TelemetryManager : ITelemetryManager
     {
-        [Import]
         private readonly ILogger _logger;
-
-        [Import]
         private readonly IProcessExecutor _executor;
-
-        [Import]
         private readonly IDeviceIdStore _deviceIdStore;
-
-        [Import]
         private readonly ICliCommandProvider _cliCommandProvider;
-
-        [Import]
         private readonly IExtensionMetadataProvider _extensionMetadataProvider;
 
         [ImportingConstructor]

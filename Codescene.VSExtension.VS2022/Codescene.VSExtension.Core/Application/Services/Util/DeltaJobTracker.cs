@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Codescene.VSExtension.VS2022.Util
+namespace Codescene.VSExtension.Core.Application.Services.Util
 {
     /// <summary>
     /// Tracks currently running delta analysis jobs and notifies subscribers when jobs start or finish.
