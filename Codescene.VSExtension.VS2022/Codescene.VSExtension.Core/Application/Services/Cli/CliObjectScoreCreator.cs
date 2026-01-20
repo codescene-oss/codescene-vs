@@ -8,7 +8,6 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliObjectScoreCreator : ICliObjectScoreCreator
     {
-        [Import]
         private readonly ILogger _logger;
 
         [ImportingConstructor]

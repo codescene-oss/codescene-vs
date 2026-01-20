@@ -12,10 +12,7 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliDownloader : ICliDownloader
     {
-        [Import]
         private readonly ILogger _logger;
-
-        [Import]
         private readonly ICliSettingsProvider _cliSettingsProvider;
 
         [ImportingConstructor]

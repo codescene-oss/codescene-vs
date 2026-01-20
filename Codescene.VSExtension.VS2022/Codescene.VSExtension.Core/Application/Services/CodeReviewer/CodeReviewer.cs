@@ -19,19 +19,10 @@ namespace Codescene.VSExtension.Core.Application.Services.CodeReviewer
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeReviewer : ICodeReviewer
     {
-        [Import]
         private readonly ILogger _logger;
-
-        [Import]
         private readonly IModelMapper _mapper;
-
-        [Import]
         private readonly ICliExecutor _executer;
-
-        [Import]
         private readonly ITelemetryManager _telemetryManager;
-
-        [Import]
         private readonly IGitService _git;
 
         [ImportingConstructor]

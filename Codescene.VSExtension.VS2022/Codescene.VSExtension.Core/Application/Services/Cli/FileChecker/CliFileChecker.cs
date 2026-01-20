@@ -11,16 +11,9 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliFileChecker : ICliFileChecker
     {
-        [Import]
         private readonly ILogger _logger;
-
-        [Import]
         private readonly ICliExecutor _cliExecuter;
-
-        [Import]
         private readonly ICliSettingsProvider _cliSettingsProvider;
-
-        [Import]
         private readonly ICliDownloader _cliDownloader;
 
         [ImportingConstructor]

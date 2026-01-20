@@ -16,13 +16,8 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class AceManager : IAceManager
     {
-        [Import]
         private readonly ILogger _logger;
-
-        [Import]
         private readonly ICliExecutor _executor;
-
-        [Import]
         private readonly ITelemetryManager _telemetryManager;
 
         [ImportingConstructor]

@@ -17,19 +17,10 @@ namespace Codescene.VSExtension.Core.Application.Services.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliExecutor : ICliExecutor
     {
-        [Import]
         private readonly ILogger _logger;
-
-        [Import]
         private readonly ICliCommandProvider _cliCommandProvider; // TODO: evaulate if this is needed, if  ExecuteCommand(string arguments, string content = null) is replaced with IProcessExecutor
-
-        [Import]
         private readonly IProcessExecutor _executor;
-
-        [Import]
         private readonly ISettingsProvider _settingsProvider;
-
-        [Import]
         private readonly ICacheStorageService _cacheStorageService;
 
         [ImportingConstructor]
