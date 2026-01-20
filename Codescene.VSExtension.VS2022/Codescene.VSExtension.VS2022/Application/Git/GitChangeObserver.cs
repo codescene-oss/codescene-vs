@@ -44,6 +44,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         private ISavedFilesTracker _savedFilesTracker;
         private IOpenFilesObserver _openFilesObserver;
+        private GitChangeDetector _gitChangeDetector;
 
         public void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
         {
@@ -60,6 +61,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             _solutionPath = solutionPath;
             _savedFilesTracker = savedFilesTracker;
             _openFilesObserver = openFilesObserver;
+            _gitChangeDetector = new GitChangeDetector(_logger, _supportedFileChecker);
 
             InitializeGitPaths();
 
@@ -226,165 +228,9 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
         {
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    var changedFiles = new List<string>();
-
-                    if (string.IsNullOrEmpty(_gitRootPath) || !Directory.Exists(_gitRootPath))
-                    {
-                        return changedFiles;
-                    }
-
-                    var repoPath = Repository.Discover(_gitRootPath);
-                    if (string.IsNullOrEmpty(repoPath))
-                    {
-                        return changedFiles;
-                    }
-
-                    using (var repo = new Repository(repoPath))
-                    {
-                        var baseCommit = GetMergeBaseCommit(repo);
-
-                    if (baseCommit == null)
-                    {
-                        _logger?.Debug("GitChangeObserver: No merge base commit found, using working directory changes only");
-                    }
-
-                    var filesToExcludeFromHeuristic = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    if (_savedFilesTracker != null)
-                    {
-                        foreach (var file in _savedFilesTracker.GetSavedFiles())
-                        {
-                            filesToExcludeFromHeuristic.Add(file);
-                        }
-                    }
-                    if (_openFilesObserver != null)
-                    {
-                        foreach (var file in _openFilesObserver.GetAllVisibleFileNames())
-                        {
-                            filesToExcludeFromHeuristic.Add(file);
-                        }
-                    }
-
-                        var committedChanges = GetCommittedChanges(repo, baseCommit);
-                        var statusChanges = GetStatusChanges(repo, filesToExcludeFromHeuristic);
-
-                        changedFiles.AddRange(committedChanges);
-                        changedFiles.AddRange(statusChanges);
-
-                        return changedFiles.Distinct().ToList();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger?.Warn($"GitChangeObserver: Error getting changed files: {ex.Message}");
-                    return new List<string>();
-                }
-            });
+            return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _savedFilesTracker, _openFilesObserver);
         }
 
-        private Commit GetMergeBaseCommit(Repository repo)
-        {
-            try
-            {
-                if (repo.Head == null || repo.Head.Tip == null)
-                {
-                    return null;
-                }
-
-                var currentBranch = repo.Head;
-
-                var mainBranch = repo.Branches["main"] ?? repo.Branches["master"] ?? repo.Branches["origin/main"] ?? repo.Branches["origin/master"];
-
-                if (mainBranch == null || mainBranch.Tip == null)
-                {
-                    return null;
-                }
-
-                if (currentBranch.FriendlyName == mainBranch.FriendlyName)
-                {
-                    return null;
-                }
-
-                var mergeBase = repo.ObjectDatabase.FindMergeBase(currentBranch.Tip, mainBranch.Tip);
-                return mergeBase;
-            }
-            catch (Exception ex)
-            {
-                _logger?.Debug($"GitChangeObserver: Could not determine merge base: {ex.Message}");
-                return null;
-            }
-        }
-
-        private List<string> GetCommittedChanges(Repository repo, Commit baseCommit)
-        {
-            var changes = new List<string>();
-
-            try
-            {
-                if (baseCommit == null || repo.Head?.Tip == null)
-                {
-                    return changes;
-                }
-
-                var diff = repo.Diff.Compare<TreeChanges>(baseCommit.Tree, repo.Head.Tip.Tree);
-
-                foreach (var change in diff)
-                {
-                    var relativePath = change.Path;
-                    var fullPath = Path.Combine(_gitRootPath, relativePath);
-
-                    if (_supportedFileChecker.IsSupported(fullPath))
-                    {
-                        changes.Add(relativePath);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.Debug($"GitChangeObserver: Error getting committed changes: {ex.Message}");
-            }
-
-            return changes;
-        }
-
-        private List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude)
-        {
-            var changes = new List<string>();
-
-            try
-            {
-                var status = repo.RetrieveStatus();
-
-                foreach (var item in status)
-                {
-                    if (item.State == FileStatus.Unaltered || item.State == FileStatus.Ignored)
-                    {
-                        continue;
-                    }
-
-                    var fullPath = Path.Combine(_gitRootPath, item.FilePath);
-
-                    if (filesToExclude.Contains(fullPath))
-                    {
-                        continue;
-                    }
-
-                    if (_supportedFileChecker.IsSupported(fullPath))
-                    {
-                        changes.Add(item.FilePath);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.Debug($"GitChangeObserver: Error getting status changes: {ex.Message}");
-            }
-
-            return changes;
-        }
 
         private async Task<List<string>> CollectFilesFromRepoStateAsync()
         {
@@ -436,41 +282,13 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                 return true;
             }
 
-            var relativePath = GetRelativePath(_workspacePath, filePath);
+            var relativePath = PathUtilities.GetRelativePath(_workspacePath, filePath);
 
             var normalizedRelativePath = relativePath.Replace('\\', '/');
 
             return changedFiles.Any(cf => cf.Replace('\\', '/').Equals(normalizedRelativePath, StringComparison.OrdinalIgnoreCase));
         }
 
-        private string GetRelativePath(string basePath, string fullPath)
-        {
-            if (string.IsNullOrEmpty(basePath) || string.IsNullOrEmpty(fullPath))
-            {
-                return fullPath;
-            }
-
-            try
-            {
-                var baseUri = new Uri(AppendDirectorySeparatorChar(basePath));
-                var fullUri = new Uri(fullPath);
-                var relativeUri = baseUri.MakeRelativeUri(fullUri);
-                return Uri.UnescapeDataString(relativeUri.ToString()).Replace('/', Path.DirectorySeparatorChar);
-            }
-            catch
-            {
-                return fullPath;
-            }
-        }
-
-        private static string AppendDirectorySeparatorChar(string path)
-        {
-            if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
-            {
-                return path + Path.DirectorySeparatorChar;
-            }
-            return path;
-        }
 
         private async Task HandleFileChangeAsync(string filePath, List<string> changedFiles)
         {
@@ -601,53 +419,5 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             _scheduledTimer?.Dispose();
             _scheduledTimer = null;
         }
-    }
-
-    internal enum FileChangeType
-    {
-        Create,
-        Change,
-        Delete
-    }
-
-    internal class FileChangeEvent
-    {
-        public FileChangeType Type { get; }
-        public string FilePath { get; }
-
-        public FileChangeEvent(FileChangeType type, string filePath)
-        {
-            Type = type;
-            FilePath = filePath;
-        }
-    }
-
-    public class FileDeletedEventArgs : EventArgs
-    {
-        public string FilePath { get; }
-
-        public FileDeletedEventArgs(string filePath)
-        {
-            FilePath = filePath;
-        }
-    }
-
-    public interface ISavedFilesTracker
-    {
-        IEnumerable<string> GetSavedFiles();
-    }
-
-    public interface IOpenFilesObserver
-    {
-        IEnumerable<string> GetAllVisibleFileNames();
-    }
-
-    public interface IGitChangeObserver : IDisposable
-    {
-        void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver);
-        void Start();
-        Task<List<string>> GetChangedFilesVsBaselineAsync();
-        void RemoveFromTracker(string filePath);
-        event EventHandler<FileDeletedEventArgs> FileDeletedFromGit;
     }
 }
