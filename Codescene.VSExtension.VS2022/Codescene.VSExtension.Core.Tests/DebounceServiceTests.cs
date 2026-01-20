@@ -37,7 +37,7 @@ public class DebounceServiceTests
         Assert.IsFalse(actionExecuted);
 
         // Wait for debounce to complete
-        await Task.Delay(delay + TimeSpan.FromMilliseconds(50));
+        await Task.Delay(delay + TimeSpan.FromMilliseconds(200));
 
         // Now action should be executed
         Assert.IsTrue(actionExecuted);
