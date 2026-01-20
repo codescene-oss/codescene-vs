@@ -1,3 +1,5 @@
+SHELL := cmd.exe
+
 .PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine
 
 # You might need something like:
