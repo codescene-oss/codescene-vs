@@ -34,128 +34,42 @@ public class AceRefactorServiceTests
 
     #region GetRefactorableFunction Tests
 
-    [TestMethod]
-    public void GetRefactorableFunction_FindsMatchingFunction_ByCategoryAndLine()
+    private static CodeSmellModel CreateCodeSmell(string category, int startLine) =>
+        new CodeSmellModel { Category = category, Range = new CodeSmellRangeModel(startLine, startLine + 10, 1, 50) };
+
+    private static FnToRefactorModel CreateRefactorableFunction(string name, string category, int line) =>
+        new FnToRefactorModel { Name = name, RefactoringTargets = new[] { new RefactoringTargetModel { Category = category, Line = line } } };
+
+    private FnToRefactorModel FindRefactorableFunction(CodeSmellModel smell, params FnToRefactorModel[] functions) =>
+        _aceRefactorService.GetRefactorableFunction(smell, functions.ToList());
+
+    private void AssertFindsExpectedFunction(string expectedName, CodeSmellModel smell, params FnToRefactorModel[] functions)
     {
-        // Arrange
-        var codeSmell = new CodeSmellModel
-        {
-            Category = "Complex Method",
-            Range = new CodeSmellRangeModel(10, 20, 1, 50)
-        };
-
-        var refactorableFunctions = new List<FnToRefactorModel>
-        {
-            new FnToRefactorModel
-            {
-                Name = "TargetFunction",
-                RefactoringTargets = new[]
-                {
-                    new RefactoringTargetModel { Category = "Complex Method", Line = 10 }
-                }
-            },
-            new FnToRefactorModel
-            {
-                Name = "OtherFunction",
-                RefactoringTargets = new[]
-                {
-                    new RefactoringTargetModel { Category = "Other Issue", Line = 20 }
-                }
-            }
-        };
-
-        // Act
-        var result = _aceRefactorService.GetRefactorableFunction(codeSmell, refactorableFunctions);
-
-        // Assert
+        var result = FindRefactorableFunction(smell, functions);
         Assert.IsNotNull(result);
-        Assert.AreEqual("TargetFunction", result.Name);
+        Assert.AreEqual(expectedName, result.Name);
     }
 
     [TestMethod]
-    public void GetRefactorableFunction_ReturnsNull_WhenNoMatch()
-    {
-        // Arrange
-        var codeSmell = new CodeSmellModel
-        {
-            Category = "Nonexistent Issue",
-            Range = new CodeSmellRangeModel(999, 1000, 1, 50)
-        };
-
-        var refactorableFunctions = new List<FnToRefactorModel>
-        {
-            new FnToRefactorModel
-            {
-                Name = "SomeFunction",
-                RefactoringTargets = new[]
-                {
-                    new RefactoringTargetModel { Category = "Complex Method", Line = 10 }
-                }
-            }
-        };
-
-        // Act
-        var result = _aceRefactorService.GetRefactorableFunction(codeSmell, refactorableFunctions);
-
-        // Assert
-        Assert.IsNull(result);
-    }
+    public void GetRefactorableFunction_FindsMatchingFunction_ByCategoryAndLine() =>
+        AssertFindsExpectedFunction("TargetFunction", CreateCodeSmell("Complex Method", 10),
+            CreateRefactorableFunction("TargetFunction", "Complex Method", 10),
+            CreateRefactorableFunction("OtherFunction", "Other Issue", 20));
 
     [TestMethod]
-    public void GetRefactorableFunction_ReturnsNull_WhenEmptyList()
-    {
-        // Arrange
-        var codeSmell = new CodeSmellModel
-        {
-            Category = "Complex Method",
-            Range = new CodeSmellRangeModel(10, 20, 1, 50)
-        };
-        var refactorableFunctions = new List<FnToRefactorModel>();
-
-        // Act
-        var result = _aceRefactorService.GetRefactorableFunction(codeSmell, refactorableFunctions);
-
-        // Assert
-        Assert.IsNull(result);
-    }
+    public void GetRefactorableFunction_ReturnsNull_WhenNoMatch() =>
+        Assert.IsNull(FindRefactorableFunction(CreateCodeSmell("Nonexistent Issue", 999),
+            CreateRefactorableFunction("SomeFunction", "Complex Method", 10)));
 
     [TestMethod]
-    public void GetRefactorableFunction_MatchesFirstOccurrence_WhenMultipleMatches()
-    {
-        // Arrange
-        var codeSmell = new CodeSmellModel
-        {
-            Category = "Complex Method",
-            Range = new CodeSmellRangeModel(10, 20, 1, 50)
-        };
+    public void GetRefactorableFunction_ReturnsNull_WhenEmptyList() =>
+        Assert.IsNull(FindRefactorableFunction(CreateCodeSmell("Complex Method", 10)));
 
-        var refactorableFunctions = new List<FnToRefactorModel>
-        {
-            new FnToRefactorModel
-            {
-                Name = "FirstMatch",
-                RefactoringTargets = new[]
-                {
-                    new RefactoringTargetModel { Category = "Complex Method", Line = 10 }
-                }
-            },
-            new FnToRefactorModel
-            {
-                Name = "SecondMatch",
-                RefactoringTargets = new[]
-                {
-                    new RefactoringTargetModel { Category = "Complex Method", Line = 10 }
-                }
-            }
-        };
-
-        // Act
-        var result = _aceRefactorService.GetRefactorableFunction(codeSmell, refactorableFunctions);
-
-        // Assert
-        Assert.IsNotNull(result);
-        Assert.AreEqual("FirstMatch", result.Name);
-    }
+    [TestMethod]
+    public void GetRefactorableFunction_MatchesFirstOccurrence_WhenMultipleMatches() =>
+        AssertFindsExpectedFunction("FirstMatch", CreateCodeSmell("Complex Method", 10),
+            CreateRefactorableFunction("FirstMatch", "Complex Method", 10),
+            CreateRefactorableFunction("SecondMatch", "Complex Method", 10));
 
     #endregion
 

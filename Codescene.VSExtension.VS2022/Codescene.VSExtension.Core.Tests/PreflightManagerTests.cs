@@ -8,10 +8,6 @@ namespace Codescene.VSExtension.Core.Tests;
 
 /// <summary>
 /// Tests for PreflightManager.
-/// Note: The RunPreflight method is wrapped in #if FEATURE_ACE preprocessor directive.
-/// Without that flag, RunPreflight always returns null.
-/// These tests verify the behavior without the feature flag.
-/// Full testing of ACE functionality should be done via integration tests with FEATURE_ACE enabled.
 /// </summary>
 [TestClass]
 public class PreflightManagerTests
@@ -40,25 +36,6 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    [Description("Without FEATURE_ACE flag, preflight always returns null so IsSupportedLanguage returns false")]
-    public void IsSupportedLanguage_WithoutFeatureFlag_AlwaysReturnsFalse()
-    {
-        // Arrange - even with mock setup, RunPreflight returns null without FEATURE_ACE
-        var preflightResponse = new PreFlightResponseModel
-        {
-            FileTypes = new[] { "cs", "js", "py" }
-        };
-        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Returns(preflightResponse);
-        _preflightManager.RunPreflight(true);
-
-        // Act
-        var result = _preflightManager.IsSupportedLanguage(".cs");
-
-        // Assert - returns false because FEATURE_ACE is not defined
-        Assert.IsFalse(result);
-    }
-
-    [TestMethod]
     [Description("Extension normalization logic test - demonstrates the normalization logic")]
     public void IsSupportedLanguage_NormalizesExtension_RemovesDotAndConvertsToLowercase()
     {
@@ -79,24 +56,6 @@ public class PreflightManagerTests
     #endregion
 
     #region RunPreflight Tests
-
-    [TestMethod]
-    [Description("Without FEATURE_ACE, RunPreflight always returns null")]
-    public void RunPreflight_WithoutFeatureFlag_ReturnsNull()
-    {
-        // Arrange
-        var preflightResponse = new PreFlightResponseModel
-        {
-            FileTypes = new[] { "cs" }
-        };
-        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Returns(preflightResponse);
-
-        // Act
-        var result = _preflightManager.RunPreflight(true);
-
-        // Assert - returns null without FEATURE_ACE flag
-        Assert.IsNull(result);
-    }
 
     [TestMethod]
     public void RunPreflight_LogsDebugMessage()
