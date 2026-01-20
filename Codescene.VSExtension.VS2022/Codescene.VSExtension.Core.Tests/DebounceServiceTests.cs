@@ -27,20 +27,22 @@ public class DebounceServiceTests
     public async Task Debounce_ExecutesActionAfterDelay()
     {
         // Arrange
-        var actionExecuted = false;
+        var actionExecutedSignal = new TaskCompletionSource<bool>();
         var delay = TimeSpan.FromMilliseconds(100);
 
         // Act
-        _debounceService.Debounce("test-key", () => actionExecuted = true, delay);
+        _debounceService.Debounce("test-key", () => actionExecutedSignal.TrySetResult(true), delay);
 
         // Assert - action should not be executed immediately
-        Assert.IsFalse(actionExecuted);
+        Assert.IsFalse(actionExecutedSignal.Task.IsCompleted);
 
-        // Wait for debounce to complete
-        await Task.Delay(delay + TimeSpan.FromMilliseconds(200));
+        // Wait for debounce to complete with generous timeout for slow CI runners
+        var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5));
+        var completedTask = await Task.WhenAny(actionExecutedSignal.Task, timeoutTask);
 
         // Now action should be executed
-        Assert.IsTrue(actionExecuted);
+        Assert.AreNotEqual(timeoutTask, completedTask, "Action was not executed within timeout");
+        Assert.IsTrue(await actionExecutedSignal.Task);
     }
 
     [TestMethod]
