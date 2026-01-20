@@ -33,8 +33,6 @@ namespace Codescene.VSExtension.Core.Tests
                 _mockMetadataProvider.Object);
         }
 
-        #region SendTelemetry Tests
-
         [TestMethod]
         public void SendTelemetry_WhenExceptionThrown_LogsDebugAndDoesNotRethrow()
         {
@@ -112,7 +110,5 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert - metadata provider should be called (if telemetry is enabled)
             // Note: This verification depends on TelemetryUtils.IsTelemetryEnabled() returning true
         }
-
-        #endregion
     }
 }

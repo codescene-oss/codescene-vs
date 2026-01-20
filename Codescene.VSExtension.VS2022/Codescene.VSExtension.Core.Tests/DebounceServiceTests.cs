@@ -33,14 +33,12 @@ public class DebounceServiceTests
         // Act
         _debounceService.Debounce("test-key", () => actionExecutedSignal.TrySetResult(true), delay);
 
-        // Assert - action should not be executed immediately
+        // Assert
         Assert.IsFalse(actionExecutedSignal.Task.IsCompleted);
 
-        // Wait for debounce to complete with generous timeout for slow CI runners
         var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5));
         var completedTask = await Task.WhenAny(actionExecutedSignal.Task, timeoutTask);
 
-        // Now action should be executed
         Assert.AreNotEqual(timeoutTask, completedTask, "Action was not executed within timeout");
         Assert.IsTrue(await actionExecutedSignal.Task);
     }
@@ -53,15 +51,14 @@ public class DebounceServiceTests
         var secondActionExecuted = false;
         var delay = TimeSpan.FromMilliseconds(200);
 
-        // Act - call debounce twice with same key
+        // Act 
         _debounceService.Debounce("test-key", () => firstActionExecuted = true, delay);
-        await Task.Delay(50); // Wait a bit before second call
+        await Task.Delay(50);
         _debounceService.Debounce("test-key", () => secondActionExecuted = true, delay);
 
-        // Wait for debounce to complete
         await Task.Delay(delay + TimeSpan.FromMilliseconds(50));
 
-        // Assert - first action should be cancelled, second should execute
+        // Assert
         Assert.IsFalse(firstActionExecuted);
         Assert.IsTrue(secondActionExecuted);
     }
@@ -78,10 +75,9 @@ public class DebounceServiceTests
         _debounceService.Debounce("key1", () => action1Executed = true, delay);
         _debounceService.Debounce("key2", () => action2Executed = true, delay);
 
-        // Wait for debounce to complete
         await Task.Delay(delay + TimeSpan.FromMilliseconds(50));
 
-        // Assert - both actions should execute (different keys)
+        // Assert
         Assert.IsTrue(action1Executed);
         Assert.IsTrue(action2Executed);
     }
@@ -97,10 +93,9 @@ public class DebounceServiceTests
         _debounceService.Debounce("test-key", () => actionExecuted = true, delay);
         _debounceService.Dispose();
 
-        // Wait for what would have been the debounce completion
         await Task.Delay(delay + TimeSpan.FromMilliseconds(50));
 
-        // Assert - action should not be executed because service was disposed
+        // Assert
         Assert.IsFalse(actionExecuted);
     }
 

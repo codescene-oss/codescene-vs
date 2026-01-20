@@ -9,14 +9,10 @@ using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.Util
 {
-    /// <summary>
-    /// Thin wrapper for ACE refactoring utilities.
-    /// Delegates to IAceRefactorService for testable business logic.
-    /// </summary>
     public static class AceUtils
     {
         /// <summary>
-        /// Checks if a file contains refactorable functions. Delegates to IAceRefactorService.
+        /// Checks if a file contains refactorable functions
         /// </summary>
         public static async Task<IList<FnToRefactorModel>> CheckContainsRefactorableFunctionsAsync(FileReviewModel result, string code)
         {
@@ -30,7 +26,6 @@ namespace Codescene.VSExtension.VS2022.Util
 
         /// <summary>
         /// Finds the refactorable function matching a code smell.
-        /// Pure logic - kept as static helper for non-MEF classes like ReviewResultTagger.
         /// </summary>
         public static FnToRefactorModel GetRefactorableFunction(CodeSmellModel codeSmell, IList<FnToRefactorModel> refactorableFunctions)
         {

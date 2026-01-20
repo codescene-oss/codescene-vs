@@ -56,8 +56,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
         }
 
-        #region ReviewContent Tests
-
         [TestMethod]
         public void ReviewContent_ValidResponse_ReturnsDeserializedModel()
         {
@@ -94,10 +92,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.Throws<DevtoolsException>(() => _executor.ReviewContent(TestFilename, TestContent));
         }
 
-        #endregion
-
-        #region ReviewDelta Tests
-
         [TestMethod]
         public void ReviewDelta_EmptyArguments_ReturnsNull()
         {
@@ -130,10 +124,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNotNull(result);
         }
 
-        #endregion
-
-        #region Preflight Tests
-
         [TestMethod]
         public void Preflight_EmptyArguments_ReturnsNull()
         {
@@ -165,10 +155,6 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert
             Assert.IsNotNull(result);
         }
-
-        #endregion
-
-        #region PostRefactoring Tests
 
         [TestMethod]
         public void PostRefactoring_EmptyArguments_ReturnsNull()
@@ -206,10 +192,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNotNull(result);
         }
 
-        #endregion
-
-        #region FnsToRefactorFromCodeSmells Tests
-
         [TestMethod]
         public void FnsToRefactorFromCodeSmells_EmptyPayload_ReturnsNull()
         {
@@ -244,10 +226,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mockCacheStorageService.Verify(x => x.RemoveOldReviewCacheEntries(It.IsAny<int>()), Times.Once);
         }
 
-        #endregion
-
-        #region GetFileVersion Tests
-
         [TestMethod]
         public void GetFileVersion_ValidResponse_ReturnsVersion()
         {
@@ -271,10 +249,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mockLogger.Verify(l => l.Error(It.IsAny<string>(), It.IsAny<Exception>()), Times.Once);
         }
 
-        #endregion
-
-        #region GetDeviceId Tests
-
         [TestMethod]
         public void GetDeviceId_ValidResponse_ReturnsDeviceId()
         {
@@ -285,7 +259,5 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.AreEqual("device-123", result);
         }
-
-        #endregion
     }
 }

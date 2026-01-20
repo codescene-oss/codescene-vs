@@ -4,17 +4,12 @@ using System;
 
 namespace Codescene.VSExtension.VS2022.Util
 {
-    /// <summary>
-    /// VS SDK-specific indentation utilities.
-    /// Pure logic methods delegate to Core's IndentationService.
-    /// </summary>
     public class IndentationUtil
     {
         private static readonly IndentationService _indentationService = new();
 
         /// <summary>
         /// Detects the indentation style (tabs vs spaces) and level of a given function in the text snapshot.
-        /// This method uses VS SDK types and must remain in VS2022.
         /// </summary>
         public static IndentationInfo DetectIndentation(ITextSnapshot snapshot, int fnStartLine)
         {
@@ -63,7 +58,6 @@ namespace Codescene.VSExtension.VS2022.Util
 
         /// <summary>
         /// Adjusts the indentation of the given code snippet.
-        /// Delegates to Core's IndentationService for testability.
         /// </summary>
         public static string AdjustIndentation(string code, IndentationInfo indentationInfo)
         {

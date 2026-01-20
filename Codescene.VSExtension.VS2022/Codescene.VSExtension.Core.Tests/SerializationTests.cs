@@ -9,8 +9,6 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class SerializationTests
     {
-        #region Helper Methods
-
         private static T DeserializeJson<T>(string json)
         {
             var result = JsonConvert.DeserializeObject<T>(json);
@@ -46,10 +44,6 @@ namespace Codescene.VSExtension.Core.Tests
                 Assert.IsTrue(json.Contains($"\"{prop}\""), $"JSON should contain property '{prop}'");
             }
         }
-
-        #endregion
-
-        #region CliReviewModel Tests
 
         [TestMethod]
         public void CliReviewModel_Deserialize_WithAllFields()
@@ -91,10 +85,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNull(result.Score);
         }
 
-        #endregion
-
-        #region DeltaResponseModel Tests
-
         [TestMethod]
         public void DeltaResponseModel_Deserialize_WithScoreChange()
         {
@@ -120,10 +110,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(expectedNewScore, result.NewScore);
         }
 
-        #endregion
-
-        #region PreFlightResponseModel Tests
-
         [TestMethod]
         public void PreFlightResponseModel_Deserialize_WithFileTypes()
         {
@@ -131,10 +117,6 @@ namespace Codescene.VSExtension.Core.Tests
 
             CollectionAssert.AreEqual(new[] { ".cs", ".js", ".py" }, result.FileTypes);
         }
-
-        #endregion
-
-        #region FnToRefactorModel Tests
 
         [TestMethod]
         public void FnToRefactorModel_Deserialize_WithAllFields()
@@ -199,10 +181,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(original.FileType, deserialized.FileType);
         }
 
-        #endregion
-
-        #region ReviewRequestModel Tests
-
         [TestMethod]
         public void ReviewRequestModel_Serialize_ProducesCorrectPropertyNames()
         {
@@ -226,10 +204,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(model.CachePath, deserialized.CachePath);
         }
 
-        #endregion
-
-        #region CliRangeModel Tests
-
         [TestMethod]
         public void CliRangeModel_Deserialize_WithKebabCaseProperties()
         {
@@ -249,10 +223,6 @@ namespace Codescene.VSExtension.Core.Tests
 
             AssertJsonContainsProperties(json, "start-line", "start-column", "end-line", "end-column");
         }
-
-        #endregion
-
-        #region CliCodeSmellModel Tests
 
         [TestMethod]
         public void CliCodeSmellModel_Deserialize_WithHighlightRange()
@@ -286,10 +256,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(expectedRangeStartLine, result.Range.Startline);
         }
 
-        #endregion
-
-        #region FnsToRefactorCodeSmellRequestModel Tests
-
         [TestMethod]
         public void FnsToRefactorCodeSmellRequestModel_Serialize_IgnoresDefaultValues()
         {
@@ -308,7 +274,5 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsFalse(json.Contains("\"preflight\""), "Null preflight should not appear in JSON");
             AssertJsonContainsProperties(json, "file-name", "file-content", "code-smells");
         }
-
-        #endregion
     }
 }

@@ -22,8 +22,6 @@ namespace Codescene.VSExtension.Core.Tests
             _cacheService.Clear();
         }
 
-        #region Get Tests
-
         private const string DefaultFilePath = "test.cs";
         private const string DefaultBaseline = "baseline code";
         private const string DefaultCurrent = "current code";
@@ -122,10 +120,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(expectedScoreChange, result.delta.ScoreChange);
         }
 
-        #endregion
-
-        #region Put Tests
-
         [TestMethod]
         public void Put_StoresEntryCorrectly()
         {
@@ -166,10 +160,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsTrue(result2.Item1); // New entry should be accessible
             Assert.AreEqual(2.0m, result2.Item2.ScoreChange);
         }
-
-        #endregion
-
-        #region GetAll Tests
 
         [TestMethod]
         public void GetAll_EmptyCache_ReturnsEmptyDictionary()
@@ -218,10 +208,6 @@ namespace Codescene.VSExtension.Core.Tests
             foreach (var file in expectedFiles)
                 Assert.IsTrue(result.ContainsKey(file), $"Cache should contain {file}");
         }
-
-        #endregion
-
-        #region Inherited CacheService Methods Tests
 
         [TestMethod]
         public void Clear_RemovesAllEntries()
@@ -275,7 +261,5 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsTrue(newResult.Item1); // New key should work
             Assert.AreEqual(1.5m, newResult.Item2.ScoreChange);
         }
-
-        #endregion
     }
 }

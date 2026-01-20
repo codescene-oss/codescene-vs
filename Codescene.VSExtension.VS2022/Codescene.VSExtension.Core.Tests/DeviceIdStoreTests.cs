@@ -18,8 +18,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mockCliExecutor = new Mock<ICliExecutor>();
         }
 
-        #region Constructor Tests
-
         [TestMethod]
         public void Constructor_NullLogger_ThrowsArgumentNullException()
         {
@@ -35,10 +33,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.Throws<ArgumentNullException>(() =>
                 new DeviceIdStore(_mockLogger.Object, null));
         }
-
-        #endregion
-
-        #region GetDeviceId Tests
 
         [TestMethod]
         public void GetDeviceId_ReturnsValueFromCli()
@@ -136,7 +130,5 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert
             Assert.AreEqual("", result);
         }
-
-        #endregion
     }
 }

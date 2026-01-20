@@ -32,8 +32,6 @@ public class AceRefactorServiceTests
             _mockLogger.Object);
     }
 
-    #region GetRefactorableFunction Tests
-
     private static CodeSmellModel CreateCodeSmell(string category, int startLine) =>
         new CodeSmellModel { Category = category, Range = new CodeSmellRangeModel(startLine, startLine + 10, 1, 50) };
 
@@ -71,10 +69,6 @@ public class AceRefactorServiceTests
             CreateRefactorableFunction("FirstMatch", "Complex Method", 10),
             CreateRefactorableFunction("SecondMatch", "Complex Method", 10));
 
-    #endregion
-
-    #region ShouldCheckRefactorableFunctions Tests
-
     [TestMethod]
     public void ShouldCheckRefactorableFunctions_ReturnsTrue_WhenLanguageSupported()
     {
@@ -101,6 +95,4 @@ public class AceRefactorServiceTests
         Assert.IsFalse(result);
         _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("not supported"))), Times.Once);
     }
-
-    #endregion
 }

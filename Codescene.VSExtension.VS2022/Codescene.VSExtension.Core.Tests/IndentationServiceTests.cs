@@ -13,8 +13,6 @@ public class IndentationServiceTests
         _indentationService = new IndentationService();
     }
 
-    #region AdjustIndentation Tests
-
     private static IndentationInfo CreateIndentationInfo(int level, bool usesTabs = false, int tabSize = 4) =>
         new IndentationInfo { Level = level, UsesTabs = usesTabs, TabSize = tabSize };
 
@@ -41,7 +39,7 @@ public class IndentationServiceTests
         // Arrange & Act
         var lines = AdjustAndSplitLines("line1\nline2\nline3", CreateIndentationInfo(level: 2, tabSize: 4));
 
-        // Assert - 2 * 4 = 8 spaces
+        // Assert
         Assert.AreEqual("        line1", lines[0]);
         Assert.AreEqual("        line2", lines[1]);
         Assert.AreEqual("        line3", lines[2]);
@@ -53,7 +51,7 @@ public class IndentationServiceTests
         // Arrange & Act
         var lines = AdjustAndSplitLines("line1\nline2", CreateIndentationInfo(level: 2, usesTabs: true));
 
-        // Assert - 2 tabs
+        // Assert
         Assert.AreEqual("\t\tline1", lines[0]);
         Assert.AreEqual("\t\tline2", lines[1]);
     }
@@ -93,10 +91,6 @@ public class IndentationServiceTests
         StringAssert.Contains(result, "  line2");
         StringAssert.Contains(result, "  line3");
     }
-
-    #endregion
-
-    #region CountLeadingWhitespace Tests
 
     [TestMethod]
     public void CountLeadingWhitespace_CountsTabsCorrectly()
@@ -168,10 +162,6 @@ public class IndentationServiceTests
         Assert.AreEqual(0, spaceCount);
     }
 
-    #endregion
-
-    #region DetermineTabSize Tests
-
     [TestMethod]
     public void DetermineTabSize_ReturnsDefault_WhenUsingTabs()
     {
@@ -221,6 +211,4 @@ public class IndentationServiceTests
         // Assert
         Assert.AreEqual(4, tabSize); // Default
     }
-
-    #endregion
 }

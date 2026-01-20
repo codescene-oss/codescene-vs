@@ -18,8 +18,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mockTelemetryManager = new Mock<ITelemetryManager>();
         }
 
-        #region HandleDeltaTelemetryEvent - Event Name Selection Tests
-
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileAddedToCache_SendsMonitorFileAddedEvent()
         {
@@ -95,10 +93,6 @@ namespace Codescene.VSExtension.Core.Tests
             public static TelemetryScenario FileUpdated(string file) =>
                 new TelemetryScenario { PreviousFiles = new[] { file }, CurrentFiles = new[] { file }, EntryFile = file };
         }
-
-        #endregion
-
-        #region HandleDeltaTelemetryEvent - Additional Data Tests
 
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileAdded_IncludesScoreChangeInAdditionalData()
@@ -204,10 +198,6 @@ namespace Codescene.VSExtension.Core.Tests
             };
         }
 
-        #endregion
-
-        #region HandleDeltaTelemetryEvent - Null Safety Tests
-
         [TestMethod]
         public void HandleDeltaTelemetryEvent_NullTelemetryManager_DoesNotThrow()
         {
@@ -223,10 +213,6 @@ namespace Codescene.VSExtension.Core.Tests
             DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, null);
         }
 
-        #endregion
-
-        #region Helper Methods
-
         private static DeltaResponseModel CreateDeltaResponse(decimal scoreChange)
         {
             return new DeltaResponseModel
@@ -238,7 +224,5 @@ namespace Codescene.VSExtension.Core.Tests
                 FunctionLevelFindings = new FunctionFindingModel[0]
             };
         }
-
-        #endregion
     }
 }
