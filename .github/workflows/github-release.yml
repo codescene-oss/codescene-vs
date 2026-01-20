@@ -49,6 +49,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Download fetched assets
         uses: actions/download-artifact@v4
@@ -74,16 +76,21 @@ jobs:
 
       - name: Run unit tests
         if: ${{ hashFiles('**/*Tests.dll') != '' }}
-        run: dotnet test Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --logger trx --collect "XPlat Code Coverage"
+        run: dotnet test Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --configuration Release --no-build --results-directory ./bin/Release/TestResults/ --logger trx --collect "XPlat Code Coverage"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: |
-            **/*.trx
-            **/*.cobertura.xml
+          path: '**/*.trx'
 
+      - uses: ./.github/actions/check-coverage
+        if: always()
+        with:
+          access-token: ${{ secrets.CODESCENE_CODE_COVERAGE_API_TOKEN }}
+          project-url: "https://api.codescene.io/v2/projects/66574"
+          coverage-files: "**/coverage.cobertura.xml"
+          
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:

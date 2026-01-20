@@ -1,8 +1,7 @@
 using Codescene.VSExtension.Core.Application.Services.Util;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
     public class PasteArgumentsTests

@@ -6,11 +6,9 @@ using Codescene.VSExtension.Core.Application.Services.Mapper;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.ReviewModels;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
     public class CodeReviewerTests
@@ -244,7 +242,7 @@ namespace Codescene.VSExtension.CoreTests
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
                 .Returns(new FileReviewModel { RawScore = "old-raw" });
             _mockExecutor.Setup(x => x.ReviewDelta(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(new Core.Models.Cli.Delta.DeltaResponseModel());
+                .Returns(new Models.Cli.Delta.DeltaResponseModel());
 
             // Act - should not throw
             var result = _codeReviewer.Delta(review, "current code");

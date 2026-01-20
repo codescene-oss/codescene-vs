@@ -1,9 +1,8 @@
 using Codescene.VSExtension.Core.Application.Services.Authentication;
 using Codescene.VSExtension.Core.Models;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
     public class AuthenticationServiceTests
