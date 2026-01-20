@@ -28,7 +28,6 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
         {
             _logger.Debug($"Running preflight with force: {force}");
 
-#if FEATURE_ACE
             var response = _executer.Preflight(force);
 
             if (response != null)
@@ -44,7 +43,6 @@ namespace Codescene.VSExtension.Core.Application.Services.PreflightManager
                 _preflightResponse = null;
                 _autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
             }
-#endif
 
             return null;
         }

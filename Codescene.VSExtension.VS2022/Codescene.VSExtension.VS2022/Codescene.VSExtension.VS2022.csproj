@@ -149,4 +149,8 @@
 			<Name>Codescene.VSExtension.CredentialManagerPersistenceAuthProvider</Name>
 		</ProjectReference>
 	</ItemGroup>
+	<Target Name="PrintFeatureAce" BeforeTargets="Build">
+		<Message Importance="high" Text="FEATURE_ACE env = '$(FEATURE_ACE)'" />
+		<Message Importance="high" Text="DefineConstants = '$(DefineConstants)'" />
+	</Target>
 </Project>
