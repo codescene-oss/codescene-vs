@@ -1,209 +1,28 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Codescene.VSExtension.Core</RootNamespace>
-    <AssemblyName>Codescene.VSExtension.Core</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Deterministic>true</Deterministic>
-    <RuntimeIdentifiers>win</RuntimeIdentifiers>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-	<DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="Markdig, Version=0.41.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Markdig.0.41.1\lib\net462\Markdig.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=9.0.0.5, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.9.0.5\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=9.0.0.5, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.9.0.5\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
-    </Reference>
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression.FileSystem" />
-    <Reference Include="System.Memory, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Memory.4.6.3\lib\net462\System.Memory.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors, Version=4.1.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Numerics.Vectors.4.6.1\lib\net462\System.Numerics.Vectors.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.1.2\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Application\Services\AceManager\AceManager.cs" />
-    <Compile Include="Application\Services\AceManager\IAceManager.cs" />
-    <Compile Include="Application\Services\Authentication\AuthenticationService.cs" />
-    <Compile Include="Application\Services\Authentication\IAuthenticationService.cs" />
-    <Compile Include="Application\Services\Authentication\IPersistenceAuthDataProvider.cs" />
-    <Compile Include="Application\Services\Authentication\FakeAuthDataProvider.cs" />
-    <Compile Include="Application\Services\Cache\ICacheStorageService.cs" />
-    <Compile Include="Application\Services\Cache\Review\AceRefactorableFunctionsCacheService.cs" />
-    <Compile Include="Application\Services\Cache\Review\CacheService.cs" />
-    <Compile Include="Application\Services\Cache\Review\DeltaCacheService.cs" />
-    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsEntry.cs" />
-    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsItem.cs" />
-    <Compile Include="Application\Services\Cache\Review\Model\AceRefactorableFunctions\AceRefactorableFunctionsQuery.cs" />
-    <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheEntry.cs" />
-    <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheItem.cs" />
-    <Compile Include="Application\Services\Cache\Review\Model\Delta\DeltaCacheQuery.cs" />
-    <Compile Include="Application\Services\Cache\Review\Model\Review\ReviewCacheEntry.cs" />
-    <Compile Include="Application\Services\Cache\Review\Model\Review\ReviewCacheItem.cs" />
-    <Compile Include="Application\Services\Cache\Review\Model\Review\ReviewCacheQuery.cs" />
-    <Compile Include="Application\Services\Cache\Review\ReviewCacheService.cs" />
-    <Compile Include="Application\Services\Cli\CliObjectScoreCreator.cs" />
-    <Compile Include="Application\Services\Cli\Command\CliCommandProvider.cs" />
-    <Compile Include="Application\Services\Cli\Executor\CliExecutor.cs" />
-    <Compile Include="Application\Services\Cli\FileChecker\CliFileChecker.cs" />
-    <Compile Include="Application\Services\Cli\ICliObjectScoreCreator.cs" />
-    <Compile Include="Application\Services\Cli\SettingsProvider\CliSettingsProvider.cs" />
-    <Compile Include="Application\Services\Cli\ProcessExecutor\IProcessExecutor.cs" />
-    <Compile Include="Application\Services\Cli\ProcessExecutor\ProcessExecutor.cs" />
-    <Compile Include="Application\Services\Cli\SupportedFileChecker\SupportedFileChecker.cs" />
-    <Compile Include="Application\Services\Cli\Command\ICliCommandProvider.cs" />
-    <Compile Include="Application\Services\Cli\FileChecker\ICliFileChecker.cs" />
-    <Compile Include="Application\Services\Cli\SettingsProvider\ICliSettingsProvider.cs" />
-    <Compile Include="Application\Services\Cli\SupportedFileChecker\ISupportedFileChecker.cs" />
-    <Compile Include="Application\Services\CodeReviewer\CodeReviewer.cs" />
-    <Compile Include="Application\Services\CodeReviewer\ICodeReviewer.cs" />
-    <Compile Include="Application\Services\ErrorHandling\DevtoolsException.cs" />
-    <Compile Include="Application\Services\ErrorHandling\ILogger.cs" />
-    <Compile Include="Application\Services\Cli\Downloader\CliDownloader.cs" />
-    <Compile Include="Application\Services\Cli\Downloader\ICliDownloader.cs" />
-    <Compile Include="Application\Services\Cli\Executor\ICliExecutor.cs" />
-	<Compile Include="Application\Services\ErrorHandling\MissingAuthTokenException.cs" />
-    <Compile Include="Application\Services\ErrorListWindowHandler\IErrorListWindowHandler.cs" />
-    <Compile Include="Application\Services\Git\IGitCliService.cs" />
-    <Compile Include="Application\Services\Mapper\IModelMapper.cs" />
-    <Compile Include="Application\Services\Mapper\ModelMapper.cs" />
-    <Compile Include="Application\Services\MDFileHandler\IMDFileHandler.cs" />
-    <Compile Include="Application\Services\MDFileHandler\MDFileHandler.cs" />
-    <Compile Include="Application\Services\PreflightManager\IPreflightManager.cs" />
-	<Compile Include="Application\Services\Settings\ISettingsProvider.cs" />
-    <Compile Include="Application\Services\Telemetry\DeviceId\DeviceIdStore.cs" />
-    <Compile Include="Application\Services\Telemetry\DeviceId\IDeviceIdStore.cs" />
-    <Compile Include="Application\Services\Telemetry\ITelemetryManager.cs" />
-    <Compile Include="Application\Services\Telemetry\TelemetryManager.cs" />
-    <Compile Include="Application\Services\Util\AceConstants.cs" />
-    <Compile Include="Application\Services\Util\CodeReviewerHelper.cs" />
-    <Compile Include="Application\Services\Util\Constants.cs" />
-    <Compile Include="Application\Services\Util\DeltaJobTracker.cs" />
-    <Compile Include="Application\Services\Util\DeltaTelemetryHelper.cs" />
-    <Compile Include="Application\Services\Util\IDebounceService.cs" />
-    <Compile Include="Application\Services\Util\IExtensionMetadataProvider.cs" />
-    <Compile Include="Application\Services\Util\PasteArguments.cs" />
-    <Compile Include="Application\Services\WebComponent\CodeSmellDocumentationMapper.cs" />
-    <Compile Include="Application\Services\WebComponent\AceComponentMapper.cs" />
-    <Compile Include="Application\Services\WebComponent\CodeHealthMonitorMapper.cs" />
-    <Compile Include="Models\Cli\Delta\ChangeDetailModel.cs" />
-    <Compile Include="Models\Cli\Delta\ChangeType.cs" />
-    <Compile Include="Models\Cli\Delta\DeltaResponseModel.cs" />
-    <Compile Include="Models\Cli\Delta\FunctionFindingModel.cs" />
-    <Compile Include="Models\Cli\Delta\FunctionInfoModel.cs" />
-    <Compile Include="Models\Cli\PositionModel.cs" />
-    <Compile Include="Models\Cli\Refactor\ConfidenceModel.cs" />
-    <Compile Include="Models\Cli\Refactor\CreditsInfoModel.cs" />
-    <Compile Include="Models\Cli\Refactor\CreditsInfoErrorModel.cs" />
-    <Compile Include="Models\Cli\Refactor\FnsToRefactorCodeSmellRequestModel.cs" />
-    <Compile Include="Models\Cli\Refactor\FnsToRefactorDeltaRequestModel.cs" />
-    <Compile Include="Models\Cli\Refactor\FnsToRefactorRequestModel.cs" />
-    <Compile Include="Models\Cli\Refactor\FnToRefactorModel.cs" />
-    <Compile Include="Models\Cli\Refactor\MetadataModel.cs" />
-    <Compile Include="Models\Cli\Refactor\PreFlightResponseModel.cs" />
-    <Compile Include="Models\Cli\Refactor\ReasonDetailsModel.cs" />
-    <Compile Include="Models\Cli\Refactor\ReasonModel.cs" />
-    <Compile Include="Models\Cli\Refactor\RecommendedActionModel.cs" />
-    <Compile Include="Models\Cli\Refactor\RefactoringPropertiesModel.cs" />
-    <Compile Include="Models\Cli\Refactor\RefactoringTargetModel.cs" />
-    <Compile Include="Models\Cli\Refactor\RefactorResponseModel.cs" />
-    <Compile Include="Models\Cli\Refactor\RefactorSupportModel.cs" />
-    <Compile Include="Models\Cli\Review\CliCodeHealthRulesErrorModel.cs" />
-    <Compile Include="Models\Cli\Review\ReviewRequestModel.cs" />
-    <Compile Include="Models\Cli\Telemetry\TelemetryEvent.cs" />
-    <Compile Include="Models\CodeSmellRangeModel.cs" />
-    <Compile Include="Models\CodeSmellTooltipModel.cs" />
-    <Compile Include="Models\CustomDetailsData.cs" />
-    <Compile Include="Models\Job.cs" />
-    <Compile Include="Models\LoginResponse.cs" />
-    <Compile Include="Models\CodeSmellModel.cs" />
-    <Compile Include="Models\Cli\Review\CliCodeSmellModel.cs" />
-    <Compile Include="Models\FileReviewModel.cs" />
-    <Compile Include="Models\Cli\Review\CliReviewModel.cs" />
-    <Compile Include="Models\Cli\Review\CliReviewFunctionModel.cs" />
-    <Compile Include="Models\Cli\CliRangeModel.cs" />
-    <Compile Include="Models\WebComponent\Data\CodeHealthMonitorComponentData.cs" />
-    <Compile Include="Models\WebComponent\Data\CodeSmellDocumentationComponentData.cs" />
-    <Compile Include="Models\WebComponent\Model\CachedRefactoringActionModel.cs" />
-    <Compile Include="Models\WebComponent\Model\ShowDocumentationModel.cs" />
-    <Compile Include="Models\WebComponent\Data\AceAcknowledgeComponentData.cs" />
-    <Compile Include="Models\WebComponent\Data\AceComponentData.cs" />
-    <Compile Include="Models\WebComponent\Data\WebComponentFileData.cs" />
-    <Compile Include="Models\WebComponent\Message\WebComponentMessage.cs" />
-    <Compile Include="Models\WebComponent\Util\TelemetryUtils.cs" />
-    <Compile Include="Models\WebComponent\Util\TextUtils.cs" />
-    <Compile Include="Models\WebComponent\WebComponentConstants.cs" />
-    <Compile Include="Models\WebComponent\Payload\WebComponentPayload.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
+
   <ItemGroup>
     <Content Include="Monikers.imagemanifest">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
   </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="Markdig">
-      <Version>0.41.1</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
-      <Version>9.0.5</Version>
-    </PackageReference>
-	<PackageReference Include="Newtonsoft.Json">
-      <Version>13.0.3</Version>
-    </PackageReference>
-    <PackageReference Include="System.Memory">
-      <Version>4.6.3</Version>
-    </PackageReference>
-    <PackageReference Include="System.Threading.Tasks.Extensions">
-      <Version>4.6.3</Version>
-    </PackageReference>
+    <PackageReference Include="Markdig" Version="0.41.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Memory" Version="4.6.3" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
 </Project>
