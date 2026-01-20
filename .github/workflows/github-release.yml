@@ -76,7 +76,7 @@ jobs:
 
       - name: Run unit tests
         if: ${{ hashFiles('**/*Tests.dll') != '' }}
-        run: dotnet test Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --configuration Release --no-build --results-directory ./Codescene.VSExtension.VS2022/TestResults/ --logger trx --collect "XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=lcov
+        run: dotnet test Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --configuration Release --no-build --results-directory ./Codescene.VSExtension.VS2022/TestResults/ --logger trx --collect "XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
