@@ -101,9 +101,9 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          reportgenerator \
-          -reports:"**/TestResults/**/coverage.info" \
-          -targetdir:./Codescene.VSExtension.VS2022/TestResults/coverage-report/ \
+          reportgenerator `
+          -reports:"**/TestResults/**/coverage.info" `
+          -targetdir:./Codescene.VSExtension.VS2022/TestResults/coverage-report/ `
           -reporttypes:lcov   
 
       - name: Check code coverage
