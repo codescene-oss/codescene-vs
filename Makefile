@@ -1,6 +1,9 @@
 SHELL := cmd.exe
 
-.PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine
+include cache.mk
+include sha.mk
+
+.PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine test-cache test-sha
 
 # You might need something like:
 # export PATH="$PATH:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/Extensions/TestPlatform"
@@ -136,4 +139,3 @@ dotnet-analyzers-mine: restore
 
 # iter - iterate. Good as a promopt: "iterate to success using `make iter`"
 iter: format dotnet-analyzers-mine stylecop-mine test-mine
-

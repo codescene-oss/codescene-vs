@@ -171,6 +171,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             watcher.Deleted += (sender, e) => _eventQueue.Enqueue(new FileChangeEvent(FileChangeType.Delete, e.FullPath));
         }
 
+        // ThreadHelper.JoinableTaskFactory requires VS services to be initialized and is null in unit test environments
         private void ProcessQueuedEventsCallback(object state)
         {
             try
@@ -234,13 +235,13 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         private async Task<List<string>> CollectFilesFromRepoStateAsync()
         {
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 var files = new List<string>();
 
                 try
                 {
-                    var changedFiles = GetChangedFilesVsBaselineAsync().GetAwaiter().GetResult();
+                    var changedFiles = await GetChangedFilesVsBaselineAsync();
 
                     foreach (var relativePath in changedFiles)
                     {
