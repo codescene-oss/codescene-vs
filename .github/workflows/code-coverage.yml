@@ -1,0 +1,104 @@
+name: Code Coverage (generate data and trigger analysis)
+
+on: 
+  schedule:
+    - cron: "0 4 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read # This is required for actions/checkout
+
+jobs:
+  code-coverage-data:
+    runs-on: windows-latest
+    env:
+      FEATURE_ACE: true  # ACE feature enabled 
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Download latest cs-webview release (private repo)
+      shell: pwsh
+      run: powershell.exe -File .github/cwf.ps1 -Token "$env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN"
+      env:
+        CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
+    
+    - name: Get latest Codescene CLI version
+      shell: pwsh
+      run: powershell.exe -File .github/cli.ps1
+    
+    - name: Copy web assets into project
+      shell: pwsh
+      run: powershell.exe -File .github/copy-assets.ps1
+      
+    - name: Install ReportGenerator
+      shell: pwsh
+      run: dotnet tool install -g dotnet-reportgenerator-globaltool       
+      
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup VSTest
+      uses: darenm/Setup-VSTest@v1     
+    - name: Run unit tests
+      shell: pwsh
+      run: |
+        dotnet test `
+        Codescene.VSExtension.VS2022/Codescene.VSExtension.sln `
+        --configuration Release `
+        --results-directory ./Codescene.VSExtension.VS2022/TestResults/ `
+        --logger trx `
+        --collect "XPlat Code Coverage" `
+        -- `
+        DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=lcov
+        
+    - name: Merge coverage
+      shell: pwsh
+      run: |
+        reportgenerator `
+        -reports:"**/TestResults/**/coverage.info" `
+        -targetdir:./Codescene.VSExtension.VS2022/TestResults/coverage-report/ `
+        -reporttypes:lcov   
+
+    - name: Upload line coverage data
+      uses: ./.github/actions/upload-coverage
+      if: always()
+      with:
+        cs-token:  ${{ secrets.CODESCENE_CODE_COVERAGE_API_TOKEN }}
+        format: lcov
+        metric: line-coverage
+        file: ./Codescene.VSExtension.VS2022/TestResults/coverage-report/lcov.info
+        
+    - name: Upload statement coverage data
+      uses: ./.github/actions/upload-coverage
+      if: always()
+      with:
+        cs-token:  ${{ secrets.CODESCENE_CODE_COVERAGE_API_TOKEN }}
+        format: lcov
+        metric: function-coverage
+        file: ./Codescene.VSExtension.VS2022/TestResults/coverage-report/lcov.info
+
+    - name: Upload branch coverage data
+      uses: ./.github/actions/upload-coverage
+      if: always()
+      with:
+        cs-token:  ${{ secrets.CODESCENE_CODE_COVERAGE_API_TOKEN }}
+        format: lcov
+        metric: branch-coverage
+        file: ./Codescene.VSExtension.VS2022/TestResults/coverage-report/lcov.info
+
+  trigger-analysis:
+    runs-on: ubuntu-24.04 # 24.04 needed to support `curl --retry-all-errors`
+    needs: [ code-coverage-data ]
+    if: always()
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Trigger codescene-vscode project analysis
+      env:
+        CS_TOKEN:  ${{ secrets.CODESCENE_CODE_COVERAGE_API_TOKEN }}
+        CS_PROJECT_ID: 66574
+      run: |
+        curl --fail -X POST -H "Authorization: Bearer $CS_TOKEN" https://api.codescene.io/v2/projects/${CS_PROJECT_ID}/run-analysis
