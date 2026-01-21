@@ -97,10 +97,10 @@ jobs:
       
       - name: Merge coverage
         run: |
-        reportgenerator \
-        -reports:"**/TestResults/**/coverage.info" \
-        -targetdir:./Codescene.VSExtension.VS2022/TestResults/coverage-report/ \
-        -reporttypes:lcov   
+          reportgenerator \
+          -reports:"**/TestResults/**/coverage.info" \
+          -targetdir:./Codescene.VSExtension.VS2022/TestResults/coverage-report/ \
+          -reporttypes:lcov   
 
       - name: Check code coverage
         uses: ./.github/actions/check-coverage
@@ -108,7 +108,7 @@ jobs:
         with:
           access-token: ${{ secrets.CODESCENE_CODE_COVERAGE_API_TOKEN }}
           project-url: "https://api.codescene.io/v2/projects/66574"
-          coverage-files: "**/coverage-report/lcov.info
+          coverage-files: "**/coverage-report/lcov.info"
           
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
