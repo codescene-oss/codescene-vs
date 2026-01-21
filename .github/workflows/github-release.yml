@@ -83,6 +83,7 @@ jobs:
         with:
           name: test-results
           path: '**/*.trx'
+          
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: always()
@@ -92,10 +93,13 @@ jobs:
           reporter: dotnet-trx
 
       - name: Install ReportGenerator
+        if: always()
         shell: pwsh
         run: dotnet tool install -g dotnet-reportgenerator-globaltool   
       
       - name: Merge coverage
+        if: always()
+        shell: pwsh
         run: |
           reportgenerator \
           -reports:"**/TestResults/**/coverage.info" \
