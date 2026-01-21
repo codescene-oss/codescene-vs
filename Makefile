@@ -3,8 +3,8 @@ SHELL := cmd.exe
 include cache.mk
 include sha.mk
 
-# Lazy-evaluated cache key - computed once per Make invocation when first used
-CACHE_KEY = $(call get_cache_key)
+# Lazy-once cache key - computed on first use, then cached for rest of Make invocation
+CACHE_KEY = $(eval CACHE_KEY := $$(call get_cache_key))$(CACHE_KEY)
 
 .PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine test-cache test-sha install-cli delta
 
