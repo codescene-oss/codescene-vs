@@ -97,7 +97,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Refactor_WhenExecutorReturnsNull_ReturnsNull()
+        public void Refactor_WhenExecutorReturnsNull_LogsInfoAndReturnsNull()
         {
             // Arrange
             var path = "test.cs";
@@ -112,10 +112,11 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert
             Assert.IsNull(result);
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("TestMethod") && s.Contains("test.cs"))), Times.Once);
         }
 
         [TestMethod]
-        public void Refactor_WhenExceptionThrown_LogsErrorAndRethrows()
+        public void Refactor_WhenExceptionThrown_LogsErrorSetsErrorAndRethrows()
         {
             // Arrange
             var path = "test.cs";
@@ -131,24 +132,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.AreEqual("Refactoring failed", ex.Message);
             _mockLogger.Verify(l => l.Error(It.Is<string>(s => s.Contains("TestMethod")), expectedException), Times.Once);
-        }
-
-        [TestMethod]
-        public void Refactor_LogsInfoAtStart()
-        {
-            // Arrange
-            var path = "test.cs";
-            var fnToRefactor = new FnToRefactorModel { Name = "MyFunction" };
-            var entryPoint = "codelens";
-
-            _mockExecutor.Setup(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
-                .Returns((RefactorResponseModel)null);
-
-            // Act
-            _aceManager.Refactor(path, fnToRefactor, entryPoint);
-
-            // Assert
-            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("MyFunction") && s.Contains("test.cs"))), Times.Once);
+            _mockAceStateService.Verify(s => s.SetError(expectedException), Times.Once);
         }
 
         [TestMethod]
@@ -229,23 +213,6 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert
             Assert.IsNotNull(result);
             _mockAceStateService.Verify(s => s.SetState(AceState.Enabled), Times.Once);
-        }
-
-        [TestMethod]
-        public void Refactor_WhenExceptionThrown_SetsError()
-        {
-            // Arrange
-            var path = "test.cs";
-            var fnToRefactor = new FnToRefactorModel { Name = "TestMethod" };
-            var entryPoint = "toolbar";
-            var expectedException = new Exception("Refactoring failed");
-
-            _mockExecutor.Setup(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
-                .Throws(expectedException);
-
-            // Act & Assert
-            Assert.Throws<Exception>(() => _aceManager.Refactor(path, fnToRefactor, entryPoint));
-            _mockAceStateService.Verify(s => s.SetError(expectedException), Times.Once);
         }
 
         [TestMethod]
