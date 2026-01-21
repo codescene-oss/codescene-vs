@@ -44,38 +44,38 @@ restore:
 build: .build-timestamp
 
 test: build
-	@powershell.exe -File .github/test.ps1 > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
+	$(call call_cached,test,powershell.exe -File .github/test.ps1) > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
 
 # make test1 TEST=GitChangeObserverTests
 test1: build
-	@powershell.exe -File .github/test1.ps1 -TestName $(TEST) > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
+	$(call call_cached,test1-$(TEST),powershell.exe -File .github/test1.ps1 -TestName $(TEST)) > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
 
 # Runs tests for changed *Tests.cs files (per Git)
 test-mine: build
-	@powershell.exe -File .github/test-mine.ps1 > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
+	$(call call_cached,test-mine,powershell.exe -File .github/test-mine.ps1) > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
 
 # Formats just the .cs files you've worked on (per Git)
 format:
-	@powershell.exe -File .github/format-mine.ps1 > format.log 2>&1 && del format.log || (type format.log && del format.log && exit /b 1)
+	$(call call_cached,format,powershell.exe -File .github/format-mine.ps1) > format.log 2>&1 && del format.log || (type format.log && del format.log && exit /b 1)
 
 # Formats all files.
 format-all:
-	@dotnet.exe format Codescene.VSExtension.VS2022/Codescene.VSExtension.sln > format.log 2>&1 && del format.log || (type format.log && del format.log && exit /b 1)
+	$(call call_cached,format-all,dotnet.exe format Codescene.VSExtension.VS2022/Codescene.VSExtension.sln) > format.log 2>&1 && del format.log || (type format.log && del format.log && exit /b 1)
 
 format-check:
-	@dotnet.exe format Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --verify-no-changes > format-check.log 2>&1 && del format-check.log || (type format-check.log && del format-check.log && exit /b 1)
+	$(call call_cached,format-check,dotnet.exe format Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --verify-no-changes) > format-check.log 2>&1 && del format-check.log || (type format-check.log && del format-check.log && exit /b 1)
 
 stylecop: restore
-	@powershell.exe -File .github/stylecop.ps1 > stylecop.log 2>&1 && del stylecop.log || (type stylecop.log && del stylecop.log && exit /b 1)
+	$(call call_cached,stylecop,powershell.exe -File .github/stylecop.ps1) > stylecop.log 2>&1 && del stylecop.log || (type stylecop.log && del stylecop.log && exit /b 1)
 
 stylecop-mine: restore
-	@powershell.exe -File .github/stylecop-mine.ps1 > stylecop.log 2>&1 && del stylecop.log || (type stylecop.log && del stylecop.log && exit /b 1)
+	$(call call_cached,stylecop-mine,powershell.exe -File .github/stylecop-mine.ps1) > stylecop.log 2>&1 && del stylecop.log || (type stylecop.log && del stylecop.log && exit /b 1)
 
 dotnet-analyzers: restore
-	@powershell.exe -File .github/dotnet-analyzers.ps1 > dotnet-analyzers.log 2>&1 && del dotnet-analyzers.log || (type dotnet-analyzers.log && del dotnet-analyzers.log && exit /b 1)
+	$(call call_cached,dotnet-analyzers,powershell.exe -File .github/dotnet-analyzers.ps1) > dotnet-analyzers.log 2>&1 && del dotnet-analyzers.log || (type dotnet-analyzers.log && del dotnet-analyzers.log && exit /b 1)
 
 dotnet-analyzers-mine: restore
-	@powershell.exe -File .github/dotnet-analyzers-mine.ps1 > dotnet-analyzers.log 2>&1 && del dotnet-analyzers.log || (type dotnet-analyzers.log && del dotnet-analyzers.log && exit /b 1)
+	$(call call_cached,dotnet-analyzers-mine,powershell.exe -File .github/dotnet-analyzers-mine.ps1) > dotnet-analyzers.log 2>&1 && del dotnet-analyzers.log || (type dotnet-analyzers.log && del dotnet-analyzers.log && exit /b 1)
 
 # iter - iterate. Good as a promopt: "iterate to success using `make iter`"
 iter: format dotnet-analyzers-mine stylecop-mine test-mine
