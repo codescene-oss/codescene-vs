@@ -2,6 +2,7 @@ using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.Telemetry;
 using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Models.Ace;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.WebComponent;
@@ -19,13 +20,15 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
         private readonly ILogger _logger;
         private readonly ICliExecutor _executor;
         private readonly ITelemetryManager _telemetryManager;
+        private readonly IAceStateService _aceStateService;
 
         [ImportingConstructor]
-        public AceManager(ILogger logger, ICliExecutor executor, ITelemetryManager telemetryManager)
+        public AceManager(ILogger logger, ICliExecutor executor, ITelemetryManager telemetryManager, IAceStateService aceStateService)
         {
             _logger = logger;
             _executor = executor;
             _telemetryManager = telemetryManager;
+            _aceStateService = aceStateService;
         }
 
         public static CachedRefactoringActionModel LastRefactoring;
@@ -43,13 +46,14 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             if (!IsNetworkAvailable())
             {
                 _logger.Warn("No internet connection available. Refactoring requires network access.");
-				LastRefactoring = null;
-				return null;
+                _aceStateService.SetState(AceState.Offline);
+                LastRefactoring = null;
+                return null;
             }
             
             SendTelemetry(entryPoint, invalidateCache);
 
-			try
+            try
             {
                 var refactoredFunction = _executor.PostRefactoring(fnToRefactor: refactorableFunction);
 
@@ -57,6 +61,15 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
                 {
                     _logger.Info($"Refactoring function: {refactorableFunction.Name}...");
                     _logger.Debug($"Refactoring trace-id: {refactoredFunction.TraceId}.");
+
+                    // Clear any previous errors on success (matching VSCode behavior)
+                    _aceStateService.ClearError();
+
+                    // If we were offline, we're back online
+                    if (_aceStateService.CurrentState == AceState.Offline)
+                    {
+                        _aceStateService.SetState(AceState.Enabled);
+                    }
 
                     var cacheItem = new CachedRefactoringActionModel
                     {
@@ -72,7 +85,10 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             catch (Exception e)
             {
                 _logger.Error($"Error during refactoring of method {refactorableFunction.Name}", e);
-                throw e;
+                
+                _aceStateService.SetError(e);
+                
+                throw;
             }
             LastRefactoring = null;
             return null;

@@ -1,3 +1,4 @@
+using Codescene.VSExtension.Core.Application.Services;
 using Codescene.VSExtension.Core.Application.Services.AceManager;
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
@@ -15,6 +16,7 @@ namespace Codescene.VSExtension.Core.Tests
         private Mock<ILogger> _mockLogger;
         private Mock<ICliExecutor> _mockExecutor;
         private Mock<ITelemetryManager> _mockTelemetryManager;
+        private Mock<IAceStateService> _mockAceStateService;
         private AceManager _aceManager;
 
         [TestInitialize]
@@ -23,11 +25,13 @@ namespace Codescene.VSExtension.Core.Tests
             _mockLogger = new Mock<ILogger>();
             _mockExecutor = new Mock<ICliExecutor>();
             _mockTelemetryManager = new Mock<ITelemetryManager>();
+            _mockAceStateService = new Mock<IAceStateService>();
 
             _aceManager = new AceManager(
                 _mockLogger.Object,
                 _mockExecutor.Object,
-                _mockTelemetryManager.Object);
+                _mockTelemetryManager.Object,
+                _mockAceStateService.Object);
 
             // Clear static state between tests
             AceManager.LastRefactoring = null;

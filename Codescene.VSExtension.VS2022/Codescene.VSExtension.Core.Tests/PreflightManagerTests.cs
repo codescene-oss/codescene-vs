@@ -1,3 +1,4 @@
+using Codescene.VSExtension.Core.Application.Services;
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.PreflightManager;
@@ -10,6 +11,7 @@ public class PreflightManagerTests
 {
     private Mock<ICliExecutor> _mockCliExecutor;
     private Mock<ILogger> _mockLogger;
+    private Mock<IAceStateService> _mockAceStateService;
     private PreflightManager _preflightManager;
 
     [TestInitialize]
@@ -17,7 +19,8 @@ public class PreflightManagerTests
     {
         _mockCliExecutor = new Mock<ICliExecutor>();
         _mockLogger = new Mock<ILogger>();
-        _preflightManager = new PreflightManager(_mockCliExecutor.Object, _mockLogger.Object);
+        _mockAceStateService = new Mock<IAceStateService>();
+        _preflightManager = new PreflightManager(_mockCliExecutor.Object, _mockLogger.Object, _mockAceStateService.Object);
     }
 
     [TestMethod]
@@ -54,7 +57,7 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    [Description("GetPreflightResponse calls RunPreflight when not cached, but returns null without FEATURE_ACE")]
+    [Description("GetPreflightResponse calls RunPreflight when not cached")]
     public void GetPreflightResponse_WhenNotCached_CallsRunPreflight()
     {
         // Act

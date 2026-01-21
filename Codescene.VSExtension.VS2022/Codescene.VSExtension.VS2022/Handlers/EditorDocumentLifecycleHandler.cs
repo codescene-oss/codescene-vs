@@ -110,11 +110,9 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 if (result != null && result.RawScore != null)
                 {
                     _logger.Info($"File {path} reviewed successfully.");
-#if FEATURE_ACE
                     // this call has to be awaited, otherwise delta could finish before and update of delta cache won't work
                     // happening in 17.0.0
                     await AceUtils.CheckContainsRefactorableFunctionsAsync(result, code);
-#endif
 
                     DeltaReviewAsync(result, code).FireAndForget();
                 }
