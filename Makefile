@@ -43,58 +43,20 @@ restore:
 
 build: .build-timestamp
 
-FIND_TESTS = Get-ChildItem -Recurse -Filter '*Tests.dll' -Path 'Codescene.VSExtension.VS2022' | Where-Object { $$_.FullName -match 'bin\\Release' } | Select-Object -ExpandProperty FullName
-GET_GIT_STATUS = git status --short --porcelain | ForEach-Object { $$_.Substring(3) }
-GET_GIT_DIFF = git diff --name-only main...HEAD
-COMBINE_CHANGED_FILES = @($$status) + @($$diff) | Where-Object { $$_ -ne $$null -and $$_ -ne '' } | Select-Object -Unique
-FILTER_CS_FILES = Where-Object { $$_ -match '\\.cs$$' }
-FILTER_TEST_FILES = Where-Object { $$_ -match 'Tests\.cs$$' }
-EXTRACT_TEST_NAMES = ForEach-Object { [System.IO.Path]::GetFileNameWithoutExtension($$_) }
-JOIN_TEST_NAMES = if ($$testNames -is [array]) { $$testNames -join ',' } else { $$testNames }
-RUN_TESTS_BY_NAME = $$testDlls = $(FIND_TESTS); $$testNameStr = $(JOIN_TEST_NAMES); vstest.console.exe $$testDlls /Tests:$$testNameStr /logger:trx
-EXTRACT_STYLECOP_WARNINGS = Select-String -Path 'stylecop.log' -Pattern 'warning SA' | ForEach-Object { $$_.Line } | Sort-Object -Unique
-LOG_SUCCESS = powershell.exe -Command "Get-Content test.log -Tail 4" && del test.log
-LOG_FAILURE = type test.log && del test.log && exit /b 1
-STYLECOP_OUTPUT = powershell.exe -Command "$(EXTRACT_STYLECOP_WARNINGS)" && del stylecop.log
-STYLECOP_FAILURE = type stylecop.log && del stylecop.log && exit /b 1
-EXTRACT_DOTNET_WARNINGS = Select-String -Path 'dotnet-analyzers.log' -Pattern 'warning CA' | ForEach-Object { $$_.Line } | Sort-Object -Unique
-DOTNET_ANALYZERS_OUTPUT = powershell.exe -Command "$(EXTRACT_DOTNET_WARNINGS)" && del dotnet-analyzers.log
-DOTNET_ANALYZERS_FAILURE = type dotnet-analyzers.log && del dotnet-analyzers.log && exit /b 1
-
 test: build
-	@powershell.exe -Command "$$files = $(FIND_TESTS); vstest.console.exe $$files /logger:trx" > test.log 2>&1 && $(LOG_SUCCESS) || ($(LOG_FAILURE))
+	@powershell.exe -File .github/test.ps1 > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
 
 # make test1 TEST=GitChangeObserverTests
 test1: build
-	@powershell.exe -Command "$$files = $(FIND_TESTS); vstest.console.exe $$files /Tests:$(TEST) /logger:trx" > test.log 2>&1 && $(LOG_SUCCESS) || ($(LOG_FAILURE))
+	@powershell.exe -File .github/test1.ps1 -TestName $(TEST) > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
 
 # Runs tests for changed *Tests.cs files (per Git)
 test-mine: build
-	@powershell.exe -Command " \
-		$$status = $(GET_GIT_STATUS); \
-		$$diff = $(GET_GIT_DIFF); \
-		$$allFiles = $(COMBINE_CHANGED_FILES); \
-		$$csFiles = $$allFiles | $(FILTER_CS_FILES); \
-		$$testFiles = $$csFiles | $(FILTER_TEST_FILES); \
-		if ($$testFiles) { \
-			$$testNames = $$testFiles | $(EXTRACT_TEST_NAMES); \
-			$(RUN_TESTS_BY_NAME) \
-		} \
-	" > test.log 2>&1 && $(LOG_SUCCESS) || ($(LOG_FAILURE))
+	@powershell.exe -File .github/test-mine.ps1 > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
 
 # Formats just the .cs files you've worked on (per Git)
 format:
-	@powershell.exe -Command " \
-		$$status = $(GET_GIT_STATUS); \
-		$$diff = $(GET_GIT_DIFF); \
-		$$allFiles = $(COMBINE_CHANGED_FILES); \
-		$$files = $$allFiles | $(FILTER_CS_FILES); \
-		if ($$files) { \
-			dotnet.exe format Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --include ($$files -join ' ') \
-		} else { \
-			Write-Host 'No C# files to format' \
-		} \
-	" > format.log 2>&1 && del format.log || (type format.log && del format.log && exit /b 1)
+	@powershell.exe -File .github/format-mine.ps1 > format.log 2>&1 && del format.log || (type format.log && del format.log && exit /b 1)
 
 # Formats all files.
 format-all:
@@ -104,38 +66,16 @@ format-check:
 	@dotnet.exe format Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --verify-no-changes > format-check.log 2>&1 && del format-check.log || (type format-check.log && del format-check.log && exit /b 1)
 
 stylecop: restore
-	@cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release -p:RunStyleCopAnalyzers=true > stylecop.log 2>&1 && $(STYLECOP_OUTPUT) || ($(STYLECOP_FAILURE))
+	@powershell.exe -File .github/stylecop.ps1 > stylecop.log 2>&1 && del stylecop.log || (type stylecop.log && del stylecop.log && exit /b 1)
 
 stylecop-mine: restore
-	@powershell.exe -Command " \
-		$$status = $(GET_GIT_STATUS); \
-		$$diff = $(GET_GIT_DIFF); \
-		$$allFiles = $(COMBINE_CHANGED_FILES); \
-		$$files = $$allFiles | $(FILTER_CS_FILES); \
-		if ($$files) { \
-			cd Codescene.VSExtension.VS2022; \
-			dotnet.exe format analyzers Codescene.VSExtension.sln --severity info --no-restore --include ($$files -join ' ') \
-		} else { \
-			Write-Host 'No changed C# files to check' -ForegroundColor Yellow \
-		} \
-	" > stylecop.log 2>&1 && $(STYLECOP_OUTPUT) || ($(STYLECOP_FAILURE))
+	@powershell.exe -File .github/stylecop-mine.ps1 > stylecop.log 2>&1 && del stylecop.log || (type stylecop.log && del stylecop.log && exit /b 1)
 
 dotnet-analyzers: restore
-	@cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release > dotnet-analyzers.log 2>&1 && $(DOTNET_ANALYZERS_OUTPUT) || ($(DOTNET_ANALYZERS_FAILURE))
+	@powershell.exe -File .github/dotnet-analyzers.ps1 > dotnet-analyzers.log 2>&1 && del dotnet-analyzers.log || (type dotnet-analyzers.log && del dotnet-analyzers.log && exit /b 1)
 
 dotnet-analyzers-mine: restore
-	@powershell.exe -Command " \
-		$$status = $(GET_GIT_STATUS); \
-		$$diff = $(GET_GIT_DIFF); \
-		$$allFiles = $(COMBINE_CHANGED_FILES); \
-		$$files = $$allFiles | $(FILTER_CS_FILES); \
-		if ($$files) { \
-			cd Codescene.VSExtension.VS2022; \
-			dotnet.exe format analyzers Codescene.VSExtension.sln --severity info --no-restore --include ($$files -join ' ') \
-		} else { \
-			Write-Host 'No changed C# files to check' -ForegroundColor Yellow \
-		} \
-	" > dotnet-analyzers.log 2>&1 && $(DOTNET_ANALYZERS_OUTPUT) || ($(DOTNET_ANALYZERS_FAILURE))
+	@powershell.exe -File .github/dotnet-analyzers-mine.ps1 > dotnet-analyzers.log 2>&1 && del dotnet-analyzers.log || (type dotnet-analyzers.log && del dotnet-analyzers.log && exit /b 1)
 
 # iter - iterate. Good as a promopt: "iterate to success using `make iter`"
 iter: format dotnet-analyzers-mine stylecop-mine test-mine
