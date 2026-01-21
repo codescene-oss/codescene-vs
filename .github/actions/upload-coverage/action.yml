@@ -24,9 +24,9 @@ runs:
     - name: Upload coverage data to CodeScene
       shell: pwsh
       run: |
-        cs-coverage upload \
-        --format ${{ inputs.format }} \
-        --metric ${{ inputs.metric }} \
+        cs-coverage upload `
+        --format ${{ inputs.format }} `
+        --metric ${{ inputs.metric }} `
         ${{ inputs.file }}
       env:
         CS_ACCESS_TOKEN: ${{ inputs.cs-token }}
