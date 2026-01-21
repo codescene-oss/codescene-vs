@@ -6,7 +6,7 @@ include sha.mk
 # Lazy-evaluated cache key - computed once per Make invocation when first used
 CACHE_KEY = $(call get_cache_key)
 
-.PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine test-cache test-sha
+.PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine test-cache test-sha install-cli delta
 
 # You might need something like:
 # export PATH="$PATH:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/Extensions/TestPlatform"
@@ -81,4 +81,11 @@ dotnet-analyzers-mine: restore
 	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/dotnet-analyzers-mine.ps1) > dotnet-analyzers.log 2>&1 && del dotnet-analyzers.log || (type dotnet-analyzers.log && del dotnet-analyzers.log && exit /b 1)
 
 # iter - iterate. Good as a promopt: "iterate to success using `make iter`"
-iter: format dotnet-analyzers-mine stylecop-mine test-mine
+iter: format dotnet-analyzers-mine stylecop-mine test-mine delta
+
+install-cli:
+	@powershell.exe -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Invoke-WebRequest -Uri 'https://downloads.codescene.io/enterprise/cli/install-cs-tool.ps1' -OutFile install-cs-tool.ps1; .\install-cs-tool.ps1; Remove-Item install-cs-tool.ps1"
+
+delta:
+	@if not exist "%USERPROFILE%\AppData\Local\Programs\CodeScene\cs.exe" $(MAKE) install-cli
+	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/delta.ps1) > delta.log 2>&1 && del delta.log || (type delta.log && del delta.log && exit /b 1)
