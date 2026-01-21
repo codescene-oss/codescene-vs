@@ -21,14 +21,16 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
         private readonly ICliExecutor _executor;
         private readonly ITelemetryManager _telemetryManager;
         private readonly IAceStateService _aceStateService;
+        private readonly INetworkService _networkService;
 
         [ImportingConstructor]
-        public AceManager(ILogger logger, ICliExecutor executor, ITelemetryManager telemetryManager, IAceStateService aceStateService)
+        public AceManager(ILogger logger, ICliExecutor executor, ITelemetryManager telemetryManager, IAceStateService aceStateService, INetworkService networkService)
         {
             _logger = logger;
             _executor = executor;
             _telemetryManager = telemetryManager;
             _aceStateService = aceStateService;
+            _networkService = networkService;
         }
 
         public static CachedRefactoringActionModel LastRefactoring;
@@ -43,7 +45,7 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             _logger.Info($"Starting refactoring of function: {refactorableFunction.Name} in file: {path}");
          
             // Check network connectivity before proceeding
-            if (!IsNetworkAvailable())
+            if (!_networkService.IsNetworkAvailable())
             {
                 _logger.Warn("No internet connection available. Refactoring requires network access.");
                 _aceStateService.SetState(AceState.Offline);
@@ -113,10 +115,5 @@ namespace Codescene.VSExtension.Core.Application.Services.AceManager
             });
         }
 
-        private bool IsNetworkAvailable()
-        {
-            // Implementation to check network connectivity
-            return System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
-        }
     }
 }

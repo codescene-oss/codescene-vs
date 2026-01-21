@@ -2,6 +2,8 @@ using Codescene.VSExtension.Core.Application.Services;
 using Codescene.VSExtension.Core.Application.Services.Cli;
 using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
 using Codescene.VSExtension.Core.Application.Services.PreflightManager;
+using Codescene.VSExtension.Core.Models.Ace;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests;
@@ -78,5 +80,92 @@ public class PreflightManagerTests
         Assert.IsTrue(config.Activated);
         Assert.IsTrue(config.Visible);
         Assert.IsFalse(config.Disabled);
+    }
+
+    [TestMethod]
+    public void RunPreflight_WhenExecutorThrowsException_SetsErrorState()
+    {
+        // Arrange
+        var expectedException = new Exception("CLI error");
+        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>()))
+            .Throws(expectedException);
+
+        // Act
+        var result = _preflightManager.RunPreflight();
+
+        // Assert
+        Assert.IsNull(result);
+        _mockAceStateService.Verify(s => s.SetState(AceState.Error, expectedException), Times.Once);
+        _mockLogger.Verify(l => l.Error(It.Is<string>(s => s.Contains("Problem getting preflight")), expectedException), Times.Once);
+    }
+
+    [TestMethod]
+    public void RunPreflight_WhenExecutorReturnsNull_SetsOfflineState()
+    {
+        // Arrange
+        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>()))
+            .Returns((PreFlightResponseModel)null);
+
+        // Act
+        var result = _preflightManager.RunPreflight();
+
+        // Assert
+        Assert.IsNull(result);
+        _mockAceStateService.Verify(s => s.SetState(AceState.Offline), Times.Once);
+        _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("ACE service is down"))), Times.Once);
+    }
+
+    [TestMethod]
+    public void RunPreflight_WhenExecutorReturnsResponse_SetsEnabledState()
+    {
+        // Arrange
+        var response = new PreFlightResponseModel { FileTypes = new[] { "cs", "js" } };
+        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>()))
+            .Returns(response);
+
+        // Act
+        var result = _preflightManager.RunPreflight();
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(response, result);
+        _mockAceStateService.Verify(s => s.SetState(AceState.Loading), Times.Once);
+        _mockAceStateService.Verify(s => s.SetState(AceState.Enabled), Times.Once);
+        _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("ACE service is active"))), Times.Once);
+    }
+
+    [TestMethod]
+    public void IsSupportedLanguage_WhenPreflightResponseExists_ReturnsTrue()
+    {
+        // Arrange
+        var response = new PreFlightResponseModel { FileTypes = new[] { "cs", "js", "ts" } };
+        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>()))
+            .Returns(response);
+        _preflightManager.RunPreflight();
+
+        // Act
+        var result = _preflightManager.IsSupportedLanguage(".cs");
+
+        // Assert
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void GetPreflightResponse_WhenCached_ReturnsCachedResponse()
+    {
+        // Arrange
+        var response = new PreFlightResponseModel { FileTypes = new[] { "cs" } };
+        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>()))
+            .Returns(response);
+        _preflightManager.RunPreflight();
+        _mockCliExecutor.Invocations.Clear();
+
+        // Act
+        var result = _preflightManager.GetPreflightResponse();
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(response, result);
+        _mockCliExecutor.Verify(x => x.Preflight(It.IsAny<bool>()), Times.Never);
     }
 }

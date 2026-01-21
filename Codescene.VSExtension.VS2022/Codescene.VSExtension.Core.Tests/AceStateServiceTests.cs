@@ -107,6 +107,22 @@ public class AceStateServiceTests
     }
 
     [TestMethod]
+    public void SetError_WhenAlreadyInErrorState_ShouldStillFireEvent()
+    {
+        _aceStateService.SetState(AceState.Error, new Exception("First error"));
+        var secondException = new Exception("Second error");
+        AceStateChangedEventArgs capturedArgs = null;
+        _aceStateService.StateChanged += (s, e) => capturedArgs = e;
+
+        _aceStateService.SetError(secondException);
+
+        Assert.IsNotNull(capturedArgs);
+        Assert.AreEqual(AceState.Error, capturedArgs.PreviousState);
+        Assert.AreEqual(AceState.Error, capturedArgs.NewState);
+        Assert.AreEqual(secondException, capturedArgs.Error);
+    }
+
+    [TestMethod]
     public void ClearError_ShouldClearLastError()
     {
         _aceStateService.SetError(new Exception("Test error"));
