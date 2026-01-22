@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Util;
+﻿using Codescene.VSExtension.Core.Interfaces.Extension;
 using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.VS2022.Util;

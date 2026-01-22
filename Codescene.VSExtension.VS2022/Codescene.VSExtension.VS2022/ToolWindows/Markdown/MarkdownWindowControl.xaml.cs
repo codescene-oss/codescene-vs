@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.MDFileHandler;
+﻿using Codescene.VSExtension.Core.Interfaces.Util;
 using Microsoft.VisualStudio.Shell;
 using System.ComponentModel.Composition;
 using System.Drawing;

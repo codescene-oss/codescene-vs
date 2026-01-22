@@ -1,7 +1,6 @@
-﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
+﻿using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
-using Codescene.VSExtension.Core.Models.ReviewModels;
 using Community.VisualStudio.Toolkit;
 using System.Collections.Generic;
 using System.Linq;

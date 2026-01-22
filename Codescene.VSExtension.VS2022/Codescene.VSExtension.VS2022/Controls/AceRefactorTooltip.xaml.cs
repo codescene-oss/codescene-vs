@@ -2,8 +2,6 @@ using System.ComponentModel.Composition;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
-using Codescene.VSExtension.VS2022.Commands;
-using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.PlatformUI;

@@ -1,5 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache;
-using Codescene.VSExtension.Core.Application.Services.Cli;
+﻿using Codescene.VSExtension.Core.Application.Cli;
+using Codescene.VSExtension.Core.Interfaces.Cli;
 
 namespace Codescene.VSExtension.Core.IntegrationTests
 {

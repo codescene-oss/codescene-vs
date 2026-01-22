@@ -1,7 +1,6 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache;
-using Codescene.VSExtension.Core.Application.Services.Cli;
-using Codescene.VSExtension.Core.Application.Services.PreflightManager;
-using Codescene.VSExtension.Core.Application.Services.Telemetry;
+﻿using Codescene.VSExtension.Core.Interfaces.Ace;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.DocumentEventsHandler;
 using Codescene.VSExtension.VS2022.Listeners;
@@ -16,7 +15,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using CodeSceneConstants = Codescene.VSExtension.Core.Application.Services.Util.Constants;
+using CodeSceneConstants = Codescene.VSExtension.Core.Consts.Constants;
 using Task = System.Threading.Tasks.Task;
 
 namespace Codescene.VSExtension.VS2022;

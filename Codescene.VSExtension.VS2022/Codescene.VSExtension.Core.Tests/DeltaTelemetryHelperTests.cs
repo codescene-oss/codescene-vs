@@ -1,8 +1,9 @@
-using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
-using Codescene.VSExtension.Core.Application.Services.Telemetry;
-using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Util;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests

@@ -1,5 +1,5 @@
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Settings;
+using Codescene.VSExtension.Core.Exceptions;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.VS2022.Options
