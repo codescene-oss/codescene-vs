@@ -118,7 +118,7 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual($"{{\"delta-result\":{{\"new-score\":{expectedNewScore},\"old-score\":{expectedOldScore}}},\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"preflight\":{{\"file-types\":[\"{preflight.FileTypes.First()}\"]}},\"cache-path\":\"{TestCachePath}\"}}", content);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(false, "refactor preflight")]
         [DataRow(true, "refactor preflight --force")]
         public void GetPreflightSupportInformationCommand_ReturnsCorrectCommand(bool force, string expected)
@@ -128,61 +128,188 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(expected, command);
         }
 
-        //[TestMethod]
-        //public void GetRefactorPostCommand_With_Skip_Cache()
-        //{
-        //    // ARRANGE
-        //    var provider = new CliCommandProvider();
-        //    var fnToRefactorJson = "function(){};";
+        [TestMethod]
+        public void SendTelemetryCommand_ReturnsCorrectFormat()
+        {
+            var jsonEvent = "{\"event\":\"test\"}";
 
-        //    // ACT
-        //    var command = provider.GetRefactorPostCommand(skipCache: true, fnToRefactor: fnToRefactorJson);
+            var command = _commandProvider.SendTelemetryCommand(jsonEvent);
 
-        //    // ASSERT
-        //    Assert.AreEqual(command, $"refactor post --skip-cache --fn-to-refactor \"{fnToRefactorJson}\"");
-        //}
+            Assert.StartsWith("telemetry --event", command);
+        }
 
-        //[TestMethod]
-        //public void GetRefactorPostCommand_Withiout_Skip_Cache()
-        //{
-        //    // ARRANGE
-        //    var provider = new CliCommandProvider();
-        //    var fnToRefactorJson = "function(){};";
+        [TestMethod]
+        public void SendTelemetryCommand_EscapesDoubleQuotes()
+        {
+            var jsonEvent = "{\"event\":\"test\"}";
 
-        //    // ACT
-        //    var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson);
+            var command = _commandProvider.SendTelemetryCommand(jsonEvent);
 
-        //    // ASSERT
-        //    Assert.AreEqual(command, $"refactor post --fn-to-refactor \"{fnToRefactorJson}\"");
-        //}
+            Assert.AreEqual("telemetry --event \"{\\\"event\\\":\\\"test\\\"}\"", command);
+        }
 
-        //[TestMethod]
-        //public void GetRefactorPostCommand_Withiout_Skip_Cache_Use_Staging()
-        //{
-        //    // ARRANGE
-        //    var provider = new CliCommandProvider();
-        //    var fnToRefactorJson = "function(){};";
+        [TestMethod]
+        public void SendTelemetryCommand_EmptyJson_ReturnsCommandWithEmptyJson()
+        {
+            var jsonEvent = "{}";
 
-        //    // ACT
-        //    var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson);
+            var command = _commandProvider.SendTelemetryCommand(jsonEvent);
 
-        //    // ASSERT
-        //    Assert.AreEqual(command, $"refactor post --fn-to-refactor \"{fnToRefactorJson}\"");
-        //}
+            Assert.AreEqual("telemetry --event \"{}\"", command);
+        }
 
-        //[TestMethod]
-        //public void GetRefactorPostCommand_Withiout_Skip_Cache_With_Token()
-        //{
-        //    // ARRANGE
-        //    var provider = new CliCommandProvider();
-        //    var fnToRefactorJson = "function(){};";
-        //    var token = "ABC";
+        [TestMethod]
+        public void SendTelemetryCommand_ComplexJson_EscapesAllQuotes()
+        {
+            var jsonEvent = "{\"name\":\"test\",\"value\":\"data\"}";
 
-        //    // ACT
-        //    var command = provider.GetRefactorPostCommand(skipCache: false, fnToRefactor: fnToRefactorJson, token: token);
+            var command = _commandProvider.SendTelemetryCommand(jsonEvent);
 
-        //    // ASSERT
-        //    Assert.AreEqual(command, $"refactor post --fn-to-refactor {fnToRefactorJson} --token {token}");
-        //}
+            Assert.AreEqual("telemetry --event \"{\\\"name\\\":\\\"test\\\",\\\"value\\\":\\\"data\\\"}\"", command);
+        }
+
+        private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction", string nippyB64 = null)
+        {
+            return new FnToRefactorModel
+            {
+                Name = name,
+                Body = "function body",
+                FileType = "cs",
+                NippyB64 = nippyB64
+            };
+        }
+
+        [TestMethod]
+        public void GetRefactorPostCommand_WithoutSkipCache_ReturnsBasicCommand()
+        {
+            var fnToRefactor = CreateFnToRefactor();
+
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);
+
+            Assert.StartsWith("refactor post", command);
+            Assert.DoesNotContain("--skip-cache", command);
+        }
+
+        [TestMethod]
+        public void GetRefactorPostCommand_WithSkipCache_IncludesSkipCacheFlag()
+        {
+            var fnToRefactor = CreateFnToRefactor();
+
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: true);
+
+            Assert.Contains("--skip-cache", command);
+        }
+
+        [TestMethod]
+        public void GetRefactorPostCommand_WithToken_IncludesTokenArgument()
+        {
+            var fnToRefactor = CreateFnToRefactor();
+            var token = "test-token-123";
+
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false, token: token);
+
+            Assert.Contains("--token", command);
+            Assert.Contains(token, command);
+        }
+
+        [TestMethod]
+        public void GetRefactorPostCommand_WithNullToken_DoesNotIncludeTokenArgument()
+        {
+            var fnToRefactor = CreateFnToRefactor();
+
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false, token: null);
+
+            Assert.DoesNotContain("--token", command);
+        }
+
+        [TestMethod]
+        public void GetRefactorPostCommand_WithEmptyToken_DoesNotIncludeTokenArgument()
+        {
+            var fnToRefactor = CreateFnToRefactor();
+
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false, token: "");
+
+            Assert.DoesNotContain("--token", command);
+        }
+
+        [TestMethod]
+        public void GetRefactorPostCommand_WithWhitespaceToken_DoesNotIncludeTokenArgument()
+        {
+            var fnToRefactor = CreateFnToRefactor();
+
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false, token: "   ");
+
+            Assert.DoesNotContain("--token", command);
+        }
+
+        [TestMethod]
+        public void GetRefactorPostCommand_WithNippyB64_UsesFnToRefactorNippyB64Flag()
+        {
+            var nippyB64 = "base64encodeddata";
+            var fnToRefactor = CreateFnToRefactor(nippyB64: nippyB64);
+
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);
+
+            Assert.Contains("--fn-to-refactor-nippy-b64", command);
+            Assert.Contains(nippyB64, command);
+            Assert.DoesNotContain("--fn-to-refactor ", command);
+        }
+
+        [TestMethod]
+        public void GetRefactorPostCommand_WithoutNippyB64_UsesFnToRefactorJsonFlag()
+        {
+            var fnToRefactor = CreateFnToRefactor(nippyB64: null);
+
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);
+
+            Assert.Contains("--fn-to-refactor", command);
+            Assert.DoesNotContain("--fn-to-refactor-nippy-b64", command);
+        }
+
+        [TestMethod]
+        public void GetRefactorPostCommand_WithEmptyNippyB64_UsesFnToRefactorJsonFlag()
+        {
+            var fnToRefactor = CreateFnToRefactor(nippyB64: "");
+
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);
+
+            Assert.Contains("--fn-to-refactor", command);
+            Assert.DoesNotContain("--fn-to-refactor-nippy-b64", command);
+        }
+
+        [TestMethod]
+        public void GetRefactorPostCommand_WithAllOptions_IncludesAllArguments()
+        {
+            var nippyB64 = "encodeddata";
+            var fnToRefactor = CreateFnToRefactor(nippyB64: nippyB64);
+            var token = "my-token";
+
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: true, token: token);
+
+            Assert.Contains("refactor", command);
+            Assert.Contains("post", command);
+            Assert.Contains("--skip-cache", command);
+            Assert.Contains("--token", command);
+            Assert.Contains(token, command);
+            Assert.Contains("--fn-to-refactor-nippy-b64", command);
+            Assert.Contains(nippyB64, command);
+        }
+
+        [TestMethod]
+        public void GetRefactorPostCommand_JsonSerializesFnToRefactor_WhenNoNippyB64()
+        {
+            var fnToRefactor = new FnToRefactorModel
+            {
+                Name = "MyFunction",
+                Body = "code here",
+                FileType = "js",
+                NippyB64 = null
+            };
+
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);
+
+            // The command should contain serialized JSON with the function name
+            Assert.Contains("MyFunction", command);
+        }
     }
 }
