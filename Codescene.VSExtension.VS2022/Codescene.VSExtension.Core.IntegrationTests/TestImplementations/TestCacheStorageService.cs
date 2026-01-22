@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache;
+﻿using Codescene.VSExtension.Core.Interfaces.Cli;
 using Moq;
 using System.ComponentModel.Composition;
 

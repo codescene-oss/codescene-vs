@@ -1,5 +1,5 @@
-using Codescene.VSExtension.Core.Application.Services.Cache.Review;
-using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
+using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 
 namespace Codescene.VSExtension.Core.Tests

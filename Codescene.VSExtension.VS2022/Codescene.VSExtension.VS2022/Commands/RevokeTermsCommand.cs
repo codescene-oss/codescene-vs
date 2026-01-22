@@ -1,7 +1,7 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Telemetry;
-using Codescene.VSExtension.Core.Application.Services.Util;
+﻿using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;

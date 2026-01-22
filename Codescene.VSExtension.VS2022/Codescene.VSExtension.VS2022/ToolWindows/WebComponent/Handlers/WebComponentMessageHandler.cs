@@ -1,7 +1,7 @@
-﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Telemetry;
-using Codescene.VSExtension.Core.Application.Services.Util;
+﻿using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.VS2022.Application.Services;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
@@ -12,10 +12,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
+using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 

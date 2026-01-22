@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Codescene.VSExtension.Core.Models.WebComponent
+namespace Codescene.VSExtension.Core.Models.WebComponent.Payload
 {
     public class WebComponentPayload<T>
     {

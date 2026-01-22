@@ -77,12 +77,6 @@ jobs:
       - name: Run unit tests
         if: ${{ hashFiles('**/*Tests.dll') != '' }}
         run: dotnet test Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --configuration Release --no-build --results-directory ./Codescene.VSExtension.VS2022/TestResults/ --logger trx --collect "XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=lcov
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: '**/*.trx'
           
       - name: Test Report
         uses: dorny/test-reporter@v1
@@ -113,7 +107,15 @@ jobs:
           access-token: ${{ secrets.CODESCENE_CODE_COVERAGE_API_TOKEN }}
           project-url: "https://api.codescene.io/v2/projects/66574"
           coverage-files: "**/coverage-report/lcov.info"
-          
+       
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/*.trx
+            **/coverage-report/lcov.info
+            
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:

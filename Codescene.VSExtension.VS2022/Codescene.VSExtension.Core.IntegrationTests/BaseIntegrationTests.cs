@@ -1,11 +1,7 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache;
-using Codescene.VSExtension.Core.Application.Services.Cli;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
-using Codescene.VSExtension.Core.Application.Services.Git;
-using Codescene.VSExtension.Core.Application.Services.Settings;
-using Codescene.VSExtension.Core.Application.Services.Util;
-using Codescene.VSExtension.Core.IntegrationTests.TestImplementations;
+﻿using Codescene.VSExtension.Core.IntegrationTests.TestImplementations;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Moq;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;

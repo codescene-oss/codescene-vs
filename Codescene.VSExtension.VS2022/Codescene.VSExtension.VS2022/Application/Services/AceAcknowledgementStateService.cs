@@ -1,4 +1,4 @@
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+using Codescene.VSExtension.Core.Interfaces;
 using Microsoft.Win32;
 using System;
 using System.ComponentModel.Composition;
