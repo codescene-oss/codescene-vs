@@ -1,5 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
-using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
+﻿using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
@@ -7,7 +7,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
+using static Codescene.VSExtension.Core.Consts.Constants;
 
 namespace Codescene.VSExtension.VS2022.EditorMargin;
 

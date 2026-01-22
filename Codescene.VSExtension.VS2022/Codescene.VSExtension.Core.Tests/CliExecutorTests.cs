@@ -1,7 +1,8 @@
-using Codescene.VSExtension.Core.Application.Services.Cache;
-using Codescene.VSExtension.Core.Application.Services.Cli;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Settings;
+using Codescene.VSExtension.Core.Application.Cli;
+using Codescene.VSExtension.Core.Exceptions;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Moq;

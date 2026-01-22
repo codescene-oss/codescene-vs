@@ -1,5 +1,5 @@
-using Codescene.VSExtension.Core.Application.Services;
-using Codescene.VSExtension.Core.Application.Services.PreflightManager;
+using Codescene.VSExtension.Core.Enums;
+using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models.Ace;
 
 namespace Codescene.VSExtension.Core.IntegrationTests

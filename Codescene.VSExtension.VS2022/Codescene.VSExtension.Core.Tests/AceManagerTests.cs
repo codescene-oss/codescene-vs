@@ -1,13 +1,13 @@
-using Codescene.VSExtension.Core.Application.Services;
-using Codescene.VSExtension.Core.Application.Services.AceManager;
-using Codescene.VSExtension.Core.Application.Services.Cli;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Telemetry;
-using Codescene.VSExtension.Core.Application.Services.Util;
-using Codescene.VSExtension.Core.Models.Ace;
+using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Enums;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Ace;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
-using Codescene.VSExtension.Core.Models.WebComponent;
+using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests

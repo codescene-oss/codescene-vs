@@ -1,8 +1,7 @@
-using Codescene.VSExtension.Core.Application.Services.Mapper;
+using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Review;
-using Codescene.VSExtension.Core.Models.ReviewModels;
 
 namespace Codescene.VSExtension.Core.Tests
 {

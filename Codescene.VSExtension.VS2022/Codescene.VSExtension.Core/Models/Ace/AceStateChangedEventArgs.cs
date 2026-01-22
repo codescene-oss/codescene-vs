@@ -1,3 +1,4 @@
+using Codescene.VSExtension.Core.Enums;
 using System;
 
 namespace Codescene.VSExtension.Core.Models.Ace

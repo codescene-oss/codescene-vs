@@ -1,12 +1,12 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Telemetry;
+﻿using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading.Tasks;
-using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
+using static Codescene.VSExtension.Core.Consts.Constants;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 
