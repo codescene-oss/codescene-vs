@@ -1,6 +1,6 @@
-using Codescene.VSExtension.Core.Application.Services.Cli;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.PreflightManager;
+using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests;

@@ -1,5 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;

@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cli;
+﻿using Codescene.VSExtension.Core.Application.Cli;
 using System.Reflection;
 
 namespace Codescene.VSExtension.Core.Tests

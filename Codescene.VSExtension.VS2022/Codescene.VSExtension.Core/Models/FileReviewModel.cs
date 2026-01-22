@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Codescene.VSExtension.Core.Models.ReviewModels
+namespace Codescene.VSExtension.Core.Models
 {
     public class FileReviewModel
     {

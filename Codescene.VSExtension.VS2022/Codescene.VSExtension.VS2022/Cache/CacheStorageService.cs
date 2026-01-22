@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache;
+﻿using Codescene.VSExtension.Core.Interfaces.Cli;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System;

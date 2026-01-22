@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Util;
+﻿using Codescene.VSExtension.Core.Application.Util;
+using Codescene.VSExtension.Core.Models;
 using Microsoft.VisualStudio.Text;
 using System;
 

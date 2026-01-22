@@ -1,18 +1,16 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
-using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
-using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.VS2022.Controls;
 using Codescene.VSExtension.VS2022.Util;
-using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 
 namespace Codescene.VSExtension.VS2022.UnderlineTagger
 {

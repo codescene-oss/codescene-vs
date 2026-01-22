@@ -1,4 +1,5 @@
-using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Application.Util;
+using Codescene.VSExtension.Core.Models;
 
 namespace Codescene.VSExtension.Core.Tests;
 

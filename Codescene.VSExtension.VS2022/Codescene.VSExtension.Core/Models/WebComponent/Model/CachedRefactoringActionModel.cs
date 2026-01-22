@@ -1,6 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
 
-namespace Codescene.VSExtension.Core.Models.WebComponent
+namespace Codescene.VSExtension.Core.Models.WebComponent.Model
 {
     public class CachedRefactoringActionModel
     {

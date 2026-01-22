@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
+﻿using Codescene.VSExtension.Core.Interfaces;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;

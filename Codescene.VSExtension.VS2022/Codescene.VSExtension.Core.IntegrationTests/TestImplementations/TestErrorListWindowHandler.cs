@@ -1,5 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.ErrorListWindowHandler;
-using Codescene.VSExtension.Core.Models.ReviewModels;
+﻿using Codescene.VSExtension.Core.Interfaces.Extension;
+using Codescene.VSExtension.Core.Models;
 using Moq;
 using System.ComponentModel.Composition;
 

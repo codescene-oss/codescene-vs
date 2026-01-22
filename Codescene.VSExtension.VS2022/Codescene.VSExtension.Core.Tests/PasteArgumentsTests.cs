@@ -1,4 +1,4 @@
-using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Util;
 using System.Text;
 
 namespace Codescene.VSExtension.Core.Tests
