@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.VS2022.Util;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 {

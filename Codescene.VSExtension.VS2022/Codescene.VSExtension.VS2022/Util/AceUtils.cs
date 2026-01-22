@@ -1,5 +1,7 @@
-﻿using Codescene.VSExtension.Core.Models;
+﻿using Codescene.VSExtension.Core.Interfaces.Ace;
+using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Community.VisualStudio.Toolkit;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
