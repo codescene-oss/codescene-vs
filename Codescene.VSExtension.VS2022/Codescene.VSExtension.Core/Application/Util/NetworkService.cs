@@ -1,6 +1,7 @@
+using Codescene.VSExtension.Core.Interfaces.Util;
 using System.ComponentModel.Composition;
 
-namespace Codescene.VSExtension.Core.Interfaces.Util
+namespace Codescene.VSExtension.Core.Application.Util
 {
     /// <summary>
     /// Implementation of INetworkService that checks system network connectivity.
