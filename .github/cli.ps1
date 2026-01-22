@@ -1,4 +1,4 @@
-$cliSettingsPath = "Codescene.VSExtension.VS2022/Codescene.VSExtension.Core/Application/Services/Cli/SettingsProvider/CliSettingsProvider.cs"
+$cliSettingsPath = "Codescene.VSExtension.VS2022/Codescene.VSExtension.Core/Application/Cli/CliSettingsProvider.cs"
 
 if (-not (Test-Path $cliSettingsPath)) {
     Write-Error "CliSettingsProvider.cs not found at: $cliSettingsPath"
