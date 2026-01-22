@@ -5,12 +5,14 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Util;
 using Moq;
+using System.Threading;
 
 namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
     public class DeltaTelemetryHelperTests
     {
+        private const int AsyncTimeoutMs = 5000;
         private Mock<ITelemetryManager> _mockTelemetryManager;
 
         [TestInitialize]
@@ -46,8 +48,9 @@ namespace Codescene.VSExtension.Core.Tests
             var (previousSnapshot, currentCache) = CreateSnapshots(new[] { "otherfile.cs" }, new[] { "otherfile.cs" });
             var entry = new DeltaCacheEntry("unknownfile.cs", "old", "new", CreateDeltaResponse(0.0m));
 
+            // For "never called" scenarios, we still need a small delay since there's no signal to wait for
             DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-            await Task.Delay(100);
+            await Task.Delay(200);
 
             _mockTelemetryManager.Verify(
                 t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
@@ -59,8 +62,15 @@ namespace Codescene.VSExtension.Core.Tests
             var (previousSnapshot, currentCache) = CreateSnapshots(scenario.PreviousFiles, scenario.CurrentFiles);
             var entry = new DeltaCacheEntry(scenario.EntryFile, "old", "new", scenario.EntryDelta ?? CreateDeltaResponse(0.5m));
 
+            var callReceived = new ManualResetEventSlim(false);
+            _mockTelemetryManager
+                .Setup(t => t.SendTelemetry(expectedEvent, It.IsAny<Dictionary<string, object>>()))
+                .Callback(() => callReceived.Set());
+
             DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-            await Task.Delay(100);
+
+            var signaled = await Task.Run(() => callReceived.Wait(AsyncTimeoutMs));
+            Assert.IsTrue(signaled, $"Timed out waiting for SendTelemetry({expectedEvent}) to be called");
 
             _mockTelemetryManager.Verify(t => t.SendTelemetry(expectedEvent, It.IsAny<Dictionary<string, object>>()), Times.Once);
         }
@@ -134,12 +144,16 @@ namespace Codescene.VSExtension.Core.Tests
             var (previousSnapshot, _) = CreateSnapshots(previousFiles: new[] { "removedfile.cs" }, currentFiles: new string[] { });
             var entry = new DeltaCacheEntry("removedfile.cs", "old", "new", CreateDeltaResponse(-1.0m));
 
+            var callReceived = new ManualResetEventSlim(false);
             Dictionary<string, object> capturedData = null;
-            SetupTelemetryCapture(data => capturedData = data);
+            _mockTelemetryManager
+                .Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Callback<string, Dictionary<string, object>>((_, data) => { capturedData = data; callReceived.Set(); });
 
             DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, new Dictionary<string, DeltaResponseModel>(), entry, _mockTelemetryManager.Object);
-            await Task.Delay(100);
 
+            var signaled = await Task.Run(() => callReceived.Wait(AsyncTimeoutMs));
+            Assert.IsTrue(signaled, "Timed out waiting for SendTelemetry to be called");
             Assert.IsNull(capturedData);
         }
 
@@ -150,19 +164,18 @@ namespace Codescene.VSExtension.Core.Tests
             var currentCache = new Dictionary<string, DeltaResponseModel> { { uniqueFile, delta } };
             var entry = new DeltaCacheEntry(uniqueFile, "old", "new", delta);
 
+            var callReceived = new ManualResetEventSlim(false);
             Dictionary<string, object> capturedData = null;
-            SetupTelemetryCapture(data => capturedData = data);
+            _mockTelemetryManager
+                .Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Callback<string, Dictionary<string, object>>((_, data) => { capturedData = data; callReceived.Set(); });
 
             DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-            await Task.Delay(200);
+
+            var signaled = await Task.Run(() => callReceived.Wait(AsyncTimeoutMs));
+            Assert.IsTrue(signaled, "Timed out waiting for SendTelemetry to be called");
 
             return capturedData;
-        }
-
-        private void SetupTelemetryCapture(System.Action<Dictionary<string, object>> captureAction)
-        {
-            _mockTelemetryManager.Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, data) => captureAction(data));
         }
 
         private static DeltaResponseModel CreateDeltaWithFindings(int fileLevelCount, int functionLevelCount)
