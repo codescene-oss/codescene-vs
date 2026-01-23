@@ -3,6 +3,7 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.DocumentEventsHandler;
+using Codescene.VSExtension.VS2022.Handlers;
 using Codescene.VSExtension.VS2022.Listeners;
 using Codescene.VSExtension.VS2022.ToolWindows.Markdown;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
@@ -72,7 +73,14 @@ public sealed class VS2022Package : ToolkitPackage
             // File-based cache storage for CLI
             await InitializeCacheStorageServiceAsync();
 
+            // Initialize ACE state change handler
+            await InitializeAceStateChangeHandlerAsync();
+
+            // Initialize ACE at startup
+            RunPreflight();
+
             SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION);
+
         }
         catch (Exception e)
         {
@@ -81,7 +89,6 @@ public sealed class VS2022Package : ToolkitPackage
 
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
             SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION_ERROR);
-            RunPreflight();
         }
     }
 
@@ -89,6 +96,13 @@ public sealed class VS2022Package : ToolkitPackage
     {
         var cacheManager = await VS.GetMefServiceAsync<ICacheStorageService>();
         await cacheManager.InitializeAsync();
+    }
+
+    private async Task InitializeAceStateChangeHandlerAsync()
+    {
+        // Initialize the handler so it's ready to receive state change events
+        // The handler subscribes to IAceStateService.StateChanged in its constructor
+        await GetServiceAsync<AceStateChangeHandler>();
     }
 
     private void SendTelemetry(string eventName)
@@ -102,13 +116,11 @@ public sealed class VS2022Package : ToolkitPackage
 
     private void RunPreflight()
     {
-#if FEATURE_ACE
         Task.Run(async () =>
         {
             var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
             preflightManager.RunPreflight(true);
         }).FireAndForget();
-#endif
     }
 
     private async Task WaitForShellInitializationAsync(CancellationToken cancellationToken)

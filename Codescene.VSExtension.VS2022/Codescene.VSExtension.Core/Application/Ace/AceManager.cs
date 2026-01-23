@@ -1,8 +1,10 @@
 using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -20,13 +22,17 @@ namespace Codescene.VSExtension.Core.Application.Ace
         private readonly ILogger _logger;
         private readonly ICliExecutor _executor;
         private readonly ITelemetryManager _telemetryManager;
+        private readonly IAceStateService _aceStateService;
+        private readonly INetworkService _networkService;
 
         [ImportingConstructor]
-        public AceManager(ILogger logger, ICliExecutor executor, ITelemetryManager telemetryManager)
+        public AceManager(ILogger logger, ICliExecutor executor, ITelemetryManager telemetryManager, IAceStateService aceStateService, INetworkService networkService)
         {
             _logger = logger;
             _executor = executor;
             _telemetryManager = telemetryManager;
+            _aceStateService = aceStateService;
+            _networkService = networkService;
         }
 
         public static CachedRefactoringActionModel LastRefactoring;
@@ -41,16 +47,17 @@ namespace Codescene.VSExtension.Core.Application.Ace
             _logger.Info($"Starting refactoring of function: {refactorableFunction.Name} in file: {path}");
          
             // Check network connectivity before proceeding
-            if (!IsNetworkAvailable())
+            if (!_networkService.IsNetworkAvailable())
             {
                 _logger.Warn("No internet connection available. Refactoring requires network access.");
-				LastRefactoring = null;
-				return null;
+                _aceStateService.SetState(AceState.Offline);
+                LastRefactoring = null;
+                return null;
             }
             
             SendTelemetry(entryPoint, invalidateCache);
 
-			try
+            try
             {
                 var refactoredFunction = _executor.PostRefactoring(fnToRefactor: refactorableFunction);
 
@@ -58,6 +65,15 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 {
                     _logger.Info($"Refactoring function: {refactorableFunction.Name}...");
                     _logger.Debug($"Refactoring trace-id: {refactoredFunction.TraceId}.");
+
+                    // Clear any previous errors on success (matching VSCode behavior)
+                    _aceStateService.ClearError();
+
+                    // If we were offline, we're back online
+                    if (_aceStateService.CurrentState == AceState.Offline)
+                    {
+                        _aceStateService.SetState(AceState.Enabled);
+                    }
 
                     var cacheItem = new CachedRefactoringActionModel
                     {
@@ -73,7 +89,10 @@ namespace Codescene.VSExtension.Core.Application.Ace
             catch (Exception e)
             {
                 _logger.Error($"Error during refactoring of method {refactorableFunction.Name}", e);
-                throw e;
+                
+                _aceStateService.SetError(e);
+                
+                throw;
             }
             LastRefactoring = null;
             return null;
@@ -98,10 +117,5 @@ namespace Codescene.VSExtension.Core.Application.Ace
             });
         }
 
-        private bool IsNetworkAvailable()
-        {
-            // Implementation to check network connectivity
-            return System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
-        }
     }
 }

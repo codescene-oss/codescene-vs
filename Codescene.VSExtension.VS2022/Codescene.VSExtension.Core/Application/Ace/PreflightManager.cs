@@ -1,8 +1,10 @@
+using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 
@@ -14,35 +16,50 @@ namespace Codescene.VSExtension.Core.Application.Ace
     {
         private readonly ICliExecutor _executer;
         private readonly ILogger _logger;
+        private readonly IAceStateService _aceStateService;
 
         private PreFlightResponseModel _preflightResponse;
         private AutoRefactorConfig _autoRefactorConfig;
 
         [ImportingConstructor]
-        public PreflightManager(ICliExecutor executer, ILogger logger)
+        public PreflightManager(ICliExecutor executer, ILogger logger, IAceStateService aceStateService)
         {
             _executer = executer;
             _logger = logger;
+            _aceStateService = aceStateService;
         }
 
         public PreFlightResponseModel RunPreflight(bool force = false)
         {
             _logger.Debug($"Running preflight with force: {force}");
+            _aceStateService.SetState(AceState.Loading);
 
-            var response = _executer.Preflight(force);
-
-            if (response != null)
+            try
             {
-                _logger.Info("Got preflight response. ACE service is active.");
-                _preflightResponse = response;
-                _autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
-                return response;
+                var response = _executer.Preflight(force);
+
+                if (response != null)
+                {
+                    _logger.Info("Got preflight response. ACE service is active.");
+                    _preflightResponse = response;
+                    _autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
+                    _aceStateService.SetState(AceState.Enabled);
+                    return response;
+                }
+                else
+                {
+                    _logger.Info("Problem getting preflight response. ACE service is down.");
+                    _preflightResponse = null;
+                    _autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
+                    _aceStateService.SetState(AceState.Offline);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.Info("Problem getting preflight response. ACE service is down.");
+                _logger.Error("Problem getting preflight response. ACE service is down.", ex);
                 _preflightResponse = null;
                 _autoRefactorConfig = new() { Activated = true, Visible = true, Disabled = false };
+                _aceStateService.SetState(AceState.Error, ex);
             }
 
             return null;

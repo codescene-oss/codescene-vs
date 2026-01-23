@@ -70,6 +70,7 @@
       <DependentUpon>AceRefactorTooltip.xaml</DependentUpon>
     </Compile>
     <Compile Include="Commands\RevokeTermsCommand.cs" />
+    <Compile Include="Handlers\AceStateChangeHandler.cs" />
     <Compile Include="Options\GeneralSettingsProvider.cs" />
     <Compile Include="TermsAndPolicies\TermsAndPoliciesService.cs" />
     <Compile Include="Handlers\SolutionEventsHandler.cs" />

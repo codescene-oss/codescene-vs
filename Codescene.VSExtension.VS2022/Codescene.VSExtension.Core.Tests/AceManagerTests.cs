@@ -1,7 +1,10 @@
 using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -15,6 +18,8 @@ namespace Codescene.VSExtension.Core.Tests
         private Mock<ILogger> _mockLogger;
         private Mock<ICliExecutor> _mockExecutor;
         private Mock<ITelemetryManager> _mockTelemetryManager;
+        private Mock<IAceStateService> _mockAceStateService;
+        private Mock<INetworkService> _mockNetworkService;
         private AceManager _aceManager;
 
         [TestInitialize]
@@ -23,11 +28,18 @@ namespace Codescene.VSExtension.Core.Tests
             _mockLogger = new Mock<ILogger>();
             _mockExecutor = new Mock<ICliExecutor>();
             _mockTelemetryManager = new Mock<ITelemetryManager>();
+            _mockAceStateService = new Mock<IAceStateService>();
+            _mockNetworkService = new Mock<INetworkService>();
+
+            // Default to network available
+            _mockNetworkService.Setup(n => n.IsNetworkAvailable()).Returns(true);
 
             _aceManager = new AceManager(
                 _mockLogger.Object,
                 _mockExecutor.Object,
-                _mockTelemetryManager.Object);
+                _mockTelemetryManager.Object,
+                _mockAceStateService.Object,
+                _mockNetworkService.Object);
 
             // Clear static state between tests
             AceManager.LastRefactoring = null;
@@ -85,7 +97,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Refactor_WhenExecutorReturnsNull_ReturnsNull()
+        public void Refactor_WhenExecutorReturnsNull_LogsInfoAndReturnsNull()
         {
             // Arrange
             var path = "test.cs";
@@ -99,13 +111,12 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _aceManager.Refactor(path, fnToRefactor, entryPoint);
 
             // Assert
-            // Note: Result depends on network availability - if network is available, returns null when executor returns null
-            // If network is not available, returns null early
             Assert.IsNull(result);
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("TestMethod") && s.Contains("test.cs"))), Times.Once);
         }
 
         [TestMethod]
-        public void Refactor_WhenExceptionThrown_LogsErrorAndRethrows()
+        public void Refactor_WhenExceptionThrown_LogsErrorSetsErrorAndRethrows()
         {
             // Arrange
             var path = "test.cs";
@@ -117,35 +128,11 @@ namespace Codescene.VSExtension.Core.Tests
                 .Throws(expectedException);
 
             // Act & Assert
-            // Note: This test will only work if network is available
-            try
-            {
-                _aceManager.Refactor(path, fnToRefactor, entryPoint);
-                // If we get here without exception, network might be unavailable
-            }
-            catch (Exception ex)
-            {
-                Assert.AreEqual("Refactoring failed", ex.Message);
-                _mockLogger.Verify(l => l.Error(It.Is<string>(s => s.Contains("TestMethod")), expectedException), Times.Once);
-            }
-        }
+            var ex = Assert.Throws<Exception>(() => _aceManager.Refactor(path, fnToRefactor, entryPoint));
 
-        [TestMethod]
-        public void Refactor_LogsInfoAtStart()
-        {
-            // Arrange
-            var path = "test.cs";
-            var fnToRefactor = new FnToRefactorModel { Name = "MyFunction" };
-            var entryPoint = "codelens";
-
-            _mockExecutor.Setup(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
-                .Returns((RefactorResponseModel)null);
-
-            // Act
-            _aceManager.Refactor(path, fnToRefactor, entryPoint);
-
-            // Assert
-            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("MyFunction") && s.Contains("test.cs"))), Times.Once);
+            Assert.AreEqual("Refactoring failed", ex.Message);
+            _mockLogger.Verify(l => l.Error(It.Is<string>(s => s.Contains("TestMethod")), expectedException), Times.Once);
+            _mockAceStateService.Verify(s => s.SetError(expectedException), Times.Once);
         }
 
         [TestMethod]
@@ -181,6 +168,72 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual("cached/path.cs", result.Path);
             Assert.AreEqual("CachedFunction", result.RefactorableCandidate.Name);
             Assert.AreEqual("refactored code", result.Refactored.Code);
+        }
+
+        [TestMethod]
+        public void Refactor_WhenSuccessful_ClearsErrorAndCachesResult()
+        {
+            // Arrange
+            var path = "test.cs";
+            var fnToRefactor = new FnToRefactorModel { Name = "TestMethod" };
+            var entryPoint = "toolbar";
+            var refactoredResponse = new RefactorResponseModel { Code = "refactored", TraceId = "trace-456" };
+
+            _mockExecutor.Setup(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
+                .Returns(refactoredResponse);
+
+            // Act
+            var result = _aceManager.Refactor(path, fnToRefactor, entryPoint);
+
+            // Assert
+            Assert.IsNotNull(result);
+            _mockAceStateService.Verify(s => s.ClearError(), Times.Once);
+            Assert.AreEqual(path, result.Path);
+            Assert.AreEqual(fnToRefactor, result.RefactorableCandidate);
+            Assert.AreEqual(refactoredResponse, result.Refactored);
+            Assert.AreEqual(result, AceManager.LastRefactoring);
+        }
+
+        [TestMethod]
+        public void Refactor_WhenSuccessfulAndWasOffline_TransitionsToEnabled()
+        {
+            // Arrange
+            var path = "test.cs";
+            var fnToRefactor = new FnToRefactorModel { Name = "TestMethod" };
+            var entryPoint = "toolbar";
+            var refactoredResponse = new RefactorResponseModel { Code = "refactored", TraceId = "trace-789" };
+
+            _mockAceStateService.Setup(s => s.CurrentState).Returns(AceState.Offline);
+            _mockExecutor.Setup(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
+                .Returns(refactoredResponse);
+
+            // Act
+            var result = _aceManager.Refactor(path, fnToRefactor, entryPoint);
+
+            // Assert
+            Assert.IsNotNull(result);
+            _mockAceStateService.Verify(s => s.SetState(AceState.Enabled), Times.Once);
+        }
+
+        [TestMethod]
+        public void Refactor_WhenNetworkUnavailable_SetsOfflineStateAndReturnsNull()
+        {
+            // Arrange
+            var path = "test.cs";
+            var fnToRefactor = new FnToRefactorModel { Name = "TestMethod" };
+            var entryPoint = "toolbar";
+
+            _mockNetworkService.Setup(n => n.IsNetworkAvailable()).Returns(false);
+
+            // Act
+            var result = _aceManager.Refactor(path, fnToRefactor, entryPoint);
+
+            // Assert
+            Assert.IsNull(result);
+            Assert.IsNull(AceManager.LastRefactoring);
+            _mockAceStateService.Verify(s => s.SetState(AceState.Offline), Times.Once);
+            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("No internet connection"))), Times.Once);
+            _mockExecutor.Verify(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Never);
         }
 
     }

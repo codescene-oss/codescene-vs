@@ -1,5 +1,4 @@
 ﻿using Codescene.VSExtension.Core.Models.Cache.Review;
-using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Util;
@@ -20,6 +19,7 @@ using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.VS2022.Util;
+using Codescene.VSExtension.Core.Interfaces;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 {
@@ -109,11 +109,9 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 if (result != null && result.RawScore != null)
                 {
                     _logger.Info($"File {path} reviewed successfully.");
-#if FEATURE_ACE
                     // this call has to be awaited, otherwise delta could finish before and update of delta cache won't work
                     // happening in 17.0.0
                     await AceUtils.CheckContainsRefactorableFunctionsAsync(result, code);
-#endif
 
                     DeltaReviewAsync(result, code).FireAndForget();
                 }

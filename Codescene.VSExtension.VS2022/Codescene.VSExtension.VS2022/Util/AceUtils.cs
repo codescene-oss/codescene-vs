@@ -15,12 +15,8 @@ namespace Codescene.VSExtension.VS2022.Util
         /// </summary>
         public static async Task<IList<FnToRefactorModel>> CheckContainsRefactorableFunctionsAsync(FileReviewModel result, string code)
         {
-#if FEATURE_ACE
             var aceRefactorService = await VS.GetMefServiceAsync<IAceRefactorService>();
             return aceRefactorService.CheckContainsRefactorableFunctions(result, code);
-#else
-            return new List<FnToRefactorModel>();
-#endif
         }
 
         /// <summary>
