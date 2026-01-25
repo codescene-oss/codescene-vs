@@ -92,7 +92,8 @@ no-regions-mine:
 	@powershell.exe -File .github/check-no-regions-mine.ps1
 
 # iter - iterate. Good as a prompt: "iterate to success using `make iter`"
-iter: format class-size-mine no-regions-mine dotnet-analyzers-mine stylecop-mine delta test-mine
+# `format` temporarily removed.
+iter: class-size-mine no-regions-mine dotnet-analyzers-mine stylecop-mine delta test-mine
 
 install-cli:
 	@powershell.exe -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Invoke-WebRequest -Uri 'https://downloads.codescene.io/enterprise/cli/install-cs-tool.ps1' -OutFile install-cs-tool.ps1; .\install-cs-tool.ps1; Remove-Item install-cs-tool.ps1"
