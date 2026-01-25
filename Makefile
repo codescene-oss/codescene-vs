@@ -69,19 +69,21 @@ format-check:
 	$(call call_cached,$(CACHE_KEY),dotnet.exe format Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --verify-no-changes) > format-check.log 2>&1 && del format-check.log || (type format.log && del format-check.log && exit /b 1)
 
 .run-analyzers: restore
-	@cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release -p:RunStyleCopAnalyzers=true > ..\analyzers.log 2>&1
+	@$(call call_cached,$(CACHE_KEY),cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release -p:RunStyleCopAnalyzers=true)
 
-stylecop: .run-analyzers
+stylecop: restore
+	@$(MAKE) .run-analyzers > analyzers.log 2>&1
 	@powershell.exe -Command "$$warnings = Select-String -Path 'analyzers.log' -Pattern 'warning SA' | ForEach-Object { $$_.Line } | Sort-Object -Unique; if ($$warnings) { $$warnings | ForEach-Object { Write-Host $$_ }; exit 1 } else { exit 0 }"
 
 stylecop-mine: restore
-	@$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/check-mine.ps1 -Pattern 'warning SA')
+	@$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/check-mine.ps1 -Pattern \"warning SA\")
 
-dotnet-analyzers: .run-analyzers
-	@powershell.exe -Command "$$warnings = Select-String -Path 'analyzers.log' -Pattern 'warning CA' | ForEach-Object { $$_.Line } | Sort-Object -Unique; if ($$warnings) { $$warnings | ForEach-Object { Write-Host $$_ }; exit 1 } else { exit 0 }"
+dotnet-analyzers: restore
+	@$(MAKE) .run-analyzers > analyzers.log 2>&1
+	@powershell.exe -Command "$$warnings = Select-String -Path 'analyzers.log' -Pattern 'warning' | Where-Object { $$_.Line -notmatch 'warning SA' } | ForEach-Object { $$_.Line } | Sort-Object -Unique; if ($$warnings) { $$warnings | ForEach-Object { Write-Host $$_ }; exit 1 } else { exit 0 }"
 
 dotnet-analyzers-mine: restore
-	@$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/check-mine.ps1 -Pattern 'warning CA')
+	@$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/check-mine.ps1 -Pattern \"warning\" -ExcludePattern \"warning SA\")
 
 # iter - iterate. Good as a promopt: "iterate to success using `make iter`"
 iter: format dotnet-analyzers-mine stylecop-mine test-mine delta

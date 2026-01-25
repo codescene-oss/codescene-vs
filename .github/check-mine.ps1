@@ -1,25 +1,32 @@
 param(
     [Parameter(Mandatory=$true)]
-    [string]$Pattern
+    [string]$Pattern,
+    [string]$ExcludePattern
 )
 
-$files = powershell.exe -File .github/mine.ps1
+$changedFiles = powershell.exe -File .github/mine.ps1
 $exitCode = $LASTEXITCODE
 
 if ($exitCode -eq 0) {
-    Set-Location Codescene.VSExtension.VS2022
-    $output = dotnet.exe format analyzers Codescene.VSExtension.sln --severity info --no-restore --include $files 2>&1
-    $formatExit = $LASTEXITCODE
-    Set-Location ..
+    $fileList = $changedFiles -split ' '
 
-    if ($formatExit -ne 0) {
-        Write-Host $output
+    make .run-analyzers > analyzers.log 2>&1
+    if ($LASTEXITCODE -ne 0) {
         exit 1
     }
 
-    $warnings = $output | Select-String -Pattern $Pattern | ForEach-Object { $_.Line } | Sort-Object -Unique
-    if ($warnings) {
-        $warnings | ForEach-Object { Write-Host $_ }
+    $allWarnings = Select-String -Path 'analyzers.log' -Pattern $Pattern
+    if ($ExcludePattern) {
+        $allWarnings = $allWarnings | Where-Object { $_.Line -notmatch $ExcludePattern }
+    }
+
+    $filteredWarnings = $allWarnings | Where-Object {
+        $line = $_.Line
+        $fileList | Where-Object { $line -like "*$_*" }
+    } | ForEach-Object { $_.Line } | Sort-Object -Unique
+
+    if ($filteredWarnings) {
+        $filteredWarnings | ForEach-Object { Write-Host $_ }
         exit 1
     } else {
         exit 0
