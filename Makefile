@@ -6,7 +6,7 @@ include sha.mk
 # Lazy-once cache key - computed on first use, then cached for rest of Make invocation
 CACHE_KEY = $(eval CACHE_KEY := $$(call get_cache_key))$(CACHE_KEY)
 
-.PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine test-cache test-sha install-cli delta .run-analyzers
+.PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine class-size-mine no-regions-mine test-cache test-sha install-cli delta .run-analyzers
 
 # You might need something like:
 # export PATH="$PATH:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/Extensions/TestPlatform"
@@ -85,8 +85,14 @@ dotnet-analyzers: restore
 dotnet-analyzers-mine: restore
 	@$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/check-mine.ps1 -Pattern \"warning\" -ExcludePattern \"warning SA\")
 
-# iter - iterate. Good as a promopt: "iterate to success using `make iter`"
-iter: format dotnet-analyzers-mine stylecop-mine test-mine delta
+class-size-mine:
+	@powershell.exe -File .github/check-class-size-mine.ps1
+
+no-regions-mine:
+	@powershell.exe -File .github/check-no-regions-mine.ps1
+
+# iter - iterate. Good as a prompt: "iterate to success using `make iter`"
+iter: format class-size-mine no-regions-mine dotnet-analyzers-mine stylecop-mine delta test-mine
 
 install-cli:
 	@powershell.exe -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Invoke-WebRequest -Uri 'https://downloads.codescene.io/enterprise/cli/install-cs-tool.ps1' -OutFile install-cs-tool.ps1; .\install-cs-tool.ps1; Remove-Item install-cs-tool.ps1"
