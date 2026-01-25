@@ -1,13 +1,8 @@
-using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Cli;
-using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.VS2022.Application.Git;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -16,7 +11,7 @@ using System.Threading.Tasks;
 namespace Codescene.VSExtension.CoreTests
 {
     [TestClass]
-    public class GitChangeObserverTests
+    public class GitChangeObserverGitignoreTests
     {
         private string _testRepoPath;
         private GitChangeObserver _gitChangeObserver;
@@ -30,7 +25,7 @@ namespace Codescene.VSExtension.CoreTests
         [TestInitialize]
         public void Setup()
         {
-            _testRepoPath = Path.Combine(Path.GetTempPath(), $"test-git-repo-observer-{Guid.NewGuid()}");
+            _testRepoPath = Path.Combine(Path.GetTempPath(), $"test-git-repo-gitignore-{Guid.NewGuid()}");
 
             if (Directory.Exists(_testRepoPath))
             {
@@ -115,31 +110,6 @@ namespace Codescene.VSExtension.CoreTests
             return observer;
         }
 
-        private void ExecGit(string args)
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "git",
-                Arguments = args,
-                WorkingDirectory = _testRepoPath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using (var process = Process.Start(psi))
-            {
-                process.WaitForExit();
-
-                if (process.ExitCode != 0)
-                {
-                    var error = process.StandardError.ReadToEnd();
-                    throw new Exception($"Git command failed: {args}\n{error}");
-                }
-            }
-        }
-
         private string CreateFile(string filename, string content)
         {
             var filePath = Path.Combine(_testRepoPath, filename);
@@ -190,132 +160,46 @@ namespace Codescene.VSExtension.CoreTests
         }
 
         [TestMethod]
-        public async Task GetChangedFilesVsBaseline_ReturnsEmptyArray_ForCleanRepository()
+        public async Task GitIgnoredFiles_AreNotTracked()
         {
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            File.WriteAllText(gitignorePath, "*.ignored\n");
 
-            Assert.AreEqual(0, changedFiles.Count, "Should return empty list for clean repository");
+            var ignoredFile = CreateFile("secret.ignored", "export const secret = \"hidden\";");
+
+            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
+            AssertFileInChangedList(changedFiles, "secret.ignored", false);
+
+            await TriggerFileChangeAsync(ignoredFile);
+
+            AssertFileInTracker(ignoredFile, false);
+
+            File.Delete(gitignorePath);
         }
 
         [TestMethod]
-        public async Task GetChangedFilesVsBaseline_DetectsNewUntrackedFiles()
+        public async Task FileBecomesTracked_AfterGitignoreRemoval()
         {
-            CreateFile("test.ts", "console.log(\"test\");");
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            File.WriteAllText(gitignorePath, "config.ts\n");
+
+            var ignoredFile = CreateFile("config.ts", "export const config = { secret: true };");
 
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
+            AssertFileInChangedList(changedFiles, "config.ts", false);
 
-            AssertFileInChangedList(changedFiles, "test.ts");
-        }
+            await TriggerFileChangeAsync(ignoredFile);
+            AssertFileInTracker(ignoredFile, false);
 
-        [TestMethod]
-        public async Task GetChangedFilesVsBaseline_DetectsModifiedFiles()
-        {
-            var testFile = CommitFile("index.js", "console.log(\"hello\");", "Add index.js");
-            File.WriteAllText(testFile, "console.log(\"modified\");");
+            File.Delete(gitignorePath);
+            await Task.Delay(100);
 
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
+            changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
+            AssertFileInChangedList(changedFiles, "config.ts");
 
-            AssertFileInChangedList(changedFiles, "index.js");
-        }
+            await TriggerFileChangeAsync(ignoredFile);
 
-        [TestMethod]
-        public async Task GetChangedFilesVsBaseline_DetectsStagedFiles()
-        {
-            CreateFile("script.py", "print(\"hello\")");
-
-            using (var repo = new Repository(_testRepoPath))
-            {
-                Commands.Stage(repo, "script.py");
-            }
-
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-
-            AssertFileInChangedList(changedFiles, "script.py");
-        }
-
-        [TestMethod]
-        public async Task GetChangedFilesVsBaseline_CombinesStatusAndDiffChanges()
-        {
-            using (var repo = new Repository(_testRepoPath))
-            {
-                var branch = repo.CreateBranch("feature-branch");
-                Commands.Checkout(repo, branch);
-            }
-
-            CommitFile("committed.ts", "export const foo = 1;", "Add committed.ts");
-            CreateFile("uncommitted.ts", "export const bar = 2;");
-
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-
-            AssertFileInChangedList(changedFiles, "committed.ts");
-            AssertFileInChangedList(changedFiles, "uncommitted.ts");
-        }
-
-        [TestMethod]
-        public async Task ShouldProcessFile_RejectsUnsupportedFileTypes()
-        {
-            var txtFile = CreateFile("notes.txt", "Some notes");
-            _fakeSupportedFileChecker.SetSupported(txtFile, false);
-
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            var shouldProcessFileMethod = typeof(GitChangeObserver).GetMethod("ShouldProcessFile", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var result = (bool)shouldProcessFileMethod?.Invoke(_gitChangeObserver, new object[] { txtFile, changedFiles });
-
-            Assert.IsFalse(result, "Should not process .txt files");
-        }
-
-        [TestMethod]
-        public async Task ShouldProcessFile_AcceptsSupportedFileTypes()
-        {
-            var tsFile = CreateFile("code.ts", "export const x = 1;");
-            _fakeSupportedFileChecker.SetSupported(tsFile, true);
-
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            var shouldProcessFileMethod = typeof(GitChangeObserver).GetMethod("ShouldProcessFile", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var result = (bool)shouldProcessFileMethod?.Invoke(_gitChangeObserver, new object[] { tsFile, changedFiles });
-
-            Assert.IsTrue(result, "Should process .ts files");
-        }
-
-        [TestMethod]
-        public async Task HandleFileChange_FiltersFilesNotInChangedList()
-        {
-            var changedFile = CreateFile("changed.ts", "export const x = 1;");
-            var committedFile = CommitFile("committed.js", "console.log(\"committed\");", "Add committed.js");
-
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            AssertFileInChangedList(changedFiles, "changed.ts");
-            AssertFileInChangedList(changedFiles, "committed.js", false);
-
-            await TriggerFileChangeAsync(changedFile);
-            await TriggerFileChangeAsync(committedFile);
-
-            AssertFileInTracker(changedFile);
-            AssertFileInTracker(committedFile, false);
-        }
-
-        [TestMethod]
-        public async Task GetChangedFilesVsBaseline_HandlesFilesWithWhitespaceInNames()
-        {
-            CreateFile("my file.ts", "console.log(\"has spaces\");");
-            CreateFile("test file with spaces.js", "console.log(\"also has spaces\");");
-
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            var fileNames = changedFiles.Select(f => Path.GetFileName(f)).ToList();
-
-            Assert.IsTrue(fileNames.Contains("my file.ts"), "Should include file with spaces: my file.ts");
-            Assert.IsTrue(fileNames.Contains("test file with spaces.js"), "Should include file with spaces: test file with spaces.js");
-        }
-
-        [TestMethod]
-        public void Dispose_CleansUpFileWatcher()
-        {
-            var fileWatcherField = typeof(GitChangeObserver).GetField("_fileWatcher", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            Assert.IsNotNull(fileWatcherField?.GetValue(_gitChangeObserver), "File watcher should exist");
-
-            _gitChangeObserver.Dispose();
-
-            Assert.IsTrue(true, "Dispose completed without errors");
+            AssertFileInTracker(ignoredFile);
         }
     }
 }

@@ -62,6 +62,7 @@
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="Application\Git\BranchWatcherService.cs" />
     <Compile Include="Application\Git\FileChangeEvent.cs" />
+    <Compile Include="Application\Git\FileChangeHandler.cs" />
     <Compile Include="Application\Git\FileDeletedEventArgs.cs" />
     <Compile Include="Application\Git\GitChangeDetector.cs" />
     <Compile Include="Application\Git\GitChangeObserver.cs" />
