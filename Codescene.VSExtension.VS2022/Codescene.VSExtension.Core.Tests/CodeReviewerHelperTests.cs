@@ -1,10 +1,10 @@
-using Codescene.VSExtension.Core.Application.Services.Cache.Review;
-using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model.AceRefactorableFunctions;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Util;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests

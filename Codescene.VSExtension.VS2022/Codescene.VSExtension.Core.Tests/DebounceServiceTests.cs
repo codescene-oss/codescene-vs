@@ -1,5 +1,5 @@
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Application.Util;
+using Codescene.VSExtension.Core.Interfaces;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests;

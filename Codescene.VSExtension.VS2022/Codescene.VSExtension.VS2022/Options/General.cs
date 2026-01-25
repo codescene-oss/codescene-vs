@@ -1,5 +1,6 @@
-﻿using Community.VisualStudio.Toolkit;
+using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
@@ -15,6 +16,25 @@ internal partial class OptionsProvider
 
 public class General : BaseOptionModel<General>
 {
+    // Track previous values to detect changes
+    private string _previousAuthToken = string.Empty;
+    private bool _previousShowDebugLogs = false;
+
+    /// <summary>
+    /// Event fired when the AuthToken setting changes.
+    /// </summary>
+    public static event EventHandler AuthTokenChanged;
+
+    /// <summary>
+    /// Event fired when the ShowDebugLogs setting changes.
+    /// </summary>
+    public static event EventHandler ShowDebugLogsChanged;
+
+    /// <summary>
+    /// Event fired when any setting is saved.
+    /// </summary>
+    public static event EventHandler SettingsSaved;
+
     [Category("General")]
     [DisplayName("Show Debug Logs")]
     [Description("Enable detailed debug logs in the CodeScene Output window")]
@@ -28,6 +48,31 @@ public class General : BaseOptionModel<General>
 
     public General() : base()
     {
-        Saved += delegate { VS.StatusBar.ShowMessageAsync("Options Saved").FireAndForget(); };
+        // Store initial values
+        _previousAuthToken = AuthToken;
+        _previousShowDebugLogs = ShowDebugLogs;
+
+        Saved += OnSettingsSaved;
+    }
+
+    private void OnSettingsSaved(General obj)
+    {
+        VS.StatusBar.ShowMessageAsync("Options Saved").FireAndForget();
+
+        // Fire general settings saved event
+        SettingsSaved?.Invoke(this, EventArgs.Empty);
+
+        // Check for specific setting changes and fire targeted events
+        if (_previousAuthToken != AuthToken)
+        {
+            _previousAuthToken = AuthToken;
+            AuthTokenChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        if (_previousShowDebugLogs != ShowDebugLogs)
+        {
+            _previousShowDebugLogs = ShowDebugLogs;
+            ShowDebugLogsChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 }

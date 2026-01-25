@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Services.AceManager;
+﻿using Codescene.VSExtension.Core.Interfaces.Ace;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;

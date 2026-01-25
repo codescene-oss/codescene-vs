@@ -1,6 +1,6 @@
 ﻿using Codescene.VSExtension.Core.Models.Cli;
 
-namespace Codescene.VSExtension.Core.Models.WebComponent
+namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 {
     public class WebComponentFileDataBase
     {

@@ -1,10 +1,11 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Cache.Review;
-using Codescene.VSExtension.Core.Application.Services.ErrorHandling;
-using Codescene.VSExtension.Core.Application.Services.Telemetry;
-using Codescene.VSExtension.Core.Application.Services.Util;
-using Codescene.VSExtension.Core.Application.Services.WebComponent;
-using Codescene.VSExtension.Core.Models.WebComponent;
+﻿using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Application.Mappers;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using Codescene.VSExtension.Core.Models.WebComponent.Message;
+using Codescene.VSExtension.Core.Models.WebComponent.Payload;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging;
@@ -16,8 +17,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using static Codescene.VSExtension.Core.Application.Services.Util.Constants;
-using static Codescene.VSExtension.Core.Models.WebComponent.WebComponentConstants;
+using static Codescene.VSExtension.Core.Consts.Constants;
+using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 

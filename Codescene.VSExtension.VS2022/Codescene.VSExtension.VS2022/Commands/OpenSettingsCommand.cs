@@ -1,5 +1,5 @@
-﻿using Codescene.VSExtension.Core.Application.Services.Telemetry;
-using Codescene.VSExtension.Core.Application.Services.Util;
+﻿using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System.Threading.Tasks;

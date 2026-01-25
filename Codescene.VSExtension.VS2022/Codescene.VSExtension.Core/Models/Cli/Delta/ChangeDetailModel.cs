@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Codescene.VSExtension.Core.Enums;
+using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Models.Cli.Delta
 {

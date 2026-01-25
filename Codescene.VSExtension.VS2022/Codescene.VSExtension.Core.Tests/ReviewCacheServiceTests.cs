@@ -1,7 +1,6 @@
-using Codescene.VSExtension.Core.Application.Services.Cache.Review;
-using Codescene.VSExtension.Core.Application.Services.Cache.Review.Model;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.ReviewModels;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 
 namespace Codescene.VSExtension.Core.Tests
 {
