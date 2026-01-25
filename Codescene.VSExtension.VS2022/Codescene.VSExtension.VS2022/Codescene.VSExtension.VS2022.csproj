@@ -61,7 +61,15 @@
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="Application\Git\BranchWatcherService.cs" />
+    <Compile Include="Application\Git\FileChangeEvent.cs" />
+    <Compile Include="Application\Git\FileDeletedEventArgs.cs" />
+    <Compile Include="Application\Git\GitChangeDetector.cs" />
+    <Compile Include="Application\Git\GitChangeObserver.cs" />
     <Compile Include="Application\Git\GitService.cs" />
+    <Compile Include="Application\Git\IGitChangeObserver.cs" />
+    <Compile Include="Application\Git\IOpenFilesObserver.cs" />
+    <Compile Include="Application\Git\ISavedFilesTracker.cs" />
+    <Compile Include="Application\Git\PathUtilities.cs" />
     <Compile Include="Application\Services\AceAcknowledgementStateService.cs" />
     <Compile Include="Cache\CacheStorageService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />

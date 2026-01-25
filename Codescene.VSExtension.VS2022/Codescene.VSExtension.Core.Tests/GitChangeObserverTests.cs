@@ -1,4 +1,7 @@
-using Codescene.VSExtension.Core.Application.Services.Cli;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.VS2022.Application.Git;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -573,7 +576,7 @@ namespace Codescene.VSExtension.CoreTests
 
         #region Fake Implementations
 
-        private class FakeLogger : Codescene.VSExtension.Core.Application.Services.ErrorHandling.ILogger
+        private class FakeLogger : ILogger
         {
             public void Debug(string message) { }
             public void Info(string message) { }
@@ -581,14 +584,14 @@ namespace Codescene.VSExtension.CoreTests
             public void Error(string message, Exception ex) { }
         }
 
-        private class FakeCodeReviewer : Codescene.VSExtension.Core.Application.Services.CodeReviewer.ICodeReviewer
+        private class FakeCodeReviewer : ICodeReviewer
         {
-            public Core.Models.ReviewModels.FileReviewModel Review(string path, string content)
+            public FileReviewModel Review(string path, string content)
             {
-                return new Core.Models.ReviewModels.FileReviewModel { FilePath = path };
+                return new FileReviewModel { FilePath = path };
             }
 
-            public Core.Models.Cli.Delta.DeltaResponseModel Delta(Core.Models.ReviewModels.FileReviewModel review, string currentCode)
+            public DeltaResponseModel Delta(FileReviewModel review, string currentCode)
             {
                 return null;
             }
@@ -615,7 +618,7 @@ namespace Codescene.VSExtension.CoreTests
             }
         }
 
-        private class FakeGitService : Codescene.VSExtension.Core.Application.Services.Git.IGitService
+        private class FakeGitService : IGitService
         {
             public string GetFileContentForCommit(string path)
             {
