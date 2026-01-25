@@ -12,7 +12,7 @@
 define get_cache_key
 $(shell powershell.exe -NoProfile -Command " \
 	$$headSha = (git rev-parse --short=6 HEAD).Trim(); \
-	$$excludedFiles = @('Makefile'); \
+	$$excludedFiles = @('Makefile', 'sha.mk', 'cache.mk'); \
 	$$files = git status --untracked-files=all --short --porcelain | ForEach-Object { $$_.Substring(3).Trim() } | Where-Object { (Test-Path $$_) -and ((Get-Item $$_).Length -le 204800) -and ($$excludedFiles -notcontains $$_) } | Sort-Object; \
 	$$concat = ($$files -join ''); \
 	$$bytes = [Text.Encoding]::UTF8.GetBytes($$concat); \
