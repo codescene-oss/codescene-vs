@@ -6,7 +6,7 @@ include sha.mk
 # Lazy-once cache key - computed on first use, then cached for rest of Make invocation
 CACHE_KEY = $(eval CACHE_KEY := $$(call get_cache_key))$(CACHE_KEY)
 
-.PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine test-cache test-sha install-cli delta
+.PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine test-cache test-sha install-cli delta .run-analyzers
 
 # You might need something like:
 # export PATH="$PATH:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/Extensions/TestPlatform"
@@ -68,17 +68,20 @@ format-all:
 format-check:
 	$(call call_cached,$(CACHE_KEY),dotnet.exe format Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --verify-no-changes) > format-check.log 2>&1 && del format-check.log || (type format.log && del format-check.log && exit /b 1)
 
-stylecop: restore
-	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/stylecop.ps1) > stylecop.log 2>&1 && del stylecop.log || (type stylecop.log && del stylecop.log && exit /b 1)
+.run-analyzers: restore
+	@cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release -p:RunStyleCopAnalyzers=true > ..\analyzers.log 2>&1
+
+stylecop: .run-analyzers
+	@powershell.exe -Command "$$warnings = Select-String -Path 'analyzers.log' -Pattern 'warning SA' | ForEach-Object { $$_.Line } | Sort-Object -Unique; if ($$warnings) { $$warnings | ForEach-Object { Write-Host $$_ }; exit 1 } else { exit 0 }"
 
 stylecop-mine: restore
-	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/stylecop-mine.ps1) > stylecop.log 2>&1 && del stylecop.log || (type stylecop.log && del stylecop.log && exit /b 1)
+	@$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/check-mine.ps1 -Pattern 'warning SA')
 
-dotnet-analyzers: restore
-	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/dotnet-analyzers.ps1) > dotnet-analyzers.log 2>&1 && del dotnet-analyzers.log || (type dotnet-analyzers.log && del dotnet-analyzers.log && exit /b 1)
+dotnet-analyzers: .run-analyzers
+	@powershell.exe -Command "$$warnings = Select-String -Path 'analyzers.log' -Pattern 'warning CA' | ForEach-Object { $$_.Line } | Sort-Object -Unique; if ($$warnings) { $$warnings | ForEach-Object { Write-Host $$_ }; exit 1 } else { exit 0 }"
 
 dotnet-analyzers-mine: restore
-	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/dotnet-analyzers-mine.ps1) > dotnet-analyzers.log 2>&1 && del dotnet-analyzers.log || (type dotnet-analyzers.log && del dotnet-analyzers.log && exit /b 1)
+	@$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/check-mine.ps1 -Pattern 'warning CA')
 
 # iter - iterate. Good as a promopt: "iterate to success using `make iter`"
 iter: format dotnet-analyzers-mine stylecop-mine test-mine delta
