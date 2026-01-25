@@ -29,9 +29,6 @@
 		<StartAction>Program</StartAction>
 		<StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
 		<StartArguments>/rootsuffix Exp</StartArguments>
-		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<AnalysisMode>Recommended</AnalysisMode>
-		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<DebugSymbols>true</DebugSymbols>
@@ -141,13 +138,6 @@
 		<PackageReference Include="Nerdbank.Streams" Version="2.6.81" />
 		<PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.14" />
 		<PackageReference Include="StreamJsonRpc" Version="2.8.28" />
-		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118" Condition="'$(RunStyleCopAnalyzers)' == 'true'">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-		</PackageReference>
-	</ItemGroup>
-	<ItemGroup>
-		<AdditionalFiles Include="stylecop.json" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Codescene.VSExtension.Core\Codescene.VSExtension.Core.csproj">
