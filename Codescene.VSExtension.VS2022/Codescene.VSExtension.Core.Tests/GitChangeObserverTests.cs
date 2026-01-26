@@ -140,53 +140,61 @@ namespace Codescene.VSExtension.CoreTests
             }
         }
 
-        private string CreateFile(string filename, string content)
+        private string CreateFile(TestFileData fileData)
         {
-            var filePath = Path.Combine(_testRepoPath, filename);
-            File.WriteAllText(filePath, content);
+            var filePath = Path.Combine(_testRepoPath, fileData.Filename);
+            File.WriteAllText(filePath, fileData.Content);
             return filePath;
         }
 
-        private string CommitFile(string filename, string content, string message)
+        private string CreateFile(string filename, string content)
         {
-            var filePath = CreateFile(filename, content);
+            return CreateFile(new TestFileData(filename, content));
+        }
+
+        private string CommitFile(TestFileData fileData)
+        {
+            var filePath = CreateFile(fileData);
 
             using (var repo = new Repository(_testRepoPath))
             {
-                Commands.Stage(repo, filename);
+                Commands.Stage(repo, fileData.Filename);
                 var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
-                repo.Commit(message, signature, signature);
+                repo.Commit(fileData.CommitMessage, signature, signature);
             }
 
             return filePath;
         }
 
-        private HashSet<string> GetTracker()
+        private string CommitFile(string filename, string content, string message)
         {
-            var trackerField = typeof(GitChangeObserver).GetField("_tracker", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            return (HashSet<string>)trackerField?.GetValue(_gitChangeObserver);
+            return CommitFile(new TestFileData(filename, content, message));
+        }
+
+        private TrackerManager GetTrackerManager()
+        {
+            return _gitChangeObserver.GetTrackerManager();
         }
 
         private async Task TriggerFileChangeAsync(string filePath)
         {
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
+            await _gitChangeObserver.HandleFileChangeForTestingAsync(filePath, changedFiles);
+        }
 
-            var handleFileChangeMethod = typeof(GitChangeObserver).GetMethod("HandleFileChangeAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var task = (Task)handleFileChangeMethod?.Invoke(_gitChangeObserver, new object[] { filePath, changedFiles });
-            await task;
+        private FileAssertionHelper CreateAssertionHelper(List<string> changedFiles)
+        {
+            return new FileAssertionHelper(changedFiles, GetTrackerManager());
         }
 
         private void AssertFileInChangedList(List<string> changedFiles, string filename, bool shouldExist = true)
         {
-            var exists = changedFiles.Any(f => f.EndsWith(filename, StringComparison.OrdinalIgnoreCase));
-            Assert.AreEqual(shouldExist, exists, shouldExist ? $"Should include {filename}" : $"Should not include {filename}");
+            CreateAssertionHelper(changedFiles).AssertInChangedList(filename, shouldExist);
         }
 
         private void AssertFileInTracker(string filePath, bool shouldExist = true)
         {
-            var tracker = GetTracker();
-            var exists = tracker.Contains(filePath);
-            Assert.AreEqual(shouldExist, exists, shouldExist ? "File should be in tracker" : "File should not be in tracker");
+            CreateAssertionHelper(null).AssertInTracker(filePath, shouldExist);
         }
 
         [TestMethod]
@@ -258,8 +266,7 @@ namespace Codescene.VSExtension.CoreTests
             _fakeSupportedFileChecker.SetSupported(txtFile, false);
 
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            var shouldProcessFileMethod = typeof(GitChangeObserver).GetMethod("ShouldProcessFile", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var result = (bool)shouldProcessFileMethod?.Invoke(_gitChangeObserver, new object[] { txtFile, changedFiles });
+            var result = _gitChangeObserver.ShouldProcessFileForTesting(txtFile, changedFiles);
 
             Assert.IsFalse(result, "Should not process .txt files");
         }
@@ -271,8 +278,7 @@ namespace Codescene.VSExtension.CoreTests
             _fakeSupportedFileChecker.SetSupported(tsFile, true);
 
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            var shouldProcessFileMethod = typeof(GitChangeObserver).GetMethod("ShouldProcessFile", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var result = (bool)shouldProcessFileMethod?.Invoke(_gitChangeObserver, new object[] { tsFile, changedFiles });
+            var result = _gitChangeObserver.ShouldProcessFileForTesting(tsFile, changedFiles);
 
             Assert.IsTrue(result, "Should process .ts files");
         }

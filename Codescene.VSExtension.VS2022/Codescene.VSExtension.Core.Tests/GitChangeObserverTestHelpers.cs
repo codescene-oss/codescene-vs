@@ -7,10 +7,56 @@ using LibGit2Sharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.CoreTests
 {
+    internal class TestFileData
+    {
+        public string Filename { get; set; }
+        public string Content { get; set; }
+        public string CommitMessage { get; set; }
+
+        public TestFileData(string filename, string content, string commitMessage = null)
+        {
+            Filename = filename;
+            Content = content;
+            CommitMessage = commitMessage;
+        }
+    }
+
+    internal class FileAssertionHelper
+    {
+        private readonly List<string> _changedFiles;
+        private readonly TrackerManager _trackerManager;
+
+        public FileAssertionHelper(List<string> changedFiles, TrackerManager trackerManager)
+        {
+            _changedFiles = changedFiles;
+            _trackerManager = trackerManager;
+        }
+
+        public void AssertInChangedList(TestFileData fileData, bool shouldExist = true)
+        {
+            AssertInChangedList(fileData.Filename, shouldExist);
+        }
+
+        public void AssertInChangedList(string filename, bool shouldExist = true)
+        {
+            var exists = _changedFiles.Any(f => f.EndsWith(filename, StringComparison.OrdinalIgnoreCase));
+            Microsoft.VisualStudio.TestTools.UnitTesting.Assert.AreEqual(shouldExist, exists,
+                shouldExist ? $"Should include {filename}" : $"Should not include {filename}");
+        }
+
+        public void AssertInTracker(string filePath, bool shouldExist = true)
+        {
+            var exists = _trackerManager.Contains(filePath);
+            Microsoft.VisualStudio.TestTools.UnitTesting.Assert.AreEqual(shouldExist, exists,
+                shouldExist ? "File should be in tracker" : "File should not be in tracker");
+        }
+    }
+
     internal class FakeLogger : ILogger
     {
         public void Debug(string message) { }

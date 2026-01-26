@@ -132,25 +132,21 @@ namespace Codescene.VSExtension.CoreTests
             return filePath;
         }
 
-        private HashSet<string> GetTracker()
+        private TrackerManager GetTrackerManager()
         {
-            var trackerField = typeof(GitChangeObserver).GetField("_tracker", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            return (HashSet<string>)trackerField?.GetValue(_gitChangeObserver);
+            return _gitChangeObserver.GetTrackerManager();
         }
 
         private async Task TriggerFileChangeAsync(string filePath)
         {
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-
-            var handleFileChangeMethod = typeof(GitChangeObserver).GetMethod("HandleFileChangeAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var task = (Task)handleFileChangeMethod?.Invoke(_gitChangeObserver, new object[] { filePath, changedFiles });
-            await task;
+            await _gitChangeObserver.HandleFileChangeForTestingAsync(filePath, changedFiles);
         }
 
         private void AssertFileInTracker(string filePath, bool shouldExist = true)
         {
-            var tracker = GetTracker();
-            var exists = tracker.Contains(filePath);
+            var trackerManager = GetTrackerManager();
+            var exists = trackerManager.Contains(filePath);
             Assert.AreEqual(shouldExist, exists, shouldExist ? "File should be in tracker" : "File should not be in tracker");
         }
 
@@ -192,9 +188,7 @@ namespace Codescene.VSExtension.CoreTests
             File.Delete(newFile);
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
 
-            var handleFileDeleteMethod = typeof(GitChangeObserver).GetMethod("HandleFileDeleteAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var task = (Task)handleFileDeleteMethod?.Invoke(_gitChangeObserver, new object[] { newFile, changedFiles });
-            await task;
+            await _gitChangeObserver.HandleFileDeleteForTestingAsync(newFile, changedFiles);
 
             AssertFileInTracker(newFile, false);
         }
@@ -219,9 +213,7 @@ namespace Codescene.VSExtension.CoreTests
             Directory.Delete(subDir, true);
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
 
-            var handleFileDeleteMethod = typeof(GitChangeObserver).GetMethod("HandleFileDeleteAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var task = (Task)handleFileDeleteMethod?.Invoke(_gitChangeObserver, new object[] { subDir, changedFiles });
-            await task;
+            await _gitChangeObserver.HandleFileDeleteForTestingAsync(subDir, changedFiles);
 
             AssertFileInTracker(file1, false);
             AssertFileInTracker(file2, false);

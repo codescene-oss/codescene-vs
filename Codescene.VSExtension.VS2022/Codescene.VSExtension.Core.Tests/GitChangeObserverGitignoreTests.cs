@@ -131,19 +131,15 @@ namespace Codescene.VSExtension.CoreTests
             return filePath;
         }
 
-        private HashSet<string> GetTracker()
+        private TrackerManager GetTrackerManager()
         {
-            var trackerField = typeof(GitChangeObserver).GetField("_tracker", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            return (HashSet<string>)trackerField?.GetValue(_gitChangeObserver);
+            return _gitChangeObserver.GetTrackerManager();
         }
 
         private async Task TriggerFileChangeAsync(string filePath)
         {
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-
-            var handleFileChangeMethod = typeof(GitChangeObserver).GetMethod("HandleFileChangeAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var task = (Task)handleFileChangeMethod?.Invoke(_gitChangeObserver, new object[] { filePath, changedFiles });
-            await task;
+            await _gitChangeObserver.HandleFileChangeForTestingAsync(filePath, changedFiles);
         }
 
         private void AssertFileInChangedList(List<string> changedFiles, string filename, bool shouldExist = true)
@@ -154,8 +150,8 @@ namespace Codescene.VSExtension.CoreTests
 
         private void AssertFileInTracker(string filePath, bool shouldExist = true)
         {
-            var tracker = GetTracker();
-            var exists = tracker.Contains(filePath);
+            var trackerManager = GetTrackerManager();
+            var exists = trackerManager.Contains(filePath);
             Assert.AreEqual(shouldExist, exists, shouldExist ? "File should be in tracker" : "File should not be in tracker");
         }
 

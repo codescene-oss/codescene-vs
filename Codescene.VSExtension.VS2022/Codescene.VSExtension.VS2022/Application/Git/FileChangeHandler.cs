@@ -14,8 +14,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         private readonly ICodeReviewer _codeReviewer;
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly string _workspacePath;
-        private readonly HashSet<string> _tracker;
-        private readonly object _trackerLock;
+        private readonly TrackerManager _trackerManager;
 
         public event EventHandler<FileDeletedEventArgs> FileDeletedFromGit;
 
@@ -24,15 +23,13 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker,
             string workspacePath,
-            HashSet<string> tracker,
-            object trackerLock)
+            TrackerManager trackerManager)
         {
             _logger = logger;
             _codeReviewer = codeReviewer;
             _supportedFileChecker = supportedFileChecker;
             _workspacePath = workspacePath;
-            _tracker = tracker;
-            _trackerLock = trackerLock;
+            _trackerManager = trackerManager;
         }
 
         public async Task HandleFileChangeAsync(string filePath, List<string> changedFiles)
@@ -48,10 +45,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                 return;
             }
 
-            lock (_trackerLock)
-            {
-                _tracker.Add(filePath);
-            }
+            _trackerManager.Add(filePath);
 
             await Task.Run(() => ReviewFile(filePath));
         }
@@ -60,18 +54,10 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         {
             await Task.Run(() =>
             {
-                bool wasTracked;
-                lock (_trackerLock)
-                {
-                    wasTracked = _tracker.Contains(filePath);
-                    if (wasTracked)
-                    {
-                        _tracker.Remove(filePath);
-                    }
-                }
-
+                var wasTracked = _trackerManager.Contains(filePath);
                 if (wasTracked)
                 {
+                    _trackerManager.Remove(filePath);
                     FireFileDeletedFromGit(filePath);
                     return;
                 }
@@ -89,16 +75,8 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                         ? filePath
                         : filePath + Path.DirectorySeparatorChar;
 
-                    List<string> filesToDelete;
-                    lock (_trackerLock)
-                    {
-                        filesToDelete = _tracker.Where(tf => tf.StartsWith(directoryPrefix, StringComparison.OrdinalIgnoreCase)).ToList();
-
-                        foreach (var fileToDelete in filesToDelete)
-                        {
-                            _tracker.Remove(fileToDelete);
-                        }
-                    }
+                    var filesToDelete = _trackerManager.GetFilesStartingWith(directoryPrefix);
+                    _trackerManager.RemoveAll(filesToDelete);
 
                     foreach (var fileToDelete in filesToDelete)
                     {
@@ -108,7 +86,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             });
         }
 
-        private bool ShouldProcessFile(string filePath, List<string> changedFiles)
+        public bool ShouldProcessFile(string filePath, List<string> changedFiles)
         {
             if (!_supportedFileChecker.IsSupported(filePath))
             {

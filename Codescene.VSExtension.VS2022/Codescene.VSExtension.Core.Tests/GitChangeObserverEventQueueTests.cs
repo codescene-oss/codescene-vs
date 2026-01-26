@@ -126,9 +126,8 @@ namespace Codescene.VSExtension.CoreTests
 
         private void AssertFileInTracker(string filePath, bool shouldExist = true)
         {
-            var trackerField = typeof(GitChangeObserver).GetField("_tracker", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var tracker = (HashSet<string>)trackerField?.GetValue(_gitChangeObserver);
-            var exists = tracker.Contains(filePath);
+            var trackerManager = _gitChangeObserver.GetTrackerManager();
+            var exists = trackerManager.Contains(filePath);
             Assert.AreEqual(shouldExist, exists, shouldExist ? "File should be in tracker" : "File should not be in tracker");
         }
 
@@ -218,11 +217,10 @@ namespace Codescene.VSExtension.CoreTests
 
             Assert.AreEqual(1, observer.GetChangedFilesCallCount, "GetChangedFilesVsBaselineAsync should be called exactly once per batch");
 
-            var trackerField = typeof(GitChangeObserver).GetField("_tracker", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var tracker = (HashSet<string>)trackerField?.GetValue(observer);
+            var trackerManager = observer.GetTrackerManager();
             foreach (var file in files)
             {
-                Assert.IsTrue(tracker.Contains(file), $"File {file} should be in tracker");
+                Assert.IsTrue(trackerManager.Contains(file), $"File {file} should be in tracker");
             }
 
             observer.Dispose();

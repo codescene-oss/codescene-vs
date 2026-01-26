@@ -35,8 +35,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         private string _workspacePath;
         private string _gitRootPath;
 
-        private readonly HashSet<string> _tracker = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private readonly object _trackerLock = new object();
+        private readonly TrackerManager _trackerManager = new TrackerManager();
 
         private readonly ConcurrentQueue<FileChangeEvent> _eventQueue = new ConcurrentQueue<FileChangeEvent>();
 
@@ -64,7 +63,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
             InitializeGitPaths();
 
-            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _tracker, _trackerLock);
+            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager);
             _fileChangeHandler.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
 
             if (!string.IsNullOrEmpty(_workspacePath) && Directory.Exists(_workspacePath))
@@ -123,12 +122,9 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                 try
                 {
                     var files = await CollectFilesFromRepoStateAsync();
-                    lock (_trackerLock)
+                    foreach (var file in files)
                     {
-                        foreach (var file in files)
-                        {
-                            _tracker.Add(file);
-                        }
+                        _trackerManager.Add(file);
                     }
                 }
                 catch (Exception ex)
@@ -267,10 +263,27 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         public void RemoveFromTracker(string filePath)
         {
-            lock (_trackerLock)
-            {
-                _tracker.Remove(filePath);
-            }
+            _trackerManager.Remove(filePath);
+        }
+
+        public TrackerManager GetTrackerManager()
+        {
+            return _trackerManager;
+        }
+
+        public async Task HandleFileChangeForTestingAsync(string filePath, List<string> changedFiles)
+        {
+            await _fileChangeHandler.HandleFileChangeAsync(filePath, changedFiles);
+        }
+
+        public async Task HandleFileDeleteForTestingAsync(string filePath, List<string> changedFiles)
+        {
+            await _fileChangeHandler.HandleFileDeleteAsync(filePath, changedFiles);
+        }
+
+        public bool ShouldProcessFileForTesting(string filePath, List<string> changedFiles)
+        {
+            return _fileChangeHandler.ShouldProcessFile(filePath, changedFiles);
         }
 
         public void Dispose()

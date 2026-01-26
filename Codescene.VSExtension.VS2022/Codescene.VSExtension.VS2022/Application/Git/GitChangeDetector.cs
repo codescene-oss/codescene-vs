@@ -26,51 +26,20 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             {
                 try
                 {
-                    var changedFiles = new List<string>();
-
                     if (string.IsNullOrEmpty(gitRootPath) || !Directory.Exists(gitRootPath))
                     {
-                        return changedFiles;
+                        return new List<string>();
                     }
 
                     var repoPath = Repository.Discover(gitRootPath);
                     if (string.IsNullOrEmpty(repoPath))
                     {
-                        return changedFiles;
+                        return new List<string>();
                     }
 
                     using (var repo = new Repository(repoPath))
                     {
-                        var baseCommit = GetMergeBaseCommit(repo);
-
-                    if (baseCommit == null)
-                    {
-                        _logger?.Debug("GitChangeObserver: No merge base commit found, using working directory changes only");
-                    }
-
-                    var filesToExcludeFromHeuristic = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    if (savedFilesTracker != null)
-                    {
-                        foreach (var file in savedFilesTracker.GetSavedFiles())
-                        {
-                            filesToExcludeFromHeuristic.Add(file);
-                        }
-                    }
-                    if (openFilesObserver != null)
-                    {
-                        foreach (var file in openFilesObserver.GetAllVisibleFileNames())
-                        {
-                            filesToExcludeFromHeuristic.Add(file);
-                        }
-                    }
-
-                        var committedChanges = GetCommittedChanges(repo, baseCommit, gitRootPath);
-                        var statusChanges = GetStatusChanges(repo, filesToExcludeFromHeuristic, gitRootPath);
-
-                        changedFiles.AddRange(committedChanges);
-                        changedFiles.AddRange(statusChanges);
-
-                        return changedFiles.Distinct().ToList();
+                        return GetChangedFilesFromRepository(repo, gitRootPath, savedFilesTracker, openFilesObserver);
                     }
                 }
                 catch (Exception ex)
@@ -81,37 +50,94 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             });
         }
 
+        private List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+        {
+            var baseCommit = GetMergeBaseCommit(repo);
+            if (baseCommit == null)
+            {
+                _logger?.Debug("GitChangeObserver: No merge base commit found, using working directory changes only");
+            }
+
+            var filesToExclude = BuildExclusionSet(savedFilesTracker, openFilesObserver);
+            var committedChanges = GetCommittedChanges(repo, baseCommit, gitRootPath);
+            var statusChanges = GetStatusChanges(repo, filesToExclude, gitRootPath);
+
+            var changedFiles = new List<string>();
+            changedFiles.AddRange(committedChanges);
+            changedFiles.AddRange(statusChanges);
+
+            return changedFiles.Distinct().ToList();
+        }
+
+        private HashSet<string> BuildExclusionSet(ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+        {
+            var exclusionSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            AddFilesToExclusionSet(exclusionSet, savedFilesTracker?.GetSavedFiles());
+            AddFilesToExclusionSet(exclusionSet, openFilesObserver?.GetAllVisibleFileNames());
+
+            return exclusionSet;
+        }
+
+        private void AddFilesToExclusionSet(HashSet<string> exclusionSet, IEnumerable<string> files)
+        {
+            if (files == null)
+            {
+                return;
+            }
+
+            foreach (var file in files)
+            {
+                exclusionSet.Add(file);
+            }
+        }
+
         private Commit GetMergeBaseCommit(Repository repo)
         {
             try
             {
-                if (repo.Head == null || repo.Head.Tip == null)
-                {
-                    return null;
-                }
-
                 var currentBranch = repo.Head;
-
-                var mainBranch = repo.Branches["main"] ?? repo.Branches["master"] ?? repo.Branches["origin/main"] ?? repo.Branches["origin/master"];
-
-                if (mainBranch == null || mainBranch.Tip == null)
+                if (!IsValidBranch(currentBranch))
                 {
                     return null;
                 }
 
-                if (currentBranch.FriendlyName == mainBranch.FriendlyName)
+                var mainBranch = FindMainBranch(repo);
+                if (!IsValidBranch(mainBranch))
                 {
                     return null;
                 }
 
-                var mergeBase = repo.ObjectDatabase.FindMergeBase(currentBranch.Tip, mainBranch.Tip);
-                return mergeBase;
+                if (IsOnMainBranch(currentBranch, mainBranch))
+                {
+                    return null;
+                }
+
+                return repo.ObjectDatabase.FindMergeBase(currentBranch.Tip, mainBranch.Tip);
             }
             catch (Exception ex)
             {
                 _logger?.Debug($"GitChangeObserver: Could not determine merge base: {ex.Message}");
                 return null;
             }
+        }
+
+        private bool IsValidBranch(Branch branch)
+        {
+            return branch != null && branch.Tip != null;
+        }
+
+        private Branch FindMainBranch(Repository repo)
+        {
+            return repo.Branches["main"] ??
+                   repo.Branches["master"] ??
+                   repo.Branches["origin/main"] ??
+                   repo.Branches["origin/master"];
+        }
+
+        private bool IsOnMainBranch(Branch currentBranch, Branch mainBranch)
+        {
+            return currentBranch.FriendlyName == mainBranch.FriendlyName;
         }
 
         private List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath)
@@ -156,19 +182,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
                 foreach (var item in status)
                 {
-                    if (item.State == FileStatus.Unaltered || item.State == FileStatus.Ignored)
-                    {
-                        continue;
-                    }
-
-                    var fullPath = Path.Combine(gitRootPath, item.FilePath);
-
-                    if (filesToExclude.Contains(fullPath))
-                    {
-                        continue;
-                    }
-
-                    if (_supportedFileChecker.IsSupported(fullPath))
+                    if (ShouldIncludeStatusItem(item, filesToExclude, gitRootPath))
                     {
                         changes.Add(item.FilePath);
                     }
@@ -180,6 +194,23 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             }
 
             return changes;
+        }
+
+        private bool ShouldIncludeStatusItem(StatusEntry item, HashSet<string> filesToExclude, string gitRootPath)
+        {
+            if (item.State == FileStatus.Unaltered || item.State == FileStatus.Ignored)
+            {
+                return false;
+            }
+
+            var fullPath = Path.Combine(gitRootPath, item.FilePath);
+
+            if (filesToExclude.Contains(fullPath))
+            {
+                return false;
+            }
+
+            return _supportedFileChecker.IsSupported(fullPath);
         }
     }
 }

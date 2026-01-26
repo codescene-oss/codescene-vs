@@ -67,6 +67,7 @@
     <Compile Include="Application\Git\GitChangeDetector.cs" />
     <Compile Include="Application\Git\GitChangeObserver.cs" />
     <Compile Include="Application\Git\GitService.cs" />
+    <Compile Include="Application\Git\TrackerManager.cs" />
     <Compile Include="Application\Git\IGitChangeObserver.cs" />
     <Compile Include="Application\Git\IOpenFilesObserver.cs" />
     <Compile Include="Application\Git\ISavedFilesTracker.cs" />
