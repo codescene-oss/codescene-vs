@@ -148,19 +148,15 @@ namespace Codescene.VSExtension.CoreTests
         [TestMethod]
         public async Task EventsAreQueued_InsteadOfProcessedImmediately()
         {
-            Console.WriteLine("[EventsAreQueued] Starting observer...");
             _gitChangeObserver.Start();
             await Task.Delay(1000);
 
             var fileWatcherField = typeof(GitChangeObserver).GetField("_fileWatcher", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var fileWatcher = (FileSystemWatcher)fileWatcherField.GetValue(_gitChangeObserver);
-            Console.WriteLine("[EventsAreQueued] Disabling file watcher to prevent automatic event capture...");
             fileWatcher.EnableRaisingEvents = false;
 
-            Console.WriteLine("[EventsAreQueued] Creating test files...");
             var file1 = CreateFile("queued1.ts", "export const a = 1;");
             var file2 = CreateFile("queued2.ts", "export const b = 2;");
-            Console.WriteLine($"[EventsAreQueued] Created files: {file1}, {file2}");
 
             var eventQueueField = typeof(GitChangeObserver).GetField("_eventQueue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var queue = eventQueueField.GetValue(_gitChangeObserver);
@@ -177,35 +173,24 @@ namespace Codescene.VSExtension.CoreTests
             enqueueMethod.Invoke(queue, new[] { event2 });
 
             var countProperty = queue.GetType().GetProperty("Count");
-            var queueCount = (int)countProperty.GetValue(queue);
-            Console.WriteLine($"[EventsAreQueued] Queue count after manual enqueue: {queueCount}");
-            Assert.AreEqual(2, queueCount, "Events should be queued");
-
-            var trackerManager = _gitChangeObserver.GetTrackerManager();
-            Console.WriteLine($"[EventsAreQueued] File1 in tracker before processing: {trackerManager.Contains(file1)}");
-            Console.WriteLine($"[EventsAreQueued] File2 in tracker before processing: {trackerManager.Contains(file2)}");
+            Assert.AreEqual(2, (int)countProperty.GetValue(queue), "Events should be queued");
             AssertFileInTracker(file1, false);
             AssertFileInTracker(file2, false);
 
-            Console.WriteLine("[EventsAreQueued] Waiting for queue to be processed...");
             var queueEmptied = await WaitForConditionAsync(() => (int)countProperty.GetValue(queue) == 0, 5000);
-            Console.WriteLine($"[EventsAreQueued] Queue emptied: {queueEmptied}, final count: {(int)countProperty.GetValue(queue)}");
             Assert.IsTrue(queueEmptied, "Queue should be empty after processing");
 
-            Console.WriteLine("[EventsAreQueued] Waiting for files to be added to tracker...");
+            var trackerManager = _gitChangeObserver.GetTrackerManager();
             var file1InTracker = await WaitForConditionAsync(() => trackerManager.Contains(file1), 5000);
             var file2InTracker = await WaitForConditionAsync(() => trackerManager.Contains(file2), 5000);
-            Console.WriteLine($"[EventsAreQueued] File1 in tracker: {file1InTracker}, File2 in tracker: {file2InTracker}");
 
             Assert.IsTrue(file1InTracker, "File1 should be in tracker after processing");
             Assert.IsTrue(file2InTracker, "File2 should be in tracker after processing");
-            Console.WriteLine("[EventsAreQueued] Test completed successfully");
         }
 
         [TestMethod]
         public async Task GetChangedFilesVsBaseline_CalledOncePerBatch_NotPerFile()
         {
-            Console.WriteLine("[CalledOncePerBatch] Creating testable observer...");
             var observer = new TestableGitChangeObserver();
 
             var loggerField = typeof(GitChangeObserver).GetField("_logger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -218,20 +203,17 @@ namespace Codescene.VSExtension.CoreTests
             checkerField?.SetValue(observer, _fakeSupportedFileChecker);
             gitServiceField?.SetValue(observer, _fakeGitService);
 
-            Console.WriteLine("[CalledOncePerBatch] Initializing and starting observer...");
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             observer.Start();
             await Task.Delay(1000);
 
-            Console.WriteLine("[CalledOncePerBatch] Creating test files...");
             var files = new[]
             {
                 CreateFile("cache1.ts", "export const a = 1;"),
                 CreateFile("cache2.ts", "export const b = 2;"),
                 CreateFile("cache3.ts", "export const c = 3;")
             };
-            Console.WriteLine($"[CalledOncePerBatch] Created {files.Length} files");
 
             var eventQueueField = typeof(GitChangeObserver).GetField("_eventQueue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var queue = eventQueueField.GetValue(observer);
@@ -242,9 +224,7 @@ namespace Codescene.VSExtension.CoreTests
             var enqueueMethod = queue.GetType().GetMethod("Enqueue");
 
             observer.ResetCallCount();
-            Console.WriteLine($"[CalledOncePerBatch] Call count reset to: {observer.GetChangedFilesCallCount}");
 
-            Console.WriteLine("[CalledOncePerBatch] Enqueueing events...");
             foreach (var file in files)
             {
                 var evt = Activator.CreateInstance(fileChangeEventType, createType, file);
@@ -252,26 +232,19 @@ namespace Codescene.VSExtension.CoreTests
             }
 
             var initialCount = observer.GetChangedFilesCallCount;
-            Console.WriteLine($"[CalledOncePerBatch] Initial call count after enqueue: {initialCount}");
 
-            Console.WriteLine("[CalledOncePerBatch] Waiting for method to be called...");
             var methodCalled = await WaitForConditionAsync(() => observer.GetChangedFilesCallCount > initialCount, 5000);
-            var finalCount = observer.GetChangedFilesCallCount;
-            Console.WriteLine($"[CalledOncePerBatch] Method called: {methodCalled}, initial: {initialCount}, final: {finalCount}");
             Assert.IsTrue(methodCalled, "GetChangedFilesVsBaselineAsync should be called after batch processing");
 
-            Assert.AreEqual(initialCount + 1, finalCount, "GetChangedFilesVsBaselineAsync should be called exactly once per batch");
+            Assert.AreEqual(initialCount + 1, observer.GetChangedFilesCallCount, "GetChangedFilesVsBaselineAsync should be called exactly once per batch");
 
-            Console.WriteLine("[CalledOncePerBatch] Waiting for files to be added to tracker...");
             var trackerManager = observer.GetTrackerManager();
             foreach (var file in files)
             {
                 var fileInTracker = await WaitForConditionAsync(() => trackerManager.Contains(file), 5000);
-                Console.WriteLine($"[CalledOncePerBatch] File {Path.GetFileName(file)} in tracker: {fileInTracker}");
                 Assert.IsTrue(fileInTracker, $"File {file} should be in tracker");
             }
 
-            Console.WriteLine("[CalledOncePerBatch] Test completed successfully");
             observer.Dispose();
         }
 
