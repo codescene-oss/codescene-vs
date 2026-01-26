@@ -44,6 +44,7 @@ namespace Codescene.VSExtension.Core.Consts
             public const string POTENTIALLY_LOW_COHESION = "Potentially Low Cohesion";
             public const string PRIMITIVE_OBSESSION = "Primitive Obsession";
             public const string STRING_HEAVY_FUNCTION_ARGUMENTS = "String Heavy Function Arguments";
+            public const string LINES_OF_DECLARATION_IN_A_SINGLE_FILE = "Lines of Declaration in a Single File";
             #endregion
 
             public const string CODE_HEALTH_MONITOR = "Code Health Monitor";

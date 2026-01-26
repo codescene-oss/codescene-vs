@@ -244,13 +244,21 @@ internal class WebComponentMessageHandler
         var payload = msgObject.Payload.ToObject<OpenDocsForFunctionPayload>();
         _logger.Debug($"Opening '{payload.DocType}'...");
 
+        var category = DocumentationMappings.DocNameMap[payload.DocType] ?? "";
+        var fn = await AceUtils.GetRefactorableFunctionAsync(
+            payload.FileName,
+            payload.Fn?.Range,
+            category,
+            "" // No info on CWF side, seems to be unimportant.
+        );
+
         await _showDocsHandler?.HandleAsync(
         new ShowDocumentationModel(
             payload.FileName,
             payload.DocType,
             payload.Fn?.Name,
             payload.Fn?.Range),
-        null, // TODO: CS-6070
+        fn,
         DocsEntryPoint.CodeHealthMonitor
         );
     }
