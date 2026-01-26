@@ -313,94 +313,39 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetReviewFileContentPayload_WithNullCachePath_ReturnsCachePathAsNull()
+        [DataRow(null, DisplayName = "null cache path")]
+        [DataRow("", DisplayName = "empty cache path")]
+        [DataRow("   ", DisplayName = "whitespace cache path")]
+        public void GetReviewFileContentPayload_WithInvalidCachePath_OmitsCachePath(string cachePath)
         {
-            var payload = _commandProvider.GetReviewFileContentPayload(TestFileName, TestFileContent, null);
+            var payload = _commandProvider.GetReviewFileContentPayload(TestFileName, TestFileContent, cachePath);
 
             Assert.AreEqual($"{{\"path\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", payload);
         }
 
         [TestMethod]
-        public void GetReviewFileContentPayload_WithEmptyCachePath_ReturnsCachePathAsNull()
-        {
-            var payload = _commandProvider.GetReviewFileContentPayload(TestFileName, TestFileContent, "");
-
-            Assert.AreEqual($"{{\"path\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", payload);
-        }
-
-        [TestMethod]
-        public void GetReviewFileContentPayload_WithWhitespaceCachePath_ReturnsCachePathAsNull()
-        {
-            var payload = _commandProvider.GetReviewFileContentPayload(TestFileName, TestFileContent, "   ");
-
-            Assert.AreEqual($"{{\"path\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", payload);
-        }
-
-        [TestMethod]
-        public void GetRefactorWithCodeSmellsPayload_WithNullCachePath_OmitsCachePathFromJson()
+        [DataRow(null, DisplayName = "null cache path")]
+        [DataRow("", DisplayName = "empty cache path")]
+        [DataRow("   ", DisplayName = "whitespace cache path")]
+        public void GetRefactorWithCodeSmellsPayload_WithInvalidCachePath_OmitsCachePathFromJson(string cachePath)
         {
             var codeSmells = CreateTestCodeSmells();
 
-            var content = _commandProvider.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, null, codeSmells, null);
+            var content = _commandProvider.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, cachePath, codeSmells, null);
 
             Assert.AreEqual($"{{\"code-smells\":[{{\"category\":\"{codeSmells.First().Category}\"}}],\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", content);
             Assert.DoesNotContain("cache-path", content);
         }
 
         [TestMethod]
-        public void GetRefactorWithCodeSmellsPayload_WithEmptyCachePath_OmitsCachePathFromJson()
-        {
-            var codeSmells = CreateTestCodeSmells();
-
-            var content = _commandProvider.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, "", codeSmells, null);
-
-            Assert.AreEqual($"{{\"code-smells\":[{{\"category\":\"{codeSmells.First().Category}\"}}],\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", content);
-            Assert.DoesNotContain("cache-path", content);
-        }
-
-        [TestMethod]
-        public void GetRefactorWithCodeSmellsPayload_WithWhitespaceCachePath_OmitsCachePathFromJson()
-        {
-            var codeSmells = CreateTestCodeSmells();
-
-            var content = _commandProvider.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, "   ", codeSmells, null);
-
-            Assert.AreEqual($"{{\"code-smells\":[{{\"category\":\"{codeSmells.First().Category}\"}}],\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", content);
-            Assert.DoesNotContain("cache-path", content);
-        }
-
-        [TestMethod]
-        public void GetRefactorWithDeltaResultPayload_WithNullCachePath_OmitsCachePathFromJson()
+        [DataRow(null, DisplayName = "null cache path")]
+        [DataRow("", DisplayName = "empty cache path")]
+        [DataRow("   ", DisplayName = "whitespace cache path")]
+        public void GetRefactorWithDeltaResultPayload_WithInvalidCachePath_OmitsCachePathFromJson(string cachePath)
         {
             var deltaResult = CreateTestDeltaResult();
 
-            var content = _commandProvider.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, null, deltaResult, null);
-
-            var expectedNewScore = deltaResult.NewScore.ToString("0.0", CultureInfo.InvariantCulture);
-            var expectedOldScore = deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture);
-            Assert.AreEqual($"{{\"delta-result\":{{\"new-score\":{expectedNewScore},\"old-score\":{expectedOldScore}}},\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", content);
-            Assert.DoesNotContain("cache-path", content);
-        }
-
-        [TestMethod]
-        public void GetRefactorWithDeltaResultPayload_WithEmptyCachePath_OmitsCachePathFromJson()
-        {
-            var deltaResult = CreateTestDeltaResult();
-
-            var content = _commandProvider.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, "", deltaResult, null);
-
-            var expectedNewScore = deltaResult.NewScore.ToString("0.0", CultureInfo.InvariantCulture);
-            var expectedOldScore = deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture);
-            Assert.AreEqual($"{{\"delta-result\":{{\"new-score\":{expectedNewScore},\"old-score\":{expectedOldScore}}},\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", content);
-            Assert.DoesNotContain("cache-path", content);
-        }
-
-        [TestMethod]
-        public void GetRefactorWithDeltaResultPayload_WithWhitespaceCachePath_OmitsCachePathFromJson()
-        {
-            var deltaResult = CreateTestDeltaResult();
-
-            var content = _commandProvider.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, "   ", deltaResult, null);
+            var content = _commandProvider.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, cachePath, deltaResult, null);
 
             var expectedNewScore = deltaResult.NewScore.ToString("0.0", CultureInfo.InvariantCulture);
             var expectedOldScore = deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture);
