@@ -5,6 +5,7 @@ using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Interfaces.Util;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -40,6 +41,11 @@ namespace Codescene.VSExtension.Core.Application.Ace
         public IList<FnToRefactorModel> GetRefactorableFunctions(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
         {
             return _executor.FnsToRefactorFromCodeSmells(fileName, fileContent, codeSmells, preflight);
+        }
+
+        public IList<FnToRefactorModel> GetRefactorableFunctionsFromDelta(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight)
+        {
+            return _executor.FnsToRefactorFromDelta(fileName, fileContent, deltaResponse, preflight);
         }
 
         public CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false)
