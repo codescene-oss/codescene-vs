@@ -1,7 +1,7 @@
 SHELL := cmd.exe
 
-include cache.mk
-include sha.mk
+include .github/cache.mk
+include .github/sha.mk
 
 # Lazy-once cache key - computed on first use, then cached for rest of Make invocation
 CACHE_KEY = $(eval CACHE_KEY := $$(call get_cache_key))$(CACHE_KEY)
