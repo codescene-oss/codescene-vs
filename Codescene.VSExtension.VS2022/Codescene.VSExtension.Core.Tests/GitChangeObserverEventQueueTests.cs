@@ -131,6 +131,20 @@ namespace Codescene.VSExtension.CoreTests
             Assert.AreEqual(shouldExist, exists, shouldExist ? "File should be in tracker" : "File should not be in tracker");
         }
 
+        private async Task<bool> WaitForConditionAsync(Func<bool> condition, int timeoutMs = 5000, int pollIntervalMs = 100)
+        {
+            var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
+            while (DateTime.UtcNow < deadline)
+            {
+                if (condition())
+                {
+                    return true;
+                }
+                await Task.Delay(pollIntervalMs);
+            }
+            return condition();
+        }
+
         [TestMethod]
         public async Task EventsAreQueued_InsteadOfProcessedImmediately()
         {
@@ -159,11 +173,15 @@ namespace Codescene.VSExtension.CoreTests
             AssertFileInTracker(file1, false);
             AssertFileInTracker(file2, false);
 
-            await Task.Delay(1500);
+            var queueEmptied = await WaitForConditionAsync(() => (int)countProperty.GetValue(queue) == 0, 5000);
+            Assert.IsTrue(queueEmptied, "Queue should be empty after processing");
 
-            Assert.AreEqual(0, (int)countProperty.GetValue(queue), "Queue should be empty after processing");
-            AssertFileInTracker(file1);
-            AssertFileInTracker(file2);
+            var trackerManager = _gitChangeObserver.GetTrackerManager();
+            var file1InTracker = await WaitForConditionAsync(() => trackerManager.Contains(file1), 5000);
+            var file2InTracker = await WaitForConditionAsync(() => trackerManager.Contains(file2), 5000);
+
+            Assert.IsTrue(file1InTracker, "File1 should be in tracker after processing");
+            Assert.IsTrue(file2InTracker, "File2 should be in tracker after processing");
         }
 
         [TestMethod]
@@ -213,14 +231,16 @@ namespace Codescene.VSExtension.CoreTests
 
             Assert.AreEqual(0, observer.GetChangedFilesCallCount, "Method should not be called until batch processing starts");
 
-            await Task.Delay(1500);
+            var methodCalled = await WaitForConditionAsync(() => observer.GetChangedFilesCallCount >= 1, 5000);
+            Assert.IsTrue(methodCalled, "GetChangedFilesVsBaselineAsync should be called after batch processing");
 
             Assert.AreEqual(1, observer.GetChangedFilesCallCount, "GetChangedFilesVsBaselineAsync should be called exactly once per batch");
 
             var trackerManager = observer.GetTrackerManager();
             foreach (var file in files)
             {
-                Assert.IsTrue(trackerManager.Contains(file), $"File {file} should be in tracker");
+                var fileInTracker = await WaitForConditionAsync(() => trackerManager.Contains(file), 5000);
+                Assert.IsTrue(fileInTracker, $"File {file} should be in tracker");
             }
 
             observer.Dispose();
