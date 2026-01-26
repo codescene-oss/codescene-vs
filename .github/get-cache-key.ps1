@@ -1,11 +1,11 @@
-$tracked = git ls-files -s '*.cs' '*.csproj' | ForEach-Object {
+$tracked = git ls-files -s '*.cs' '*.csproj' '.codescene/*.json' '*.csproj' | ForEach-Object {
     $p = $_ -split '\s+', 4
     [PSCustomObject]@{Hash = $p[1]; Path = $p[3]}
 }
 
 $untracked = git status --untracked-files=all --short --porcelain |
     ForEach-Object { $_.Substring(3).Trim() } |
-    Where-Object { ($_ -like '*.cs' -or $_ -like '*.csproj') -and (Test-Path $_) } |
+    Where-Object { ($_ -like '*.cs' -or $_ -like '*.csproj' -or $_ -like '.codescene/*.json') -and (Test-Path $_) } |
     ForEach-Object {
         [PSCustomObject]@{
             Hash = (git hash-object $_).Trim()
