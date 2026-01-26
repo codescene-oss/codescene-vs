@@ -47,15 +47,15 @@ restore:
 build: .build-timestamp
 
 test: build
-	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/test.ps1) > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
+	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/test.ps1)
 
 # make test1 TEST=GitChangeObserverTests
 test1: build
-	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/test1.ps1 -TestName $(TEST)) > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
+	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/test1.ps1 -TestName $(TEST))
 
 # Runs tests for changed *Tests.cs files (per Git)
 test-mine: build
-	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/test-mine.ps1) > test.log 2>&1 && del test.log || (type test.log && del test.log && exit /b 1)
+	$(call call_cached,$(CACHE_KEY),powershell.exe -File .github/test-mine.ps1)
 
 # Formats just the .cs files you've worked on (per Git)
 format:

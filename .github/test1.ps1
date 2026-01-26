@@ -4,7 +4,7 @@ param(
 )
 
 $files = Get-ChildItem -Recurse -Filter '*Tests.dll' -Path 'Codescene.VSExtension.VS2022' | Where-Object { $_.FullName -match 'bin\\Release' } | Select-Object -ExpandProperty FullName
-vstest.console.exe $files /Tests:$TestName /logger:trx
+vstest.console.exe $files /Tests:$TestName /logger:trx > test.log 2>&1
 
 if ($LASTEXITCODE -eq 0) {
     Get-Content test.log -Tail 4
