@@ -9,10 +9,11 @@ using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.Application.Git
 {
-    internal class GitChangeDetector
+    public class GitChangeDetector
     {
         private readonly ILogger _logger;
         private readonly ISupportedFileChecker _supportedFileChecker;
+        private Dictionary<string, List<string>> _mainBranchCandidatesCache;
 
         public GitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker)
         {
@@ -102,22 +103,57 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                     return null;
                 }
 
-                var mainBranch = FindMainBranch(repo);
-                if (!IsValidBranch(mainBranch))
+                var mainBranchCandidates = GetMainBranchCandidates(repo);
+                if (mainBranchCandidates.Count == 0)
                 {
+                    _logger?.Debug("GitChangeObserver: No main branch candidates found");
                     return null;
                 }
 
-                if (IsOnMainBranch(currentBranch, mainBranch))
+                foreach (var candidateName in mainBranchCandidates)
                 {
-                    return null;
+                    var mergeBase = TryFindMergeBase(repo, currentBranch, candidateName);
+                    if (mergeBase != null)
+                    {
+                        return mergeBase;
+                    }
                 }
 
-                return repo.ObjectDatabase.FindMergeBase(currentBranch.Tip, mainBranch.Tip);
+                _logger?.Debug("GitChangeObserver: No merge base found with any main branch candidate");
+                return null;
             }
             catch (Exception ex)
             {
                 _logger?.Debug($"GitChangeObserver: Could not determine merge base: {ex.Message}");
+                return null;
+            }
+        }
+
+        private Commit TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
+        {
+            var mainBranch = repo.Branches[candidateName];
+            if (!IsValidBranch(mainBranch))
+            {
+                return null;
+            }
+
+            if (IsOnMainBranch(currentBranch, mainBranch))
+            {
+                return null;
+            }
+
+            try
+            {
+                var mergeBase = repo.ObjectDatabase.FindMergeBase(currentBranch.Tip, mainBranch.Tip);
+                if (mergeBase != null)
+                {
+                    _logger?.Debug($"GitChangeObserver: Found merge base using branch '{candidateName}'");
+                }
+                return mergeBase;
+            }
+            catch (Exception ex)
+            {
+                _logger?.Debug($"GitChangeObserver: Could not find merge base with '{candidateName}': {ex.Message}");
                 return null;
             }
         }
@@ -127,12 +163,38 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             return branch != null && branch.Tip != null;
         }
 
-        private Branch FindMainBranch(Repository repo)
+        private List<string> GetMainBranchCandidates(Repository repo)
         {
-            return repo.Branches["main"] ??
-                   repo.Branches["master"] ??
-                   repo.Branches["origin/main"] ??
-                   repo.Branches["origin/master"];
+            var gitRoot = repo.Info.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar);
+            if (string.IsNullOrEmpty(gitRoot))
+            {
+                return new List<string>();
+            }
+
+            if (_mainBranchCandidatesCache != null &&
+                _mainBranchCandidatesCache.TryGetValue(gitRoot, out var cached))
+            {
+                return cached;
+            }
+
+            var possibleMainBranches = new[] { "main", "master", "develop", "trunk", "dev" };
+
+            var localBranches = repo.Branches
+                .Where(b => !b.IsRemote)
+                .Select(b => b.FriendlyName)
+                .ToList();
+
+            var candidates = possibleMainBranches
+                .Where(name => localBranches.Contains(name))
+                .ToList();
+
+            if (_mainBranchCandidatesCache == null)
+            {
+                _mainBranchCandidatesCache = new Dictionary<string, List<string>>();
+            }
+            _mainBranchCandidatesCache[gitRoot] = candidates;
+
+            return candidates;
         }
 
         private bool IsOnMainBranch(Branch currentBranch, Branch mainBranch)
