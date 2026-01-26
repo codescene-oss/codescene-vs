@@ -310,7 +310,8 @@ internal class WebComponentMessageHandler
         var payload = msgObject.Payload.ToObject<AceAcknowledgePayload>();
         if (payload.FnToRefactor == null)
         {
-            _logger.Warn("Could not refactor function after acknowledging ACE: refactorable function is not present.");
+            logger.Debug("Current code smell is not refactorable. Refreshing tool window to disable the refactoring button.");
+            await CodeSmellDocumentationWindow.RefreshViewAsync();
             return;
         }
 
