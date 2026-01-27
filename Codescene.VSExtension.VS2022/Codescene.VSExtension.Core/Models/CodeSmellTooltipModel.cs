@@ -6,7 +6,7 @@
         public string Details { get; set; }
         public string Path { get; set; }
         public string FunctionName { get; set; }
-        public CodeSmellRangeModel Range { get; set; }
-        public CodeSmellRangeModel FunctionRange { get; set; } = null;
+        public CodeRangeModel Range { get; set; }
+        public CodeRangeModel FunctionRange { get; set; } = null;
     }
 }

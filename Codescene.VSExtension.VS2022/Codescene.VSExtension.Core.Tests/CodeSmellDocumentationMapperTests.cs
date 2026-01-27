@@ -20,13 +20,13 @@ namespace Codescene.VSExtension.Core.Tests
             string path = "test.cs",
             string category = "Complex Method",
             string functionName = "TestFunction",
-            CodeSmellRangeModel range = null)
+            CodeRangeModel range = null)
         {
             return new ShowDocumentationModel(
                 path,
                 category,
                 functionName,
-                range ?? new CodeSmellRangeModel(10, 20, 1, 50));
+                range ?? new CodeRangeModel(10, 20, 1, 50));
         }
 
         private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction") =>
@@ -94,7 +94,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Map_ValidRange_MappedCorrectly()
         {
-            var range = new CodeSmellRangeModel(10, 25, 5, 80);
+            var range = new CodeRangeModel(10, 25, 5, 80);
             var result = _mapper.Map(CreateModel(range: range), CreateFnToRefactor());
 
             Assert.AreEqual(10, result.FileData.Fn.Range.StartLine);

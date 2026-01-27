@@ -11,6 +11,6 @@ class GotoFunctionLocationPayload
 public class FnData
 {
     public string Name { get; set; }
-    public CodeSmellRangeModel Range { get; set; }
+    public CodeRangeModel Range { get; set; }
 }
 
