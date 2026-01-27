@@ -23,12 +23,14 @@ namespace Codescene.VSExtension.VS2022.Handlers
     {
         private readonly IAceStateService _aceStateService;
         private readonly ILogger _logger;
+        private readonly IPreflightManager _preflightManager;
 
         [ImportingConstructor]
-        public AceStateChangeHandler(IAceStateService aceStateService, ILogger logger)
+        public AceStateChangeHandler(IAceStateService aceStateService, ILogger logger, IPreflightManager preflightManager)
         {
             _aceStateService = aceStateService;
             _logger = logger;
+            _preflightManager = preflightManager;
 
             // Subscribe to state changes
             _aceStateService.StateChanged += OnStateChanged;
@@ -40,6 +42,15 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private void OnAuthTokenChanged(object sender, EventArgs e)
         {
             _logger.Debug("Auth token changed");
+            var settings = sender as General;
+            if (settings == null)
+            {
+                _logger.Debug("Unable to read settings after token change");
+                return;
+            }
+
+            var hasAuthToken = !string.IsNullOrWhiteSpace(settings.AuthToken);
+            _preflightManager.SetHasAceToken(hasAuthToken);
             RefreshCodeHealthMonitorAsync().FireAndForget();
         }
 
@@ -67,6 +78,8 @@ namespace Codescene.VSExtension.VS2022.Handlers
                     OnAceCameBackOnline();
                     break;
             }
+
+            RefreshCodeHealthMonitorAsync().FireAndForget();
         }
 
         /// <summary>
@@ -76,9 +89,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private void OnAceEnabled()
         {
             _logger.Debug("ACE enabled");
-            
-            // Refresh the Code Health Monitor to show refactorable functions
-            RefreshCodeHealthMonitorAsync().FireAndForget();
         }
 
         /// <summary>
@@ -88,9 +98,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private void OnAceDisabled()
         {
             _logger.Debug("ACE disabled");
-            
-            // Refresh the Code Health Monitor to hide refactorable functions
-            RefreshCodeHealthMonitorAsync().FireAndForget();
+
         }
 
         /// <summary>
@@ -100,7 +108,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private void OnAceWentOffline()
         {
             _logger.Debug("ACE went offline");
-            
+
             ShowNotificationAsync("CodeScene ACE is running in offline mode. Some features may be unavailable.").FireAndForget();
         }
 
@@ -111,9 +119,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private void OnAceCameBackOnline()
         {
             _logger.Debug("ACE back online");
-            
             ShowNotificationAsync("CodeScene ACE is back online.").FireAndForget();
-            RefreshCodeHealthMonitorAsync().FireAndForget();
         }
 
         private async Task RefreshCodeHealthMonitorAsync()

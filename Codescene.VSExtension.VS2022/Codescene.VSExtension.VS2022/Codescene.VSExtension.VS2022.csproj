@@ -218,6 +218,7 @@
     <Compile Include="Tagger\ReviewResultTaggerProvider.cs" />
     <Compile Include="Tagger\ReviewResultTaggerTooltipModel.cs" />
     <Compile Include="Util\AceUtils.cs" />
+    <Compile Include="Util\DocumentationMappings.cs" />
     <Compile Include="Util\DocumentNavigator.cs" />
     <Compile Include="Util\ExtensionMetadataProvider.cs" />
     <Compile Include="Util\IndentationUtil.cs" />

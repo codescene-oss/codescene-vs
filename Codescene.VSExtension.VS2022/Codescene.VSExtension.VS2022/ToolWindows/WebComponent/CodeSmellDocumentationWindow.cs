@@ -78,6 +78,40 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
         _userControl.UpdateViewAsync(message).FireAndForget();
     }
 
+    public static async Task RefreshViewAsync()
+    {
+        var logger = await VS.GetMefServiceAsync<ILogger>();
+
+        if (_userControl == null || _model == null)
+        {
+            logger.Warn("Could not refresh documentation tool window. Data is undefined.");
+            return;
+        }
+
+        var mapper = await VS.GetMefServiceAsync<CodeSmellDocumentationMapper>();
+
+        var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
+        var aceAcknowledged = acknowledgementStateService.IsAcknowledged();
+
+        try
+        {
+            UpdateView(new WebComponentMessage<CodeSmellDocumentationComponentData>
+            {
+                MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+                Payload = new WebComponentPayload<CodeSmellDocumentationComponentData>
+                {
+                    IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                    View = WebComponentConstants.ViewTypes.DOCS,
+                    Data = mapper.Map(_model, _fnToRefactor, aceAcknowledged),
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            logger.Error($"Could not refresh view for {_model.Category}", e);
+        }
+    }
+
     [Guid("D9D9979D-0D9C-439A-9062-33945D63FAF8")]
     internal class Pane : ToolWindowPane
     {

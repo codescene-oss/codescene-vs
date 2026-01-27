@@ -2,6 +2,7 @@
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.VS2022.Application.Services;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
@@ -244,13 +245,22 @@ internal class WebComponentMessageHandler
         var payload = msgObject.Payload.ToObject<OpenDocsForFunctionPayload>();
         _logger.Debug($"Opening '{payload.DocType}'...");
 
+        var category = DocumentationMappings.DocNameMap[payload.DocType] ?? "";
+        var fn = await AceUtils.GetRefactorableFunctionAsync(new GetRefactorableFunctionsModel
+        {
+            Path = payload.FileName,
+            Category = category,
+            FunctionRange = payload.Fn?.Range,
+        }
+        );
+
         await _showDocsHandler?.HandleAsync(
         new ShowDocumentationModel(
             payload.FileName,
             payload.DocType,
             payload.Fn?.Name,
             payload.Fn?.Range),
-        null, // TODO: CS-6070
+        fn,
         DocsEntryPoint.CodeHealthMonitor
         );
     }
@@ -268,7 +278,7 @@ internal class WebComponentMessageHandler
             return;
         }
 
-        if (payload.Source == "docs" && _control.CloseRequested is not null)
+        if (payload.Source == ViewTypes.DOCS && _control.CloseRequested is not null)
             await _control.CloseRequested();
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -299,14 +309,22 @@ internal class WebComponentMessageHandler
         var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
         acknowledgementStateService.SetAcknowledged();
 
+        _logger?.Info("ACE usage acknowledged.");
+
         var payload = msgObject.Payload.ToObject<AceAcknowledgePayload>();
         if (payload.FnToRefactor == null)
         {
-            _logger.Warn("Could not refactor function after acknowledging ACE: refactorable function is not present.");
+            logger.Info("Current code smell is not refactorable.");
+
+            if (payload.Source == ViewTypes.DOCS)
+            {
+                logger.Debug("Refreshing 'docs' tool window to disable the refactoring button.");
+                await CodeSmellDocumentationWindow.RefreshViewAsync();
+            }
             return;
         }
 
-        _logger?.Info($"ACE usage acknowledged. Refactoring function '{payload.FnToRefactor.Name}'...");
+        _logger?.Info($"Refactoring function '{payload.FnToRefactor.Name}'...");
 
         // Close the acknowledgement window
         if (_control.CloseRequested is not null)
