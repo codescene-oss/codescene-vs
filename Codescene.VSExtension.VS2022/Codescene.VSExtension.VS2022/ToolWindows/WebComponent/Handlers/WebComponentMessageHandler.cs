@@ -278,7 +278,7 @@ internal class WebComponentMessageHandler
             return;
         }
 
-        if (payload.Source == "docs" && _control.CloseRequested is not null)
+        if (payload.Source == ViewTypes.DOCS && _control.CloseRequested is not null)
             await _control.CloseRequested();
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -309,15 +309,22 @@ internal class WebComponentMessageHandler
         var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
         acknowledgementStateService.SetAcknowledged();
 
+        _logger?.Info("ACE usage acknowledged.");
+
         var payload = msgObject.Payload.ToObject<AceAcknowledgePayload>();
         if (payload.FnToRefactor == null)
         {
-            logger.Debug("Current code smell is not refactorable. Refreshing tool window to disable the refactoring button.");
-            await CodeSmellDocumentationWindow.RefreshViewAsync();
+            logger.Info("Current code smell is not refactorable.");
+
+            if (payload.Source == ViewTypes.DOCS)
+            {
+                logger.Debug("Refreshing 'docs' tool window to disable the refactoring button.");
+                await CodeSmellDocumentationWindow.RefreshViewAsync();
+            }
             return;
         }
 
-        _logger?.Info($"ACE usage acknowledged. Refactoring function '{payload.FnToRefactor.Name}'...");
+        _logger?.Info($"Refactoring function '{payload.FnToRefactor.Name}'...");
 
         // Close the acknowledgement window
         if (_control.CloseRequested is not null)
