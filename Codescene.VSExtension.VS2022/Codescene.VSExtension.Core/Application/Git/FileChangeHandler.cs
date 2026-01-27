@@ -6,9 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.VS2022.Application.Git
+namespace Codescene.VSExtension.Core.Application.Git
 {
-    internal class FileChangeHandler
+    public class FileChangeHandler
     {
         private readonly ILogger _logger;
         private readonly ICodeReviewer _codeReviewer;

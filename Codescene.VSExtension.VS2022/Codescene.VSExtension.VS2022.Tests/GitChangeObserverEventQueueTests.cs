@@ -1,13 +1,16 @@
+using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.VS2022.Application.Git;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.VS2022.Tests
 {
     [TestClass]
     public class GitChangeObserverEventQueueTests
@@ -116,7 +119,7 @@ namespace Codescene.VSExtension.CoreTests
 
             using (var repo = new Repository(_testRepoPath))
             {
-                Commands.Stage(repo, filename);
+                LibGit2Sharp.Commands.Stage(repo, filename);
                 var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
                 repo.Commit(message, signature, signature);
             }
@@ -161,8 +164,9 @@ namespace Codescene.VSExtension.CoreTests
             var eventQueueField = typeof(GitChangeObserver).GetField("_eventQueue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var queue = eventQueueField.GetValue(_gitChangeObserver);
 
-            var fileChangeEventType = typeof(GitChangeObserver).Assembly.GetType("Codescene.VSExtension.VS2022.Application.Git.FileChangeEvent");
-            var fileChangeTypeEnum = typeof(GitChangeObserver).Assembly.GetType("Codescene.VSExtension.VS2022.Application.Git.FileChangeType");
+            var coreAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "Codescene.VSExtension.Core");
+            var fileChangeEventType = coreAssembly.GetType("Codescene.VSExtension.Core.Application.Git.FileChangeEvent");
+            var fileChangeTypeEnum = coreAssembly.GetType("Codescene.VSExtension.Core.Application.Git.FileChangeType");
 
             var createType = Enum.Parse(fileChangeTypeEnum, "Create");
             var event1 = Activator.CreateInstance(fileChangeEventType, createType, file1);
@@ -218,8 +222,9 @@ namespace Codescene.VSExtension.CoreTests
             var eventQueueField = typeof(GitChangeObserver).GetField("_eventQueue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var queue = eventQueueField.GetValue(observer);
 
-            var fileChangeEventType = typeof(GitChangeObserver).Assembly.GetType("Codescene.VSExtension.VS2022.Application.Git.FileChangeEvent");
-            var fileChangeTypeEnum = typeof(GitChangeObserver).Assembly.GetType("Codescene.VSExtension.VS2022.Application.Git.FileChangeType");
+            var coreAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "Codescene.VSExtension.Core");
+            var fileChangeEventType = coreAssembly.GetType("Codescene.VSExtension.Core.Application.Git.FileChangeEvent");
+            var fileChangeTypeEnum = coreAssembly.GetType("Codescene.VSExtension.Core.Application.Git.FileChangeType");
             var createType = Enum.Parse(fileChangeTypeEnum, "Create");
             var enqueueMethod = queue.GetType().GetMethod("Enqueue");
 

@@ -1,18 +1,19 @@
+using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.VS2022.Application.Git;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.VS2022.Tests
 {
     [TestClass]
-    public class GitChangeObserverWorkflowTests
+    public class GitChangeObserverGitignoreTests
     {
         private string _testRepoPath;
         private GitChangeObserver _gitChangeObserver;
@@ -26,7 +27,7 @@ namespace Codescene.VSExtension.CoreTests
         [TestInitialize]
         public void Setup()
         {
-            _testRepoPath = Path.Combine(Path.GetTempPath(), $"test-git-repo-workflow-{Guid.NewGuid()}");
+            _testRepoPath = Path.Combine(Path.GetTempPath(), $"test-git-repo-gitignore-{Guid.NewGuid()}");
 
             if (Directory.Exists(_testRepoPath))
             {
@@ -74,6 +75,12 @@ namespace Codescene.VSExtension.CoreTests
         {
             _gitChangeObserver?.Dispose();
 
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            if (File.Exists(gitignorePath))
+            {
+                File.Delete(gitignorePath);
+            }
+
             if (Directory.Exists(_testRepoPath))
             {
                 try
@@ -105,39 +112,9 @@ namespace Codescene.VSExtension.CoreTests
             return observer;
         }
 
-        private void ExecGit(string args)
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "git",
-                Arguments = args,
-                WorkingDirectory = _testRepoPath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using (var process = Process.Start(psi))
-            {
-                process.WaitForExit();
-
-                if (process.ExitCode != 0)
-                {
-                    var error = process.StandardError.ReadToEnd();
-                    throw new Exception($"Git command failed: {args}\n{error}");
-                }
-            }
-        }
-
         private string CreateFile(string filename, string content)
         {
             var filePath = Path.Combine(_testRepoPath, filename);
-            var directory = Path.GetDirectoryName(filePath);
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
             File.WriteAllText(filePath, content);
             return filePath;
         }
@@ -148,12 +125,23 @@ namespace Codescene.VSExtension.CoreTests
 
             using (var repo = new Repository(_testRepoPath))
             {
-                Commands.Stage(repo, filename);
+                LibGit2Sharp.Commands.Stage(repo, filename);
                 var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
                 repo.Commit(message, signature, signature);
             }
 
             return filePath;
+        }
+
+        private TrackerManager GetTrackerManager()
+        {
+            return _gitChangeObserver.GetTrackerManager();
+        }
+
+        private async Task TriggerFileChangeAsync(string filePath)
+        {
+            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
+            await _gitChangeObserver.HandleFileChangeForTestingAsync(filePath, changedFiles);
         }
 
         private void AssertFileInChangedList(List<string> changedFiles, string filename, bool shouldExist = true)
@@ -164,87 +152,52 @@ namespace Codescene.VSExtension.CoreTests
 
         private void AssertFileInTracker(string filePath, bool shouldExist = true)
         {
-            var trackerManager = _gitChangeObserver.GetTrackerManager();
+            var trackerManager = GetTrackerManager();
             var exists = trackerManager.Contains(filePath);
             Assert.AreEqual(shouldExist, exists, shouldExist ? "File should be in tracker" : "File should not be in tracker");
         }
 
-        private async Task TriggerFileChangeAsync(string filePath)
+        [TestMethod]
+        public async Task GitIgnoredFiles_AreNotTracked()
         {
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            File.WriteAllText(gitignorePath, "*.ignored\n");
+
+            var ignoredFile = CreateFile("secret.ignored", "export const secret = \"hidden\";");
+
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            await _gitChangeObserver.HandleFileChangeForTestingAsync(filePath, changedFiles);
+            AssertFileInChangedList(changedFiles, "secret.ignored", false);
+
+            await TriggerFileChangeAsync(ignoredFile);
+
+            AssertFileInTracker(ignoredFile, false);
+
+            File.Delete(gitignorePath);
         }
 
         [TestMethod]
-        public async Task MultiStepWorkflow_StagingAndUnstagingFiles()
+        public async Task FileBecomesTracked_AfterGitignoreRemoval()
         {
-            var file = CreateFile("staging-test.ts", "export const test = 1;");
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            File.WriteAllText(gitignorePath, "config.ts\n");
 
-            using (var repo = new Repository(_testRepoPath))
-            {
-                Commands.Stage(repo, "staging-test.ts");
-            }
+            var ignoredFile = CreateFile("config.ts", "export const config = { secret: true };");
 
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            AssertFileInChangedList(changedFiles, "staging-test.ts");
+            AssertFileInChangedList(changedFiles, "config.ts", false);
 
-            using (var repo = new Repository(_testRepoPath))
-            {
-                Commands.Unstage(repo, "staging-test.ts");
-            }
+            await TriggerFileChangeAsync(ignoredFile);
+            AssertFileInTracker(ignoredFile, false);
+
+            File.Delete(gitignorePath);
+            await Task.Delay(100);
 
             changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            AssertFileInChangedList(changedFiles, "staging-test.ts");
+            AssertFileInChangedList(changedFiles, "config.ts");
 
-            File.Delete(file);
-            changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            AssertFileInChangedList(changedFiles, "staging-test.ts", false);
+            await TriggerFileChangeAsync(ignoredFile);
+
+            AssertFileInTracker(ignoredFile);
         }
-
-        [TestMethod]
-        public async Task ComplexGit_DetachedHeadState_HandledGracefully()
-        {
-            string commitSha;
-            using (var repo = new Repository(_testRepoPath))
-            {
-                commitSha = repo.Head.Tip.Sha;
-            }
-
-            ExecGit($"checkout {commitSha}");
-
-            var file = CreateFile("detached.ts", "export const detached = 1;");
-
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            AssertFileInChangedList(changedFiles, "detached.ts");
-
-            Assert.IsNotNull(changedFiles, "Should return results even in detached HEAD state");
-        }
-
-        [TestMethod]
-        public async Task ComplexGit_MergeBranch_DetectsAllChanges()
-        {
-            using (var repo = new Repository(_testRepoPath))
-            {
-                var branch = repo.CreateBranch("merge-feature");
-                Commands.Checkout(repo, branch);
-            }
-
-            CommitFile("merge1.ts", "export const a = 1;", "Add merge1");
-            CommitFile("merge2.ts", "export const b = 2;", "Add merge2");
-
-            using (var repo = new Repository(_testRepoPath))
-            {
-                var mainBranch = repo.Branches["master"] ?? repo.Branches["main"];
-                Commands.Checkout(repo, mainBranch);
-            }
-
-            ExecGit("merge merge-feature --no-ff --no-edit");
-
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-
-            AssertFileInChangedList(changedFiles, "merge1.ts", false);
-            AssertFileInChangedList(changedFiles, "merge2.ts", false);
-        }
-
     }
 }

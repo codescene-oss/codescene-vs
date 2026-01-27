@@ -1,4 +1,6 @@
+using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.VS2022.Application.Git;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -9,7 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.VS2022.Tests
 {
     [TestClass]
     public class GitChangeDetectorTests
@@ -73,7 +75,7 @@ namespace Codescene.VSExtension.CoreTests
 
             using (var repo = new Repository(_testRepoPath))
             {
-                Commands.Stage(repo, filename);
+                LibGit2Sharp.Commands.Stage(repo, filename);
                 var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
                 repo.Commit(message, signature, signature);
             }
@@ -205,7 +207,7 @@ namespace Codescene.VSExtension.CoreTests
             {
                 var currentBranch = repo.Head.FriendlyName;
                 var featureBranch = repo.CreateBranch("feature-xyz");
-                Commands.Checkout(repo, featureBranch);
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
             }
 
             ExecGit($"branch -D master");
@@ -253,7 +255,7 @@ namespace Codescene.VSExtension.CoreTests
             using (var repo = new Repository(_testRepoPath))
             {
                 var featureBranch = repo.CreateBranch("feature-test");
-                Commands.Checkout(repo, featureBranch);
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
             }
 
             CommitFile("feature.cs", "public class Feature {}", "Add feature");
@@ -271,7 +273,7 @@ namespace Codescene.VSExtension.CoreTests
             using (var repo = new Repository(_testRepoPath))
             {
                 var developBranch = repo.CreateBranch("develop");
-                Commands.Checkout(repo, developBranch);
+                LibGit2Sharp.Commands.Checkout(repo, developBranch);
             }
 
             try
@@ -293,7 +295,7 @@ namespace Codescene.VSExtension.CoreTests
             using (var repo = new Repository(_testRepoPath))
             {
                 var featureBranch = repo.CreateBranch("feature-test");
-                Commands.Checkout(repo, featureBranch);
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
             }
 
             CommitFile("feature.cs", "public class Feature {}", "Add feature");

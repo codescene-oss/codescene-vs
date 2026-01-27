@@ -1,17 +1,20 @@
+using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.VS2022.Application.Git;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.VS2022.Tests
 {
     [TestClass]
-    public class GitChangeObserverGitignoreTests
+    public class GitChangeObserverTrackerTests
     {
         private string _testRepoPath;
         private GitChangeObserver _gitChangeObserver;
@@ -25,7 +28,7 @@ namespace Codescene.VSExtension.CoreTests
         [TestInitialize]
         public void Setup()
         {
-            _testRepoPath = Path.Combine(Path.GetTempPath(), $"test-git-repo-gitignore-{Guid.NewGuid()}");
+            _testRepoPath = Path.Combine(Path.GetTempPath(), $"test-git-repo-observer-tracker-{Guid.NewGuid()}");
 
             if (Directory.Exists(_testRepoPath))
             {
@@ -123,7 +126,7 @@ namespace Codescene.VSExtension.CoreTests
 
             using (var repo = new Repository(_testRepoPath))
             {
-                Commands.Stage(repo, filename);
+                LibGit2Sharp.Commands.Stage(repo, filename);
                 var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
                 repo.Commit(message, signature, signature);
             }
@@ -142,12 +145,6 @@ namespace Codescene.VSExtension.CoreTests
             await _gitChangeObserver.HandleFileChangeForTestingAsync(filePath, changedFiles);
         }
 
-        private void AssertFileInChangedList(List<string> changedFiles, string filename, bool shouldExist = true)
-        {
-            var exists = changedFiles.Any(f => f.EndsWith(filename, StringComparison.OrdinalIgnoreCase));
-            Assert.AreEqual(shouldExist, exists, shouldExist ? $"Should include {filename}" : $"Should not include {filename}");
-        }
-
         private void AssertFileInTracker(string filePath, bool shouldExist = true)
         {
             var trackerManager = GetTrackerManager();
@@ -156,46 +153,72 @@ namespace Codescene.VSExtension.CoreTests
         }
 
         [TestMethod]
-        public async Task GitIgnoredFiles_AreNotTracked()
+        public async Task TrackerTracksAddedFiles()
         {
-            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
-            File.WriteAllText(gitignorePath, "*.ignored\n");
+            var newFile = CreateFile("tracked.ts", "export const x = 1;");
+            _gitChangeObserver.Start();
+            await Task.Delay(500);
 
-            var ignoredFile = CreateFile("secret.ignored", "export const secret = \"hidden\";");
+            await TriggerFileChangeAsync(newFile);
 
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            AssertFileInChangedList(changedFiles, "secret.ignored", false);
-
-            await TriggerFileChangeAsync(ignoredFile);
-
-            AssertFileInTracker(ignoredFile, false);
-
-            File.Delete(gitignorePath);
+            AssertFileInTracker(newFile);
         }
 
         [TestMethod]
-        public async Task FileBecomesTracked_AfterGitignoreRemoval()
+        public async Task RemoveFromTracker_RemovesFileFromTracking()
         {
-            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
-            File.WriteAllText(gitignorePath, "config.ts\n");
+            var newFile = CreateFile("removable.ts", "export const x = 1;");
+            _gitChangeObserver.Start();
+            await Task.Delay(500);
+            await TriggerFileChangeAsync(newFile);
+            AssertFileInTracker(newFile);
 
-            var ignoredFile = CreateFile("config.ts", "export const config = { secret: true };");
+            _gitChangeObserver.RemoveFromTracker(newFile);
 
+            AssertFileInTracker(newFile, false);
+        }
+
+        [TestMethod]
+        public async Task HandleFileDelete_RemovesTrackedFile()
+        {
+            var newFile = CreateFile("deletable.ts", "export const x = 1;");
+            _gitChangeObserver.Start();
+            await Task.Delay(500);
+            await TriggerFileChangeAsync(newFile);
+            AssertFileInTracker(newFile);
+
+            File.Delete(newFile);
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            AssertFileInChangedList(changedFiles, "config.ts", false);
 
-            await TriggerFileChangeAsync(ignoredFile);
-            AssertFileInTracker(ignoredFile, false);
+            await _gitChangeObserver.HandleFileDeleteForTestingAsync(newFile, changedFiles);
 
-            File.Delete(gitignorePath);
-            await Task.Delay(100);
+            AssertFileInTracker(newFile, false);
+        }
 
-            changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            AssertFileInChangedList(changedFiles, "config.ts");
+        [TestMethod]
+        public async Task HandleFileDelete_HandlesDirectoryDeletion()
+        {
+            var subDir = Path.Combine(_testRepoPath, "subdir");
+            Directory.CreateDirectory(subDir);
+            var file1 = Path.Combine(subDir, "file1.ts");
+            var file2 = Path.Combine(subDir, "file2.ts");
+            File.WriteAllText(file1, "export const a = 1;");
+            File.WriteAllText(file2, "export const b = 2;");
 
-            await TriggerFileChangeAsync(ignoredFile);
+            _gitChangeObserver.Start();
+            await Task.Delay(500);
+            await TriggerFileChangeAsync(file1);
+            await TriggerFileChangeAsync(file2);
+            AssertFileInTracker(file1);
+            AssertFileInTracker(file2);
 
-            AssertFileInTracker(ignoredFile);
+            Directory.Delete(subDir, true);
+            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
+
+            await _gitChangeObserver.HandleFileDeleteForTestingAsync(subDir, changedFiles);
+
+            AssertFileInTracker(file1, false);
+            AssertFileInTracker(file2, false);
         }
     }
 }

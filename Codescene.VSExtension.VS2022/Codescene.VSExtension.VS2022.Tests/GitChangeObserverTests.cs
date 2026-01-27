@@ -1,8 +1,10 @@
+using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.VS2022.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
-using Codescene.VSExtension.VS2022.Application.Git;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -13,7 +15,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.VS2022.Tests
 {
     [TestClass]
     public class GitChangeObserverTests
@@ -158,7 +160,7 @@ namespace Codescene.VSExtension.CoreTests
 
             using (var repo = new Repository(_testRepoPath))
             {
-                Commands.Stage(repo, fileData.Filename);
+                LibGit2Sharp.Commands.Stage(repo, fileData.Filename);
                 var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
                 repo.Commit(fileData.CommitMessage, signature, signature);
             }
@@ -233,7 +235,7 @@ namespace Codescene.VSExtension.CoreTests
 
             using (var repo = new Repository(_testRepoPath))
             {
-                Commands.Stage(repo, "script.py");
+                LibGit2Sharp.Commands.Stage(repo, "script.py");
             }
 
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
@@ -247,7 +249,7 @@ namespace Codescene.VSExtension.CoreTests
             using (var repo = new Repository(_testRepoPath))
             {
                 var branch = repo.CreateBranch("feature-branch");
-                Commands.Checkout(repo, branch);
+                LibGit2Sharp.Commands.Checkout(repo, branch);
             }
 
             CommitFile("committed.ts", "export const foo = 1;", "Add committed.ts");

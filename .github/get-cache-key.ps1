@@ -4,7 +4,13 @@ $tracked = git ls-files -s '*.cs' '*.csproj' '.codescene/*.json' '*.csproj' | Fo
 }
 
 $untracked = git status --untracked-files=all --short --porcelain |
-    ForEach-Object { $_.Substring(3).Trim() } |
+    ForEach-Object {
+        $path = $_.Substring(3).Trim()
+        if ($path -match ' -> ') {
+            $path = $path -replace '^.* -> ', ''
+        }
+        $path
+    } |
     Where-Object { ($_ -like '*.cs' -or $_ -like '*.csproj' -or $_ -like '.codescene/*.json') -and (Test-Path $_) } |
     ForEach-Object {
         [PSCustomObject]@{

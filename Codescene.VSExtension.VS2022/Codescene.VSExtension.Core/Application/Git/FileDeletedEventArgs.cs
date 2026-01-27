@@ -1,6 +1,6 @@
 using System;
 
-namespace Codescene.VSExtension.VS2022.Application.Git
+namespace Codescene.VSExtension.Core.Application.Git
 {
     public class FileDeletedEventArgs : EventArgs
     {

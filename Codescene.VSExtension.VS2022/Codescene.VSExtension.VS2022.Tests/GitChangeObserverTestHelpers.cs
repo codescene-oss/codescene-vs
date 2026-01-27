@@ -1,8 +1,10 @@
+using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.VS2022.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
-using Codescene.VSExtension.VS2022.Application.Git;
 using LibGit2Sharp;
 using System;
 using System.Collections.Generic;
@@ -10,7 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Codescene.VSExtension.CoreTests
+namespace Codescene.VSExtension.VS2022.Tests
 {
     internal class TestFileData
     {

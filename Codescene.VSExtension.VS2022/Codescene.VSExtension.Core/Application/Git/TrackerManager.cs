@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Codescene.VSExtension.VS2022.Application.Git
+namespace Codescene.VSExtension.Core.Application.Git
 {
     public class TrackerManager
     {

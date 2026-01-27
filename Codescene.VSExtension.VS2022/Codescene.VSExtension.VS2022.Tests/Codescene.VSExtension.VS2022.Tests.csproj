@@ -20,6 +20,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Codescene.VSExtension.Core\Codescene.VSExtension.Core.csproj" />
+	  <ProjectReference Include="..\Codescene.VSExtension.VS2022\Codescene.VSExtension.VS2022.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

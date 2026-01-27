@@ -1,3 +1,5 @@
+using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

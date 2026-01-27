@@ -1,13 +1,13 @@
-namespace Codescene.VSExtension.VS2022.Application.Git
+namespace Codescene.VSExtension.Core.Application.Git
 {
-    internal enum FileChangeType
+    public enum FileChangeType
     {
         Create,
         Change,
         Delete
     }
 
-    internal class FileChangeEvent
+    public class FileChangeEvent
     {
         public FileChangeType Type { get; }
         public string FilePath { get; }
