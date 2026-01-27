@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
@@ -30,6 +30,11 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
+        // Prevent creating multiple instances - return existing control if already created
+        // This fixes a race condition where CreateAsync can be called multiple times during startup
+        if (_userControl != null)
+            return _userControl;
+        
         var logger = await VS.GetMefServiceAsync<ILogger>();
 
         try
