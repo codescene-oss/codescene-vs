@@ -191,7 +191,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = _mapper.Map("test.cs", fn);
 
-            Assert.AreEqual(15, result.FileData.Fn.Range.Startline);
+            Assert.AreEqual(15, result.FileData.Fn.Range.StartLine);
         }
 
         [TestMethod]
