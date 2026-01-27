@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Codescene.VSExtension.Core.Application.Services.Util;
+using Codescene.VSExtension.Core.Consts;
 
 namespace Codescene.VSExtension.VS2022.Util;
 
@@ -28,7 +28,7 @@ public static class DocumentationMappings
             { "docs_issues_large_embedded_code_block", Constants.Titles.LARGE_EMBEDDED_CODE_BLOCK },
             { "docs_issues_large_method", Constants.Titles.LARGE_METHOD },
             { "docs_issues_lines_of_code_in_a_single_file", Constants.Titles.LINES_OF_CODE_IN_A_SINGLE_FILE },
-            { "docs_issues_lines_of_declarations_in_a_single_file", Constants.Titles.LINES_OF_DECLARATION_IN_A_SINGLE_FILE },
+            { "docs_issues_lines_of_declarations_in_a_single_file", Constants.Titles.LINES_OF_DECLARATIONS_IN_A_SINGLE_FILE },
             { "docs_issues_low_cohesion", Constants.Titles.LOW_COHESION },
             { "docs_issues_missing_arguments_abstractions", Constants.Titles.MISSING_ARGUMENTS_ABSTRACTIONS },
             { "docs_issues_modularity_issue", Constants.Titles.MODULARITY_ISSUE },
