@@ -133,7 +133,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Category = "Deep Nesting",
                 Details = "Depth: 5",
-                Range = new CodeSmellRangeModel(10, 20, 1, 50)
+                Range = new CodeRangeModel(10, 20, 1, 50)
             };
 
             var result = _mapper.Map(codeSmellModel);

@@ -60,7 +60,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 Path = path,
                 Category = review.Category,
                 Details = review.Details,
-                Range = new CodeSmellRangeModel(
+                Range = new CodeRangeModel(
                     review.Range.Startline,
                     review.Range.EndLine,
                     review.Range.StartColumn,
@@ -85,7 +85,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             // Preserve the function's range information
             if (function.Range != null)
             {
-                model.FunctionRange = new CodeSmellRangeModel(
+                model.FunctionRange = new CodeRangeModel(
                     function.Range.Startline,
                     function.Range.EndLine,
                     function.Range.StartColumn,

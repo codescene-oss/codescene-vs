@@ -19,8 +19,8 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         public string Category { get; set; }
         public string Details { get; set; }
         public string Path { get; set; }
-        public CodeSmellRangeModel Range { get; set; }
-        public CodeSmellRangeModel FunctionRange { get; set; }
+        public CodeRangeModel Range { get; set; }
+        public CodeRangeModel FunctionRange { get; set; }
         public string FunctionName { get; set; }
 
         public ICommand YourCommand { get; }
@@ -40,7 +40,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             Details = Details,
             Path = Path,
             FunctionName = FunctionName,
-            Range = new CodeSmellRangeModel(
+            Range = new CodeRangeModel(
                 Range.StartLine,
                 Range.EndLine,
                 Range.StartColumn,
@@ -48,7 +48,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             ),
             FunctionRange = FunctionRange is null
             ? null
-            : new CodeSmellRangeModel(
+            : new CodeRangeModel(
                 FunctionRange.StartLine,
                 FunctionRange.EndLine,
                 FunctionRange.StartColumn,

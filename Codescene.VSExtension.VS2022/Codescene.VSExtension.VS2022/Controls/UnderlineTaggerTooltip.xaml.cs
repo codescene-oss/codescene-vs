@@ -9,13 +9,13 @@ using System.Windows.Media;
 
 namespace Codescene.VSExtension.VS2022.Controls
 {
-    public class UnderlineTaggerTooltipParams(string category, string details, string path, CodeSmellRangeModel range, string functionName, CodeSmellRangeModel functionRange)
+    public class UnderlineTaggerTooltipParams(string category, string details, string path, CodeRangeModel range, string functionName, CodeRangeModel functionRange)
     {
         public string Category { get; } = category;
         public string Details { get; } = details;
         public string Path { get; } = path;
-        public CodeSmellRangeModel Range { get; } = range;
-        public CodeSmellRangeModel FunctionRange { get; } = functionRange;
+        public CodeRangeModel Range { get; } = range;
+        public CodeRangeModel FunctionRange { get; } = functionRange;
         public string FunctionName { get; } = functionName;
     }
 

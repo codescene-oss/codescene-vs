@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Models.Cli;
+﻿using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -64,15 +65,9 @@ namespace Codescene.VSExtension.Core.Application.Mappers
             return CreateAceComponentData(aceParams);
         }
 
-        private static CliRangeModel MapRange(CliRangeModel range)
+        private static CodeRangeModel MapRange(CliRangeModel range)
         {
-            return new CliRangeModel
-            {
-                Startline = range.Startline,
-                StartColumn = range.StartColumn,
-                EndLine = range.EndLine,
-                EndColumn = range.EndColumn
-            };
+            return new CodeRangeModel(range.Startline, range.EndLine, range.StartColumn, range.EndColumn);
         }
 
         private static WebComponentFileData CreateFileData(
