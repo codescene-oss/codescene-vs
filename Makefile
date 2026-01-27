@@ -32,14 +32,17 @@ cs-cwf.zip:
 cs-ide.zip:
 	@powershell.exe .github/cli.ps1 > cs-ide.log 2>&1 && del cs-ide.log || (type cs-ide.log && del cs-ide.log && exit /b 1)
 
-copy-assets: cs-cwf.zip cs-ide.zip
+.copy-assets: cs-cwf.zip cs-ide.zip
 	@powershell.exe .github/copy-assets.ps1 > copy-assets.log 2>&1 && del copy-assets.log || (type copy-assets.log && del copy-assets.log && exit /b 1)
+	@type nul > .copy-assets
+
+copy-assets: .copy-assets
 
 restore:
 	@dotnet.exe restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln > restore.log 2>&1 && del restore.log || (type restore.log && del restore.log && exit /b 1)
 
 # Build only runs if source files or assets are newer than .build-timestamp
-.build-timestamp: $(CS_FILES) $(PROJ_FILES) copy-assets
+.build-timestamp: $(CS_FILES) $(PROJ_FILES) .copy-assets
 	@dotnet.exe restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln > restore.log 2>&1 && del restore.log || (type restore.log && del restore.log && exit /b 1)
 	@cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release > build.log 2>&1 && del build.log || (type build.log && del build.log && exit /b 1)
 	@echo Build completed at %date% %time% > .build-timestamp
