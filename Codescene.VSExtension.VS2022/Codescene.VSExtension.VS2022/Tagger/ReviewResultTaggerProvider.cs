@@ -1,5 +1,6 @@
-﻿using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -17,6 +18,9 @@ public class ReviewResultTaggerProvider : ITaggerProvider
 
     [Import]
     private readonly ISupportedFileChecker _supportedFileChecker;
+
+    [Import]
+    private readonly ISettingsProvider _settingsProvider;
 
     /*
      * CreateTagger is called when a tagger is requested for a buffer.
@@ -43,6 +47,6 @@ public class ReviewResultTaggerProvider : ITaggerProvider
         return buffer
             .Properties
             .GetOrCreateSingletonProperty(() => // avoid duplicate taggers for the same buffer
-            new ReviewResultTagger(buffer, path)) as ITagger<T>;
+            new ReviewResultTagger(buffer, path, _settingsProvider)) as ITagger<T>;
     }
 }

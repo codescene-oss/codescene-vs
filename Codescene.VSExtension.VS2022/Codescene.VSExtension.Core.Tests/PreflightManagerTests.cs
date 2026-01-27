@@ -49,9 +49,6 @@ public class PreflightManagerTests
     private void SetupAuthToken(string token) =>
         _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
 
-    private void SetupAuthTokenThrowsMissing() =>
-        _mockSettingsProvider.Setup(x => x.AuthToken).Throws(new MissingAuthTokenException("No token"));
-
     private void SetupCurrentState(AceState state) =>
         _mockAceStateService.Setup(x => x.CurrentState).Returns(state);
 
@@ -239,23 +236,6 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void RunPreflight_WhenMissingAuthTokenException_SetsHasTokenFalse()
-    {
-        // Arrange
-        SetupSuccessfulPreflight();
-        SetupAuthTokenThrowsMissing();
-        SetupCurrentState(AceState.Enabled);
-
-        // Act
-        _preflightManager.RunPreflight();
-        var config = _preflightManager.GetAutoRefactorConfig();
-
-        // Assert
-        Assert.IsNotNull(config.AceStatus);
-        Assert.IsFalse(config.AceStatus.HasToken);
-    }
-
-    [TestMethod]
     public void RunPreflight_WhenOffline_SetsCorrectAceStatus()
     {
         // Arrange
@@ -409,5 +389,89 @@ public class PreflightManagerTests
         Assert.IsTrue(config.Visible);
         Assert.IsFalse(config.Disabled);
         Assert.IsNotNull(config.AceStatus);
+    }
+
+    [TestMethod]
+    public void RunPreflight_WhenNoAuthToken_SetsDisabledTrue()
+    {
+        // Arrange
+        SetupPreflightWithAceStatus(string.Empty, AceState.Enabled);
+
+        // Act
+        _preflightManager.RunPreflight();
+        var config = _preflightManager.GetAutoRefactorConfig();
+
+        // Assert
+        Assert.IsTrue(config.Disabled);
+    }
+
+    [TestMethod]
+    public void RunPreflight_WhenAuthTokenIsNull_SetsDisabledTrue()
+    {
+        // Arrange
+        SetupPreflightWithAceStatus(null, AceState.Enabled);
+
+        // Act
+        _preflightManager.RunPreflight();
+        var config = _preflightManager.GetAutoRefactorConfig();
+
+        // Assert
+        Assert.IsTrue(config.Disabled);
+    }
+
+    [TestMethod]
+    public void RunPreflight_WhenAuthTokenIsWhitespaceOnly_SetsDisabledTrue()
+    {
+        // Arrange
+        SetupPreflightWithAceStatus("   ", AceState.Enabled);
+
+        // Act
+        _preflightManager.RunPreflight();
+        var config = _preflightManager.GetAutoRefactorConfig();
+
+        // Assert
+        Assert.IsTrue(config.Disabled);
+    }
+
+    [TestMethod]
+    public void RunPreflight_WhenValidAuthToken_SetsDisabledFalse()
+    {
+        // Arrange
+        SetupPreflightWithAceStatus("valid-token", AceState.Enabled);
+
+        // Act
+        _preflightManager.RunPreflight();
+        var config = _preflightManager.GetAutoRefactorConfig();
+
+        // Assert
+        Assert.IsFalse(config.Disabled);
+    }
+
+    [TestMethod]
+    public void SetHasAceToken_WhenSetToTrue_SetsDisabledFalse()
+    {
+        // Arrange - initialize config without token (Disabled = true)
+        InitializePreflightConfig(token: string.Empty);
+        Assert.IsTrue(_preflightManager.GetAutoRefactorConfig().Disabled);
+
+        // Act
+        _preflightManager.SetHasAceToken(true);
+
+        // Assert
+        Assert.IsFalse(_preflightManager.GetAutoRefactorConfig().Disabled);
+    }
+
+    [TestMethod]
+    public void SetHasAceToken_WhenSetToFalse_SetsDisabledTrue()
+    {
+        // Arrange - initialize config with valid token (Disabled = false)
+        InitializePreflightConfig(token: "valid-token");
+        Assert.IsFalse(_preflightManager.GetAutoRefactorConfig().Disabled);
+
+        // Act
+        _preflightManager.SetHasAceToken(false);
+
+        // Assert
+        Assert.IsTrue(_preflightManager.GetAutoRefactorConfig().Disabled);
     }
 }

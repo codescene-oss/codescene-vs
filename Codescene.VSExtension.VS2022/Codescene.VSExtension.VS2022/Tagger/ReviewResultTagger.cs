@@ -1,6 +1,7 @@
-﻿using Codescene.VSExtension.Core.Models.Cache.Review;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.VS2022.Controls;
 using Codescene.VSExtension.VS2022.Util;
 using Microsoft.VisualStudio.Text;
@@ -14,21 +15,37 @@ using Codescene.VSExtension.Core.Application.Cache.Review;
 
 namespace Codescene.VSExtension.VS2022.UnderlineTagger
 {
-    public class ReviewResultTagger : ITagger<IErrorTag>
+    public class ReviewResultTagger : ITagger<IErrorTag>, IDisposable
     {
         private readonly ITextBuffer _buffer;
         private readonly string _filePath;
+        private readonly ISettingsProvider _settingsProvider;
         private readonly ReviewCacheService _cache = new();
         private readonly AceRefactorableFunctionsCacheService _aceRefactorableFunctionsCache = new();
+        private bool _disposed;
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-        internal ReviewResultTagger(ITextBuffer buffer, string filePath)
+        internal ReviewResultTagger(ITextBuffer buffer, string filePath, ISettingsProvider settingsProvider)
         {
             System.Diagnostics.Debug.WriteLine($"[TAGGER CREATED] For: {buffer.GetFileName()}");
 
             _buffer = buffer;
             _filePath = filePath;
+            _settingsProvider = settingsProvider;
+
+            // Subscribe to auth token changes to refresh tags when token is added/removed
+            General.AuthTokenChanged += OnAuthTokenChanged;
+        }
+
+        private void OnAuthTokenChanged(object sender, EventArgs e)
+        {
+            RefreshTags();
+        }
+
+        private bool HasAuthToken()
+        {
+            return !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
         }
 
         /// <summary>
@@ -62,7 +79,8 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                     }
                 }
             }
-            if (lastTagSpan != null)
+            // Only create ACE refactor tag if AuthToken is set
+            if (lastTagSpan != null && HasAuthToken())
                 yield return CreateAceRefactorTagSpan(lastTagSpan.Value, lastRefactorableFunction);
         }
 
@@ -190,6 +208,25 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 new AceRefactorTooltip(tooltipParams));
 
             return new TagSpan<IErrorTag>(span, errorTag);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                General.AuthTokenChanged -= OnAuthTokenChanged;
+            }
+
+            _disposed = true;
         }
 
         internal class TagSpanParams(SnapshotSpan span, CodeSmellModel codeSmell)

@@ -99,7 +99,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public RefactorResponseModel PostRefactoring(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null)
         {
+            var throws = false;
             token = _settingsProvider.AuthToken;
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new MissingAuthTokenException("Authentication token is missing. Please set it in the extension settings.");
+            }
+
             var arguments = _cliCommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: token);
             if (string.IsNullOrEmpty(arguments))
             {
@@ -109,7 +115,17 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             return ExecuteWithTimingAndLogging<RefactorResponseModel>(
                 "ACE refactoring",
-                () => _executor.Execute(arguments),
+                () =>
+                {
+                    if (throws)
+                    {
+                        throw new Exception("testException");
+                    }
+                    else
+                    {
+                        return _executor.Execute(arguments);
+                    }
+                },
                 "Refactoring failed."
             );
         }

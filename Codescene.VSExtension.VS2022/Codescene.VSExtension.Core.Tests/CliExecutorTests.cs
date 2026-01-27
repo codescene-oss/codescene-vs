@@ -175,6 +175,28 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void PostRefactoring_MissingAuthToken_ThrowsMissingAuthTokenException()
+        {
+            // Arrange
+            var fnToRefactor = new FnToRefactorModel { Name = "Test" };
+            _mockSettingsProvider.Setup(x => x.AuthToken).Returns(string.Empty);
+
+            // Act & Assert
+            Assert.Throws<MissingAuthTokenException>(() => _executor.PostRefactoring(fnToRefactor, false));
+        }
+
+        [TestMethod]
+        public void PostRefactoring_NullAuthToken_ThrowsMissingAuthTokenException()
+        {
+            // Arrange
+            var fnToRefactor = new FnToRefactorModel { Name = "Test" };
+            _mockSettingsProvider.Setup(x => x.AuthToken).Returns((string)null);
+
+            // Act & Assert
+            Assert.Throws<MissingAuthTokenException>(() => _executor.PostRefactoring(fnToRefactor, false));
+        }
+
+        [TestMethod]
         public void PostRefactoring_ValidResponse_ReturnsDeserializedModel()
         {
             // Arrange
