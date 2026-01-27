@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Codescene.VSExtension.Core.Application.Git
+namespace Codescene.VSExtension.Core.Application.Util
 {
     internal static class PathUtilities
     {

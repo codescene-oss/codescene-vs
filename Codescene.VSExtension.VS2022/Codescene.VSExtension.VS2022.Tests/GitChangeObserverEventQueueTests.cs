@@ -166,7 +166,7 @@ namespace Codescene.VSExtension.VS2022.Tests
 
             var coreAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "Codescene.VSExtension.Core");
             var fileChangeEventType = coreAssembly.GetType("Codescene.VSExtension.Core.Application.Git.FileChangeEvent");
-            var fileChangeTypeEnum = coreAssembly.GetType("Codescene.VSExtension.Core.Application.Git.FileChangeType");
+            var fileChangeTypeEnum = coreAssembly.GetType("Codescene.VSExtension.Core.Enums.Git.FileChangeType");
 
             var createType = Enum.Parse(fileChangeTypeEnum, "Create");
             var event1 = Activator.CreateInstance(fileChangeEventType, createType, file1);
@@ -224,7 +224,7 @@ namespace Codescene.VSExtension.VS2022.Tests
 
             var coreAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "Codescene.VSExtension.Core");
             var fileChangeEventType = coreAssembly.GetType("Codescene.VSExtension.Core.Application.Git.FileChangeEvent");
-            var fileChangeTypeEnum = coreAssembly.GetType("Codescene.VSExtension.Core.Application.Git.FileChangeType");
+            var fileChangeTypeEnum = coreAssembly.GetType("Codescene.VSExtension.Core.Enums.Git.FileChangeType");
             var createType = Enum.Parse(fileChangeTypeEnum, "Create");
             var enqueueMethod = queue.GetType().GetMethod("Enqueue");
 

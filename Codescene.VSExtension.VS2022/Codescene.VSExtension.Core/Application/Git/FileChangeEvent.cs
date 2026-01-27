@@ -1,12 +1,7 @@
+using Codescene.VSExtension.Core.Enums.Git;
+
 namespace Codescene.VSExtension.Core.Application.Git
 {
-    public enum FileChangeType
-    {
-        Create,
-        Change,
-        Delete
-    }
-
     public class FileChangeEvent
     {
         public FileChangeType Type { get; }
