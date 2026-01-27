@@ -27,7 +27,7 @@ PROJ_FILES := $(wildcard Codescene.VSExtension.VS2022/*.csproj) \
               $(wildcard Codescene.VSExtension.VS2022/**/**/*.csproj)
 
 cs-cwf.zip:
-	@powershell.exe .github/cwf.ps1 -Token "$$CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN" > cs-cwf.log 2>&1 && del cs-cwf.log || (type cs-cwf.log && del cs-cwf.log && exit /b 1)
+	@powershell.exe .github/cwf.ps1 -Token "$$env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN" > cs-cwf.log 2>&1 && del cs-cwf.log || (type cs-cwf.log && del cs-cwf.log && exit /b 1)
 
 cs-ide.zip:
 	@powershell.exe .github/cli.ps1 > cs-ide.log 2>&1 && del cs-ide.log || (type cs-ide.log && del cs-ide.log && exit /b 1)
@@ -39,7 +39,7 @@ restore:
 	@dotnet.exe restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln > restore.log 2>&1 && del restore.log || (type restore.log && del restore.log && exit /b 1)
 
 # Build only runs if source files or assets are newer than .build-timestamp
-.build-timestamp: $(CS_FILES) $(PROJ_FILES) cs-cwf.zip cs-ide.zip
+.build-timestamp: $(CS_FILES) $(PROJ_FILES) copy-assets
 	@dotnet.exe restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln > restore.log 2>&1 && del restore.log || (type restore.log && del restore.log && exit /b 1)
 	@cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release > build.log 2>&1 && del build.log || (type build.log && del build.log && exit /b 1)
 	@echo Build completed at %date% %time% > .build-timestamp
