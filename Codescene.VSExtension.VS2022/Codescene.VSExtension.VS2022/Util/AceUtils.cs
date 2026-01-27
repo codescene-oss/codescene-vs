@@ -1,7 +1,9 @@
 ﻿using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cli.Review;
 using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,6 +32,40 @@ namespace Codescene.VSExtension.VS2022.Util
                     target.Line == codeSmell.Range.StartLine
                 )
             );
+        }
+
+        public static async Task<FnToRefactorModel> GetRefactorableFunctionAsync(GetRefactorableFunctionsModel model)
+        {
+            var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
+            var aceManager = await VS.GetMefServiceAsync<IAceManager>();
+
+            var preflight = preflightManager.GetPreflightResponse();
+
+            if (model.FunctionRange == null) return null;
+
+            var codeSmell = new CliCodeSmellModel()
+            {
+                Details = model.Details,
+                Category = model.Category,
+                Range = new Core.Models.Cli.CliRangeModel()
+                {
+                    StartColumn = model.FunctionRange.StartColumn,
+                    EndColumn = model.FunctionRange.EndColumn,
+                    Startline = model.FunctionRange.StartLine,
+                    EndLine = model.FunctionRange.EndLine,
+                },
+            };
+
+            // Get the current code snapshot from the document
+            string fileContent = "";
+            var docView = await VS.Documents.OpenAsync(model.Path);
+            if (docView?.TextBuffer is ITextBuffer buffer)
+            {
+                fileContent = buffer.CurrentSnapshot.GetText();
+            }
+
+            var refactorableFunctions = aceManager.GetRefactorableFunctions(model.Path, fileContent, [codeSmell], preflight);
+            return refactorableFunctions?.FirstOrDefault();
         }
     }
 }

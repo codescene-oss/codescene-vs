@@ -1,7 +1,5 @@
 ﻿using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.VS2022.CodeLens;
 using Codescene.VSExtension.VS2022.Commands;
@@ -10,7 +8,6 @@ using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using System;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Codescene.VSExtension.VS2022.UnderlineTagger
@@ -70,12 +67,15 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
                 if (cmdParam != null && ToolWindowRegistry.CategoryToIdMap.TryGetValue(cmdParam.Category, out int toolWindowId))
                 {
-                    var fnToRefactor = await AceUtils.GetRefactorableFunctionAsync(
-                        cmdParam.Path,
-                        cmdParam.FunctionRange,
-                        cmdParam.Category,
-                        cmdParam.Details
-                    );
+                    var fnToRefactor = await AceUtils.GetRefactorableFunctionAsync(new GetRefactorableFunctionsModel
+                    {
+                        Path = cmdParam.Path,
+                        Range = cmdParam.Range,
+                        Details = cmdParam.Details,
+                        Category = cmdParam.Category,
+                        FunctionName = cmdParam.FunctionName,
+                        FunctionRange = cmdParam.FunctionRange,
+                    });
 
                     await _showDocumentationHandler.HandleAsync(
                         new ShowDocumentationModel(

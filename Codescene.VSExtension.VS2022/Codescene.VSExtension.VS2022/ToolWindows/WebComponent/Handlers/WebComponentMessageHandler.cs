@@ -2,6 +2,7 @@
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.VS2022.Application.Services;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
@@ -245,11 +246,12 @@ internal class WebComponentMessageHandler
         _logger.Debug($"Opening '{payload.DocType}'...");
 
         var category = DocumentationMappings.DocNameMap[payload.DocType] ?? "";
-        var fn = await AceUtils.GetRefactorableFunctionAsync(
-            payload.FileName,
-            payload.Fn?.Range,
-            category,
-            "" // No info on CWF side, seems to be unimportant.
+        var fn = await AceUtils.GetRefactorableFunctionAsync(new GetRefactorableFunctionsModel
+        {
+            Path = payload.FileName,
+            Category = category,
+            FunctionRange = payload.Fn?.Range,
+        }
         );
 
         await _showDocsHandler?.HandleAsync(
