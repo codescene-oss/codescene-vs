@@ -34,7 +34,7 @@ public class AceRefactorServiceTests
     }
 
     private static CodeSmellModel CreateCodeSmell(string category, int startLine) =>
-        new CodeSmellModel { Category = category, Range = new CodeSmellRangeModel(startLine, startLine + 10, 1, 50) };
+        new CodeSmellModel { Category = category, Range = new CodeRangeModel(startLine, startLine + 10, 1, 50) };
 
     private static FnToRefactorModel CreateRefactorableFunction(string name, string category, int line) =>
         new FnToRefactorModel { Name = name, RefactoringTargets = new[] { new RefactoringTargetModel { Category = category, Line = line } } };
