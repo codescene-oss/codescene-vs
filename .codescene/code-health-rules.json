@@ -1,0 +1,29 @@
+{
+    "usage": "Persist this file inside your repositories as  ...",
+    "rule_sets": [
+        {
+            "matching_content_path": "**/*",
+            "matching_content_path_doc": "Specify a glob pattern relative to ...",
+            "rules": [
+                {
+                    "name": "Primitive Obsession",
+                    "weight": 0.0
+                },
+                {
+                    "name": "String Heavy Function Arguments",
+                    "weight": 0.0
+                }
+            ]
+        },
+        {
+            "matching_content_path": "**/*Tests.cs",
+            "matching_content_path_doc": "All test files",
+            "rules": [
+                {
+                    "name": "Code Duplication",
+                    "weight": 0.0
+                }
+            ]
+        }
+    ]
+}
