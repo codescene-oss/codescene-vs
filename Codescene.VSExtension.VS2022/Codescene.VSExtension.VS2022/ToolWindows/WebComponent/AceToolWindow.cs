@@ -71,6 +71,11 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
     public static void UpdateView(WebComponentMessage<AceComponentData> message)
     {
+        // Reset stale state when a new refactoring is being displayed (loading or result)
+        // This ensures the stale flag from a previous refactoring doesn't block new stale checks
+        if (message.Payload?.Data?.IsStale != true)
+            ResetStaleState();
+
         _ctrl.UpdateViewAsync(message).FireAndForget();
         if (message.Payload?.Data?.AceResultData != null) // can be null when loading
             SendTelemetry(responseModel: message.Payload.Data.AceResultData);
