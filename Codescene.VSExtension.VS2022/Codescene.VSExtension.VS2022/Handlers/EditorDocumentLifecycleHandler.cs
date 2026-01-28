@@ -21,6 +21,7 @@ using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.VS2022.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Models.Cli;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 {
@@ -142,7 +143,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             {
                 // Function moved but content is unchanged - update the cached range atomically
                 // Create a new Range instance for atomic assignment to avoid readers seeing partially-updated state
-                var newRange = new Range
+                var newRange = new CliRangeModel
                 {
                     Startline = result.UpdatedRange.Startline,
                     StartColumn = result.UpdatedRange.StartColumn,
