@@ -99,7 +99,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public RefactorResponseModel PostRefactoring(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null)
         {
-            var throws = false;
             token = _settingsProvider.AuthToken;
             if (string.IsNullOrEmpty(token))
             {
@@ -115,17 +114,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             return ExecuteWithTimingAndLogging<RefactorResponseModel>(
                 "ACE refactoring",
-                () =>
-                {
-                    if (throws)
-                    {
-                        throw new Exception("testException");
-                    }
-                    else
-                    {
-                        return _executor.Execute(arguments);
-                    }
-                },
+                () => _executor.Execute(arguments),
                 "Refactoring failed."
             );
         }
