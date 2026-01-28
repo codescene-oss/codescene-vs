@@ -1,5 +1,4 @@
 using Codescene.VSExtension.Core.Application.Cache.Review;
-using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Models.Cache.Review;
@@ -19,7 +18,6 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger;
 internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
 {
     private readonly AceRefactorSuggestedActionsSourceProvider _provider;
-    private readonly ILogger _logger;
     private readonly ITextView _textView;
     private readonly ITextBuffer _textBuffer;
     private readonly ReviewCacheService _reviewCache = new();
@@ -29,12 +27,10 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
 
     public AceRefactorSuggestedActionsSource(
         AceRefactorSuggestedActionsSourceProvider provider,
-        ILogger logger,
         ITextView textView,
         ITextBuffer textBuffer)
     {
         _provider = provider;
-        _logger = logger;
         _textView = textView;
         _textBuffer = textBuffer;
     }
@@ -46,14 +42,10 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
     {
         return Task.Factory.StartNew(() =>
         {
-            var hasToken = HasAuthToken();
-            _logger.Debug($"[ACE QuickAction] HasAuthToken: {hasToken}");
-            
-            if (!hasToken)
+            if (!HasAuthToken())
                 return false;
 
             var result = TryGetRefactorableFunctionInRange(range);
-            _logger.Debug($"[ACE QuickAction] HasRefactorableFunction: {result.HasValue}");
             return result.HasValue;
         }, cancellationToken);
     }
@@ -97,7 +89,6 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
         try
         {
             var filePath = _textBuffer.GetFileName();
-            _logger.Debug($"[ACE QuickAction] FilePath: {filePath}");
             if (string.IsNullOrEmpty(filePath))
                 return null;
 
@@ -105,21 +96,28 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
             var smells = GetCodeSmellsFromCache(filePath, currentContent);
             var refactorableFunctions = GetRefactorableFunctionsFromCache(filePath, currentContent);
 
-            _logger.Debug($"[ACE QuickAction] Smells: {smells?.Count ?? 0}, RefactorableFunctions: {refactorableFunctions?.Count ?? 0}");
-
             if (smells == null || refactorableFunctions == null)
                 return null;
 
             // Get line numbers from the range (convert to 1-based)
-            var startLine = range.Start.GetContainingLine().LineNumber + 1;
-            var endLine = range.End.GetContainingLine().LineNumber + 1;
-            _logger.Debug($"[ACE QuickAction] Range: {startLine}-{endLine}");
+            var rangeStartLine = range.Start.GetContainingLine().LineNumber + 1;
+            var rangeEndLine = range.End.GetContainingLine().LineNumber + 1;
 
-            return FindRefactorableFunctionInRange(filePath, smells, refactorableFunctions, startLine, endLine);
+            foreach (var smell in smells)
+            {
+                bool overlaps = smell.Range.StartLine <= rangeEndLine && smell.Range.EndLine >= rangeStartLine;
+                if (!overlaps)
+                    continue;
+
+                var refactorableFunction = AceUtils.GetRefactorableFunction(smell, refactorableFunctions);
+                if (refactorableFunction != null)
+                    return (filePath, refactorableFunction);
+            }
+
+            return null;
         }
-        catch (Exception ex)
+        catch
         {
-            _logger.Debug($"[ACE QuickAction] Error: {ex.Message}");
             return null;
         }
     }
@@ -138,27 +136,6 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
     {
         var functions = _aceRefactorableFunctionsCache.Get(new AceRefactorableFunctionsQuery(filePath, content));
         return functions?.Count > 0 ? functions : null;
-    }
-
-    private static (string, FnToRefactorModel)? FindRefactorableFunctionInRange(
-        string filePath,
-        List<CodeSmellModel> smells,
-        IList<FnToRefactorModel> refactorableFunctions,
-        int rangeStartLine,
-        int rangeEndLine)
-    {
-        foreach (var smell in smells)
-        {
-            // Check if the smell overlaps with the range
-            bool overlaps = smell.Range.StartLine <= rangeEndLine && smell.Range.EndLine >= rangeStartLine;
-            if (!overlaps)
-                continue;
-
-            var refactorableFunction = AceUtils.GetRefactorableFunction(smell, refactorableFunctions);
-            if (refactorableFunction != null)
-                return (filePath, refactorableFunction);
-        }
-        return null;
     }
 
     public void Dispose()

@@ -50,13 +50,18 @@ internal class AceRefactorSuggestedAction : ISuggestedAction
     {
         ThreadHelper.JoinableTaskFactory.Run(async () =>
         {
-            var logger = await VS.GetMefServiceAsync<ILogger>();
+            ILogger logger = null;
 
             try
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 
+                logger = await VS.GetMefServiceAsync<ILogger>();
                 var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
+                
+                if (onClickRefactoringHandler == null)
+                    return;
+
                 await onClickRefactoringHandler.HandleAsync(
                     _filePath,
                     _refactorableFunction,

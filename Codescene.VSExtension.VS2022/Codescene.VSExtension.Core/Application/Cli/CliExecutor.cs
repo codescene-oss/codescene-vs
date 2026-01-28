@@ -99,13 +99,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public RefactorResponseModel PostRefactoring(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null)
         {
-            token = _settingsProvider.AuthToken;
-            if (string.IsNullOrEmpty(token))
+            var effectiveToken = string.IsNullOrEmpty(token) ? _settingsProvider.AuthToken : token;
+            if (string.IsNullOrEmpty(effectiveToken))
             {
                 throw new MissingAuthTokenException("Authentication token is missing. Please set it in the extension settings.");
             }
 
-            var arguments = _cliCommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: token);
+            var arguments = _cliCommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: effectiveToken);
             if (string.IsNullOrEmpty(arguments))
             {
                 _logger.Warn("Skipping refactoring. Arguments were not defined.");
