@@ -99,27 +99,32 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
             if (smells == null || refactorableFunctions == null)
                 return null;
 
-            // Get line numbers from the range (convert to 1-based)
-            var rangeStartLine = range.Start.GetContainingLine().LineNumber + 1;
-            var rangeEndLine = range.End.GetContainingLine().LineNumber + 1;
-
-            foreach (var smell in smells)
-            {
-                bool overlaps = smell.Range.StartLine <= rangeEndLine && smell.Range.EndLine >= rangeStartLine;
-                if (!overlaps)
-                    continue;
-
-                var refactorableFunction = AceUtils.GetRefactorableFunction(smell, refactorableFunctions);
-                if (refactorableFunction != null)
-                    return (filePath, refactorableFunction);
-            }
-
-            return null;
+            var refactorableFunction = FindRefactorableFunctionInRange(range, smells, refactorableFunctions);
+            return refactorableFunction != null ? (filePath, refactorableFunction) : null;
         }
         catch
         {
             return null;
         }
+    }
+
+    private FnToRefactorModel FindRefactorableFunctionInRange(
+        SnapshotSpan range,
+        List<CodeSmellModel> smells,
+        IList<FnToRefactorModel> refactorableFunctions)
+    {
+        var rangeStartLine = range.Start.GetContainingLine().LineNumber + 1;
+        var rangeEndLine = range.End.GetContainingLine().LineNumber + 1;
+
+        return smells
+            .Where(smell => SmellOverlapsRange(smell, rangeStartLine, rangeEndLine))
+            .Select(smell => AceUtils.GetRefactorableFunction(smell, refactorableFunctions))
+            .FirstOrDefault(fn => fn != null);
+    }
+
+    private static bool SmellOverlapsRange(CodeSmellModel smell, int rangeStartLine, int rangeEndLine)
+    {
+        return smell.Range.StartLine <= rangeEndLine && smell.Range.EndLine >= rangeStartLine;
     }
 
     private List<CodeSmellModel> GetCodeSmellsFromCache(string filePath, string content)
