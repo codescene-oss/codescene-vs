@@ -140,13 +140,16 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             }
             else if (result.RangeUpdated && result.UpdatedRange != null)
             {
-                // Function moved but content is unchanged - update the cached range
-                // This is the only place where mutation of the model is intended
-                var range = lastRefactoring.RefactorableCandidate.Range;
-                range.Startline = result.UpdatedRange.Startline;
-                range.StartColumn = result.UpdatedRange.StartColumn;
-                range.EndLine = result.UpdatedRange.EndLine;
-                range.EndColumn = result.UpdatedRange.EndColumn;
+                // Function moved but content is unchanged - update the cached range atomically
+                // Create a new Range instance for atomic assignment to avoid readers seeing partially-updated state
+                var newRange = new Range
+                {
+                    Startline = result.UpdatedRange.Startline,
+                    StartColumn = result.UpdatedRange.StartColumn,
+                    EndLine = result.UpdatedRange.EndLine,
+                    EndColumn = result.UpdatedRange.EndColumn
+                };
+                lastRefactoring.RefactorableCandidate.Range = newRange;
             }
         }
 

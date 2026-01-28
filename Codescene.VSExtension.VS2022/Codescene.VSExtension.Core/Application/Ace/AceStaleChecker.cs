@@ -54,22 +54,40 @@ namespace Codescene.VSExtension.Core.Application.Ace
             // Get content at the stored range
             var contentAtRange = GetContentAtRange(documentContent, fnToRefactor.Range);
 
+            // Normalize newlines for comparison (LF/CRLF differences should not cause staleness)
+            var normalizedContentAtRange = NormalizeNewlines(contentAtRange);
+            var normalizedBody = NormalizeNewlines(fnToRefactor.Body);
+
             // If content matches what's stored, function is not stale
-            if (contentAtRange == fnToRefactor.Body)
+            if (normalizedContentAtRange == normalizedBody)
                 return new StaleCheckResult { IsStale = false, RangeUpdated = false };
 
             // Function body doesn't match at range - search elsewhere in document
-            var indexOfBody = documentContent.IndexOf(fnToRefactor.Body, StringComparison.Ordinal);
+            // Normalize document content for IndexOf search
+            var normalizedDocumentContent = NormalizeNewlines(documentContent);
+            var indexOfBody = normalizedDocumentContent.IndexOf(normalizedBody, StringComparison.Ordinal);
             if (indexOfBody >= 0)
             {
                 // Body exists somewhere else (function was moved)
-                // Calculate the new range without mutating the original model
-                var newRange = CalculateNewRange(documentContent, fnToRefactor.Body, indexOfBody);
+                // Calculate the new range using normalized content for correct position mapping
+                var newRange = CalculateNewRange(normalizedDocumentContent, normalizedBody, indexOfBody);
                 return new StaleCheckResult { IsStale = false, RangeUpdated = true, UpdatedRange = newRange };
             }
 
             // Body not found anywhere - function is stale
             return new StaleCheckResult { IsStale = true, RangeUpdated = false };
+        }
+
+        /// <summary>
+        /// Normalizes newlines by converting all line endings to LF (\n).
+        /// This ensures consistent comparison regardless of CRLF vs LF differences.
+        /// </summary>
+        private static string NormalizeNewlines(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            return text.Replace("\r\n", "\n").Replace("\r", "\n");
         }
 
         /// <summary>
