@@ -56,10 +56,11 @@ function Group-Commits {
     foreach ($c in $rawCommits) {
         if ([string]::IsNullOrWhiteSpace($c)) { continue }
         if ($c -like 'Merge*') { continue }
+        if ($c -match '^chore(\(.+?\))?:') { continue }
 
         if ($c -match '^feat(\(.+?\))?:\s*(.+)$')      { $result.Added.Add("- " + $Matches[2].Trim()); continue }
         if ($c -match '^fix(\(.+?\))?:\s*(.+)$')       { $result.Fixed.Add("- " + $Matches[2].Trim()); continue }
-        if ($c -match '^(docs|chore|refactor|style|perf|build|ci|test)(\(.+?\))?:\s*(.+)$') {
+        if ($c -match '^(docs|refactor|style|perf|build|ci|test)(\(.+?\))?:\s*(.+)$') {
             $result.Changed.Add("- " + $Matches[3].Trim()); continue
         }
         $result.Changed.Add("- " + $c.Trim())
