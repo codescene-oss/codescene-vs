@@ -9,6 +9,10 @@
                     "weight": 0.0
                 },
                 {
+                    "name": "Duplicated Assertion Blocks",
+                    "weight": 0.0
+                },
+                {
                     "name": "Excess Number of Function Arguments",
                     "weight": 0.0
                 }
