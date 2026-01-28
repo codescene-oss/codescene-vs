@@ -70,6 +70,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
     {
         if (_ctrl == null)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             await ShowAsync();
             return;
         }
