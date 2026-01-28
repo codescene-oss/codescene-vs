@@ -51,7 +51,8 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
             var hasAuthToken = !string.IsNullOrWhiteSpace(settings.AuthToken);
             _preflightManager.SetHasAceToken(hasAuthToken);
-            RefreshCodeHealthMonitorAsync().FireAndForget();
+            RefreshWindows().FireAndForget();
+
         }
 
         private void OnStateChanged(object sender, AceStateChangedEventArgs e)
@@ -79,7 +80,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
                     break;
             }
 
-            RefreshCodeHealthMonitorAsync().FireAndForget();
+            RefreshWindows().FireAndForget();
         }
 
         /// <summary>
@@ -122,15 +123,16 @@ namespace Codescene.VSExtension.VS2022.Handlers
             ShowNotificationAsync("CodeScene ACE is back online.").FireAndForget();
         }
 
-        private async Task RefreshCodeHealthMonitorAsync()
+        private async Task RefreshWindows()
         {
             try
             {
                 await CodeSceneToolWindow.UpdateViewAsync();
+                await CodeSmellDocumentationWindow.RefreshViewAsync();
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                _logger.Error("Failed to refresh Code Health Monitor", ex);
+                _logger.Error("Failed to refresh Tool Windows", ex);
             }
         }
 

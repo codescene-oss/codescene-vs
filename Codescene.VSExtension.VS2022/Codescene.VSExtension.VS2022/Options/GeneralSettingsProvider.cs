@@ -1,4 +1,3 @@
-using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using System.ComponentModel.Composition;
 
@@ -9,17 +8,6 @@ namespace Codescene.VSExtension.VS2022.Options
     public class GeneralSettingsProvider : ISettingsProvider
     {
         public bool ShowDebugLogs => General.Instance.ShowDebugLogs;
-        public string AuthToken 
-        { 
-            get 
-            {
-                var token = General.Instance.AuthToken;
-                if (string.IsNullOrWhiteSpace(token))
-                {
-                    throw new MissingAuthTokenException("Authentication token is missing. Please set it in the extension settings.");
-                }
-                return token;
-            }
-        }
+        public string AuthToken => General.Instance.AuthToken;
     }
 }

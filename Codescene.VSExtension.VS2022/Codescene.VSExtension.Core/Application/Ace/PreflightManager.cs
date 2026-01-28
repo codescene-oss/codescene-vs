@@ -35,6 +35,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
         public PreFlightResponseModel RunPreflight(bool force = false)
         {
             _logger.Debug($"Running preflight with force: {force}");
+            var hasToken = !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
             _aceStateService.SetState(AceState.Loading);
             try
             {
@@ -49,7 +50,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                     {
                         Activated = true,
                         Visible = true,
-                        Disabled = false,
+                        Disabled = !hasToken,
                         AceStatus = GetAceStatus(_aceStateService.CurrentState)
                     };
 
@@ -89,16 +90,8 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         private AceStatusType GetAceStatus(AceState state)
         {
-            bool hasToken;
-            try
-            {
-                hasToken = !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
-            }
-            catch (MissingAuthTokenException)
-            {
-                hasToken = false;
-            }
-
+            var hasToken = !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
+            
             return new AceStatusType
             {
                 Status = MapAceState(state),
@@ -124,6 +117,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 return;
             }
             _autoRefactorConfig.AceStatus.HasToken = hasAceToken;
+            _autoRefactorConfig.Disabled = !hasAceToken;
         }
 
         private static string MapAceState(AceState state)
