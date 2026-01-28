@@ -103,20 +103,14 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 return "\n";
 
             var crlfIndex = content.IndexOf("\r\n", StringComparison.Ordinal);
-            var lfIndex = content.IndexOf("\n", StringComparison.Ordinal);
-            var crIndex = content.IndexOf("\r", StringComparison.Ordinal);
-
-            // Check for CRLF first (Windows) - it must appear before or at the same position as LF
-            var hasCrlf = crlfIndex >= 0;
-            var crlfAppearsFirst = lfIndex < 0 || crlfIndex <= lfIndex;
-            if (hasCrlf && crlfAppearsFirst)
+            if (crlfIndex >= 0)
                 return "\r\n";
 
-            // Check for standalone LF (Unix)
+            var lfIndex = content.IndexOf("\n", StringComparison.Ordinal);
             if (lfIndex >= 0)
                 return "\n";
 
-            // Check for standalone CR (old Mac)
+            var crIndex = content.IndexOf("\r", StringComparison.Ordinal);
             if (crIndex >= 0)
                 return "\r";
 
@@ -129,24 +123,27 @@ namespace Codescene.VSExtension.Core.Application.Ace
             var startLine = range.Startline - 1;
             var endLine = range.EndLine - 1;
 
-            var isValid = startLine >= 0 && startLine < lines.Length && startLine <= endLine;
-            if (!isValid)
+            if (!IsValidRange(startLine, endLine, lines.Length))
                 return new ExtractionContext { IsValid = false };
 
-            if (endLine >= lines.Length)
-                endLine = lines.Length - 1;
+            var clampedEndLine = Math.Min(endLine, lines.Length - 1);
 
             return new ExtractionContext
             {
                 Lines = lines,
                 StartLine = startLine,
-                EndLine = endLine,
+                EndLine = clampedEndLine,
                 StartColumn = range.StartColumn,
                 EndColumn = range.EndColumn,
                 IsValid = true,
-                IsSingleLine = startLine == endLine,
+                IsSingleLine = startLine == clampedEndLine,
                 NewlineSequence = newlineSequence
             };
+        }
+
+        private static bool IsValidRange(int startLine, int endLine, int lineCount)
+        {
+            return startLine >= 0 && startLine < lineCount && startLine <= endLine;
         }
 
         private string ExtractSingleLineContent(ExtractionContext ctx)
@@ -166,27 +163,38 @@ namespace Codescene.VSExtension.Core.Application.Ace
             var result = new System.Text.StringBuilder();
             var newline = ctx.NewlineSequence ?? "\n";
 
-            // First line: from start column to end
+            AppendFirstLine(result, ctx);
+            AppendMiddleLines(result, ctx, newline);
+            AppendLastLine(result, ctx, newline);
+
+            return result.ToString();
+        }
+
+        private static void AppendFirstLine(System.Text.StringBuilder result, ExtractionContext ctx)
+        {
             var firstStartCol = Math.Max(0, ctx.StartColumn - 1);
             if (firstStartCol < ctx.Lines[ctx.StartLine].Length)
                 result.Append(ctx.Lines[ctx.StartLine].Substring(firstStartCol));
+        }
 
-            // Middle lines: full lines
+        private static void AppendMiddleLines(System.Text.StringBuilder result, ExtractionContext ctx, string newline)
+        {
             for (int i = ctx.StartLine + 1; i < ctx.EndLine; i++)
             {
                 result.Append(newline);
                 result.Append(ctx.Lines[i]);
             }
+        }
 
-            // Last line: from start to end column
-            if (ctx.EndLine > ctx.StartLine && ctx.EndLine < ctx.Lines.Length)
-            {
-                result.Append(newline);
-                var lastEndCol = Math.Min(ctx.Lines[ctx.EndLine].Length, ctx.EndColumn);
-                result.Append(ctx.Lines[ctx.EndLine].Substring(0, lastEndCol));
-            }
+        private static void AppendLastLine(System.Text.StringBuilder result, ExtractionContext ctx, string newline)
+        {
+            var hasLastLine = ctx.EndLine > ctx.StartLine && ctx.EndLine < ctx.Lines.Length;
+            if (!hasLastLine)
+                return;
 
-            return result.ToString();
+            result.Append(newline);
+            var lastEndCol = Math.Min(ctx.Lines[ctx.EndLine].Length, ctx.EndColumn);
+            result.Append(ctx.Lines[ctx.EndLine].Substring(0, lastEndCol));
         }
 
         private struct ExtractionContext
@@ -212,68 +220,68 @@ namespace Codescene.VSExtension.Core.Application.Ace
         private CliRangeModel CalculateNewRange(string content, string body, int newIndex)
         {
             var lines = content.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            var startPosition = FindLineAndColumn(content, lines, newIndex);
+            var endPosition = CalculateEndPosition(body, startPosition);
 
-            // Find line and column for the new index
+            return new CliRangeModel
+            {
+                Startline = startPosition.Line,
+                StartColumn = startPosition.Column,
+                EndLine = endPosition.Line,
+                EndColumn = endPosition.Column
+            };
+        }
+
+        private (int Line, int Column) FindLineAndColumn(string content, string[] lines, int targetIndex)
+        {
             int currentIndex = 0;
-            int newStartLine = 0;
-            int newStartColumn = 0;
 
             for (int lineNum = 0; lineNum < lines.Length; lineNum++)
             {
-                var lineLength = lines[lineNum].Length;
-                var lineEndIndex = currentIndex + lineLength;
+                var lineEndIndex = currentIndex + lines[lineNum].Length;
 
-                if (newIndex <= lineEndIndex)
-                {
-                    newStartLine = lineNum + 1; // Convert to 1-indexed
-                    newStartColumn = newIndex - currentIndex + 1; // Convert to 1-indexed
-                    break;
-                }
+                if (targetIndex <= lineEndIndex)
+                    return (lineNum + 1, targetIndex - currentIndex + 1); // Convert to 1-indexed
 
-                // Account for newline character(s) - detect actual separator length
                 var separatorLength = GetNewlineLengthAtPosition(content, lineEndIndex);
                 currentIndex = lineEndIndex + separatorLength;
             }
 
-            // Calculate new end position based on body length
+            return (1, 1); // Fallback to start if not found
+        }
+
+        private static (int Line, int Column) CalculateEndPosition(string body, (int Line, int Column) startPosition)
+        {
             var bodyLines = body.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-            var newEndLine = newStartLine + bodyLines.Length - 1;
-            var newEndColumn = bodyLines.Length == 1
-                ? newStartColumn + body.Length - 1
+            var endLine = startPosition.Line + bodyLines.Length - 1;
+            var endColumn = bodyLines.Length == 1
+                ? startPosition.Column + body.Length - 1
                 : bodyLines[bodyLines.Length - 1].Length;
 
-            return new CliRangeModel
-            {
-                Startline = newStartLine,
-                StartColumn = newStartColumn,
-                EndLine = newEndLine,
-                EndColumn = newEndColumn
-            };
+            return (endLine, endColumn);
         }
 
         /// <summary>
         /// Gets the length of the newline sequence at the specified position in the content.
         /// Returns 2 for CRLF, 1 for CR or LF, 0 if at EOF or no newline.
         /// </summary>
-        private int GetNewlineLengthAtPosition(string content, int position)
+        private static int GetNewlineLengthAtPosition(string content, int position)
         {
             if (position >= content.Length)
                 return 0;
 
-            var currentChar = content[position];
-            var hasNextChar = position + 1 < content.Length;
-
-            // Check for CRLF (Windows)
-            var isCrlfSequence = hasNextChar && currentChar == '\r' && content[position + 1] == '\n';
-            if (isCrlfSequence)
+            if (IsCrlfAt(content, position))
                 return 2;
 
-            // Check for CR (old Mac) or LF (Unix)
-            var isSingleNewline = currentChar == '\r' || currentChar == '\n';
-            if (isSingleNewline)
-                return 1;
+            var currentChar = content[position];
+            return currentChar == '\r' || currentChar == '\n' ? 1 : 0;
+        }
 
-            return 0;
+        private static bool IsCrlfAt(string content, int position)
+        {
+            return position + 1 < content.Length 
+                && content[position] == '\r' 
+                && content[position + 1] == '\n';
         }
     }
 }
