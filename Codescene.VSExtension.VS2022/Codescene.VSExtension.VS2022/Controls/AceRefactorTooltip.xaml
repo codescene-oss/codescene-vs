@@ -1,9 +1,0 @@
-<UserControl x:Class="Codescene.VSExtension.VS2022.Controls.AceRefactorTooltip"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <TextBlock>
-        <Hyperlink x:Name="hyperlinkContrast" Command="{Binding RefactorCommand}">
-            Refactor with CodeScene ACE
-        </Hyperlink>
-    </TextBlock>
-</UserControl>

@@ -1,17 +1,13 @@
-using Codescene.VSExtension.Core.Models.Cache.Review;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
-using Codescene.VSExtension.Core.Interfaces.Extension;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.VS2022.Controls;
-using Codescene.VSExtension.VS2022.Util;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
-using Codescene.VSExtension.Core.Application.Cache.Review;
 
 namespace Codescene.VSExtension.VS2022.UnderlineTagger
 {
@@ -19,33 +15,17 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
     {
         private readonly ITextBuffer _buffer;
         private readonly string _filePath;
-        private readonly ISettingsProvider _settingsProvider;
         private readonly ReviewCacheService _cache = new();
-        private readonly AceRefactorableFunctionsCacheService _aceRefactorableFunctionsCache = new();
         private bool _disposed;
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-        internal ReviewResultTagger(ITextBuffer buffer, string filePath, ISettingsProvider settingsProvider)
+        internal ReviewResultTagger(ITextBuffer buffer, string filePath)
         {
             System.Diagnostics.Debug.WriteLine($"[TAGGER CREATED] For: {buffer.GetFileName()}");
 
             _buffer = buffer;
             _filePath = filePath;
-            _settingsProvider = settingsProvider;
-
-            // Subscribe to auth token changes to refresh tags when token is added/removed
-            General.AuthTokenChanged += OnAuthTokenChanged;
-        }
-
-        private void OnAuthTokenChanged(object sender, EventArgs e)
-        {
-            RefreshTags();
-        }
-
-        private bool HasAuthToken()
-        {
-            return !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
         }
 
         /// <summary>
@@ -60,49 +40,21 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
             var smells = TryLoadFromCache();
-            var refactorableFunctions = TryLoadRefactorableFunctionsFromCache();
 
             if (smells.Count == 0)
                 yield break; // No tags, exit early
-
-            FnToRefactorModel? lastRefactorableFunction = null;
-            SnapshotSpan? lastTagSpan = null;
 
             foreach (var visibleSpan in spans)
             {
                 foreach (var codeSmell in smells)
                 {
-                    var tag = HandleErrorTagSpan(new TagSpanParams(visibleSpan, codeSmell), ref lastRefactorableFunction, ref lastTagSpan, refactorableFunctions);
-                    if (tag != null)
+                    var tagSpan = TryCreateTagSpan(new TagSpanParams(visibleSpan, codeSmell));
+                    if (tagSpan != null && tagSpan.Value.IntersectsWith(visibleSpan))
                     {
-                        yield return tag;
+                        yield return CreateErrorTagSpan(new TagSpanParams(tagSpan.Value, codeSmell));
                     }
                 }
             }
-            // Only create ACE refactor tag if AuthToken is set
-            if (lastTagSpan != null && HasAuthToken())
-                yield return CreateAceRefactorTagSpan(lastTagSpan.Value, lastRefactorableFunction);
-        }
-
-        private TagSpan<IErrorTag> HandleErrorTagSpan(
-            TagSpanParams tagSpanParams,
-            ref FnToRefactorModel? lastRefactorableFunction,
-            ref SnapshotSpan? lastTagSpan,
-            IList<FnToRefactorModel> refactorableFunctions)
-        {
-            var tagSpan = TryCreateTagSpan(tagSpanParams);
-            var refactorableFunction = AceUtils.GetRefactorableFunction(tagSpanParams.CodeSmell, refactorableFunctions);
-
-            if (tagSpan != null && tagSpan.Value.IntersectsWith(tagSpanParams.Span))
-            {
-                if (refactorableFunction != null)
-                {
-                    lastTagSpan = tagSpan;
-                    lastRefactorableFunction = refactorableFunction;
-                }
-                return CreateErrorTagSpan(new TagSpanParams(tagSpan.Value, tagSpanParams.CodeSmell));
-            }
-            return null;
         }
 
         private List<CodeSmellModel> TryLoadFromCache()
@@ -114,14 +66,6 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 return cached.FileLevel.Concat(cached.FunctionLevel).ToList() ?? [];
 
             return [];
-        }
-
-        private IList<FnToRefactorModel> TryLoadRefactorableFunctionsFromCache()
-        {
-            string currentContent = _buffer.CurrentSnapshot.GetText();
-            IList<FnToRefactorModel> cached = _aceRefactorableFunctionsCache.Get(new AceRefactorableFunctionsQuery(_filePath, currentContent));
-
-            return cached;
         }
 
         public void RefreshTags()
@@ -199,17 +143,6 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             return new TagSpan<IErrorTag>(tagSpanParams.Span, errorTag);
         }
 
-        private TagSpan<IErrorTag> CreateAceRefactorTagSpan(SnapshotSpan span, FnToRefactorModel refactorableFunction)
-        {
-            var tooltipParams = new AceRefactorTooltipParams(_filePath, refactorableFunction);
-
-            var errorTag = new ErrorTag(
-                PredefinedErrorTypeNames.Warning,
-                new AceRefactorTooltip(tooltipParams));
-
-            return new TagSpan<IErrorTag>(span, errorTag);
-        }
-
         public void Dispose()
         {
             Dispose(true);
@@ -223,7 +156,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
             if (disposing)
             {
-                General.AuthTokenChanged -= OnAuthTokenChanged;
+                // Reserved for future cleanup
             }
 
             _disposed = true;

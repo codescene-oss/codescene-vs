@@ -129,7 +129,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
             {
                 await CodeSceneToolWindow.UpdateViewAsync();
                 await CodeSmellDocumentationWindow.RefreshViewAsync();
-
             }
             catch (Exception ex)
             {
