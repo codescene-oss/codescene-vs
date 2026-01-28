@@ -9,5 +9,5 @@
 # The cache key format is: <files-sha-12> (12 characters)
 
 define get_cache_key
-$(shell powershell.exe -NoProfile -ExecutionPolicy Bypass -File .github/get-cache-key.ps1)
+$(shell pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .github/get-cache-key.ps1)
 endef

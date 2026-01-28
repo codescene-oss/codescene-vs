@@ -33,7 +33,7 @@ $(CACHE_DIR):
 	@if not exist $(CACHE_DIR) mkdir $(CACHE_DIR)
 
 define call_cached
-	@powershell.exe -Command " \
+	@pwsh.exe -Command " \
 		$$cacheKey = '$(1)'; \
 		$$command = '$(2)'; \
 		$$cacheDir = '$(CACHE_DIR)'; \

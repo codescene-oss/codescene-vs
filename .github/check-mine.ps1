@@ -4,7 +4,7 @@ param(
     [string]$ExcludePattern
 )
 
-$changedFiles = powershell.exe -File .github/mine.ps1
+$changedFiles = pwsh.exe -File .github/mine.ps1
 $exitCode = $LASTEXITCODE
 
 if ($exitCode -eq 0) {
