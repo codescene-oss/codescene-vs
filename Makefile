@@ -89,10 +89,10 @@ dotnet-analyzers-mine: restore
 	@$(call call_cached,$(CACHE_KEY),pwsh.exe -File .github/check-mine.ps1 -Pattern \"warning\" -ExcludePattern \"warning SA\")
 
 class-size-mine:
-	@pwsh.exe -File .github/check-class-size-mine.ps1
+	@$(call call_cached,$(CACHE_KEY),pwsh.exe -File .github/check-class-size-mine.ps1)
 
 no-regions-mine:
-	@pwsh.exe -File .github/check-no-regions-mine.ps1
+	@$(call call_cached,$(CACHE_KEY),pwsh.exe -File .github/check-no-regions-mine.ps1)
 
 # iter - iterate. Good as a prompt: "iterate to success using `make iter`"
 # `format` temporarily removed.
