@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Application.Ace;
 using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
@@ -25,9 +25,17 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     public string FilePath { get; set; }
     public override Type PaneType => typeof(Pane);
     private static WebComponentUserControl _ctrl = null;
+    private static bool _isStale = false;
+
+    /// <summary>
+    /// Gets whether the current ACE refactoring is stale (function has been modified).
+    /// </summary>
+    public static bool IsStale => _isStale;
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
+        ResetStaleState();
+
         var logger = await VS.GetMefServiceAsync<ILogger>();
         var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
         var handler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
@@ -70,6 +78,45 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
     public static bool IsCreated() => _ctrl != null;
 
+    /// <summary>
+    /// Marks the current ACE refactoring as stale and updates the view.
+    /// Called when the function being refactored has been modified.
+    /// </summary>
+    public static async Task MarkAsStaleAsync()
+    {
+        if (!CanMarkAsStale())
+            return;
+
+        _isStale = true;
+
+        var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
+        var data = mapper.MapAsStale(AceManager.LastRefactoring);
+
+        _ctrl.UpdateViewAsync(new WebComponentMessage<AceComponentData>
+        {
+            MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+            Payload = new WebComponentPayload<AceComponentData>
+            {
+                IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                View = WebComponentConstants.ViewTypes.ACE,
+                Data = data
+            }
+        }).FireAndForget();
+    }
+
+    private static bool CanMarkAsStale()
+    {
+        return _ctrl != null && AceManager.LastRefactoring != null && !_isStale;
+    }
+
+    /// <summary>
+    /// Resets the stale state. Should be called when a new refactoring is displayed.
+    /// </summary>
+    public static void ResetStaleState()
+    {
+        _isStale = false;
+    }
+
     public async static Task UpdateViewAsync()
     {
         if (_ctrl == null)
@@ -77,6 +124,8 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
             await ShowAsync();
             return;
         }
+
+        ResetStaleState();
 
         var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
 

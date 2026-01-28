@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models.Cache.Review;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Util;
@@ -20,6 +20,7 @@ using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.VS2022.Util;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Application.Ace;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 {
@@ -49,6 +50,9 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         [Import]
         private readonly TermsAndPoliciesService _termsAndPoliciesService;
 
+        [Import]
+        private readonly AceStaleChecker _aceStaleChecker;
+
         public void TextViewCreated(IWpfTextView textView)
         {
             var buffer = textView.TextBuffer;
@@ -66,6 +70,9 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             // Triggered when the file content changes (typing, etc.)
             buffer.Changed += (sender, args) =>
             {
+                // Check ACE staleness immediately (no debounce for instant feedback)
+                CheckAndUpdateAceStaleStatus(filePath, buffer);
+
                 _debounceService.Debounce(
                     filePath,
                     () => Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget(),
@@ -77,6 +84,35 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 _logger.Debug($"File closed: {filePath}...");
                 // TODO: Stop any pending analysis for optimization?
             };
+        }
+
+        /// <summary>
+        /// Checks if the ACE refactoring has become stale due to function changes.
+        /// Updates the ACE tool window if staleness is detected.
+        /// </summary>
+        private void CheckAndUpdateAceStaleStatus(string filePath, ITextBuffer buffer)
+        {
+            // Skip if ACE tool window is not open or already marked as stale
+            if (!AceToolWindow.IsCreated() || AceToolWindow.IsStale)
+                return;
+
+            var lastRefactoring = AceManager.LastRefactoring;
+            if (lastRefactoring == null)
+                return;
+
+            // Skip if this file is not the one being refactored
+            if (!string.Equals(lastRefactoring.Path, filePath, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var content = buffer.CurrentSnapshot.GetText();
+            var result = _aceStaleChecker.IsFunctionUnchangedInDocument(
+                content,
+                lastRefactoring.RefactorableCandidate);
+
+            if (result.IsStale)
+            {
+                AceToolWindow.MarkAsStaleAsync().FireAndForget();
+            }
         }
 
         /// <summary>
