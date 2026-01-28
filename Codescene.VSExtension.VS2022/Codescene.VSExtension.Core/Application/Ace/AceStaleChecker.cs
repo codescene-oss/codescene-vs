@@ -16,9 +16,16 @@ namespace Codescene.VSExtension.Core.Application.Ace
         public bool IsStale { get; set; }
 
         /// <summary>
-        /// True if the function was found at a different location and the range was updated.
+        /// True if the function was found at a different location.
+        /// When true, <see cref="UpdatedRange"/> contains the new range.
         /// </summary>
         public bool RangeUpdated { get; set; }
+
+        /// <summary>
+        /// The updated range when the function was found at a different location.
+        /// Only set when <see cref="RangeUpdated"/> is true.
+        /// </summary>
+        public CliRangeModel UpdatedRange { get; set; }
     }
 
     /// <summary>
@@ -31,10 +38,12 @@ namespace Codescene.VSExtension.Core.Application.Ace
     {
         /// <summary>
         /// Checks if the function body has changed in the document.
+        /// This method does not mutate the input model; if the range changed,
+        /// the new range is returned in <see cref="StaleCheckResult.UpdatedRange"/>.
         /// </summary>
         /// <param name="documentContent">The current content of the document.</param>
         /// <param name="fnToRefactor">The function being refactored with its original body and range.</param>
-        /// <returns>A result indicating if the function is stale or if its range was updated.</returns>
+        /// <returns>A result indicating if the function is stale or if its range was updated (with the new range).</returns>
         public StaleCheckResult IsFunctionUnchangedInDocument(
             string documentContent,
             FnToRefactorModel fnToRefactor)
@@ -54,9 +63,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
             if (indexOfBody >= 0)
             {
                 // Body exists somewhere else (function was moved)
-                // Update the range to the new position
-                UpdateRangeToNewPosition(documentContent, fnToRefactor, indexOfBody);
-                return new StaleCheckResult { IsStale = false, RangeUpdated = true };
+                // Calculate the new range without mutating the original model
+                var newRange = CalculateNewRange(documentContent, fnToRefactor.Body, indexOfBody);
+                return new StaleCheckResult { IsStale = false, RangeUpdated = true, UpdatedRange = newRange };
             }
 
             // Body not found anywhere - function is stale
@@ -72,7 +81,8 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 return string.Empty;
 
             var lines = content.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-            var context = CreateExtractionContext(range, lines);
+            var newlineSequence = DetectNewlineSequence(content);
+            var context = CreateExtractionContext(range, lines, newlineSequence);
 
             if (!context.IsValid)
                 return string.Empty;
@@ -83,7 +93,37 @@ namespace Codescene.VSExtension.Core.Application.Ace
             return ExtractMultiLineContent(context);
         }
 
-        private ExtractionContext CreateExtractionContext(CliRangeModel range, string[] lines)
+        /// <summary>
+        /// Detects the newline sequence used in the content.
+        /// Returns "\r\n" for Windows, "\r" for old Mac, "\n" for Unix, or "\n" as default.
+        /// </summary>
+        private string DetectNewlineSequence(string content)
+        {
+            if (string.IsNullOrEmpty(content))
+                return "\n";
+
+            var crlfIndex = content.IndexOf("\r\n", StringComparison.Ordinal);
+            var lfIndex = content.IndexOf("\n", StringComparison.Ordinal);
+            var crIndex = content.IndexOf("\r", StringComparison.Ordinal);
+
+            // Check for CRLF first (Windows) - it must appear before or at the same position as LF
+            var hasCrlf = crlfIndex >= 0;
+            var crlfAppearsFirst = lfIndex < 0 || crlfIndex <= lfIndex;
+            if (hasCrlf && crlfAppearsFirst)
+                return "\r\n";
+
+            // Check for standalone LF (Unix)
+            if (lfIndex >= 0)
+                return "\n";
+
+            // Check for standalone CR (old Mac)
+            if (crIndex >= 0)
+                return "\r";
+
+            return "\n";
+        }
+
+        private ExtractionContext CreateExtractionContext(CliRangeModel range, string[] lines, string newlineSequence)
         {
             // Range is 1-indexed, convert to 0-indexed
             var startLine = range.Startline - 1;
@@ -104,7 +144,8 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 StartColumn = range.StartColumn,
                 EndColumn = range.EndColumn,
                 IsValid = true,
-                IsSingleLine = startLine == endLine
+                IsSingleLine = startLine == endLine,
+                NewlineSequence = newlineSequence
             };
         }
 
@@ -123,6 +164,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
         private string ExtractMultiLineContent(ExtractionContext ctx)
         {
             var result = new System.Text.StringBuilder();
+            var newline = ctx.NewlineSequence ?? "\n";
 
             // First line: from start column to end
             var firstStartCol = Math.Max(0, ctx.StartColumn - 1);
@@ -132,14 +174,14 @@ namespace Codescene.VSExtension.Core.Application.Ace
             // Middle lines: full lines
             for (int i = ctx.StartLine + 1; i < ctx.EndLine; i++)
             {
-                result.Append("\n");
+                result.Append(newline);
                 result.Append(ctx.Lines[i]);
             }
 
             // Last line: from start to end column
             if (ctx.EndLine > ctx.StartLine && ctx.EndLine < ctx.Lines.Length)
             {
-                result.Append("\n");
+                result.Append(newline);
                 var lastEndCol = Math.Min(ctx.Lines[ctx.EndLine].Length, ctx.EndColumn);
                 result.Append(ctx.Lines[ctx.EndLine].Substring(0, lastEndCol));
             }
@@ -156,12 +198,18 @@ namespace Codescene.VSExtension.Core.Application.Ace
             public int EndColumn;
             public bool IsValid;
             public bool IsSingleLine;
+            public string NewlineSequence;
         }
 
         /// <summary>
-        /// Updates the function's range to point to the new position where the body was found.
+        /// Calculates a new range pointing to the position where the body was found.
+        /// Returns a new <see cref="CliRangeModel"/> without mutating any input.
         /// </summary>
-        private void UpdateRangeToNewPosition(string content, FnToRefactorModel fn, int newIndex)
+        /// <param name="content">The document content.</param>
+        /// <param name="body">The function body text.</param>
+        /// <param name="newIndex">The character index where the body was found.</param>
+        /// <returns>A new range representing the function's new position.</returns>
+        private CliRangeModel CalculateNewRange(string content, string body, int newIndex)
         {
             var lines = content.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
 
@@ -182,22 +230,50 @@ namespace Codescene.VSExtension.Core.Application.Ace
                     break;
                 }
 
-                // Account for newline character
-                currentIndex = lineEndIndex + 1;
+                // Account for newline character(s) - detect actual separator length
+                var separatorLength = GetNewlineLengthAtPosition(content, lineEndIndex);
+                currentIndex = lineEndIndex + separatorLength;
             }
 
             // Calculate new end position based on body length
-            var bodyLines = fn.Body.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            var bodyLines = body.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
             var newEndLine = newStartLine + bodyLines.Length - 1;
             var newEndColumn = bodyLines.Length == 1
-                ? newStartColumn + fn.Body.Length - 1
+                ? newStartColumn + body.Length - 1
                 : bodyLines[bodyLines.Length - 1].Length;
 
-            // Update the range
-            fn.Range.Startline = newStartLine;
-            fn.Range.StartColumn = newStartColumn;
-            fn.Range.EndLine = newEndLine;
-            fn.Range.EndColumn = newEndColumn;
+            return new CliRangeModel
+            {
+                Startline = newStartLine,
+                StartColumn = newStartColumn,
+                EndLine = newEndLine,
+                EndColumn = newEndColumn
+            };
+        }
+
+        /// <summary>
+        /// Gets the length of the newline sequence at the specified position in the content.
+        /// Returns 2 for CRLF, 1 for CR or LF, 0 if at EOF or no newline.
+        /// </summary>
+        private int GetNewlineLengthAtPosition(string content, int position)
+        {
+            if (position >= content.Length)
+                return 0;
+
+            var currentChar = content[position];
+            var hasNextChar = position + 1 < content.Length;
+
+            // Check for CRLF (Windows)
+            var isCrlfSequence = hasNextChar && currentChar == '\r' && content[position + 1] == '\n';
+            if (isCrlfSequence)
+                return 2;
+
+            // Check for CR (old Mac) or LF (Unix)
+            var isSingleNewline = currentChar == '\r' || currentChar == '\n';
+            if (isSingleNewline)
+                return 1;
+
+            return 0;
         }
     }
 }

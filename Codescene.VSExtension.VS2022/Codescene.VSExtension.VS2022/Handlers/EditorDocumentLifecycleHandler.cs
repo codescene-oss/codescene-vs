@@ -70,8 +70,12 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             // Triggered when the file content changes (typing, etc.)
             buffer.Changed += (sender, args) =>
             {
-                // Check ACE staleness immediately (no debounce for instant feedback)
-                CheckAndUpdateAceStaleStatus(filePath, buffer);
+                // Check ACE staleness - guard first to avoid unnecessary snapshot access
+                if (ShouldCheckAceStaleStatus(filePath))
+                {
+                    // Run the expensive text operations off the UI thread
+                    Task.Run(() => CheckAndUpdateAceStaleStatus(filePath, buffer)).FireAndForget();
+                }
 
                 _debounceService.Debounce(
                     filePath,
@@ -87,20 +91,41 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         }
 
         /// <summary>
-        /// Checks if the ACE refactoring has become stale due to function changes.
-        /// Updates the ACE tool window if staleness is detected.
+        /// Quick guard to determine if we should check ACE stale status.
+        /// Performs only fast, cheap checks without accessing buffer snapshot.
         /// </summary>
-        private void CheckAndUpdateAceStaleStatus(string filePath, ITextBuffer buffer)
+        /// <param name="filePath">The path of the file being edited.</param>
+        /// <returns>True if the expensive stale check should be performed.</returns>
+        private static bool ShouldCheckAceStaleStatus(string filePath)
         {
             // Skip if ACE tool window is not open or already marked as stale
             if (!AceToolWindow.IsCreated() || AceToolWindow.IsStale)
-                return;
+                return false;
 
             var lastRefactoring = AceManager.LastRefactoring;
             if (lastRefactoring == null)
-                return;
+                return false;
 
             // Skip if this file is not the one being refactored
+            if (!string.Equals(lastRefactoring.Path, filePath, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if the ACE refactoring has become stale due to function changes.
+        /// Updates the ACE tool window if staleness is detected.
+        /// If the function moved but is unchanged, updates the cached range to the new position.
+        /// Note: This method performs expensive text operations and should be called off the UI thread.
+        /// </summary>
+        private void CheckAndUpdateAceStaleStatus(string filePath, ITextBuffer buffer)
+        {
+            // Re-check guard conditions in case state changed between scheduling and execution
+            var lastRefactoring = AceManager.LastRefactoring;
+            if (lastRefactoring == null || AceToolWindow.IsStale)
+                return;
+
             if (!string.Equals(lastRefactoring.Path, filePath, StringComparison.OrdinalIgnoreCase))
                 return;
 
@@ -112,6 +137,16 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             if (result.IsStale)
             {
                 AceToolWindow.MarkAsStaleAsync().FireAndForget();
+            }
+            else if (result.RangeUpdated && result.UpdatedRange != null)
+            {
+                // Function moved but content is unchanged - update the cached range
+                // This is the only place where mutation of the model is intended
+                var range = lastRefactoring.RefactorableCandidate.Range;
+                range.Startline = result.UpdatedRange.Startline;
+                range.StartColumn = result.UpdatedRange.StartColumn;
+                range.EndLine = result.UpdatedRange.EndLine;
+                range.EndColumn = result.UpdatedRange.EndColumn;
             }
         }
 

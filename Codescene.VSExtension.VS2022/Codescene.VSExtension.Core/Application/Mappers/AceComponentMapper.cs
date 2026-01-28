@@ -13,20 +13,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
     {
         public AceComponentData Map(CachedRefactoringActionModel model)
         {
-            var fileData = CreateFileData(
-                model.Path,
-                model.RefactorableCandidate.Name,
-                model.RefactorableCandidate.Range);
-            var aceParams = new CreateAceComponentDataParams
-            {
-                Loading = false,
-                Error = null,
-                FileData = fileData,
-                AceResultData = model.Refactored,
-                FnToRefactor = model.RefactorableCandidate
-            };
-
-            return CreateAceComponentData(aceParams);
+            return MapCachedModel(model, isStale: false);
         }
 
         public AceComponentData Map(string path, FnToRefactorModel model)
@@ -60,9 +47,26 @@ namespace Codescene.VSExtension.Core.Application.Mappers
         /// </summary>
         public AceComponentData MapAsStale(CachedRefactoringActionModel model)
         {
-            var data = Map(model);
-            data.IsStale = true;
-            return data;
+            return MapCachedModel(model, isStale: true);
+        }
+
+        private AceComponentData MapCachedModel(CachedRefactoringActionModel model, bool isStale)
+        {
+            var fileData = CreateFileData(
+                model.Path,
+                model.RefactorableCandidate.Name,
+                model.RefactorableCandidate.Range);
+            var aceParams = new CreateAceComponentDataParams
+            {
+                Loading = false,
+                Error = null,
+                IsStale = isStale,
+                FileData = fileData,
+                AceResultData = model.Refactored,
+                FnToRefactor = model.RefactorableCandidate
+            };
+
+            return CreateAceComponentData(aceParams);
         }
 
         private static CodeRangeModel MapRange(CliRangeModel range)

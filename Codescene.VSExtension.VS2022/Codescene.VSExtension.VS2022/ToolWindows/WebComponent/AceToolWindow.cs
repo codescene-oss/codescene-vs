@@ -25,12 +25,12 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     public string FilePath { get; set; }
     public override Type PaneType => typeof(Pane);
     private static WebComponentUserControl _ctrl = null;
-    private static bool _isStale = false;
+    private static int _isStale = 0; // 0 = not stale, 1 = stale (int for Interlocked.CompareExchange)
 
     /// <summary>
     /// Gets whether the current ACE refactoring is stale (function has been modified).
     /// </summary>
-    public static bool IsStale => _isStale;
+    public static bool IsStale => _isStale == 1;
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
@@ -81,13 +81,22 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     /// <summary>
     /// Marks the current ACE refactoring as stale and updates the view.
     /// Called when the function being refactored has been modified.
+    /// Uses Interlocked.CompareExchange for atomic check-and-set to prevent race conditions.
     /// </summary>
     public static async Task MarkAsStaleAsync()
     {
-        if (!CanMarkAsStale())
+        // Atomically attempt to swap _isStale from 0 (not stale) to 1 (stale).
+        // Only proceeds if we successfully made the transition, preventing duplicate updates.
+        if (Interlocked.CompareExchange(ref _isStale, 1, 0) != 0)
             return;
 
-        _isStale = true;
+        // Validate required dependencies before proceeding
+        if (_ctrl == null || AceManager.LastRefactoring == null)
+        {
+            // Reset state since we can't complete the operation
+            Interlocked.Exchange(ref _isStale, 0);
+            return;
+        }
 
         var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
         var data = mapper.MapAsStale(AceManager.LastRefactoring);
@@ -104,17 +113,12 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         }).FireAndForget();
     }
 
-    private static bool CanMarkAsStale()
-    {
-        return _ctrl != null && AceManager.LastRefactoring != null && !_isStale;
-    }
-
     /// <summary>
     /// Resets the stale state. Should be called when a new refactoring is displayed.
     /// </summary>
     public static void ResetStaleState()
     {
-        _isStale = false;
+        Interlocked.Exchange(ref _isStale, 0);
     }
 
     public async static Task UpdateViewAsync()

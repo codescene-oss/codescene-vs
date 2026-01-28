@@ -75,8 +75,10 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsFalse(result.IsStale);
             Assert.IsTrue(result.RangeUpdated);
-            // Range should be updated to line 3 (1-indexed)
-            Assert.AreEqual(3, fn.Range.Startline);
+            // Updated range should point to line 3 (1-indexed), original fn.Range should be unchanged
+            Assert.IsNotNull(result.UpdatedRange);
+            Assert.AreEqual(3, result.UpdatedRange.Startline);
+            Assert.AreEqual(1, fn.Range.Startline); // Original range should not be mutated
         }
 
         [TestMethod]
@@ -148,7 +150,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void IsFunctionUnchangedInDocument_FunctionMovedDown_UpdatesRangeCorrectly()
+        public void IsFunctionUnchangedInDocument_FunctionMovedDown_ReturnsUpdatedRangeWithoutMutatingOriginal()
         {
             var body = "function test() { return 1; }";
             // Add 5 new lines before the function
@@ -159,7 +161,9 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsFalse(result.IsStale);
             Assert.IsTrue(result.RangeUpdated);
-            Assert.AreEqual(6, fn.Range.Startline); // 1-indexed, line 6
+            Assert.IsNotNull(result.UpdatedRange);
+            Assert.AreEqual(6, result.UpdatedRange.Startline); // 1-indexed, line 6
+            Assert.AreEqual(1, fn.Range.Startline); // Original range should not be mutated
         }
 
         [TestMethod]
