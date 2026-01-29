@@ -1,7 +1,4 @@
-param(
-    [Parameter(Mandatory=$true)]
-    [string]$Token
-)
+$Token = $env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN
 
 $headers = @{
 Authorization = "token $Token"
@@ -10,6 +7,7 @@ Accept        = "application/vnd.github+json"
 }
 
 Write-Host "Fetching latest release info..."
+
 $release = Invoke-RestMethod -Uri "https://api.github.com/repos/empear-analytics/cs-webview/releases/latest" -Headers $headers
 
 $asset = $release.assets | Select-Object -First 1

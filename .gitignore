@@ -413,3 +413,6 @@ git2-3f4182d.dll
 /cs-ide
 /cs-ide/vcruntime140.dll
 /cs-ide.zip
+
+.build-timestamp
+.copy-assets
