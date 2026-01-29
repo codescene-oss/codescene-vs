@@ -102,7 +102,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     return null;
                 }
 
-                var delta = _executer.ReviewDelta(oldRawScore, currentRawScore);
+                var delta = _executer.ReviewDelta(oldRawScore, currentRawScore, path, currentCode);
 
                 var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(cache.GetAll());
                 var cacheEntry = new DeltaCacheEntry(path, oldCode, currentCode, delta);

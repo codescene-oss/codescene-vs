@@ -5,6 +5,7 @@ using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
@@ -24,6 +25,7 @@ namespace Codescene.VSExtension.Core.Tests
         private Mock<IProcessExecutor> _mockProcessExecutor;
         private Mock<ISettingsProvider> _mockSettingsProvider;
         private Mock<ICacheStorageService> _mockCacheStorageService;
+        private Mock<ITelemetryManager> _mockTelemetryManager;
         private CliExecutor _executor;
 
         [TestInitialize]
@@ -34,13 +36,18 @@ namespace Codescene.VSExtension.Core.Tests
             _mockProcessExecutor = new Mock<IProcessExecutor>();
             _mockSettingsProvider = new Mock<ISettingsProvider>();
             _mockCacheStorageService = new Mock<ICacheStorageService>();
+            _mockTelemetryManager = new Mock<ITelemetryManager>();
+
+            var mockTelemetryManagerLazy = new Mock<Lazy<ITelemetryManager>>();
+            mockTelemetryManagerLazy.Setup(x => x.Value).Returns(_mockTelemetryManager.Object);
 
             _executor = new CliExecutor(
                 _mockLogger.Object,
                 _mockCommandProvider.Object,
                 _mockProcessExecutor.Object,
                 _mockSettingsProvider.Object,
-                _mockCacheStorageService.Object);
+                _mockCacheStorageService.Object,
+                mockTelemetryManagerLazy.Object);
         }
 
         [TestMethod]

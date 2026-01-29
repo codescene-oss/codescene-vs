@@ -16,6 +16,11 @@ namespace Codescene.VSExtension.Core.Consts
         {
             public const string CODESCENE = "CodeScene";
             public const string CODESCENEACE = "CodeScene ACE";
+
+            public const string REVIEW = "review";
+            public const string ACE = "ace";
+            public const string DELTA = "delta";
+
             public const string BRAINCLASS = "Brain Class";
             public const string BRAINMETHOD = "Brain Method";
             public const string BUMPYROADAHEAD = "Bumpy Road Ahead";
@@ -78,6 +83,7 @@ namespace Codescene.VSExtension.Core.Consts
 
             public const string REVIEWORDELTATIMEOUT = "review_or_delta_timeout";
             public const string UNHANDLEDERROR = "unhandledError";
+            public const string ANALYSISPERFORMANCE = "analysis/performance";
 
             public const string ACEINFOPRESENTED = "ace_info/presented";
             public const string ACEINFOACKNOWLEDGED = "ace_info/acknowledged";
