@@ -353,5 +353,72 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(1, testFileCount,
                 "Should deduplicate files that appear in both committed and status changes");
         }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_MainBranchCandidateDoesNotExist_ReturnsWorkingDirChanges()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-branch");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+
+            try { ExecGit("branch -D master"); } catch { }
+            try { ExecGit("branch -D main"); } catch { }
+
+            var newFile = Path.Combine(_testRepoPath, "test.cs");
+            File.WriteAllText(newFile, "public class Test {}");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsTrue(result.Count > 0, "Should detect working directory changes");
+            Assert.IsTrue(result.Any(f => f.Contains("test.cs")), "Should include new file");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_UnalteredFiles_NotIncluded()
+        {
+            CommitFile("unchanged.cs", "public class Unchanged {}", "Add unchanged file");
+
+            var modifiedFile = Path.Combine(_testRepoPath, "modified.cs");
+            File.WriteAllText(modifiedFile, "public class Modified {}");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsTrue(result.Any(f => f.Contains("modified.cs")),
+                "Should include modified file");
+            Assert.IsFalse(result.Any(f => f.Contains("unchanged.cs")),
+                "Should NOT include unaltered file");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_IgnoredFiles_NotIncluded()
+        {
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            File.WriteAllText(gitignorePath, "*.log\n");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                LibGit2Sharp.Commands.Stage(repo, ".gitignore");
+                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
+                repo.Commit("Add gitignore", signature, signature);
+            }
+
+            var ignoredFile = Path.Combine(_testRepoPath, "test.log");
+            File.WriteAllText(ignoredFile, "log content");
+
+            var normalFile = Path.Combine(_testRepoPath, "test.cs");
+            File.WriteAllText(normalFile, "public class Test {}");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsTrue(result.Any(f => f.Contains("test.cs")),
+                "Should include non-ignored file");
+            Assert.IsFalse(result.Any(f => f.Contains("test.log")),
+                "Should NOT include ignored file");
+        }
     }
 }
