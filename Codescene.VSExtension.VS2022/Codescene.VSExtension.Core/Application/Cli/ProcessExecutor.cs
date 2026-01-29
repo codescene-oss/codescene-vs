@@ -6,8 +6,11 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+
+[assembly: InternalsVisibleTo("Codescene.VSExtension.Core.Tests")]
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
