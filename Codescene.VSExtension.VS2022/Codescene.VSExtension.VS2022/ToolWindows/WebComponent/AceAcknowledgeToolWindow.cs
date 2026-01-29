@@ -1,5 +1,6 @@
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Message;
@@ -34,7 +35,9 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
     {
         var logger = await VS.GetMefServiceAsync<ILogger>();
         var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
+        var settingsProvider = await VS.GetMefServiceAsync<ISettingsProvider>();
 
+        var hastoken = !string.IsNullOrWhiteSpace(settingsProvider.AuthToken);
         var payload = new WebComponentPayload<AceAcknowledgeComponentData>
         {
             IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
@@ -45,7 +48,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
                 AutoRefactor = new AutoRefactorConfig
                 {
                     Activated = acknowledgementStateService.IsAcknowledged(),
-                    Disabled = false, // TODO: determine based on presence of ACE token (CS-5670)
+                    Disabled = !hastoken,
                     Visible = true
                 },
                 FnToRefactor = _fnToRefactor,
@@ -76,7 +79,9 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
         }
 
         var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
+        var settingsProvider = await VS.GetMefServiceAsync<ISettingsProvider>();
 
+        var hastoken = !string.IsNullOrWhiteSpace(settingsProvider.AuthToken);
         var message = new WebComponentMessage<AceAcknowledgeComponentData>
         {
             MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
@@ -90,7 +95,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
                     AutoRefactor = new AutoRefactorConfig
                     {
                         Activated = acknowledgementStateService.IsAcknowledged(),
-                        Disabled = false, // TODO: determine based on presence of ACE token (CS-5670)
+                        Disabled = !hastoken,
                         Visible = true
                     },
                     FnToRefactor = _fnToRefactor,
