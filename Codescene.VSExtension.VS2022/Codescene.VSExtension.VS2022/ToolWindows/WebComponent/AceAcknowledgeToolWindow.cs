@@ -37,7 +37,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
         var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
         var settingsProvider = await VS.GetMefServiceAsync<ISettingsProvider>();
 
-        var hastoken = !string.IsNullOrWhiteSpace(settingsProvider.AuthToken);
+        var hastoken = !string.IsNullOrWhiteSpace(settingsProvider?.AuthToken);
         var payload = new WebComponentPayload<AceAcknowledgeComponentData>
         {
             IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
@@ -81,7 +81,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
         var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
         var settingsProvider = await VS.GetMefServiceAsync<ISettingsProvider>();
 
-        var hastoken = !string.IsNullOrWhiteSpace(settingsProvider.AuthToken);
+        var hastoken = !string.IsNullOrWhiteSpace(settingsProvider?.AuthToken);
         var message = new WebComponentMessage<AceAcknowledgeComponentData>
         {
             MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
