@@ -284,6 +284,34 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsFalse(result);
         }
 
+        [TestMethod]
+        public async Task HandleFileChangeAsync_FileNotInChangedList_ReturnsEarlyWithoutProcessing()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "test.cs");
+            File.WriteAllText(testFile, "public class Test {}");
+            var changedFiles = new List<string> { "other.cs" };
+
+            await _handler.HandleFileChangeAsync(testFile, changedFiles);
+
+            Assert.IsFalse(_trackerManager.Contains(testFile), "Should not add file to tracker");
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount, "Should not review file");
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_UnsupportedFileType_ReturnsEarlyWithoutProcessing()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "test.txt");
+            File.WriteAllText(testFile, "text content");
+            var changedFiles = new List<string> { "test.txt" };
+
+            _fakeSupportedFileChecker.SetSupported(testFile, false);
+
+            await _handler.HandleFileChangeAsync(testFile, changedFiles);
+
+            Assert.IsFalse(_trackerManager.Contains(testFile), "Should not add file to tracker");
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount, "Should not review file");
+        }
+
         private class FakeLogger : ILogger
         {
             public List<string> DebugMessages = new List<string>();
