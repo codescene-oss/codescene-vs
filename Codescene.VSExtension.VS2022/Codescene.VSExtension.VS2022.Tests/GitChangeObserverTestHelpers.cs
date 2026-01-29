@@ -148,6 +148,16 @@ namespace Codescene.VSExtension.VS2022.Tests
     {
         public int GetChangedFilesCallCount { get; private set; }
 
+        public TestableGitChangeObserver() : base()
+        {
+        }
+
+        public TestableGitChangeObserver(ILogger logger, ICodeReviewer codeReviewer,
+            ISupportedFileChecker supportedFileChecker, IGitService gitService)
+            : base(logger, codeReviewer, supportedFileChecker, gitService)
+        {
+        }
+
         public void ResetCallCount()
         {
             GetChangedFilesCallCount = 0;

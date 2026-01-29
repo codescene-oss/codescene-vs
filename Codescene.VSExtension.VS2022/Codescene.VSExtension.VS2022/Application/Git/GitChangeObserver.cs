@@ -21,16 +21,16 @@ namespace Codescene.VSExtension.VS2022.Application.Git
     public class GitChangeObserver : IGitChangeObserver, IDisposable
     {
         [Import]
-        private readonly ILogger _logger;
+        private ILogger _logger;
 
         [Import]
-        private readonly ICodeReviewer _codeReviewer;
+        private ICodeReviewer _codeReviewer;
 
         [Import]
-        private readonly ISupportedFileChecker _supportedFileChecker;
+        private ISupportedFileChecker _supportedFileChecker;
 
         [Import]
-        private readonly IGitService _gitService;
+        private IGitService _gitService;
 
         private FileSystemWatcher _fileWatcher;
         private Timer _scheduledTimer;
@@ -46,6 +46,23 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         private IOpenFilesObserver _openFilesObserver;
         private GitChangeDetector _gitChangeDetector;
         private FileChangeHandler _fileChangeHandler;
+
+        public GitChangeObserver()
+        {
+        }
+
+        public GitChangeObserver(ILogger logger, ICodeReviewer codeReviewer,
+            ISupportedFileChecker supportedFileChecker, IGitService gitService)
+        {
+            _logger = logger;
+            _codeReviewer = codeReviewer;
+            _supportedFileChecker = supportedFileChecker;
+            _gitService = gitService;
+        }
+
+        public ConcurrentQueue<FileChangeEvent> EventQueue => _eventQueue;
+        public FileSystemWatcher FileWatcher => _fileWatcher;
+        public Timer ScheduledTimer => _scheduledTimer;
 
         public void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
         {

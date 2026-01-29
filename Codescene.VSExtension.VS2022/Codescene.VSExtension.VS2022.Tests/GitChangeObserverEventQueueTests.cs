@@ -1,6 +1,7 @@
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.VS2022.Application.Git;
 using Codescene.VSExtension.Core.Interfaces.Git;
+using Codescene.VSExtension.Core.Enums.Git;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -89,17 +90,8 @@ namespace Codescene.VSExtension.VS2022.Tests
 
         private GitChangeObserver CreateGitChangeObserver()
         {
-            var observer = new GitChangeObserver();
-
-            var loggerField = typeof(GitChangeObserver).GetField("_logger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var reviewerField = typeof(GitChangeObserver).GetField("_codeReviewer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var checkerField = typeof(GitChangeObserver).GetField("_supportedFileChecker", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var gitServiceField = typeof(GitChangeObserver).GetField("_gitService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            loggerField?.SetValue(observer, _fakeLogger);
-            reviewerField?.SetValue(observer, _fakeCodeReviewer);
-            checkerField?.SetValue(observer, _fakeSupportedFileChecker);
-            gitServiceField?.SetValue(observer, _fakeGitService);
+            var observer = new GitChangeObserver(_fakeLogger, _fakeCodeReviewer,
+                _fakeSupportedFileChecker, _fakeGitService);
 
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
@@ -154,34 +146,25 @@ namespace Codescene.VSExtension.VS2022.Tests
             _gitChangeObserver.Start();
             await Task.Delay(1000);
 
-            var fileWatcherField = typeof(GitChangeObserver).GetField("_fileWatcher", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var fileWatcher = (FileSystemWatcher)fileWatcherField.GetValue(_gitChangeObserver);
+            var fileWatcher = _gitChangeObserver.FileWatcher;
             fileWatcher.EnableRaisingEvents = false;
 
             var file1 = CreateFile("queued1.ts", "export const a = 1;");
             var file2 = CreateFile("queued2.ts", "export const b = 2;");
 
-            var eventQueueField = typeof(GitChangeObserver).GetField("_eventQueue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var queue = eventQueueField.GetValue(_gitChangeObserver);
+            var queue = _gitChangeObserver.EventQueue;
 
-            var coreAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "Codescene.VSExtension.Core");
-            var fileChangeEventType = coreAssembly.GetType("Codescene.VSExtension.Core.Application.Git.FileChangeEvent");
-            var fileChangeTypeEnum = coreAssembly.GetType("Codescene.VSExtension.Core.Enums.Git.FileChangeType");
+            var event1 = new FileChangeEvent(FileChangeType.Create, file1);
+            var event2 = new FileChangeEvent(FileChangeType.Create, file2);
 
-            var createType = Enum.Parse(fileChangeTypeEnum, "Create");
-            var event1 = Activator.CreateInstance(fileChangeEventType, createType, file1);
-            var event2 = Activator.CreateInstance(fileChangeEventType, createType, file2);
+            queue.Enqueue(event1);
+            queue.Enqueue(event2);
 
-            var enqueueMethod = queue.GetType().GetMethod("Enqueue");
-            enqueueMethod.Invoke(queue, new[] { event1 });
-            enqueueMethod.Invoke(queue, new[] { event2 });
-
-            var countProperty = queue.GetType().GetProperty("Count");
-            Assert.AreEqual(2, (int)countProperty.GetValue(queue), "Events should be queued");
+            Assert.AreEqual(2, queue.Count, "Events should be queued");
             AssertFileInTracker(file1, false);
             AssertFileInTracker(file2, false);
 
-            var queueEmptied = await WaitForConditionAsync(() => (int)countProperty.GetValue(queue) == 0, 5000);
+            var queueEmptied = await WaitForConditionAsync(() => queue.Count == 0, 5000);
             Assert.IsTrue(queueEmptied, "Queue should be empty after processing");
 
             var trackerManager = _gitChangeObserver.GetTrackerManager();
@@ -195,17 +178,8 @@ namespace Codescene.VSExtension.VS2022.Tests
         [TestMethod]
         public async Task GetChangedFilesVsBaseline_CalledOncePerBatch_NotPerFile()
         {
-            var observer = new TestableGitChangeObserver();
-
-            var loggerField = typeof(GitChangeObserver).GetField("_logger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var reviewerField = typeof(GitChangeObserver).GetField("_codeReviewer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var checkerField = typeof(GitChangeObserver).GetField("_supportedFileChecker", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var gitServiceField = typeof(GitChangeObserver).GetField("_gitService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            loggerField?.SetValue(observer, _fakeLogger);
-            reviewerField?.SetValue(observer, _fakeCodeReviewer);
-            checkerField?.SetValue(observer, _fakeSupportedFileChecker);
-            gitServiceField?.SetValue(observer, _fakeGitService);
+            var observer = new TestableGitChangeObserver(_fakeLogger, _fakeCodeReviewer,
+                _fakeSupportedFileChecker, _fakeGitService);
 
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
@@ -219,21 +193,14 @@ namespace Codescene.VSExtension.VS2022.Tests
                 CreateFile("cache3.ts", "export const c = 3;")
             };
 
-            var eventQueueField = typeof(GitChangeObserver).GetField("_eventQueue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var queue = eventQueueField.GetValue(observer);
-
-            var coreAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "Codescene.VSExtension.Core");
-            var fileChangeEventType = coreAssembly.GetType("Codescene.VSExtension.Core.Application.Git.FileChangeEvent");
-            var fileChangeTypeEnum = coreAssembly.GetType("Codescene.VSExtension.Core.Enums.Git.FileChangeType");
-            var createType = Enum.Parse(fileChangeTypeEnum, "Create");
-            var enqueueMethod = queue.GetType().GetMethod("Enqueue");
+            var queue = observer.EventQueue;
 
             observer.ResetCallCount();
 
             foreach (var file in files)
             {
-                var evt = Activator.CreateInstance(fileChangeEventType, createType, file);
-                enqueueMethod.Invoke(queue, new[] { evt });
+                var evt = new FileChangeEvent(FileChangeType.Create, file);
+                queue.Enqueue(evt);
             }
 
             var initialCount = observer.GetChangedFilesCallCount;
@@ -256,17 +223,8 @@ namespace Codescene.VSExtension.VS2022.Tests
         [TestMethod]
         public async Task EmptyQueue_DoesNotTrigger_UnnecessaryProcessing()
         {
-            var observer = new TestableGitChangeObserver();
-
-            var loggerField = typeof(GitChangeObserver).GetField("_logger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var reviewerField = typeof(GitChangeObserver).GetField("_codeReviewer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var checkerField = typeof(GitChangeObserver).GetField("_supportedFileChecker", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var gitServiceField = typeof(GitChangeObserver).GetField("_gitService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            loggerField?.SetValue(observer, _fakeLogger);
-            reviewerField?.SetValue(observer, _fakeCodeReviewer);
-            checkerField?.SetValue(observer, _fakeSupportedFileChecker);
-            gitServiceField?.SetValue(observer, _fakeGitService);
+            var observer = new TestableGitChangeObserver(_fakeLogger, _fakeCodeReviewer,
+                _fakeSupportedFileChecker, _fakeGitService);
 
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
@@ -289,12 +247,11 @@ namespace Codescene.VSExtension.VS2022.Tests
         {
             _gitChangeObserver.Start();
 
-            var timerField = typeof(GitChangeObserver).GetField("_scheduledTimer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            Assert.IsNotNull(timerField.GetValue(_gitChangeObserver), "Scheduled timer should exist before disposal");
+            Assert.IsNotNull(_gitChangeObserver.ScheduledTimer, "Scheduled timer should exist before disposal");
 
             _gitChangeObserver.Dispose();
 
-            Assert.IsNull(timerField.GetValue(_gitChangeObserver), "Scheduled timer should be null after disposal");
+            Assert.IsNull(_gitChangeObserver.ScheduledTimer, "Scheduled timer should be null after disposal");
         }
     }
 }

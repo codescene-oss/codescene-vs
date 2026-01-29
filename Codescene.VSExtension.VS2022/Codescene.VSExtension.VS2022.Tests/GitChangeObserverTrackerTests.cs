@@ -96,17 +96,8 @@ namespace Codescene.VSExtension.VS2022.Tests
 
         private GitChangeObserver CreateGitChangeObserver()
         {
-            var observer = new GitChangeObserver();
-
-            var loggerField = typeof(GitChangeObserver).GetField("_logger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var reviewerField = typeof(GitChangeObserver).GetField("_codeReviewer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var checkerField = typeof(GitChangeObserver).GetField("_supportedFileChecker", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var gitServiceField = typeof(GitChangeObserver).GetField("_gitService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            loggerField?.SetValue(observer, _fakeLogger);
-            reviewerField?.SetValue(observer, _fakeCodeReviewer);
-            checkerField?.SetValue(observer, _fakeSupportedFileChecker);
-            gitServiceField?.SetValue(observer, _fakeGitService);
+            var observer = new GitChangeObserver(_fakeLogger, _fakeCodeReviewer,
+                _fakeSupportedFileChecker, _fakeGitService);
 
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 

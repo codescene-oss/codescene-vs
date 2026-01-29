@@ -164,7 +164,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return branch != null && branch.Tip != null;
         }
 
-        private List<string> GetMainBranchCandidates(Repository repo)
+        public List<string> GetMainBranchCandidates(Repository repo)
         {
             var gitRoot = repo.Info.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar);
             if (string.IsNullOrEmpty(gitRoot))

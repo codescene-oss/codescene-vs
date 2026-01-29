@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.Tests
@@ -63,9 +62,7 @@ namespace Codescene.VSExtension.VS2022.Tests
 
         private List<string> GetMainBranchCandidates(Repository repo)
         {
-            var method = typeof(GitChangeDetector)
-                .GetMethod("GetMainBranchCandidates", BindingFlags.NonPublic | BindingFlags.Instance);
-            return (List<string>)method.Invoke(_detector, new object[] { repo });
+            return _detector.GetMainBranchCandidates(repo);
         }
 
         private string CommitFile(string filename, string content, string message)
