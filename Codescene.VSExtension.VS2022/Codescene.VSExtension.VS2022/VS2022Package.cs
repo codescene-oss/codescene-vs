@@ -178,7 +178,7 @@ public sealed class VS2022Package : ToolkitPackage
     async Task CheckCliFileAsync()
     {
         var cliFileChecker = await GetServiceAsync<ICliFileChecker>();
-        await cliFileChecker.Check();
+        cliFileChecker.Check();
     }
 
     async Task SubscribeOnActiveWindowChangeAsync()

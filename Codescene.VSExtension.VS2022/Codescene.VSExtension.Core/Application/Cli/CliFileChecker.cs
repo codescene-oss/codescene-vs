@@ -2,9 +2,7 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
@@ -15,51 +13,42 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ILogger _logger;
         private readonly ICliExecutor _cliExecuter;
         private readonly ICliSettingsProvider _cliSettingsProvider;
-        private readonly ICliDownloader _cliDownloader;
 
         [ImportingConstructor]
         public CliFileChecker(
             ILogger logger,
             ICliExecutor cliExecuter,
-            ICliSettingsProvider cliSettingsProvider,
-            ICliDownloader cliDownloader)
+            ICliSettingsProvider cliSettingsProvider)
         {
             _logger = logger;
             _cliExecuter = cliExecuter;
             _cliSettingsProvider = cliSettingsProvider;
-            _cliDownloader = cliDownloader;
         }
 
-        public async Task Check()
+        public bool Check()
         {
             try
             {
                 if (!File.Exists(_cliSettingsProvider.CliFileFullPath))
                 {
-                    _logger.Info($"Setting up CodeScene...");
-                    var stopwatch = Stopwatch.StartNew();
-
-                    await _cliDownloader.DownloadAsync();
-                    stopwatch.Stop();
-
-                    _logger.Info($"CodeScene setup completed in {stopwatch.ElapsedMilliseconds} ms.");
-                    return;
+                    _logger.Error($"CodeScene CLI file not found at {_cliSettingsProvider.CliFileFullPath}. The CLI should be bundled with the extension.", new FileNotFoundException($"CLI file not found at {_cliSettingsProvider.CliFileFullPath}"));
+                    return false;
                 }
 
                 var currentCliVersion = _cliExecuter.GetFileVersion();
-                if (currentCliVersion == _cliSettingsProvider.RequiredDevToolVersion)
+                if (string.IsNullOrEmpty(currentCliVersion))
                 {
-                    return;
+                    _logger.Warn("Could not determine CLI version. The CLI file exists but version check failed.");
+                    return false;
                 }
 
-                _logger.Info("Updating CodeScene tool to the latest version...");
-                File.Delete(_cliSettingsProvider.CliFileFullPath);
-                await _cliDownloader.DownloadAsync();
-                _logger.Info($"CodeScene tool updated.");
+                _logger.Debug($"Using CLI version: {currentCliVersion}");
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.Error("Failed to set up the required CodeScene tools.", ex);
+                _logger.Error("Failed to check the CodeScene CLI file.", ex);
+                return false;
             }
         }
     }

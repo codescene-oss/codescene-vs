@@ -74,6 +74,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
     {
         if (_userControl == null)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             await ShowAsync();
             return;
         }

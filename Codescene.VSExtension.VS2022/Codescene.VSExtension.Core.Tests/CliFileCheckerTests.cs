@@ -11,7 +11,6 @@ namespace Codescene.VSExtension.Core.Tests
         private Mock<ILogger> _mockLogger;
         private Mock<ICliExecutor> _mockCliExecutor;
         private Mock<ICliSettingsProvider> _mockCliSettingsProvider;
-        private Mock<ICliDownloader> _mockCliDownloader;
         private CliFileChecker _fileChecker;
 
         private string _tempFilePath;
@@ -22,13 +21,11 @@ namespace Codescene.VSExtension.Core.Tests
             _mockLogger = new Mock<ILogger>();
             _mockCliExecutor = new Mock<ICliExecutor>();
             _mockCliSettingsProvider = new Mock<ICliSettingsProvider>();
-            _mockCliDownloader = new Mock<ICliDownloader>();
 
             _fileChecker = new CliFileChecker(
                 _mockLogger.Object,
                 _mockCliExecutor.Object,
-                _mockCliSettingsProvider.Object,
-                _mockCliDownloader.Object);
+                _mockCliSettingsProvider.Object);
 
             _tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".exe");
         }
@@ -47,15 +44,9 @@ namespace Codescene.VSExtension.Core.Tests
             _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
         }
 
-        private void SetupSuccessfulDownload()
+        private void SetupVersionMock(string version)
         {
-            _mockCliDownloader.Setup(x => x.DownloadAsync()).Returns(Task.CompletedTask);
-        }
-
-        private void SetupVersionMocks(string requiredVersion, string currentVersion)
-        {
-            _mockCliSettingsProvider.Setup(x => x.RequiredDevToolVersion).Returns(requiredVersion);
-            _mockCliExecutor.Setup(x => x.GetFileVersion()).Returns(currentVersion);
+            _mockCliExecutor.Setup(x => x.GetFileVersion()).Returns(version);
         }
 
         private void CreateTempFile()
@@ -63,95 +54,71 @@ namespace Codescene.VSExtension.Core.Tests
             File.WriteAllText(_tempFilePath, "dummy content");
         }
 
-        private void VerifyErrorLogged()
-        {
-            _mockLogger.Verify(l => l.Error(It.Is<string>(s => s.Contains("Failed to set up")), It.IsAny<Exception>()), Times.Once);
-        }
-
         [TestMethod]
-        public async Task Check_FileDoesNotExist_ShouldDownloadFile()
+        public void Check_FileDoesNotExist_ShouldLogErrorAndReturnFalse()
         {
             SetupCliPathMock();
-            SetupSuccessfulDownload();
 
-            await _fileChecker.Check();
+            var result = _fileChecker.Check();
 
-            _mockCliDownloader.Verify(x => x.DownloadAsync(), Times.Once);
-            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Setting up CodeScene"))), Times.Once);
+            Assert.IsFalse(result);
+            _mockLogger.Verify(l => l.Error(
+                It.Is<string>(s => s.Contains("not found") && s.Contains("bundled")),
+                It.IsAny<FileNotFoundException>()), Times.Once);
         }
 
         [TestMethod]
-        public async Task Check_FileExistsAndVersionMatches_ShouldNotDownload()
+        public void Check_FileExists_ShouldLogVersionAndReturnTrue()
         {
             CreateTempFile();
             SetupCliPathMock();
-            SetupVersionMocks("abc123", "abc123");
+            SetupVersionMock("abc123");
 
-            await _fileChecker.Check();
+            var result = _fileChecker.Check();
 
-            _mockCliDownloader.Verify(x => x.DownloadAsync(), Times.Never);
+            Assert.IsTrue(result);
+            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Using CLI version") && s.Contains("abc123"))), Times.Once);
         }
 
         [TestMethod]
-        public async Task Check_FileExistsButVersionMismatch_ShouldDeleteAndDownload()
+        public void Check_FileExistsButVersionCheckReturnsEmpty_ShouldLogWarningAndReturnFalse()
         {
             CreateTempFile();
             SetupCliPathMock();
-            SetupVersionMocks("newversion123", "oldversion456");
-            SetupSuccessfulDownload();
+            SetupVersionMock("");
 
-            await _fileChecker.Check();
+            var result = _fileChecker.Check();
 
-            _mockCliDownloader.Verify(x => x.DownloadAsync(), Times.Once);
-            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Updating CodeScene tool"))), Times.Once);
-            Assert.IsFalse(File.Exists(_tempFilePath), "Old CLI file should be deleted");
+            Assert.IsFalse(result);
+            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Could not determine CLI version"))), Times.Once);
         }
 
         [TestMethod]
-        public async Task Check_WhenDownloadThrows_ShouldLogError()
+        public void Check_FileExistsButVersionCheckReturnsNull_ShouldLogWarningAndReturnFalse()
         {
+            CreateTempFile();
             SetupCliPathMock();
-            _mockCliDownloader.Setup(x => x.DownloadAsync()).ThrowsAsync(new Exception("Download failed"));
+            SetupVersionMock(null);
 
-            await _fileChecker.Check();
+            var result = _fileChecker.Check();
 
-            VerifyErrorLogged();
+            Assert.IsFalse(result);
+            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Could not determine CLI version"))), Times.Once);
         }
 
         [TestMethod]
-        public async Task Check_WhenGetFileVersionThrows_ShouldLogError()
+        public void Check_WhenGetFileVersionThrows_ShouldLogErrorAndReturnFalse()
         {
             CreateTempFile();
             SetupCliPathMock();
             _mockCliExecutor.Setup(x => x.GetFileVersion()).Throws(new Exception("Version check failed"));
 
-            await _fileChecker.Check();
+            var result = _fileChecker.Check();
 
-            VerifyErrorLogged();
-        }
-
-        [TestMethod]
-        public async Task Check_SuccessfulDownload_ShouldLogCompletionTime()
-        {
-            SetupCliPathMock();
-            SetupSuccessfulDownload();
-
-            await _fileChecker.Check();
-
-            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("setup completed"))), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task Check_SuccessfulUpdate_ShouldLogToolUpdated()
-        {
-            CreateTempFile();
-            SetupCliPathMock();
-            SetupVersionMocks("new", "old");
-            SetupSuccessfulDownload();
-
-            await _fileChecker.Check();
-
-            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("tool updated"))), Times.Once);
+            Assert.IsFalse(result);
+            _mockLogger.Verify(l => l.Error(
+                It.Is<string>(s => s.Contains("Failed to check")),
+                It.IsAny<Exception>()), Times.Once);
         }
     }
 }

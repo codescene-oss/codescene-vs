@@ -130,6 +130,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     {
         if (_ctrl == null)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             await ShowAsync();
             return;
         }
