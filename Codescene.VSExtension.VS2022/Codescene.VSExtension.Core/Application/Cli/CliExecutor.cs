@@ -8,9 +8,11 @@ using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
+using Codescene.VSExtension.Core.Util;
 using Newtonsoft.Json;
 using static Codescene.VSExtension.Core.Consts.Constants;
 
@@ -25,6 +27,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly IProcessExecutor _executor;
         private readonly ISettingsProvider _settingsProvider;
         private readonly ICacheStorageService _cacheStorageService;
+        private readonly Lazy<ITelemetryManager> _telemetryManagerLazy;
 
         [ImportingConstructor]
         public CliExecutor(
@@ -32,13 +35,27 @@ namespace Codescene.VSExtension.Core.Application.Cli
             ICliCommandProvider cliCommandProvider,
             IProcessExecutor executor,
             ISettingsProvider settingsProvider,
-            ICacheStorageService cacheStorageService)
+            ICacheStorageService cacheStorageService,
+            [Import(AllowDefault = true)] Lazy<ITelemetryManager> telemetryManagerLazy = null)
         {
             _logger = logger;
             _cliCommandProvider = cliCommandProvider;
             _executor = executor;
             _settingsProvider = settingsProvider;
             _cacheStorageService = cacheStorageService;
+            _telemetryManagerLazy = telemetryManagerLazy;
+        }
+
+        private ITelemetryManager GetTelemetryManager()
+        {
+            try
+            {
+                return _telemetryManagerLazy?.Value;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         /// <summary>
@@ -52,10 +69,27 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var command = _cliCommandProvider.ReviewFileContentCommand;
             var payload = _cliCommandProvider.GetReviewFileContentPayload(filename, content, _cacheStorageService.GetSolutionReviewCacheLocation());
 
-            return ExecuteWithTimingAndLogging<CliReviewModel>(
+            long elapsedMs = 0;
+            var result = ExecuteWithTimingAndLogging<CliReviewModel>(
                 $"CLI file review",
                 () => _executor.Execute(command, payload),
-                $"Review of file {filename} failed");
+                $"Review of file {filename} failed",
+                out elapsedMs
+            );
+
+            if (result != null)
+            {
+                var telemetryData = new PerformanceTelemetryData
+                {
+                    Type = Titles.REVIEW,
+                    ElapsedMs = elapsedMs,
+                    FilePathOrName = filename,
+                    FileContent = content,
+                };
+                PerformanceTelemetryHelper.SendPerformanceTelemetry(GetTelemetryManager(), _logger, telemetryData);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -64,8 +98,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
         /// </summary>
         /// <param name="oldScore">The raw score of the old file version's review.</param>
         /// <param name="newScore">The raw score of the new file version's review.</param>
+        /// <param name="filePath">Optional file path for telemetry purposes.</param>
+        /// <param name="fileContent">Optional file content for telemetry purposes.</param>
         /// <returns>A <see cref="DeltaResponseModel"/> containing delta results, or null if execution fails or arguments are invalid.</returns>
-        public DeltaResponseModel ReviewDelta(string oldScore, string newScore)
+        public DeltaResponseModel ReviewDelta(string oldScore, string newScore, string filePath = null, string fileContent = null)
         {
             var arguments = _cliCommandProvider.GetReviewDeltaCommand(oldScore, newScore);
 
@@ -75,10 +111,27 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            return ExecuteWithTimingAndLogging<DeltaResponseModel>(
+            long elapsedMs = 0;
+            var result = ExecuteWithTimingAndLogging<DeltaResponseModel>(
                 "CLI file delta review",
                 () => _executor.Execute("delta", arguments),
-                "Delta for file failed.");
+                "Delta for file failed.",
+                out elapsedMs
+            );
+
+            if (result != null && !string.IsNullOrEmpty(filePath))
+            {
+                var telemetryData = new PerformanceTelemetryData
+                {
+                    Type = Titles.DELTA,
+                    ElapsedMs = elapsedMs,
+                    FilePathOrName = filePath,
+                    FileContent = fileContent,
+                };
+                PerformanceTelemetryHelper.SendPerformanceTelemetry(GetTelemetryManager(), _logger, telemetryData);
+            }
+
+            return result;
         }
 
         public PreFlightResponseModel Preflight(bool force = true)
@@ -111,10 +164,26 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            return ExecuteWithTimingAndLogging<RefactorResponseModel>(
+            long elapsedMs = 0;
+            var result = ExecuteWithTimingAndLogging<RefactorResponseModel>(
                 "ACE refactoring",
                 () => _executor.Execute(arguments),
-                "Refactoring failed.");
+                "Refactoring failed.",
+                out elapsedMs
+            );
+
+            if (result != null && fnToRefactor != null)
+            {
+                var telemetryData = new PerformanceTelemetryData
+                {
+                    Type = Titles.ACE,
+                    ElapsedMs = elapsedMs,
+                    FnToRefactor = fnToRefactor,
+                };
+                PerformanceTelemetryHelper.SendPerformanceTelemetry(GetTelemetryManager(), _logger, telemetryData);
+            }
+
+            return result;
         }
 
         public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
@@ -185,13 +254,21 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private T ExecuteWithTimingAndLogging<T>(string label, Func<string> execute, string errorMessage)
         {
+            long elapsedMs;
+            return ExecuteWithTimingAndLogging<T>(label, execute, errorMessage, out elapsedMs);
+        }
+
+        private T ExecuteWithTimingAndLogging<T>(string label, Func<string> execute, string errorMessage, out long elapsedMs)
+        {
+            elapsedMs = 0;
             try
             {
                 var stopwatch = Stopwatch.StartNew();
                 var result = execute();
                 stopwatch.Stop();
+                elapsedMs = stopwatch.ElapsedMilliseconds;
 
-                _logger.Debug($"{Titles.CODESCENE} {label} completed in {stopwatch.ElapsedMilliseconds} ms.");
+                _logger.Debug($"{Titles.CODESCENE} {label} completed in {elapsedMs} ms.");
                 return JsonConvert.DeserializeObject<T>(result);
             }
             catch (DevtoolsException e)
@@ -220,5 +297,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return string.Empty;
             }
         }
+
     }
 }
