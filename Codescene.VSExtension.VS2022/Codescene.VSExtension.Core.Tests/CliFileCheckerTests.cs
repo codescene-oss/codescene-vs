@@ -55,62 +55,67 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task Check_FileDoesNotExist_ShouldLogError()
+        public void Check_FileDoesNotExist_ShouldLogErrorAndReturnFalse()
         {
             SetupCliPathMock();
 
-            await _fileChecker.Check();
+            var result = _fileChecker.Check();
 
+            Assert.IsFalse(result);
             _mockLogger.Verify(l => l.Error(
                 It.Is<string>(s => s.Contains("not found") && s.Contains("bundled")),
                 It.IsAny<FileNotFoundException>()), Times.Once);
         }
 
         [TestMethod]
-        public async Task Check_FileExists_ShouldLogVersion()
+        public void Check_FileExists_ShouldLogVersionAndReturnTrue()
         {
             CreateTempFile();
             SetupCliPathMock();
             SetupVersionMock("abc123");
 
-            await _fileChecker.Check();
+            var result = _fileChecker.Check();
 
+            Assert.IsTrue(result);
             _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Using CLI version") && s.Contains("abc123"))), Times.Once);
         }
 
         [TestMethod]
-        public async Task Check_FileExistsButVersionCheckReturnsEmpty_ShouldLogWarning()
+        public void Check_FileExistsButVersionCheckReturnsEmpty_ShouldLogWarningAndReturnFalse()
         {
             CreateTempFile();
             SetupCliPathMock();
             SetupVersionMock("");
 
-            await _fileChecker.Check();
+            var result = _fileChecker.Check();
 
+            Assert.IsFalse(result);
             _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Could not determine CLI version"))), Times.Once);
         }
 
         [TestMethod]
-        public async Task Check_FileExistsButVersionCheckReturnsNull_ShouldLogWarning()
+        public void Check_FileExistsButVersionCheckReturnsNull_ShouldLogWarningAndReturnFalse()
         {
             CreateTempFile();
             SetupCliPathMock();
             SetupVersionMock(null);
 
-            await _fileChecker.Check();
+            var result = _fileChecker.Check();
 
+            Assert.IsFalse(result);
             _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Could not determine CLI version"))), Times.Once);
         }
 
         [TestMethod]
-        public async Task Check_WhenGetFileVersionThrows_ShouldLogError()
+        public void Check_WhenGetFileVersionThrows_ShouldLogErrorAndReturnFalse()
         {
             CreateTempFile();
             SetupCliPathMock();
             _mockCliExecutor.Setup(x => x.GetFileVersion()).Throws(new Exception("Version check failed"));
 
-            await _fileChecker.Check();
+            var result = _fileChecker.Check();
 
+            Assert.IsFalse(result);
             _mockLogger.Verify(l => l.Error(
                 It.Is<string>(s => s.Contains("Failed to check")),
                 It.IsAny<Exception>()), Times.Once);
