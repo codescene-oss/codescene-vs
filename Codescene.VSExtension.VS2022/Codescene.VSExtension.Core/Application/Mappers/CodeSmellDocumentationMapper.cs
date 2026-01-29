@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Models;
+﻿using Codescene.VSExtension.Core.Interfaces.Extension;
+using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -11,6 +12,15 @@ namespace Codescene.VSExtension.Core.Application.Mappers
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeSmellDocumentationMapper
     {
+        private readonly ISettingsProvider _settingsProvider;
+
+        [ImportingConstructor]
+        public CodeSmellDocumentationMapper(ISettingsProvider settingsProvider)
+        {
+            _settingsProvider = settingsProvider;
+        }
+
+
         public CodeSmellDocumentationComponentData Map(ShowDocumentationModel model, FnToRefactorModel fnToRefactor, bool aceAcknowledged = false)
         {
             var function = new FunctionModel
@@ -24,6 +34,8 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 )
             };
 
+            var hasToken = !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
+
             return new CodeSmellDocumentationComponentData
             {
                 DocType = AddDocsPrefix(model.Category),
@@ -31,7 +43,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 {
                     Visible = true,
                     Activated = aceAcknowledged,
-                    Disabled = fnToRefactor == null,
+                    Disabled = !hasToken || fnToRefactor == null,
                 },
                 FileData = new FileDataModel
                 {

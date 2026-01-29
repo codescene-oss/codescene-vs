@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models.Cache.Review;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Util;
@@ -20,6 +20,8 @@ using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.VS2022.Util;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Models.Cli;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 {
@@ -49,6 +51,9 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         [Import]
         private readonly TermsAndPoliciesService _termsAndPoliciesService;
 
+        [Import]
+        private readonly AceStaleChecker _aceStaleChecker;
+
         public void TextViewCreated(IWpfTextView textView)
         {
             var buffer = textView.TextBuffer;
@@ -66,6 +71,13 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             // Triggered when the file content changes (typing, etc.)
             buffer.Changed += (sender, args) =>
             {
+                // Check ACE staleness - guard first to avoid unnecessary snapshot access
+                if (ShouldCheckAceStaleStatus(filePath))
+                {
+                    // Run the expensive text operations off the UI thread
+                    Task.Run(() => CheckAndUpdateAceStaleStatus(filePath, buffer)).FireAndForget();
+                }
+
                 _debounceService.Debounce(
                     filePath,
                     () => Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget(),
@@ -77,6 +89,69 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 _logger.Debug($"File closed: {filePath}...");
                 // TODO: Stop any pending analysis for optimization?
             };
+        }
+
+        /// <summary>
+        /// Quick guard to determine if we should check ACE stale status.
+        /// Performs only fast, cheap checks without accessing buffer snapshot.
+        /// </summary>
+        /// <param name="filePath">The path of the file being edited.</param>
+        /// <returns>True if the expensive stale check should be performed.</returns>
+        private static bool ShouldCheckAceStaleStatus(string filePath)
+        {
+            // Skip if ACE tool window is not open or already marked as stale
+            if (!AceToolWindow.IsCreated() || AceToolWindow.IsStale)
+                return false;
+
+            var lastRefactoring = AceManager.LastRefactoring;
+            if (lastRefactoring == null)
+                return false;
+
+            // Skip if this file is not the one being refactored
+            if (!string.Equals(lastRefactoring.Path, filePath, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if the ACE refactoring has become stale due to function changes.
+        /// Updates the ACE tool window if staleness is detected.
+        /// If the function moved but is unchanged, updates the cached range to the new position.
+        /// Note: This method performs expensive text operations and should be called off the UI thread.
+        /// </summary>
+        private void CheckAndUpdateAceStaleStatus(string filePath, ITextBuffer buffer)
+        {
+            // Re-check guard conditions in case state changed between scheduling and execution
+            var lastRefactoring = AceManager.LastRefactoring;
+            if (lastRefactoring == null || AceToolWindow.IsStale)
+                return;
+
+            if (!string.Equals(lastRefactoring.Path, filePath, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var content = buffer.CurrentSnapshot.GetText();
+            var result = _aceStaleChecker.IsFunctionUnchangedInDocument(
+                content,
+                lastRefactoring.RefactorableCandidate);
+
+            if (result.IsStale)
+            {
+                AceToolWindow.MarkAsStaleAsync().FireAndForget();
+            }
+            else if (result.RangeUpdated && result.UpdatedRange != null)
+            {
+                // Function moved but content is unchanged - update the cached range atomically
+                // Create a new Range instance for atomic assignment to avoid readers seeing partially-updated state
+                var newRange = new CliRangeModel
+                {
+                    Startline = result.UpdatedRange.Startline,
+                    StartColumn = result.UpdatedRange.StartColumn,
+                    EndLine = result.UpdatedRange.EndLine,
+                    EndColumn = result.UpdatedRange.EndColumn
+                };
+                lastRefactoring.RefactorableCandidate.Range = newRange;
+            }
         }
 
         /// <summary>

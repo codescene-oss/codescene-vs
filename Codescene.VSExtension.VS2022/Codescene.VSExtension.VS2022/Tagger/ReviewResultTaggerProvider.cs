@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;

@@ -1,7 +1,9 @@
 using Codescene.VSExtension.Core.Application.Mappers;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
+using Moq;
 
 namespace Codescene.VSExtension.Core.Tests
 {
@@ -9,12 +11,18 @@ namespace Codescene.VSExtension.Core.Tests
     public class CodeSmellDocumentationMapperTests
     {
         private CodeSmellDocumentationMapper _mapper;
+        private Mock<ISettingsProvider> _mockSettingsProvider;
 
         [TestInitialize]
         public void Setup()
         {
-            _mapper = new CodeSmellDocumentationMapper();
+            _mockSettingsProvider = new Mock<ISettingsProvider>();
+            _mockSettingsProvider.Setup(x => x.AuthToken).Returns("valid-token");
+            _mapper = new CodeSmellDocumentationMapper(_mockSettingsProvider.Object);
         }
+
+        private void SetupAuthToken(string token) =>
+            _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
 
         private static ShowDocumentationModel CreateModel(
             string path = "test.cs",
@@ -137,6 +145,84 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _mapper.Map(CreateModel(), CreateFnToRefactor());
 
             Assert.IsFalse(result.AutoRefactor.Disabled);
+        }
+
+        [TestMethod]
+        public void Map_NoAuthToken_DisablesAutoRefactor()
+        {
+            // Arrange
+            SetupAuthToken(string.Empty);
+
+            // Act
+            var result = _mapper.Map(CreateModel(), CreateFnToRefactor());
+
+            // Assert
+            Assert.IsTrue(result.AutoRefactor.Disabled);
+        }
+
+        [TestMethod]
+        public void Map_NullAuthToken_DisablesAutoRefactor()
+        {
+            // Arrange
+            SetupAuthToken(null);
+
+            // Act
+            var result = _mapper.Map(CreateModel(), CreateFnToRefactor());
+
+            // Assert
+            Assert.IsTrue(result.AutoRefactor.Disabled);
+        }
+
+        [TestMethod]
+        public void Map_WhitespaceAuthToken_DisablesAutoRefactor()
+        {
+            // Arrange
+            SetupAuthToken("   ");
+
+            // Act
+            var result = _mapper.Map(CreateModel(), CreateFnToRefactor());
+
+            // Assert
+            Assert.IsTrue(result.AutoRefactor.Disabled);
+        }
+
+        [TestMethod]
+        public void Map_ValidAuthTokenAndFnToRefactor_EnablesAutoRefactor()
+        {
+            // Arrange
+            SetupAuthToken("valid-token");
+
+            // Act
+            var result = _mapper.Map(CreateModel(), CreateFnToRefactor());
+
+            // Assert
+            Assert.IsFalse(result.AutoRefactor.Disabled);
+        }
+
+        [TestMethod]
+        public void Map_ValidAuthTokenButNullFnToRefactor_DisablesAutoRefactor()
+        {
+            // Arrange
+            SetupAuthToken("valid-token");
+
+            // Act
+            var result = _mapper.Map(CreateModel(), null);
+
+            // Assert
+            Assert.IsTrue(result.AutoRefactor.Disabled);
+        }
+
+        [TestMethod]
+        public void Map_NoAuthTokenAndNullFnToRefactor_DisablesAutoRefactor()
+        {
+            // Arrange
+            SetupAuthToken(string.Empty);
+
+            // Act
+            var result = _mapper.Map(CreateModel(), null);
+
+            // Assert
+            Assert.IsTrue(result.AutoRefactor.Disabled);
         }
 
         [TestMethod]
