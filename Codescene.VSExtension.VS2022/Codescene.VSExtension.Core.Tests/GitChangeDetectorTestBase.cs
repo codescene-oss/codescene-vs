@@ -103,9 +103,12 @@ namespace Codescene.VSExtension.Core.Tests
 
         protected class FakeLogger : ILogger
         {
-            public void Debug(string message) { }
+            public readonly List<string> DebugMessages = new List<string>();
+            public readonly List<string> WarnMessages = new List<string>();
+
+            public void Debug(string message) => DebugMessages.Add(message);
             public void Info(string message) { }
-            public void Warn(string message) { }
+            public void Warn(string message) => WarnMessages.Add(message);
             public void Error(string message, Exception ex) { }
         }
 
@@ -157,6 +160,66 @@ namespace Codescene.VSExtension.Core.Tests
             public void AddOpenFile(string filePath)
             {
                 _openFiles.Add(filePath);
+            }
+        }
+
+        protected class TestableGitChangeDetector : GitChangeDetector
+        {
+            public bool ThrowInGetChangedFilesFromRepository { get; set; }
+            public bool ThrowInGetMergeBaseCommit { get; set; }
+            public bool ThrowFromMainBranchCandidates { get; set; }
+            public bool ThrowFromFindMergeBase { get; set; }
+            public bool ThrowFromDiffCompare { get; set; }
+            public bool ThrowFromRetrieveStatus { get; set; }
+
+            public TestableGitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker)
+                : base(logger, supportedFileChecker)
+            {
+            }
+
+            protected override List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+            {
+                if (ThrowInGetChangedFilesFromRepository)
+                {
+                    throw new LibGit2SharpException("Simulated LibGit2Sharp exception");
+                }
+                return base.GetChangedFilesFromRepository(repo, gitRootPath, savedFilesTracker, openFilesObserver);
+            }
+
+            public override List<string> GetMainBranchCandidates(Repository repo)
+            {
+                if (ThrowFromMainBranchCandidates)
+                {
+                    throw new Exception("Simulated exception from GetMainBranchCandidates");
+                }
+                return base.GetMainBranchCandidates(repo);
+            }
+
+            protected override Commit TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
+            {
+                if (ThrowFromFindMergeBase)
+                {
+                    throw new Exception("Simulated exception from TryFindMergeBase");
+                }
+                return base.TryFindMergeBase(repo, currentBranch, candidateName);
+            }
+
+            protected override List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath)
+            {
+                if (ThrowFromDiffCompare)
+                {
+                    throw new Exception("Simulated exception from Diff.Compare");
+                }
+                return base.GetCommittedChanges(repo, baseCommit, gitRootPath);
+            }
+
+            protected override List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude, string gitRootPath)
+            {
+                if (ThrowFromRetrieveStatus)
+                {
+                    throw new Exception("Simulated exception from RetrieveStatus");
+                }
+                return base.GetStatusChanges(repo, filesToExclude, gitRootPath);
             }
         }
     }

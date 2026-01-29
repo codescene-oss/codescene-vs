@@ -52,7 +52,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             });
         }
 
-        private List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+        protected virtual List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
         {
             var baseCommit = GetMergeBaseCommit(repo);
             if (baseCommit == null)
@@ -94,7 +94,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        private Commit GetMergeBaseCommit(Repository repo)
+        protected virtual Commit GetMergeBaseCommit(Repository repo)
         {
             try
             {
@@ -130,7 +130,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        private Commit TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
+        protected virtual Commit TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
         {
             var mainBranch = repo.Branches[candidateName];
             if (!IsValidBranch(mainBranch))
@@ -164,7 +164,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return branch != null && branch.Tip != null;
         }
 
-        public List<string> GetMainBranchCandidates(Repository repo)
+        public virtual List<string> GetMainBranchCandidates(Repository repo)
         {
             var gitRoot = repo.Info.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar);
             if (string.IsNullOrEmpty(gitRoot))
@@ -203,7 +203,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return currentBranch.FriendlyName == mainBranch.FriendlyName;
         }
 
-        private List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath)
+        protected virtual List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath)
         {
             var changes = new List<string>();
 
@@ -235,7 +235,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return changes;
         }
 
-        private List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude, string gitRootPath)
+        protected virtual List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude, string gitRootPath)
         {
             var changes = new List<string>();
 
