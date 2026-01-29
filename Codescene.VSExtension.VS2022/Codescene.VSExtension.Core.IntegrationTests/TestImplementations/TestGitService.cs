@@ -9,6 +9,10 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     internal class TestGitService : IGitService
     {
         internal Mock<IGitService> Mock = new();
-        public string GetFileContentForCommit(string path) => Mock.Object.GetFileContentForCommit(path);
+
+        public string GetFileContentForCommit(string path)
+        {
+            return Mock.Object.GetFileContentForCommit(path);
+        }
     }
 }
