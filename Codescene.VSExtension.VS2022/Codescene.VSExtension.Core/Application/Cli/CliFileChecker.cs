@@ -3,7 +3,6 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
@@ -26,30 +25,30 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _cliSettingsProvider = cliSettingsProvider;
         }
 
-        public Task Check()
+        public bool Check()
         {
             try
             {
                 if (!File.Exists(_cliSettingsProvider.CliFileFullPath))
                 {
                     _logger.Error($"CodeScene CLI file not found at {_cliSettingsProvider.CliFileFullPath}. The CLI should be bundled with the extension.", new FileNotFoundException($"CLI file not found at {_cliSettingsProvider.CliFileFullPath}"));
-                    return Task.CompletedTask;
+                    return false;
                 }
 
                 var currentCliVersion = _cliExecuter.GetFileVersion();
                 if (string.IsNullOrEmpty(currentCliVersion))
                 {
                     _logger.Warn("Could not determine CLI version. The CLI file exists but version check failed.");
-                    return Task.CompletedTask;
+                    return false;
                 }
 
                 _logger.Debug($"Using CLI version: {currentCliVersion}");
-                return Task.CompletedTask;
+                return true;
             }
             catch (Exception ex)
             {
                 _logger.Error("Failed to check the CodeScene CLI file.", ex);
-                return Task.CompletedTask;
+                return false;
             }
         }
     }
