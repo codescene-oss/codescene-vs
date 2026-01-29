@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.VS2022.Tests
         }
     }
 
-    internal class FakeLogger : ILogger
+    public class FakeLogger : ILogger
     {
         public void Debug(string message) { }
         public void Info(string message) { }
@@ -67,7 +67,7 @@ namespace Codescene.VSExtension.VS2022.Tests
         public void Error(string message, Exception ex) { }
     }
 
-    internal class FakeCodeReviewer : ICodeReviewer
+    public class FakeCodeReviewer : ICodeReviewer
     {
         public FileReviewModel Review(string path, string content)
         {
@@ -80,7 +80,7 @@ namespace Codescene.VSExtension.VS2022.Tests
         }
     }
 
-    internal class FakeSupportedFileChecker : ISupportedFileChecker
+    public class FakeSupportedFileChecker : ISupportedFileChecker
     {
         private readonly Dictionary<string, bool> _supported = new Dictionary<string, bool>();
 
@@ -101,7 +101,7 @@ namespace Codescene.VSExtension.VS2022.Tests
         }
     }
 
-    internal class FakeGitService : IGitService
+    public class FakeGitService : IGitService
     {
         public string GetFileContentForCommit(string path)
         {
@@ -114,7 +114,7 @@ namespace Codescene.VSExtension.VS2022.Tests
         }
     }
 
-    internal class FakeSavedFilesTracker : ISavedFilesTracker
+    public class FakeSavedFilesTracker : ISavedFilesTracker
     {
         private readonly HashSet<string> _savedFiles = new HashSet<string>();
 
@@ -129,7 +129,7 @@ namespace Codescene.VSExtension.VS2022.Tests
         }
     }
 
-    internal class FakeOpenFilesObserver : IOpenFilesObserver
+    public class FakeOpenFilesObserver : IOpenFilesObserver
     {
         private readonly HashSet<string> _openFiles = new HashSet<string>();
 

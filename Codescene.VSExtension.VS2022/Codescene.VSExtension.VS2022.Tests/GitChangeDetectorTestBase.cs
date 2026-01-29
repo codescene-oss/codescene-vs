@@ -9,7 +9,7 @@ using System.IO;
 
 namespace Codescene.VSExtension.VS2022.Tests
 {
-    internal abstract class GitChangeDetectorTestBase
+    public abstract class GitChangeDetectorTestBase
     {
         protected string _testRepoPath;
         protected GitChangeDetector _detector;

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Codescene.VSExtension.VS2022.Tests
 {
     [TestClass]
-    internal class GitChangeDetectorChangedFilesTests : GitChangeDetectorTestBase
+    public class GitChangeDetectorChangedFilesTests : GitChangeDetectorTestBase
     {
         [TestMethod]
         public async Task GetChangedFiles_FindsMergeBaseWithMainBranch()

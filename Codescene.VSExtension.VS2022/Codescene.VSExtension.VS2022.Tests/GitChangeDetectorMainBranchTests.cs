@@ -6,7 +6,7 @@ using System.Linq;
 namespace Codescene.VSExtension.VS2022.Tests
 {
     [TestClass]
-    internal class GitChangeDetectorMainBranchTests : GitChangeDetectorTestBase
+    public class GitChangeDetectorMainBranchTests : GitChangeDetectorTestBase
     {
         [TestMethod]
         public void GetMainBranchCandidates_DetectsMainBranch()
