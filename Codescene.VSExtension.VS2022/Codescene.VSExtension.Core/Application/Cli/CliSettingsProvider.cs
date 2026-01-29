@@ -10,7 +10,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
     public class CliSettingsProvider : ICliSettingsProvider
     {
         // single point of truth for CLI version
-        // both, pipeline and download logic are using this value
+        // used by the build pipeline to bundle the CLI with the extension
         public string RequiredDevToolVersion => "b98bdcaf4ac46597a73113d6fca6635d3f3393a5"; // 1.0.26
         public string CliArtifactName => $"cs-ide-windows-amd64-{RequiredDevToolVersion}.zip";
         public string CliArtifactUrl => $"{ArtifactBaseUrl}{CliArtifactName}";
