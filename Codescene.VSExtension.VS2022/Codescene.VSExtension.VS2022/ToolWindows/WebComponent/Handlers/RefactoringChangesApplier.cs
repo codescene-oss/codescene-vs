@@ -16,15 +16,12 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 
 public class RefactoringChangesApplier
 {
-    [Import]
-    private readonly IAceManager _aceManager;
-
     public async Task ApplyAsync(ApplyPayload payload)
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         var newCode = payload.Code;
-        var fnStartLine = payload.Fn.Range.Startline;
+        var fnStartLine = payload.Fn.Range.StartLine;
         var fnEndLine = payload.Fn.Range.EndLine;
 
         var docView = await VS.Documents.OpenAsync(payload.FilePath);
