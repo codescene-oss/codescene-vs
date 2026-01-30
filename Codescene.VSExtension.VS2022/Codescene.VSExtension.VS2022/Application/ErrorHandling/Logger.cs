@@ -44,7 +44,9 @@ public class Logger : ILogger
         var fullMessage = $"{message}: {ex.Message}";
         HandleLog(fullMessage, "ERROR");
 
-        if (ex.Message.Contains("timeout")) SendTelemetry();
+        SendErrorTelemetry(ex, message);
+
+        if (ex.Message.Contains("timeout")) SendTimeoutTelemetry();
     }
 
     public void Info(string message)
@@ -84,7 +86,16 @@ public class Logger : ILogger
         _outputPaneManager.Pane?.OutputStringThreadSafe($"{message}{Environment.NewLine}");
     }
 
-    private void SendTelemetry()
+    private void SendErrorTelemetry(Exception ex, string context)
+    {
+        Task.Run(async () =>
+        {
+            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+            telemetryManager.SendErrorTelemetry(ex, context);
+        }).FireAndForget();
+    }
+
+    private void SendTimeoutTelemetry()
     {
         Task.Run(async () =>
         {
