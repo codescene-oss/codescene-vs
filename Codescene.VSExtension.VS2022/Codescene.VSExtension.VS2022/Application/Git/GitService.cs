@@ -182,15 +182,21 @@ public class GitService : IGitService
 
     public bool IsFileIgnored(string filePath)
     {
-        var repoPath = Repository.Discover(filePath);
-        if (string.IsNullOrEmpty(repoPath))
+        if (string.IsNullOrWhiteSpace(filePath))
         {
-            _logger.Warn("Repository path is null. Aborting ignore checking.");
+            _logger.Warn("File path is empty. Aborting ignore checking.");
             return false;
         }
 
         try
         {
+            var repoPath = Repository.Discover(filePath);
+            if (string.IsNullOrEmpty(repoPath))
+            {
+                _logger.Warn("Repository path is null. Aborting ignore checking.");
+                return false;
+            }
+
             using var repo = new Repository(repoPath);
             var repoRoot = repo.Info.WorkingDirectory;
             var relativePath = GetRelativePath(repoRoot, filePath).Replace("\\", "/");
