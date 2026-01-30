@@ -183,20 +183,24 @@ public class GitService : IGitService
     public bool IsFileIgnored(string filePath)
     {
         var repoPath = Repository.Discover(filePath);
-        _logger.Debug($"MARTIN: repoPath {repoPath}");
-
         if (string.IsNullOrEmpty(repoPath))
         {
             _logger.Warn("Repository path is null. Aborting ignore checking.");
             return false;
         }
 
-        using var repo = new Repository(repoPath);
-        var repoRoot = repo.Info.WorkingDirectory;
-        _logger.Debug($"MARTIN: repoRoot {repoRoot}");
-        var relativePath = GetRelativePath(repoRoot, filePath).Replace("\\", "/");
-        _logger.Debug($"MARTIN: relative path {relativePath}");
+        try
+        {
+            using var repo = new Repository(repoPath);
+            var repoRoot = repo.Info.WorkingDirectory;
+            var relativePath = GetRelativePath(repoRoot, filePath).Replace("\\", "/");
 
-        return repo.Ignore.IsPathIgnored(relativePath);
+            return repo.Ignore.IsPathIgnored(relativePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Could not check if file is ignored: {ex.Message}", ex);
+            return false;
+        }
     }
 }

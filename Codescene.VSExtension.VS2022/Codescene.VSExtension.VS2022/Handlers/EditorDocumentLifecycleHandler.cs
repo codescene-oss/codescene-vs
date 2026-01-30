@@ -61,8 +61,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         {
             var buffer = textView.TextBuffer;
             string filePath = GetFilePath(buffer);
-            var isSupportedForReview = 
-                _supportedFileChecker.IsSupported(filePath);
+            var isSupportedForReview = _supportedFileChecker.IsSupported(filePath);
 
             if (!isSupportedForReview)
             {
@@ -70,10 +69,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 return;
             }
 
-            _logger.Debug($"MARTIN: File '{filePath}' check ignored");
-
             var isIgnored = _gitService.IsFileIgnored(filePath);
-            _logger.Debug($"MARTIN: isIgnored {isIgnored}");
 
             if (isIgnored)
             {
