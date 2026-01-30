@@ -179,4 +179,24 @@ public class GitService : IGitService
             return path + Path.DirectorySeparatorChar;
         return path;
     }
+
+    public bool IsFileIgnored(string filePath)
+    {
+        var repoPath = Repository.Discover(filePath);
+        _logger.Debug($"MARTIN: repoPath {repoPath}");
+
+        if (string.IsNullOrEmpty(repoPath))
+        {
+            _logger.Warn("Repository path is null. Aborting ignore checking.");
+            return false;
+        }
+
+        using var repo = new Repository(repoPath);
+        var repoRoot = repo.Info.WorkingDirectory;
+        _logger.Debug($"MARTIN: repoRoot {repoRoot}");
+        var relativePath = GetRelativePath(repoRoot, filePath).Replace("\\", "/");
+        _logger.Debug($"MARTIN: relative path {relativePath}");
+
+        return repo.Ignore.IsPathIgnored(relativePath);
+    }
 }

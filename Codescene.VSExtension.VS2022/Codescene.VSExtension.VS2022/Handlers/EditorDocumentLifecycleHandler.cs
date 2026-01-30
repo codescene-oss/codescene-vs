@@ -54,13 +54,34 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         [Import]
         private readonly AceStaleChecker _aceStaleChecker;
 
+        [Import]
+        private readonly IGitService _gitService;
+
         public void TextViewCreated(IWpfTextView textView)
         {
             var buffer = textView.TextBuffer;
             string filePath = GetFilePath(buffer);
-            var isSupportedForReview = _supportedFileChecker.IsSupported(filePath);
+            var isSupportedForReview = 
+                _supportedFileChecker.IsSupported(filePath);
 
-            if (!isSupportedForReview) return;
+            if (!isSupportedForReview)
+            {
+                _logger.Debug($"File '{filePath}' is not supported. Skipping review.");
+                return;
+            }
+
+            _logger.Debug($"MARTIN: File '{filePath}' check ignored");
+
+            var isIgnored = _gitService.IsFileIgnored(filePath);
+            _logger.Debug($"MARTIN: isIgnored {isIgnored}");
+
+            if (isIgnored)
+            {
+                _logger.Debug($"File '{filePath}' is ignored by Git. Skipping review.");
+                return;
+            }
+
+
 
             _logger.Debug($"File opened: {filePath}. ");
             string initialContent = buffer.CurrentSnapshot.GetText();
