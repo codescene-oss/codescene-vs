@@ -21,6 +21,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codescene.VSExtension.Core.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codescene.VSExtension.VS2022.Tests", "Codescene.VSExtension.VS2022.Tests\Codescene.VSExtension.VS2022.Tests.csproj", "{A5C8E1F2-9B3D-4E7A-8F6C-1D2E3F4A5B6C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FD328A1C-7A43-4B00-9899-7C519D398BC3}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		Directory.build.props = Directory.build.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
