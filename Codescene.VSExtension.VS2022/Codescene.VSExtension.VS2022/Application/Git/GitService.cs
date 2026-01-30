@@ -179,4 +179,34 @@ public class GitService : IGitService
             return path + Path.DirectorySeparatorChar;
         return path;
     }
+
+    public bool IsFileIgnored(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            _logger.Warn("File path is empty. Aborting ignore checking.");
+            return false;
+        }
+
+        try
+        {
+            var repoPath = Repository.Discover(filePath);
+            if (string.IsNullOrEmpty(repoPath))
+            {
+                _logger.Warn("Repository path is null. Aborting ignore checking.");
+                return false;
+            }
+
+            using var repo = new Repository(repoPath);
+            var repoRoot = repo.Info.WorkingDirectory;
+            var relativePath = GetRelativePath(repoRoot, filePath).Replace("\\", "/");
+
+            return repo.Ignore.IsPathIgnored(relativePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Could not check if file is ignored: {ex.Message}", ex);
+            return false;
+        }
+    }
 }

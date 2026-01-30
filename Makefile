@@ -6,7 +6,7 @@ include .github/sha.mk
 # Lazy-once cache key - computed on first use, then cached for rest of Make invocation
 CACHE_KEY = $(eval CACHE_KEY := $$(call get_cache_key))$(CACHE_KEY)
 
-.PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine class-size-mine no-regions-mine test-cache test-sha install-cli delta .run-analyzers
+.PHONY: test test1 test-mine copy-assets restore format format-all format-check stylecop stylecop-mine dotnet-analyzers dotnet-analyzers-mine class-size-mine no-regions-mine test-cache test-sha install-cli delta pr-size .run-analyzers
 
 # You might need something like:
 # export PATH="$PATH:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/Extensions/TestPlatform"
@@ -75,14 +75,14 @@ format-check:
 	@$(call call_cached,$(CACHE_KEY),cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release -p:RunStyleCopAnalyzers=true)
 
 stylecop: restore
-	@$(MAKE) .run-analyzers > analyzers.log 2>&1
+	@make .run-analyzers > analyzers.log 2>&1
 	@pwsh.exe -Command "$$warnings = Select-String -Path 'analyzers.log' -Pattern 'warning SA' | ForEach-Object { $$_.Line } | Sort-Object -Unique; if ($$warnings) { $$warnings | ForEach-Object { Write-Host $$_ }; exit 1 } else { exit 0 }"
 
 stylecop-mine: restore
 	@$(call call_cached,$(CACHE_KEY),pwsh.exe -File .github/check-mine.ps1 -Pattern \"warning SA\")
 
 dotnet-analyzers: restore
-	@$(MAKE) .run-analyzers > analyzers.log 2>&1
+	@make .run-analyzers > analyzers.log 2>&1
 	@pwsh.exe -Command "$$warnings = Select-String -Path 'analyzers.log' -Pattern 'warning' | Where-Object { $$_.Line -notmatch 'warning SA' } | ForEach-Object { $$_.Line } | Sort-Object -Unique; if ($$warnings) { $$warnings | ForEach-Object { Write-Host $$_ }; exit 1 } else { exit 0 }"
 
 dotnet-analyzers-mine: restore
@@ -102,5 +102,8 @@ install-cli:
 	@pwsh.exe -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Invoke-WebRequest -Uri 'https://downloads.codescene.io/enterprise/cli/install-cs-tool.ps1' -OutFile install-cs-tool.ps1; .\install-cs-tool.ps1; Remove-Item install-cs-tool.ps1"
 
 delta:
-	@if not exist "%USERPROFILE%\AppData\Local\Programs\CodeScene\cs.exe" $(MAKE) install-cli
+	@if not exist "%USERPROFILE%\AppData\Local\Programs\CodeScene\cs.exe" make install-cli
 	$(call call_cached,$(CACHE_KEY),pwsh.exe -File .github/delta.ps1) > delta.log 2>&1 && del delta.log || (type delta.log && del delta.log && exit /b 1)
+
+pr-size:
+	@pwsh.exe -File .github/pr-size.ps1
