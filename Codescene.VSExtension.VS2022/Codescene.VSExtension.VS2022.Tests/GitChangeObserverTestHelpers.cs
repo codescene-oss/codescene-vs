@@ -108,6 +108,11 @@ namespace Codescene.VSExtension.VS2022.Tests
             return string.Empty;
         }
 
+        public bool IsFileIgnored(string filePath)
+        {
+            return false;
+        }
+
         public string GetBranchCreationCommit(string path, Repository repository)
         {
             return string.Empty;

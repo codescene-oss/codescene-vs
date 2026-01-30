@@ -279,7 +279,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             });
         }
 
-        public event EventHandler<FileDeletedEventArgs> FileDeletedFromGit;
+        public event EventHandler<string> FileDeletedFromGit;
 
         public void RemoveFromTracker(string filePath)
         {

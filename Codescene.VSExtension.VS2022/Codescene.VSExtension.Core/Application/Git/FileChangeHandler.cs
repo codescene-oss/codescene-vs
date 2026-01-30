@@ -17,7 +17,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly string _workspacePath;
         private readonly TrackerManager _trackerManager;
 
-        public event EventHandler<FileDeletedEventArgs> FileDeletedFromGit;
+        public event EventHandler<string> FileDeletedFromGit;
 
         public FileChangeHandler(
             ILogger logger,
@@ -145,7 +145,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 _logger?.Debug($"GitChangeObserver: File deleted from git: {filePath}");
 
-                FileDeletedFromGit?.Invoke(this, new FileDeletedEventArgs(filePath));
+                FileDeletedFromGit?.Invoke(this, filePath);
             }
             catch (Exception ex)
             {

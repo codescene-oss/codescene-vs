@@ -91,7 +91,7 @@ namespace Codescene.VSExtension.Core.Tests
             _handler.FileDeletedFromGit += (sender, e) =>
             {
                 eventFired = true;
-                deletedPath = e.FilePath;
+                deletedPath = e;
             };
 
             await _handler.HandleFileDeleteAsync(testFile, changedFiles);
@@ -260,7 +260,7 @@ namespace Codescene.VSExtension.Core.Tests
             var deletedFiles = new List<string>();
             _handler.FileDeletedFromGit += (sender, e) =>
             {
-                deletedFiles.Add(e.FilePath);
+                deletedFiles.Add(e);
             };
 
             var changedFiles = new List<string>();

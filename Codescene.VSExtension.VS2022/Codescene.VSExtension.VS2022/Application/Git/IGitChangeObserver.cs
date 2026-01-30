@@ -1,4 +1,3 @@
-using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using System;
 using System.Collections.Generic;
@@ -12,6 +11,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         void Start();
         Task<List<string>> GetChangedFilesVsBaselineAsync();
         void RemoveFromTracker(string filePath);
-        event EventHandler<FileDeletedEventArgs> FileDeletedFromGit;
+        event EventHandler<string> FileDeletedFromGit;
     }
 }
