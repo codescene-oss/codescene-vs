@@ -46,6 +46,8 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             cache.Clear();
 
             CodeSceneToolWindow.UpdateViewAsync().FireAndForget();
+            AceToolWindow.CloseAsync().FireAndForget();
+            CodeSmellDocumentationWindow.HideAsync().FireAndForget();
 
             Log(logger =>
             {
