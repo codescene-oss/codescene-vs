@@ -3,6 +3,7 @@
     public interface IGitService
     {
         string GetFileContentForCommit(string path);
+        bool IsFileIgnored(string filePath);
     }
 
     public class GitResult
