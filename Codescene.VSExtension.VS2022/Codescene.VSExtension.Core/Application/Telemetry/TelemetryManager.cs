@@ -64,5 +64,31 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
                 _logger.Debug($"Unable to send telemetry event: {e.Message}");
             }
         }
+
+        public void SendErrorTelemetry(Exception ex, string context, Dictionary<string, object> extraData = null)
+        {
+            if (!TelemetryUtils.IsTelemetryEnabled(_logger)) return;
+            if (!ErrorTelemetryUtils.ShouldSendError(ex)) return;
+
+            try
+            {
+                var errorData = ErrorTelemetryUtils.SerializeException(ex, context);
+
+                if (extraData != null)
+                {
+                    foreach (var kvp in extraData)
+                    {
+                        errorData[kvp.Key] = kvp.Value;
+                    }
+                }
+
+                SendTelemetry(Constants.Telemetry.UNHANDLED_ERROR, errorData);
+                ErrorTelemetryUtils.IncrementErrorCount();
+            }
+            catch (Exception e)
+            {
+                _logger.Debug($"Unable to send error telemetry: {e.Message}");
+            }
+        }
     }
 }
