@@ -3,16 +3,12 @@ reviews:
   poem: false
   high_level_summary: false 
   sequence_diagrams: false
-  ignore_usernames:
-    - vemv
-    - vemvcs
-
+  ignore_usernames: ["vemv", "vemvcs"]
   finishing_touches:
     docstrings:
       enabled: false
     unit_tests:
       enabled: false
-
   pre_merge_checks:
     docstrings:
       mode: off
