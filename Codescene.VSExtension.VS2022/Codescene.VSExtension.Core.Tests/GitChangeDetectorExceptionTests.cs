@@ -170,11 +170,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetMergeBaseCommit_InvalidCurrentBranch_ReturnsEmptyList()
         {
-            using (var repo = new Repository(_testRepoPath))
-            {
-                var featureBranch = repo.CreateBranch("feature-test");
-                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
-            }
+            ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
             var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
@@ -189,11 +185,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task TryFindMergeBase_InvalidMainBranch_ReturnsEmptyList()
         {
-            using (var repo = new Repository(_testRepoPath))
-            {
-                var featureBranch = repo.CreateBranch("feature-test");
-                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
-            }
+            ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
             var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
@@ -208,11 +200,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task TryFindMergeBase_FindMergeBaseThrows_HandlesGracefully()
         {
-            using (var repo = new Repository(_testRepoPath))
-            {
-                var featureBranch = repo.CreateBranch("feature-test");
-                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
-            }
+            ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
             var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
@@ -229,11 +217,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetCommittedChanges_DiffCompareThrows_HandlesGracefully()
         {
-            using (var repo = new Repository(_testRepoPath))
-            {
-                var featureBranch = repo.CreateBranch("feature-test");
-                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
-            }
+            ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
             var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
@@ -250,11 +234,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetStatusChanges_RetrieveStatusThrows_HandlesGracefully()
         {
-            using (var repo = new Repository(_testRepoPath))
-            {
-                var featureBranch = repo.CreateBranch("feature-test");
-                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
-            }
+            ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
             var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
@@ -266,6 +246,103 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNotNull(result, "Should handle RetrieveStatus exception gracefully");
             Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Error getting changed files")),
                 "Should log warning message when RetrieveStatus throws exception");
+        }
+
+        [TestMethod]
+        public async Task GetMergeBaseCommit_UnbornHead_ReturnsGracefully()
+        {
+            var unbornRepoPath = Path.Combine(Path.GetTempPath(), $"test-unborn-{Guid.NewGuid()}");
+            try
+            {
+                Directory.CreateDirectory(unbornRepoPath);
+                Repository.Init(unbornRepoPath);
+                using (var repo = new Repository(unbornRepoPath))
+                {
+                    repo.Config.Set("user.email", "test@example.com");
+                    repo.Config.Set("user.name", "Test User");
+                }
+
+                var result = await _detector.GetChangedFilesVsBaselineAsync(
+                    unbornRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+                Assert.AreEqual(0, result.Count, "Should return empty list for unborn HEAD");
+            }
+            finally
+            {
+                if (Directory.Exists(unbornRepoPath))
+                {
+                    try { Directory.Delete(unbornRepoPath, true); } catch { }
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task TryFindMergeBase_BranchNotFound_ReturnsNull()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-test");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+            CommitFile("test.cs", "public class Test {}", "Add test");
+
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            testableDetector.ForceBranchLookupFailure = "nonexistent-branch";
+
+            var result = await testableDetector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result, "Should handle non-existent branch gracefully");
+        }
+
+        [TestMethod]
+        public async Task TryFindMergeBase_FindMergeBaseThrowsLibGit2_LogsDebug()
+        {
+            ExecGit("checkout -b main");
+            CommitFile("main.cs", "public class Main {}", "Main commit");
+            ExecGit("checkout -b feature");
+            CommitFile("feature.cs", "public class Feature {}", "Feature commit");
+
+            var packPath = Path.Combine(_testRepoPath, ".git", "objects", "pack");
+            if (Directory.Exists(packPath))
+            {
+                foreach (var packFile in Directory.GetFiles(packPath))
+                {
+                    try { File.Delete(packFile); } catch { }
+                }
+            }
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result, "Should handle corrupted repository gracefully");
+        }
+
+        [TestMethod]
+        public async Task GetCommittedChanges_DiffCompareThrowsLibGit2_LogsDebug()
+        {
+            ExecGit("checkout -b main");
+            CommitFile("main.cs", "public class Main {}", "Main commit");
+            ExecGit("checkout -b feature");
+            CommitFile("feature.cs", "public class Feature {}", "Feature commit");
+            CorruptGitObjects();
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result, "Should handle corrupted objects gracefully");
+        }
+
+        [TestMethod]
+        public async Task GetStatusChanges_RetrieveStatusThrowsLibGit2_LogsDebug()
+        {
+            CommitFile("test.cs", "public class Test {}", "Add test");
+            CorruptGitIndex();
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result, "Should handle corrupted index gracefully");
         }
     }
 }
