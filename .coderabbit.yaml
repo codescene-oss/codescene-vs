@@ -3,7 +3,8 @@ reviews:
   poem: false
   high_level_summary: false 
   sequence_diagrams: false
-  ignore_usernames: ["vemv", "vemvcs"]
+  auto_review:
+    ignore_usernames: ["vemv", "vemvcs"]
   finishing_touches:
     docstrings:
       enabled: false
