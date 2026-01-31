@@ -171,10 +171,25 @@ namespace Codescene.VSExtension.Core.Tests
             public bool ThrowFromFindMergeBase { get; set; }
             public bool ThrowFromDiffCompare { get; set; }
             public bool ThrowFromRetrieveStatus { get; set; }
+            public bool SimulateInvalidCurrentBranch { get; set; }
+            public bool SimulateInvalidMainBranch { get; set; }
 
             public TestableGitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker)
                 : base(logger, supportedFileChecker)
             {
+            }
+
+            protected override Commit GetMergeBaseCommit(Repository repo)
+            {
+                if (SimulateInvalidCurrentBranch)
+                {
+                    return null;
+                }
+                if (ThrowInGetMergeBaseCommit)
+                {
+                    throw new Exception("Simulated exception from GetMergeBaseCommit");
+                }
+                return base.GetMergeBaseCommit(repo);
             }
 
             protected override List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
@@ -197,6 +212,10 @@ namespace Codescene.VSExtension.Core.Tests
 
             protected override Commit TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
             {
+                if (SimulateInvalidMainBranch)
+                {
+                    return null;
+                }
                 if (ThrowFromFindMergeBase)
                 {
                     throw new Exception("Simulated exception from TryFindMergeBase");

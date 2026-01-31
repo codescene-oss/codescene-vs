@@ -166,5 +166,106 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsNotNull(result, "Should handle many unstaged files gracefully");
         }
+
+        [TestMethod]
+        public async Task GetMergeBaseCommit_InvalidCurrentBranch_ReturnsEmptyList()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-test");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+            CommitFile("test.cs", "public class Test {}", "Add test");
+
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            testableDetector.SimulateInvalidCurrentBranch = true;
+
+            var result = await testableDetector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result, "Should return non-null result even with invalid branch");
+        }
+
+        [TestMethod]
+        public async Task TryFindMergeBase_InvalidMainBranch_ReturnsEmptyList()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-test");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+            CommitFile("test.cs", "public class Test {}", "Add test");
+
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            testableDetector.SimulateInvalidMainBranch = true;
+
+            var result = await testableDetector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result, "Should handle invalid main branch gracefully");
+        }
+
+        [TestMethod]
+        public async Task TryFindMergeBase_FindMergeBaseThrows_HandlesGracefully()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-test");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+            CommitFile("test.cs", "public class Test {}", "Add test");
+
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            testableDetector.ThrowFromFindMergeBase = true;
+
+            var result = await testableDetector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result, "Should handle FindMergeBase exception gracefully");
+            Assert.IsTrue(_fakeLogger.DebugMessages.Any(m => m.Contains("Could not determine merge base")),
+                "Should log debug message when FindMergeBase throws exception");
+        }
+
+        [TestMethod]
+        public async Task GetCommittedChanges_DiffCompareThrows_HandlesGracefully()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-test");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+            CommitFile("test.cs", "public class Test {}", "Add test");
+
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            testableDetector.ThrowFromDiffCompare = true;
+
+            var result = await testableDetector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result, "Should handle Diff.Compare exception gracefully");
+            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Error getting changed files")),
+                "Should log warning message when Diff.Compare throws exception");
+        }
+
+        [TestMethod]
+        public async Task GetStatusChanges_RetrieveStatusThrows_HandlesGracefully()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-test");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+            CommitFile("test.cs", "public class Test {}", "Add test");
+
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            testableDetector.ThrowFromRetrieveStatus = true;
+
+            var result = await testableDetector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result, "Should handle RetrieveStatus exception gracefully");
+            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Error getting changed files")),
+                "Should log warning message when RetrieveStatus throws exception");
+        }
     }
 }
