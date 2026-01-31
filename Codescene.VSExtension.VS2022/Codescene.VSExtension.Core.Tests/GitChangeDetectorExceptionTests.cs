@@ -279,12 +279,21 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task TryFindMergeBase_BranchNotFound_ReturnsNull()
         {
+            ExecGit("checkout --orphan orphan-feature");
+            CommitFile("test.cs", "public class Test {}", "Orphan commit");
+
             using (var repo = new Repository(_testRepoPath))
             {
-                var featureBranch = repo.CreateBranch("feature-test");
-                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+                var mainBranches = new[] { "main", "master", "develop" };
+                foreach (var branchName in mainBranches)
+                {
+                    var branch = repo.Branches[branchName];
+                    if (branch != null)
+                    {
+                        repo.Branches.Remove(branch);
+                    }
+                }
             }
-            CommitFile("test.cs", "public class Test {}", "Add test");
 
             var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
             testableDetector.ForceBranchLookupFailure = "nonexistent-branch";
