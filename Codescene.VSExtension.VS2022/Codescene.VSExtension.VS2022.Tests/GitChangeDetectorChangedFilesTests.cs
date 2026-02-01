@@ -91,61 +91,26 @@ namespace Codescene.VSExtension.VS2022.Tests
                 "Should detect new file in detached HEAD state");
         }
 
+        [DataRow(InvalidPathScenario.Null, DisplayName = "Null git root path returns empty list")]
+        [DataRow(InvalidPathScenario.Empty, DisplayName = "Empty git root path returns empty list")]
+        [DataRow(InvalidPathScenario.NonExistent, DisplayName = "Non-existent directory returns empty list")]
+        [DataRow(InvalidPathScenario.NoGitRepository, DisplayName = "No git repository returns empty list")]
         [TestMethod]
-        public async Task GetChangedFilesVsBaselineAsync_NullGitRootPath_ReturnsEmptyList()
+        public async Task GetChangedFilesVsBaselineAsync_InvalidPaths_ReturnsEmptyList(InvalidPathScenario scenario)
         {
-            var result = await _detector.GetChangedFilesVsBaselineAsync(
-                null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
-
-            Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Count);
-        }
-
-        [TestMethod]
-        public async Task GetChangedFilesVsBaselineAsync_EmptyGitRootPath_ReturnsEmptyList()
-        {
-            var result = await _detector.GetChangedFilesVsBaselineAsync(
-                "", _fakeSavedFilesTracker, _fakeOpenFilesObserver);
-
-            Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Count);
-        }
-
-        [TestMethod]
-        public async Task GetChangedFilesVsBaselineAsync_NonExistentDirectory_ReturnsEmptyList()
-        {
-            var nonExistentPath = Path.Combine(Path.GetTempPath(), $"nonexistent-{Guid.NewGuid()}");
-
-            var result = await _detector.GetChangedFilesVsBaselineAsync(
-                nonExistentPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
-
-            Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Count);
-        }
-
-        [TestMethod]
-        public async Task GetChangedFilesVsBaselineAsync_NoGitRepository_ReturnsEmptyList()
-        {
-            var tempDir = Path.Combine(Path.GetTempPath(), $"no-git-{Guid.NewGuid()}");
-            Directory.CreateDirectory(tempDir);
+            var path = GetPathForScenario(scenario);
 
             try
             {
                 var result = await _detector.GetChangedFilesVsBaselineAsync(
-                    tempDir, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                    path, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
                 Assert.IsNotNull(result);
                 Assert.AreEqual(0, result.Count);
             }
             finally
             {
-                try
-                {
-                    Directory.Delete(tempDir, true);
-                }
-                catch
-                {
-                }
+                CleanupPathForScenario(scenario, path);
             }
         }
 
@@ -318,6 +283,54 @@ namespace Codescene.VSExtension.VS2022.Tests
             Assert.IsTrue(result.Any(f => f.EndsWith("file1.cs")));
             Assert.IsTrue(result.Any(f => f.EndsWith("file2.js")));
             Assert.IsTrue(result.Any(f => f.EndsWith("file3.py")));
+        }
+
+        public enum InvalidPathScenario
+        {
+            Null,
+            Empty,
+            NonExistent,
+            NoGitRepository
+        }
+
+        private string GetPathForScenario(InvalidPathScenario scenario)
+        {
+            switch (scenario)
+            {
+                case InvalidPathScenario.Null:
+                    return null;
+                case InvalidPathScenario.Empty:
+                    return "";
+                case InvalidPathScenario.NonExistent:
+                    return Path.Combine(Path.GetTempPath(), $"nonexistent-{Guid.NewGuid()}");
+                case InvalidPathScenario.NoGitRepository:
+                    var tempDir = Path.Combine(Path.GetTempPath(), $"no-git-{Guid.NewGuid()}");
+                    Directory.CreateDirectory(tempDir);
+                    return tempDir;
+                default:
+                    throw new ArgumentException($"Unknown scenario: {scenario}");
+            }
+        }
+
+        private void CleanupPathForScenario(InvalidPathScenario scenario, string path)
+        {
+            if (scenario != InvalidPathScenario.NoGitRepository)
+            {
+                return;
+            }
+
+            if (path == null || !Directory.Exists(path))
+            {
+                return;
+            }
+
+            try
+            {
+                Directory.Delete(path, true);
+            }
+            catch
+            {
+            }
         }
     }
 }

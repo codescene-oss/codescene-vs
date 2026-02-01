@@ -252,28 +252,21 @@ namespace Codescene.VSExtension.VS2022.Tests
             AssertFileInChangedList(changedFiles, "uncommitted.ts");
         }
 
+        [DataRow("notes.txt", "Some notes", false, DisplayName = "Rejects unsupported file types (.txt)")]
+        [DataRow("code.ts", "export const x = 1;", true, DisplayName = "Accepts supported file types (.ts)")]
         [TestMethod]
-        public async Task ShouldProcessFile_RejectsUnsupportedFileTypes()
+        public async Task ShouldProcessFile_ChecksFileSupport(string filename, string content, bool expectedResult)
         {
-            var txtFile = CreateFile("notes.txt", "Some notes");
-            _fakeSupportedFileChecker.SetSupported(txtFile, false);
+            var filePath = CreateFile(filename, content);
+            _fakeSupportedFileChecker.SetSupported(filePath, expectedResult);
 
             var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            var result = _gitChangeObserver.ShouldProcessFileForTesting(txtFile, changedFiles);
+            var result = _gitChangeObserver.ShouldProcessFileForTesting(filePath, changedFiles);
 
-            Assert.IsFalse(result, "Should not process .txt files");
-        }
-
-        [TestMethod]
-        public async Task ShouldProcessFile_AcceptsSupportedFileTypes()
-        {
-            var tsFile = CreateFile("code.ts", "export const x = 1;");
-            _fakeSupportedFileChecker.SetSupported(tsFile, true);
-
-            var changedFiles = await _gitChangeObserver.GetChangedFilesVsBaselineAsync();
-            var result = _gitChangeObserver.ShouldProcessFileForTesting(tsFile, changedFiles);
-
-            Assert.IsTrue(result, "Should process .ts files");
+            Assert.AreEqual(expectedResult, result,
+                expectedResult
+                    ? $"Should process {Path.GetExtension(filename)} files"
+                    : $"Should not process {Path.GetExtension(filename)} files");
         }
 
         [TestMethod]
