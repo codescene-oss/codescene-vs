@@ -101,6 +101,55 @@ namespace Codescene.VSExtension.Core.Tests
             }
         }
 
+        protected void CorruptGitObjects()
+        {
+            var objectsPath = Path.Combine(_testRepoPath, ".git", "objects");
+            foreach (var dir in Directory.GetDirectories(objectsPath))
+            {
+                var dirName = Path.GetFileName(dir);
+                if (dirName.Length != 2)
+                {
+                    continue;
+                }
+                if (dirName == "pa" || dirName == "in")
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var files = Directory.GetFiles(dir);
+                    if (files.Length > 0)
+                    {
+                        File.Delete(files[0]);
+                        break;
+                    }
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        protected void CorruptGitIndex()
+        {
+            var indexPath = Path.Combine(_testRepoPath, ".git", "index");
+            if (File.Exists(indexPath))
+            {
+                try
+                {
+                    using (var fs = File.OpenWrite(indexPath))
+                    {
+                        fs.SetLength(0);
+                        fs.Write(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF }, 0, 4);
+                    }
+                }
+                catch
+                {
+                }
+            }
+        }
+
         protected class FakeLogger : ILogger
         {
             public readonly List<string> DebugMessages = new List<string>();
@@ -171,10 +220,26 @@ namespace Codescene.VSExtension.Core.Tests
             public bool ThrowFromFindMergeBase { get; set; }
             public bool ThrowFromDiffCompare { get; set; }
             public bool ThrowFromRetrieveStatus { get; set; }
+            public bool SimulateInvalidCurrentBranch { get; set; }
+            public bool SimulateInvalidMainBranch { get; set; }
+            public string ForceBranchLookupFailure { get; set; }
 
             public TestableGitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker)
                 : base(logger, supportedFileChecker)
             {
+            }
+
+            protected override Commit GetMergeBaseCommit(Repository repo)
+            {
+                if (SimulateInvalidCurrentBranch)
+                {
+                    return null;
+                }
+                if (ThrowInGetMergeBaseCommit)
+                {
+                    throw new Exception("Simulated exception from GetMergeBaseCommit");
+                }
+                return base.GetMergeBaseCommit(repo);
             }
 
             protected override List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
@@ -192,11 +257,20 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     throw new Exception("Simulated exception from GetMainBranchCandidates");
                 }
-                return base.GetMainBranchCandidates(repo);
+                var candidates = base.GetMainBranchCandidates(repo);
+                if (!string.IsNullOrEmpty(ForceBranchLookupFailure))
+                {
+                    candidates.Add(ForceBranchLookupFailure);
+                }
+                return candidates;
             }
 
             protected override Commit TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
             {
+                if (SimulateInvalidMainBranch)
+                {
+                    return null;
+                }
                 if (ThrowFromFindMergeBase)
                 {
                     throw new Exception("Simulated exception from TryFindMergeBase");
