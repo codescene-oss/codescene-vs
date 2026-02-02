@@ -6,7 +6,7 @@
 
 CodeScene promotes **healthy, maintainable code** by providing clear, actionable insights and guidance on how to improve your codebase.
 
-With an add-on **Automatic Refactoring**, CodeScene can even automate parts of the improvement process—helping developers enhance code quality and maintainability faster and more accurately.
+With an add-on **Automatic Refactoring with ACE**, CodeScene can even automate parts of the improvement process—helping developers enhance code quality and maintainability faster and more accurately.
 
 By using CodeScene, developers can spend less time deciphering and refactoring code, and more time focusing on what truly matters: **solving problems and delivering value**.
 
