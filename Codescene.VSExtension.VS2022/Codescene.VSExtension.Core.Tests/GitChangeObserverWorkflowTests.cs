@@ -13,116 +13,9 @@ using System.Threading.Tasks;
 namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
-    public class GitChangeObserverWorkflowTests
+    public class GitChangeObserverWorkflowTests : GitChangeObserverTestBase
     {
-        private string _testRepoPath;
-        private GitChangeObserverCore _gitChangeObserverCore;
-        private FakeLogger _fakeLogger;
-        private FakeCodeReviewer _fakeCodeReviewer;
-        private FakeSupportedFileChecker _fakeSupportedFileChecker;
-        private FakeGitService _fakeGitService;
-        private FakeSavedFilesTracker _fakeSavedFilesTracker;
-        private FakeOpenFilesObserver _fakeOpenFilesObserver;
-
-        [TestInitialize]
-        public void Setup()
-        {
-            _testRepoPath = Path.Combine(Path.GetTempPath(), $"test-git-repo-workflow-{Guid.NewGuid()}");
-
-            if (Directory.Exists(_testRepoPath))
-            {
-                Directory.Delete(_testRepoPath, true);
-            }
-
-            Directory.CreateDirectory(_testRepoPath);
-
-            Repository.Init(_testRepoPath);
-
-            using (var repo = new Repository(_testRepoPath))
-            {
-                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
-                repo.Config.Set("user.email", "test@example.com");
-                repo.Config.Set("user.name", "Test User");
-                repo.Config.Set("advice.defaultBranchName", "false");
-            }
-
-            var gitInfoDir = Path.Combine(_testRepoPath, ".git", "info");
-            Directory.CreateDirectory(gitInfoDir);
-            var dummyExcludesPath = Path.Combine(gitInfoDir, "exclude-test");
-            File.WriteAllText(dummyExcludesPath, "# Test excludes file - will not match anything\n__xxxxxxxxxxxxx__\n");
-
-            using (var repo = new Repository(_testRepoPath))
-            {
-                repo.Config.Set("core.excludesfile", dummyExcludesPath);
-            }
-
-            CommitFile("README.md", "# Test Repository", "Initial commit");
-
-            _fakeLogger = new FakeLogger();
-            _fakeCodeReviewer = new FakeCodeReviewer();
-            _fakeSupportedFileChecker = new FakeSupportedFileChecker();
-            _fakeGitService = new FakeGitService();
-            _fakeSavedFilesTracker = new FakeSavedFilesTracker();
-            _fakeOpenFilesObserver = new FakeOpenFilesObserver();
-
-            _gitChangeObserverCore = CreateGitChangeObserverCore();
-
-            Thread.Sleep(500);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            _gitChangeObserverCore?.Dispose();
-
-            if (Directory.Exists(_testRepoPath))
-            {
-                try
-                {
-                    Directory.Delete(_testRepoPath, true);
-                }
-                catch
-                {
-                }
-            }
-        }
-
-        private GitChangeObserverCore CreateGitChangeObserverCore()
-        {
-            var observer = new GitChangeObserverCore(_fakeLogger, _fakeCodeReviewer,
-                _fakeSupportedFileChecker, _fakeGitService, new FakeAsyncTaskScheduler());
-
-            observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
-
-            return observer;
-        }
-
-        private void ExecGit(string args)
-        {
-            var psi = new ProcessStartInfo
-            {
-                FileName = "git",
-                Arguments = args,
-                WorkingDirectory = _testRepoPath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using (var process = Process.Start(psi))
-            {
-                process.WaitForExit();
-
-                if (process.ExitCode != 0)
-                {
-                    var error = process.StandardError.ReadToEnd();
-                    throw new Exception($"Git command failed: {args}\n{error}");
-                }
-            }
-        }
-
-        private string CreateFile(string filename, string content)
+        protected new string CreateFile(string filename, string content)
         {
             var filePath = Path.Combine(_testRepoPath, filename);
             var directory = Path.GetDirectoryName(filePath);
@@ -132,39 +25,6 @@ namespace Codescene.VSExtension.Core.Tests
             }
             File.WriteAllText(filePath, content);
             return filePath;
-        }
-
-        private string CommitFile(string filename, string content, string message)
-        {
-            var filePath = CreateFile(filename, content);
-
-            using (var repo = new Repository(_testRepoPath))
-            {
-                LibGit2Sharp.Commands.Stage(repo, filename);
-                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
-                repo.Commit(message, signature, signature);
-            }
-
-            return filePath;
-        }
-
-        private void AssertFileInChangedList(List<string> changedFiles, string filename, bool shouldExist = true)
-        {
-            var exists = changedFiles.Any(f => f.EndsWith(filename, StringComparison.OrdinalIgnoreCase));
-            Assert.AreEqual(shouldExist, exists, shouldExist ? $"Should include {filename}" : $"Should not include {filename}");
-        }
-
-        private void AssertFileInTracker(string filePath, bool shouldExist = true)
-        {
-            var trackerManager = _gitChangeObserverCore.GetTrackerManager();
-            var exists = trackerManager.Contains(filePath);
-            Assert.AreEqual(shouldExist, exists, shouldExist ? "File should be in tracker" : "File should not be in tracker");
-        }
-
-        private async Task TriggerFileChangeAsync(string filePath)
-        {
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
-            await _gitChangeObserverCore.HandleFileChangeForTestingAsync(filePath, changedFiles);
         }
 
         [TestMethod]

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Tests
 {
-    internal class TestFileData
+    public class TestFileData
     {
         public string Filename { get; set; }
         public string Content { get; set; }
@@ -26,7 +26,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
     }
 
-    internal class FileAssertionHelper
+    public class FileAssertionHelper
     {
         private readonly List<string> _changedFiles;
         private readonly TrackerManager _trackerManager;
