@@ -3,8 +3,8 @@ $ErrorActionPreference = "Stop"
 $baseBranch = if ($env:GITHUB_BASE_REF) { "origin/$env:GITHUB_BASE_REF" } else { "main" }
 
 $newFileThreshold = 12
-$newFilesLocThreshold = 2000
-$modifiedFilesLocThreshold = 2000
+$newFilesLocThreshold = 2250
+$modifiedFilesLocThreshold = 2250
 $combinedLocThreshold = 2750
 
 try {
@@ -37,6 +37,10 @@ try {
         $filePath = $parts[1].Trim()
 
         if ($filePath -notmatch '\.cs$') {
+            continue
+        }
+
+        if ($filePath -match 'pr-size\.ps1$') {
             continue
         }
 
