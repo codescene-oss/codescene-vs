@@ -1,25 +1,22 @@
-﻿using Codescene.VSExtension.Core.Models.Cache.Review;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.VS2022.Controls;
-using Codescene.VSExtension.VS2022.Util;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
-using Codescene.VSExtension.Core.Application.Cache.Review;
 
 namespace Codescene.VSExtension.VS2022.UnderlineTagger
 {
-    public class ReviewResultTagger : ITagger<IErrorTag>
+    public class ReviewResultTagger : ITagger<IErrorTag>, IDisposable
     {
         private readonly ITextBuffer _buffer;
         private readonly string _filePath;
         private readonly ReviewCacheService _cache = new();
-        private readonly AceRefactorableFunctionsCacheService _aceRefactorableFunctionsCache = new();
+        private bool _disposed;
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
@@ -43,48 +40,21 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
             var smells = TryLoadFromCache();
-            var refactorableFunctions = TryLoadRefactorableFunctionsFromCache();
 
             if (smells.Count == 0)
                 yield break; // No tags, exit early
-
-            FnToRefactorModel? lastRefactorableFunction = null;
-            SnapshotSpan? lastTagSpan = null;
 
             foreach (var visibleSpan in spans)
             {
                 foreach (var codeSmell in smells)
                 {
-                    var tag = HandleErrorTagSpan(new TagSpanParams(visibleSpan, codeSmell), ref lastRefactorableFunction, ref lastTagSpan, refactorableFunctions);
-                    if (tag != null)
+                    var tagSpan = TryCreateTagSpan(new TagSpanParams(visibleSpan, codeSmell));
+                    if (tagSpan != null && tagSpan.Value.IntersectsWith(visibleSpan))
                     {
-                        yield return tag;
+                        yield return CreateErrorTagSpan(new TagSpanParams(tagSpan.Value, codeSmell));
                     }
                 }
             }
-            if (lastTagSpan != null)
-                yield return CreateAceRefactorTagSpan(lastTagSpan.Value, lastRefactorableFunction);
-        }
-
-        private TagSpan<IErrorTag> HandleErrorTagSpan(
-            TagSpanParams tagSpanParams,
-            ref FnToRefactorModel? lastRefactorableFunction,
-            ref SnapshotSpan? lastTagSpan,
-            IList<FnToRefactorModel> refactorableFunctions)
-        {
-            var tagSpan = TryCreateTagSpan(tagSpanParams);
-            var refactorableFunction = AceUtils.GetRefactorableFunction(tagSpanParams.CodeSmell, refactorableFunctions);
-
-            if (tagSpan != null && tagSpan.Value.IntersectsWith(tagSpanParams.Span))
-            {
-                if (refactorableFunction != null)
-                {
-                    lastTagSpan = tagSpan;
-                    lastRefactorableFunction = refactorableFunction;
-                }
-                return CreateErrorTagSpan(new TagSpanParams(tagSpan.Value, tagSpanParams.CodeSmell));
-            }
-            return null;
         }
 
         private List<CodeSmellModel> TryLoadFromCache()
@@ -96,14 +66,6 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 return cached.FileLevel.Concat(cached.FunctionLevel).ToList() ?? [];
 
             return [];
-        }
-
-        private IList<FnToRefactorModel> TryLoadRefactorableFunctionsFromCache()
-        {
-            string currentContent = _buffer.CurrentSnapshot.GetText();
-            IList<FnToRefactorModel> cached = _aceRefactorableFunctionsCache.Get(new AceRefactorableFunctionsQuery(_filePath, currentContent));
-
-            return cached;
         }
 
         public void RefreshTags()
@@ -181,15 +143,23 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             return new TagSpan<IErrorTag>(tagSpanParams.Span, errorTag);
         }
 
-        private TagSpan<IErrorTag> CreateAceRefactorTagSpan(SnapshotSpan span, FnToRefactorModel refactorableFunction)
+        public void Dispose()
         {
-            var tooltipParams = new AceRefactorTooltipParams(_filePath, refactorableFunction);
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-            var errorTag = new ErrorTag(
-                PredefinedErrorTypeNames.Warning,
-                new AceRefactorTooltip(tooltipParams));
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
 
-            return new TagSpan<IErrorTag>(span, errorTag);
+            if (disposing)
+            {
+                // Reserved for future cleanup
+            }
+
+            _disposed = true;
         }
 
         internal class TagSpanParams(SnapshotSpan span, CodeSmellModel codeSmell)

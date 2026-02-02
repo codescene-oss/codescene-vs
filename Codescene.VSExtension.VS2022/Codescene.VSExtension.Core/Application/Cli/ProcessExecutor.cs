@@ -5,8 +5,12 @@ using Newtonsoft.Json;
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+
+[assembly: InternalsVisibleTo("Codescene.VSExtension.Core.Tests")]
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
@@ -24,11 +28,22 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public string Execute(string arguments, string content = null, TimeSpan? timeout = null)
         {
+            var cliFilePath = _cliSettingsProvider.CliFileFullPath;
+            
+            if (!File.Exists(cliFilePath))
+            {
+                throw new FileNotFoundException(
+                    $"CodeScene CLI executable not found at {cliFilePath}. " +
+                    "The CLI should be bundled with the extension. " +
+                    "Please reinstall the extension or contact support if this issue persists.",
+                    cliFilePath);
+            }
+
             var actualTimeout = timeout ?? Constants.Timeout.DEFAULT_CLI_TIMEOUT;
 
             var processInfo = new ProcessStartInfo
             {
-                FileName = _cliSettingsProvider.CliFileFullPath,
+                FileName = cliFilePath,
                 Arguments = arguments,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = true,

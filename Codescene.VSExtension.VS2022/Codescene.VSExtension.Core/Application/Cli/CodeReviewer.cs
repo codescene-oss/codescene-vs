@@ -67,6 +67,16 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 var oldCode = _git.GetFileContentForCommit(path);
                 var cache = new DeltaCacheService();
+
+                // Skip delta if content is identical (no changes since baseline)
+                if (oldCode == currentCode)
+                {
+                    _logger.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: content unchanged since baseline.");
+                    // Cache null delta to remove file from monitor if it was previously shown
+                    cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, null));
+                    return null;
+                }
+
                 var entry = cache.Get(new DeltaCacheQuery(path, oldCode, currentCode));
 
                 // If cache hit
@@ -74,6 +84,15 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
                 var oldCodeReview = Review(path, oldCode);
                 var oldRawScore = oldCodeReview?.RawScore ?? "";
+
+                // Skip delta if scores are identical (same code health, no meaningful change)
+                if (oldRawScore == currentRawScore)
+                {
+                    _logger.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: scores are identical.");
+                    // Cache null delta to remove file from monitor if it was previously shown
+                    cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, null));
+                    return null;
+                }
 
                 var delta = _executer.ReviewDelta(oldRawScore, currentRawScore);
 

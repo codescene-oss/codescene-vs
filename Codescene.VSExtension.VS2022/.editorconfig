@@ -1,0 +1,17 @@
+
+root = true
+
+# All files
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+[*.cs]
+# SA1101PrefixLocalCallsWithThis
+dotnet_diagnostic.SA1101.severity = none
+# SA1309FieldNamesMustNotBeginWithUnderscore
+dotnet_diagnostic.SA1309.severity = none
+
+[*Tests.cs]
+# CS8618: Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+dotnet_diagnostic.CS8618.severity = none

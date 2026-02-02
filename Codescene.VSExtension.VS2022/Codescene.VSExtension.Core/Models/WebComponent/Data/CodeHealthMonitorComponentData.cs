@@ -37,8 +37,14 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
         public bool Activated { get; set; }
         public bool Visible { get; set; }
         public bool Disabled { get; set; }
+        public AceStatusType AceStatus { get; set; }
     }
 
+    public class AceStatusType
+    {
+        public string Status { get; set; }
+        public bool HasToken { get; set; }
+    }
     public class ChangeDetail
     {
         public int? Line { get; set; }
@@ -57,7 +63,7 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
     public class Function
     {
         public string Name { get; set; }
-        public CodeSmellRangeModel Range { get; set; }
+        public CodeRangeModel Range { get; set; }
     }
 
     public class FunctionToRefactor
@@ -66,7 +72,7 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
         public string Body { get; set; }
         public string NippyB64 { get; set; }
         public string FunctionType { get; set; }
-        public CodeSmellRangeModel Range { get; set; }
+        public CodeRangeModel Range { get; set; }
         public List<RefactoringTargetModel> RefactoringTargets { get; set; }
     }
 }

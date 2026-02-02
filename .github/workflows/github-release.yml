@@ -52,6 +52,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check PR size
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          git fetch origin main:main
+          powershell.exe -File .github/pr-size.ps1
+
       - name: Download fetched assets
         uses: actions/download-artifact@v4
         with:

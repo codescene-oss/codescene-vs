@@ -242,5 +242,77 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert - verify ReviewDelta was called with empty string for current raw score
             _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), ""), Times.Once);
         }
+
+        [TestMethod]
+        public void Delta_IdenticalContent_ReturnsNullAndSkipsDeltaAnalysis()
+        {
+            // Arrange
+            var currentCode = "public class Test { }";
+            var review = new FileReviewModel { FilePath = "test.cs", RawScore = "raw-score" };
+
+            // Git returns the same content as current (no changes since baseline)
+            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
+                .Returns(currentCode);
+
+            // Act
+            var result = _codeReviewer.Delta(review, currentCode);
+
+            // Assert
+            Assert.IsNull(result);
+            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("content unchanged since baseline"))), Times.Once);
+            // ReviewDelta should NOT be called since content is identical
+            _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void Delta_IdenticalScores_ReturnsNullAndSkipsDeltaAnalysis()
+        {
+            // Arrange
+            var oldCode = "public class Test { int x = 1; }";
+            var currentCode = "public class Test { int y = 1; }";
+            var identicalRawScore = "identical-raw-score";
+            var review = new FileReviewModel { FilePath = "test.cs", RawScore = identicalRawScore };
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
+                .Returns(oldCode);
+            _mockExecutor.Setup(x => x.ReviewContent(It.IsAny<string>(), oldCode))
+                .Returns(new CliReviewModel { RawScore = identicalRawScore });
+            _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
+                .Returns(new FileReviewModel { RawScore = identicalRawScore });
+
+            // Act
+            var result = _codeReviewer.Delta(review, currentCode);
+
+            // Assert
+            Assert.IsNull(result);
+            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("scores are identical"))), Times.Once);
+            // ReviewDelta should NOT be called since scores are identical
+            _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void Delta_DifferentContent_CallsReviewDelta()
+        {
+            // Arrange
+            var oldCode = "public class Test { }";
+            var currentCode = "public class Test { int x; }";
+            var review = new FileReviewModel { FilePath = "test.cs", RawScore = "new-raw" };
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
+                .Returns(oldCode);
+            _mockExecutor.Setup(x => x.ReviewContent(It.IsAny<string>(), oldCode))
+                .Returns(new CliReviewModel { RawScore = "old-raw" });
+            _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
+                .Returns(new FileReviewModel { RawScore = "old-raw" });
+            _mockExecutor.Setup(x => x.ReviewDelta("old-raw", "new-raw"))
+                .Returns(new Models.Cli.Delta.DeltaResponseModel { ScoreChange = -0.5m });
+
+            // Act
+            var result = _codeReviewer.Delta(review, currentCode);
+
+            // Assert
+            Assert.IsNotNull(result);
+            _mockExecutor.Verify(x => x.ReviewDelta("old-raw", "new-raw"), Times.Once);
+        }
     }
 }

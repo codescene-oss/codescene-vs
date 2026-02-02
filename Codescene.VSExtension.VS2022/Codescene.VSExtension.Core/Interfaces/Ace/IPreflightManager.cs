@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+﻿using Codescene.VSExtension.Core.Enums;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 
 namespace Codescene.VSExtension.Core.Interfaces.Ace
@@ -9,5 +10,6 @@ namespace Codescene.VSExtension.Core.Interfaces.Ace
         PreFlightResponseModel RunPreflight(bool force = false);
         PreFlightResponseModel GetPreflightResponse();
         AutoRefactorConfig GetAutoRefactorConfig();
-	}
+        void SetHasAceToken(bool hasAceToken);
+    }
 }

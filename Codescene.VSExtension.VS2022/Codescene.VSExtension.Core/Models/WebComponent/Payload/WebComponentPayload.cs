@@ -21,6 +21,6 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Payload
         /// Intended for debugging purposes. Should remain <c>false</c> in production.
         /// </summary>
         public bool Devmode { get; set; } = false;
-        public List<string> FeatureFlags { get; set; } = new List<string>() { "jobs", "open-settings" }; // Include loaders feature
+        public List<string> FeatureFlags { get; set; } = new List<string>() { "jobs", "open-settings", "ace-status-indicator" }; // Include loaders feature
     }
 }

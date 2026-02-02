@@ -14,7 +14,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliCommandProvider : ICliCommandProvider
     {
-        private static readonly JsonSerializerSettings RefactorSerializerSettings = new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore };
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore };
 
         private readonly ICliObjectScoreCreator _creator;
 
@@ -56,9 +56,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             request.FileName = fileName;
             request.FileContent = fileContent;
-            request.CachePath = cachePath;
+            if (!string.IsNullOrWhiteSpace(cachePath))
+            {
+                request.CachePath = cachePath;
+            }
+
             request.Preflight = preflight;
-            return JsonConvert.SerializeObject(request, RefactorSerializerSettings);
+            return JsonConvert.SerializeObject(request, SerializerSettings);
         }
 
         public string GetRefactorPostCommand(FnToRefactorModel fnToRefactor, bool skipCache, string token = null)
@@ -103,9 +107,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 FilePath = filePath,
                 FileContent = fileContent,
-                CachePath = cachePath
+                CachePath = string.IsNullOrWhiteSpace(cachePath) ? null : cachePath
             };
-            return JsonConvert.SerializeObject(request);
+            return JsonConvert.SerializeObject(request, SerializerSettings);
         }
 
         public string GetReviewPathCommand(string path) => GetArgumentStr("review", path);

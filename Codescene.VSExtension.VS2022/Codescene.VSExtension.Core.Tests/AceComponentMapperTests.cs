@@ -191,7 +191,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = _mapper.Map("test.cs", fn);
 
-            Assert.AreEqual(15, result.FileData.Fn.Range.Startline);
+            Assert.AreEqual(15, result.FileData.Fn.Range.StartLine);
         }
 
         [TestMethod]
@@ -235,6 +235,88 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _mapper.Map("test.cs", fn);
 
             Assert.AreEqual("ProcessData", result.FileData.Fn.Name);
+        }
+
+        [TestMethod]
+        public void Map_CachedModel_SetsIsStaleToFalse()
+        {
+            var model = CreateCachedModel();
+
+            var result = _mapper.Map(model);
+
+            Assert.IsFalse(result.IsStale);
+        }
+
+        [TestMethod]
+        public void MapAsStale_ReturnsComponentData()
+        {
+            var model = CreateCachedModel();
+
+            var result = _mapper.MapAsStale(model);
+
+            Assert.IsNotNull(result);
+        }
+
+        [TestMethod]
+        public void MapAsStale_SetsIsStaleToTrue()
+        {
+            var model = CreateCachedModel();
+
+            var result = _mapper.MapAsStale(model);
+
+            Assert.IsTrue(result.IsStale);
+        }
+
+        [TestMethod]
+        public void MapAsStale_PreservesFileData()
+        {
+            var model = CreateCachedModel(path: "src/MyClass.cs");
+
+            var result = _mapper.MapAsStale(model);
+
+            Assert.AreEqual("src/MyClass.cs", result.FileData.FileName);
+        }
+
+        [TestMethod]
+        public void MapAsStale_PreservesAceResultData()
+        {
+            var refactored = new RefactorResponseModel { Code = "refactored code" };
+            var model = CreateCachedModel(refactored: refactored);
+
+            var result = _mapper.MapAsStale(model);
+
+            Assert.AreEqual(refactored, result.AceResultData);
+        }
+
+        [TestMethod]
+        public void MapAsStale_PreservesFnToRefactor()
+        {
+            var fnToRefactor = CreateFnToRefactor("MyFunction");
+            var model = CreateCachedModel(refactorableCandidate: fnToRefactor);
+
+            var result = _mapper.MapAsStale(model);
+
+            Assert.AreEqual(fnToRefactor, result.FnToRefactor);
+        }
+
+        [TestMethod]
+        public void MapAsStale_SetsLoadingToFalse()
+        {
+            var model = CreateCachedModel();
+
+            var result = _mapper.MapAsStale(model);
+
+            Assert.IsFalse(result.Loading);
+        }
+
+        [TestMethod]
+        public void MapAsStale_SetsErrorToNull()
+        {
+            var model = CreateCachedModel();
+
+            var result = _mapper.MapAsStale(model);
+
+            Assert.IsNull(result.Error);
         }
     }
 }

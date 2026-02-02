@@ -1,4 +1,5 @@
-﻿using Codescene.VSExtension.Core.Models.Cli;
+using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -12,49 +13,25 @@ namespace Codescene.VSExtension.Core.Application.Mappers
     {
         public AceComponentData Map(CachedRefactoringActionModel model)
         {
-            var fileData = CreateFileData(
-                model.Path,
-                model.RefactorableCandidate.Name,
-                model.RefactorableCandidate.Range);
-            var aceParams = new CreateAceComponentDataParams
-            {
-                Loading = false,
-                Error = null,
-                FileData = fileData,
-                AceResultData = model.Refactored,
-                FnToRefactor = model.RefactorableCandidate
-            };
-
-            return CreateAceComponentData(aceParams);
+            return MapCachedModel(model, isStale: false);
         }
 
         public AceComponentData Map(string path, FnToRefactorModel model)
         {
-            var fileData = CreateFileData(
-                path,
-                model.Name,
-                model.Range);
-            var aceParams = new CreateAceComponentDataParams
-            {
-                Loading = true,
-                Error = null,
-                FileData = fileData,
-                AceResultData = null,
-                FnToRefactor = model
-            };
-
-            return CreateAceComponentData(aceParams);
+            return MapFromPathAndFunction(path, model, loading: true, error: null);
         }
 
         public AceComponentData Map(string path, FnToRefactorModel model, string error)
         {
-            var fileData = CreateFileData(
-                path,
-                model.Name,
-                model.Range);
+            return MapFromPathAndFunction(path, model, loading: false, error: error);
+        }
+
+        private AceComponentData MapFromPathAndFunction(string path, FnToRefactorModel model, bool loading, string error)
+        {
+            var fileData = CreateFileData(path, model.Name, model.Range);
             var aceParams = new CreateAceComponentDataParams
             {
-                Loading = false,
+                Loading = loading,
                 Error = error,
                 FileData = fileData,
                 AceResultData = null,
@@ -64,15 +41,37 @@ namespace Codescene.VSExtension.Core.Application.Mappers
             return CreateAceComponentData(aceParams);
         }
 
-        private static CliRangeModel MapRange(CliRangeModel range)
+        /// <summary>
+        /// Maps a cached refactoring model to component data with IsStale set to true.
+        /// Used when the function has been modified and the refactoring is no longer valid.
+        /// </summary>
+        public AceComponentData MapAsStale(CachedRefactoringActionModel model)
         {
-            return new CliRangeModel
+            return MapCachedModel(model, isStale: true);
+        }
+
+        private AceComponentData MapCachedModel(CachedRefactoringActionModel model, bool isStale)
+        {
+            var fileData = CreateFileData(
+                model.Path,
+                model.RefactorableCandidate.Name,
+                model.RefactorableCandidate.Range);
+            var aceParams = new CreateAceComponentDataParams
             {
-                Startline = range.Startline,
-                StartColumn = range.StartColumn,
-                EndLine = range.EndLine,
-                EndColumn = range.EndColumn
+                Loading = false,
+                Error = null,
+                IsStale = isStale,
+                FileData = fileData,
+                AceResultData = model.Refactored,
+                FnToRefactor = model.RefactorableCandidate
             };
+
+            return CreateAceComponentData(aceParams);
+        }
+
+        private static CodeRangeModel MapRange(CliRangeModel range)
+        {
+            return new CodeRangeModel(range.Startline, range.EndLine, range.StartColumn, range.EndColumn);
         }
 
         private static WebComponentFileData CreateFileData(
@@ -95,6 +94,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
         {
             public bool Loading { get; set; }
             public string Error { get; set; }
+            public bool IsStale { get; set; }
             public WebComponentFileData FileData { get; set; }
             public FnToRefactorModel FnToRefactor { get; set; }
             public RefactorResponseModel AceResultData { get; set; }
@@ -106,6 +106,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
             {
                 Error = aceParams.Error,
                 Loading = aceParams.Loading,
+                IsStale = aceParams.IsStale,
                 FileData = aceParams.FileData,
                 FnToRefactor = aceParams.FnToRefactor,
                 AceResultData = aceParams.AceResultData,

@@ -84,6 +84,7 @@ namespace Codescene.VSExtension.Core.Consts
             public const string DETAILS_FUNCTION_DESELECTED = "code_health_details/function_deselected";
 
             public const string REVIEW_OR_DELTA_TIMEOUT = "review_or_delta_timeout";
+            public const string UNHANDLED_ERROR = "unhandledError";
 
             public const string ACE_INFO_PRESENTED = "ace_info/presented";
             public const string ACE_INFO_ACKNOWLEDGED = "ace_info/acknowledged";
