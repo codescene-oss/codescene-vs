@@ -337,6 +337,7 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     throw new Exception("Test exception from code reviewer");
                 }
+
                 return new FileReviewModel { FilePath = path };
             }
 

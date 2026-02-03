@@ -137,6 +137,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 {
                     return;
                 }
+
                 // Ignore telemetry timeouts. Also prevent potential infinite loop since we send timeouts to Amplitude.
                 if (arguments.Command.Contains("telemetry"))
                 {

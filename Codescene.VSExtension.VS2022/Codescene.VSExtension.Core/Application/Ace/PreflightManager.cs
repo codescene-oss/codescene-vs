@@ -85,6 +85,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                     AceStatus = GetAceStatus(_aceStateService.CurrentState),
                 };
             }
+
             return null;
         }
 
@@ -119,6 +120,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
             {
                 return;
             }
+
             _autoRefactorConfig.AceStatus.HasToken = hasAceToken;
             _autoRefactorConfig.Disabled = !hasAceToken;
         }

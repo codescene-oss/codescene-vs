@@ -35,6 +35,7 @@ namespace Codescene.VSExtension.VS2022.Cache
             VS.Events.SolutionEvents.OnAfterOpenFolder += _ => UpdateCachePathAsync().FireAndForget();
             VS.Events.SolutionEvents.OnAfterCloseFolder += _ => UpdateCachePathAsync().FireAndForget();
         }
+
         private async Task UpdateCachePathAsync()
         {
             string workspaceId = await GetWorkspaceIdentifierAsync();

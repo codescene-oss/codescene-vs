@@ -199,8 +199,10 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     return true;
                 }
+
                 await Task.Delay(pollIntervalMs);
             }
+
             return false;
         }
     }

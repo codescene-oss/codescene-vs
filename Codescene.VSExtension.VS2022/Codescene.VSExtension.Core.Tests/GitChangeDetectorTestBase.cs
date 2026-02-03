@@ -111,6 +111,7 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     continue;
                 }
+
                 if (dirName == "pa" || dirName == "in")
                 {
                     continue;
@@ -159,6 +160,7 @@ namespace Codescene.VSExtension.Core.Tests
             public void Info(string message)
             {
             }
+
             public void Warn(string message) => WarnMessages.Add(message);
             public void Error(string message, Exception ex)
             {
@@ -239,10 +241,12 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     return null;
                 }
+
                 if (ThrowInGetMergeBaseCommit)
                 {
                     throw new Exception("Simulated exception from GetMergeBaseCommit");
                 }
+
                 return base.GetMergeBaseCommit(repo);
             }
 
@@ -252,6 +256,7 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     throw new LibGit2SharpException("Simulated LibGit2Sharp exception");
                 }
+
                 return base.GetChangedFilesFromRepository(repo, gitRootPath, savedFilesTracker, openFilesObserver);
             }
 
@@ -261,11 +266,13 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     throw new Exception("Simulated exception from GetMainBranchCandidates");
                 }
+
                 var candidates = base.GetMainBranchCandidates(repo);
                 if (!string.IsNullOrEmpty(ForceBranchLookupFailure))
                 {
                     candidates.Add(ForceBranchLookupFailure);
                 }
+
                 return candidates;
             }
 
@@ -275,10 +282,12 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     return null;
                 }
+
                 if (ThrowFromFindMergeBase)
                 {
                     throw new Exception("Simulated exception from TryFindMergeBase");
                 }
+
                 return base.TryFindMergeBase(repo, currentBranch, candidateName);
             }
 
@@ -288,6 +297,7 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     throw new Exception("Simulated exception from Diff.Compare");
                 }
+
                 return base.GetCommittedChanges(repo, baseCommit, gitRootPath);
             }
 
@@ -297,6 +307,7 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     throw new Exception("Simulated exception from RetrieveStatus");
                 }
+
                 return base.GetStatusChanges(repo, filesToExclude, gitRootPath);
             }
         }

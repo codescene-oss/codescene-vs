@@ -23,6 +23,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Directory.CreateDirectory(directory);
             }
+
             File.WriteAllText(filePath, content);
             return filePath;
         }

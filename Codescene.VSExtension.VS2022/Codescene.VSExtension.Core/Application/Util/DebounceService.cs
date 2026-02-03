@@ -51,9 +51,11 @@ namespace Codescene.VSExtension.Core.Application.Util
                                         _timers.Remove(key);
                                     }
                                 }
+
                                 _logger.Debug($"Performing debounced action... [{key}]");
                                 action();
                             }
+
                             cts.Dispose();
                         }, TaskScheduler.Default);
                 }
@@ -73,6 +75,7 @@ namespace Codescene.VSExtension.Core.Application.Util
                     cts.Cancel();
                     cts.Dispose();
                 }
+
                 _timers.Clear();
             }
         }

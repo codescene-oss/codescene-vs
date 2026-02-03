@@ -109,6 +109,7 @@ public class OnClickRefactoringHandler
             {
                 return;
             }
+
             var refactored = _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction, entryPoint);
             AceComponentData data;
             if (refactored != null)

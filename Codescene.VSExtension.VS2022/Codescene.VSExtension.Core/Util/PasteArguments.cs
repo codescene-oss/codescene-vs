@@ -56,6 +56,7 @@ namespace Codescene.VSExtension.Core.Util
                     stringBuilder.Append(c);
                 }
             }
+
             stringBuilder.Append(Quote);
         }
 

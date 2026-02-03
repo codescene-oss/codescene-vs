@@ -46,6 +46,7 @@ namespace Codescene.VSExtension.VS2022.Util
                         tabCount++;
                     }
                 }
+
                 indentationLevel = tabCount;
             }
             else

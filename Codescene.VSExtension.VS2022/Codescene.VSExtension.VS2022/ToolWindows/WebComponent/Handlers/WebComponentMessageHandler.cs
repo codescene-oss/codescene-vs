@@ -329,6 +329,7 @@ internal class WebComponentMessageHandler
                 logger.Debug("Refreshing 'docs' tool window to disable the refactoring button.");
                 await CodeSmellDocumentationWindow.RefreshViewAsync();
             }
+
             return;
         }
 

@@ -380,6 +380,7 @@ namespace Codescene.VSExtension.Core.Tests
             catch
             {
             }
+
             try
             {
                 ExecGit("branch -D main");
