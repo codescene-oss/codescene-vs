@@ -227,7 +227,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             }
         }
 
-        ///<summary> Try to get the ITextDocument, which contains the file path </summary>
+        /// <summary> Try to get the ITextDocument, which contains the file path </summary>
         private string GetFilePath(ITextBuffer buffer)
         {
             if (buffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document))
