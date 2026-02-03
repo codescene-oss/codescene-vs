@@ -7,6 +7,7 @@ namespace Codescene.VSExtension.Core.Models
         public string Details { get; set; }
         public string FunctionName { get; set; }
         public CodeRangeModel Range { get; set; }
+
         /// <summary>
         /// The range of the function that contains this code smell.
         /// This is only set for function-level code smells.
