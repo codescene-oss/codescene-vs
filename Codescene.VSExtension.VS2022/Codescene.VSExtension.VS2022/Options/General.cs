@@ -11,7 +11,9 @@ internal partial class OptionsProvider
     // Register the options with this attribute on your package class:
     // [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene.VSExtension.VS2022", "General", 0, 0, true, SupportsProfiles = true)]
     [ComVisible(true)]
-    public class GeneralOptions : BaseOptionPage<General> { }
+    public class GeneralOptions : BaseOptionPage<General>
+    {
+    }
 }
 
 public class General : BaseOptionModel<General>
