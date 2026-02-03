@@ -24,7 +24,8 @@ public class ReviewResultTaggerProvider : ITaggerProvider
        or when the file is closed and opened again.
      * It does NOT get called simply when switching focus between already opened files.
      */
-    public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+    public ITagger<T> CreateTagger<T>(ITextBuffer buffer)
+        where T : ITag
     {
         var path = buffer?.GetFileName();
         if (buffer == null)
