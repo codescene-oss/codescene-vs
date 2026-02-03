@@ -91,7 +91,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     Loc = loc,
                     Language = language,
                 };
-                SendPerformanceTelemetry(telemetryData);
+                PerformanceTelemetryHelper.SendPerformanceTelemetry(GetTelemetryManager(), _logger, telemetryData);
             }
 
             return result;
@@ -136,7 +136,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     Loc = loc,
                     Language = language,
                 };
-                SendPerformanceTelemetry(telemetryData);
+                PerformanceTelemetryHelper.SendPerformanceTelemetry(GetTelemetryManager(), _logger, telemetryData);
             }
 
             return result;
