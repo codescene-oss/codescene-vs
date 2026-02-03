@@ -4,11 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
@@ -79,14 +81,17 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (result != null)
             {
+                var loc = PerformanceTelemetryHelper.CalculateLineCount(content);
+                var language = PerformanceTelemetryHelper.ExtractLanguage(filename);
                 var telemetryData = new PerformanceTelemetryData
                 {
                     Type = Titles.REVIEW,
                     ElapsedMs = elapsedMs,
-                    FilePathOrName = filename,
-                    FileContent = content,
+                    FilePath = filename,
+                    Loc = loc,
+                    Language = language,
                 };
-                PerformanceTelemetryHelper.SendPerformanceTelemetry(GetTelemetryManager(), _logger, telemetryData);
+                SendPerformanceTelemetry(telemetryData);
             }
 
             return result;
@@ -114,21 +119,24 @@ namespace Codescene.VSExtension.Core.Application.Cli
             long elapsedMs = 0;
             var result = ExecuteWithTimingAndLogging<DeltaResponseModel>(
                 "CLI file delta review",
-                () => _executor.Execute("delta", arguments),
+                () => _executor.Execute(Titles.DELTA, arguments),
                 "Delta for file failed.",
                 out elapsedMs
             );
 
             if (result != null && !string.IsNullOrEmpty(filePath))
             {
+                var loc = PerformanceTelemetryHelper.CalculateLineCount(fileContent);
+                var language = PerformanceTelemetryHelper.ExtractLanguage(filePath);
                 var telemetryData = new PerformanceTelemetryData
                 {
                     Type = Titles.DELTA,
                     ElapsedMs = elapsedMs,
-                    FilePathOrName = filePath,
-                    FileContent = fileContent,
+                    FilePath = filePath,
+                    Loc = loc,
+                    Language = language,
                 };
-                PerformanceTelemetryHelper.SendPerformanceTelemetry(GetTelemetryManager(), _logger, telemetryData);
+                SendPerformanceTelemetry(telemetryData);
             }
 
             return result;
@@ -174,16 +182,36 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (result != null && fnToRefactor != null)
             {
+                var loc = PerformanceTelemetryHelper.CalculateLineCount(fnToRefactor.Body);
+                var language = PerformanceTelemetryHelper.ExtractLanguage(null, fnToRefactor);
                 var telemetryData = new PerformanceTelemetryData
                 {
                     Type = Titles.ACE,
                     ElapsedMs = elapsedMs,
+                    Loc = loc,
+                    Language = language,
                     FnToRefactor = fnToRefactor,
                 };
-                PerformanceTelemetryHelper.SendPerformanceTelemetry(GetTelemetryManager(), _logger, telemetryData);
+                SendPerformanceTelemetry(telemetryData);
             }
 
             return result;
+        }
+
+        private void SendPerformanceTelemetry(PerformanceTelemetryData telemetryData)
+        {
+            var telemetryManager = GetTelemetryManager();
+            Task.Run(() =>
+            {
+                try
+                {
+                    PerformanceTelemetryHelper.SendPerformanceTelemetry(telemetryManager, _logger, telemetryData);
+                }
+                catch (Exception e)
+                {
+                    _logger?.Debug($"Failed to send performance telemetry asynchronously: {e.Message}");
+                }
+            });
         }
 
         public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)

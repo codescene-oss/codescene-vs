@@ -1,10 +1,11 @@
-using Codescene.VSExtension.Core.Consts;
-using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Telemetry;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 
 namespace Codescene.VSExtension.Core.Util
 {
@@ -25,9 +26,6 @@ namespace Codescene.VSExtension.Core.Util
 
             try
             {
-                var language = ExtractLanguage(data);
-                var loc = CalculateLineCount(data);
-
                 var additionalData = new Dictionary<string, object>
                 {
                     { "type", data.Type },
@@ -45,52 +43,41 @@ namespace Codescene.VSExtension.Core.Util
             }
         }
 
-        private static string ExtractLanguage(PerformanceTelemetryData data)
+        /// <summary>
+        /// Calculates the line count from content string.
+        /// </summary>
+        /// <param name="content">The content to count lines in.</param>
+        /// <returns>The number of lines in the content, or 0 if content is null or empty.</returns>
+        public static int CalculateLineCount(string content)
         {
-            if (data.FnToRefactor != null)
-            {
-                return data.FnToRefactor.FileType ?? "";
-            }
-
-            if (!string.IsNullOrEmpty(data.FilePathOrName))
-            {
-                var extension = Path.GetExtension(data.FilePathOrName);
-                return string.IsNullOrEmpty(extension) ? "" : extension.TrimStart('.').ToLowerInvariant();
-            }
-
-            return "";
-        }
-
-        private static int CalculateLineCount(PerformanceTelemetryData data)
-        {
-            string content = null;
-
-            if (data.FnToRefactor != null)
-            {
-                content = data.FnToRefactor.Body;
-            }
-            else if (!string.IsNullOrEmpty(data.FileContent))
-            {
-                content = data.FileContent;
-            }
-
             if (string.IsNullOrEmpty(content))
+            {
                 return 0;
+            }
 
-            return content.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).Length;
+            return content.Split(["\r\n", "\r", "\n"], StringSplitOptions.None).Length;
         }
-    }
 
-    /// <summary>
-    /// Data container for performance telemetry to reduce primitive obsession.
-    /// </summary>
-    public class PerformanceTelemetryData
-    {
-        public string Type { get; set; }
-        public long ElapsedMs { get; set; }
-        public string FilePathOrName { get; set; }
-        public string FileContent { get; set; }
-        public FnToRefactorModel FnToRefactor { get; set; }
+        /// <summary>
+        /// Extracts the language from a file path or FnToRefactorModel.
+        /// </summary>
+        /// <param name="filePathOrName">The file path or name to extract language from.</param>
+        /// <param name="fnToRefactor">Optional FnToRefactorModel to extract language from.</param>
+        /// <returns>The language/file type, or empty string if not found.</returns>
+        public static string ExtractLanguage(string filePathOrName, FnToRefactorModel fnToRefactor = null)
+        {
+            if (fnToRefactor != null)
+            {
+                return fnToRefactor.FileType ?? string.Empty;
+            }
+
+            if (!string.IsNullOrEmpty(filePathOrName))
+            {
+                var extension = Path.GetExtension(filePathOrName);
+                return string.IsNullOrEmpty(extension) ? string.Empty : extension.TrimStart('.').ToLowerInvariant();
+            }
+
+            return string.Empty;
+        }
     }
 }
-
