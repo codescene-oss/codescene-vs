@@ -18,4 +18,6 @@ using Codescene.VSExtension.VS2022;
 
 namespace System.Runtime.CompilerServices;
 
-public class IsExternalInit { }
+public class IsExternalInit
+{
+}
