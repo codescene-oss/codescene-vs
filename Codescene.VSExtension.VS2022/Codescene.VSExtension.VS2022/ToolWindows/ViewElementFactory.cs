@@ -15,7 +15,8 @@ namespace Codescene.VSExtension.VS2022.CodeLens
     [Order]
     internal class ViewElementFactory : IViewElementFactory
     {
-        public TView CreateViewElement<TView>(ITextView textView, object model) where TView : class
+        public TView CreateViewElement<TView>(ITextView textView, object model)
+            where TView : class
         {
             if (typeof(FrameworkElement) != typeof(TView))
             {

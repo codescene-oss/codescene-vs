@@ -55,7 +55,8 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="U"></typeparam>
         /// <param name="instance"></param>
-        protected void MockService<T, U>(U instance) where U : T
+        protected void MockService<T, U>(U instance)
+            where U : T
         {
             _container.ComposeExportedValue<T>(instance);
         }
