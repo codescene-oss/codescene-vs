@@ -24,6 +24,16 @@ public class General : BaseOptionModel<General>
     private string _previousAuthToken = string.Empty;
     private bool _previousShowDebugLogs = false;
 
+    public General()
+    : base()
+    {
+        // Store initial values
+        _previousAuthToken = AuthToken;
+        _previousShowDebugLogs = ShowDebugLogs;
+
+        Saved += OnSettingsSaved;
+    }
+
     /// <summary>
     /// Event fired when the AuthToken setting changes.
     /// </summary>
@@ -49,16 +59,6 @@ public class General : BaseOptionModel<General>
     [Description("Authentication token for CodeScene ACE. Note: Token is stored securely in Windows Credential Manager.")]
     [PasswordPropertyText(true)]
     public string AuthToken { get; set; } = string.Empty;
-
-    public General()
-        : base()
-    {
-        // Store initial values
-        _previousAuthToken = AuthToken;
-        _previousShowDebugLogs = ShowDebugLogs;
-
-        Saved += OnSettingsSaved;
-    }
 
     private void OnSettingsSaved(General obj)
     {

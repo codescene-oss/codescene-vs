@@ -12,17 +12,15 @@ namespace Codescene.VSExtension.Core.Application.Authentication
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class AuthenticationService : IAuthenticationService
     {
+        private const string NEXT = "/configuration/devtools-tokens/add/vscode"; // change later with visual studio next parameter
         private readonly IPersistenceAuthDataProvider _persistenceDataProvider;
+        private LoginResponse _loginResponse = null;
 
         [ImportingConstructor]
         public AuthenticationService(IPersistenceAuthDataProvider persistenceDataProvider)
         {
             _persistenceDataProvider = persistenceDataProvider;
         }
-
-        private const string NEXT = "/configuration/devtools-tokens/add/vscode"; // change later with visual studio next parameter
-
-        private LoginResponse _loginResponse = null;
 
         public event AuthSignedInHandler OnSignedIn;
 

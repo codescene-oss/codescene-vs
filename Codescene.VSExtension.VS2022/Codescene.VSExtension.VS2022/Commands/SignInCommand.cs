@@ -16,6 +16,8 @@ namespace Codescene.VSExtension.VS2022;
 
 internal class SignInCommand : Commands.VSBaseCommand
 {
+    internal const int Id = PackageIds.SignInCommand;
+
     private readonly IAuthenticationService _authService;
     private readonly ILogger _logger;
 
@@ -25,8 +27,6 @@ internal class SignInCommand : Commands.VSBaseCommand
         _authService = authService;
         _logger = logger;
     }
-
-    internal const int Id = PackageIds.SignInCommand;
 
     protected override void InvokeInternal()
     {

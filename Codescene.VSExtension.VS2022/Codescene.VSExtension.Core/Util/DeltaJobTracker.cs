@@ -18,6 +18,20 @@ namespace Codescene.VSExtension.Core.Util
 
         public static event Action<Job> JobFinished;
 
+        /// <summary>
+        /// Gets a thread-safe snapshot of all currently running delta jobs.
+        /// </summary>
+        public static IReadOnlyCollection<Job> RunningJobs
+        {
+            get
+            {
+                lock (_running)
+                {
+                    return _running.ToList().AsReadOnly();
+                }
+            }
+        }
+
         public static void Add(Job job)
         {
             lock (_running)
@@ -36,20 +50,6 @@ namespace Codescene.VSExtension.Core.Util
                 if (_running.Remove(job))
                 {
                     JobFinished?.Invoke(job);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets a thread-safe snapshot of all currently running delta jobs.
-        /// </summary>
-        public static IReadOnlyCollection<Job> RunningJobs
-        {
-            get
-            {
-                lock (_running)
-                {
-                    return _running.ToList().AsReadOnly();
                 }
             }
         }

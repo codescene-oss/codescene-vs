@@ -19,17 +19,17 @@ namespace Codescene.VSExtension.Core.Application.Ace
     {
         private readonly ILogger _logger;
 
-        public AceState CurrentState { get; private set; } = AceState.Loading;
-
-        public Exception LastError { get; private set; }
-
-        public event EventHandler<AceStateChangedEventArgs> StateChanged;
-
         [ImportingConstructor]
         public AceStateService(ILogger logger)
         {
             _logger = logger;
         }
+
+        public event EventHandler<AceStateChangedEventArgs> StateChanged;
+
+        public AceState CurrentState { get; private set; } = AceState.Loading;
+
+        public Exception LastError { get; private set; }
 
         public void SetState(AceState state, Exception error = null)
         {

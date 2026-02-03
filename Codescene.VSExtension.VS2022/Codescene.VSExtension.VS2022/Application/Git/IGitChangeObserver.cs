@@ -9,6 +9,8 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 {
     public interface IGitChangeObserver : IDisposable
     {
+        event EventHandler<string> FileDeletedFromGit;
+
         void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver);
 
         void Start();
@@ -16,7 +18,5 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         Task<List<string>> GetChangedFilesVsBaselineAsync();
 
         void RemoveFromTracker(string filePath);
-
-        event EventHandler<string> FileDeletedFromGit;
     }
 }

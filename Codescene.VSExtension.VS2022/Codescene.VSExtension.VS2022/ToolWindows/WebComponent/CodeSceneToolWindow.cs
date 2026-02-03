@@ -30,6 +30,33 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
     public override Type PaneType => typeof(Pane);
 
+    public static async Task UpdateViewAsync()
+    {
+        if (_userControl == null)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await ShowAsync();
+            return;
+        }
+
+        var deltaCache = new DeltaCacheService();
+        var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
+
+        var message = new WebComponentMessage<CodeHealthMonitorComponentData>
+        {
+            MessageType = MessageTypes.UPDATERENDERER,
+            Payload = new WebComponentPayload<CodeHealthMonitorComponentData>
+            {
+                IdeType = VISUALSTUDIOIDETYPE,
+                View = ViewTypes.HOME,
+                Data = mapper.Map(deltaCache.GetAll()),
+                Pro = true,
+            },
+        };
+        ILogger logger = await VS.GetMefServiceAsync<ILogger>();
+        _userControl.UpdateViewAsync(message).FireAndForget();
+    }
+
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
     {
         // Prevent creating multiple instances - return existing control if already created
@@ -72,33 +99,6 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
             logger.Error("Could not create tool window.", ex);
             return null;
         }
-    }
-
-    public static async Task UpdateViewAsync()
-    {
-        if (_userControl == null)
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            await ShowAsync();
-            return;
-        }
-
-        var deltaCache = new DeltaCacheService();
-        var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
-
-        var message = new WebComponentMessage<CodeHealthMonitorComponentData>
-        {
-            MessageType = MessageTypes.UPDATERENDERER,
-            Payload = new WebComponentPayload<CodeHealthMonitorComponentData>
-            {
-                IdeType = VISUALSTUDIOIDETYPE,
-                View = ViewTypes.HOME,
-                Data = mapper.Map(deltaCache.GetAll()),
-                Pro = true,
-            },
-        };
-        ILogger logger = await VS.GetMefServiceAsync<ILogger>();
-        _userControl.UpdateViewAsync(message).FireAndForget();
     }
 
     public override string GetTitle(int toolWindowId) => Titles.CODESCENE;

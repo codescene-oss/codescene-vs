@@ -43,6 +43,26 @@ public class CodeSceneMargin : IWpfTextViewMargin
         UpdateUI();
     }
 
+    public FrameworkElement VisualElement => _rootPanel;
+
+    public bool Enabled => true;
+
+    public double MarginSize => _rootPanel.ActualHeight;
+
+    public string MarginName => this.GetType().Name;
+
+    public bool IsDisposed => false;
+
+    public void Dispose()
+    {
+        _settings.ScoreUpdated -= UpdateUI;
+    }
+
+    public ITextViewMargin GetTextViewMargin(string marginName)
+    {
+        return this;
+    }
+
     private void OnThemeChanged(ThemeChangedEventArgs e)
     {
         _label.Foreground = GetThemedBrush(EnvironmentColors.ToolWindowTextColorKey);
@@ -83,24 +103,4 @@ public class CodeSceneMargin : IWpfTextViewMargin
             }
         });
     }
-
-    public FrameworkElement VisualElement => _rootPanel;
-
-    public bool Enabled => true;
-
-    public double MarginSize => _rootPanel.ActualHeight;
-
-    public string MarginName => this.GetType().Name;
-
-    public void Dispose()
-    {
-        _settings.ScoreUpdated -= UpdateUI;
-    }
-
-    public ITextViewMargin GetTextViewMargin(string marginName)
-    {
-        return this;
-    }
-
-    public bool IsDisposed => false;
 }

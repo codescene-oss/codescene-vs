@@ -10,19 +10,6 @@ namespace Codescene.VSExtension.VS2022.CodeLens
 {
     public static class ToolWindowRegistry
     {
-        public class ToolWindowInfo
-        {
-            public Func<object> Creator { get; }
-
-            public string Category { get; }
-
-            public ToolWindowInfo(Func<object> creator, string category)
-            {
-                Creator = creator;
-                Category = category;
-            }
-        }
-
         public static readonly Dictionary<int, ToolWindowInfo> ToolWindowCreators = new Dictionary<int, ToolWindowInfo>
         {
             { 1, new ToolWindowInfo(() => new BrainClass(), Constants.Titles.BRAINCLASS) },
@@ -58,5 +45,18 @@ namespace Codescene.VSExtension.VS2022.CodeLens
         };
 
         public static readonly Dictionary<string, int> CategoryToIdMap = ToolWindowCreators.ToDictionary(kvp => kvp.Value.Category, kvp => kvp.Key);
+
+        public class ToolWindowInfo
+        {
+            public ToolWindowInfo(Func<object> creator, string category)
+            {
+                Creator = creator;
+                Category = category;
+            }
+
+            public Func<object> Creator { get; }
+
+            public string Category { get; }
+        }
     }
 }

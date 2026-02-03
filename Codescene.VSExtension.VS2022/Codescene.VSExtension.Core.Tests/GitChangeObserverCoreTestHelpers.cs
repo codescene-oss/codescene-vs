@@ -16,18 +16,18 @@ namespace Codescene.VSExtension.Core.Tests
 {
     public class TestFileData
     {
-        public string Filename { get; set; }
-
-        public string Content { get; set; }
-
-        public string? CommitMessage { get; set; }
-
         public TestFileData(string filename, string content, string? commitMessage = null)
         {
             Filename = filename;
             Content = content;
             CommitMessage = commitMessage;
         }
+
+        public string Filename { get; set; }
+
+        public string Content { get; set; }
+
+        public string? CommitMessage { get; set; }
     }
 
     public class FileAssertionHelper
@@ -170,8 +170,6 @@ namespace Codescene.VSExtension.Core.Tests
 
     internal class TestableGitChangeObserverCore : GitChangeObserverCore
     {
-        public int GetChangedFilesCallCount { get; private set; }
-
         public TestableGitChangeObserverCore(
             ILogger logger,
             ICodeReviewer codeReviewer,
@@ -181,6 +179,8 @@ namespace Codescene.VSExtension.Core.Tests
             : base(logger, codeReviewer, supportedFileChecker, gitService, taskScheduler)
         {
         }
+
+        public int GetChangedFilesCallCount { get; private set; }
 
         public void ResetCallCount()
         {

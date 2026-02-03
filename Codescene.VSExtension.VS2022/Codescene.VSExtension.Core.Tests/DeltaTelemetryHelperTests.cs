@@ -130,86 +130,6 @@ namespace Codescene.VSExtension.Core.Tests
             DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, null);
         }
 
-        private async Task AssertTelemetryEventSent(TelemetryScenario scenario, string expectedEvent)
-        {
-            var (previousSnapshot, currentCache) = CreateSnapshots(scenario.PreviousFiles, scenario.CurrentFiles);
-            var entry = new DeltaCacheEntry(scenario.EntryFile, "old", "new", scenario.EntryDelta ?? CreateDeltaResponse(0.5m));
-
-            var callReceived = new ManualResetEventSlim(false);
-            _mockTelemetryManager
-                .Setup(t => t.SendTelemetry(expectedEvent, It.IsAny<Dictionary<string, object>>()))
-                .Callback(() => callReceived.Set());
-
-            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-
-            var signaled = await Task.Run(() => callReceived.Wait(AsyncTimeoutMs));
-            Assert.IsTrue(signaled, $"Timed out waiting for SendTelemetry({expectedEvent}) to be called");
-
-            _mockTelemetryManager.Verify(t => t.SendTelemetry(expectedEvent, It.IsAny<Dictionary<string, object>>()), Times.Once);
-        }
-
-        private (Dictionary<string, DeltaResponseModel> previous, Dictionary<string, DeltaResponseModel> current) CreateSnapshots(string[] previousFiles, string[] currentFiles)
-        {
-            var previous = new Dictionary<string, DeltaResponseModel>();
-            foreach (var file in previousFiles)
-            {
-                previous[file] = CreateDeltaResponse(-0.5m);
-            }
-
-            var current = new Dictionary<string, DeltaResponseModel>();
-            foreach (var file in currentFiles)
-            {
-                current[file] = CreateDeltaResponse(-1.0m);
-            }
-
-            return (previous, current);
-        }
-
-        private class TelemetryScenario
-        {
-            public string[] PreviousFiles { get; private set; }
-
-            public string[] CurrentFiles { get; private set; }
-
-            public string EntryFile { get; private set; }
-
-            public DeltaResponseModel EntryDelta { get; private set; }
-
-            public static TelemetryScenario FileAdded(string file) =>
-                new TelemetryScenario { PreviousFiles = new string[0], CurrentFiles = new[] { file }, EntryFile = file };
-
-            public static TelemetryScenario FileRemoved(string file) =>
-                new TelemetryScenario { PreviousFiles = new[] { file }, CurrentFiles = new string[0], EntryFile = file, EntryDelta = null };
-
-            public static TelemetryScenario FileUpdated(string file) =>
-                new TelemetryScenario { PreviousFiles = new[] { file }, CurrentFiles = new[] { file }, EntryFile = file };
-        }
-
-        private async Task<Dictionary<string, object>?> CaptureAdditionalDataForFileAdded(DeltaResponseModel delta)
-        {
-            var uniqueFile = "newfile_" + Guid.NewGuid() + ".cs";
-            var previousSnapshot = new Dictionary<string, DeltaResponseModel>();
-            var currentCache = new Dictionary<string, DeltaResponseModel> { { uniqueFile, delta } };
-            var entry = new DeltaCacheEntry(uniqueFile, "old", "new", delta);
-
-            var callReceived = new ManualResetEventSlim(false);
-            Dictionary<string, object>? capturedData = null;
-            _mockTelemetryManager
-                .Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, data) =>
-                {
-                    capturedData = data;
-                    callReceived.Set();
-                });
-
-            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
-
-            var signaled = await Task.Run(() => callReceived.Wait(AsyncTimeoutMs));
-            Assert.IsTrue(signaled, "Timed out waiting for SendTelemetry to be called");
-
-            return capturedData;
-        }
-
         private static DeltaResponseModel CreateDeltaWithFindings(int fileLevelCount, int functionLevelCount)
         {
             var fileFindings = new ChangeDetailModel[fileLevelCount];
@@ -263,6 +183,86 @@ namespace Codescene.VSExtension.Core.Tests
                 FileLevelFindings = new ChangeDetailModel[0],
                 FunctionLevelFindings = new FunctionFindingModel[0],
             };
+        }
+
+        private async Task AssertTelemetryEventSent(TelemetryScenario scenario, string expectedEvent)
+        {
+            var (previousSnapshot, currentCache) = CreateSnapshots(scenario.PreviousFiles, scenario.CurrentFiles);
+            var entry = new DeltaCacheEntry(scenario.EntryFile, "old", "new", scenario.EntryDelta ?? CreateDeltaResponse(0.5m));
+
+            var callReceived = new ManualResetEventSlim(false);
+            _mockTelemetryManager
+                .Setup(t => t.SendTelemetry(expectedEvent, It.IsAny<Dictionary<string, object>>()))
+                .Callback(() => callReceived.Set());
+
+            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
+
+            var signaled = await Task.Run(() => callReceived.Wait(AsyncTimeoutMs));
+            Assert.IsTrue(signaled, $"Timed out waiting for SendTelemetry({expectedEvent}) to be called");
+
+            _mockTelemetryManager.Verify(t => t.SendTelemetry(expectedEvent, It.IsAny<Dictionary<string, object>>()), Times.Once);
+        }
+
+        private (Dictionary<string, DeltaResponseModel> previous, Dictionary<string, DeltaResponseModel> current) CreateSnapshots(string[] previousFiles, string[] currentFiles)
+        {
+            var previous = new Dictionary<string, DeltaResponseModel>();
+            foreach (var file in previousFiles)
+            {
+                previous[file] = CreateDeltaResponse(-0.5m);
+            }
+
+            var current = new Dictionary<string, DeltaResponseModel>();
+            foreach (var file in currentFiles)
+            {
+                current[file] = CreateDeltaResponse(-1.0m);
+            }
+
+            return (previous, current);
+        }
+
+        private async Task<Dictionary<string, object>?> CaptureAdditionalDataForFileAdded(DeltaResponseModel delta)
+        {
+            var uniqueFile = "newfile_" + Guid.NewGuid() + ".cs";
+            var previousSnapshot = new Dictionary<string, DeltaResponseModel>();
+            var currentCache = new Dictionary<string, DeltaResponseModel> { { uniqueFile, delta } };
+            var entry = new DeltaCacheEntry(uniqueFile, "old", "new", delta);
+
+            var callReceived = new ManualResetEventSlim(false);
+            Dictionary<string, object>? capturedData = null;
+            _mockTelemetryManager
+                .Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Callback<string, Dictionary<string, object>>((_, data) =>
+                {
+                    capturedData = data;
+                    callReceived.Set();
+                });
+
+            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
+
+            var signaled = await Task.Run(() => callReceived.Wait(AsyncTimeoutMs));
+            Assert.IsTrue(signaled, "Timed out waiting for SendTelemetry to be called");
+
+            return capturedData;
+        }
+
+        private class TelemetryScenario
+        {
+            public string[] PreviousFiles { get; private set; }
+
+            public string[] CurrentFiles { get; private set; }
+
+            public string EntryFile { get; private set; }
+
+            public DeltaResponseModel EntryDelta { get; private set; }
+
+            public static TelemetryScenario FileAdded(string file) =>
+                new TelemetryScenario { PreviousFiles = new string[0], CurrentFiles = new[] { file }, EntryFile = file };
+
+            public static TelemetryScenario FileRemoved(string file) =>
+                new TelemetryScenario { PreviousFiles = new[] { file }, CurrentFiles = new string[0], EntryFile = file, EntryDelta = null };
+
+            public static TelemetryScenario FileUpdated(string file) =>
+                new TelemetryScenario { PreviousFiles = new[] { file }, CurrentFiles = new[] { file }, EntryFile = file };
         }
     }
 }

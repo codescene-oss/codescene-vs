@@ -7,8 +7,6 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class SupportedFileCheckerTests
     {
-        private readonly SupportedFileChecker _checker = new SupportedFileChecker();
-
         private static readonly string[] JavaScriptTypeScriptExtensions = { ".js", ".mjs", ".jsx", ".ts", ".tsx", ".vue" };
         private static readonly string[] CFamilyExtensions = { ".c", ".h", ".cc", ".cpp", ".cxx", ".hpp", ".c++", ".m", ".mm" };
         private static readonly string[] DotNetExtensions = { ".cs", ".vb" };
@@ -18,6 +16,8 @@ namespace Codescene.VSExtension.Core.Tests
         private static readonly string[] SalesforceExtensions = { ".cls", ".trigger", ".tgr" };
 
         private static readonly string[] UnsupportedExtensions = { ".txt", ".md", ".json", ".xml", ".yaml", ".yml", ".html", ".css", ".sql", ".sh", ".bat", ".exe", ".dll" };
+
+        private readonly SupportedFileChecker _checker = new SupportedFileChecker();
 
         [TestMethod]
         public void IsSupported_JavaScriptTypeScript_ReturnsTrue()

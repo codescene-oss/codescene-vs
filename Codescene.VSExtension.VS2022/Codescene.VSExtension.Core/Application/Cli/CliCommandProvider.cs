@@ -104,6 +104,17 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return $"{scores}";
         }
 
+        private static string GetArgumentStr(params string[] args)
+        {
+            var sb = new StringBuilder();
+            foreach (var arg in args)
+            {
+                PasteArguments.AppendArgument(sb, arg);
+            }
+
+            return sb.ToString();
+        }
+
         private string AdjustTelemetryQuotes(string value) => value.Replace("\"", "\\\"");
 
         private string SerializeRefactorRequest(FnsToRefactorRequestModel request, string fileName, string fileContent, string cachePath, PreFlightResponseModel preflight)
@@ -117,17 +128,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             request.Preflight = preflight;
             return JsonConvert.SerializeObject(request, SerializerSettings);
-        }
-
-        private static string GetArgumentStr(params string[] args)
-        {
-            var sb = new StringBuilder();
-            foreach (var arg in args)
-            {
-                PasteArguments.AppendArgument(sb, arg);
-            }
-
-            return sb.ToString();
         }
     }
 }

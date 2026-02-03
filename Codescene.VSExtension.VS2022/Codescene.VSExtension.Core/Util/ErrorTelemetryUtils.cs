@@ -8,7 +8,6 @@ namespace Codescene.VSExtension.Core.Util
 {
     public static class ErrorTelemetryUtils
     {
-        private static int _sentErrorsCount = 0;
         private const int MAXERRORSTOSEND = 5;
 
         private static readonly string[] NetworkErrorPatterns = new[]
@@ -28,6 +27,8 @@ namespace Codescene.VSExtension.Core.Util
             "Unable to connect to the remote server",
             "The remote name could not be resolved",
         };
+
+        private static int _sentErrorsCount = 0;
 
         public static bool ShouldSendError(Exception ex)
         {

@@ -9,6 +9,9 @@ namespace Codescene.VSExtension.Core.Util
 {
     internal static partial class PasteArguments
     {
+        private const char Quote = '\"';
+        private const char Backslash = '\\';
+
         /// <summary>
         /// Used to escape special characters in CLI command argument.
         /// </summary>
@@ -109,8 +112,5 @@ namespace Codescene.VSExtension.Core.Util
 
             return true;
         }
-
-        private const char Quote = '\"';
-        private const char Backslash = '\\';
     }
 }

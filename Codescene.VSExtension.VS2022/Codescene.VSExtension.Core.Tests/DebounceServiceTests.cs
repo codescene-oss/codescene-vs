@@ -21,15 +21,6 @@ public class DebounceServiceTests
         _debounceService = new DebounceService(_mockLogger.Object);
     }
 
-    private static Task WaitForDebounce(TimeSpan delay) => Task.Delay(delay + SafetyBuffer);
-
-    private sealed class ActionTracker
-    {
-        public bool WasExecuted { get; private set; }
-
-        public Action Execute => () => WasExecuted = true;
-    }
-
     [TestCleanup]
     public void Cleanup()
     {
@@ -139,5 +130,14 @@ public class DebounceServiceTests
         // Act & Assert - should not throw
         _debounceService.Dispose();
         _debounceService.Dispose();
+    }
+
+    private static Task WaitForDebounce(TimeSpan delay) => Task.Delay(delay + SafetyBuffer);
+
+    private sealed class ActionTracker
+    {
+        public bool WasExecuted { get; private set; }
+
+        public Action Execute => () => WasExecuted = true;
     }
 }

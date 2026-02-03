@@ -24,7 +24,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
         private readonly IPreflightManager _preflightManager;
         private readonly IModelMapper _mapper;
         private readonly ILogger _logger;
-        private readonly AceRefactorableFunctionsCacheService _cache = new();
+        private readonly AceRefactorableFunctionsCacheService _cache = new AceRefactorableFunctionsCacheService();
 
         [ImportingConstructor]
         public AceRefactorService(

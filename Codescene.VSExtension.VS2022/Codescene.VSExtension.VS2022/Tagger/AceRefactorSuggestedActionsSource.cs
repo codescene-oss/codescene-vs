@@ -22,10 +22,8 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
     private readonly AceRefactorSuggestedActionsSourceProvider _provider;
     private readonly ITextView _textView;
     private readonly ITextBuffer _textBuffer;
-    private readonly ReviewCacheService _reviewCache = new();
-    private readonly AceRefactorableFunctionsCacheService _aceRefactorableFunctionsCache = new();
-
-    public event EventHandler<EventArgs> SuggestedActionsChanged;
+    private readonly ReviewCacheService _reviewCache = new ReviewCacheService();
+    private readonly AceRefactorableFunctionsCacheService _aceRefactorableFunctionsCache = new AceRefactorableFunctionsCacheService();
 
     public AceRefactorSuggestedActionsSource(
         AceRefactorSuggestedActionsSourceProvider provider,
@@ -36,6 +34,8 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
         _textView = textView;
         _textBuffer = textBuffer;
     }
+
+    public event EventHandler<EventArgs> SuggestedActionsChanged;
 
     public Task<bool> HasSuggestedActionsAsync(
         ISuggestedActionCategorySet requestedActionCategories,
@@ -94,6 +94,11 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
         return false;
     }
 
+    private static bool SmellOverlapsRange(CodeSmellModel smell, int rangeStartLine, int rangeEndLine)
+    {
+        return smell.Range.StartLine <= rangeEndLine && smell.Range.EndLine >= rangeStartLine;
+    }
+
     private bool HasAuthToken()
     {
         return !string.IsNullOrWhiteSpace(_provider.SettingsProvider?.AuthToken);
@@ -143,11 +148,6 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
             .Where(smell => SmellOverlapsRange(smell, rangeStartLine, rangeEndLine))
             .Select(smell => AceUtils.GetRefactorableFunction(smell, refactorableFunctions))
             .FirstOrDefault(fn => fn != null);
-    }
-
-    private static bool SmellOverlapsRange(CodeSmellModel smell, int rangeStartLine, int rangeEndLine)
-    {
-        return smell.Range.StartLine <= rangeEndLine && smell.Range.EndLine >= rangeStartLine;
     }
 
     private List<CodeSmellModel> GetCodeSmellsFromCache(string filePath, string content)

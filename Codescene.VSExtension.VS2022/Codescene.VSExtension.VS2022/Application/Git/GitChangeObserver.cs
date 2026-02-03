@@ -54,6 +54,8 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             InitializeCore();
         }
 
+        public event EventHandler<string> FileDeletedFromGit;
+
         public ConcurrentQueue<FileChangeEvent> EventQueue => _core?.EventQueue;
 
         public FileSystemWatcher FileWatcher => _core?.FileWatcher;
@@ -79,8 +81,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         {
             return await _core.GetChangedFilesVsBaselineAsync();
         }
-
-        public event EventHandler<string> FileDeletedFromGit;
 
         public void RemoveFromTracker(string filePath)
         {

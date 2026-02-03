@@ -224,6 +224,11 @@ namespace Codescene.VSExtension.Core.Tests
 
         protected class TestableGitChangeDetector : GitChangeDetector
         {
+            public TestableGitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker)
+                : base(logger, supportedFileChecker)
+            {
+            }
+
             public bool ThrowInGetChangedFilesFromRepository { get; set; }
 
             public bool ThrowInGetMergeBaseCommit { get; set; }
@@ -241,11 +246,6 @@ namespace Codescene.VSExtension.Core.Tests
             public bool SimulateInvalidMainBranch { get; set; }
 
             public string ForceBranchLookupFailure { get; set; }
-
-            public TestableGitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker)
-                : base(logger, supportedFileChecker)
-            {
-            }
 
             public override List<string> GetMainBranchCandidates(Repository repo)
             {
