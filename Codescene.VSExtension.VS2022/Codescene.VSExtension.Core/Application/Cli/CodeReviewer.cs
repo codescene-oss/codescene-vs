@@ -49,7 +49,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             var review = _executer.ReviewContent(fileName, content);
-            return _mapper.Map(path, review); ;
+            return _mapper.Map(path, review);
         }
 
         public DeltaResponseModel Delta(FileReviewModel review, string currentCode)
