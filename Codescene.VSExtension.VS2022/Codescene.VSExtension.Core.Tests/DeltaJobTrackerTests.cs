@@ -71,8 +71,11 @@ namespace Codescene.VSExtension.Core.Tests
         public void Add_DuplicateJob_DoesNotFireEventTwice()
         {
             var job = CreateJob();
-            var count = CountEvents(h => DeltaJobTracker.JobStarted += h, () => { DeltaJobTracker.Add(job);
-                DeltaJobTracker.Add(job); });
+            var count = CountEvents(h => DeltaJobTracker.JobStarted += h, () =>
+            {
+                DeltaJobTracker.Add(job);
+                DeltaJobTracker.Add(job);
+            });
             Assert.AreEqual(1, count);
         }
 
@@ -123,8 +126,11 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var job = CreateJob();
             DeltaJobTracker.Add(job);
-            var count = CountEvents(h => DeltaJobTracker.JobFinished += h, () => { DeltaJobTracker.Remove(job);
-                DeltaJobTracker.Remove(job); });
+            var count = CountEvents(h => DeltaJobTracker.JobFinished += h, () =>
+            {
+                DeltaJobTracker.Remove(job);
+                DeltaJobTracker.Remove(job);
+            });
             Assert.AreEqual(1, count);
         }
 
