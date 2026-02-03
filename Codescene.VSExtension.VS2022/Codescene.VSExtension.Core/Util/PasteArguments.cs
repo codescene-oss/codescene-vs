@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 
 [assembly: InternalsVisibleTo("Codescene.VSExtension.Core.Tests")]
+
 namespace Codescene.VSExtension.Core.Util
 {
     internal static partial class PasteArguments

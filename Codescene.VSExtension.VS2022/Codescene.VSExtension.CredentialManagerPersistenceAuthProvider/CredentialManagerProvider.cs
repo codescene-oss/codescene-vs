@@ -10,6 +10,7 @@ namespace Codescene.VSExtension.CredentialManagerPersistenceAuthProvider
     public class CredentialManagerProvider : IPersistenceAuthDataProvider
     {
         public const string APPLICATIONNAME = "vs-codescene-extension";
+
         public void Clear()
         {
             var storedData = CredentialManager.ReadCredential(APPLICATIONNAME);

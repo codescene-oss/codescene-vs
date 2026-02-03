@@ -11,7 +11,9 @@ namespace Codescene.VSExtension.Core.Util
     public static class DeltaJobTracker
     {
         private static readonly HashSet<Job> _running = new HashSet<Job>();
+
         public static event Action<Job> JobStarted;
+
         public static event Action<Job> JobFinished;
 
         public static void Add(Job job)

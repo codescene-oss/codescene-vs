@@ -12,6 +12,7 @@ namespace Codescene.VSExtension.Core.Application.Util
     public class MDFileHandler : IMDFileHandler
     {
         private string _fileName = null;
+
         public string GetContent(string path, string subPath)
         {
             if (_fileName != null)

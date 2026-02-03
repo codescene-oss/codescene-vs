@@ -10,8 +10,11 @@ namespace Codescene.VSExtension.VS2022.EditorMargin;
 public class CodeSceneMarginSettingsManager
 {
     public event Action ScoreUpdated;
+
     public bool HasScore { get; private set; } = false;
+
     public string FileInFocus { get; private set; } = null;
+
     public string FileInFocusContent { get; private set; } = null;
 
     public void UpdateMarginData(string path, string content)

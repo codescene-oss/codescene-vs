@@ -48,7 +48,9 @@ namespace Codescene.VSExtension.Core.Application.Git
         }
 
         public ConcurrentQueue<FileChangeEvent> EventQueue => _eventQueue;
+
         public FileSystemWatcher FileWatcher => _fileWatcher;
+
         public Timer ScheduledTimer => _scheduledTimer;
 
         public void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, Func<Task<List<string>>> getChangedFilesCallback = null)

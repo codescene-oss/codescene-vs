@@ -6,6 +6,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
     public interface IModelMapper
     {
         FileReviewModel Map(string filePath, CliReviewModel result);
+
         CliCodeSmellModel Map(CodeSmellModel codeSmellModel);
     }
 }

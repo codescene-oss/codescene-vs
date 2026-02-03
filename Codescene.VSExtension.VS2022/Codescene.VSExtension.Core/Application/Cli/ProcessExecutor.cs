@@ -168,9 +168,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
     internal class AttachOutputHandlersArgs
     {
         public Process Process { get; set; }
+
         public StringBuilder Output { get; set; }
+
         public StringBuilder Error { get; set; }
+
         public TaskCompletionSource<bool> OutputTcs { get; set; }
+
         public TaskCompletionSource<bool> ErrorTcs { get; set; }
 
         public AttachOutputHandlersArgs(
@@ -191,9 +195,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
     public class WaitForProcessOrTimeoutArgs
     {
         public Process Process { get; set; }
+
         public TaskCompletionSource<bool> OutputTcs { get; set; }
+
         public TaskCompletionSource<bool> ErrorTcs { get; set; }
+
         public TimeSpan Timeout { get; set; }
+
         public string Command { get; set; }
 
         public WaitForProcessOrTimeoutArgs()

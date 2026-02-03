@@ -27,6 +27,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         }
 
         public abstract R Get(Q query);
+
         public abstract void Put(E entry);
 
         public virtual void Invalidate(string key)

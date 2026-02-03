@@ -6,7 +6,9 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorListWindowHandler;
 internal class CustomErrorListEntry : ITableEntry
 {
     public object Identity => throw new NotImplementedException();
+
     private object errorCode = null;
+
     public bool CanSetValue(string keyName)
     {
         return keyName switch

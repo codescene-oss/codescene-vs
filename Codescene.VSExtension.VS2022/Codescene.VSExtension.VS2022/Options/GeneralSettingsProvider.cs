@@ -8,6 +8,7 @@ namespace Codescene.VSExtension.VS2022.Options
     public class GeneralSettingsProvider : ISettingsProvider
     {
         public bool ShowDebugLogs => General.Instance.ShowDebugLogs;
+
         public string AuthToken => General.Instance.AuthToken;
     }
 }

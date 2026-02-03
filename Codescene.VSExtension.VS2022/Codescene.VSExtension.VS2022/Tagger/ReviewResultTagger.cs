@@ -175,6 +175,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         internal class TagSpanParams(SnapshotSpan span, CodeSmellModel codeSmell)
         {
             public SnapshotSpan Span { get; set; } = span;
+
             public CodeSmellModel CodeSmell { get; set; } = codeSmell;
         }
     }

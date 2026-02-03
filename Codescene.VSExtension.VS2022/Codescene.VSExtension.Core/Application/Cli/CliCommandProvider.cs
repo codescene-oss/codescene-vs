@@ -27,7 +27,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
         public string VersionCommand => "version --sha";
 
         public string DeviceIdCommand => "telemetry --device-id";
+
         public string RefactorCommand => "run-command fns-to-refactor";
+
         public string ReviewFileContentCommand => "run-command review";
 
         public string SendTelemetryCommand(string jsonEvent) => $"telemetry --event \"{AdjustTelemetryQuotes(jsonEvent)}\"";
@@ -106,6 +108,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         }
 
         public string GetReviewFileContentCommand(string path) => GetArgumentStr("review", "--file-name", path);
+
         public string GetReviewFileContentPayload(string filePath, string fileContent, string cachePath)
         {
             var request = new ReviewRequestModel

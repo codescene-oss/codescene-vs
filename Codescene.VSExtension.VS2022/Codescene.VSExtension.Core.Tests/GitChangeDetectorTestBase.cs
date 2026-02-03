@@ -157,11 +157,13 @@ namespace Codescene.VSExtension.Core.Tests
             public readonly List<string> WarnMessages = new List<string>();
 
             public void Debug(string message) => DebugMessages.Add(message);
+
             public void Info(string message)
             {
             }
 
             public void Warn(string message) => WarnMessages.Add(message);
+
             public void Error(string message, Exception ex)
             {
             }
@@ -221,13 +223,21 @@ namespace Codescene.VSExtension.Core.Tests
         protected class TestableGitChangeDetector : GitChangeDetector
         {
             public bool ThrowInGetChangedFilesFromRepository { get; set; }
+
             public bool ThrowInGetMergeBaseCommit { get; set; }
+
             public bool ThrowFromMainBranchCandidates { get; set; }
+
             public bool ThrowFromFindMergeBase { get; set; }
+
             public bool ThrowFromDiffCompare { get; set; }
+
             public bool ThrowFromRetrieveStatus { get; set; }
+
             public bool SimulateInvalidCurrentBranch { get; set; }
+
             public bool SimulateInvalidMainBranch { get; set; }
+
             public string ForceBranchLookupFailure { get; set; }
 
             public TestableGitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker)

@@ -24,7 +24,9 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 public class AceToolWindow : BaseToolWindow<AceToolWindow>
 {
     public string FilePath { get; set; }
+
     public override Type PaneType => typeof(Pane);
+
     private static WebComponentUserControl _ctrl = null;
     private static int _isStale = 0; // 0 = not stale, 1 = stale (int for Interlocked.CompareExchange)
 

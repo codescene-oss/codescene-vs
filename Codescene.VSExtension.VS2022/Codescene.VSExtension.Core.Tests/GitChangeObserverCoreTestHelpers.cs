@@ -15,7 +15,9 @@ namespace Codescene.VSExtension.Core.Tests
     public class TestFileData
     {
         public string Filename { get; set; }
+
         public string Content { get; set; }
+
         public string CommitMessage { get; set; }
 
         public TestFileData(string filename, string content, string commitMessage = null)

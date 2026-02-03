@@ -50,7 +50,9 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         }
 
         public ConcurrentQueue<FileChangeEvent> EventQueue => _core?.EventQueue;
+
         public FileSystemWatcher FileWatcher => _core?.FileWatcher;
+
         public Timer ScheduledTimer => _core?.ScheduledTimer;
 
         private void InitializeCore()

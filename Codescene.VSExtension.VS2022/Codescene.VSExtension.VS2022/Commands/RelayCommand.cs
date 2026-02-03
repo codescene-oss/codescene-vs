@@ -15,7 +15,9 @@ namespace Codescene.VSExtension.VS2022.Commands
         }
 
         public bool CanExecute(object parameter) => _canExecute == null || _canExecute(parameter);
+
         public void Execute(object parameter) => _execute(parameter);
+
         public event EventHandler CanExecuteChanged;
     }
 }

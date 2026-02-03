@@ -10,8 +10,11 @@ namespace Codescene.VSExtension.Core.Interfaces.Ace
     public interface IAceManager
     {
         CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false);
+
         CachedRefactoringActionModel GetCachedRefactoredCode();
+
         IList<FnToRefactorModel> GetRefactorableFunctionsFromDelta(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight);
+
         IList<FnToRefactorModel> GetRefactorableFunctionsFromCodeSmells(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight);
     }
 }
