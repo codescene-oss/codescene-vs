@@ -24,7 +24,7 @@ public class Calculator
 }";
 
             // Act
-            var result = CliExecutor.ReviewContent(filename, content);
+            var result = cliExecutor.ReviewContent(filename, content);
 
             // Assert
             Assert.IsNotNull(result, "CLI should return a review result for valid code");
@@ -47,7 +47,7 @@ module.exports = { calculateSum };
 ";
 
             // Act
-            var result = CliExecutor.ReviewContent(filename, content);
+            var result = cliExecutor.ReviewContent(filename, content);
 
             // Assert
             Assert.IsNotNull(result, "CLI should return a review result for valid JavaScript code");
@@ -84,7 +84,7 @@ public class ComplexProcessor
 }";
 
             // Act
-            var result = CliExecutor.ReviewContent(filename, content);
+            var result = cliExecutor.ReviewContent(filename, content);
 
             // Assert
             Assert.IsNotNull(result, "CLI should return a review result");

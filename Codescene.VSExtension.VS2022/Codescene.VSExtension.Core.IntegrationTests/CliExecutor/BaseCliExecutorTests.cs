@@ -4,29 +4,29 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
 {
     public abstract class BaseCliExecutorTests : BaseIntegrationTests
     {
-        protected ICliExecutor CliExecutor;
-        protected string TempCacheDir;
+        protected ICliExecutor cliExecutor;
+        protected string tempCacheDir;
 
 
         public new virtual void Initialize()
         {
             base.Initialize();
-            CliExecutor = GetService<ICliExecutor>();
+            cliExecutor = GetService<ICliExecutor>();
 
-            TempCacheDir = Path.Combine(Path.GetTempPath(), "codescene-test-cache", Guid.NewGuid().ToString());
-            Directory.CreateDirectory(TempCacheDir);
+            tempCacheDir = Path.Combine(Path.GetTempPath(), "codescene-test-cache", Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempCacheDir);
 
-            MockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation())
-                .Returns(TempCacheDir);
+            mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation())
+                .Returns(tempCacheDir);
         }
 
         public virtual void Cleanup()
         {
-            if (Directory.Exists(TempCacheDir))
+            if (Directory.Exists(tempCacheDir))
             {
                 try
                 {
-                    Directory.Delete(TempCacheDir, recursive: true);
+                    Directory.Delete(tempCacheDir, recursive: true);
                 }
                 catch
                 {

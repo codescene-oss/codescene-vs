@@ -10,10 +10,10 @@ namespace Codescene.VSExtension.VS2022.Util;
 
 public static class StyleHelper
 {
-    private static string DarkThemeColorName = "ff1f1f1f";
-    private static string DarkThemeFallbackSecondaryBg = "0c517b";
-    private static string BlueThemeColorName = "fff7f9fe";
-    private static string DarkAndLightThemeBtnTextColorName = "fafafa";
+    private static string darkThemeColorName = "ff1f1f1f";
+    private static string darkThemeFallbackSecondaryBg = "0c517b";
+    private static string blueThemeColorName = "fff7f9fe";
+    private static string darkAndLightThemeBtnTextColorName = "fafafa";
 
     private static Dictionary<int, string> opacityVariants = new Dictionary<int, string>
     {
@@ -89,19 +89,19 @@ public static class StyleHelper
             // var buttonBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowButtonActiveGlyphColorKey);
 
             var textFg = ToHex(textForeground);
-            var buttonFgHex = editorBackground.Name == BlueThemeColorName ? ToHex(buttonForeground) : DarkAndLightThemeBtnTextColorName;
+            var buttonFgHex = editorBackground.Name == blueThemeColorName ? ToHex(buttonForeground) : darkAndLightThemeBtnTextColorName;
             // var buttonBgHex = ToHex(buttonBackground);
 
-            var buttonBgHex = editorBackground.Name == DarkThemeColorName
-               ? DarkThemeFallbackSecondaryBg
+            var buttonBgHex = editorBackground.Name == darkThemeColorName
+               ? darkThemeFallbackSecondaryBg
                : ToHex(buttonBackground);
 
             var editorBgHex = ToHex(editorBackground);
             var textLinkFgHex = ToHex(linkForeground);
             var codeBlockBgHex = ToHex(codeBlockBackground);
 
-            var secondaryButtonBgHex = editorBackground.Name == DarkThemeColorName
-                ? DarkThemeFallbackSecondaryBg
+            var secondaryButtonBgHex = editorBackground.Name == darkThemeColorName
+                ? darkThemeFallbackSecondaryBg
                 : buttonBgHex;
 
             var sb = new StringBuilder();

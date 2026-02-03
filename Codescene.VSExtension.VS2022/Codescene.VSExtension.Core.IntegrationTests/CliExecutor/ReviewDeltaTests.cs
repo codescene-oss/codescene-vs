@@ -35,8 +35,8 @@ public class Complex
     }
 }";
 
-            var simpleReview = CliExecutor.ReviewContent(filename, simpleCode);
-            var complexReview = CliExecutor.ReviewContent(filename, complexCode);
+            var simpleReview = cliExecutor.ReviewContent(filename, simpleCode);
+            var complexReview = cliExecutor.ReviewContent(filename, complexCode);
 
             // Skip test if we couldn't get raw scores
             if (string.IsNullOrEmpty(simpleReview?.RawScore) || string.IsNullOrEmpty(complexReview?.RawScore))
@@ -46,7 +46,7 @@ public class Complex
             }
 
             // Act
-            var delta = CliExecutor.ReviewDelta(simpleReview!.RawScore!, complexReview!.RawScore!);
+            var delta = cliExecutor.ReviewDelta(simpleReview!.RawScore!, complexReview!.RawScore!);
 
             // Assert
             Assert.IsNotNull(delta, "CLI should return a delta response");
