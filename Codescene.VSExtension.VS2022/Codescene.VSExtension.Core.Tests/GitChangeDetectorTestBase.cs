@@ -156,9 +156,13 @@ namespace Codescene.VSExtension.Core.Tests
             public readonly List<string> WarnMessages = new List<string>();
 
             public void Debug(string message) => DebugMessages.Add(message);
-            public void Info(string message) { }
+            public void Info(string message)
+            {
+            }
             public void Warn(string message) => WarnMessages.Add(message);
-            public void Error(string message, Exception ex) { }
+            public void Error(string message, Exception ex)
+            {
+            }
         }
 
         protected class FakeSupportedFileChecker : ISupportedFileChecker

@@ -180,6 +180,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
         public TimeSpan Timeout { get; set; }
         public string Command { get; set; }
 
-        public WaitForProcessOrTimeoutArgs() { }
+        public WaitForProcessOrTimeoutArgs()
+        {
+        }
     }
 }
