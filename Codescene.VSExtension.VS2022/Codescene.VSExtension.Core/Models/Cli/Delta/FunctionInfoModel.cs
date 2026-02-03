@@ -5,7 +5,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Delta
     public class FunctionInfoModel
     {
         /// <summary>
-        /// Gets or sets name of function
+        /// Gets or sets name of function.
         /// </summary>
         [JsonProperty("name")]
         public string Name { get; set; }

@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for ModularityIssue.xaml
+    /// Interaction logic for ModularityIssue.xaml.
     /// </summary>
     public partial class ModularityIssue : UserControl
     {

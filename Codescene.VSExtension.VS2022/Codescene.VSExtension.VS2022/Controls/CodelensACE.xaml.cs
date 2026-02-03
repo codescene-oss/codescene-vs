@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls;
 
 /// <summary>
-/// Interaction logic for CodelensACE.xaml
+/// Interaction logic for CodelensACE.xaml.
 /// </summary>
 public partial class CodelensACE : UserControl
 {

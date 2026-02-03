@@ -40,7 +40,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         }
 
         /// <summary>
-        /// Returns a service from the DI container
+        /// Returns a service from the DI container.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>

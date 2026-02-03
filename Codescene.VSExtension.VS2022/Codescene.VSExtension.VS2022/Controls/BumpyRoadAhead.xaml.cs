@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for BumpyRoadAhead.xaml
+    /// Interaction logic for BumpyRoadAhead.xaml.
     /// </summary>
     public partial class BumpyRoadAhead : UserControl
     {

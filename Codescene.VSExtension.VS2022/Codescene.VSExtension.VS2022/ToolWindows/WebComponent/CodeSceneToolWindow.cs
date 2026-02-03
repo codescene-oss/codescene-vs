@@ -116,7 +116,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
         /// <summary>
         /// Called when the tool window is shown or its visibility changes.
-        /// See: https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.__frameshow?view=visualstudiosdk-2022
+        /// See: https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.__frameshow?view=visualstudiosdk-2022.
         /// </summary>
         /// <remarks>
         /// This event can be triggered multiple times when the window is shown due to internal Visual Studio window management behaviors.

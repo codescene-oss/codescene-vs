@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for BrainClass.xaml
+    /// Interaction logic for BrainClass.xaml.
     /// </summary>
     public partial class BrainClass : UserControl
     {

@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for ComplexMethod.xaml
+    /// Interaction logic for ComplexMethod.xaml.
     /// </summary>
     public partial class ComplexMethod : UserControl
     {

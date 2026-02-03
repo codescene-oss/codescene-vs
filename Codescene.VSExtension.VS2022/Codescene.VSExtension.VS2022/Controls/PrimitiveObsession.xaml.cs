@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for PrimitiveObsession.xaml
+    /// Interaction logic for PrimitiveObsession.xaml.
     /// </summary>
     public partial class PrimitiveObsession : UserControl
     {

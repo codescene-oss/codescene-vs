@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for DuplicatedAssertionBlocks.xaml
+    /// Interaction logic for DuplicatedAssertionBlocks.xaml.
     /// </summary>
     public partial class DuplicatedAssertionBlocks : UserControl
     {

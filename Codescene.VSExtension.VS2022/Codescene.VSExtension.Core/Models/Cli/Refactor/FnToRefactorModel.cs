@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
     public class FnToRefactorModel
     {
         /// <summary>
-        /// Gets or sets function name (for presentation)
+        /// Gets or sets function name (for presentation).
         /// </summary>
         [JsonProperty("name")]
         public string Name { get; set; }

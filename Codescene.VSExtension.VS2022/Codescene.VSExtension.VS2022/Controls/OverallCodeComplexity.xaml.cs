@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for OverallCodeComplexity.xaml
+    /// Interaction logic for OverallCodeComplexity.xaml.
     /// </summary>
     public partial class OverallCodeComplexity : UserControl
     {

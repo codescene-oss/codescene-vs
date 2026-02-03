@@ -16,7 +16,7 @@ namespace Codescene.VSExtension.VS2022.Util
     public static class AceUtils
     {
         /// <summary>
-        /// Checks if a file contains refactorable functions
+        /// Checks if a file contains refactorable functions.
         /// </summary>
         public static async Task<IList<FnToRefactorModel>> CheckContainsRefactorableFunctionsAsync(FileReviewModel result, string code)
         {

@@ -14,13 +14,13 @@ namespace Codescene.VSExtension.Core.Models.Cli.Delta
         public FunctionFindingModel[] FunctionLevelFindings { get; set; }
 
         /// <summary>
-        /// Gets or sets if file is still present, the new score for the file
+        /// Gets or sets if file is still present, the new score for the file.
         /// </summary>
         [JsonProperty("new-score")]
         public decimal NewScore { get; set; }
 
         /// <summary>
-        /// Gets or sets if the file was not recently created, the old file score
+        /// Gets or sets if the file was not recently created, the old file score.
         /// </summary>
         [JsonProperty("old-score")]
         public decimal OldScore { get; set; }

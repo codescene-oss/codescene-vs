@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for BrainMethod.xaml
+    /// Interaction logic for BrainMethod.xaml.
     /// </summary>
     public partial class BrainMethod : UserControl
     {

@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for ComplexConditional.xaml
+    /// Interaction logic for ComplexConditional.xaml.
     /// </summary>
     public partial class ComplexConditional : UserControl
     {

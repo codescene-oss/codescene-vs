@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for LargeAssertionBlocks.xaml
+    /// Interaction logic for LargeAssertionBlocks.xaml.
     /// </summary>
     public partial class LargeAssertionBlocks : UserControl
     {

@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for LargeEmbeddedCodeBlocks.xaml
+    /// Interaction logic for LargeEmbeddedCodeBlocks.xaml.
     /// </summary>
     public partial class LargeEmbeddedCodeBlock : UserControl
     {

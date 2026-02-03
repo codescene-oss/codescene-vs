@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for LowCohesion.xaml
+    /// Interaction logic for LowCohesion.xaml.
     /// </summary>
     public partial class LowCohesion : UserControl
     {

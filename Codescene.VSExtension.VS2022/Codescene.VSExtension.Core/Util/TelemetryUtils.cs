@@ -40,7 +40,7 @@ namespace Codescene.VSExtension.Core.Util
         /// - 0: User has opted out of telemetry collection (disabled)
         ///
         /// For more information, see:
-        /// https://learn.microsoft.com/en-us/visualstudio/ide/visual-studio-experience-improvement-program?view=vs-2022
+        /// https://learn.microsoft.com/en-us/visualstudio/ide/visual-studio-experience-improvement-program?view=vs-2022.
         /// </remarks>
         /// <returns>True if telemetry is enabled (opted in); otherwise, false.</returns>
         public static bool IsTelemetryEnabled(ILogger logger = null)
