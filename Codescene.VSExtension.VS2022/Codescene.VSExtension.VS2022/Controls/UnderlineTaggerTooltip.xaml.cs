@@ -22,7 +22,7 @@ namespace Codescene.VSExtension.VS2022.Controls
     public partial class UnderlineTaggerTooltip : UserControl
     {
         [Import]
-        private ReviewResultTaggerTooltipModel _viewModel { get; set; }
+        private ReviewResultTaggerTooltipModel ViewModel { get; set; }
 
         public UnderlineTaggerTooltip(UnderlineTaggerTooltipParams tooltipParams)
         {
@@ -36,14 +36,14 @@ namespace Codescene.VSExtension.VS2022.Controls
             var compositionService = componentModel.DefaultCompositionService;
             compositionService.SatisfyImportsOnce(this);
 
-            _viewModel.Category = tooltipParams.Category;
-            _viewModel.Details = tooltipParams.Details;
-            _viewModel.Path = tooltipParams.Path;
-            _viewModel.Range = tooltipParams.Range;
-            _viewModel.FunctionRange = tooltipParams.FunctionRange;
-            _viewModel.FunctionName = tooltipParams.FunctionName;
+            ViewModel.Category = tooltipParams.Category;
+            ViewModel.Details = tooltipParams.Details;
+            ViewModel.Path = tooltipParams.Path;
+            ViewModel.Range = tooltipParams.Range;
+            ViewModel.FunctionRange = tooltipParams.FunctionRange;
+            ViewModel.FunctionName = tooltipParams.FunctionName;
 
-            DataContext = _viewModel;
+            DataContext = ViewModel;
         }
 
         private void OnThemeChanged(ThemeChangedEventArgs e)
