@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.VS2022.Util
 {
     public class IndentationUtil
     {
-        private static readonly IndentationService _indentationService = new ();
+        private static readonly IndentationService _indentationService = new();
 
         /// <summary>
         /// Detects the indentation style (tabs vs spaces) and level of a given function in the text snapshot.

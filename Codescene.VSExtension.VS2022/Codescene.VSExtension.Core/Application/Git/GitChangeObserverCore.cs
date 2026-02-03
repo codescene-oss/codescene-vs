@@ -38,7 +38,6 @@ namespace Codescene.VSExtension.Core.Application.Git
         private FileChangeHandler _fileChangeHandler;
         private Func<Task<List<string>>> _getChangedFilesCallback;
 
-
         public GitChangeObserverCore(ILogger logger, ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker, IGitService gitService,
             IAsyncTaskScheduler taskScheduler)

@@ -51,7 +51,6 @@ public partial class WebComponentUserControl : UserControl
     private bool _initialized = false;
     private string _pendingMessage = null;
 
-
     public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
     {
         _logger = logger;
@@ -227,8 +226,6 @@ public partial class WebComponentUserControl : UserControl
 
         return script;
     }
-
-
 
     private async Task<CoreWebView2Environment> CreatePerWindowEnvAsync(string view)
     {

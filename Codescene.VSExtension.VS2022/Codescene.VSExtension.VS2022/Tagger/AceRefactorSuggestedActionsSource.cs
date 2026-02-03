@@ -22,8 +22,8 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
     private readonly AceRefactorSuggestedActionsSourceProvider _provider;
     private readonly ITextView _textView;
     private readonly ITextBuffer _textBuffer;
-    private readonly ReviewCacheService _reviewCache = new ();
-    private readonly AceRefactorableFunctionsCacheService _aceRefactorableFunctionsCache = new ();
+    private readonly ReviewCacheService _reviewCache = new();
+    private readonly AceRefactorableFunctionsCacheService _aceRefactorableFunctionsCache = new();
 
     public event EventHandler<EventArgs> SuggestedActionsChanged;
 

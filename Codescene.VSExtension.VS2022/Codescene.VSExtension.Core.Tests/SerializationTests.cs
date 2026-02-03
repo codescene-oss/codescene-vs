@@ -77,7 +77,6 @@ namespace Codescene.VSExtension.Core.Tests
             AssertRangeEquals(result.Range, CreateExpectedRange(10, 5, 50, 5));
         }
 
-
         [TestMethod]
         public void FnToRefactorModel_Serialize_RoundTrip_PreservesData()
         {

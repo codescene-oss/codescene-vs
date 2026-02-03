@@ -15,7 +15,7 @@ internal class OutputPaneManager
 {
     private IServiceProvider _serviceProvider;
     private IVsOutputWindowPane _pane;
-    private Guid _paneGuid = new ("B76CFA36-066A-493B-8898-22EF97B0888F");
+    private Guid _paneGuid = new("B76CFA36-066A-493B-8898-22EF97B0888F");
     private const string PaneTitle = Titles.CODESCENE;
 
     [ImportingConstructor]

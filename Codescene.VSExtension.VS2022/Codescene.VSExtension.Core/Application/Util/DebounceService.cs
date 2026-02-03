@@ -16,7 +16,7 @@ namespace Codescene.VSExtension.Core.Application.Util
     {
         private readonly ILogger _logger;
 
-        private readonly object _lock = new ();
+        private readonly object _lock = new();
         private readonly Dictionary<string, CancellationTokenSource> _timers = new Dictionary<string, CancellationTokenSource>();
 
         [ImportingConstructor]

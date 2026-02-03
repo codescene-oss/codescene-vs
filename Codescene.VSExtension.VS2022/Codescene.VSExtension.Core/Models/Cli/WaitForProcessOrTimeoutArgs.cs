@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Models.Cli
 {
-
     public class WaitForProcessOrTimeoutArgs
     {
         public WaitForProcessOrTimeoutArgs()
