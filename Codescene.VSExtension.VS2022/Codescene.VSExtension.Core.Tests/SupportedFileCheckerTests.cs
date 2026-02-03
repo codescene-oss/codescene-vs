@@ -74,7 +74,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void IsSupported_EmptyPath_ReturnsFalse()
         {
-            Assert.IsFalse(_checker.IsSupported(""));
+            Assert.IsFalse(_checker.IsSupported(string.Empty));
         }
 
         [TestMethod]

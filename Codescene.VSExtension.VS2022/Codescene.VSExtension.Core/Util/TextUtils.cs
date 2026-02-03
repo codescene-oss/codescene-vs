@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.Core.Util
         public static string ToSnakeCase(string input)
         {
             var normalized = input.Replace("-", "_");
-            var cleaned = Regex.Replace(normalized, @"[^\w\s]", "");
+            var cleaned = Regex.Replace(normalized, @"[^\w\s]", string.Empty);
 
             return string.Join("_",
                 cleaned

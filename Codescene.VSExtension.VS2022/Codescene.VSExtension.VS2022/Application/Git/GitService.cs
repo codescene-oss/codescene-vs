@@ -33,13 +33,13 @@ public class GitService : IGitService
             if (string.IsNullOrEmpty(currentBranchName))
             {
                 _logger.Warn("Could not determine current branch name.");
-                return "";
+                return string.Empty;
             }
 
             // If on main branch, use HEAD commit as baseline
             if (IsMainBranch(currentBranchName))
             {
-                var headCommit = repository.Head?.Tip?.Sha ?? "";
+                var headCommit = repository.Head?.Tip?.Sha ?? string.Empty;
                 _logger.Debug($"On main branch '{currentBranchName}', using HEAD as baseline: {headCommit}");
                 return headCommit;
             }
@@ -58,7 +58,7 @@ public class GitService : IGitService
         catch (Exception e)
         {
             _logger.Error("Could not get baseline commit.", e);
-            return "";
+            return string.Empty;
         }
     }
 
@@ -93,7 +93,7 @@ public class GitService : IGitService
             }
         }
 
-        return "";
+        return string.Empty;
     }
 
     private string GetBranchCreationCommitFromReflog(Repository repository)
@@ -108,12 +108,12 @@ public class GitService : IGitService
                     entry.Message != null &&
                     entry.Message.IndexOf("created from", StringComparison.OrdinalIgnoreCase) >= 0);
 
-            return creationEntry?.To.Sha ?? "";
+            return creationEntry?.To.Sha ?? string.Empty;
         }
         catch (Exception e)
         {
             _logger.Debug($"Could not get branch creation from reflog: {e.Message}");
-            return "";
+            return string.Empty;
         }
     }
 
@@ -125,7 +125,7 @@ public class GitService : IGitService
             if (string.IsNullOrEmpty(repoPath))
             {
                 _logger.Warn("Repository path is null. Aborting retrieval of file content for specific commit.");
-                return "";
+                return string.Empty;
             }
 
             using var repo = new Repository(repoPath);
@@ -134,7 +134,7 @@ public class GitService : IGitService
             if (string.IsNullOrEmpty(commitHash))
             {
                 _logger.Debug("No baseline commit found, skipping file content retrieval.");
-                return "";
+                return string.Empty;
             }
 
             var repoRoot = repo.Info.WorkingDirectory;
@@ -144,14 +144,14 @@ public class GitService : IGitService
             if (commit == null)
             {
                 _logger.Warn($"Could not find commit {commitHash}");
-                return "";
+                return string.Empty;
             }
 
             var entry = commit[relativePath];
             if (entry == null)
             {
                 _logger.Debug($"File {relativePath} not found in commit {commitHash}");
-                return "";
+                return string.Empty;
             }
 
             var blob = (Blob)entry.Target;
@@ -160,7 +160,7 @@ public class GitService : IGitService
         catch (Exception e)
         {
             _logger.Warn($"Could not get file content for baseline commit: {e.Message}");
-            return "";
+            return string.Empty;
         }
     }
 

@@ -332,7 +332,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = _executor.GetFileVersion();
 
-            Assert.AreEqual("", result);
+            Assert.AreEqual(string.Empty, result);
             _mockLogger.Verify(l => l.Error(It.IsAny<string>(), It.IsAny<Exception>()), Times.Once);
         }
 

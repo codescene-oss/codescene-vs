@@ -85,7 +85,7 @@ namespace Codescene.VSExtension.Core.Util
             }
             catch
             {
-                return "";
+                return string.Empty;
             }
         }
     }

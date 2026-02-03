@@ -84,7 +84,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = _mapper.Map(model, CreateFnToRefactor());
 
-            Assert.AreEqual("", result.FileData.Fn.Name);
+            Assert.AreEqual(string.Empty, result.FileData.Fn.Name);
         }
 
         [TestMethod]

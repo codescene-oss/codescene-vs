@@ -43,11 +43,11 @@ namespace Codescene.VSExtension.Core.Tests
 
         [TestMethod]
         public void ToSnakeCase_EmptyString_ReturnsEmptyString()
-            => Assert.AreEqual("", TextUtils.ToSnakeCase(""));
+            => Assert.AreEqual(string.Empty, TextUtils.ToSnakeCase(string.Empty));
 
         [TestMethod]
         public void ToSnakeCase_OnlySpecialCharacters_ReturnsEmptyString()
-            => Assert.AreEqual("", TextUtils.ToSnakeCase("!@#$%"));
+            => Assert.AreEqual(string.Empty, TextUtils.ToSnakeCase("!@#$%"));
 
         [TestMethod]
         public void ToSnakeCase_UnderscoresPreserved_WhenPartOfWord()

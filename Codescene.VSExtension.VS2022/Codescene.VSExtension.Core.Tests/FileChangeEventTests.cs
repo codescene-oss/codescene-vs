@@ -102,9 +102,9 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Constructor_WithEmptyString_StoresEmptyString()
         {
-            var fileEvent = new FileChangeEvent(FileChangeType.Create, "");
+            var fileEvent = new FileChangeEvent(FileChangeType.Create, string.Empty);
 
-            Assert.AreEqual("", fileEvent.FilePath);
+            Assert.AreEqual(string.Empty, fileEvent.FilePath);
         }
 
         [TestMethod]

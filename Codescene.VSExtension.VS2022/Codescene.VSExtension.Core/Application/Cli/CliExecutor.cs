@@ -222,7 +222,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             catch (Exception e)
             {
                 _logger.Error(errorMessage, e);
-                return "";
+                return string.Empty;
             }
         }
     }

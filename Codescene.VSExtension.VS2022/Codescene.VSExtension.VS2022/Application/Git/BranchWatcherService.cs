@@ -110,7 +110,7 @@ public class BranchWatcherService : IDisposable
         var content = File.ReadAllText(_headFilePath).Trim();
         if (content.StartsWith("ref:"))
         {
-            return content.Replace("ref: refs/heads/", "").Trim();
+            return content.Replace("ref: refs/heads/", string.Empty).Trim();
         }
 
         return "(detached)";

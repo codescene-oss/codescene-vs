@@ -19,7 +19,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void GetRelativePath_EmptyBasePath_ReturnsFullPath()
         {
             var fullPath = @"C:\test\file.txt";
-            var result = PathUtilities.GetRelativePath("", fullPath);
+            var result = PathUtilities.GetRelativePath(string.Empty, fullPath);
             Assert.AreEqual(fullPath, result);
         }
 
@@ -35,8 +35,8 @@ namespace Codescene.VSExtension.Core.Tests
         public void GetRelativePath_EmptyFullPath_ReturnsEmpty()
         {
             var basePath = @"C:\test";
-            var result = PathUtilities.GetRelativePath(basePath, "");
-            Assert.AreEqual("", result);
+            var result = PathUtilities.GetRelativePath(basePath, string.Empty);
+            Assert.AreEqual(string.Empty, result);
         }
 
         [TestMethod]
