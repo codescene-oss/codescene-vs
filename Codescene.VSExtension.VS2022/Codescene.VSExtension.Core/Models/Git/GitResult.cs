@@ -1,14 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-namespace Codescene.VSExtension.Core.Interfaces.Cli
+namespace Codescene.VSExtension.Core.Models.Git
 {
-    public interface IGitService
-    {
-        string GetFileContentForCommit(string path);
-
-        bool IsFileIgnored(string filePath);
-    }
-
     public class GitResult
     {
         public int ExitCode { get; set; }

@@ -1,7 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.ComponentModel.Composition;
-using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using Moq;
 
 namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations

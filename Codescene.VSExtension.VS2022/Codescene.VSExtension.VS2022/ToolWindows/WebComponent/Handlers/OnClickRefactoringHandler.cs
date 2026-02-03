@@ -92,7 +92,7 @@ public class OnClickRefactoringHandler
 
     private async Task SetViewToLoadingModeAsync(string path, FnToRefactorModel refactorableFunction)
     {
-        AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
+        await AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
         {
             MessageType = MessageTypes.UPDATERENDERER,
             Payload = new WebComponentPayload<AceComponentData>

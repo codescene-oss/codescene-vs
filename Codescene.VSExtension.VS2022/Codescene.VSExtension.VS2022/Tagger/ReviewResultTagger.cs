@@ -7,6 +7,7 @@ using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.VS2022.Controls;
+using Codescene.VSExtension.VS2022.Tagger;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -96,10 +97,10 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
             if (cached != null)
             {
-                return cached.FileLevel.Concat(cached.FunctionLevel).ToList() ??[];
+                return cached.FileLevel.Concat(cached.FunctionLevel).ToList() ?? new List<CodeSmellModel>();
             }
 
-            return[];
+            return new List<CodeSmellModel>();
         }
 
         /// <summary>

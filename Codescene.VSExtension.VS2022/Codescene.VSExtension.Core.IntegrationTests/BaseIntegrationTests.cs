@@ -6,6 +6,7 @@ using Codescene.VSExtension.Core.IntegrationTests.TestImplementations;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using Moq;
 
 namespace Codescene.VSExtension.Core.IntegrationTests

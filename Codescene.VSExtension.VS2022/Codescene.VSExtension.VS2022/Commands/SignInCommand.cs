@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Authentication;
@@ -13,8 +14,18 @@ using Microsoft.VisualStudio.TaskStatusCenter;
 
 namespace Codescene.VSExtension.VS2022;
 
-internal class SignInCommand(IAuthenticationService authService, ILogger errorsHandler): Commands.VSBaseCommand
+internal class SignInCommand : Commands.VSBaseCommand
 {
+    private readonly IAuthenticationService _authService;
+    private readonly ILogger _logger;
+
+    [ImportingConstructor]
+    public SignInCommand(IAuthenticationService authService, ILogger logger)
+    {
+        _authService = authService;
+        _logger = logger;
+    }
+
     internal const int Id = PackageIds.SignInCommand;
 
     protected override void InvokeInternal()
@@ -29,18 +40,18 @@ internal class SignInCommand(IAuthenticationService authService, ILogger errorsH
         await ShowStartedStatusAsync();
         try
         {
-            var loggedIn = authService.Login(url);
+            var loggedIn = _authService.Login(url);
             if (!loggedIn)
             {
                 await ShowFailedStatusAsync();
             }
 
-            var data = authService.GetData();
+            var data = _authService.GetData();
             await ShowSuccessStatusAsync(data);
         }
         catch (Exception ex)
         {
-            errorsHandler.Error("Authentication failed", ex);
+            _logger.Error("Authentication failed", ex);
             await ShowFailedStatusAsync();
         }
     }

@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Authentication;
@@ -11,8 +12,18 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Codescene.VSExtension.VS2022;
 
-internal class SignOutCommand(IAuthenticationService authService, ILogger errorsHandler): Commands.VSBaseCommand
+internal class SignOutCommand : Commands.VSBaseCommand
 {
+    private readonly IAuthenticationService _authService;
+    private readonly ILogger _logger;
+
+    [ImportingConstructor]
+    public SignOutCommand(IAuthenticationService authService, ILogger logger)
+    {
+        _authService = authService;
+        _logger = logger;
+    }
+
     internal const int Id = PackageIds.SignOutCommand;
 
     protected override void InvokeInternal()
@@ -24,7 +35,7 @@ internal class SignOutCommand(IAuthenticationService authService, ILogger errors
     {
         try
         {
-            var username = authService.GetData().Name;
+            var username = _authService.GetData().Name;
             var message = $"The account '{username}' has been used by:\n\nCodeScene\n\nSign out from these extensions?";
             var confimed = await VS.MessageBox.ShowConfirmAsync(message);
             if (!confimed)
@@ -32,12 +43,12 @@ internal class SignOutCommand(IAuthenticationService authService, ILogger errors
                 return;
             }
 
-            authService.SignOut();
+            _authService.SignOut();
             await ShowStatusAsync();
         }
         catch (Exception ex)
         {
-            errorsHandler.Error("Signing out failed", ex);
+            _logger.Error("Signing out failed", ex);
         }
     }
 

@@ -12,20 +12,4 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 
         public FileDataModel FileData { get; set; }
     }
-
-    public class FileDataModel
-    {
-        public string FileName { get; set; }
-
-        public FunctionModel Fn { get; set; }
-
-        public FnToRefactorModel FnToRefactor { get; set; } = null;
-    }
-
-    public class FunctionModel
-    {
-        public string Name { get; set; }
-
-        public CodeRangeModel Range { get; set; }
-    }
 }

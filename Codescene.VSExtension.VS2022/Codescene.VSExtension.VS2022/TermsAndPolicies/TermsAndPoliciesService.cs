@@ -25,7 +25,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
     private readonly ILogger _logger;
 
     private bool _infoBarShownOnce = false;
-    private IVsInfoBarUIElement? _currentTermsInfoBarUiElement;
+    private IVsInfoBarUIElement _currentTermsInfoBarUiElement;
 
     private static readonly IVsInfoBarActionItem[] ActionItems =
         [

@@ -23,11 +23,11 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 
 internal class WebComponentMessageHandler
 {
+    private readonly WebComponentUserControl _control;
+
     private ILogger _logger;
 
     private ShowDocumentationHandler _showDocsHandler;
-
-    private readonly WebComponentUserControl _control;
 
     public WebComponentMessageHandler(WebComponentUserControl control)
     {
