@@ -97,8 +97,12 @@ namespace Codescene.VSExtension.Core.Tests
 
         protected GitChangeObserverCore CreateGitChangeObserverCore()
         {
-            var observer = new GitChangeObserverCore(_fakeLogger, _fakeCodeReviewer,
-                _fakeSupportedFileChecker, _fakeGitService, _fakeTaskScheduler);
+            var observer = new GitChangeObserverCore(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _fakeGitService,
+                _fakeTaskScheduler);
 
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 

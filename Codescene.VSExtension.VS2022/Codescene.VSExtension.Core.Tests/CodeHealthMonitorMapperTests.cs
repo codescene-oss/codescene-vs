@@ -208,7 +208,7 @@ namespace Codescene.VSExtension.Core.Tests
         private static ChangeDetailModel CreateChangeDetail(string category = "Complex Method", string description = "Complexity increased", int? line = 10) =>
             new ChangeDetailModel { Category = category, Description = description, Line = line, ChangeType = ChangeType.Degraded };
 
-        private static FunctionFindingModel CreateFunctionFinding(string functionName = "TestFunction", CliRangeModel range = null, FnToRefactorModel refactorableFn = null) =>
+        private static FunctionFindingModel CreateFunctionFinding(string functionName = "TestFunction", CliRangeModel? range = null, FnToRefactorModel? refactorableFn = null) =>
             new FunctionFindingModel
             {
                 Function = new FunctionInfoModel

@@ -55,8 +55,12 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetChangedFilesVsBaseline_CalledOncePerBatch_NotPerFile()
         {
-            var observer = new TestableGitChangeObserverCore(_fakeLogger, _fakeCodeReviewer,
-                _fakeSupportedFileChecker, _fakeGitService, new FakeAsyncTaskScheduler());
+            var observer = new TestableGitChangeObserverCore(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _fakeGitService,
+                new FakeAsyncTaskScheduler());
 
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
@@ -100,8 +104,12 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task EmptyQueue_DoesNotTrigger_UnnecessaryProcessing()
         {
-            var observer = new TestableGitChangeObserverCore(_fakeLogger, _fakeCodeReviewer,
-                _fakeSupportedFileChecker, _fakeGitService, new FakeAsyncTaskScheduler());
+            var observer = new TestableGitChangeObserverCore(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _fakeGitService,
+                new FakeAsyncTaskScheduler());
 
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 

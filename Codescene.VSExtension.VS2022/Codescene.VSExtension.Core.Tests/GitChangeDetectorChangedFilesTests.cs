@@ -362,8 +362,7 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             var testFileCount = result.Count(f => f.EndsWith("test.cs"));
-            Assert.AreEqual(1, testFileCount,
-                "Should deduplicate files that appear in both committed and status changes");
+            Assert.AreEqual(1, testFileCount, "Should deduplicate files that appear in both committed and status changes");
         }
 
         [TestMethod]

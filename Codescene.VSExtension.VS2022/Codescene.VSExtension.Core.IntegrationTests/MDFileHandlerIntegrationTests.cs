@@ -130,7 +130,6 @@ namespace Codescene.VSExtension.Core.IntegrationTests
             catch (ArgumentNullException)
             {
                 // This is acceptable - Path.Combine throws on null
-                Assert.IsTrue(true);
             }
         }
 

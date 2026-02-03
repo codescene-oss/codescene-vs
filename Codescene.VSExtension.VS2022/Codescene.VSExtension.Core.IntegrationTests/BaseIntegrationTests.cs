@@ -45,8 +45,6 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         /// <summary>
         /// Returns a service from the DI container.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         protected T GetService<T>()
         {
             return _container.GetExportedValue<T>();
@@ -55,11 +53,8 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         /// <summary>
         /// Overrides a service with a mock instance.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="U"></typeparam>
-        /// <param name="instance"></param>
-        protected void MockService<T, U>(U instance)
-            where U : T
+        protected void MockService<T, TU>(TU instance)
+            where TU : T
         {
             _container.ComposeExportedValue<T>(instance);
         }

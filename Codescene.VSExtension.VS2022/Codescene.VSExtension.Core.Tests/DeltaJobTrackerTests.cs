@@ -163,9 +163,9 @@ namespace Codescene.VSExtension.Core.Tests
             return count;
         }
 
-        private static Job CaptureEventJob(Action<Action<Job>> subscribe, Action action)
+        private static Job? CaptureEventJob(Action<Action<Job>> subscribe, Action action)
         {
-            Job captured = null;
+            Job? captured = null;
             subscribe(job => captured = job);
             action();
             return captured;

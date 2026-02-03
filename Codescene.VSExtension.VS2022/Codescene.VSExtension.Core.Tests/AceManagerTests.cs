@@ -245,7 +245,7 @@ namespace Codescene.VSExtension.Core.Tests
             // Arrange
             var fileName = "test.cs";
             var fileContent = "public class Test { }";
-            var deltaResponse = new DeltaResponseModel { ScoreChange = (decimal)-0.5f };
+            var deltaResponse = new DeltaResponseModel { ScoreChange = -0.5M };
             var preflight = new PreFlightResponseModel();
             var expectedResult = new List<FnToRefactorModel>
             {
@@ -271,7 +271,7 @@ namespace Codescene.VSExtension.Core.Tests
             // Arrange
             var fileName = "test.cs";
             var fileContent = "code";
-            var deltaResponse = new DeltaResponseModel { ScoreChange = (decimal)-0.5f };
+            var deltaResponse = new DeltaResponseModel { ScoreChange = -0.5M };
             var preflight = new PreFlightResponseModel();
 
             _mockExecutor.Setup(x => x.FnsToRefactorFromDelta(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>()))

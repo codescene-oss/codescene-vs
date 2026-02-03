@@ -24,7 +24,9 @@ namespace Codescene.VSExtension.Core.Tests
         public void IsLoggedIn_WhenNoDataInMemoryAndProviderReturnsNull_ReturnsFalse()
         {
             // Arrange
-            _mockPersistenceProvider.Setup(x => x.GetData()).Returns((LoginResponse)null);
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+            _mockPersistenceProvider.Setup(x => x.GetData()).Returns((LoginResponse?)null);
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
             // Act
             var result = _authService.IsLoggedIn();
@@ -102,7 +104,9 @@ namespace Codescene.VSExtension.Core.Tests
         public void GetData_WhenNotLoggedIn_ReturnsNull()
         {
             // Arrange
-            _mockPersistenceProvider.Setup(x => x.GetData()).Returns((LoginResponse)null);
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+            _mockPersistenceProvider.Setup(x => x.GetData()).Returns((LoginResponse?)null);
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
             // Act
             var result = _authService.GetData();

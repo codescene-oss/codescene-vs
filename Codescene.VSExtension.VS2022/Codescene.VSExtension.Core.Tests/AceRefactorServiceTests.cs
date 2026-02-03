@@ -37,7 +37,9 @@ public class AceRefactorServiceTests
 
     [TestMethod]
     public void GetRefactorableFunction_FindsMatchingFunction_ByCategoryAndLine() =>
-       AssertFindsExpectedFunction("TargetFunction", CreateCodeSmell("Complex Method", 10),
+       AssertFindsExpectedFunction(
+           "TargetFunction",
+           CreateCodeSmell("Complex Method", 10),
            CreateRefactorableFunction("TargetFunction", "Complex Method", 10),
            CreateRefactorableFunction("OtherFunction", "Other Issue", 20));
 
@@ -53,7 +55,9 @@ public class AceRefactorServiceTests
 
     [TestMethod]
     public void GetRefactorableFunction_MatchesFirstOccurrence_WhenMultipleMatches() =>
-        AssertFindsExpectedFunction("FirstMatch", CreateCodeSmell("Complex Method", 10),
+        AssertFindsExpectedFunction(
+            "FirstMatch",
+            CreateCodeSmell("Complex Method", 10),
             CreateRefactorableFunction("FirstMatch", "Complex Method", 10),
             CreateRefactorableFunction("SecondMatch", "Complex Method", 10));
 
@@ -214,14 +218,18 @@ public class AceRefactorServiceTests
 
     private void SetupAceManagerReturns(IList<FnToRefactorModel> functions) =>
         _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmells(
-            It.IsAny<string>(), It.IsAny<string>(),
-            It.IsAny<List<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<List<CliCodeSmellModel>>(),
+            It.IsAny<PreFlightResponseModel>()))
             .Returns(functions);
 
     private void SetupAceManagerThrows(Exception ex) =>
         _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmells(
-            It.IsAny<string>(), It.IsAny<string>(),
-            It.IsAny<List<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<List<CliCodeSmellModel>>(),
+            It.IsAny<PreFlightResponseModel>()))
             .Throws(ex);
 
     private static CodeSmellModel CreateCodeSmell(string category, int startLine) =>

@@ -112,9 +112,9 @@ namespace Codescene.VSExtension.Core.Tests
             var json = JsonConvert.SerializeObject(model);
             var deserialized = JsonConvert.DeserializeObject<ReviewRequestModel>(json);
 
-            Assert.AreEqual(model.FilePath, deserialized.FilePath);
-            Assert.AreEqual(model.FileContent, deserialized.FileContent);
-            Assert.AreEqual(model.CachePath, deserialized.CachePath);
+            Assert.AreEqual(model.FilePath, deserialized?.FilePath);
+            Assert.AreEqual(model.FileContent, deserialized?.FileContent);
+            Assert.AreEqual(model.CachePath, deserialized?.CachePath);
         }
 
         [TestMethod]
@@ -252,11 +252,11 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(expected.NippyB64, actual.NippyB64);
         }
 
-        private static void AssertFnToRefactorRoundTrip(FnToRefactorModel original, FnToRefactorModel deserialized)
+        private static void AssertFnToRefactorRoundTrip(FnToRefactorModel original, FnToRefactorModel? deserialized)
         {
-            Assert.AreEqual(original.Name, deserialized.Name);
-            Assert.AreEqual(original.Body, deserialized.Body);
-            Assert.AreEqual(original.FileType, deserialized.FileType);
+            Assert.AreEqual(original.Name, deserialized?.Name);
+            Assert.AreEqual(original.Body, deserialized?.Body);
+            Assert.AreEqual(original.FileType, deserialized?.FileType);
         }
 
         private static void AssertCodeSmellFields(CliCodeSmellModel result, string expectedCategory, string expectedDetails, int expectedRangeStartLine)
