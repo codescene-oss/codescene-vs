@@ -1,9 +1,8 @@
-using Codescene.VSExtension.Core.Interfaces.Util;
-using Microsoft.VisualStudio.Shell;
 using System.ComponentModel.Composition;
 using System.Drawing;
 using System.Windows.Controls;
-
+using Codescene.VSExtension.Core.Interfaces.Util;
+using Microsoft.VisualStudio.Shell;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.Markdown
 {

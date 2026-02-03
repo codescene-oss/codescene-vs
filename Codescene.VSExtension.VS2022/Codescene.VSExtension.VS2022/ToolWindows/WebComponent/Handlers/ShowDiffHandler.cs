@@ -1,12 +1,12 @@
+using System;
+using System.ComponentModel.Composition;
+using System.IO;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using System;
-using System.ComponentModel.Composition;
-using System.IO;
-using System.Threading.Tasks;
 
 [Export(typeof(ShowDiffHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]

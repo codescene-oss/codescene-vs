@@ -1,11 +1,11 @@
+using System.ComponentModel.Composition;
+using System.Windows.Controls;
+using System.Windows.Media;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
-using System.ComponentModel.Composition;
-using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace Codescene.VSExtension.VS2022.Controls
 {

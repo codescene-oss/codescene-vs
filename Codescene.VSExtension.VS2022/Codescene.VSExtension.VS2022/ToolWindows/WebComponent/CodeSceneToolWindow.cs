@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Interfaces;
@@ -11,12 +17,6 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
 using static Codescene.VSExtension.Core.Consts.Constants;
 using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 

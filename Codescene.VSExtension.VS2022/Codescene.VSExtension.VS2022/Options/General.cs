@@ -1,8 +1,8 @@
-using Community.VisualStudio.Toolkit;
-using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Shell;
 
 namespace Codescene.VSExtension.VS2022;
 

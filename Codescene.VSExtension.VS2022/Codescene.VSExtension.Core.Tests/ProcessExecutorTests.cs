@@ -1,8 +1,8 @@
+using System;
+using System.IO;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Moq;
-using System;
-using System.IO;
 
 namespace Codescene.VSExtension.Core.Tests
 {

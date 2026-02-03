@@ -1,8 +1,8 @@
-using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Cli;
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {

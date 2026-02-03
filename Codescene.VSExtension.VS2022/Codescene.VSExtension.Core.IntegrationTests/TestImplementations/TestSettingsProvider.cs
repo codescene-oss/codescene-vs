@@ -1,6 +1,6 @@
+using System.ComponentModel.Composition;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Moq;
-using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
 {

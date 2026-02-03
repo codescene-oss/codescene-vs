@@ -1,7 +1,7 @@
-using Codescene.VSExtension.Core.Interfaces;
-using Microsoft.Win32;
 using System;
 using System.ComponentModel.Composition;
+using Codescene.VSExtension.Core.Interfaces;
+using Microsoft.Win32;
 
 namespace Codescene.VSExtension.VS2022.Application.Services;
 

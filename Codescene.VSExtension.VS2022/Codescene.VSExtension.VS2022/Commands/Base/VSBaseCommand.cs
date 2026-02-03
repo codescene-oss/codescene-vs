@@ -1,5 +1,5 @@
-using Microsoft.VisualStudio.Shell;
 using System;
+using Microsoft.VisualStudio.Shell;
 
 namespace Codescene.VSExtension.VS2022.Commands
 {

@@ -1,7 +1,7 @@
+using System;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Models;
 using Microsoft.VisualStudio.Text;
-using System;
 
 namespace Codescene.VSExtension.VS2022.Util
 {

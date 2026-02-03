@@ -1,5 +1,5 @@
-using Codescene.VSExtension.Core.Enums;
 using System;
+using Codescene.VSExtension.Core.Enums;
 
 namespace Codescene.VSExtension.Core.Models.Ace
 {

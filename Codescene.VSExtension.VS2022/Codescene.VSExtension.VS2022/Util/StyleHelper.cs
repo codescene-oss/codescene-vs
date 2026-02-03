@@ -1,10 +1,10 @@
-using EnvDTE;
-using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using EnvDTE;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 
 namespace Codescene.VSExtension.VS2022.Util;
 

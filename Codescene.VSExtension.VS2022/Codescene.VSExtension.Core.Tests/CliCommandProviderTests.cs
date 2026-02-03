@@ -1,10 +1,10 @@
+using System.Globalization;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Moq;
-using System.Globalization;
 
 namespace Codescene.VSExtension.Core.Tests
 {

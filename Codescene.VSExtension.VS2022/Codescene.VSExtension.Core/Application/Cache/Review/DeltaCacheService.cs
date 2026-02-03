@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
-using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Application.Cache.Review
 {

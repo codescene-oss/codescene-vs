@@ -1,7 +1,7 @@
-using Codescene.VSExtension.Core.Interfaces.Cli;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using Codescene.VSExtension.Core.Interfaces.Cli;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {

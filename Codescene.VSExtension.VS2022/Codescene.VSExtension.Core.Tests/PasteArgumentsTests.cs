@@ -1,5 +1,5 @@
-using Codescene.VSExtension.Core.Util;
 using System.Text;
+using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Tests
 {

@@ -1,12 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using LibGit2Sharp;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 
 namespace Codescene.VSExtension.Core.Tests
 {

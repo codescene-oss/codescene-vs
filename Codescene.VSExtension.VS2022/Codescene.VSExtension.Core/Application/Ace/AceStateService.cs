@@ -1,9 +1,9 @@
+using System;
+using System.ComponentModel.Composition;
 using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models.Ace;
-using System;
-using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.Core.Application.Ace
 {

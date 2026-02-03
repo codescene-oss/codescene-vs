@@ -1,7 +1,7 @@
-using Codescene.VSExtension.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Codescene.VSExtension.Core.Models;
 
 namespace Codescene.VSExtension.Core.Util
 {

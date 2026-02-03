@@ -1,8 +1,8 @@
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
-using System.Threading.Tasks;
 namespace Codescene.VSExtension.VS2022.Commands;
 
 [Command(PackageGuids.CodeSceneCmdSetString, PackageIds.OpenSettings)]

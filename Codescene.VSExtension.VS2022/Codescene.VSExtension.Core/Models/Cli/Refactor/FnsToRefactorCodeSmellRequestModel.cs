@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Newtonsoft.Json;
-using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Models.Cli.Refactor
 {

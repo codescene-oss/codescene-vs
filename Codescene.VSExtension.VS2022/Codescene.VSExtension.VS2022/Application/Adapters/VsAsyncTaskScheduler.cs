@@ -1,8 +1,8 @@
-using Codescene.VSExtension.Core.Interfaces;
-using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Interfaces;
+using Microsoft.VisualStudio.Shell;
 
 namespace Codescene.VSExtension.VS2022.Application.Adapters
 {

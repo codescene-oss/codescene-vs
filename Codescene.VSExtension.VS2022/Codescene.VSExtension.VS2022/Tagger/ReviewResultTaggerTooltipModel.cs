@@ -1,3 +1,6 @@
+using System;
+using System.ComponentModel.Composition;
+using System.Windows.Input;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -6,9 +9,6 @@ using Codescene.VSExtension.VS2022.Commands;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
-using System;
-using System.ComponentModel.Composition;
-using System.Windows.Input;
 
 namespace Codescene.VSExtension.VS2022.UnderlineTagger
 {

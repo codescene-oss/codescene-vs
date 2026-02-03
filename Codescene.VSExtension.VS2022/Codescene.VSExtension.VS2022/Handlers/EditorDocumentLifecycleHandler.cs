@@ -1,27 +1,27 @@
-using Codescene.VSExtension.Core.Models.Cache.Review;
+using System;
+using System.ComponentModel.Composition;
+using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cache.Review;
+using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using Codescene.VSExtension.VS2022.TermsAndPolicies;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
+using Codescene.VSExtension.VS2022.Util;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using System;
-using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
-using Codescene.VSExtension.Core.Util;
-using Codescene.VSExtension.Core.Application.Cache.Review;
-using Codescene.VSExtension.VS2022.Util;
-using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Application.Ace;
-using Codescene.VSExtension.Core.Models.Cli;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 {

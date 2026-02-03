@@ -1,7 +1,7 @@
-using Codescene.VSExtension.Core.Models.Cli;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using System;
 using System.ComponentModel.Composition;
+using Codescene.VSExtension.Core.Models.Cli;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 
 namespace Codescene.VSExtension.Core.Application.Ace
 {

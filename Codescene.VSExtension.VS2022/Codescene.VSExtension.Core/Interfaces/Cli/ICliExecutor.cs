@@ -1,7 +1,7 @@
+using System.Collections.Generic;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
-using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Interfaces.Cli
 {

@@ -1,7 +1,7 @@
-using Codescene.VSExtension.Core.Interfaces.Git;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Interfaces.Git;
 
 namespace Codescene.VSExtension.VS2022.Application.Git
 {

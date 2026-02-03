@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
-using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 {

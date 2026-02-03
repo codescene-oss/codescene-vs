@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
@@ -6,7 +7,6 @@ using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.Commands;
 

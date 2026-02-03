@@ -1,3 +1,6 @@
+using System;
+using System.ComponentModel.Composition;
+using System.Linq;
 using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
@@ -6,9 +9,6 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
-using System;
-using System.ComponentModel.Composition;
-using System.Linq;
 
 namespace Codescene.VSExtension.Core.Application.Ace
 {
