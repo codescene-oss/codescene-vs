@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;

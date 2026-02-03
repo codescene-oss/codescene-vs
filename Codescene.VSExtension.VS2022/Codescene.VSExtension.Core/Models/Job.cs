@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 
 namespace Codescene.VSExtension.Core.Models

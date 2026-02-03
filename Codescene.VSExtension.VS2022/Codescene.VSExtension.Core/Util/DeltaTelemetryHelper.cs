@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

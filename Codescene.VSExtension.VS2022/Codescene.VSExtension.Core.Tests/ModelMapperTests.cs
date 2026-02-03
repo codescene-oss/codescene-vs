@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli;

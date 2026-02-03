@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using System.ComponentModel.Composition;
 using System.Text;
 using Codescene.VSExtension.Core.Interfaces;
