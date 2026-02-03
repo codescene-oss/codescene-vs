@@ -157,7 +157,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Function = new FunctionInfoModel { Name = "TestFn", Range = null },
                 ChangeDetails = new[] { CreateChangeDetail() }
-            }};
+            } };
             var result = _mapper.Map(CreateSingleFileDelta("test.cs", CreateDeltaResponseWithFunctionFindings(findings)));
 
             Assert.IsNull(result.FileDeltaData[0].Delta.FunctionLevelFindings[0].Function.Range);
