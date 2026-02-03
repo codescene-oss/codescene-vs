@@ -46,7 +46,8 @@ public class General : BaseOptionModel<General>
     [PasswordPropertyText(true)]
     public string AuthToken { get; set; } = string.Empty;
 
-    public General() : base()
+    public General()
+        : base()
     {
         // Store initial values
         _previousAuthToken = AuthToken;

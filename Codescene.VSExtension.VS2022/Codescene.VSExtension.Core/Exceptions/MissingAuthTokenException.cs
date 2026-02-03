@@ -6,7 +6,8 @@ namespace Codescene.VSExtension.Core.Exceptions
     {
         private readonly string _message;
 
-        public MissingAuthTokenException(string message) : base(message)
+        public MissingAuthTokenException(string message)
+            : base(message)
         {
             _message = message;
         }
