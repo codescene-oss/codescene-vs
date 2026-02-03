@@ -27,12 +27,12 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
 
     private static readonly IVsInfoBarActionItem[] actionItems =
         [
-            new InfoBarButton(CodeSceneConstants.Titles.ACCEPT_TERMS),
-            new InfoBarButton(CodeSceneConstants.Titles.DECLINE_TERMS),
-            new InfoBarHyperlink(CodeSceneConstants.Titles.VIEW_TERMS)
+            new InfoBarButton(CodeSceneConstants.Titles.ACCEPTTERMS),
+            new InfoBarButton(CodeSceneConstants.Titles.DECLINETERMS),
+            new InfoBarHyperlink(CodeSceneConstants.Titles.VIEWTERMS)
         ];
     private static readonly InfoBarModel model = new (
-            [new InfoBarTextSpan(CodeSceneConstants.Titles.TERMS_INFO)],
+            [new InfoBarTextSpan(CodeSceneConstants.Titles.TERMSINFO)],
             actionItems,
             KnownMonikers.StatusInformation,
             isCloseButtonVisible: false);
@@ -60,7 +60,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
             {
                 mainHost.AddInfoBar(uiElement);
                 _infoBarShownOnce = true;
-                SendTelemetry(CodeSceneConstants.Telemetry.TERMS_AND_POLICIES_SHOWN);
+                SendTelemetry(CodeSceneConstants.Telemetry.TERMSANDPOLICIESSHOWN);
             }
 
             return termsAccepted;
@@ -81,20 +81,20 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        SendTelemetry(CodeSceneConstants.Telemetry.TERMS_AND_POLICIES_RESPONSE, actionItem.Text);
+        SendTelemetry(CodeSceneConstants.Telemetry.TERMSANDPOLICIESRESPONSE, actionItem.Text);
 
         switch (actionItem.Text)
         {
-            case CodeSceneConstants.Titles.ACCEPT_TERMS:
-            case CodeSceneConstants.Titles.DECLINE_TERMS:
-                var hasAccepted = actionItem.Text == CodeSceneConstants.Titles.ACCEPT_TERMS;
+            case CodeSceneConstants.Titles.ACCEPTTERMS:
+            case CodeSceneConstants.Titles.DECLINETERMS:
+                var hasAccepted = actionItem.Text == CodeSceneConstants.Titles.ACCEPTTERMS;
                 SetAcceptedTerms(hasAccepted);
 
                 _logger.Info($"User has {(hasAccepted ? "accepted" : "declined")} Terms & Policies. {(hasAccepted ? "Analysis will run when the file is updated or reopened." : string.Empty)}");
 
                 infoBarUIElement.Close();
                 break;
-            case CodeSceneConstants.Titles.VIEW_TERMS:
+            case CodeSceneConstants.Titles.VIEWTERMS:
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "https://codescene.com/policies",
@@ -140,15 +140,15 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
     {
         var store = GetOrCreateSettingsStore();
 
-        return store.PropertyExists(CodeSceneConstants.Titles.SETTINGS_COLLECTION, CodeSceneConstants.Titles.ACCEPTED_TERMS_PROPERTY) &&
-               store.GetBoolean(CodeSceneConstants.Titles.SETTINGS_COLLECTION, CodeSceneConstants.Titles.ACCEPTED_TERMS_PROPERTY);
+        return store.PropertyExists(CodeSceneConstants.Titles.SETTINGSCOLLECTION, CodeSceneConstants.Titles.ACCEPTEDTERMSPROPERTY) &&
+               store.GetBoolean(CodeSceneConstants.Titles.SETTINGSCOLLECTION, CodeSceneConstants.Titles.ACCEPTEDTERMSPROPERTY);
     }
 
     private void SetAcceptedTerms(bool value)
     {
         var store = GetOrCreateSettingsStore();
 
-        store.SetBoolean(CodeSceneConstants.Titles.SETTINGS_COLLECTION, CodeSceneConstants.Titles.ACCEPTED_TERMS_PROPERTY, value);
+        store.SetBoolean(CodeSceneConstants.Titles.SETTINGSCOLLECTION, CodeSceneConstants.Titles.ACCEPTEDTERMSPROPERTY, value);
         _currentTermsInfoBarUiElement = null;
     }
 
@@ -159,8 +159,8 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
         var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
         var store = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
-        if (!store.CollectionExists(CodeSceneConstants.Titles.SETTINGS_COLLECTION))
-            store.CreateCollection(CodeSceneConstants.Titles.SETTINGS_COLLECTION);
+        if (!store.CollectionExists(CodeSceneConstants.Titles.SETTINGSCOLLECTION))
+            store.CreateCollection(CodeSceneConstants.Titles.SETTINGSCOLLECTION);
 
         return store;
     }

@@ -25,21 +25,21 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task HandleDeltaTelemetryEvent_FileAddedToCache_SendsMonitorFileAddedEvent()
         {
             var scenario = TelemetryScenario.FileAdded("newfile.cs");
-            await AssertTelemetryEventSent(scenario, Constants.Telemetry.MONITOR_FILE_ADDED);
+            await AssertTelemetryEventSent(scenario, Constants.Telemetry.MONITORFILEADDED);
         }
 
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileRemovedFromCache_SendsMonitorFileRemovedEvent()
         {
             var scenario = TelemetryScenario.FileRemoved("removedfile.cs");
-            await AssertTelemetryEventSent(scenario, Constants.Telemetry.MONITOR_FILE_REMOVED);
+            await AssertTelemetryEventSent(scenario, Constants.Telemetry.MONITORFILEREMOVED);
         }
 
         [TestMethod]
         public async Task HandleDeltaTelemetryEvent_FileUpdatedInCache_SendsMonitorFileUpdatedEvent()
         {
             var scenario = TelemetryScenario.FileUpdated("existingfile.cs");
-            await AssertTelemetryEventSent(scenario, Constants.Telemetry.MONITOR_FILE_UPDATED);
+            await AssertTelemetryEventSent(scenario, Constants.Telemetry.MONITORFILEUPDATED);
         }
 
         [TestMethod]

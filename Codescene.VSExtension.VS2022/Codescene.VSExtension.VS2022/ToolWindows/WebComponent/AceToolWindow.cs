@@ -43,7 +43,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
         var payload = new WebComponentPayload<AceComponentData>
         {
-            IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+            IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
             View = WebComponentConstants.ViewTypes.ACE,
             Data = mapper.Map(handler.Path, handler.RefactorableFunction)
         };
@@ -62,7 +62,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         return ctrl;
     }
 
-    public override string GetTitle(int toolWindowId) => Titles.CODESCENE_ACE;
+    public override string GetTitle(int toolWindowId) => Titles.CODESCENEACE;
 
     [Guid("60f71481-a161-4512-bb43-162b852a86d1")]
     internal class Pane : ToolWindowPane
@@ -109,10 +109,10 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
         _ctrl.UpdateViewAsync(new WebComponentMessage<AceComponentData>
         {
-            MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+            MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
             Payload = new WebComponentPayload<AceComponentData>
             {
-                IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
                 View = WebComponentConstants.ViewTypes.ACE,
                 Data = data
             }
@@ -144,10 +144,10 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         {
             UpdateView(new WebComponentMessage<AceComponentData>
             {
-                MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+                MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
                 Payload = new WebComponentPayload<AceComponentData>
                 {
-                    IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                    IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
                     View = WebComponentConstants.ViewTypes.ACE,
                     Data = mapper.Map(AceManager.LastRefactoring)
                 }
@@ -172,7 +172,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                     { "isCached", responseModel.Metadata.Cached }
                 };
 
-            telemetryManager.SendTelemetry(Constants.Telemetry.ACE_REFACTOR_PRESENTED, additionalData);
+            telemetryManager.SendTelemetry(Constants.Telemetry.ACEREFACTORPRESENTED, additionalData);
         }).FireAndForget();
     }
 }

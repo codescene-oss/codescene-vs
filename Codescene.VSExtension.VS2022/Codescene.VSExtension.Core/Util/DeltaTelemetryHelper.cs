@@ -38,7 +38,7 @@ namespace Codescene.VSExtension.Core.Util
                 var delta = entry.Delta;
                 Dictionary<string, object> additionalData = null;
 
-                var hasAdditionalData = eventName == Constants.Telemetry.MONITOR_FILE_ADDED || eventName == Constants.Telemetry.MONITOR_FILE_UPDATED;
+                var hasAdditionalData = eventName == Constants.Telemetry.MONITORFILEADDED || eventName == Constants.Telemetry.MONITORFILEUPDATED;
                 if (hasAdditionalData)
                     additionalData = new Dictionary<string, object>
                     {
@@ -59,9 +59,9 @@ namespace Codescene.VSExtension.Core.Util
             var hadBefore = before.ContainsKey(filePath);
             var hasNow = after.ContainsKey(filePath);
 
-            if (!hadBefore && hasNow) return Constants.Telemetry.MONITOR_FILE_ADDED;
-            if (hadBefore && !hasNow) return Constants.Telemetry.MONITOR_FILE_REMOVED;
-            if (hadBefore && hasNow) return Constants.Telemetry.MONITOR_FILE_UPDATED;
+            if (!hadBefore && hasNow) return Constants.Telemetry.MONITORFILEADDED;
+            if (hadBefore && !hasNow) return Constants.Telemetry.MONITORFILEREMOVED;
+            if (hadBefore && hasNow) return Constants.Telemetry.MONITORFILEUPDATED;
 
             return null;
         }

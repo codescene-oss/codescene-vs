@@ -57,7 +57,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
                     additionalEventData);
                 var arguments = _cliCommandProvider.SendTelemetryCommand(eventJson);
 
-                var result = _executor.Execute(arguments, null, Constants.Timeout.TELEMETRY_TIMEOUT);
+                var result = _executor.Execute(arguments, null, Constants.Timeout.TELEMETRYTIMEOUT);
             }
             catch (Exception e)
             {
@@ -82,7 +82,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
                     }
                 }
 
-                SendTelemetry(Constants.Telemetry.UNHANDLED_ERROR, errorData);
+                SendTelemetry(Constants.Telemetry.UNHANDLEDERROR, errorData);
                 ErrorTelemetryUtils.IncrementErrorCount();
             }
             catch (Exception e)

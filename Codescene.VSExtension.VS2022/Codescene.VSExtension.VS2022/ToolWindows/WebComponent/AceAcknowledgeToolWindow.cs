@@ -40,8 +40,8 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
         var hastoken = !string.IsNullOrWhiteSpace(settingsProvider?.AuthToken);
         var payload = new WebComponentPayload<AceAcknowledgeComponentData>
         {
-            IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
-            View = WebComponentConstants.ViewTypes.ACE_ACKNOWLEDGE,
+            IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
+            View = WebComponentConstants.ViewTypes.ACEACKNOWLEDGE,
             Data = new AceAcknowledgeComponentData
             {
                 FilePath = _filePath,
@@ -84,11 +84,11 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
         var hastoken = !string.IsNullOrWhiteSpace(settingsProvider?.AuthToken);
         var message = new WebComponentMessage<AceAcknowledgeComponentData>
         {
-            MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+            MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
             Payload = new WebComponentPayload<AceAcknowledgeComponentData>
             {
-                IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
-                View = WebComponentConstants.ViewTypes.ACE_ACKNOWLEDGE,
+                IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
+                View = WebComponentConstants.ViewTypes.ACEACKNOWLEDGE,
                 Data = new AceAcknowledgeComponentData
                 {
                     FilePath = _filePath,

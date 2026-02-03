@@ -39,7 +39,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     cliFilePath);
             }
 
-            var actualTimeout = timeout ?? Constants.Timeout.DEFAULT_CLI_TIMEOUT;
+            var actualTimeout = timeout ?? Constants.Timeout.DEFAULTCLITIMEOUT;
 
             var processInfo = new ProcessStartInfo
             {

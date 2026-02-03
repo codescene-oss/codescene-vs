@@ -44,7 +44,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
             var payload = new WebComponentPayload<CodeHealthMonitorComponentData>
             {
-                IdeType = VISUAL_STUDIO_IDE_TYPE,
+                IdeType = VISUALSTUDIOIDETYPE,
                 View = ViewTypes.HOME,
                 Data = mapper.Map(deltaCache.GetAll()),
                 Pro = true
@@ -84,10 +84,10 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
         var message = new WebComponentMessage<CodeHealthMonitorComponentData>
         {
-            MessageType = MessageTypes.UPDATE_RENDERER,
+            MessageType = MessageTypes.UPDATERENDERER,
             Payload = new WebComponentPayload<CodeHealthMonitorComponentData>
             {
-                IdeType = VISUAL_STUDIO_IDE_TYPE,
+                IdeType = VISUALSTUDIOIDETYPE,
                 View = ViewTypes.HOME,
                 Data = mapper.Map(deltaCache.GetAll()),
                 Pro = true
@@ -155,7 +155,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 };
 
                 var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-                telemetryManager.SendTelemetry(Telemetry.MONITOR_VISIBILITY, additionalData);
+                telemetryManager.SendTelemetry(Telemetry.MONITORVISIBILITY, additionalData);
             }).FireAndForget();
         }
     }

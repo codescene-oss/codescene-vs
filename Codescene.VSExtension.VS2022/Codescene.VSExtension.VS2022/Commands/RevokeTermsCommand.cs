@@ -21,10 +21,10 @@ internal sealed class RevokeTermsCommand : BaseCommand<RevokeTermsCommand>
         var settingsManager = new ShellSettingsManager(package);
         var store = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
-        if (!store.CollectionExists(Constants.Titles.SETTINGS_COLLECTION))
-            store.CreateCollection(Constants.Titles.SETTINGS_COLLECTION);
+        if (!store.CollectionExists(Constants.Titles.SETTINGSCOLLECTION))
+            store.CreateCollection(Constants.Titles.SETTINGSCOLLECTION);
 
-        store.SetBoolean(Constants.Titles.SETTINGS_COLLECTION, Constants.Titles.ACCEPTED_TERMS_PROPERTY, false);
+        store.SetBoolean(Constants.Titles.SETTINGSCOLLECTION, Constants.Titles.ACCEPTEDTERMSPROPERTY, false);
 
         var logger = await VS.GetMefServiceAsync<ILogger>();
         logger.Info("Terms & Policies revoked. Existing analysis results will be cleared upon file update or reopening. You will be prompted to accept CodeScene's Terms & Policies the next time the extension loads.");
@@ -40,7 +40,7 @@ internal sealed class RevokeTermsCommand : BaseCommand<RevokeTermsCommand>
         Task.Run(async () =>
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(Constants.Telemetry.REVOKE_TERMS);
+            telemetryManager.SendTelemetry(Constants.Telemetry.REVOKETERMS);
         }).FireAndForget();
     }
 }

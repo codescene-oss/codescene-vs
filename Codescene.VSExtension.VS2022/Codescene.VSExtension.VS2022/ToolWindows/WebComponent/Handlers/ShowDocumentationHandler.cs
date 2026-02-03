@@ -56,10 +56,10 @@ public class ShowDocumentationHandler
 
             CodeSmellDocumentationWindow.UpdateView(new WebComponentMessage<CodeSmellDocumentationComponentData>
             {
-                MessageType = MessageTypes.UPDATE_RENDERER,
+                MessageType = MessageTypes.UPDATERENDERER,
                 Payload = new WebComponentPayload<CodeSmellDocumentationComponentData>
                 {
-                    IdeType = VISUAL_STUDIO_IDE_TYPE,
+                    IdeType = VISUALSTUDIOIDETYPE,
                     View = ViewTypes.DOCS,
                     Data = mapper.Map(model, fnToRefactor, aceAcknowledged),
                 }
@@ -83,7 +83,7 @@ public class ShowDocumentationHandler
             };
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(Constants.Telemetry.OPEN_DOCS_PANEL, additionalData);
+            telemetryManager.SendTelemetry(Constants.Telemetry.OPENDOCSPANEL, additionalData);
         }).FireAndForget();
     }
 }

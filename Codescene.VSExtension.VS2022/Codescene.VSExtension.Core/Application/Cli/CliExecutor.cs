@@ -90,7 +90,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             return ExecuteWithTimingAndLogging<PreFlightResponseModel>(
                 "ACE preflight",
-                () => _executor.Execute(arguments, null, Timeout.TELEMETRY_TIMEOUT),
+                () => _executor.Execute(arguments, null, Timeout.TELEMETRYTIMEOUT),
                 "Preflight failed.");
         }
 

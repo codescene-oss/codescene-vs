@@ -15,8 +15,8 @@ namespace Codescene.VSExtension.Core.Util
             var telemetryEvent = new TelemetryEvent
             {
                 UserId = deviceId,
-                EditorType = Constants.Telemetry.SOURCE_IDE,
-                EventName = $"{Constants.Telemetry.SOURCE_IDE}/{eventName}",
+                EditorType = Constants.Telemetry.SOURCEIDE,
+                EventName = $"{Constants.Telemetry.SOURCEIDE}/{eventName}",
                 ExtensionVersion = version,
             };
 
