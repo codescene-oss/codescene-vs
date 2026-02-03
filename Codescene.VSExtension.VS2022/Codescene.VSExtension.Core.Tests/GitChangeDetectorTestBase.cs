@@ -263,7 +263,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return candidates;
             }
 
-            protected override Commit GetMergeBaseCommit(Repository repo)
+            protected override Commit? GetMergeBaseCommit(Repository repo)
             {
                 if (SimulateInvalidCurrentBranch)
                 {
@@ -288,7 +288,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return base.GetChangedFilesFromRepository(repo, gitRootPath, savedFilesTracker, openFilesObserver);
             }
 
-            protected override Commit TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
+            protected override Commit? TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
             {
                 if (SimulateInvalidMainBranch)
                 {

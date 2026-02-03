@@ -239,7 +239,7 @@ namespace Codescene.VSExtension.Core.Tests
             string path = "test.cs",
             string category = "Complex Method",
             string functionName = "TestFunction",
-            CodeRangeModel range = null)
+            CodeRangeModel? range = null)
         {
             return new ShowDocumentationModel(
                 path,

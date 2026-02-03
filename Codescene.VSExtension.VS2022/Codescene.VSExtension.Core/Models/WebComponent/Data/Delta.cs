@@ -6,7 +6,6 @@ using Codescene.VSExtension.Core.Models.Cli.Refactor;
 
 namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 {
-
     public class Delta
     {
         public decimal ScoreChange { get; set; }

@@ -384,7 +384,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         private static FnToRefactorModel CreateFnToRefactor(
-            string body,
+            string? body,
             int startLine,
             int endLine,
             int startColumn = 1,

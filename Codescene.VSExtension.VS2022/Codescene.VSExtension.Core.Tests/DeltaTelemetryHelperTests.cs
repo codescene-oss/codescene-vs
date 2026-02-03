@@ -99,7 +99,7 @@ namespace Codescene.VSExtension.Core.Tests
             var entry = new DeltaCacheEntry("removedfile.cs", "old", "new", CreateDeltaResponse(-1.0m));
 
             var callReceived = new ManualResetEventSlim(false);
-            Dictionary<string, object> capturedData = null;
+            Dictionary<string, object>? capturedData = null;
             _mockTelemetryManager
                 .Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
                 .Callback<string, Dictionary<string, object>>((_, data) =>
@@ -185,15 +185,15 @@ namespace Codescene.VSExtension.Core.Tests
                 new TelemetryScenario { PreviousFiles = new[] { file }, CurrentFiles = new[] { file }, EntryFile = file };
         }
 
-        private async Task<Dictionary<string, object>> CaptureAdditionalDataForFileAdded(DeltaResponseModel delta)
+        private async Task<Dictionary<string, object>?> CaptureAdditionalDataForFileAdded(DeltaResponseModel delta)
         {
-            var uniqueFile = "newfile_" + System.Guid.NewGuid() + ".cs";
+            var uniqueFile = "newfile_" + Guid.NewGuid() + ".cs";
             var previousSnapshot = new Dictionary<string, DeltaResponseModel>();
             var currentCache = new Dictionary<string, DeltaResponseModel> { { uniqueFile, delta } };
             var entry = new DeltaCacheEntry(uniqueFile, "old", "new", delta);
 
             var callReceived = new ManualResetEventSlim(false);
-            Dictionary<string, object> capturedData = null;
+            Dictionary<string, object>? capturedData = null;
             _mockTelemetryManager
                 .Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
                 .Callback<string, Dictionary<string, object>>((_, data) =>

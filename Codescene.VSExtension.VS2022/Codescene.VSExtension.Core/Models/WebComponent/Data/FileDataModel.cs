@@ -4,7 +4,6 @@ using Codescene.VSExtension.Core.Models.Cli.Refactor;
 
 namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 {
-
     public class FileDataModel
     {
         public string FileName { get; set; }

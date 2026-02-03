@@ -20,9 +20,9 @@ namespace Codescene.VSExtension.Core.Tests
 
         public string Content { get; set; }
 
-        public string CommitMessage { get; set; }
+        public string? CommitMessage { get; set; }
 
-        public TestFileData(string filename, string content, string commitMessage = null)
+        public TestFileData(string filename, string content, string? commitMessage = null)
         {
             Filename = filename;
             Content = content;
@@ -49,15 +49,13 @@ namespace Codescene.VSExtension.Core.Tests
         public void AssertInChangedList(string filename, bool shouldExist = true)
         {
             var exists = _changedFiles.Any(f => f.EndsWith(filename, StringComparison.OrdinalIgnoreCase));
-            Microsoft.VisualStudio.TestTools.UnitTesting.Assert.AreEqual(shouldExist, exists,
-                shouldExist ? $"Should include {filename}" : $"Should not include {filename}");
+            Assert.AreEqual(shouldExist, exists, shouldExist ? $"Should include {filename}" : $"Should not include {filename}");
         }
 
         public void AssertInTracker(string filePath, bool shouldExist = true)
         {
             var exists = _trackerManager.Contains(filePath);
-            Microsoft.VisualStudio.TestTools.UnitTesting.Assert.AreEqual(shouldExist, exists,
-                shouldExist ? "File should be in tracker" : "File should not be in tracker");
+            Assert.AreEqual(shouldExist, exists, shouldExist ? "File should be in tracker" : "File should not be in tracker");
         }
     }
 
@@ -95,7 +93,7 @@ namespace Codescene.VSExtension.Core.Tests
             return new FileReviewModel { FilePath = path };
         }
 
-        public DeltaResponseModel Delta(FileReviewModel review, string currentCode)
+        public DeltaResponseModel? Delta(FileReviewModel review, string currentCode)
         {
             return null;
         }
@@ -174,8 +172,11 @@ namespace Codescene.VSExtension.Core.Tests
     {
         public int GetChangedFilesCallCount { get; private set; }
 
-        public TestableGitChangeObserverCore(ILogger logger, ICodeReviewer codeReviewer,
-            ISupportedFileChecker supportedFileChecker, IGitService gitService,
+        public TestableGitChangeObserverCore(
+            ILogger logger,
+            ICodeReviewer codeReviewer,
+            ISupportedFileChecker supportedFileChecker,
+            IGitService gitService,
             IAsyncTaskScheduler taskScheduler)
             : base(logger, codeReviewer, supportedFileChecker, gitService, taskScheduler)
         {

@@ -31,8 +31,9 @@ namespace Codescene.VSExtension.Core.Tests
                     candidates.Contains("main") || candidates.Contains("master"),
                     "Should detect either 'main' or 'master' as a candidate");
                 Assert.Contains(
-currentBranch,
-                    candidates, $"Should detect current branch '{currentBranch}' as a candidate");
+                    currentBranch,
+                    candidates,
+                    $"Should detect current branch '{currentBranch}' as a candidate");
             }
         }
 
@@ -49,8 +50,9 @@ currentBranch,
                 var candidates = GetMainBranchCandidates(repo);
 
                 Assert.Contains(
-"develop",
-                    candidates, "Should detect 'develop' branch when it exists");
+                    "develop",
+                    candidates,
+                    "Should detect 'develop' branch when it exists");
             }
         }
 
@@ -80,8 +82,9 @@ currentBranch,
                     if (repo.Branches[branch] != null)
                     {
                         Assert.Contains(
-branch,
-                            candidates, $"Should detect existing branch '{branch}'");
+                            branch,
+                            candidates,
+                            $"Should detect existing branch '{branch}'");
                     }
                 }
             }
@@ -110,8 +113,9 @@ branch,
                 foreach (var remoteBranch in remoteBranches)
                 {
                     Assert.DoesNotContain(
-remoteBranch,
-                        candidates, $"Should not include remote branch '{remoteBranch}'");
+                        remoteBranch,
+                        candidates,
+                        $"Should not include remote branch '{remoteBranch}'");
                 }
             }
         }
@@ -140,7 +144,8 @@ remoteBranch,
             {
                 var candidates = GetMainBranchCandidates(repo);
 
-                Assert.IsEmpty(candidates,
+                Assert.IsEmpty(
+                    candidates,
                     "Should return empty list when no main branch candidates exist");
             }
         }
@@ -161,7 +166,9 @@ remoteBranch,
                 secondCall = GetMainBranchCandidates(repo);
             }
 
-            CollectionAssert.AreEqual(firstCall, secondCall,
+            CollectionAssert.AreEqual(
+                firstCall,
+                secondCall,
                 "Subsequent calls should return cached candidates");
         }
     }

@@ -87,18 +87,5 @@ namespace Codescene.VSExtension.Core.Tests
             AssertFileInChangedList(changedFiles, "merge1.ts", false);
             AssertFileInChangedList(changedFiles, "merge2.ts", false);
         }
-
-        protected new string CreateFile(string filename, string content)
-        {
-            var filePath = Path.Combine(_testRepoPath, filename);
-            var directory = Path.GetDirectoryName(filePath);
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            File.WriteAllText(filePath, content);
-            return filePath;
-        }
     }
 }

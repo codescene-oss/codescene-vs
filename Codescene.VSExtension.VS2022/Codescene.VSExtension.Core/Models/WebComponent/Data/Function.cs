@@ -6,7 +6,6 @@ using Codescene.VSExtension.Core.Models.Cli.Refactor;
 
 namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 {
-
     public class Function
     {
         public string Name { get; set; }

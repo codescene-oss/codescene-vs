@@ -299,7 +299,7 @@ namespace Codescene.VSExtension.Core.Tests
             };
         }
 
-        private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction", CliRangeModel range = null)
+        private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction", CliRangeModel? range = null)
         {
             return new FnToRefactorModel
             {
@@ -310,8 +310,8 @@ namespace Codescene.VSExtension.Core.Tests
 
         private static CachedRefactoringActionModel CreateCachedModel(
             string path = "test.cs",
-            FnToRefactorModel refactorableCandidate = null,
-            RefactorResponseModel refactored = null)
+            FnToRefactorModel? refactorableCandidate = null,
+            RefactorResponseModel? refactored = null)
         {
             return new CachedRefactoringActionModel
             {

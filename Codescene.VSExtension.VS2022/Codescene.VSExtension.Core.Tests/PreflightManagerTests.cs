@@ -382,7 +382,7 @@ public class PreflightManagerTests
     private PreFlightResponseModel CreatePreflightResponse(params string[] fileTypes) =>
     new PreFlightResponseModel { FileTypes = fileTypes };
 
-    private void SetupSuccessfulPreflight(PreFlightResponseModel response = null)
+    private void SetupSuccessfulPreflight(PreFlightResponseModel? response = null)
     {
         response ??= CreatePreflightResponse("cs");
         _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Returns(response);
@@ -400,7 +400,7 @@ public class PreflightManagerTests
     private void SetupCurrentState(AceState state) =>
         _mockAceStateService.Setup(x => x.CurrentState).Returns(state);
 
-    private void SetupPreflightWithAceStatus(string token, AceState state, PreFlightResponseModel response = null)
+    private void SetupPreflightWithAceStatus(string token, AceState state, PreFlightResponseModel? response = null)
     {
         SetupSuccessfulPreflight(response);
         SetupAuthToken(token);

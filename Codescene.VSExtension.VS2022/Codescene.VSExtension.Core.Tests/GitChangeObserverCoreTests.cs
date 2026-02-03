@@ -92,10 +92,10 @@ namespace Codescene.VSExtension.Core.Tests
             var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
             var result = _gitChangeObserverCore.ShouldProcessFileForTesting(filePath, changedFiles);
 
-            Assert.AreEqual(expectedResult, result,
-                expectedResult
-                    ? $"Should process {Path.GetExtension(filename)} files"
-                    : $"Should not process {Path.GetExtension(filename)} files");
+            Assert.AreEqual(
+                expectedResult,
+                result,
+                expectedResult ? $"Should process {Path.GetExtension(filename)} files" : $"Should not process {Path.GetExtension(filename)} files");
         }
 
         [TestMethod]
@@ -134,8 +134,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNotNull(_gitChangeObserverCore.FileWatcher, "File watcher should exist");
 
             _gitChangeObserverCore.Dispose();
-
-            Assert.IsTrue(true, "Dispose completed without errors");
         }
     }
 }

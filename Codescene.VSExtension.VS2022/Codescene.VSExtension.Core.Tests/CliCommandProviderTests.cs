@@ -344,7 +344,7 @@ namespace Codescene.VSExtension.Core.Tests
             return new DeltaResponseModel { NewScore = 2, OldScore = 3 };
         }
 
-        private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction", string nippyB64 = null)
+        private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction", string? nippyB64 = null)
         {
             return new FnToRefactorModel
             {

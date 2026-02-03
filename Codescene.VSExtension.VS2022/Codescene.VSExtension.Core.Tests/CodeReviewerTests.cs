@@ -42,7 +42,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void Review_NullPath_ReturnsNull()
         {
             // Arrange
-            string path = null;
+            string? path = null;
             var content = "some code";
 
             // Act
@@ -86,7 +86,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             // Arrange
             var path = "test.cs";
-            string content = null;
+            string? content = null;
 
             // Act
             var result = _codeReviewer.Review(path, content);

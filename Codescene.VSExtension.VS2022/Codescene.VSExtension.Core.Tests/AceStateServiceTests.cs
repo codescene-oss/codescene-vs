@@ -44,7 +44,7 @@ public class AceStateServiceTests
     [TestMethod]
     public void SetState_ShouldFireStateChangedEvent()
     {
-        AceStateChangedEventArgs capturedArgs = null;
+        AceStateChangedEventArgs? capturedArgs = null;
         _aceStateService.StateChanged += (s, e) => capturedArgs = e;
 
         _aceStateService.SetState(AceState.Enabled);
@@ -67,13 +67,13 @@ public class AceStateServiceTests
     [TestMethod]
     public void SetState_WithError_ShouldIncludeErrorInEventArgs()
     {
-        AceStateChangedEventArgs capturedArgs = null;
+        AceStateChangedEventArgs? capturedArgs = null;
         _aceStateService.StateChanged += (s, e) => capturedArgs = e;
         var exception = new Exception("Test error");
 
         _aceStateService.SetState(AceState.Error, exception);
 
-        Assert.AreEqual(exception, capturedArgs.Error);
+        Assert.AreEqual(exception, capturedArgs?.Error);
     }
 
     [TestMethod]
@@ -114,7 +114,7 @@ public class AceStateServiceTests
     {
         _aceStateService.SetState(AceState.Error, new Exception("First error"));
         var secondException = new Exception("Second error");
-        AceStateChangedEventArgs capturedArgs = null;
+        AceStateChangedEventArgs? capturedArgs = null;
         _aceStateService.StateChanged += (s, e) => capturedArgs = e;
 
         _aceStateService.SetError(secondException);

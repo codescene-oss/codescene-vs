@@ -172,7 +172,7 @@ namespace Codescene.VSExtension.Core.Tests
             return new CliRangeModel { StartLine = startLine, EndLine = endLine, StartColumn = 1, EndColumn = 1 };
         }
 
-        private static CliCodeSmellModel CreateCodeSmell(string category, string details = null, int startLine = 1, int endLine = 10)
+        private static CliCodeSmellModel CreateCodeSmell(string category, string? details = null, int startLine = 1, int endLine = 10)
         {
             return new CliCodeSmellModel { Category = category, Details = details, Range = CreateRange(startLine, endLine) };
         }

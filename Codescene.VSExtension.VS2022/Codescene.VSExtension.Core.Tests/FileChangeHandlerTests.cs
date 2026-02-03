@@ -89,7 +89,7 @@ namespace Codescene.VSExtension.Core.Tests
             var changedFiles = new List<string> { "test.cs" };
 
             var eventFired = false;
-            string deletedPath = null;
+            string? deletedPath = null;
             _handler.FileDeletedFromGit += (sender, e) =>
             {
                 eventFired = true;
@@ -347,7 +347,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return new FileReviewModel { FilePath = path };
             }
 
-            public DeltaResponseModel Delta(FileReviewModel review, string currentCode)
+            public DeltaResponseModel? Delta(FileReviewModel review, string currentCode)
             {
                 return null;
             }

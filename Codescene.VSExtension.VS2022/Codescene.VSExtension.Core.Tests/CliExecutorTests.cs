@@ -217,7 +217,9 @@ namespace Codescene.VSExtension.Core.Tests
         {
             SetupFnsToRefactorMocks(payload: "{}", response: "[{\"name\": \"TestFunction\", \"body\": \"code\"}]");
 
-            var result = _executor.FnsToRefactorFromCodeSmells(TestFilename, TestContent,
+            var result = _executor.FnsToRefactorFromCodeSmells(
+                TestFilename,
+                TestContent,
                 new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } },
                 new PreFlightResponseModel());
 
@@ -230,7 +232,9 @@ namespace Codescene.VSExtension.Core.Tests
         {
             SetupFnsToRefactorMocks();
 
-            _executor.FnsToRefactorFromCodeSmells(TestFilename, TestContent,
+            _executor.FnsToRefactorFromCodeSmells(
+                TestFilename,
+                TestContent,
                 new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } },
                 new PreFlightResponseModel());
 
@@ -265,7 +269,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _executor.FnsToRefactorFromDelta(
                 TestFilename,
                 TestContent,
-                new DeltaResponseModel { ScoreChange = (decimal)-0.5f },
+                new DeltaResponseModel { ScoreChange = -0.5M },
                 new PreFlightResponseModel());
 
             Assert.IsNotNull(result);
@@ -280,7 +284,7 @@ namespace Codescene.VSExtension.Core.Tests
             _executor.FnsToRefactorFromDelta(
                 TestFilename,
                 TestContent,
-                new DeltaResponseModel { ScoreChange = (decimal)-0.5f },
+                new DeltaResponseModel { ScoreChange = -0.5M },
                 new PreFlightResponseModel());
 
             _mockCacheStorageService.Verify(x => x.RemoveOldReviewCacheEntries(It.IsAny<int>()), Times.Once);
@@ -332,8 +336,11 @@ namespace Codescene.VSExtension.Core.Tests
             _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
             _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("command");
             _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>())).Returns(payload);
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<IList<CliCodeSmellModel>>(),
+                It.IsAny<PreFlightResponseModel>())).Returns(payload);
             _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
         }
 
@@ -342,8 +349,11 @@ namespace Codescene.VSExtension.Core.Tests
             _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
             _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("command");
             _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>())).Returns(payload);
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DeltaResponseModel>(),
+                It.IsAny<PreFlightResponseModel>())).Returns(payload);
             _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
         }
     }
