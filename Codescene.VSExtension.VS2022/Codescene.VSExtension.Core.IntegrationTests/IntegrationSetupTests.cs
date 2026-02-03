@@ -50,7 +50,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         public void Test_Mocking()
         {
             // Arrange
-            MockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation())
+            mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation())
                 .Returns("/mocked/location");
             var cacheStorageService = GetService<ICacheStorageService>();
 
@@ -65,7 +65,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         public void Test_Mocking2()
         {
             // Arrange
-            MockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation())
+            mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation())
                 .Returns("/mocked/location2");
             var cacheStorageService = GetService<ICacheStorageService>();
 

@@ -12,12 +12,12 @@ namespace Codescene.VSExtension.Core.IntegrationTests
     {
         // These are mocks of services and handlers that are only implemented in Codescene.VSExtension.VS2022.
         // To avoid that dependency for the integration tests, and focus only on .Core, we mock them here.
-        protected Mock<ICacheStorageService> MockCacheStorageService;
-        protected Mock<IErrorListWindowHandler> MockErrorListWindowHandler;
-        protected Mock<IExtensionMetadataProvider> MockExtensionMetadataProvider;
-        protected Mock<IGitService> MockGitService;
-        protected Mock<ILogger> MockLogger;
-        protected Mock<ISettingsProvider> MockSettingsProvider;
+        protected Mock<ICacheStorageService> mockCacheStorageService;
+        protected Mock<IErrorListWindowHandler> mockErrorListWindowHandler;
+        protected Mock<IExtensionMetadataProvider> mockExtensionMetadataProvider;
+        protected Mock<IGitService> mockGitService;
+        protected Mock<ILogger> mockLogger;
+        protected Mock<ISettingsProvider> mockSettingsProvider;
 
         protected CompositionContainer _container;
 
@@ -31,12 +31,12 @@ namespace Codescene.VSExtension.Core.IntegrationTests
             var catalog = new AggregateCatalog(testCatalog, coreCatalog);
             _container = new CompositionContainer(catalog);
 
-            MockCacheStorageService = ((TestCacheStorageService)_container.GetExportedValue<ICacheStorageService>()).Mock;
-            MockErrorListWindowHandler = ((TestErrorListWindowHandler)_container.GetExportedValue<IErrorListWindowHandler>()).Mock;
-            MockExtensionMetadataProvider = ((TestExtensionMetadataProvider)_container.GetExportedValue<IExtensionMetadataProvider>()).Mock;
-            MockGitService = ((TestGitService)_container.GetExportedValue<IGitService>()).Mock;
-            MockLogger = ((TestLogger)_container.GetExportedValue<ILogger>()).Mock;
-            MockSettingsProvider = ((TestSettingsProvider)_container.GetExportedValue<ISettingsProvider>()).Mock;
+            mockCacheStorageService = ((TestCacheStorageService)_container.GetExportedValue<ICacheStorageService>()).Mock;
+            mockErrorListWindowHandler = ((TestErrorListWindowHandler)_container.GetExportedValue<IErrorListWindowHandler>()).Mock;
+            mockExtensionMetadataProvider = ((TestExtensionMetadataProvider)_container.GetExportedValue<IExtensionMetadataProvider>()).Mock;
+            mockGitService = ((TestGitService)_container.GetExportedValue<IGitService>()).Mock;
+            mockLogger = ((TestLogger)_container.GetExportedValue<ILogger>()).Mock;
+            mockSettingsProvider = ((TestSettingsProvider)_container.GetExportedValue<ISettingsProvider>()).Mock;
         }
 
         /// <summary>

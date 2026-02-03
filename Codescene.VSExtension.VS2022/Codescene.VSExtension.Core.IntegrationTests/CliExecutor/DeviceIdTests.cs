@@ -13,8 +13,8 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
         public void GetDeviceId_ReturnsNonEmptyStableId()
         {
             // Act
-            var deviceId1 = CliExecutor.GetDeviceId();
-            var deviceId2 = CliExecutor.GetDeviceId();
+            var deviceId1 = cliExecutor.GetDeviceId();
+            var deviceId2 = cliExecutor.GetDeviceId();
 
             // Assert
             Assert.IsFalse(string.IsNullOrWhiteSpace(deviceId1), "Device ID should not be empty");

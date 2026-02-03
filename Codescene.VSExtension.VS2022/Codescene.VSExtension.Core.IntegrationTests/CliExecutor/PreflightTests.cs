@@ -13,7 +13,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
         public void Preflight_ReturnsFileTypes()
         {
             // Act
-            var result = CliExecutor.Preflight(force: true);
+            var result = cliExecutor.Preflight(force: true);
 
             // Assert
             Assert.IsNotNull(result, "CLI should return a preflight response");
