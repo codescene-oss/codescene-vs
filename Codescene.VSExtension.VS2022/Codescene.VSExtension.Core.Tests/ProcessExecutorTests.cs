@@ -60,6 +60,7 @@ namespace Codescene.VSExtension.Core.Tests
             try
             {
                 _processExecutor.Execute("version --sha");
+
                 // If we get here without FileNotFoundException, the file existence check passed
             }
             catch (FileNotFoundException ex)

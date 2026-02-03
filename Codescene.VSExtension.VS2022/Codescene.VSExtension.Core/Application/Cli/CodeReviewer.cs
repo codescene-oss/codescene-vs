@@ -72,6 +72,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 if (oldCode == currentCode)
                 {
                     _logger.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: content unchanged since baseline.");
+
                     // Cache null delta to remove file from monitor if it was previously shown
                     cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, null));
                     return null;
@@ -92,6 +93,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 if (oldRawScore == currentRawScore)
                 {
                     _logger.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: scores are identical.");
+
                     // Cache null delta to remove file from monitor if it was previously shown
                     cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, null));
                     return null;

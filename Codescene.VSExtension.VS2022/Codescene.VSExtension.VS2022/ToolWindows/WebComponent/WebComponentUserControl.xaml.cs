@@ -30,6 +30,7 @@ public partial class WebComponentUserControl : UserControl
     private ILogger _logger;
     public Func<Task> CloseRequested;
     private const string FOLDERLOCATION = @"ToolWindows\WebComponent";
+
     // Use process ID and view type to make host unique per VS instance and view type
     // This prevents conflicts when multiple instances are open
     private static string GetHost(string view) => $"myapp-{System.Diagnostics.Process.GetCurrentProcess().Id}-{view}.local";
@@ -225,6 +226,7 @@ public partial class WebComponentUserControl : UserControl
     private void HandleNavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs args)
     {
         var uri = args.Uri;
+
         // Allow navigation to our local app host
         if (!string.IsNullOrEmpty(_host) && uri.Equals($"https://{_host}/index.html", StringComparison.OrdinalIgnoreCase))
         {

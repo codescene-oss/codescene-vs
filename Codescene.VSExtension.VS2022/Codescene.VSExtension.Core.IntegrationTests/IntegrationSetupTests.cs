@@ -22,8 +22,10 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         {
             // Arrange
             var cliSettingsProvider = new CliSettingsProvider();
+
             // Act
             var cliFilePath = cliSettingsProvider.CliFileFullPath;
+
             // Assert
             Assert.IsTrue(File.Exists(cliFilePath), $"CLI file does not exist at path: {cliFilePath}");
         }
@@ -36,8 +38,10 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         {
             // Arrange
             var cliExecutor = GetService<ICliExecutor>();
+
             // Act
             var versionOutput = cliExecutor.GetFileVersion().Trim();
+
             // Assert
             Assert.AreEqual(_settingsProvider.RequiredDevToolVersion, versionOutput);
         }

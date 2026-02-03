@@ -53,6 +53,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var sb = new StringBuilder();
             PasteArguments.AppendArgument(sb, @"C:\path\to\file");
+
             // Backslash is normal character when not followed by quote
             Assert.AreEqual(@"C:\path\to\file", sb.ToString());
         }
@@ -70,6 +71,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var sb = new StringBuilder();
             PasteArguments.AppendArgument(sb, @"C:\path with space\file\");
+
             // When argument ends with backslash and needs quoting, backslash is doubled
             Assert.AreEqual("\"C:\\path with space\\file\\\\\"", sb.ToString());
         }
@@ -79,6 +81,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var sb = new StringBuilder();
             PasteArguments.AppendArgument(sb, "test\\\"value");
+
             // Backslash before quote needs special handling
             Assert.AreEqual("\"test\\\\\\\"value\"", sb.ToString());
         }
@@ -88,6 +91,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var sb = new StringBuilder();
             PasteArguments.AppendArgument(sb, "test\\\\\"value");
+
             // Multiple backslashes before quote
             Assert.AreEqual("\"test\\\\\\\\\\\"value\"", sb.ToString());
         }

@@ -67,6 +67,7 @@ public class OnClickRefactoringHandler
         await AceToolWindow.ShowAsync();
 
         _cancellationTokenSource = new CancellationTokenSource();
+
         // Run on background thread:
         Task.Run(() => DoRefactorAndUpdateViewAsync(Path, RefactorableFunction, entryPoint, _cancellationTokenSource.Token), _cancellationTokenSource.Token).FireAndForget();
     }

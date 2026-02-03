@@ -260,6 +260,7 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert
             Assert.IsNull(result);
             _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("content unchanged since baseline"))), Times.Once);
+
             // ReviewDelta should NOT be called since content is identical
             _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
@@ -286,6 +287,7 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert
             Assert.IsNull(result);
             _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("scores are identical"))), Times.Once);
+
             // ReviewDelta should NOT be called since scores are identical
             _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }

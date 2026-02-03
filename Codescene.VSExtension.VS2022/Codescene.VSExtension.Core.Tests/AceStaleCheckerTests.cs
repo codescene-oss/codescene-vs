@@ -68,6 +68,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var body = "function test() { return 1; }";
             var content = $"newline\nnewline2\n{body}";
+
             // Original position was line 1
             var fn = CreateFnToRefactor(body: body, startLine: 1, endLine: 1);
 
@@ -75,6 +76,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsFalse(result.IsStale);
             Assert.IsTrue(result.RangeUpdated);
+
             // Updated range should point to line 3 (1-indexed), original fn.Range should be unchanged
             Assert.IsNotNull(result.UpdatedRange);
             Assert.AreEqual(3, result.UpdatedRange.StartLine);
@@ -153,6 +155,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void IsFunctionUnchangedInDocument_FunctionMovedDown_ReturnsUpdatedRangeWithoutMutatingOriginal()
         {
             var body = "function test() { return 1; }";
+
             // Add 5 new lines before the function
             var content = $"line1\nline2\nline3\nline4\nline5\n{body}";
             var fn = CreateFnToRefactor(body: body, startLine: 1, endLine: 1);
@@ -286,6 +289,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var body = "x";
             var content = "short\nline2";
+
             // StartColumn 100 is way beyond "short" (length 5)
             var fn = CreateFnToRefactor(body: body, startLine: 1, endLine: 1, startColumn: 100, endColumn: 101);
 
@@ -354,6 +358,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var body = "function test() {\n    return 1;\n}";
             var content = body;
+
             // EndLine 100 is beyond content, should be clamped
             var fn = CreateFnToRefactor(body: body, startLine: 1, endLine: 100, startColumn: 1, endColumn: 1);
 
@@ -369,6 +374,7 @@ namespace Codescene.VSExtension.Core.Tests
             var fullLine = "prefix function test() { return 1; } suffix";
             var body = "function test() { return 1; }";
             var content = $"line1\n{fullLine}\nline3";
+
             // Extract only the middle part using columns
             // StartColumn is 1-indexed, EndColumn is used as exclusive boundary for substring
             var startIdx = fullLine.IndexOf("function"); // 0-indexed: 7
