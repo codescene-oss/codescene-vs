@@ -54,6 +54,41 @@ namespace Codescene.VSExtension.Core.Application.Git
             });
         }
 
+        public virtual List<string> GetMainBranchCandidates(Repository repo)
+        {
+            var gitRoot = repo.Info.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar);
+            if (string.IsNullOrEmpty(gitRoot))
+            {
+                return new List<string>();
+            }
+
+            if (_mainBranchCandidatesCache != null &&
+                _mainBranchCandidatesCache.TryGetValue(gitRoot, out var cached))
+            {
+                return cached;
+            }
+
+            var possibleMainBranches = new[] { "main", "master", "develop", "trunk", "dev" };
+
+            var localBranches = repo.Branches
+                .Where(b => !b.IsRemote)
+                .Select(b => b.FriendlyName)
+                .ToList();
+
+            var candidates = possibleMainBranches
+                .Where(name => localBranches.Contains(name))
+                .ToList();
+
+            if (_mainBranchCandidatesCache == null)
+            {
+                _mainBranchCandidatesCache = new Dictionary<string, List<string>>();
+            }
+
+            _mainBranchCandidatesCache[gitRoot] = candidates;
+
+            return candidates;
+        }
+
         protected virtual List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
         {
             var baseCommit = GetMergeBaseCommit(repo);
@@ -71,29 +106,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             changedFiles.AddRange(statusChanges);
 
             return changedFiles.Distinct().ToList();
-        }
-
-        private HashSet<string> BuildExclusionSet(ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
-        {
-            var exclusionSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            AddFilesToExclusionSet(exclusionSet, savedFilesTracker?.GetSavedFiles());
-            AddFilesToExclusionSet(exclusionSet, openFilesObserver?.GetAllVisibleFileNames());
-
-            return exclusionSet;
-        }
-
-        private void AddFilesToExclusionSet(HashSet<string> exclusionSet, IEnumerable<string> files)
-        {
-            if (files == null)
-            {
-                return;
-            }
-
-            foreach (var file in files)
-            {
-                exclusionSet.Add(file);
-            }
         }
 
         protected virtual Commit GetMergeBaseCommit(Repository repo)
@@ -162,51 +174,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        private bool IsValidBranch(Branch branch)
-        {
-            return branch != null && branch.Tip != null;
-        }
-
-        public virtual List<string> GetMainBranchCandidates(Repository repo)
-        {
-            var gitRoot = repo.Info.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar);
-            if (string.IsNullOrEmpty(gitRoot))
-            {
-                return new List<string>();
-            }
-
-            if (_mainBranchCandidatesCache != null &&
-                _mainBranchCandidatesCache.TryGetValue(gitRoot, out var cached))
-            {
-                return cached;
-            }
-
-            var possibleMainBranches = new[] { "main", "master", "develop", "trunk", "dev" };
-
-            var localBranches = repo.Branches
-                .Where(b => !b.IsRemote)
-                .Select(b => b.FriendlyName)
-                .ToList();
-
-            var candidates = possibleMainBranches
-                .Where(name => localBranches.Contains(name))
-                .ToList();
-
-            if (_mainBranchCandidatesCache == null)
-            {
-                _mainBranchCandidatesCache = new Dictionary<string, List<string>>();
-            }
-
-            _mainBranchCandidatesCache[gitRoot] = candidates;
-
-            return candidates;
-        }
-
-        private bool IsOnMainBranch(Branch currentBranch, Branch mainBranch)
-        {
-            return currentBranch.FriendlyName == mainBranch.FriendlyName;
-        }
-
         protected virtual List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath)
         {
             var changes = new List<string>();
@@ -261,6 +228,39 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             return changes;
+        }
+
+        private HashSet<string> BuildExclusionSet(ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+        {
+            var exclusionSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            AddFilesToExclusionSet(exclusionSet, savedFilesTracker?.GetSavedFiles());
+            AddFilesToExclusionSet(exclusionSet, openFilesObserver?.GetAllVisibleFileNames());
+
+            return exclusionSet;
+        }
+
+        private void AddFilesToExclusionSet(HashSet<string> exclusionSet, IEnumerable<string> files)
+        {
+            if (files == null)
+            {
+                return;
+            }
+
+            foreach (var file in files)
+            {
+                exclusionSet.Add(file);
+            }
+        }
+
+        private bool IsValidBranch(Branch branch)
+        {
+            return branch != null && branch.Tip != null;
+        }
+
+        private bool IsOnMainBranch(Branch currentBranch, Branch mainBranch)
+        {
+            return currentBranch.FriendlyName == mainBranch.FriendlyName;
         }
 
         private bool ShouldIncludeStatusItem(StatusEntry item, HashSet<string> filesToExclude, string gitRootPath)

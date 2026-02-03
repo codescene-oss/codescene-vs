@@ -35,36 +35,11 @@ public class AceRefactorServiceTests
             _mockLogger.Object);
     }
 
-    private static CodeSmellModel CreateCodeSmell(string category, int startLine) =>
-        new CodeSmellModel { Category = category, Range = new CodeRangeModel(startLine, startLine + 10, 1, 50) };
-
-    private static FnToRefactorModel CreateRefactorableFunction(string name, string category, int line) =>
-        new FnToRefactorModel { Name = name, RefactoringTargets = new[] { new RefactoringTargetModel { Category = category, Line = line } } };
-
-    private static FileReviewModel CreateFileReviewModel(string filePath = "test.cs") =>
-        new FileReviewModel
-        {
-            FilePath = filePath,
-            Score = 7.5f,
-            FileLevel = new List<CodeSmellModel>(),
-            FunctionLevel = new List<CodeSmellModel>(),
-        };
-
-    private FnToRefactorModel FindRefactorableFunction(CodeSmellModel smell, params FnToRefactorModel[] functions) =>
-        _aceRefactorService.GetRefactorableFunction(smell, functions.ToList());
-
-    private void AssertFindsExpectedFunction(string expectedName, CodeSmellModel smell, params FnToRefactorModel[] functions)
-    {
-        var result = FindRefactorableFunction(smell, functions);
-        Assert.IsNotNull(result);
-        Assert.AreEqual(expectedName, result.Name);
-    }
-
     [TestMethod]
     public void GetRefactorableFunction_FindsMatchingFunction_ByCategoryAndLine() =>
-        AssertFindsExpectedFunction("TargetFunction", CreateCodeSmell("Complex Method", 10),
-            CreateRefactorableFunction("TargetFunction", "Complex Method", 10),
-            CreateRefactorableFunction("OtherFunction", "Other Issue", 20));
+       AssertFindsExpectedFunction("TargetFunction", CreateCodeSmell("Complex Method", 10),
+           CreateRefactorableFunction("TargetFunction", "Complex Method", 10),
+           CreateRefactorableFunction("OtherFunction", "Other Issue", 20));
 
     [TestMethod]
     public void GetRefactorableFunction_ReturnsNull_WhenNoMatch() =>
@@ -150,21 +125,6 @@ public class AceRefactorServiceTests
         Assert.IsEmpty(result);
     }
 
-    private void SetupSupportedLanguage(string extension = "cs") =>
-        _mockPreflightManager.Setup(x => x.IsSupportedLanguage(extension)).Returns(true);
-
-    private void SetupAceManagerReturns(IList<FnToRefactorModel> functions) =>
-        _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmells(
-            It.IsAny<string>(), It.IsAny<string>(),
-            It.IsAny<List<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
-            .Returns(functions);
-
-    private void SetupAceManagerThrows(Exception ex) =>
-        _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmells(
-            It.IsAny<string>(), It.IsAny<string>(),
-            It.IsAny<List<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
-            .Throws(ex);
-
     [TestMethod]
     public void CheckContainsRefactorableFunctions_ExceptionThrown_ReturnsEmptyListAndLogsError()
     {
@@ -247,5 +207,45 @@ public class AceRefactorServiceTests
         _aceRefactorService.CheckContainsRefactorableFunctions(CreateFileReviewModel(), "code");
 
         _mockPreflightManager.Verify(p => p.GetPreflightResponse(), Times.AtLeast(1));
+    }
+
+    private void SetupSupportedLanguage(string extension = "cs") =>
+        _mockPreflightManager.Setup(x => x.IsSupportedLanguage(extension)).Returns(true);
+
+    private void SetupAceManagerReturns(IList<FnToRefactorModel> functions) =>
+        _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmells(
+            It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<List<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
+            .Returns(functions);
+
+    private void SetupAceManagerThrows(Exception ex) =>
+        _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmells(
+            It.IsAny<string>(), It.IsAny<string>(),
+            It.IsAny<List<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
+            .Throws(ex);
+
+    private static CodeSmellModel CreateCodeSmell(string category, int startLine) =>
+     new CodeSmellModel { Category = category, Range = new CodeRangeModel(startLine, startLine + 10, 1, 50) };
+
+    private static FnToRefactorModel CreateRefactorableFunction(string name, string category, int line) =>
+        new FnToRefactorModel { Name = name, RefactoringTargets = new[] { new RefactoringTargetModel { Category = category, Line = line } } };
+
+    private static FileReviewModel CreateFileReviewModel(string filePath = "test.cs") =>
+        new FileReviewModel
+        {
+            FilePath = filePath,
+            Score = 7.5f,
+            FileLevel = new List<CodeSmellModel>(),
+            FunctionLevel = new List<CodeSmellModel>(),
+        };
+
+    private FnToRefactorModel FindRefactorableFunction(CodeSmellModel smell, params FnToRefactorModel[] functions) =>
+        _aceRefactorService.GetRefactorableFunction(smell, functions.ToList());
+
+    private void AssertFindsExpectedFunction(string expectedName, CodeSmellModel smell, params FnToRefactorModel[] functions)
+    {
+        var result = FindRefactorableFunction(smell, functions);
+        Assert.IsNotNull(result);
+        Assert.AreEqual(expectedName, result.Name);
     }
 }

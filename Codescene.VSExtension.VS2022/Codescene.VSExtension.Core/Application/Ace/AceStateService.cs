@@ -52,12 +52,6 @@ namespace Codescene.VSExtension.Core.Application.Ace
             StateChanged?.Invoke(this, new AceStateChangedEventArgs(previousState, state, error));
         }
 
-        private bool ShouldSkipStateChange(AceState previousState, AceState newState, Exception error)
-        {
-            // Skip if state hasn't changed and no error update
-            return previousState == newState && error == null && LastError == null;
-        }
-
         public void SetError(Exception error)
         {
             LastError = error;
@@ -68,7 +62,6 @@ namespace Codescene.VSExtension.Core.Application.Ace
             }
             else
             {
-                // State is already Error, just update the error and fire event
                 _logger.Debug($"ACE error updated: {error?.Message}");
                 StateChanged?.Invoke(this, new AceStateChangedEventArgs(AceState.Error, AceState.Error, error));
             }
@@ -82,6 +75,11 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 _logger.Debug("ACE error cleared");
                 LastError = null;
             }
+        }
+
+        private bool ShouldSkipStateChange(AceState previousState, AceState newState, Exception error)
+        {
+            return previousState == newState && error == null && LastError == null;
         }
 
         private void LogStateTransition(AceState previousState, AceState newState)

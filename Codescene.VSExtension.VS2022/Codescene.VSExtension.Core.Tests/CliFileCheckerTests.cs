@@ -41,21 +41,6 @@ namespace Codescene.VSExtension.Core.Tests
             }
         }
 
-        private void SetupCliPathMock()
-        {
-            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
-        }
-
-        private void SetupVersionMock(string version)
-        {
-            _mockCliExecutor.Setup(x => x.GetFileVersion()).Returns(version);
-        }
-
-        private void CreateTempFile()
-        {
-            File.WriteAllText(_tempFilePath, "dummy content");
-        }
-
         [TestMethod]
         public void Check_FileDoesNotExist_ShouldLogErrorAndReturnFalse()
         {
@@ -123,6 +108,21 @@ namespace Codescene.VSExtension.Core.Tests
                 l => l.Error(
                 It.Is<string>(s => s.Contains("Failed to check")),
                 It.IsAny<Exception>()), Times.Once);
+        }
+
+        private void SetupCliPathMock()
+        {
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
+        }
+
+        private void SetupVersionMock(string version)
+        {
+            _mockCliExecutor.Setup(x => x.GetFileVersion()).Returns(version);
+        }
+
+        private void CreateTempFile()
+        {
+            File.WriteAllText(_tempFilePath, "dummy content");
         }
     }
 }

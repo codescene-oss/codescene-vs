@@ -61,6 +61,34 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             }
         }
 
+        public void RefreshTags()
+        {
+            var snapshot = _buffer.CurrentSnapshot;
+            var span = new SnapshotSpan(snapshot, 0, snapshot.Length);
+            TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                // Reserved for future cleanup
+            }
+
+            _disposed = true;
+        }
+
         private List<CodeSmellModel> TryLoadFromCache()
         {
             string currentContent = _buffer.CurrentSnapshot.GetText();
@@ -72,13 +100,6 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             }
 
             return [];
-        }
-
-        public void RefreshTags()
-        {
-            var snapshot = _buffer.CurrentSnapshot;
-            var span = new SnapshotSpan(snapshot, 0, snapshot.Length);
-            TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
         }
 
         /// <summary>
@@ -151,27 +172,6 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 new UnderlineTaggerTooltip(codeSmellInfo));
 
             return new TagSpan<IErrorTag>(tagSpanParams.Span, errorTag);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                // Reserved for future cleanup
-            }
-
-            _disposed = true;
         }
 
         internal class TagSpanParams(SnapshotSpan span, CodeSmellModel codeSmell)

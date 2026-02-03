@@ -43,33 +43,6 @@ namespace Codescene.VSExtension.Core.Tests
                 _mockCacheStorageService.Object);
         }
 
-        private void SetupReviewContentMocks(string cachePath = TestCachePath)
-        {
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns("{}");
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(cachePath);
-        }
-
-        private void SetupFnsToRefactorMocks(string payload = "payload", string response = "[]")
-        {
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("command");
-            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>())).Returns(payload);
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
-        }
-
-        private void SetupFnsToRefactorFromDeltaMocks(string payload = "payload", string response = "[]")
-        {
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("command");
-            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>())).Returns(payload);
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
-        }
-
         [TestMethod]
         public void ReviewContent_ValidResponse_ReturnsDeserializedModel()
         {
@@ -346,5 +319,33 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.AreEqual("device-123", result);
         }
+
+        private void SetupReviewContentMocks(string cachePath = TestCachePath)
+        {
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns("{}");
+            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(cachePath);
+        }
+
+        private void SetupFnsToRefactorMocks(string payload = "payload", string response = "[]")
+        {
+            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
+            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("command");
+            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>())).Returns(payload);
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
+        }
+
+        private void SetupFnsToRefactorFromDeltaMocks(string payload = "payload", string response = "[]")
+        {
+            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
+            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("command");
+            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>())).Returns(payload);
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
+        }
+
     }
 }

@@ -36,6 +36,28 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
         }
     }
 
+    /// <summary>
+    /// Handles displaying the results of a file review by presenting the found code smells in the error list.
+    /// </summary>
+    public void Handle(FileReviewModel review)
+    {
+        if (review == null || string.IsNullOrWhiteSpace(review.FilePath))
+        {
+            return;
+        }
+
+        Delete(review.FilePath);
+
+        var issues = review.FunctionLevel.Concat(review.FileLevel).ToList();
+
+        if (!issues.Any())
+        {
+            return;
+        }
+
+        Add(issues);
+    }
+
     private void Add(IEnumerable<CodeSmellModel> issues)
     {
         foreach (var issue in issues)
@@ -119,27 +141,5 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
         {
             ErrorListProvider?.Tasks?.Remove(task);
         }
-    }
-
-    /// <summary>
-    /// Handles displaying the results of a file review by presenting the found code smells in the error list.
-    /// </summary>
-    public void Handle(FileReviewModel review)
-    {
-        if (review == null || string.IsNullOrWhiteSpace(review.FilePath))
-        {
-            return;
-        }
-
-        Delete(review.FilePath);
-
-        var issues = review.FunctionLevel.Concat(review.FileLevel).ToList();
-
-        if (!issues.Any())
-        {
-            return;
-        }
-
-        Add(issues);
     }
 }

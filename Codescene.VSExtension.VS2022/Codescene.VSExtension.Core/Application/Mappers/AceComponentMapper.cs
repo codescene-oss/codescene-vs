@@ -11,7 +11,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
 {
     [Export(typeof(AceComponentMapper))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class AceComponentMapper
+    public partial class AceComponentMapper
     {
         public AceComponentData Map(CachedRefactoringActionModel model)
         {
@@ -28,21 +28,6 @@ namespace Codescene.VSExtension.Core.Application.Mappers
             return MapFromPathAndFunction(path, model, loading: false, error: error);
         }
 
-        private AceComponentData MapFromPathAndFunction(string path, FnToRefactorModel model, bool loading, string error)
-        {
-            var fileData = CreateFileData(path, model.Name, model.Range);
-            var aceParams = new CreateAceComponentDataParams
-            {
-                Loading = loading,
-                Error = error,
-                FileData = fileData,
-                AceResultData = null,
-                FnToRefactor = model,
-            };
-
-            return CreateAceComponentData(aceParams);
-        }
-
         /// <summary>
         /// Maps a cached refactoring model to component data with IsStale set to true.
         /// Used when the function has been modified and the refactoring is no longer valid.
@@ -50,25 +35,6 @@ namespace Codescene.VSExtension.Core.Application.Mappers
         public AceComponentData MapAsStale(CachedRefactoringActionModel model)
         {
             return MapCachedModel(model, isStale: true);
-        }
-
-        private AceComponentData MapCachedModel(CachedRefactoringActionModel model, bool isStale)
-        {
-            var fileData = CreateFileData(
-                model.Path,
-                model.RefactorableCandidate.Name,
-                model.RefactorableCandidate.Range);
-            var aceParams = new CreateAceComponentDataParams
-            {
-                Loading = false,
-                Error = null,
-                IsStale = isStale,
-                FileData = fileData,
-                AceResultData = model.Refactored,
-                FnToRefactor = model.RefactorableCandidate,
-            };
-
-            return CreateAceComponentData(aceParams);
         }
 
         private static CodeRangeModel MapRange(CliRangeModel range)
@@ -92,21 +58,6 @@ namespace Codescene.VSExtension.Core.Application.Mappers
             };
         }
 
-        private sealed class CreateAceComponentDataParams
-        {
-            public bool Loading { get; set; }
-
-            public string Error { get; set; }
-
-            public bool IsStale { get; set; }
-
-            public WebComponentFileData FileData { get; set; }
-
-            public FnToRefactorModel FnToRefactor { get; set; }
-
-            public RefactorResponseModel AceResultData { get; set; }
-        }
-
         private static AceComponentData CreateAceComponentData(CreateAceComponentDataParams aceParams)
         {
             return new AceComponentData
@@ -118,6 +69,40 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 FnToRefactor = aceParams.FnToRefactor,
                 AceResultData = aceParams.AceResultData,
             };
+        }
+
+        private AceComponentData MapFromPathAndFunction(string path, FnToRefactorModel model, bool loading, string error)
+        {
+            var fileData = CreateFileData(path, model.Name, model.Range);
+            var aceParams = new CreateAceComponentDataParams
+            {
+                Loading = loading,
+                Error = error,
+                FileData = fileData,
+                AceResultData = null,
+                FnToRefactor = model,
+            };
+
+            return CreateAceComponentData(aceParams);
+        }
+
+        private AceComponentData MapCachedModel(CachedRefactoringActionModel model, bool isStale)
+        {
+            var fileData = CreateFileData(
+                model.Path,
+                model.RefactorableCandidate.Name,
+                model.RefactorableCandidate.Range);
+            var aceParams = new CreateAceComponentDataParams
+            {
+                Loading = false,
+                Error = null,
+                IsStale = isStale,
+                FileData = fileData,
+                AceResultData = model.Refactored,
+                FnToRefactor = model.RefactorableCandidate,
+            };
+
+            return CreateAceComponentData(aceParams);
         }
     }
 }

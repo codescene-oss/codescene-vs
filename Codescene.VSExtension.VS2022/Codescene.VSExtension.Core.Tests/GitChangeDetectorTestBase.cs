@@ -247,6 +247,22 @@ namespace Codescene.VSExtension.Core.Tests
             {
             }
 
+            public override List<string> GetMainBranchCandidates(Repository repo)
+            {
+                if (ThrowFromMainBranchCandidates)
+                {
+                    throw new Exception("Simulated exception from GetMainBranchCandidates");
+                }
+
+                var candidates = base.GetMainBranchCandidates(repo);
+                if (!string.IsNullOrEmpty(ForceBranchLookupFailure))
+                {
+                    candidates.Add(ForceBranchLookupFailure);
+                }
+
+                return candidates;
+            }
+
             protected override Commit GetMergeBaseCommit(Repository repo)
             {
                 if (SimulateInvalidCurrentBranch)
@@ -270,22 +286,6 @@ namespace Codescene.VSExtension.Core.Tests
                 }
 
                 return base.GetChangedFilesFromRepository(repo, gitRootPath, savedFilesTracker, openFilesObserver);
-            }
-
-            public override List<string> GetMainBranchCandidates(Repository repo)
-            {
-                if (ThrowFromMainBranchCandidates)
-                {
-                    throw new Exception("Simulated exception from GetMainBranchCandidates");
-                }
-
-                var candidates = base.GetMainBranchCandidates(repo);
-                if (!string.IsNullOrEmpty(ForceBranchLookupFailure))
-                {
-                    candidates.Add(ForceBranchLookupFailure);
-                }
-
-                return candidates;
             }
 
             protected override Commit TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)

@@ -38,6 +38,42 @@ namespace Codescene.VSExtension.VS2022.Cache
             VS.Events.SolutionEvents.OnAfterCloseFolder += _ => UpdateCachePathAsync().FireAndForget();
         }
 
+        public string GetSolutionReviewCacheLocation()
+        {
+            if (_cachePath == null)
+            {
+                return string.Empty;
+            }
+
+            var baseLocation = _cachePath;
+            var location = Path.Combine(baseLocation, REVIEWRESULTSFOLDER);
+            if (!Directory.Exists(location))
+            {
+                Directory.CreateDirectory(location);
+            }
+
+            return location;
+        }
+
+        public void RemoveOldReviewCacheEntries(int nrOfDays = 30)
+        {
+            if (_cachePath == null)
+            {
+                return;
+            }
+
+            var baseLocation = _cachePath;
+            var location = Path.Combine(baseLocation, REVIEWRESULTSFOLDER);
+            var files = Directory.GetFiles(location);
+            foreach (var fileName in files)
+            {
+                if (File.GetLastWriteTimeUtc(fileName) <= DateTime.UtcNow.AddDays(-nrOfDays))
+                {
+                    File.Delete(fileName);
+                }
+            }
+        }
+
         private async Task UpdateCachePathAsync()
         {
             string workspaceId = await GetWorkspaceIdentifierAsync();
@@ -75,42 +111,6 @@ namespace Codescene.VSExtension.VS2022.Cache
             using var sha = System.Security.Cryptography.SHA256.Create();
             var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(input.ToLowerInvariant()));
             return BitConverter.ToString(bytes).Replace("-", string.Empty).Substring(0, 16);
-        }
-
-        public string GetSolutionReviewCacheLocation()
-        {
-            if (_cachePath == null)
-            {
-                return string.Empty;
-            }
-
-            var baseLocation = _cachePath;
-            var location = Path.Combine(baseLocation, REVIEWRESULTSFOLDER);
-            if (!Directory.Exists(location))
-            {
-                Directory.CreateDirectory(location);
-            }
-
-            return location;
-        }
-
-        public void RemoveOldReviewCacheEntries(int nrOfDays = 30)
-        {
-            if (_cachePath == null)
-            {
-                return;
-            }
-
-            var baseLocation = _cachePath;
-            var location = Path.Combine(baseLocation, REVIEWRESULTSFOLDER);
-            var files = Directory.GetFiles(location);
-            foreach (var fileName in files)
-            {
-                if (File.GetLastWriteTimeUtc(fileName) <= DateTime.UtcNow.AddDays(-nrOfDays))
-                {
-                    File.Delete(fileName);
-                }
-            }
         }
     }
 }

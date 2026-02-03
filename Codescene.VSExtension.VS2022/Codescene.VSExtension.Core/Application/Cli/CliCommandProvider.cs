@@ -42,8 +42,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return $"refactor preflight{useForceArg}";
         }
 
-        private string AdjustTelemetryQuotes(string value) => value.Replace("\"", "\\\"");
-
         public string GetRefactorWithCodeSmellsPayload(string fileName, string fileContent, string cachePath, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight = null)
         {
             var request = new FnsToRefactorCodeSmellRequestModel { CodeSmells = codeSmells };
@@ -54,19 +52,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             var request = new FnsToRefactorDeltaRequestModel { DeltaResult = deltaResult };
             return SerializeRefactorRequest(request, fileName, fileContent, cachePath, preflight);
-        }
-
-        private string SerializeRefactorRequest(FnsToRefactorRequestModel request, string fileName, string fileContent, string cachePath, PreFlightResponseModel preflight)
-        {
-            request.FileName = fileName;
-            request.FileContent = fileContent;
-            if (!string.IsNullOrWhiteSpace(cachePath))
-            {
-                request.CachePath = cachePath;
-            }
-
-            request.Preflight = preflight;
-            return JsonConvert.SerializeObject(request, SerializerSettings);
         }
 
         public string GetRefactorPostCommand(FnToRefactorModel fnToRefactor, bool skipCache, string token = null)
@@ -98,17 +83,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return command;
         }
 
-        private static string GetArgumentStr(params string[] args)
-        {
-            var sb = new StringBuilder();
-            foreach (var arg in args)
-            {
-                PasteArguments.AppendArgument(sb, arg);
-            }
-
-            return sb.ToString();
-        }
-
         public string GetReviewFileContentCommand(string path) => GetArgumentStr("review", "--file-name", path);
 
         public string GetReviewFileContentPayload(string filePath, string fileContent, string cachePath)
@@ -128,6 +102,32 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             var scores = _creator.Create(oldScore, newScore);
             return $"{scores}";
+        }
+
+        private string AdjustTelemetryQuotes(string value) => value.Replace("\"", "\\\"");
+
+        private string SerializeRefactorRequest(FnsToRefactorRequestModel request, string fileName, string fileContent, string cachePath, PreFlightResponseModel preflight)
+        {
+            request.FileName = fileName;
+            request.FileContent = fileContent;
+            if (!string.IsNullOrWhiteSpace(cachePath))
+            {
+                request.CachePath = cachePath;
+            }
+
+            request.Preflight = preflight;
+            return JsonConvert.SerializeObject(request, SerializerSettings);
+        }
+
+        private static string GetArgumentStr(params string[] args)
+        {
+            var sb = new StringBuilder();
+            foreach (var arg in args)
+            {
+                PasteArguments.AppendArgument(sb, arg);
+            }
+
+            return sb.ToString();
         }
     }
 }

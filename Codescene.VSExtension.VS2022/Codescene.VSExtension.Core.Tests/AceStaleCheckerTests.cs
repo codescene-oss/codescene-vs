@@ -17,27 +17,6 @@ namespace Codescene.VSExtension.Core.Tests
             _checker = new AceStaleChecker();
         }
 
-        private static FnToRefactorModel CreateFnToRefactor(
-            string body,
-            int startLine,
-            int endLine,
-            int startColumn = 1,
-            int endColumn = 100)
-        {
-            return new FnToRefactorModel
-            {
-                Name = "TestFunction",
-                Body = body,
-                Range = new CliRangeModel
-                {
-                    StartLine = startLine,
-                    EndLine = endLine,
-                    StartColumn = startColumn,
-                    EndColumn = endColumn,
-                },
-            };
-        }
-
         [TestMethod]
         public void IsFunctionUnchangedInDocument_BodyMatchesAtRange_ReturnsNotStale()
         {
@@ -402,6 +381,27 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsFalse(result.IsStale);
             Assert.IsFalse(result.RangeUpdated);
+        }
+
+        private static FnToRefactorModel CreateFnToRefactor(
+            string body,
+            int startLine,
+            int endLine,
+            int startColumn = 1,
+            int endColumn = 100)
+        {
+            return new FnToRefactorModel
+            {
+                Name = "TestFunction",
+                Body = body,
+                Range = new CliRangeModel
+                {
+                    StartLine = startLine,
+                    EndLine = endLine,
+                    StartColumn = startColumn,
+                    EndColumn = endColumn,
+                },
+            };
         }
     }
 }

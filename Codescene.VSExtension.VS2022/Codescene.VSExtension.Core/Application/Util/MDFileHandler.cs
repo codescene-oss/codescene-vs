@@ -25,6 +25,11 @@ namespace Codescene.VSExtension.Core.Application.Util
             return null;
         }
 
+        public void SetFileName(string fileName)
+        {
+            _fileName = fileName;
+        }
+
         private string OpenMarkdownFile(string path, string subPath)
         {
             string toolWindowPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -45,11 +50,6 @@ namespace Codescene.VSExtension.Core.Application.Util
         private string MDFileContentToHTMLConverter(string markdownContent)
         {
             return Markdown.ToHtml(markdownContent);
-        }
-
-        public void SetFileName(string fileName)
-        {
-            _fileName = fileName;
         }
     }
 }

@@ -27,50 +27,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mapper = new CodeHealthMonitorMapper(_mockPreflightManager.Object);
         }
 
-        private static DeltaResponseModel CreateDeltaResponse() =>
-            new DeltaResponseModel { OldScore = 8.0m, NewScore = 7.0m, ScoreChange = -1.0m };
-
-        private static DeltaResponseModel CreateDeltaResponseWithScores(decimal oldScore, decimal newScore, decimal scoreChange) =>
-            new DeltaResponseModel { OldScore = oldScore, NewScore = newScore, ScoreChange = scoreChange };
-
-        private static DeltaResponseModel CreateDeltaResponseWithFileFindings(ChangeDetailModel[] findings) =>
-            new DeltaResponseModel { OldScore = 8.0m, NewScore = 7.0m, ScoreChange = -1.0m, FileLevelFindings = findings };
-
-        private static DeltaResponseModel CreateDeltaResponseWithFunctionFindings(FunctionFindingModel[] findings) =>
-            new DeltaResponseModel { OldScore = 8.0m, NewScore = 7.0m, ScoreChange = -1.0m, FunctionLevelFindings = findings };
-
-        private static ChangeDetailModel CreateChangeDetail(string category = "Complex Method", string description = "Complexity increased", int? line = 10) =>
-            new ChangeDetailModel { Category = category, Description = description, Line = line, ChangeType = ChangeType.Degraded };
-
-        private static FunctionFindingModel CreateFunctionFinding(string functionName = "TestFunction", CliRangeModel range = null, FnToRefactorModel refactorableFn = null) =>
-            new FunctionFindingModel
-            {
-                Function = new FunctionInfoModel
-                {
-                    Name = functionName,
-                    Range = range ?? new CliRangeModel { StartLine = 10, EndLine = 20, StartColumn = 1, EndColumn = 50 },
-                },
-                ChangeDetails = new[] { CreateChangeDetail() },
-                RefactorableFn = refactorableFn,
-            };
-
-        private Dictionary<string, DeltaResponseModel> CreateSingleFileDelta(string fileName, DeltaResponseModel delta) =>
-            new Dictionary<string, DeltaResponseModel> { { fileName, delta } };
-
-        private void AssertFileLevelFindingsEmpty(string fileName, DeltaResponseModel delta)
-        {
-            var result = _mapper.Map(CreateSingleFileDelta(fileName, delta));
-            Assert.IsNotNull(result.FileDeltaData[0].Delta.FileLevelFindings);
-            Assert.IsEmpty(result.FileDeltaData[0].Delta.FileLevelFindings);
-        }
-
-        private void AssertFunctionLevelFindingsEmpty(string fileName, DeltaResponseModel delta)
-        {
-            var result = _mapper.Map(CreateSingleFileDelta(fileName, delta));
-            Assert.IsNotNull(result.FileDeltaData[0].Delta.FunctionLevelFindings);
-            Assert.IsEmpty(result.FileDeltaData[0].Delta.FunctionLevelFindings);
-        }
-
         [TestMethod]
         public void Map_EmptyDictionary_ReturnsEmptyFileDeltaData()
         {
@@ -235,6 +191,50 @@ namespace Codescene.VSExtension.Core.Tests
             var findings = new[] { new ChangeDetailModel { Category = "Test", ChangeType = ChangeType.Improved } };
             var result = _mapper.Map(CreateSingleFileDelta("test.cs", CreateDeltaResponseWithFileFindings(findings)));
             Assert.AreEqual(ChangeType.Improved, result.FileDeltaData[0].Delta.FileLevelFindings[0].ChangeType);
+        }
+
+        private static DeltaResponseModel CreateDeltaResponse() =>
+            new DeltaResponseModel { OldScore = 8.0m, NewScore = 7.0m, ScoreChange = -1.0m };
+
+        private static DeltaResponseModel CreateDeltaResponseWithScores(decimal oldScore, decimal newScore, decimal scoreChange) =>
+            new DeltaResponseModel { OldScore = oldScore, NewScore = newScore, ScoreChange = scoreChange };
+
+        private static DeltaResponseModel CreateDeltaResponseWithFileFindings(ChangeDetailModel[] findings) =>
+            new DeltaResponseModel { OldScore = 8.0m, NewScore = 7.0m, ScoreChange = -1.0m, FileLevelFindings = findings };
+
+        private static DeltaResponseModel CreateDeltaResponseWithFunctionFindings(FunctionFindingModel[] findings) =>
+            new DeltaResponseModel { OldScore = 8.0m, NewScore = 7.0m, ScoreChange = -1.0m, FunctionLevelFindings = findings };
+
+        private static ChangeDetailModel CreateChangeDetail(string category = "Complex Method", string description = "Complexity increased", int? line = 10) =>
+            new ChangeDetailModel { Category = category, Description = description, Line = line, ChangeType = ChangeType.Degraded };
+
+        private static FunctionFindingModel CreateFunctionFinding(string functionName = "TestFunction", CliRangeModel range = null, FnToRefactorModel refactorableFn = null) =>
+            new FunctionFindingModel
+            {
+                Function = new FunctionInfoModel
+                {
+                    Name = functionName,
+                    Range = range ?? new CliRangeModel { StartLine = 10, EndLine = 20, StartColumn = 1, EndColumn = 50 },
+                },
+                ChangeDetails = new[] { CreateChangeDetail() },
+                RefactorableFn = refactorableFn,
+            };
+
+        private Dictionary<string, DeltaResponseModel> CreateSingleFileDelta(string fileName, DeltaResponseModel delta) =>
+            new Dictionary<string, DeltaResponseModel> { { fileName, delta } };
+
+        private void AssertFileLevelFindingsEmpty(string fileName, DeltaResponseModel delta)
+        {
+            var result = _mapper.Map(CreateSingleFileDelta(fileName, delta));
+            Assert.IsNotNull(result.FileDeltaData[0].Delta.FileLevelFindings);
+            Assert.IsEmpty(result.FileDeltaData[0].Delta.FileLevelFindings);
+        }
+
+        private void AssertFunctionLevelFindingsEmpty(string fileName, DeltaResponseModel delta)
+        {
+            var result = _mapper.Map(CreateSingleFileDelta(fileName, delta));
+            Assert.IsNotNull(result.FileDeltaData[0].Delta.FunctionLevelFindings);
+            Assert.IsEmpty(result.FileDeltaData[0].Delta.FunctionLevelFindings);
         }
     }
 }

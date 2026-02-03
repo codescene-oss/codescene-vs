@@ -23,25 +23,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mapper = new CodeSmellDocumentationMapper(_mockSettingsProvider.Object);
         }
 
-        private void SetupAuthToken(string token) =>
-            _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
-
-        private static ShowDocumentationModel CreateModel(
-            string path = "test.cs",
-            string category = "Complex Method",
-            string functionName = "TestFunction",
-            CodeRangeModel range = null)
-        {
-            return new ShowDocumentationModel(
-                path,
-                category,
-                functionName,
-                range ?? new CodeRangeModel(10, 20, 1, 50));
-        }
-
-        private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction") =>
-            new FnToRefactorModel { Name = name };
-
         [TestMethod]
         public void Map_WithValidModel_ReturnsComponentData()
         {
@@ -250,5 +231,24 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsTrue(result.AutoRefactor.Visible);
         }
+
+        private void SetupAuthToken(string token) =>
+            _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
+
+        private static ShowDocumentationModel CreateModel(
+            string path = "test.cs",
+            string category = "Complex Method",
+            string functionName = "TestFunction",
+            CodeRangeModel range = null)
+        {
+            return new ShowDocumentationModel(
+                path,
+                category,
+                functionName,
+                range ?? new CodeRangeModel(10, 20, 1, 50));
+        }
+
+        private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction") =>
+            new FnToRefactorModel { Name = name };
     }
 }
