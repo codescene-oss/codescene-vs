@@ -23,7 +23,6 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
         /// Removes old cache entries. Default 30 days
         /// </summary>
         /// <param name="nrOfDays"></param>
-        /// <returns></returns>
         void RemoveOldReviewCacheEntries(int nrOfDays = 30);
     }
 }
