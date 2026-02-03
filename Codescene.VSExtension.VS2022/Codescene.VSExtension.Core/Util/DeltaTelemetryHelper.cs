@@ -43,12 +43,14 @@ namespace Codescene.VSExtension.Core.Util
 
                 var hasAdditionalData = eventName == Constants.Telemetry.MONITORFILEADDED || eventName == Constants.Telemetry.MONITORFILEUPDATED;
                 if (hasAdditionalData)
+                {
                     additionalData = new Dictionary<string, object>
                     {
                         { "scoreChange", delta.ScoreChange },
                         { "nIssues", delta.FunctionLevelFindings.Length + delta.FileLevelFindings.Length },
                         { "nRefactorableFunctions", delta.FunctionLevelFindings.TakeWhile(finding => finding.RefactorableFn != null).Count() },
                     };
+                }
 
                 telemetryManager?.SendTelemetry(eventName, additionalData);
             });
