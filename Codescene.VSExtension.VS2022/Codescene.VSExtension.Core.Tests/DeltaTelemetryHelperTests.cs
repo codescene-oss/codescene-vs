@@ -148,8 +148,11 @@ namespace Codescene.VSExtension.Core.Tests
             Dictionary<string, object> capturedData = null;
             _mockTelemetryManager
                 .Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, data) => { capturedData = data;
-                    callReceived.Set(); });
+                .Callback<string, Dictionary<string, object>>((_, data) =>
+                {
+                    capturedData = data;
+                    callReceived.Set();
+                });
 
             DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, new Dictionary<string, DeltaResponseModel>(), entry, _mockTelemetryManager.Object);
 
@@ -169,8 +172,11 @@ namespace Codescene.VSExtension.Core.Tests
             Dictionary<string, object> capturedData = null;
             _mockTelemetryManager
                 .Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, data) => { capturedData = data;
-                    callReceived.Set(); });
+                .Callback<string, Dictionary<string, object>>((_, data) =>
+                {
+                    capturedData = data;
+                    callReceived.Set();
+                });
 
             DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
 
