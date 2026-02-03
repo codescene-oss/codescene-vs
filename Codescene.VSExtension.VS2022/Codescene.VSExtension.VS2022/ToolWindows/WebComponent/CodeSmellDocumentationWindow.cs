@@ -118,4 +118,3 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
         public Pane() => BitmapImageMoniker = KnownMonikers.StatusInformation;
     }
 }
-

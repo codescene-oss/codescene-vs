@@ -76,4 +76,3 @@ namespace Codescene.VSExtension.Core.Tests
         }
     }
 }
-

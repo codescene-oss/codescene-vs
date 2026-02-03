@@ -41,4 +41,3 @@ public static class HierarchyHelper
         return null;
     }
 }
-

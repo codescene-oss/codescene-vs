@@ -22,4 +22,3 @@ public class CodeSceneMarginProvider : IWpfTextViewMarginProvider
         return new CodeSceneMargin(_settings) as IWpfTextViewMargin;
     }
 }
-

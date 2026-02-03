@@ -34,4 +34,3 @@ public class CodeSceneMarginSettingsManager
         ScoreUpdated?.Invoke();
     }
 }
-

@@ -31,5 +31,3 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
         public CliCodeHealthRulesErrorModel CodeHealthRulesError { get; set; }
     }
 }
-
-
