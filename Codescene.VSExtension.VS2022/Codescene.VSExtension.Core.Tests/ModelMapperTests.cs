@@ -45,7 +45,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = MapReview(cliReview);
 
-            Assert.AreEqual(1, result.FileLevel.Count);
+            Assert.HasCount(1, result.FileLevel);
             var smell = result.FileLevel.First();
             Assert.AreEqual("Large File", smell.Category);
             Assert.AreEqual("File has 500 lines", smell.Details);
@@ -65,7 +65,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = MapReview(cliReview);
 
-            Assert.AreEqual(1, result.FunctionLevel.Count);
+            Assert.HasCount(1, result.FunctionLevel);
             var smell = result.FunctionLevel.First();
             Assert.AreEqual("CalculateTotal", smell.FunctionName);
             Assert.AreEqual("Complex Method", smell.Category);
@@ -85,7 +85,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = MapReview(cliReview);
 
-            Assert.AreEqual(0, result.FunctionLevel.Count);
+            Assert.IsEmpty(result.FunctionLevel);
         }
 
         [TestMethod]
@@ -103,7 +103,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = MapReview(cliReview);
 
-            Assert.AreEqual(3, result.FunctionLevel.Count);
+            Assert.HasCount(3, result.FunctionLevel);
             Assert.AreEqual(2, result.FunctionLevel.Count(s => s.FunctionName == "Function1"));
             Assert.AreEqual(1, result.FunctionLevel.Count(s => s.FunctionName == "Function2"));
         }
@@ -141,7 +141,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = MapReview(cliReview);
 
             Assert.IsNotNull(result.FileLevel);
-            Assert.AreEqual(0, result.FileLevel.Count);
+            Assert.IsEmpty(result.FileLevel);
         }
 
         [TestMethod]
@@ -163,7 +163,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = MapReview(cliReview);
 
-            Assert.AreEqual(1, result.FunctionLevel.Count);
+            Assert.HasCount(1, result.FunctionLevel);
             Assert.IsNull(result.FunctionLevel.First().FunctionRange);
         }
 

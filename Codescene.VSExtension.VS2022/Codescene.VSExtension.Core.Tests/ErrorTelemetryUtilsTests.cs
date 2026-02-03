@@ -129,7 +129,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = ErrorTelemetryUtils.SerializeException(ex, "context");
 
             Assert.IsTrue(result.ContainsKey("stack"));
-            Assert.IsTrue(((string)result["stack"]).Contains("SerializeException_WithStackTrace_IncludesStack"));
+            Assert.Contains("SerializeException_WithStackTrace_IncludesStack", (string)result["stack"]);
         }
 
         [TestMethod]
@@ -142,7 +142,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var extraData = (Dictionary<string, object>)result["extraData"];
             Assert.AreEqual("ArgumentNullException", extraData["innerExceptionName"]);
-            Assert.IsTrue(((string)extraData["innerExceptionMessage"]).Contains("paramName"));
+            Assert.Contains("paramName", (string)extraData["innerExceptionMessage"]);
         }
 
         [TestMethod]

@@ -166,7 +166,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var json = JsonConvert.SerializeObject(model, settings);
 
-            Assert.IsFalse(json.Contains("\"preflight\""), "Null preflight should not appear in JSON");
+            Assert.DoesNotContain("\"preflight\"", json, "Null preflight should not appear in JSON");
             AssertJsonContainsProperties(json, "file-name", "file-content", "code-smells");
         }
 
@@ -202,7 +202,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             foreach (var prop in properties)
             {
-                Assert.IsTrue(json.Contains($"\"{prop}\""), $"JSON should contain property '{prop}'");
+                Assert.Contains($"\"{prop}\"", json, $"JSON should contain property '{prop}'");
             }
         }
 

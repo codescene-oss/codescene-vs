@@ -103,7 +103,7 @@ namespace Codescene.VSExtension.Core.Tests
                 null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Count);
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]
@@ -113,7 +113,7 @@ namespace Codescene.VSExtension.Core.Tests
                 string.Empty, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Count);
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]
@@ -125,7 +125,7 @@ namespace Codescene.VSExtension.Core.Tests
                 nonExistentPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Count);
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]
@@ -140,7 +140,7 @@ namespace Codescene.VSExtension.Core.Tests
                     tempDir, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
                 Assert.IsNotNull(result);
-                Assert.AreEqual(0, result.Count);
+                Assert.IsEmpty(result);
             }
             finally
             {
@@ -173,7 +173,7 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Count);
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]
@@ -397,7 +397,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = await _detector.GetChangedFilesVsBaselineAsync(
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-            Assert.IsTrue(result.Count > 0, "Should detect working directory changes");
+            Assert.IsNotEmpty(result, "Should detect working directory changes");
             Assert.IsTrue(result.Any(f => f.Contains("test.cs")), "Should include new file");
         }
 

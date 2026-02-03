@@ -139,7 +139,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _cacheService.GetAll();
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(0, result.Count);
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]
@@ -177,7 +177,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _cacheService.GetAll();
 
             // Assert
-            Assert.AreEqual(0, result.Count);
+            Assert.IsEmpty(result);
         }
 
         [TestMethod]
@@ -192,7 +192,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _cacheService.GetAll();
 
             // Assert
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
             Assert.IsFalse(result.ContainsKey("file1.cs"));
             Assert.IsTrue(result.ContainsKey("file2.cs"));
         }
@@ -259,7 +259,7 @@ namespace Codescene.VSExtension.Core.Tests
 
         private static void AssertCacheContains(System.Collections.Generic.Dictionary<string, DeltaResponseModel> result, int expectedCount, string[] expectedFiles)
         {
-            Assert.AreEqual(expectedCount, result.Count);
+            Assert.HasCount(expectedCount, result);
             foreach (var file in expectedFiles)
             {
                 Assert.IsTrue(result.ContainsKey(file), $"Cache should contain {file}");

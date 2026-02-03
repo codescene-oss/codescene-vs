@@ -270,7 +270,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsFalse(_trackerManager.Contains(file1));
             Assert.IsFalse(_trackerManager.Contains(file2));
-            Assert.AreEqual(2, deletedFiles.Count);
+            Assert.HasCount(2, deletedFiles);
         }
 
         [TestMethod]

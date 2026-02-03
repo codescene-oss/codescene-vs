@@ -20,7 +20,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-            Assert.AreEqual(0, result.Count, "Should return empty list on exception");
+            Assert.IsEmpty(result, "Should return empty list on exception");
             Assert.IsTrue(
                 _fakeLogger.WarnMessages.Any(m => m.Contains("Error getting changed files")),
                 "Should log warning message on exception");
@@ -46,7 +46,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = await _detector.GetChangedFilesVsBaselineAsync(
                 string.Empty, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-            Assert.AreEqual(0, result.Count, "Should return empty list for invalid git root path");
+            Assert.IsEmpty(result, "Should return empty list for invalid git root path");
         }
 
         [TestMethod]
@@ -55,7 +55,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = await _detector.GetChangedFilesVsBaselineAsync(
                 "C:\\nonexistent\\path", _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-            Assert.AreEqual(0, result.Count, "Should return empty list for nonexistent git root path");
+            Assert.IsEmpty(result, "Should return empty list for nonexistent git root path");
         }
 
         [TestMethod]
@@ -82,7 +82,7 @@ namespace Codescene.VSExtension.Core.Tests
                     var candidates = _detector.GetMainBranchCandidates(bareRepo);
 
                     Assert.IsNotNull(candidates, "Should not return null");
-                    Assert.AreEqual(0, candidates.Count, "Should return empty list for bare repository");
+                    Assert.IsEmpty(candidates, "Should return empty list for bare repository");
                 }
             }
             finally
@@ -271,7 +271,7 @@ namespace Codescene.VSExtension.Core.Tests
                 var result = await _detector.GetChangedFilesVsBaselineAsync(
                     unbornRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-                Assert.AreEqual(0, result.Count, "Should return empty list for unborn HEAD");
+                Assert.IsEmpty(result, "Should return empty list for unborn HEAD");
             }
             finally
             {
