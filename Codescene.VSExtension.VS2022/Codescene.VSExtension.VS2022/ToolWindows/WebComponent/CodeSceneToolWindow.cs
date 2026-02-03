@@ -90,7 +90,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 IdeType = VISUALSTUDIOIDETYPE,
                 View = ViewTypes.HOME,
                 Data = mapper.Map(deltaCache.GetAll()),
-                Pro = true
+                Pro = true,
             },
         };
         ILogger logger = await VS.GetMefServiceAsync<ILogger>();

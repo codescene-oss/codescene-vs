@@ -77,7 +77,7 @@ namespace Codescene.VSExtension.Core.Tests
                 Score = 6.0f,
                 FunctionLevelCodeSmells = new List<CliReviewFunctionModel>
                 {
-                    CreateFunction("CalculateTotal", 10, 50, CreateCodeSmell("Complex Method", "CC: 15", 15, 45))
+                    CreateFunction("CalculateTotal", 10, 50, CreateCodeSmell("Complex Method", "CC: 15", 15, 45)),
                 },
             };
 
@@ -97,7 +97,7 @@ namespace Codescene.VSExtension.Core.Tests
                 Score = 9.0f,
                 FunctionLevelCodeSmells = new List<CliReviewFunctionModel>
                 {
-                    new CliReviewFunctionModel { Function = "NoSmellsHere", CodeSmells = null }
+                    new CliReviewFunctionModel { Function = "NoSmellsHere", CodeSmells = null },
                 },
             };
 
@@ -115,7 +115,7 @@ namespace Codescene.VSExtension.Core.Tests
                 FunctionLevelCodeSmells = new List<CliReviewFunctionModel>
                 {
                     CreateFunction("Function1", 1, 20, CreateCodeSmell("Smell1", null, 5, 10), CreateCodeSmell("Smell2", null, 15, 18)),
-                    CreateFunction("Function2", 25, 40, CreateCodeSmell("Smell3", null, 30, 35))
+                    CreateFunction("Function2", 25, 40, CreateCodeSmell("Smell3", null, 30, 35)),
                 },
             };
 
@@ -175,7 +175,7 @@ namespace Codescene.VSExtension.Core.Tests
                         Function = "TestFunction",
                         Range = null,
                         CodeSmells = new[] { CreateCodeSmell("Test", null, 1, 5) }
-                    }
+                    },
                 },
             };
 

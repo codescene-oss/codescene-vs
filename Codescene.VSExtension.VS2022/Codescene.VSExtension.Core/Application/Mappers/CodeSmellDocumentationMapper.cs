@@ -48,7 +48,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 {
                     FileName = model.Path,
                     Fn = function,
-                    FnToRefactor = fnToRefactor
+                    FnToRefactor = fnToRefactor,
                 },
             };
         }

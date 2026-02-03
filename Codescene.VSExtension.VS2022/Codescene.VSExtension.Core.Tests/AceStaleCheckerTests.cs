@@ -31,7 +31,7 @@ namespace Codescene.VSExtension.Core.Tests
                     StartLine = startLine,
                     EndLine = endLine,
                     StartColumn = startColumn,
-                    EndColumn = endColumn
+                    EndColumn = endColumn,
                 },
             };
         }
