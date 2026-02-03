@@ -193,8 +193,7 @@ internal class WebComponentMessageHandler
         await onClickRefactoringHandler.HandleAsync(
             payload.FilePath,
             payload.FnToRefactor,
-            AceConstants.AceEntryPoint.RETRY
-        );
+            AceConstants.AceEntryPoint.RETRY);
     }
 
     private async Task HandleRejectAsync()
@@ -236,8 +235,7 @@ internal class WebComponentMessageHandler
         await DocumentNavigator.OpenFileAndGoToLineAsync(
             payload.FileName,
             startLine,
-            logger
-        );
+            logger);
     }
 
     private async Task HandleOpenDocsForFunctionAsync(MessageObj<JToken> msgObject, ILogger logger)
@@ -251,8 +249,7 @@ internal class WebComponentMessageHandler
             Path = payload.FileName,
             Category = category,
             FunctionRange = payload.Fn?.Range,
-        }
-        );
+        });
 
         await _showDocsHandler?.HandleAsync(
         new ShowDocumentationModel(
@@ -261,8 +258,7 @@ internal class WebComponentMessageHandler
             payload.Fn?.Name,
             payload.Fn?.Range),
         fn,
-        DocsEntryPoint.CodeHealthMonitor
-        );
+        DocsEntryPoint.CodeHealthMonitor);
     }
 
     private async Task HandleRequestAndPresentRefactoringAsync(MessageObj<JToken> msgObject, ILogger logger)
@@ -285,8 +281,7 @@ internal class WebComponentMessageHandler
         await onClickRefactoringHandler.HandleAsync(
             payload.FileName,
             payload.FnToRefactor,
-            AceConstants.AceEntryPoint.CODE_VISION
-        );
+            AceConstants.AceEntryPoint.CODE_VISION);
     }
 
     private async Task HandleOpenSettingsAsync()
@@ -334,8 +329,7 @@ internal class WebComponentMessageHandler
         await onClickRefactoringHandler.HandleAsync(
             payload.FilePath,
             payload.FnToRefactor,
-            AceConstants.AceEntryPoint.ACE_ACKNOWLEDGEMENT
-        );
+            AceConstants.AceEntryPoint.ACE_ACKNOWLEDGEMENT);
     }
 
     private void SendTelemetry(string eventName, Dictionary<string, object> additionalData = null)

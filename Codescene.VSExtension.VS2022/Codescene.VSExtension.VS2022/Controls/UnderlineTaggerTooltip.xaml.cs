@@ -56,8 +56,7 @@ namespace Codescene.VSExtension.VS2022.Controls
             System.Drawing.Color drawingColor = VSColorTheme.GetThemedColor(EnvironmentColors.ToolTipTextColorKey);
 
             Color mediaColor = Color.FromArgb(
-                drawingColor.A, drawingColor.R, drawingColor.G, drawingColor.B
-            );
+                drawingColor.A, drawingColor.R, drawingColor.G, drawingColor.B);
 
             ThemedTextBlock.Foreground = new SolidColorBrush(mediaColor);
 

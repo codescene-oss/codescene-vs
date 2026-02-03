@@ -291,8 +291,7 @@ namespace Codescene.VSExtension.Core.Tests
                 TestFilename,
                 TestContent,
                 new DeltaResponseModel { ScoreChange = (decimal)-0.5f },
-                new PreFlightResponseModel()
-            );
+                new PreFlightResponseModel());
 
             Assert.IsNotNull(result);
             Assert.AreEqual(1, result.Count);
@@ -307,8 +306,7 @@ namespace Codescene.VSExtension.Core.Tests
                 TestFilename,
                 TestContent,
                 new DeltaResponseModel { ScoreChange = (decimal)-0.5f },
-                new PreFlightResponseModel()
-            );
+                new PreFlightResponseModel());
 
             _mockCacheStorageService.Verify(x => x.RemoveOldReviewCacheEntries(It.IsAny<int>()), Times.Once);
         }

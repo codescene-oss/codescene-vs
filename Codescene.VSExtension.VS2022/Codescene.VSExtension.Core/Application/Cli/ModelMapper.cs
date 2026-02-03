@@ -64,8 +64,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     review.Range.StartLine,
                     review.Range.EndLine,
                     review.Range.StartColumn,
-                    review.Range.EndColumn
-                )
+                    review.Range.EndColumn)
             };
         }
 
@@ -89,8 +88,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     function.Range.StartLine,
                     function.Range.EndLine,
                     function.Range.StartColumn,
-                    function.Range.EndColumn
-                );
+                    function.Range.EndColumn);
             }
 
             return model;

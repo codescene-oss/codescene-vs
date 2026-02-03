@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022;
 
-internal class SignOutCommand(IAuthenticationService authService, ILogger errorsHandler) : Commands.VSBaseCommand
+internal class SignOutCommand(IAuthenticationService authService, ILogger errorsHandler): Commands.VSBaseCommand
 {
     internal const int Id = PackageIds.SignOutCommand;
 

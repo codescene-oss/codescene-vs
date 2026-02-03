@@ -133,8 +133,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 _debounceService?.Debounce(
                     nameof(CodeSceneToolWindow),
                     () => { SendTelemetry(true); },
-                    TimeSpan.FromSeconds(5)
-                );
+                    TimeSpan.FromSeconds(5));
             }).FireAndForget();
 
             return VSConstants.S_OK;

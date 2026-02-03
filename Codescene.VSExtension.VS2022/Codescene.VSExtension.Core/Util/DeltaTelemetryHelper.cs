@@ -28,8 +28,7 @@ namespace Codescene.VSExtension.Core.Util
             Dictionary<string, DeltaResponseModel> previousSnapshot,
             Dictionary<string, DeltaResponseModel> currentCache,
             DeltaCacheEntry entry,
-            ITelemetryManager telemetryManager
-        )
+            ITelemetryManager telemetryManager)
         {
             var eventName = GetTelemetryEventName(previousSnapshot, currentCache, entry.FilePath);
             if (eventName == null) return;
@@ -55,8 +54,7 @@ namespace Codescene.VSExtension.Core.Util
         private static string GetTelemetryEventName(
             Dictionary<string, DeltaResponseModel> before,
             Dictionary<string, DeltaResponseModel> after,
-            string filePath
-        )
+            string filePath)
         {
             var hadBefore = before.ContainsKey(filePath);
             var hasNow = after.ContainsKey(filePath);

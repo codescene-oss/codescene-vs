@@ -37,8 +37,7 @@ namespace Codescene.VSExtension.VS2022.Cache
 
             string basePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Codescene"
-            );
+                "Codescene");
 
             if (!string.IsNullOrEmpty(workspaceId))
             {

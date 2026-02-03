@@ -39,8 +39,7 @@ public class ShowDiffHandler
         var span = new Span(
             snapshot.GetLineFromLineNumber(start).Start.Position,
             snapshot.GetLineFromLineNumber(end).EndIncludingLineBreak.Position
-            - snapshot.GetLineFromLineNumber(start).Start.Position
-        );
+            - snapshot.GetLineFromLineNumber(start).Start.Position);
 
         var original = snapshot.GetText();
         var refactored = original.Remove(span.Start, span.Length).Insert(span.Start, replacement);

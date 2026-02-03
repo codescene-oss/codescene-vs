@@ -102,9 +102,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
             return refactorableFunctions.FirstOrDefault(function =>
                 function.RefactoringTargets.Any(target =>
                     target.Category == codeSmell.Category &&
-                    target.Line == codeSmell.Range.StartLine
-                )
-            );
+                    target.Line == codeSmell.Range.StartLine));
         }
 
         public bool ShouldCheckRefactorableFunctions(string extension)
