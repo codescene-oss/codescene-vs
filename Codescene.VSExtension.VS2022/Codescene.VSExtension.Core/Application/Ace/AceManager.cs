@@ -38,7 +38,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         public static CachedRefactoringActionModel LastRefactoring;
 
-        public IList<FnToRefactorModel> GetRefactorableFunctions(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
+        public IList<FnToRefactorModel> GetRefactorableFunctionsFromCodeSmells(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
         {
             return _executor.FnsToRefactorFromCodeSmells(fileName, fileContent, codeSmells, preflight);
         }

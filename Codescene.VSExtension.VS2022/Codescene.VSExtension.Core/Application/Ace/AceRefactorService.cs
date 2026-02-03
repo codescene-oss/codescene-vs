@@ -73,7 +73,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
             try
             {
-                var refactorableFunctions = _aceManager.GetRefactorableFunctions(fileName, code, cliCodeSmellModelList, preflight);
+                var refactorableFunctions = _aceManager.GetRefactorableFunctionsFromCodeSmells(fileName, code, cliCodeSmellModelList, preflight);
 
                 if (refactorableFunctions.Any())
                 {

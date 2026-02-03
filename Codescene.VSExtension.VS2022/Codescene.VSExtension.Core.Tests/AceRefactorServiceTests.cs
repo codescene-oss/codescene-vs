@@ -151,13 +151,13 @@ public class AceRefactorServiceTests
         _mockPreflightManager.Setup(x => x.IsSupportedLanguage(extension)).Returns(true);
 
     private void SetupAceManagerReturns(IList<FnToRefactorModel> functions) =>
-        _mockAceManager.Setup(x => x.GetRefactorableFunctions(
+        _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmells(
             It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<List<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
             .Returns(functions);
 
     private void SetupAceManagerThrows(Exception ex) =>
-        _mockAceManager.Setup(x => x.GetRefactorableFunctions(
+        _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmells(
             It.IsAny<string>(), It.IsAny<string>(),
             It.IsAny<List<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
             .Throws(ex);

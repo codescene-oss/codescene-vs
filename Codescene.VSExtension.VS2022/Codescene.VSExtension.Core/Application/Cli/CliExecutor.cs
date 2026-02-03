@@ -121,42 +121,54 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
         {
-            var cachePath = _cacheStorageService.GetSolutionReviewCacheLocation();
-            _cacheStorageService.RemoveOldReviewCacheEntries();
-
-            var command = _cliCommandProvider.RefactorCommand;
-            var content = _cliCommandProvider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codeSmells, preflight);
-
-            if (string.IsNullOrEmpty(content))
+            if (codeSmells == null || codeSmells.Count == 0)
             {
-                _logger.Warn("Skipping refactoring functions check. Payload content was not defined.");
+                _logger.Debug("Skipping refactoring functions from code smells. Code smells list was null or empty.");
                 return null;
             }
 
-            return ExecuteWithTimingAndLogging<IList<FnToRefactorModel>>(
-                "ACE refactoring functions check",
-                () => _executor.Execute(command, content),
-                "Refactoring functions check failed."
-            );
+            var cachePath = _cacheStorageService.GetSolutionReviewCacheLocation();
+            var content = _cliCommandProvider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codeSmells, preflight);
+
+            return ExecuteFnsToRefactorCommand(
+                content,
+                "ACE refactoring functions from code smells check",
+                "Refactoring functions from code smells check failed.");
         }
 
         public IList<FnToRefactorModel> FnsToRefactorFromDelta(string fileName, string fileContent, DeltaResponseModel deltaResult, PreFlightResponseModel preflight)
         {
-            var cachePath = _cacheStorageService.GetSolutionReviewCacheLocation();
+            if (deltaResult == null)
+            {
+                _logger.Debug("Skipping refactoring functions from delta. Delta result was null.");
+                return null;
+            }
 
-            var command = _cliCommandProvider.RefactorCommand;
+            var cachePath = _cacheStorageService.GetSolutionReviewCacheLocation();
             var content = _cliCommandProvider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, preflight);
 
-            if (string.IsNullOrEmpty(content))
+            return ExecuteFnsToRefactorCommand(
+                content,
+                "ACE refactoring functions from delta check",
+                "Refactoring functions from delta check failed.");
+        }
+
+        private IList<FnToRefactorModel> ExecuteFnsToRefactorCommand(string payloadContent, string operationLabel, string errorMessage)
+        {
+            _cacheStorageService.RemoveOldReviewCacheEntries();
+
+            if (string.IsNullOrEmpty(payloadContent))
             {
                 _logger.Warn("Skipping refactoring functions check. Payload content was not defined.");
                 return null;
             }
 
+            var command = _cliCommandProvider.RefactorCommand;
+
             return ExecuteWithTimingAndLogging<IList<FnToRefactorModel>>(
-                "ACE refactoring functions from delta check",
-                () => _executor.Execute(command, content),
-                "Refactoring functions from delta check failed."
+                operationLabel,
+                () => _executor.Execute(command, payloadContent),
+                errorMessage
             );
         }
 

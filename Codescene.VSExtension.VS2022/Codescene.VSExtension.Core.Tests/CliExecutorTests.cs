@@ -3,6 +3,7 @@ using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Moq;
@@ -54,6 +55,16 @@ namespace Codescene.VSExtension.Core.Tests
             _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>())).Returns(payload);
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
+        }
+
+        private void SetupFnsToRefactorFromDeltaMocks(string payload = "payload", string response = "[]")
+        {
+            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
+            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("command");
+            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>())).Returns(payload);
             _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
         }
 
@@ -223,7 +234,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _executor.FnsToRefactorFromCodeSmells(TestFilename, TestContent, new List<CliCodeSmellModel>(), new PreFlightResponseModel());
 
             Assert.IsNull(result);
-            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Payload content was not defined"))), Times.Once);
+            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Skipping refactoring functions from code smells"))), Times.Once);
         }
 
         [TestMethod]
@@ -244,7 +255,60 @@ namespace Codescene.VSExtension.Core.Tests
         {
             SetupFnsToRefactorMocks();
 
-            _executor.FnsToRefactorFromCodeSmells(TestFilename, TestContent, new List<CliCodeSmellModel>(), new PreFlightResponseModel());
+            _executor.FnsToRefactorFromCodeSmells(TestFilename, TestContent, 
+                new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } }, 
+                new PreFlightResponseModel());
+
+            _mockCacheStorageService.Verify(x => x.RemoveOldReviewCacheEntries(It.IsAny<int>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void FnsToRefactorFromDelta_NullDeltaResult_ReturnsNull()
+        {
+            var result = _executor.FnsToRefactorFromDelta(TestFilename, TestContent, null, new PreFlightResponseModel());
+
+            Assert.IsNull(result);
+            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Skipping refactoring functions from delta"))), Times.Once);
+        }
+
+        [TestMethod]
+        public void FnsToRefactorFromDelta_EmptyPayload_ReturnsNull()
+        {
+            SetupFnsToRefactorFromDeltaMocks(payload: string.Empty);
+
+            var result = _executor.FnsToRefactorFromDelta(TestFilename, TestContent, new DeltaResponseModel(), new PreFlightResponseModel());
+
+            Assert.IsNull(result);
+            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Payload content was not defined"))), Times.Once);
+        }
+
+        [TestMethod]
+        public void FnsToRefactorFromDelta_ValidResponse_ReturnsDeserializedList()
+        {
+            SetupFnsToRefactorFromDeltaMocks(payload: "{}", response: "[{\"name\": \"TestFunction\", \"body\": \"code\"}]");
+
+            var result = _executor.FnsToRefactorFromDelta(
+                TestFilename,
+                TestContent,
+                new DeltaResponseModel { ScoreChange = (decimal)-0.5f },
+                new PreFlightResponseModel()
+            );
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(1, result.Count);
+        }
+
+        [TestMethod]
+        public void FnsToRefactorFromDelta_RemovesOldCacheEntries()
+        {
+            SetupFnsToRefactorFromDeltaMocks();
+
+            _executor.FnsToRefactorFromDelta(
+                TestFilename,
+                TestContent,
+                new DeltaResponseModel { ScoreChange = (decimal)-0.5f },
+                new PreFlightResponseModel()
+            );
 
             _mockCacheStorageService.Verify(x => x.RemoveOldReviewCacheEntries(It.IsAny<int>()), Times.Once);
         }
