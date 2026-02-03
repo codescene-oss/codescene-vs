@@ -10,7 +10,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class TestSettingsProvider : ISettingsProvider
     {
-        internal Mock<ISettingsProvider> Mock = new ();
+        internal Mock<ISettingsProvider> Mock = new();
 
         public bool ShowDebugLogs => Mock.Object.ShowDebugLogs;
 

@@ -346,6 +346,5 @@ namespace Codescene.VSExtension.Core.Tests
                 It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>())).Returns(payload);
             _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
         }
-
     }
 }

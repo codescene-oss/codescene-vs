@@ -10,7 +10,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class TestGitService : IGitService
     {
-        internal Mock<IGitService> Mock = new ();
+        internal Mock<IGitService> Mock = new();
 
         public string GetFileContentForCommit(string path)
         {

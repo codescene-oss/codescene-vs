@@ -10,7 +10,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class TestLogger : ILogger
     {
-        internal Mock<ILogger> Mock = new ();
+        internal Mock<ILogger> Mock = new();
 
         public void Debug(string message) => Mock.Object.Debug(message);
 
