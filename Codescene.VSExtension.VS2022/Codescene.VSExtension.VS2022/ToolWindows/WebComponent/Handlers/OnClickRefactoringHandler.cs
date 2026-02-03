@@ -63,7 +63,7 @@ public class OnClickRefactoringHandler
 
         if (AceToolWindow.IsCreated())
         {
-            SetViewToLoadingMode(path, refactorableFunction);
+            await SetViewToLoadingModeAsync(path, refactorableFunction);
         }
 
         await AceToolWindow.ShowAsync();
@@ -90,9 +90,9 @@ public class OnClickRefactoringHandler
         }
     }
 
-    private void SetViewToLoadingMode(string path, FnToRefactorModel refactorableFunction)
+    private async Task SetViewToLoadingModeAsync(string path, FnToRefactorModel refactorableFunction)
     {
-        AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
+        AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
         {
             MessageType = MessageTypes.UPDATERENDERER,
             Payload = new WebComponentPayload<AceComponentData>
@@ -129,7 +129,7 @@ public class OnClickRefactoringHandler
                 return;
             }
 
-            AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
+            await AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
             {
                 MessageType = MessageTypes.UPDATERENDERER,
                 Payload = new WebComponentPayload<AceComponentData>
@@ -147,7 +147,7 @@ public class OnClickRefactoringHandler
             // Determine error type based on exception
             string errorType = DetermineErrorType(ex);
 
-            AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
+            await AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
             {
                 MessageType = MessageTypes.UPDATERENDERER,
                 Payload = new WebComponentPayload<AceComponentData>

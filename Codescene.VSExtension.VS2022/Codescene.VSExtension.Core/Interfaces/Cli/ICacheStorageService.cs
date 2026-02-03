@@ -12,7 +12,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
         /// <summary>
         /// Initializes the cache storage, validates and creates necessary directories.
         /// </summary>
-        /// <returns><placeholder>A <see cref="Task"/> representing the asynchronous operation.</placeholder></returns>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         Task InitializeAsync();
 
         /// <summary>

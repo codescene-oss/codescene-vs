@@ -62,7 +62,9 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         };
 
         // Bindings are defined in UnderlineTaggerTooltip.xaml
+#pragma warning disable VSTHRD100 // Avoid async void methods - RelayCommand requires void return type
         private async void ExecuteYourCommand(object parameter)
+#pragma warning restore VSTHRD100 // Avoid async void methods
         {
             var logger = await VS.GetMefServiceAsync<ILogger>();
 

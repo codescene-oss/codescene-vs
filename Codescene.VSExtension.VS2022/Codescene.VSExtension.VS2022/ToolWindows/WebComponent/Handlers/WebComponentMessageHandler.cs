@@ -94,7 +94,7 @@ internal class WebComponentMessageHandler
                     break;
 
                 case MessageTypes.RETRY:
-                    await HandleRetryRefactoring(msgObject, logger);
+                    await HandleRetryRefactoringAsync(msgObject, logger);
                     break;
 
                 case MessageTypes.GOTOFUNCTIONLOCATION:
@@ -190,7 +190,7 @@ internal class WebComponentMessageHandler
         await CodeSceneToolWindow.UpdateViewAsync();
     }
 
-    private async Task HandleRetryRefactoring(MessageObj<JToken> msgObject, ILogger logger)
+    private async Task HandleRetryRefactoringAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
         var payload = msgObject.Payload.ToObject<RetryPayload>();
 

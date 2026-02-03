@@ -26,8 +26,9 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     /// <summary>
     /// Subscribes to solution events using the Visual Studio shell service.
     /// </summary>
-    public async Task Initialize(IServiceProvider serviceProvider)
+    public async Task InitializeAsync(IServiceProvider serviceProvider)
     {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var isUiThread = ThreadHelper.CheckAccess();
 
         if (isUiThread)
