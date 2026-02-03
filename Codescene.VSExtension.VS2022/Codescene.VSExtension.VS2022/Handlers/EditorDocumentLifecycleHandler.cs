@@ -246,7 +246,9 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         private string GetFilePath(ITextBuffer buffer)
         {
             if (buffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document))
+            {
                 return document.FilePath;
+            }
             else
             {
                 _logger.Warn("Could not get the file path. Aborting review...");
