@@ -345,10 +345,10 @@
     <PackageReference Include="StreamJsonRpc">
       <Version>2.8.28</Version>
     </PackageReference>
-  <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" Condition="'$(RunStyleCopAnalyzers)' == 'true'">
-	  <PrivateAssets>all</PrivateAssets>
-	  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-  </PackageReference>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" Condition="'$(RunStyleCopAnalyzers)' == 'true'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Page Include="Controls\BrainClass.xaml">
