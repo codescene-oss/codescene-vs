@@ -90,7 +90,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
             };
         }
 
-        sealed class CreateAceComponentDataParams
+        private sealed class CreateAceComponentDataParams
         {
             public bool Loading { get; set; }
             public string Error { get; set; }

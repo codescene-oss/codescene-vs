@@ -18,7 +18,7 @@ namespace Codescene.VSExtension.Core.Application.Authentication
             _persistenceDataProvider = persistenceDataProvider;
         }
 
-        const string NEXT = "/configuration/devtools-tokens/add/vscode"; // change later with visual studio next parameter
+        private const string NEXT = "/configuration/devtools-tokens/add/vscode"; // change later with visual studio next parameter
 
         private LoginResponse _loginResponse = null;
 

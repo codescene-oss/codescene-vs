@@ -149,17 +149,17 @@ public sealed class VS2022Package : ToolkitPackage
         }
     }
 
-    async Task InitializeSolutionEventsHandlerAsync()
+    private async Task InitializeSolutionEventsHandlerAsync()
     {
         await new SolutionEventsHandler().Initialize(this);
     }
 
-    async Task HideOpenedWindowsAsync()
+    private async Task HideOpenedWindowsAsync()
     {
         await AceToolWindow.HideAsync();
     }
 
-    async Task<T> GetServiceAsync<T>()
+    private async Task<T> GetServiceAsync<T>()
     {
         if (await GetServiceAsync(typeof(SComponentModel)) is IComponentModel componentModel)
         {
@@ -169,19 +169,19 @@ public sealed class VS2022Package : ToolkitPackage
         throw new Exception($"Can not find component {nameof(T)}");
     }
 
-    async Task InitializeLoggerPaneAsync()
+    private async Task InitializeLoggerPaneAsync()
     {
         var logPane = await GetServiceAsync<OutputPaneManager>();
         await logPane.InitializeAsync();
     }
 
-    async Task CheckCliFileAsync()
+    private async Task CheckCliFileAsync()
     {
         var cliFileChecker = await GetServiceAsync<ICliFileChecker>();
         cliFileChecker.Check();
     }
 
-    async Task SubscribeOnActiveWindowChangeAsync()
+    private async Task SubscribeOnActiveWindowChangeAsync()
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(DisposalToken);
 

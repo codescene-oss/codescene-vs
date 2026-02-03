@@ -90,7 +90,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return command;
         }
 
-        static string GetArgumentStr(params string[] args)
+        private static string GetArgumentStr(params string[] args)
         {
             var sb = new StringBuilder();
             foreach (var arg in args)
