@@ -279,7 +279,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 await CodeSceneToolWindow.UpdateViewAsync(); // Update loading state
 
                 var deltaResult = _reviewer.Delta(currentReview, currentContent);
-                await AceUtils.UpdateDeltaCacheWithRefactorableFunctions(deltaResult, path, currentContent, _logger);
+                await AceUtils.UpdateDeltaCacheWithRefactorableFunctionsAsync(deltaResult, path, currentContent, _logger);
 
                 var scoreChange = deltaResult?.ScoreChange.ToString() ?? "none";
                 _logger.Info($"Delta analysis complete for file {path}. Code Health score change: {scoreChange}.");

@@ -53,7 +53,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
             var hasAuthToken = !string.IsNullOrWhiteSpace(settings.AuthToken);
             _preflightManager.SetHasAceToken(hasAuthToken);
-            RefreshWindows().FireAndForget();
+            RefreshWindowsAsync().FireAndForget();
         }
 
         private void OnStateChanged(object sender, AceStateChangedEventArgs e)
@@ -81,7 +81,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
                     break;
             }
 
-            RefreshWindows().FireAndForget();
+            RefreshWindowsAsync().FireAndForget();
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
             ShowNotificationAsync("CodeScene ACE is back online.").FireAndForget();
         }
 
-        private async Task RefreshWindows()
+        private async Task RefreshWindowsAsync()
         {
             try
             {

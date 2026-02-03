@@ -73,7 +73,7 @@ namespace Codescene.VSExtension.VS2022.Util
             return refactorableFunctions?.FirstOrDefault();
         }
 
-        public static async Task UpdateDeltaCacheWithRefactorableFunctions(DeltaResponseModel delta, string path, string code, ILogger logger)
+        public static async Task UpdateDeltaCacheWithRefactorableFunctionsAsync(DeltaResponseModel delta, string path, string code, ILogger logger)
         {
             var aceManager = await VS.GetMefServiceAsync<IAceManager>();
             var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();

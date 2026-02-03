@@ -25,10 +25,6 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
 public class AceToolWindow : BaseToolWindow<AceToolWindow>
 {
-    public string FilePath { get; set; }
-
-    public override Type PaneType => typeof(Pane);
-
     private static WebComponentUserControl _ctrl = null;
     private static int _isStale = 0; // 0 = not stale, 1 = stale (int for Interlocked.CompareExchange)
 
@@ -37,44 +33,13 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     /// </summary>
     public static bool IsStale => _isStale == 1;
 
-    public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
-    {
-        ResetStaleState();
+    public string FilePath { get; set; }
 
-        var logger = await VS.GetMefServiceAsync<ILogger>();
-        var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
-        var handler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
+    public override Type PaneType => typeof(Pane);
 
-        var payload = new WebComponentPayload<AceComponentData>
-        {
-            IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
-            View = WebComponentConstants.ViewTypes.ACE,
-            Data = mapper.Map(handler.Path, handler.RefactorableFunction),
-        };
+    public static bool IsCreated() => _ctrl != null;
 
-        var ctrl = new WebComponentUserControl(payload, logger)
-        {
-            CloseRequested = async () =>
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                await HideAsync();
-            },
-        };
-
-        _ctrl = ctrl;
-
-        return ctrl;
-    }
-
-    public override string GetTitle(int toolWindowId) => Titles.CODESCENEACE;
-
-    [Guid("60f71481-a161-4512-bb43-162b852a86d1")]
-    internal class Pane : ToolWindowPane
-    {
-        public Pane() => BitmapImageMoniker = KnownMonikers.StatusInformation;
-    }
-
-    public static void UpdateView(WebComponentMessage<AceComponentData> message)
+    public static async Task UpdateViewAsync(WebComponentMessage<AceComponentData> message)
     {
         // Reset stale state when a new refactoring is being displayed (loading or result)
         // This ensures the stale flag from a previous refactoring doesn't block new stale checks
@@ -83,14 +48,12 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
             ResetStaleState();
         }
 
-        _ctrl.UpdateViewAsync(message).FireAndForget();
+        await _ctrl.UpdateViewAsync(message);
         if (message.Payload?.Data?.AceResultData != null) // can be null when loading
         {
             SendTelemetry(responseModel: message.Payload.Data.AceResultData);
         }
     }
-
-    public static bool IsCreated() => _ctrl != null;
 
     /// <summary>
     /// Marks the current ACE refactoring as stale and updates the view.
@@ -152,7 +115,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
         if (AceManager.LastRefactoring != null)
         {
-            UpdateView(new WebComponentMessage<AceComponentData>
+            await UpdateViewAsync(new WebComponentMessage<AceComponentData>
             {
                 MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
                 Payload = new WebComponentPayload<AceComponentData>
@@ -173,6 +136,37 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         }
     }
 
+    public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
+    {
+        ResetStaleState();
+
+        var logger = await VS.GetMefServiceAsync<ILogger>();
+        var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
+        var handler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
+
+        var payload = new WebComponentPayload<AceComponentData>
+        {
+            IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
+            View = WebComponentConstants.ViewTypes.ACE,
+            Data = mapper.Map(handler.Path, handler.RefactorableFunction),
+        };
+
+        var ctrl = new WebComponentUserControl(payload, logger)
+        {
+            CloseRequested = async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await HideAsync();
+            },
+        };
+
+        _ctrl = ctrl;
+
+        return ctrl;
+    }
+
+    public override string GetTitle(int toolWindowId) => Titles.CODESCENEACE;
+
     private static void SendTelemetry(RefactorResponseModel responseModel)
     {
         Task.Run(async () =>
@@ -186,5 +180,11 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
             telemetryManager.SendTelemetry(Constants.Telemetry.ACEREFACTORPRESENTED, additionalData);
         }).FireAndForget();
+    }
+
+    [Guid("60f71481-a161-4512-bb43-162b852a86d1")]
+    internal class Pane : ToolWindowPane
+    {
+        public Pane() => BitmapImageMoniker = KnownMonikers.StatusInformation;
     }
 }

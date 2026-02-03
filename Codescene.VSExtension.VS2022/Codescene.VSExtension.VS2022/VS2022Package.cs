@@ -151,7 +151,7 @@ public sealed class VS2022Package : ToolkitPackage
 
     private async Task InitializeSolutionEventsHandlerAsync()
     {
-        await new SolutionEventsHandler().Initialize(this);
+        await new SolutionEventsHandler().InitializeAsync(this);
     }
 
     private async Task HideOpenedWindowsAsync()
