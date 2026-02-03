@@ -46,10 +46,10 @@ namespace Codescene.VSExtension.Core.Tests
                 Function = new FunctionInfoModel
                 {
                     Name = functionName,
-                    Range = range ?? new CliRangeModel { StartLine = 10, EndLine = 20, StartColumn = 1, EndColumn = 50 }
+                    Range = range ?? new CliRangeModel { StartLine = 10, EndLine = 20, StartColumn = 1, EndColumn = 50 },
                 },
                 ChangeDetails = new[] { CreateChangeDetail() },
-                RefactorableFn = refactorableFn
+                RefactorableFn = refactorableFn,
             };
 
         private Dictionary<string, DeltaResponseModel> CreateSingleFileDelta(string fileName, DeltaResponseModel delta) =>
@@ -85,7 +85,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var fileDeltas = new Dictionary<string, DeltaResponseModel>
             {
-                { "test.cs", CreateDeltaResponse() }
+                { "test.cs", CreateDeltaResponse() },
             };
 
             var result = _mapper.Map(fileDeltas);
@@ -100,7 +100,7 @@ namespace Codescene.VSExtension.Core.Tests
             var fileDeltas = new Dictionary<string, DeltaResponseModel>
             {
                 { "file1.cs", CreateDeltaResponse() },
-                { "file2.cs", CreateDeltaResponse() }
+                { "file2.cs", CreateDeltaResponse() },
             };
 
             var result = _mapper.Map(fileDeltas);
@@ -157,7 +157,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Function = new FunctionInfoModel { Name = "TestFn", Range = null },
                 ChangeDetails = new[] { CreateChangeDetail() }
-            } };
+            }, };
             var result = _mapper.Map(CreateSingleFileDelta("test.cs", CreateDeltaResponseWithFunctionFindings(findings)));
 
             Assert.IsNull(result.FileDeltaData[0].Delta.FunctionLevelFindings[0].Function.Range);
@@ -186,7 +186,7 @@ namespace Codescene.VSExtension.Core.Tests
                 NippyB64 = "encoded",
                 FileType = "cs",
                 Range = new CliRangeModel { StartLine = 10, EndLine = 20, StartColumn = 1, EndColumn = 50 },
-                RefactoringTargets = new[] { new RefactoringTargetModel { Category = "Complex", Line = 15 } }
+                RefactoringTargets = new[] { new RefactoringTargetModel { Category = "Complex", Line = 15 } },
             };
             var result = _mapper.Map(CreateSingleFileDelta("test.cs", CreateDeltaResponseWithFunctionFindings(new[] { CreateFunctionFinding(refactorableFn: refactorableFn) })));
 

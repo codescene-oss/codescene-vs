@@ -67,7 +67,7 @@ public class BranchWatcherService : IDisposable
         _headWatcher = new FileSystemWatcher(_gitDirPath)
         {
             Filter = "HEAD",
-            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName,
         };
 
         _headWatcher.Changed += OnHeadFileChanged;

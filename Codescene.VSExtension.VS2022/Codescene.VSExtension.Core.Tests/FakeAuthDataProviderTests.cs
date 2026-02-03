@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Token = "new-token",
                 Name = "new-user",
-                UserId = "5678"
+                UserId = "5678",
             };
 
             // Store should complete without throwing
@@ -74,7 +74,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Token = "new-token",
                 Name = "new-user",
-                UserId = "5678"
+                UserId = "5678",
             };
 
             // Act

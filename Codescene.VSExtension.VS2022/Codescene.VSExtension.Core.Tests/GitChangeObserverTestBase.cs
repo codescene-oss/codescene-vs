@@ -118,7 +118,7 @@ namespace Codescene.VSExtension.Core.Tests
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
             };
 
             using (var process = Process.Start(psi))

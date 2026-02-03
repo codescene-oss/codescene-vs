@@ -166,7 +166,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return new FileSystemWatcher(path)
             {
                 IncludeSubdirectories = true,
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
             };
         }
 

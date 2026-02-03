@@ -45,7 +45,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         {
             IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
             View = WebComponentConstants.ViewTypes.ACE,
-            Data = mapper.Map(handler.Path, handler.RefactorableFunction)
+            Data = mapper.Map(handler.Path, handler.RefactorableFunction),
         };
 
         var ctrl = new WebComponentUserControl(payload, logger)
@@ -54,7 +54,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 await HideAsync();
-            }
+            },
         };
 
         _ctrl = ctrl;
@@ -115,7 +115,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                 IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
                 View = WebComponentConstants.ViewTypes.ACE,
                 Data = data
-            }
+            },
         }).FireAndForget();
     }
 
@@ -150,7 +150,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                     IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
                     View = WebComponentConstants.ViewTypes.ACE,
                     Data = mapper.Map(AceManager.LastRefactoring)
-                }
+                },
             });
         }
     }
@@ -169,7 +169,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
             var additionalData = new Dictionary<string, object>
                 {
                     { "confidence", responseModel.Confidence.Level },
-                    { "isCached", responseModel.Metadata.Cached }
+                    { "isCached", responseModel.Metadata.Cached },
                 };
 
             telemetryManager.SendTelemetry(Constants.Telemetry.ACEREFACTORPRESENTED, additionalData);

@@ -27,7 +27,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
             {
                 File = new File
                 {
-                    FileName = pair.Key
+                    FileName = pair.Key,
                 },
                 Delta = new Delta
                 {
@@ -36,14 +36,14 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                     NewScore = pair.Value.NewScore,
                     FileLevelFindings = ToChangeDetails(pair.Value.FileLevelFindings),
                     FunctionLevelFindings = ToFunctionFinding(pair.Value.FunctionLevelFindings),
-                }
+                },
             }).ToList();
 
             return new CodeHealthMonitorComponentData
             {
                 AutoRefactor = _preflightManager.GetAutoRefactorConfig(),
                 FileDeltaData = files,
-                Jobs = DeltaJobTracker.RunningJobs.ToList()
+                Jobs = DeltaJobTracker.RunningJobs.ToList(),
             };
         }
 
@@ -65,7 +65,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                             item.Function.Range.EndLine,
                             item.Function.Range.StartColumn,
                             item.Function.Range.EndColumn)
-                        : null
+                        : null,
                 };
 
                 var refactorableFn = item.RefactorableFn != null
@@ -82,7 +82,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                             : null,
                         NippyB64 = item.RefactorableFn.NippyB64,
                         FunctionType = item.RefactorableFn.FileType,
-                        RefactoringTargets = item.RefactorableFn.RefactoringTargets?.ToList()
+                        RefactoringTargets = item.RefactorableFn.RefactoringTargets?.ToList(),
                     }
                     : null;
 
@@ -90,7 +90,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 {
                     Function = function,
                     ChangeDetails = ToChangeDetails(item.ChangeDetails),
-                    RefactorableFn = refactorableFn
+                    RefactorableFn = refactorableFn,
                 });
             }
 
@@ -107,7 +107,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 Line = item.Line,
                 Description = item.Description,
                 ChangeType = item.ChangeType,
-                Category = item.Category
+                Category = item.Category,
             }).ToList();
         }
     }

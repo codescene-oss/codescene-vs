@@ -28,6 +28,6 @@ namespace Codescene.VSExtension.Core.Enums
         /// <summary>
         /// ACE is offline due to network unavailability.
         /// </summary>
-        Offline
+        Offline,
     }
 }

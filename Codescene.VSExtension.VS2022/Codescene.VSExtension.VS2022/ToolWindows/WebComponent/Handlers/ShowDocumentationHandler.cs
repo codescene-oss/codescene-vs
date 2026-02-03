@@ -62,7 +62,7 @@ public class ShowDocumentationHandler
                     IdeType = VISUALSTUDIOIDETYPE,
                     View = ViewTypes.DOCS,
                     Data = mapper.Map(model, fnToRefactor, aceAcknowledged),
-                }
+                },
             });
         }
         catch (Exception e)
@@ -79,7 +79,7 @@ public class ShowDocumentationHandler
             var additionalData = new Dictionary<string, object>
             {
                 { "source", entryPoint },
-                { "category", category }
+                { "category", category },
             };
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();

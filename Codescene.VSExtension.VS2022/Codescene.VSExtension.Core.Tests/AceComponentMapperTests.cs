@@ -23,7 +23,7 @@ namespace Codescene.VSExtension.Core.Tests
                 StartLine = startLine,
                 EndLine = endLine,
                 StartColumn = startColumn,
-                EndColumn = endColumn
+                EndColumn = endColumn,
             };
         }
 
@@ -32,7 +32,7 @@ namespace Codescene.VSExtension.Core.Tests
             return new FnToRefactorModel
             {
                 Name = name,
-                Range = range ?? CreateRange()
+                Range = range ?? CreateRange(),
             };
         }
 
@@ -45,7 +45,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Path = path,
                 RefactorableCandidate = refactorableCandidate ?? CreateFnToRefactor(),
-                Refactored = refactored
+                Refactored = refactored,
             };
         }
 

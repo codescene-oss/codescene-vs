@@ -64,7 +64,7 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
             Column = issue.Range.StartColumn - 1, // 0-based field
             HierarchyItem = HierarchyHelper.GetHierarchyFromFile(issue.Path),
             SubcategoryIndex = 2,
-            HelpKeyword = FormatMessage(issue, false)
+            HelpKeyword = FormatMessage(issue, false),
         };
 
         errorTask.Navigate += (sender, e) => { OpenDocumentWithIssue(sender, e, issue.Path); };

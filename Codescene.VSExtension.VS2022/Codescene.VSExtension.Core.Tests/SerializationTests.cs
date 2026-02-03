@@ -165,7 +165,7 @@ namespace Codescene.VSExtension.Core.Tests
                 Name = "TestFunction",
                 Body = "code",
                 FileType = "js",
-                Range = new CliRangeModel { StartLine = 1, StartColumn = 1, EndLine = 10, EndColumn = 1 }
+                Range = new CliRangeModel { StartLine = 1, StartColumn = 1, EndLine = 10, EndColumn = 1 },
             };
 
             var json = JsonConvert.SerializeObject(model);
@@ -266,7 +266,7 @@ namespace Codescene.VSExtension.Core.Tests
                 FileContent = "code",
                 CachePath = "/cache",
                 CodeSmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } },
-                Preflight = null
+                Preflight = null,
             };
 
             var json = JsonConvert.SerializeObject(model, settings);

@@ -47,7 +47,7 @@ namespace Codescene.VSExtension.Core.Tests
                 Score = 8.5f,
                 RawScore = "raw123",
                 FileLevel = new List<CodeSmellModel>(),
-                FunctionLevel = new List<CodeSmellModel>()
+                FunctionLevel = new List<CodeSmellModel>(),
             };
 
             var entry = new ReviewCacheEntry(fileContents, filePath, response);
@@ -74,7 +74,7 @@ namespace Codescene.VSExtension.Core.Tests
             var response = new FileReviewModel
             {
                 FilePath = filePath,
-                Score = 8.5f
+                Score = 8.5f,
             };
 
             var entry = new ReviewCacheEntry(originalContent, filePath, response);

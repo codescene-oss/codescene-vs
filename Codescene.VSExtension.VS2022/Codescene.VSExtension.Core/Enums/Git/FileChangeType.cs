@@ -4,6 +4,6 @@ namespace Codescene.VSExtension.Core.Enums.Git
     {
         Create,
         Change,
-        Delete
+        Delete,
     }
 }

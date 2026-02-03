@@ -49,7 +49,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 RedirectStandardInput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
             };
 
             using (var process = new Process { StartInfo = processInfo })
@@ -74,7 +74,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     OutputTcs = outputTcs,
                     ErrorTcs = errorTcs,
                     Timeout = actualTimeout,
-                    Command = arguments
+                    Command = arguments,
                 };
                 WaitForProcessOrTimeout(timeoutArgs);
 

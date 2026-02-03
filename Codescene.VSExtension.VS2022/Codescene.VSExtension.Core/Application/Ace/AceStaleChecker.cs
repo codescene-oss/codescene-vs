@@ -155,7 +155,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 EndColumn = range.EndColumn,
                 IsValid = true,
                 IsSingleLine = startLine == clampedEndLine,
-                NewlineSequence = newlineSequence
+                NewlineSequence = newlineSequence,
             };
         }
 
@@ -246,7 +246,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 StartLine = startPosition.Line,
                 StartColumn = startPosition.Column,
                 EndLine = endPosition.Line,
-                EndColumn = endPosition.Column
+                EndColumn = endPosition.Column,
             };
         }
 

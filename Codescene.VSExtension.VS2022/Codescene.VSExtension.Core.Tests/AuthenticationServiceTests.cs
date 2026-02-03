@@ -39,7 +39,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Token = "test-token",
                 Name = "TestUser",
-                UserId = "123"
+                UserId = "123",
             };
             _mockPersistenceProvider.Setup(x => x.GetData()).Returns(loginResponse);
 
@@ -58,7 +58,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Token = "test-token",
                 Name = "TestUser",
-                UserId = "123"
+                UserId = "123",
             };
             _mockPersistenceProvider.Setup(x => x.GetData()).Returns(loginResponse);
 
@@ -78,7 +78,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Token = "test-token",
                 Name = "TestUser",
-                UserId = "123"
+                UserId = "123",
             };
             _mockPersistenceProvider.Setup(x => x.GetData()).Returns(loginResponse);
 
@@ -117,7 +117,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Token = "cached-token",
                 Name = "CachedUser",
-                UserId = "456"
+                UserId = "456",
             };
             _mockPersistenceProvider.Setup(x => x.GetData()).Returns(loginResponse);
 
@@ -140,7 +140,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Token = "test-token",
                 Name = "TestUser",
-                UserId = "123"
+                UserId = "123",
             };
             _mockPersistenceProvider.Setup(x => x.GetData()).Returns(loginResponse);
             _authService.IsLoggedIn(); // Cache the data

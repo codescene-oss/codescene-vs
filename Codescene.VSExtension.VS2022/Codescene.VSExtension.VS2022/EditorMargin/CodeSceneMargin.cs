@@ -26,13 +26,13 @@ public class CodeSceneMargin : IWpfTextViewMargin
             Text = $"{Titles.CODESCENE} Code Health Score: N/A",
             Margin = new Thickness(5),
             VerticalAlignment = VerticalAlignment.Center,
-            Foreground = GetThemedBrush(EnvironmentColors.ToolWindowTextColorKey)
+            Foreground = GetThemedBrush(EnvironmentColors.ToolWindowTextColorKey),
         };
 
         _rootPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            Children = { _label }
+            Children = { _label },
         };
 
         _settings.ScoreUpdated += UpdateUI;

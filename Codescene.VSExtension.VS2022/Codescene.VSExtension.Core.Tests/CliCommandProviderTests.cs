@@ -175,7 +175,7 @@ namespace Codescene.VSExtension.Core.Tests
                 Name = name,
                 Body = "function body",
                 FileType = "cs",
-                NippyB64 = nippyB64
+                NippyB64 = nippyB64,
             };
         }
 
@@ -303,7 +303,7 @@ namespace Codescene.VSExtension.Core.Tests
                 Name = "MyFunction",
                 Body = "code here",
                 FileType = "js",
-                NippyB64 = null
+                NippyB64 = null,
             };
 
             var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);

@@ -66,7 +66,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 CreateFile("cache1.ts", "export const a = 1;"),
                 CreateFile("cache2.ts", "export const b = 2;"),
-                CreateFile("cache3.ts", "export const c = 3;")
+                CreateFile("cache3.ts", "export const c = 3;"),
             };
 
             var queue = observer.EventQueue;

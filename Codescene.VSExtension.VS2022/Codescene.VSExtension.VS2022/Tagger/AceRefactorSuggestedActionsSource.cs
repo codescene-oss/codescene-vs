@@ -72,7 +72,7 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
                 categoryName: PredefinedSuggestedActionCategoryNames.Refactoring,
                 actions: new ISuggestedAction[] { action },
                 title: "CodeScene",
-                priority: SuggestedActionSetPriority.Medium)
+                priority: SuggestedActionSetPriority.Medium),
         };
     }
 

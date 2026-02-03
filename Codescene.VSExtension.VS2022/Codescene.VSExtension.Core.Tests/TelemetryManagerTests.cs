@@ -63,7 +63,7 @@ namespace Codescene.VSExtension.Core.Tests
             var additionalData = new Dictionary<string, object>
             {
                 { "key1", "value1" },
-                { "key2", 42 }
+                { "key2", 42 },
             };
 
             _mockDeviceIdStore.Setup(x => x.GetDeviceId()).Returns("device-123");
@@ -141,7 +141,7 @@ namespace Codescene.VSExtension.Core.Tests
             var extraData = new Dictionary<string, object>
             {
                 { "key1", "value1" },
-                { "key2", 42 }
+                { "key2", 42 },
             };
 
             _mockDeviceIdStore.Setup(x => x.GetDeviceId()).Returns("device-123");

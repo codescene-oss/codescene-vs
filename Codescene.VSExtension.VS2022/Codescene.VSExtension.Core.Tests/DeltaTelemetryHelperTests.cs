@@ -200,7 +200,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 ScoreChange = -1.0m,
                 FileLevelFindings = fileFindings,
-                FunctionLevelFindings = functionFindings
+                FunctionLevelFindings = functionFindings,
             };
         }
 
@@ -216,7 +216,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 ScoreChange = -1.0m,
                 FileLevelFindings = new ChangeDetailModel[0],
-                FunctionLevelFindings = findings.ToArray()
+                FunctionLevelFindings = findings.ToArray(),
             };
         }
 
@@ -227,7 +227,7 @@ namespace Codescene.VSExtension.Core.Tests
             var previousSnapshot = new Dictionary<string, DeltaResponseModel>();
             var currentCache = new Dictionary<string, DeltaResponseModel>
             {
-                { "file.cs", CreateDeltaResponse(0.0m) }
+                { "file.cs", CreateDeltaResponse(0.0m) },
             };
             var entry = new DeltaCacheEntry("file.cs", "old", "new", CreateDeltaResponse(0.0m));
 
@@ -243,7 +243,7 @@ namespace Codescene.VSExtension.Core.Tests
                 OldScore = 8.0m,
                 NewScore = 8.0m + scoreChange,
                 FileLevelFindings = new ChangeDetailModel[0],
-                FunctionLevelFindings = new FunctionFindingModel[0]
+                FunctionLevelFindings = new FunctionFindingModel[0],
             };
         }
     }

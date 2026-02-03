@@ -62,7 +62,7 @@ namespace Codescene.VSExtension.Core.Tests
             var preflight = new PreFlightResponseModel();
             var expectedResult = new List<FnToRefactorModel>
             {
-                new FnToRefactorModel { Name = "TestFunction" }
+                new FnToRefactorModel { Name = "TestFunction" },
             };
 
             _mockExecutor.Setup(x => x.FnsToRefactorFromCodeSmells(fileName, fileContent, codeSmells, preflight))
@@ -157,7 +157,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Path = "cached/path.cs",
                 RefactorableCandidate = new FnToRefactorModel { Name = "CachedFunction" },
-                Refactored = new RefactorResponseModel { Code = "refactored code", TraceId = "trace-123" }
+                Refactored = new RefactorResponseModel { Code = "refactored code", TraceId = "trace-123" },
             };
             AceManager.LastRefactoring = cachedResult;
 
@@ -247,7 +247,7 @@ namespace Codescene.VSExtension.Core.Tests
             var preflight = new PreFlightResponseModel();
             var expectedResult = new List<FnToRefactorModel>
             {
-                new FnToRefactorModel { Name = "TestFunction" }
+                new FnToRefactorModel { Name = "TestFunction" },
             };
 
             _mockExecutor.Setup(x => x.FnsToRefactorFromDelta(fileName, fileContent, deltaResponse, preflight))

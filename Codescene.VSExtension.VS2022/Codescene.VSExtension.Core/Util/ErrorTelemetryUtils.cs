@@ -24,7 +24,7 @@ namespace Codescene.VSExtension.Core.Util
             "HttpRequestException",
             "No such host is known",
             "Unable to connect to the remote server",
-            "The remote name could not be resolved"
+            "The remote name could not be resolved",
         };
 
         public static bool ShouldSendError(Exception ex)
@@ -76,7 +76,7 @@ namespace Codescene.VSExtension.Core.Util
             var result = new Dictionary<string, object>
             {
                 ["name"] = ex.GetType().Name,
-                ["message"] = ex.Message ?? string.Empty
+                ["message"] = ex.Message ?? string.Empty,
             };
 
             if (!string.IsNullOrEmpty(ex.StackTrace))
@@ -86,7 +86,7 @@ namespace Codescene.VSExtension.Core.Util
 
             var extraData = new Dictionary<string, object>
             {
-                ["context"] = context ?? string.Empty
+                ["context"] = context ?? string.Empty,
             };
 
             if (ex.InnerException != null)

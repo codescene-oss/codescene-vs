@@ -27,7 +27,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     FunctionLevel = result?.FunctionLevelCodeSmells?
                         .Where(fun => fun.CodeSmells != null)
                         .SelectMany(fun => fun.CodeSmells.Select(smell => Map(filePath, fun, smell)))
-                        .ToList() ?? new List<CodeSmellModel>()
+                        .ToList() ?? new List<CodeSmellModel>(),
                 };
             }
             catch (Exception ex)
@@ -49,7 +49,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     StartColumn = codeSmellModel.Range.StartColumn,
                     EndLine = codeSmellModel.Range.EndLine,
                     EndColumn = codeSmellModel.Range.EndColumn
-                }
+                },
             };
         }
 
@@ -64,7 +64,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     review.Range.StartLine,
                     review.Range.EndLine,
                     review.Range.StartColumn,
-                    review.Range.EndColumn)
+                    review.Range.EndColumn),
             };
         }
 

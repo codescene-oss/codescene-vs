@@ -16,7 +16,7 @@ namespace Codescene.VSExtension.Core.Application.Authentication
             {
                 Name = "amina@reeinvent.com",
                 Token = "token",
-                UserId = "1234"
+                UserId = "1234",
             };
         }
 

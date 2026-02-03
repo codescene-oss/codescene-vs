@@ -209,7 +209,7 @@ internal class WebComponentMessageHandler
         var additionalData = new Dictionary<string, object>
         {
             { "traceId", AceManager.LastRefactoring.Refactored.TraceId },
-            { "skipCache ", false }
+            { "skipCache ", false },
         };
         SendTelemetry(telemetryEvent, additionalData);
     }

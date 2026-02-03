@@ -32,7 +32,7 @@ namespace Codescene.VSExtension.Core.Tests
                     EndLine = endLine,
                     StartColumn = startColumn,
                     EndColumn = endColumn
-                }
+                },
             };
         }
 
@@ -201,7 +201,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Name = "TestFunction",
                 Body = "function test() {}",
-                Range = null
+                Range = null,
             };
 
             var result = _checker.IsFunctionUnchangedInDocument("some other content", fn);

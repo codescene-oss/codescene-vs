@@ -31,7 +31,7 @@ namespace Codescene.VSExtension.CredentialManagerPersistenceAuthProvider
             {
                 Name = storedData.UserName,
                 Token = storedData.Password,
-                UserId = storedData.Comment
+                UserId = storedData.Comment,
             };
         }
 
