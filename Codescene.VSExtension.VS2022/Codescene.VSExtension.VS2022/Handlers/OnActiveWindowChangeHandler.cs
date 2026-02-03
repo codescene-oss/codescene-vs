@@ -12,7 +12,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class OnActiveWindowChangeHandler
 {
-    const string DocumentKind = "Document";
+    private const string DocumentKind = "Document";
 
     [Import]
     private readonly ILogger _logger;
