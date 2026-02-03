@@ -66,7 +66,8 @@ public class AceRefactorServiceTests
 
     [TestMethod]
     public void GetRefactorableFunction_ReturnsNull_WhenNoMatch() =>
-        Assert.IsNull(FindRefactorableFunction(CreateCodeSmell("Nonexistent Issue", 999),
+        Assert.IsNull(FindRefactorableFunction(
+            CreateCodeSmell("Nonexistent Issue", 999),
             CreateRefactorableFunction("SomeFunction", "Complex Method", 10)));
 
     [TestMethod]

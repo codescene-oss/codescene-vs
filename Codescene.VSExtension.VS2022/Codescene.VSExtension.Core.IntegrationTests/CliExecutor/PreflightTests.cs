@@ -21,7 +21,8 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
             Assert.IsTrue(result.FileTypes.Length > 0, "Preflight should return at least one supported file type");
 
             var fileTypes = result.FileTypes.Select(ft => ft.ToLower()).ToArray();
-            Assert.IsTrue(fileTypes.Any(ft => ft.Contains("cs") || ft.Contains("csharp")),
+            Assert.IsTrue(
+                fileTypes.Any(ft => ft.Contains("cs") || ft.Contains("csharp")),
                 "C# should be a supported file type");
         }
     }

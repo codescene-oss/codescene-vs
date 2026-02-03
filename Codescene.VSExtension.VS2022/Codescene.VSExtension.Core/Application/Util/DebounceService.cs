@@ -39,7 +39,8 @@ namespace Codescene.VSExtension.Core.Application.Util
                     _timers[key] = cts;
 
                     _ = Task.Delay((int)delay.TotalMilliseconds, cts.Token)
-                        .ContinueWith(t =>
+                        .ContinueWith(
+                            t =>
                         {
                             if (!t.IsCanceled)
                             {

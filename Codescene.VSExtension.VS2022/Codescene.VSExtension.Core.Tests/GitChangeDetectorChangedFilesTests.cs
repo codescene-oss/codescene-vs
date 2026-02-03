@@ -23,7 +23,8 @@ namespace Codescene.VSExtension.Core.Tests
             var changedFiles = await _detector.GetChangedFilesVsBaselineAsync(
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-            Assert.IsTrue(changedFiles.Any(f => f.EndsWith("feature.cs")),
+            Assert.IsTrue(
+                changedFiles.Any(f => f.EndsWith("feature.cs")),
                 "Should detect feature.cs as changed vs main branch");
         }
 
@@ -63,7 +64,8 @@ namespace Codescene.VSExtension.Core.Tests
             var changedFiles = await _detector.GetChangedFilesVsBaselineAsync(
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-            Assert.IsTrue(changedFiles.Any(f => f.EndsWith("feature.cs")),
+            Assert.IsTrue(
+                changedFiles.Any(f => f.EndsWith("feature.cs")),
                 "Should find merge base with 'develop' branch when main/master not available");
         }
 
@@ -84,9 +86,11 @@ namespace Codescene.VSExtension.Core.Tests
             var changedFiles = await _detector.GetChangedFilesVsBaselineAsync(
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-            Assert.IsNotNull(changedFiles,
+            Assert.IsNotNull(
+                changedFiles,
                 "Should return results even in detached HEAD state");
-            Assert.IsTrue(changedFiles.Any(f => f.EndsWith("detached.cs")),
+            Assert.IsTrue(
+                changedFiles.Any(f => f.EndsWith("detached.cs")),
                 "Should detect new file in detached HEAD state");
         }
 
@@ -212,7 +216,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             var normalizedResult = result.Select(f => f.Replace('/', '\\')).ToList();
-            Assert.IsFalse(normalizedResult.Any(f => f.EndsWith("test.cs")),
+            Assert.IsFalse(
+                normalizedResult.Any(f => f.EndsWith("test.cs")),
                 "Should exclude saved file from results");
         }
 
@@ -236,7 +241,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             var normalizedResult = result.Select(f => f.Replace('/', '\\')).ToList();
-            Assert.IsFalse(normalizedResult.Any(f => f.EndsWith("test.cs")),
+            Assert.IsFalse(
+                normalizedResult.Any(f => f.EndsWith("test.cs")),
                 "Should exclude open file from results");
         }
 
@@ -273,7 +279,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result);
-            Assert.IsTrue(result.Any(f => f.EndsWith("newfile.cs")),
+            Assert.IsTrue(
+                result.Any(f => f.EndsWith("newfile.cs")),
                 "Should detect working directory changes when no main branch candidates exist");
         }
 
@@ -292,9 +299,11 @@ namespace Codescene.VSExtension.Core.Tests
             var result = await _detector.GetChangedFilesVsBaselineAsync(
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-            Assert.IsTrue(result.Any(f => f.EndsWith("test.cs")),
+            Assert.IsTrue(
+                result.Any(f => f.EndsWith("test.cs")),
                 "Should include supported .cs file");
-            Assert.IsFalse(result.Any(f => f.EndsWith("test.txt")),
+            Assert.IsFalse(
+                result.Any(f => f.EndsWith("test.txt")),
                 "Should exclude unsupported .txt file");
         }
 
@@ -329,7 +338,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result);
-            Assert.IsTrue(result.Any(f => f.EndsWith("newfile.cs")),
+            Assert.IsTrue(
+                result.Any(f => f.EndsWith("newfile.cs")),
                 "Should detect working directory changes when on main branch");
         }
 
@@ -387,9 +397,11 @@ namespace Codescene.VSExtension.Core.Tests
             var result = await _detector.GetChangedFilesVsBaselineAsync(
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-            Assert.IsTrue(result.Any(f => f.Contains("modified.cs")),
+            Assert.IsTrue(
+                result.Any(f => f.Contains("modified.cs")),
                 "Should include modified file");
-            Assert.IsFalse(result.Any(f => f.Contains("unchanged.cs")),
+            Assert.IsFalse(
+                result.Any(f => f.Contains("unchanged.cs")),
                 "Should NOT include unaltered file");
         }
 
@@ -415,9 +427,11 @@ namespace Codescene.VSExtension.Core.Tests
             var result = await _detector.GetChangedFilesVsBaselineAsync(
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-            Assert.IsTrue(result.Any(f => f.Contains("test.cs")),
+            Assert.IsTrue(
+                result.Any(f => f.Contains("test.cs")),
                 "Should include non-ignored file");
-            Assert.IsFalse(result.Any(f => f.Contains("test.log")),
+            Assert.IsFalse(
+                result.Any(f => f.Contains("test.log")),
                 "Should NOT include ignored file");
         }
     }

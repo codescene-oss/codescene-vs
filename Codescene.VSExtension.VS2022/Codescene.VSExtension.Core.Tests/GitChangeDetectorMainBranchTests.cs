@@ -25,9 +25,11 @@ namespace Codescene.VSExtension.Core.Tests
                 var candidates = GetMainBranchCandidates(repo);
 
                 Assert.IsTrue(candidates.Count > 0, "Should detect at least one main branch candidate");
-                Assert.IsTrue(candidates.Contains("main") || candidates.Contains("master"),
+                Assert.IsTrue(
+                    candidates.Contains("main") || candidates.Contains("master"),
                     "Should detect either 'main' or 'master' as a candidate");
-                Assert.IsTrue(candidates.Contains(currentBranch),
+                Assert.IsTrue(
+                    candidates.Contains(currentBranch),
                     $"Should detect current branch '{currentBranch}' as a candidate");
             }
         }
@@ -44,7 +46,8 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 var candidates = GetMainBranchCandidates(repo);
 
-                Assert.IsTrue(candidates.Contains("develop"),
+                Assert.IsTrue(
+                    candidates.Contains("develop"),
                     "Should detect 'develop' branch when it exists");
             }
         }
@@ -74,7 +77,8 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     if (repo.Branches[branch] != null)
                     {
-                        Assert.IsTrue(candidates.Contains(branch),
+                        Assert.IsTrue(
+                            candidates.Contains(branch),
                             $"Should detect existing branch '{branch}'");
                     }
                 }
@@ -103,7 +107,8 @@ namespace Codescene.VSExtension.Core.Tests
 
                 foreach (var remoteBranch in remoteBranches)
                 {
-                    Assert.IsFalse(candidates.Contains(remoteBranch),
+                    Assert.IsFalse(
+                        candidates.Contains(remoteBranch),
                         $"Should not include remote branch '{remoteBranch}'");
                 }
             }
