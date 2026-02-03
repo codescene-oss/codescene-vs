@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class TestCacheStorageService : ICacheStorageService
     {
-        internal Mock<ICacheStorageService> Mock = new();
+        internal Mock<ICacheStorageService> Mock = new ();
 
         public string GetSolutionReviewCacheLocation() => Mock.Object.GetSolutionReviewCacheLocation();
         public Task InitializeAsync() => Mock.Object.InitializeAsync();

@@ -34,7 +34,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             YourCommand = new RelayCommand(ExecuteYourCommand);
         }
 
-        public CodeSmellTooltipModel CommandParameter => new()
+        public CodeSmellTooltipModel CommandParameter => new ()
         {
             Category = Category,
             Details = Details,

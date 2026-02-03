@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class TestErrorListWindowHandler : IErrorListWindowHandler
     {
-        internal Mock<IErrorListWindowHandler> Mock = new();
+        internal Mock<IErrorListWindowHandler> Mock = new ();
 
         public void Handle(FileReviewModel review) => Mock.Object.Handle(review);
     }
