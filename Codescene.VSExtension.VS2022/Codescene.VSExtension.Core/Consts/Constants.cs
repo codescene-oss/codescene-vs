@@ -14,8 +14,6 @@ namespace Codescene.VSExtension.Core.Consts
         {
             public const string CODESCENE = "CodeScene";
             public const string CODESCENE_ACE = "CodeScene ACE";
-
-            #region Code Smell Names
             public const string BRAIN_CLASS = "Brain Class";
             public const string BRAIN_METHOD = "Brain Method";
             public const string BUMPY_ROAD_AHEAD = "Bumpy Road Ahead";
@@ -44,26 +42,19 @@ namespace Codescene.VSExtension.Core.Consts
             public const string POTENTIALLY_LOW_COHESION = "Potentially Low Cohesion";
             public const string PRIMITIVE_OBSESSION = "Primitive Obsession";
             public const string STRING_HEAVY_FUNCTION_ARGUMENTS = "String Heavy Function Arguments";
-            #endregion
-
             public const string CODE_HEALTH_MONITOR = "Code Health Monitor";
             public const string GENERAL_CODE_HEALTH = "General Code Health";
-
-            #region Terms & Policies
             public const string ACCEPT_TERMS = "Accept";
             public const string DECLINE_TERMS = "Decline";
             public const string VIEW_TERMS = "View Terms & Policies";
             public const string TERMS_INFO = "By using this extension you agree to CodeScene's Terms and Privacy Policy";
             public const string SETTINGS_COLLECTION = "CodeSceneExtension";
             public const string ACCEPTED_TERMS_PROPERTY = "AcceptedTerms";
-            #endregion
         }
 
         public class Telemetry
         {
             public const string SOURCE_IDE = "vs";
-
-            #region Events
             public const string ON_ACTIVATE_EXTENSION = "on_activate_extension";
             public const string ON_ACTIVATE_EXTENSION_ERROR = "on_activate_extension_error";
 
@@ -98,7 +89,6 @@ namespace Codescene.VSExtension.Core.Consts
             public const string TERMS_AND_POLICIES_SHOWN = "terms_and_policies_shown";
             public const string TERMS_AND_POLICIES_RESPONSE = "terms_and_policies_response";
             public const string REVOKE_TERMS = "revoke_terms";
-            #endregion
         }
     }
 }

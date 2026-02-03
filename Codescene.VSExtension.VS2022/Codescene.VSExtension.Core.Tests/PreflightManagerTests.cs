@@ -29,8 +29,6 @@ public class PreflightManagerTests
         _preflightManager = new PreflightManager(_mockCliExecutor.Object, _mockLogger.Object, _mockAceStateService.Object, _mockSettingsProvider.Object);
     }
 
-    #region Helper Methods
-
     private PreFlightResponseModel CreatePreflightResponse(params string[] fileTypes) =>
         new PreFlightResponseModel { FileTypes = fileTypes };
 
@@ -74,8 +72,6 @@ public class PreflightManagerTests
         SetupPreflightWithAceStatus(token, AceState.Enabled);
         _preflightManager.RunPreflight();
     }
-
-    #endregion
 
     [TestMethod]
     public void IsSupportedLanguage_WhenNoPreflightResponse_ReturnsFalse()
