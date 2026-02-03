@@ -19,8 +19,8 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         [JsonProperty("file-type")]
         public string FileType { get; set; }
 
-        //[JsonProperty("function-type")]
-        //public string FunctionType { get; set; }
+        // [JsonProperty("function-type")]
+        // public string FunctionType { get; set; }
 
         [JsonProperty("nippy-b64")]
         public string NippyB64 { get; set; }

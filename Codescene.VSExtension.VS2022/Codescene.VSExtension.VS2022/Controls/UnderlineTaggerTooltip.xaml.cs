@@ -29,7 +29,7 @@ namespace Codescene.VSExtension.VS2022.Controls
             InitializeComponent();
             ApplyThemeAwareTextColor();
 
-            //handle theme changes at runtime
+            // handle theme changes at runtime
             VSColorTheme.ThemeChanged += OnThemeChanged;
 
             var componentModel = (IComponentModel)Package.GetGlobalService(typeof(SComponentModel));

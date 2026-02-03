@@ -60,8 +60,8 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
             Category = TaskCategory.CodeSense,
             Text = FormatMessage(issue),
             Document = issue.Path,
-            Line = issue.Range.StartLine - 1, //0-based field
-            Column = issue.Range.StartColumn - 1, //0-based field
+            Line = issue.Range.StartLine - 1, // 0-based field
+            Column = issue.Range.StartColumn - 1, // 0-based field
             HierarchyItem = HierarchyHelper.GetHierarchyFromFile(issue.Path),
             SubcategoryIndex = 2,
             HelpKeyword = FormatMessage(issue, false)
