@@ -64,7 +64,7 @@ namespace Codescene.VSExtension.VS2022.Util
                 fileContent = buffer.CurrentSnapshot.GetText();
             }
 
-            var refactorableFunctions = aceManager.GetRefactorableFunctionsFromCodeSmells(model.Path, fileContent, [codeSmell], preflight);
+            var refactorableFunctions = aceManager.GetRefactorableFunctionsFromCodeSmells(model.Path, fileContent,[codeSmell], preflight);
             return refactorableFunctions?.FirstOrDefault();
         }
 

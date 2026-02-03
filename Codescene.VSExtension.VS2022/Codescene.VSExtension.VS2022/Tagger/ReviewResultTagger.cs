@@ -63,9 +63,9 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             var cached = _cache.Get(new ReviewCacheQuery(currentContent, _filePath));
 
             if (cached != null)
-                return cached.FileLevel.Concat(cached.FunctionLevel).ToList() ?? [];
+                return cached.FileLevel.Concat(cached.FunctionLevel).ToList() ??[];
 
-            return [];
+            return[];
         }
 
         public void RefreshTags()
