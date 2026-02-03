@@ -125,8 +125,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 isValid: codeSmells != null && codeSmells.Count > 0,
                 skipMessage: "Skipping refactoring functions from code smells. Code smells list was null or empty.",
                 getPayload: cachePath => _cliCommandProvider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codeSmells, preflight),
-                operationLabel: "ACE refactoring functions from code smells check",
-                errorMessage: "Refactoring functions from code smells check failed."
+                operationLabel: "ACE refactoring functions from code smells check"
             );
         }
 
@@ -136,8 +135,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 isValid: deltaResult != null,
                 skipMessage: "Skipping refactoring functions from delta. Delta result was null.",
                 getPayload: cachePath => _cliCommandProvider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, preflight),
-                operationLabel: "ACE refactoring functions from delta check",
-                errorMessage: "Refactoring functions from delta check failed."
+                operationLabel: "ACE refactoring functions from delta check"
             );
         }
 
@@ -145,8 +143,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             bool isValid,
             string skipMessage,
             Func<string, string> getPayload,
-            string operationLabel,
-            string errorMessage)
+            string operationLabel)
         {
             if (!isValid)
             {
@@ -157,7 +154,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var cachePath = _cacheStorageService.GetSolutionReviewCacheLocation();
             var payloadContent = getPayload(cachePath);
 
-            return ExecuteFnsToRefactorCommand(payloadContent, operationLabel, errorMessage);
+            return ExecuteFnsToRefactorCommand(payloadContent, operationLabel, operationLabel + " failed.");
         }
 
         private IList<FnToRefactorModel> ExecuteFnsToRefactorCommand(string payloadContent, string operationLabel, string errorMessage)

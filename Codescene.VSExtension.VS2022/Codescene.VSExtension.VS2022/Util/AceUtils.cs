@@ -147,12 +147,9 @@ namespace Codescene.VSExtension.VS2022.Util
 
         public static bool CheckRange(FunctionFindingModel finding, FnToRefactorModel refFunction)
         {
-            // this check is because of ComplexConditional code smell which is inside of the method (only in js, maybe a bug in cli)
+            // this check (using <= instead of ==) is because of ComplexConditional code smell which is inside of the method (only in js, maybe a bug in cli)
             return refFunction.Range.Startline <= finding.Function.Range.Startline &&
                 finding.Function.Range.Startline <= refFunction.Range.EndLine;
-
-            //return refFunction.Range.Startline == finding.Function.Range.Startline &&
-            //	finding.Function.Range.EndLine == refFunction.Range.EndLine;
         }
     }
 }
