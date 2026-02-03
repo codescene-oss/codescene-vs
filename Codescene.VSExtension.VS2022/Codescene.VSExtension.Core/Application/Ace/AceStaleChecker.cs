@@ -76,6 +76,80 @@ namespace Codescene.VSExtension.Core.Application.Ace
             return text.Replace("\r\n", "\n").Replace("\r", "\n");
         }
 
+        private static bool IsValidRange(int startLine, int endLine, int lineCount)
+        {
+            return startLine >= 0 && startLine < lineCount && startLine <= endLine;
+        }
+
+        private static void AppendFirstLine(System.Text.StringBuilder result, ExtractionContext ctx)
+        {
+            var firstStartCol = Math.Max(0, ctx.StartColumn - 1);
+            if (firstStartCol < ctx.Lines[ctx.StartLine].Length)
+            {
+                result.Append(ctx.Lines[ctx.StartLine].Substring(firstStartCol));
+            }
+        }
+
+        private static void AppendMiddleLines(System.Text.StringBuilder result, ExtractionContext ctx, string newline)
+        {
+            for (int i = ctx.StartLine + 1; i < ctx.EndLine; i++)
+            {
+                result.Append(newline);
+                result.Append(ctx.Lines[i]);
+            }
+        }
+
+        private static void AppendLastLine(System.Text.StringBuilder result, ExtractionContext ctx, string newline)
+        {
+            var hasLastLine = ctx.EndLine > ctx.StartLine && ctx.EndLine < ctx.Lines.Length;
+            if (!hasLastLine)
+            {
+                return;
+            }
+
+            result.Append(newline);
+            var lastEndCol = Math.Min(ctx.Lines[ctx.EndLine].Length, ctx.EndColumn);
+            result.Append(ctx.Lines[ctx.EndLine].Substring(0, lastEndCol));
+        }
+
+        private static (int Line, int Column) CalculateEndPosition(string body, (int Line, int Column) startPosition)
+        {
+            var bodyLines = body.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            var endLine = startPosition.Line + bodyLines.Length - 1;
+            var endColumn = bodyLines.Length == 1
+                ? startPosition.Column + body.Length - 1
+                : bodyLines[bodyLines.Length - 1].Length;
+
+            return (endLine, endColumn);
+        }
+
+        /// <summary>
+        /// Gets the length of the newline sequence at the specified position in the content.
+        /// Returns 2 for CRLF, 1 for CR or LF, 0 if at EOF or no newline.
+        /// </summary>
+        private static int GetNewlineLengthAtPosition(string content, int position)
+        {
+            if (position >= content.Length)
+            {
+                return 0;
+            }
+
+            if (IsCrlfAt(content, position))
+            {
+                return 2;
+            }
+
+            var currentChar = content[position];
+            return currentChar == '\r' || currentChar == '\n' ? 1 : 0;
+        }
+
+        private static bool IsCrlfAt(string content, int position)
+        {
+            return position + 1 < content.Length
+                && content[position] == '\r'
+                && content[position + 1] == '\n';
+        }
+
         /// <summary>
         /// Extracts the text content at the specified range from the document.
         /// </summary>
@@ -161,11 +235,6 @@ namespace Codescene.VSExtension.Core.Application.Ace
             };
         }
 
-        private static bool IsValidRange(int startLine, int endLine, int lineCount)
-        {
-            return startLine >= 0 && startLine < lineCount && startLine <= endLine;
-        }
-
         private string ExtractSingleLineContent(ExtractionContext ctx)
         {
             var line = ctx.Lines[ctx.StartLine];
@@ -190,49 +259,6 @@ namespace Codescene.VSExtension.Core.Application.Ace
             AppendLastLine(result, ctx, newline);
 
             return result.ToString();
-        }
-
-        private static void AppendFirstLine(System.Text.StringBuilder result, ExtractionContext ctx)
-        {
-            var firstStartCol = Math.Max(0, ctx.StartColumn - 1);
-            if (firstStartCol < ctx.Lines[ctx.StartLine].Length)
-            {
-                result.Append(ctx.Lines[ctx.StartLine].Substring(firstStartCol));
-            }
-        }
-
-        private static void AppendMiddleLines(System.Text.StringBuilder result, ExtractionContext ctx, string newline)
-        {
-            for (int i = ctx.StartLine + 1; i < ctx.EndLine; i++)
-            {
-                result.Append(newline);
-                result.Append(ctx.Lines[i]);
-            }
-        }
-
-        private static void AppendLastLine(System.Text.StringBuilder result, ExtractionContext ctx, string newline)
-        {
-            var hasLastLine = ctx.EndLine > ctx.StartLine && ctx.EndLine < ctx.Lines.Length;
-            if (!hasLastLine)
-            {
-                return;
-            }
-
-            result.Append(newline);
-            var lastEndCol = Math.Min(ctx.Lines[ctx.EndLine].Length, ctx.EndColumn);
-            result.Append(ctx.Lines[ctx.EndLine].Substring(0, lastEndCol));
-        }
-
-        private struct ExtractionContext
-        {
-            public string[] Lines;
-            public int StartLine;
-            public int EndLine;
-            public int StartColumn;
-            public int EndColumn;
-            public bool IsValid;
-            public bool IsSingleLine;
-            public string NewlineSequence;
         }
 
         /// <summary>
@@ -278,42 +304,16 @@ namespace Codescene.VSExtension.Core.Application.Ace
             return (1, 1); // Fallback to start if not found
         }
 
-        private static (int Line, int Column) CalculateEndPosition(string body, (int Line, int Column) startPosition)
+        private struct ExtractionContext
         {
-            var bodyLines = body.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-            var endLine = startPosition.Line + bodyLines.Length - 1;
-            var endColumn = bodyLines.Length == 1
-                ? startPosition.Column + body.Length - 1
-                : bodyLines[bodyLines.Length - 1].Length;
-
-            return (endLine, endColumn);
-        }
-
-        /// <summary>
-        /// Gets the length of the newline sequence at the specified position in the content.
-        /// Returns 2 for CRLF, 1 for CR or LF, 0 if at EOF or no newline.
-        /// </summary>
-        private static int GetNewlineLengthAtPosition(string content, int position)
-        {
-            if (position >= content.Length)
-            {
-                return 0;
-            }
-
-            if (IsCrlfAt(content, position))
-            {
-                return 2;
-            }
-
-            var currentChar = content[position];
-            return currentChar == '\r' || currentChar == '\n' ? 1 : 0;
-        }
-
-        private static bool IsCrlfAt(string content, int position)
-        {
-            return position + 1 < content.Length
-                && content[position] == '\r'
-                && content[position + 1] == '\n';
+            public string[] Lines;
+            public int StartLine;
+            public int EndLine;
+            public int StartColumn;
+            public int EndColumn;
+            public bool IsValid;
+            public bool IsSingleLine;
+            public string NewlineSequence;
         }
     }
 }

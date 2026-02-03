@@ -14,6 +14,8 @@ namespace Codescene.VSExtension.VS2022;
 
 internal class SignOutCommand : Commands.VSBaseCommand
 {
+    internal const int Id = PackageIds.SignOutCommand;
+
     private readonly IAuthenticationService _authService;
     private readonly ILogger _logger;
 
@@ -23,8 +25,6 @@ internal class SignOutCommand : Commands.VSBaseCommand
         _authService = authService;
         _logger = logger;
     }
-
-    internal const int Id = PackageIds.SignOutCommand;
 
     protected override void InvokeInternal()
     {

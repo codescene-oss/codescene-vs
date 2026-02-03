@@ -13,10 +13,11 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class OutputPaneManager
 {
+    private const string PaneTitle = Titles.CODESCENE;
+
     private IServiceProvider _serviceProvider;
     private IVsOutputWindowPane _pane;
-    private Guid _paneGuid = new("B76CFA36-066A-493B-8898-22EF97B0888F");
-    private const string PaneTitle = Titles.CODESCENE;
+    private Guid _paneGuid = new Guid("B76CFA36-066A-493B-8898-22EF97B0888F");
 
     [ImportingConstructor]
     public OutputPaneManager([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)

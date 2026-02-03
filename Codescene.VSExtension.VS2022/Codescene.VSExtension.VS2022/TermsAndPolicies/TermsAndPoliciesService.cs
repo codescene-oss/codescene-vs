@@ -21,24 +21,24 @@ namespace Codescene.VSExtension.VS2022.TermsAndPolicies;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class TermsAndPoliciesService : IVsInfoBarUIEvents
 {
+    private static readonly IVsInfoBarActionItem[] ActionItems =
+    [
+        new InfoBarButton(CodeSceneConstants.Titles.ACCEPTTERMS),
+            new InfoBarButton(CodeSceneConstants.Titles.DECLINETERMS),
+            new InfoBarHyperlink(CodeSceneConstants.Titles.VIEWTERMS)
+    ];
+
+    private static readonly InfoBarModel Model = new InfoBarModel(
+            [new InfoBarTextSpan(CodeSceneConstants.Titles.TERMSINFO)],
+            ActionItems,
+            KnownMonikers.StatusInformation,
+            isCloseButtonVisible: false);
+
     [Import]
     private readonly ILogger _logger;
 
     private bool _infoBarShownOnce = false;
     private IVsInfoBarUIElement _currentTermsInfoBarUiElement;
-
-    private static readonly IVsInfoBarActionItem[] ActionItems =
-        [
-            new InfoBarButton(CodeSceneConstants.Titles.ACCEPTTERMS),
-            new InfoBarButton(CodeSceneConstants.Titles.DECLINETERMS),
-            new InfoBarHyperlink(CodeSceneConstants.Titles.VIEWTERMS)
-        ];
-
-    private static readonly InfoBarModel Model = new(
-            [new InfoBarTextSpan(CodeSceneConstants.Titles.TERMSINFO)],
-            ActionItems,
-            KnownMonikers.StatusInformation,
-            isCloseButtonVisible: false);
 
     public async Task<bool> EvaulateTermsAndPoliciesAcceptanceAsync()
     {

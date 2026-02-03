@@ -13,12 +13,12 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class CliCommandProviderTests
     {
-        private CliCommandProvider _commandProvider;
-        private Mock<ILogger> _mockLogger;
-
         private const string TestFileName = "js";
         private const string TestFileContent = "content";
         private const string TestCachePath = "/home/user/cache";
+
+        private CliCommandProvider _commandProvider;
+        private Mock<ILogger> _mockLogger;
 
         [TestInitialize]
         public void Initialize()

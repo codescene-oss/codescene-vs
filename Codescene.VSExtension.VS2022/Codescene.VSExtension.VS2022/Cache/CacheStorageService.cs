@@ -15,10 +15,10 @@ namespace Codescene.VSExtension.VS2022.Cache
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CacheStorageService : ICacheStorageService
     {
+        private const string REVIEWRESULTSFOLDER = ".review-results";
+
         private string _cachePath;
         private bool _initialized;
-
-        private const string REVIEWRESULTSFOLDER = ".review-results";
 
         public async Task InitializeAsync()
         {
@@ -74,6 +74,13 @@ namespace Codescene.VSExtension.VS2022.Cache
             }
         }
 
+        private static string ComputeHash(string input)
+        {
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(input.ToLowerInvariant()));
+            return BitConverter.ToString(bytes).Replace("-", string.Empty).Substring(0, 16);
+        }
+
         private async Task UpdateCachePathAsync()
         {
             string workspaceId = await GetWorkspaceIdentifierAsync();
@@ -104,13 +111,6 @@ namespace Codescene.VSExtension.VS2022.Cache
             var solution = await VS.Solutions.GetCurrentSolutionAsync();
 
             return solution?.FullPath;
-        }
-
-        private static string ComputeHash(string input)
-        {
-            using var sha = System.Security.Cryptography.SHA256.Create();
-            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(input.ToLowerInvariant()));
-            return BitConverter.ToString(bytes).Replace("-", string.Empty).Substring(0, 16);
         }
     }
 }

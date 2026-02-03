@@ -49,8 +49,6 @@ public partial class WebComponentUserControl : UserControl
     private bool _initialized = false;
     private string _pendingMessage = null;
 
-    public Func<Task> CloseRequested { get; set; }
-
     public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
     {
         _logger = logger;
@@ -78,6 +76,8 @@ public partial class WebComponentUserControl : UserControl
         InitializeComponent();
         Initialize(payload, payload.View);
     }
+
+    public Func<Task> CloseRequested { get; set; }
 
     public async Task UpdateViewAsync<T>(T message)
     {

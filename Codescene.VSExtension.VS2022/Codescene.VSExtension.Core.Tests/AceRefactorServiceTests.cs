@@ -213,8 +213,23 @@ public class AceRefactorServiceTests
         _mockPreflightManager.Verify(p => p.GetPreflightResponse(), Times.AtLeast(1));
     }
 
+    private static CodeSmellModel CreateCodeSmell(string category, int startLine) =>
+     new CodeSmellModel { Category = category, Range = new CodeRangeModel(startLine, startLine + 10, 1, 50) };
+
+    private static FnToRefactorModel CreateRefactorableFunction(string name, string category, int line) =>
+        new FnToRefactorModel { Name = name, RefactoringTargets = new[] { new RefactoringTargetModel { Category = category, Line = line } } };
+
+    private static FileReviewModel CreateFileReviewModel(string filePath = "test.cs") =>
+        new FileReviewModel
+        {
+            FilePath = filePath,
+            Score = 7.5f,
+            FileLevel = new List<CodeSmellModel>(),
+            FunctionLevel = new List<CodeSmellModel>(),
+        };
+
     private void SetupSupportedLanguage(string extension = "cs") =>
-        _mockPreflightManager.Setup(x => x.IsSupportedLanguage(extension)).Returns(true);
+    _mockPreflightManager.Setup(x => x.IsSupportedLanguage(extension)).Returns(true);
 
     private void SetupAceManagerReturns(IList<FnToRefactorModel> functions) =>
         _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmells(
@@ -231,21 +246,6 @@ public class AceRefactorServiceTests
             It.IsAny<List<CliCodeSmellModel>>(),
             It.IsAny<PreFlightResponseModel>()))
             .Throws(ex);
-
-    private static CodeSmellModel CreateCodeSmell(string category, int startLine) =>
-     new CodeSmellModel { Category = category, Range = new CodeRangeModel(startLine, startLine + 10, 1, 50) };
-
-    private static FnToRefactorModel CreateRefactorableFunction(string name, string category, int line) =>
-        new FnToRefactorModel { Name = name, RefactoringTargets = new[] { new RefactoringTargetModel { Category = category, Line = line } } };
-
-    private static FileReviewModel CreateFileReviewModel(string filePath = "test.cs") =>
-        new FileReviewModel
-        {
-            FilePath = filePath,
-            Score = 7.5f,
-            FileLevel = new List<CodeSmellModel>(),
-            FunctionLevel = new List<CodeSmellModel>(),
-        };
 
     private FnToRefactorModel FindRefactorableFunction(CodeSmellModel smell, params FnToRefactorModel[] functions) =>
         _aceRefactorService.GetRefactorableFunction(smell, functions.ToList());

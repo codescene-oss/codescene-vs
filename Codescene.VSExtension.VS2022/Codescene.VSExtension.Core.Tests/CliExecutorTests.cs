@@ -15,16 +15,16 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class CliExecutorTests
     {
+        private const string TestFilename = "test.cs";
+        private const string TestContent = "code";
+        private const string TestCachePath = "/cache";
+
         private Mock<ILogger> _mockLogger;
         private Mock<ICliCommandProvider> _mockCommandProvider;
         private Mock<IProcessExecutor> _mockProcessExecutor;
         private Mock<ISettingsProvider> _mockSettingsProvider;
         private Mock<ICacheStorageService> _mockCacheStorageService;
         private CliExecutor _executor;
-
-        private const string TestFilename = "test.cs";
-        private const string TestContent = "code";
-        private const string TestCachePath = "/cache";
 
         [TestInitialize]
         public void Setup()

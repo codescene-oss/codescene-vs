@@ -18,10 +18,8 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
     {
         private readonly ITextBuffer _buffer;
         private readonly string _filePath;
-        private readonly ReviewCacheService _cache = new();
+        private readonly ReviewCacheService _cache = new ReviewCacheService();
         private bool _disposed;
-
-        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
         internal ReviewResultTagger(ITextBuffer buffer, string filePath)
         {
@@ -30,6 +28,8 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             _buffer = buffer;
             _filePath = filePath;
         }
+
+        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
         /// <summary>
         /// Called by Visual Studio to retrieve error tags for the currently visible portions of the editor.
@@ -155,8 +155,6 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         /// <summary>
         /// Creates a tag span with an error tag and tooltip information.
         /// </summary>
-        /// <param name="span">The span to tag.</param>
-        /// <param name="pos">The underline position info.</param>
         /// <returns>A <see cref="TagSpan{IErrorTag}"/> instance.</returns>
         private TagSpan<IErrorTag> CreateErrorTagSpan(TagSpanParams tagSpanParams)
         {

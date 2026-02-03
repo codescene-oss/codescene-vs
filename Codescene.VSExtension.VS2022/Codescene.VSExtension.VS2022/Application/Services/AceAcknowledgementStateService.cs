@@ -11,11 +11,11 @@ namespace Codescene.VSExtension.VS2022.Application.Services;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class AceAcknowledgementStateService
 {
-    [Import]
-    private readonly ILogger _logger;
-
     private const string REGPATH = @"Software\Codescene\VSExtension";
     private const string REGKEY = "AceAcknowledged";
+
+    [Import]
+    private readonly ILogger _logger;
 
     public bool IsAcknowledged()
     {

@@ -4,14 +4,6 @@ namespace Codescene.VSExtension.Core.Models
 {
     public class CodeRangeModel
     {
-        public int StartLine { get; set; }
-
-        public int EndLine { get; set; }
-
-        public int StartColumn { get; set; }
-
-        public int EndColumn { get; set; }
-
         public CodeRangeModel(int startLine, int endLine, int startColumn, int endColumn)
         {
             StartLine = startLine;
@@ -19,5 +11,13 @@ namespace Codescene.VSExtension.Core.Models
             StartColumn = startColumn;
             EndColumn = endColumn;
         }
+
+        public int StartLine { get; set; }
+
+        public int EndLine { get; set; }
+
+        public int StartColumn { get; set; }
+
+        public int EndColumn { get; set; }
     }
 }

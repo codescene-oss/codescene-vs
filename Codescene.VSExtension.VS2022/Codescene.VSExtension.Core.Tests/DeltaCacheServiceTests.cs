@@ -9,11 +9,11 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class DeltaCacheServiceTests
     {
-        private DeltaCacheService _cacheService;
-
         private const string DefaultFilePath = "test.cs";
         private const string DefaultBaseline = "baseline code";
         private const string DefaultCurrent = "current code";
+
+        private DeltaCacheService _cacheService;
 
         [TestInitialize]
         public void Setup()
@@ -218,11 +218,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(1.5m, newResult.Item2.ScoreChange);
         }
 
-        private void PutCacheEntry(string path, string baseline, string current, DeltaResponseModel delta)
-        {
-            _cacheService.Put(new DeltaCacheEntry(path, baseline, current, delta));
-        }
-
         private static DeltaResponseModel CreateDelta(decimal scoreChange)
         {
             return new DeltaResponseModel { ScoreChange = scoreChange };
@@ -248,21 +243,26 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(expectedScoreChange, result.delta.ScoreChange);
         }
 
+        private static void AssertCacheContains(Dictionary<string, DeltaResponseModel> result, int expectedCount, string[] expectedFiles)
+        {
+            Assert.HasCount(expectedCount, result);
+            foreach (var file in expectedFiles)
+            {
+                Assert.IsTrue(result.ContainsKey(file), $"Cache should contain {file}");
+            }
+        }
+
+        private void PutCacheEntry(string path, string baseline, string current, DeltaResponseModel delta)
+        {
+            _cacheService.Put(new DeltaCacheEntry(path, baseline, current, delta));
+        }
+
         private void PutMultipleCacheEntries(params (string file, decimal scoreChange)[] entries)
         {
             for (int i = 0; i < entries.Length; i++)
             {
                 var (file, scoreChange) = entries[i];
                 PutCacheEntry(file, $"b{i + 1}", $"c{i + 1}", CreateDelta(scoreChange));
-            }
-        }
-
-        private static void AssertCacheContains(System.Collections.Generic.Dictionary<string, DeltaResponseModel> result, int expectedCount, string[] expectedFiles)
-        {
-            Assert.HasCount(expectedCount, result);
-            foreach (var file in expectedFiles)
-            {
-                Assert.IsTrue(result.ContainsKey(file), $"Cache should contain {file}");
             }
         }
     }

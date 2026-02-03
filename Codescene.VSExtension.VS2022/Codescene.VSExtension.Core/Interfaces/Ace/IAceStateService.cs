@@ -11,6 +11,8 @@ namespace Codescene.VSExtension.Core.Interfaces.Ace
     /// </summary>
     public interface IAceStateService
     {
+        event EventHandler<AceStateChangedEventArgs> StateChanged;
+
         /// <summary>
         /// Gets the current ACE state.
         /// </summary>
@@ -24,7 +26,6 @@ namespace Codescene.VSExtension.Core.Interfaces.Ace
         /// <summary>
         /// Event fired when the ACE state changes.
         /// </summary>
-        event EventHandler<AceStateChangedEventArgs> StateChanged;
 
         /// <summary>
         /// Sets the ACE state and optionally an associated error.

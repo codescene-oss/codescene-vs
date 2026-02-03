@@ -19,8 +19,6 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly string _workspacePath;
         private readonly TrackerManager _trackerManager;
 
-        public event EventHandler<string> FileDeletedFromGit;
-
         public FileChangeHandler(
             ILogger logger,
             ICodeReviewer codeReviewer,
@@ -34,6 +32,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             _workspacePath = workspacePath;
             _trackerManager = trackerManager;
         }
+
+        public event EventHandler<string> FileDeletedFromGit;
 
         public async Task HandleFileChangeAsync(string filePath, List<string> changedFiles)
         {

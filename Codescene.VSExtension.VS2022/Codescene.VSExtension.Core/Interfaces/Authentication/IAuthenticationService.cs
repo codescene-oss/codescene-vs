@@ -10,6 +10,10 @@ namespace Codescene.VSExtension.Core.Interfaces.Authentication
 
     public interface IAuthenticationService
     {
+        event AuthSignedInHandler OnSignedIn;
+
+        event AuthSignedOutHandler OnSignedOut;
+
         bool IsLoggedIn();
 
         bool Login(string serverUrl);
@@ -17,9 +21,5 @@ namespace Codescene.VSExtension.Core.Interfaces.Authentication
         LoginResponse GetData();
 
         void SignOut();
-
-        event AuthSignedInHandler OnSignedIn;
-
-        event AuthSignedOutHandler OnSignedOut;
     }
 }

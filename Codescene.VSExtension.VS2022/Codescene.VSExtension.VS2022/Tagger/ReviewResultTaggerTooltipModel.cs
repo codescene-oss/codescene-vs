@@ -18,6 +18,15 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
     [PartCreationPolicy(CreationPolicy.NonShared)]
     public class ReviewResultTaggerTooltipModel
     {
+        private readonly ShowDocumentationHandler _showDocumentationHandler;
+
+        [ImportingConstructor]
+        public ReviewResultTaggerTooltipModel(ShowDocumentationHandler showDocumentationHandler)
+        {
+            _showDocumentationHandler = showDocumentationHandler;
+            YourCommand = new RelayCommand(ExecuteYourCommand);
+        }
+
         public string Category { get; set; }
 
         public string Details { get; set; }
@@ -32,16 +41,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
         public ICommand YourCommand { get; }
 
-        private readonly ShowDocumentationHandler _showDocumentationHandler;
-
-        [ImportingConstructor]
-        public ReviewResultTaggerTooltipModel(ShowDocumentationHandler showDocumentationHandler)
-        {
-            _showDocumentationHandler = showDocumentationHandler;
-            YourCommand = new RelayCommand(ExecuteYourCommand);
-        }
-
-        public CodeSmellTooltipModel CommandParameter => new()
+        public CodeSmellTooltipModel CommandParameter => new CodeSmellTooltipModel()
         {
             Category = Category,
             Details = Details,

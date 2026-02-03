@@ -232,14 +232,11 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsTrue(result.AutoRefactor.Visible);
         }
 
-        private void SetupAuthToken(string token) =>
-            _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
-
         private static ShowDocumentationModel CreateModel(
-            string path = "test.cs",
-            string category = "Complex Method",
-            string functionName = "TestFunction",
-            CodeRangeModel? range = null)
+         string path = "test.cs",
+         string category = "Complex Method",
+         string functionName = "TestFunction",
+         CodeRangeModel? range = null)
         {
             return new ShowDocumentationModel(
                 path,
@@ -249,6 +246,9 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction") =>
-            new FnToRefactorModel { Name = name };
+           new FnToRefactorModel { Name = name };
+
+        private void SetupAuthToken(string token) =>
+           _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
     }
 }

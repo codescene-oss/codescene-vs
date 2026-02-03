@@ -14,13 +14,21 @@ namespace Codescene.VSExtension.VS2022.Application.Git;
 [Export(typeof(IGitService))]
 public class GitService : IGitService
 {
-    [Import]
-    private readonly ILogger _logger;
-
     private static readonly HashSet<string> MainBranchNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         "main", "master", "develop", "trunk", "dev",
     };
+
+    [Import]
+    private readonly ILogger _logger;
+
+    // TODO: Move to helper
+    public static string GetRelativePath(string basePath, string fullPath)
+    {
+        var baseUri = new Uri(AppendDirectorySeparatorChar(basePath));
+        var fullUri = new Uri(fullPath);
+        return Uri.UnescapeDataString(baseUri.MakeRelativeUri(fullUri).ToString().Replace('/', Path.DirectorySeparatorChar));
+    }
 
     /// <summary>
     /// Gets the baseline commit for delta analysis.
@@ -111,14 +119,6 @@ public class GitService : IGitService
         }
     }
 
-    // TODO: Move to helper
-    public static string GetRelativePath(string basePath, string fullPath)
-    {
-        var baseUri = new Uri(AppendDirectorySeparatorChar(basePath));
-        var fullUri = new Uri(fullPath);
-        return Uri.UnescapeDataString(baseUri.MakeRelativeUri(fullUri).ToString().Replace('/', Path.DirectorySeparatorChar));
-    }
-
     public bool IsFileIgnored(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
@@ -147,6 +147,17 @@ public class GitService : IGitService
             _logger.Error($"Could not check if file is ignored: {ex.Message}", ex);
             return false;
         }
+    }
+
+    // TODO: Move to helper
+    private static string AppendDirectorySeparatorChar(string path)
+    {
+        if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
+        {
+            return path + Path.DirectorySeparatorChar;
+        }
+
+        return path;
     }
 
     private bool IsMainBranch(string branchName)
@@ -205,16 +216,5 @@ public class GitService : IGitService
             _logger.Debug($"Could not get branch creation from reflog: {e.Message}");
             return string.Empty;
         }
-    }
-
-    // TODO: Move to helper
-    private static string AppendDirectorySeparatorChar(string path)
-    {
-        if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
-        {
-            return path + Path.DirectorySeparatorChar;
-        }
-
-        return path;
     }
 }
