@@ -12,7 +12,6 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class GitChangeObserverNaturalEventTests : GitChangeObserverTestBase
     {
-
         [TestMethod]
         public async Task NaturalEvents_FilesEventuallyTracked()
         {

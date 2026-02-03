@@ -15,7 +15,6 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class GitChangeObserverEventQueueTests : GitChangeObserverTestBase
     {
-
         [TestMethod]
         public async Task EventsAreQueued_InsteadOfProcessedImmediately()
         {

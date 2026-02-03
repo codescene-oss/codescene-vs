@@ -71,7 +71,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     {
         _ = Task.Run(async () =>
         {
-
             var solution = await VS.Solutions.GetCurrentSolutionAsync();
             var solutionPath = solution?.FullPath;
             if (string.IsNullOrEmpty(solutionPath))
