@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Authentication;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;

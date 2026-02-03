@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models;
 
 namespace Codescene.VSExtension.Core.Interfaces.Authentication
 {

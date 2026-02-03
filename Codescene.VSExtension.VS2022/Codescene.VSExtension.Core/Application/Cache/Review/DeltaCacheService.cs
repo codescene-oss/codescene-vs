@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models.Cache.Delta;
+using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using System.Collections.Generic;
 

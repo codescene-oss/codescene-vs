@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

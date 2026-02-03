@@ -6,6 +6,6 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
     {
         public string FilePath { get; set; }
         public AutoRefactorConfig AutoRefactor { get; set; }
-        public FnToRefactorModel FnToRefactor {  get; set; }
+        public FnToRefactorModel FnToRefactor { get; set; }
     }
 }

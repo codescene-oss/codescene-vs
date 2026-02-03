@@ -21,7 +21,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
             _preflightManager = preflightManager;
         }
 
-		public CodeHealthMonitorComponentData Map(Dictionary<string, DeltaResponseModel> fileDeltas)
+        public CodeHealthMonitorComponentData Map(Dictionary<string, DeltaResponseModel> fileDeltas)
         {
             var files = fileDeltas.Select(pair => new FileDeltaData
             {

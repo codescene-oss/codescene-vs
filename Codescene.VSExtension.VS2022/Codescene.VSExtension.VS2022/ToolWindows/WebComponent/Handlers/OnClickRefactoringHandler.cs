@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.VS2022.Application.Services;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;

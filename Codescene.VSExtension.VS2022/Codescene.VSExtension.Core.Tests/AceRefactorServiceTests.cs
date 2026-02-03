@@ -221,7 +221,8 @@ public class AceRefactorServiceTests
         var codeSmell = CreateCodeSmell("Complex Method", 10);
         var fileReview = new FileReviewModel
         {
-            FilePath = "test.cs", Score = 7.5f,
+            FilePath = "test.cs",
+            Score = 7.5f,
             FileLevel = new List<CodeSmellModel>(),
             FunctionLevel = new List<CodeSmellModel> { codeSmell }
         };

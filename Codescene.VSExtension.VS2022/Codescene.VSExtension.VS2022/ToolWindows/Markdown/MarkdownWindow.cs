@@ -1,4 +1,4 @@
-﻿using Community.VisualStudio.Toolkit;
+using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using System;
 using System.Runtime.InteropServices;

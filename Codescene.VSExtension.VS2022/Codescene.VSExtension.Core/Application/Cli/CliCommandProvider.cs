@@ -75,7 +75,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 args.Add("--token");
                 args.Add(token);
             }
-           
+
             if (!string.IsNullOrEmpty(fnToRefactor.NippyB64))
             {
                 args.Add("--fn-to-refactor-nippy-b64");

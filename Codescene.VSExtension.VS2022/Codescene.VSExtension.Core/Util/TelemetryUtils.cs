@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Models.Cli.Telemetry;
 using Newtonsoft.Json;

@@ -255,8 +255,8 @@ namespace Codescene.VSExtension.Core.Tests
         {
             SetupFnsToRefactorMocks();
 
-            _executor.FnsToRefactorFromCodeSmells(TestFilename, TestContent, 
-                new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } }, 
+            _executor.FnsToRefactorFromCodeSmells(TestFilename, TestContent,
+                new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } },
                 new PreFlightResponseModel());
 
             _mockCacheStorageService.Verify(x => x.RemoveOldReviewCacheEntries(It.IsAny<int>()), Times.Once);

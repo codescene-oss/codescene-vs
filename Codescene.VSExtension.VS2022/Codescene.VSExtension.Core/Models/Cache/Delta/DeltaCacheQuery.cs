@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.Models.Cache.Delta
+namespace Codescene.VSExtension.Core.Models.Cache.Delta
 {
     public class DeltaCacheQuery
     {

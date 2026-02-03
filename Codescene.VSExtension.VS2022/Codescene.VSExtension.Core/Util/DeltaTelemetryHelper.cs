@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Delta;

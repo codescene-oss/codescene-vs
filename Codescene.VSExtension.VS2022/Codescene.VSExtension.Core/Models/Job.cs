@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
 
 namespace Codescene.VSExtension.Core.Models
 {

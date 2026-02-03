@@ -81,7 +81,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             var model = Map(path, review);
             model.FunctionName = function.Function;
-            
+
             // Preserve the function's range information
             if (function.Range != null)
             {

@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.VS2022.Controls;
 using System;
 using System.Collections.Generic;

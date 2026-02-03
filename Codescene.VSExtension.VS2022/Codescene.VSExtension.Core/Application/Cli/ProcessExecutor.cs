@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Newtonsoft.Json;
@@ -29,7 +29,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         public string Execute(string arguments, string content = null, TimeSpan? timeout = null)
         {
             var cliFilePath = _cliSettingsProvider.CliFileFullPath;
-            
+
             if (!File.Exists(cliFilePath))
             {
                 throw new FileNotFoundException(

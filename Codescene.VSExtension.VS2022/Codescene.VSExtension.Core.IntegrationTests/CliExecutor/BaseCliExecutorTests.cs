@@ -1,8 +1,8 @@
-﻿using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Cli;
 
 namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
 {
-    public abstract class BaseCliExecutorTests: BaseIntegrationTests
+    public abstract class BaseCliExecutorTests : BaseIntegrationTests
     {
         protected ICliExecutor CliExecutor;
         protected string TempCacheDir;

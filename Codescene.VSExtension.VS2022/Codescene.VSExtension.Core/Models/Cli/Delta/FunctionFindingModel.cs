@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models.Cli.Refactor;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Models.Cli.Delta
