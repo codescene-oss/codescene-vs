@@ -276,7 +276,13 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 if (Directory.Exists(unbornRepoPath))
                 {
-                    try { Directory.Delete(unbornRepoPath, true); } catch { }
+                    try
+                    {
+                        Directory.Delete(unbornRepoPath, true);
+                    }
+                    catch
+                    {
+                    }
                 }
             }
         }
@@ -322,7 +328,13 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 foreach (var packFile in Directory.GetFiles(packPath))
                 {
-                    try { File.Delete(packFile); } catch { }
+                    try
+                    {
+                        File.Delete(packFile);
+                    }
+                    catch
+                    {
+                    }
                 }
             }
 

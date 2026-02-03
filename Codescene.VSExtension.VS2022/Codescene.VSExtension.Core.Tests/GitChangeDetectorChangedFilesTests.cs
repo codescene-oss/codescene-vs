@@ -373,8 +373,20 @@ namespace Codescene.VSExtension.Core.Tests
                 LibGit2Sharp.Commands.Checkout(repo, featureBranch);
             }
 
-            try { ExecGit("branch -D master"); } catch { }
-            try { ExecGit("branch -D main"); } catch { }
+            try
+            {
+                ExecGit("branch -D master");
+            }
+            catch
+            {
+            }
+            try
+            {
+                ExecGit("branch -D main");
+            }
+            catch
+            {
+            }
 
             var newFile = Path.Combine(_testRepoPath, "test.cs");
             File.WriteAllText(newFile, "public class Test {}");

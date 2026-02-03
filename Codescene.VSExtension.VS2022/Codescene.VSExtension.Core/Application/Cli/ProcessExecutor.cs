@@ -117,8 +117,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (!waitTask.Wait(arguments.Timeout))
             {
-                try { arguments.Process.Kill(); }
-                catch { return; }
+                try
+                {
+                    arguments.Process.Kill();
+                }
+                catch
+                {
+                    return;
+                }
                 // Ignore telemetry timeouts. Also prevent potential infinite loop since we send timeouts to Amplitude.
                 if (arguments.Command.Contains("telemetry")) return;
 
