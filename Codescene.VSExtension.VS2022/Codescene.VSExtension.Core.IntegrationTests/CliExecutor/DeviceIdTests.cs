@@ -1,7 +1,7 @@
-﻿namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
+namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
 {
     [TestClass]
-    public class DeviceIdTests: BaseCliExecutorTests
+    public class DeviceIdTests : BaseCliExecutorTests
     {
         [TestInitialize]
         public override void Initialize() => base.Initialize();

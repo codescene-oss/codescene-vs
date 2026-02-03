@@ -1,9 +1,10 @@
-﻿using Microsoft.VisualStudio;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorListWindowHandler;
+
 public static class HierarchyHelper
 {
     /// <summary>

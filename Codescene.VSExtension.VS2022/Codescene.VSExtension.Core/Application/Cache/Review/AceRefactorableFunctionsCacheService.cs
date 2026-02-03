@@ -1,13 +1,13 @@
-﻿using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
+using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Application.Cache.Review
 {
     public class AceRefactorableFunctionsCacheService : CacheService<
-        AceRefactorableFunctionsQuery, 
-        AceRefactorableFunctionsEntry, 
-        AceRefactorableFunctionsItem, 
+        AceRefactorableFunctionsQuery,
+        AceRefactorableFunctionsEntry,
+        AceRefactorableFunctionsItem,
         IList<FnToRefactorModel>>
     {
         public override IList<FnToRefactorModel> Get(AceRefactorableFunctionsQuery query)

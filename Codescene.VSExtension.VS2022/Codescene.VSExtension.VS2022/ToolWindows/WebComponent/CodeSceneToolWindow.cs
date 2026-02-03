@@ -34,7 +34,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         // This fixes a race condition where CreateAsync can be called multiple times during startup
         if (_userControl != null)
             return _userControl;
-        
+
         var logger = await VS.GetMefServiceAsync<ILogger>();
 
         try

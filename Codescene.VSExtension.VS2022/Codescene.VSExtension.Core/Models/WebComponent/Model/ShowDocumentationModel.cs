@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.Models.WebComponent.Model
+namespace Codescene.VSExtension.Core.Models.WebComponent.Model
 {
     public class ShowDocumentationModel
     {

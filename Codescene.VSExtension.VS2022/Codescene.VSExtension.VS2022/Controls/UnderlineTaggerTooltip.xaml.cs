@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.PlatformUI;

@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Interfaces.Util;
+using Codescene.VSExtension.Core.Interfaces.Util;
 using Markdig;
 using System.ComponentModel.Composition;
 using System.Diagnostics;

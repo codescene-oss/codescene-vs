@@ -18,7 +18,7 @@ public class ShowDiffHandler
     {
         var cache = _aceManager.GetCachedRefactoredCode();
         var newCode = cache.Refactored.Code;
-        
+
         var replacement = newCode.EndsWith(Environment.NewLine) ? newCode : newCode + Environment.NewLine;
         var tempOriginalPath = Path.GetTempFileName();
         var tempRefactoredPath = Path.GetTempFileName();

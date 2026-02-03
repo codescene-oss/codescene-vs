@@ -84,10 +84,10 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Act - first call loads from provider
             _authService.IsLoggedIn();
-            
+
             // Reset mock to track new calls
             _mockPersistenceProvider.Invocations.Clear();
-            
+
             // Second call should use cache
             var result = _authService.IsLoggedIn();
 

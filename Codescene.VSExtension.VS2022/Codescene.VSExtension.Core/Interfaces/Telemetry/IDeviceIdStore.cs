@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.Interfaces.Telemetry
+namespace Codescene.VSExtension.Core.Interfaces.Telemetry
 {
     /// <summary>
     /// Provides access to a unique device identifier.

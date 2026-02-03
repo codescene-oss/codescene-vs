@@ -297,8 +297,8 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         private static bool IsCrlfAt(string content, int position)
         {
-            return position + 1 < content.Length 
-                && content[position] == '\r' 
+            return position + 1 < content.Length
+                && content[position] == '\r'
                 && content[position + 1] == '\n';
         }
     }

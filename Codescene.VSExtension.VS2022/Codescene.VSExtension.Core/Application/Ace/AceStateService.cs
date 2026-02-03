@@ -32,7 +32,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
         public void SetState(AceState state, Exception error = null)
         {
             var previousState = CurrentState;
-            
+
             if (ShouldSkipStateChange(previousState, state, error))
             {
                 return;
@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
         public void SetError(Exception error)
         {
             LastError = error;
-            
+
             if (CurrentState != AceState.Error)
             {
                 SetState(AceState.Error, error);

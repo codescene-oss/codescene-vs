@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.VS2022;
+using Codescene.VSExtension.VS2022;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
@@ -17,4 +17,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion(Vsix.Version)]
 
 namespace System.Runtime.CompilerServices;
+
 public class IsExternalInit { }

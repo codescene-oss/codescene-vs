@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Mappers;
+using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;

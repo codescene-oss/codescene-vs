@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.Consts
+namespace Codescene.VSExtension.Core.Consts
 {
     public class WebComponentConstants
     {
@@ -6,8 +6,8 @@
 
         public class ViewTypes
         {
-			public const string ACE = "ace";
-			public const string DOCS = "docs";
+            public const string ACE = "ace";
+            public const string DOCS = "docs";
             public const string HOME = "home"; // Code Health Monitor
             public const string ACE_ACKNOWLEDGE = "aceAcknowledge";
         }

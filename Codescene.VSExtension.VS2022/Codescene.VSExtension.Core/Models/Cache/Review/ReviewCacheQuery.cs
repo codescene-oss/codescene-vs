@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.Models.Cache.Review
+namespace Codescene.VSExtension.Core.Models.Cache.Review
 {
     public class ReviewCacheQuery
     {

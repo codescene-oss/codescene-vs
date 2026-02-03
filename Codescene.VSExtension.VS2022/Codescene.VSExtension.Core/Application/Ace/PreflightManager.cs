@@ -91,7 +91,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
         private AceStatusType GetAceStatus(AceState state)
         {
             var hasToken = !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
-            
+
             return new AceStatusType
             {
                 Status = MapAceState(state),

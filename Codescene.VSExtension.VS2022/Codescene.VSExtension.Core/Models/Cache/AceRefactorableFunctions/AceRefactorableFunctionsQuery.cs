@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions
+namespace Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions
 {
     public class AceRefactorableFunctionsQuery
     {

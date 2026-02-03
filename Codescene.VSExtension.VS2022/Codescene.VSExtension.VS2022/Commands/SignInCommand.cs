@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Authentication;
 using Codescene.VSExtension.Core.Models;
 using Community.VisualStudio.Toolkit;

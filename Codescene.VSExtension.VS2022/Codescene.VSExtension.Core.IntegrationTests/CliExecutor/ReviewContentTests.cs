@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
+namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
 {
     [TestClass]
     public class ReviewContentTests : BaseCliExecutorTests

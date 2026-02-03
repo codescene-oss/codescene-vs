@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.VS2022.Application.Git;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;

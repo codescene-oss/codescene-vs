@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Runtime.CompilerServices;
@@ -17,7 +17,7 @@ namespace Codescene.VSExtension.Core.Util
             if (stringBuilder.Length != 0)
             {
                 stringBuilder.Append(' ');
-            }   
+            }
 
             // Parsing rules for non-argv[0] arguments:
             //   - Backslash is a normal character except followed by a quote.

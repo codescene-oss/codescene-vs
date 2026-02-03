@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.Interfaces.Cli
+namespace Codescene.VSExtension.Core.Interfaces.Cli
 {
     public interface IGitService
     {

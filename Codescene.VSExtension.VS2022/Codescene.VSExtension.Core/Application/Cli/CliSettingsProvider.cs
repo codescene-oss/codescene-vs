@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Cli;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Reflection;

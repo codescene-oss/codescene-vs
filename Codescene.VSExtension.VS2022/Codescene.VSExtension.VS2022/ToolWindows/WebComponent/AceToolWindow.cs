@@ -20,6 +20,7 @@ using System.Windows;
 using static Codescene.VSExtension.Core.Consts.Constants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
+
 public class AceToolWindow : BaseToolWindow<AceToolWindow>
 {
     public string FilePath { get; set; }

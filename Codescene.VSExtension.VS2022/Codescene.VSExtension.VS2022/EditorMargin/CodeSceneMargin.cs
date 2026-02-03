@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;

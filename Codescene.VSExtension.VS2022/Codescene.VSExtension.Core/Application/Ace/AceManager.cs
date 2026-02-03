@@ -51,7 +51,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
         public CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false)
         {
             _logger.Info($"Starting refactoring of function: {refactorableFunction.Name} in file: {path}");
-         
+
             // Check network connectivity before proceeding
             if (!_networkService.IsNetworkAvailable())
             {
@@ -60,7 +60,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 LastRefactoring = null;
                 return null;
             }
-            
+
             SendTelemetry(entryPoint, invalidateCache);
 
             try
@@ -95,9 +95,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
             catch (Exception e)
             {
                 _logger.Error($"Error during refactoring of method {refactorableFunction.Name}", e);
-                
+
                 _aceStateService.SetError(e);
-                
+
                 throw;
             }
             LastRefactoring = null;

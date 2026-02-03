@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Interfaces.Extension;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Moq;
 using System.ComponentModel.Composition;
 

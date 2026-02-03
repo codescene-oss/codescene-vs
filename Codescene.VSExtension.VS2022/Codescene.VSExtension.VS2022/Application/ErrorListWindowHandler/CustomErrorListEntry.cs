@@ -1,7 +1,8 @@
-﻿using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.VisualStudio.Shell.TableManager;
 using System;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorListWindowHandler;
+
 internal class CustomErrorListEntry : ITableEntry
 {
     public object Identity => throw new NotImplementedException();

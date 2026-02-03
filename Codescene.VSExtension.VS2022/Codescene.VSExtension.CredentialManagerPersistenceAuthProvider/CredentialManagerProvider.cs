@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Interfaces.Authentication;
+using Codescene.VSExtension.Core.Interfaces.Authentication;
 using Codescene.VSExtension.Core.Models;
 using Meziantou.Framework.Win32;
 using System.ComponentModel.Composition;

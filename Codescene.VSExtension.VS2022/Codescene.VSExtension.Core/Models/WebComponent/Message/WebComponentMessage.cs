@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Models.WebComponent.Payload;
+using Codescene.VSExtension.Core.Models.WebComponent.Payload;
 
 namespace Codescene.VSExtension.Core.Models.WebComponent.Message
 {

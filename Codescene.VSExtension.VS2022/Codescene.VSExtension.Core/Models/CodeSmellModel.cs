@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.Models
+namespace Codescene.VSExtension.Core.Models
 {
     public class CodeSmellModel
     {

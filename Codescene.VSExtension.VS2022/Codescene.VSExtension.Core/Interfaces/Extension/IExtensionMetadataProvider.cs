@@ -1,4 +1,4 @@
-﻿namespace Codescene.VSExtension.Core.Interfaces.Extension
+namespace Codescene.VSExtension.Core.Interfaces.Extension
 {
     public interface IExtensionMetadataProvider
     {

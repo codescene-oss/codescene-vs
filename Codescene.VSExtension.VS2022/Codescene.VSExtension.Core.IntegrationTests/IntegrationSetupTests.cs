@@ -1,10 +1,10 @@
-﻿using Codescene.VSExtension.Core.Application.Cli;
+using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 
 namespace Codescene.VSExtension.Core.IntegrationTests
 {
     [TestClass]
-    public class IntegrationSetupTests: BaseIntegrationTests
+    public class IntegrationSetupTests : BaseIntegrationTests
     {
         private ICliSettingsProvider _settingsProvider;
         [TestInitialize]

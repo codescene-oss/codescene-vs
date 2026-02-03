@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Tests;
 public class DebounceServiceTests
 {
     private static readonly TimeSpan SafetyBuffer = TimeSpan.FromMilliseconds(50);
-    
+
     private Mock<ILogger> _mockLogger;
     private DebounceService _debounceService;
 
@@ -18,9 +18,9 @@ public class DebounceServiceTests
         _mockLogger = new Mock<ILogger>();
         _debounceService = new DebounceService(_mockLogger.Object);
     }
-    
+
     private static Task WaitForDebounce(TimeSpan delay) => Task.Delay(delay + SafetyBuffer);
-    
+
     private sealed class ActionTracker
     {
         public bool WasExecuted { get; private set; }

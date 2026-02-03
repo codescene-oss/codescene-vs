@@ -1,7 +1,7 @@
-﻿namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
+namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
 {
     [TestClass]
-    public class ReviewDeltaTests: BaseCliExecutorTests
+    public class ReviewDeltaTests : BaseCliExecutorTests
     {
         [TestInitialize]
         public override void Initialize() => base.Initialize();

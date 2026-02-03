@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Enums;
+using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 

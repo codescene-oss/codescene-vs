@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Windows.Controls;
 
 namespace Codescene.VSExtension.VS2022.Controls

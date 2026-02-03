@@ -48,21 +48,21 @@ public partial class WebComponentUserControl : UserControl
         "https://helpcenter.codescene.com"
     };
 
-	public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
-	{
-		_logger = logger;
-		InitializeComponent();
-		Initialize(payload, payload.View);
-	}
-
-	public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
+    public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
     {
         _logger = logger;
         InitializeComponent();
         Initialize(payload, payload.View);
     }
 
-	public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload, ILogger logger)
+    public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
+    {
+        _logger = logger;
+        InitializeComponent();
+        Initialize(payload, payload.View);
+    }
+
+    public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload, ILogger logger)
     {
         _logger = logger;
         InitializeComponent();
@@ -176,7 +176,7 @@ public partial class WebComponentUserControl : UserControl
         await webView.EnsureCoreWebView2Async(env);
 
         webView.CoreWebView2.NavigationStarting += HandleNavigationStarting;
-        
+
         webView.NavigationCompleted += (_, args) =>
         {
             loadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
@@ -186,7 +186,7 @@ public partial class WebComponentUserControl : UserControl
         {
             _ = OnWebMessageReceivedAsync(sender, e);
         };
-        
+
         var exePath = Assembly.GetExecutingAssembly().Location;
         var exeFolder = Path.GetDirectoryName(exePath);
         string localFolder = Path.Combine(exeFolder, FOLDER_LOCATION);
@@ -221,7 +221,7 @@ public partial class WebComponentUserControl : UserControl
     {
         var uri = args.Uri;
         // Allow navigation to our local app host
-        if (!string.IsNullOrEmpty(_host) && uri.Equals($"https://{_host}/index.html", StringComparison.OrdinalIgnoreCase)) 
+        if (!string.IsNullOrEmpty(_host) && uri.Equals($"https://{_host}/index.html", StringComparison.OrdinalIgnoreCase))
             return;
 
         bool isExternalNavigationAllowed = AllowedDomains.Any(domain => uri.StartsWith(domain, StringComparison.OrdinalIgnoreCase));
@@ -270,7 +270,7 @@ public partial class WebComponentUserControl : UserControl
             var messageString = JsonConvert.SerializeObject(message, settings);
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            
+
             if (!_initialized)
             {
                 // Save the last message if webview is not yet initialized
@@ -294,9 +294,9 @@ public partial class WebComponentUserControl : UserControl
     public async Task MarkAsInitializedAsync()
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        
+
         _initialized = true;
-        
+
         if (_pendingMessage != null)
         {
             _logger.Debug("Webview initialized, sending pending message.");
