@@ -15,7 +15,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
     {
         private readonly ITextBuffer _buffer;
         private readonly string _filePath;
-        private readonly ReviewCacheService _cache = new();
+        private readonly ReviewCacheService _cache = new ();
         private bool _disposed;
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;

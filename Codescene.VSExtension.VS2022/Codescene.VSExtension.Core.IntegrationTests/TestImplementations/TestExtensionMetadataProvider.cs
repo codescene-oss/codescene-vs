@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class TestExtensionMetadataProvider : IExtensionMetadataProvider
     {
-        internal Mock<IExtensionMetadataProvider> Mock = new();
+        internal Mock<IExtensionMetadataProvider> Mock = new ();
 
         public string GetDescription() => Mock.Object.GetDescription();
         public string GetDisplayName() => Mock.Object.GetDisplayName();
