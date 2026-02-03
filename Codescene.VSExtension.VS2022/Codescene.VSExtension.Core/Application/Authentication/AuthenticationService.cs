@@ -46,7 +46,6 @@ namespace Codescene.VSExtension.Core.Application.Authentication
             var authUrl = $"{serverUrl}?next={NEXT}";
             string redirectUri = "http://localhost:5000/callback/";
 
-
             // **** this line is temporary until we get implemted redirect on the Codescene side ************
             authUrl = "http://localhost:5000/callback/?token=0dbyR4WxyzwoIrb6eRVKRr5_PCSqrGPvr7ImdcUv_6Q.wun7jHqanjJ-wvAFYkU8Tim3cwGNZKgsMOa7taAvrRc&name=emirprljaca&user-id=66622";
             // ***************************************************************************************

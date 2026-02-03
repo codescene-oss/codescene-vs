@@ -7,7 +7,6 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
         protected ICliExecutor cliExecutor;
         protected string tempCacheDir;
 
-
         public new virtual void Initialize()
         {
             base.Initialize();

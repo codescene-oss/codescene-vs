@@ -77,8 +77,6 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 return;
             }
 
-
-
             _logger.Debug($"File opened: {filePath}. ");
             string initialContent = buffer.CurrentSnapshot.GetText();
 

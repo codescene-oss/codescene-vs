@@ -22,7 +22,6 @@ internal sealed class CopyDeviceIdCommand : BaseCommand<CopyDeviceIdCommand>
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-
             if (!string.IsNullOrWhiteSpace(deviceId))
             {
                 Clipboard.SetText(deviceId);

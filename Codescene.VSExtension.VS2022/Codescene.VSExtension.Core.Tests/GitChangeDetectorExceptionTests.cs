@@ -38,7 +38,6 @@ namespace Codescene.VSExtension.Core.Tests
                 "Should log debug message when GetMergeBaseCommit throws");
         }
 
-
         [TestMethod]
         public async Task GetChangedFilesVsBaselineAsync_InvalidGitRootPath_ReturnsEmptyList()
         {
