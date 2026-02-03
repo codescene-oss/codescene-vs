@@ -53,7 +53,7 @@ namespace Codescene.VSExtension.VS2022.Util
             {
                 Level = indentationLevel,
                 UsesTabs = indentationAnalysis.UsesTabs,
-                TabSize = indentationAnalysis.TabSize
+                TabSize = indentationAnalysis.TabSize,
             };
         }
 

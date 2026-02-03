@@ -45,7 +45,7 @@ public partial class WebComponentUserControl : UserControl
         "https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/",
         "https://supporthub.codescene.com",
         "https://forms.clickup.com",
-        "https://helpcenter.codescene.com"
+        "https://helpcenter.codescene.com",
     };
 
     public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
@@ -139,7 +139,7 @@ public partial class WebComponentUserControl : UserControl
         var settings = new JsonSerializerSettings
         {
             ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
-            Formatting = Formatting.None
+            Formatting = Formatting.None,
         };
 
         var ideContext = JsonConvert.SerializeObject(payload, settings);
@@ -232,7 +232,7 @@ public partial class WebComponentUserControl : UserControl
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = uri,
-                    UseShellExecute = true
+                    UseShellExecute = true,
                 });
 
                 args.Cancel = true;
@@ -265,7 +265,7 @@ public partial class WebComponentUserControl : UserControl
             var settings = new JsonSerializerSettings
             {
                 ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
-                Formatting = Formatting.None
+                Formatting = Formatting.None,
             };
             var messageString = JsonConvert.SerializeObject(message, settings);
 
@@ -318,7 +318,7 @@ public partial class WebComponentUserControl : UserControl
         {
             var additionalData = new Dictionary<string, object>
             {
-                { "url", uri }
+                { "url", uri },
             };
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();

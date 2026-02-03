@@ -52,7 +52,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
                     Visible = true
                 },
                 FnToRefactor = _fnToRefactor,
-            }
+            },
         };
 
         var ctrl = new WebComponentUserControl(payload, logger)
@@ -61,7 +61,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 await HideAsync();
-            }
+            },
         };
 
         _ctrl = ctrl;
@@ -100,7 +100,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
                     },
                     FnToRefactor = _fnToRefactor,
                 }
-            }
+            },
         };
 
         await _ctrl.UpdateViewAsync(message);

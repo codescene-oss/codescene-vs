@@ -44,7 +44,7 @@ namespace Codescene.VSExtension.Core.Util
                     {
                         { "scoreChange", delta.ScoreChange },
                         { "nIssues", delta.FunctionLevelFindings.Length + delta.FileLevelFindings.Length },
-                        { "nRefactorableFunctions", delta.FunctionLevelFindings.TakeWhile(finding => finding.RefactorableFn != null).Count() }
+                        { "nRefactorableFunctions", delta.FunctionLevelFindings.TakeWhile(finding => finding.RefactorableFn != null).Count() },
                     };
 
                 telemetryManager?.SendTelemetry(eventName, additionalData);

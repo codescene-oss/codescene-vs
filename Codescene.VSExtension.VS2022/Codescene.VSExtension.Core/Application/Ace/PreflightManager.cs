@@ -51,7 +51,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                         Activated = true,
                         Visible = true,
                         Disabled = !hasToken,
-                        AceStatus = GetAceStatus(_aceStateService.CurrentState)
+                        AceStatus = GetAceStatus(_aceStateService.CurrentState),
                     };
 
                     return response;
@@ -65,7 +65,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                         Activated = true,
                         Visible = true,
                         Disabled = false,
-                        AceStatus = GetAceStatus(_aceStateService.CurrentState)
+                        AceStatus = GetAceStatus(_aceStateService.CurrentState),
                     };
 
                     _aceStateService.SetState(AceState.Offline);
@@ -82,7 +82,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                     Activated = true,
                     Visible = true,
                     Disabled = false,
-                    AceStatus = GetAceStatus(_aceStateService.CurrentState)
+                    AceStatus = GetAceStatus(_aceStateService.CurrentState),
                 };
             }
             return null;
@@ -95,7 +95,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
             return new AceStatusType
             {
                 Status = MapAceState(state),
-                HasToken = hasToken
+                HasToken = hasToken,
             };
         }
 

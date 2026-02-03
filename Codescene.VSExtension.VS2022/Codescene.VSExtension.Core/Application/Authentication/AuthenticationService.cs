@@ -54,7 +54,7 @@ namespace Codescene.VSExtension.Core.Application.Authentication
             Process.Start(new ProcessStartInfo
             {
                 FileName = authUrl,
-                UseShellExecute = true
+                UseShellExecute = true,
             });
 
             var listener = new HttpListener();
@@ -100,7 +100,7 @@ namespace Codescene.VSExtension.Core.Application.Authentication
             {
                 Token = token,
                 Name = name,
-                UserId = userId
+                UserId = userId,
             };
         }
     }

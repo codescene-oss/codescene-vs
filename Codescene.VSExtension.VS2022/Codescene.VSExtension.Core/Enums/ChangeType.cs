@@ -10,6 +10,6 @@ namespace Codescene.VSExtension.Core.Enums
         Degraded,
         Fixed,
         Improved,
-        Introduced
+        Introduced,
     }
 }

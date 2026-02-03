@@ -35,7 +35,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 Error = error,
                 FileData = fileData,
                 AceResultData = null,
-                FnToRefactor = model
+                FnToRefactor = model,
             };
 
             return CreateAceComponentData(aceParams);
@@ -63,7 +63,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 IsStale = isStale,
                 FileData = fileData,
                 AceResultData = model.Refactored,
-                FnToRefactor = model.RefactorableCandidate
+                FnToRefactor = model.RefactorableCandidate,
             };
 
             return CreateAceComponentData(aceParams);
@@ -86,7 +86,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 {
                     Name = fnName,
                     Range = MapRange(range)
-                }
+                },
             };
         }
 

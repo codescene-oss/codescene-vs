@@ -107,7 +107,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 FilePath = filePath,
                 FileContent = fileContent,
-                CachePath = string.IsNullOrWhiteSpace(cachePath) ? null : cachePath
+                CachePath = string.IsNullOrWhiteSpace(cachePath) ? null : cachePath,
             };
             return JsonConvert.SerializeObject(request, SerializerSettings);
         }

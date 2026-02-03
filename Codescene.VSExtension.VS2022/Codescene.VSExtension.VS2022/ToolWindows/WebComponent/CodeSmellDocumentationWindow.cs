@@ -48,7 +48,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
             {
                 IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
                 View = WebComponentConstants.ViewTypes.DOCS,
-                Data = mapper.Map(_model, _fnToRefactor, aceAcknowledged)
+                Data = mapper.Map(_model, _fnToRefactor, aceAcknowledged),
             };
 
             var ctrl = new WebComponentUserControl(payload, logger)
@@ -57,7 +57,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
                 {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     await HideAsync();
-                }
+                },
             };
 
             _userControl = ctrl;
@@ -103,7 +103,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
                     IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
                     View = WebComponentConstants.ViewTypes.DOCS,
                     Data = mapper.Map(_model, _fnToRefactor, aceAcknowledged),
-                }
+                },
             });
         }
         catch (Exception e)

@@ -47,7 +47,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 IdeType = VISUALSTUDIOIDETYPE,
                 View = ViewTypes.HOME,
                 Data = mapper.Map(deltaCache.GetAll()),
-                Pro = true
+                Pro = true,
             };
 
             var ctrl = new WebComponentUserControl(payload, logger)
@@ -56,7 +56,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     await HideAsync();
-                }
+                },
             };
 
             _userControl = ctrl;
@@ -91,7 +91,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 View = ViewTypes.HOME,
                 Data = mapper.Map(deltaCache.GetAll()),
                 Pro = true
-            }
+            },
         };
         ILogger logger = await VS.GetMefServiceAsync<ILogger>();
         _userControl.UpdateViewAsync(message).FireAndForget();
@@ -151,7 +151,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
             {
                 var additionalData = new Dictionary<string, object>
                 {
-                    { "visible", visible }
+                    { "visible", visible },
                 };
 
                 var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();

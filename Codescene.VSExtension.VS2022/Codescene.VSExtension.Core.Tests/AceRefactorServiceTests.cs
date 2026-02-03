@@ -45,7 +45,7 @@ public class AceRefactorServiceTests
             FilePath = filePath,
             Score = 7.5f,
             FileLevel = new List<CodeSmellModel>(),
-            FunctionLevel = new List<CodeSmellModel>()
+            FunctionLevel = new List<CodeSmellModel>(),
         };
 
     private FnToRefactorModel FindRefactorableFunction(CodeSmellModel smell, params FnToRefactorModel[] functions) =>
@@ -194,7 +194,7 @@ public class AceRefactorServiceTests
         var refactorableFunctions = new List<FnToRefactorModel>
         {
             CreateRefactorableFunction("Function1", "Complex Method", 10),
-            CreateRefactorableFunction("Function2", "Deep Nesting", 25)
+            CreateRefactorableFunction("Function2", "Deep Nesting", 25),
         };
         SetupAceManagerReturns(refactorableFunctions);
 
@@ -225,7 +225,7 @@ public class AceRefactorServiceTests
             FilePath = "test.cs",
             Score = 7.5f,
             FileLevel = new List<CodeSmellModel>(),
-            FunctionLevel = new List<CodeSmellModel> { codeSmell }
+            FunctionLevel = new List<CodeSmellModel> { codeSmell },
         };
         SetupSupportedLanguage();
         _mockMapper.Setup(x => x.Map(codeSmell)).Returns(new CliCodeSmellModel { Category = "Complex Method" });

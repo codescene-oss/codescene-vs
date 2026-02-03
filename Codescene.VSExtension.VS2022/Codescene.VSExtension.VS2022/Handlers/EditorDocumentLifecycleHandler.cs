@@ -165,7 +165,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                     StartLine = result.UpdatedRange.StartLine,
                     StartColumn = result.UpdatedRange.StartColumn,
                     EndLine = result.UpdatedRange.EndLine,
-                    EndColumn = result.UpdatedRange.EndColumn
+                    EndColumn = result.UpdatedRange.EndColumn,
                 };
                 lastRefactoring.RefactorableCandidate.Range = newRange;
             }
@@ -250,7 +250,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             {
                 Type = JobTypes.DELTA,
                 State = StateTypes.RUNNING,
-                File = new File { FileName = path }
+                File = new File { FileName = path },
             };
 
             try

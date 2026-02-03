@@ -51,7 +51,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 FunctionRange.StartLine,
                 FunctionRange.EndLine,
                 FunctionRange.StartColumn,
-                FunctionRange.EndColumn)
+                FunctionRange.EndColumn),
         };
 
         // Bindings are defined in UnderlineTaggerTooltip.xaml

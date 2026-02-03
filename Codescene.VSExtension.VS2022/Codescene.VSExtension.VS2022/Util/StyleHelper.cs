@@ -30,7 +30,7 @@ public static class StyleHelper
         [75] = "BF",
         [80] = "CC",
         [85] = "D9",
-        [90] = "E6"
+        [90] = "E6",
     };
 
     private static string ToHex(Color c) => $"{c.R:X2}{c.G:X2}{c.B:X2}";

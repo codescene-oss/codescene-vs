@@ -17,7 +17,7 @@ public class GitService : IGitService
 
     private static readonly HashSet<string> MainBranchNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
-        "main", "master", "develop", "trunk", "dev"
+        "main", "master", "develop", "trunk", "dev",
     };
 
     /// <summary>

@@ -85,7 +85,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                     {
                         Path = path,
                         RefactorableCandidate = refactorableFunction,
-                        Refactored = refactoredFunction
+                        Refactored = refactoredFunction,
                     };
                     LastRefactoring = cacheItem;
 
@@ -116,7 +116,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 var additionalData = new Dictionary<string, object>
                 {
                     { "source", entryPoint },
-                    { "skipCache", invalidateCache }
+                    { "skipCache", invalidateCache },
                 };
 
                 _telemetryManager.SendTelemetry(Constants.Telemetry.ACEREFACTORREQUESTED, additionalData);

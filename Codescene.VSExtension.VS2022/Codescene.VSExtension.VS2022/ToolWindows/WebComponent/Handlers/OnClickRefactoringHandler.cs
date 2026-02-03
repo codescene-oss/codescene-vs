@@ -93,7 +93,7 @@ public class OnClickRefactoringHandler
                 IdeType = VISUALSTUDIOIDETYPE,
                 View = ViewTypes.ACE,
                 Data = _mapper.Map(path, refactorableFunction)
-            }
+            },
         });
     }
 
@@ -124,7 +124,7 @@ public class OnClickRefactoringHandler
                     IdeType = VISUALSTUDIOIDETYPE,
                     View = ViewTypes.ACE,
                     Data = data
-                }
+                },
             });
         }
         catch (Exception ex)
@@ -142,7 +142,7 @@ public class OnClickRefactoringHandler
                     IdeType = VISUALSTUDIOIDETYPE,
                     View = ViewTypes.ACE,
                     Data = _mapper.Map(path, refactorableFunction, errorType)
-                }
+                },
             });
         }
         finally

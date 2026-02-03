@@ -58,7 +58,7 @@ namespace Codescene.VSExtension.Core.Tests
             var cliReview = new CliReviewModel
             {
                 Score = 7.0f,
-                FileLevelCodeSmells = new List<CliCodeSmellModel> { CreateCodeSmell("Large File", "File has 500 lines", 1, 500) }
+                FileLevelCodeSmells = new List<CliCodeSmellModel> { CreateCodeSmell("Large File", "File has 500 lines", 1, 500) },
             };
 
             var result = MapReview(cliReview);
@@ -78,7 +78,7 @@ namespace Codescene.VSExtension.Core.Tests
                 FunctionLevelCodeSmells = new List<CliReviewFunctionModel>
                 {
                     CreateFunction("CalculateTotal", 10, 50, CreateCodeSmell("Complex Method", "CC: 15", 15, 45))
-                }
+                },
             };
 
             var result = MapReview(cliReview);
@@ -98,7 +98,7 @@ namespace Codescene.VSExtension.Core.Tests
                 FunctionLevelCodeSmells = new List<CliReviewFunctionModel>
                 {
                     new CliReviewFunctionModel { Function = "NoSmellsHere", CodeSmells = null }
-                }
+                },
             };
 
             var result = MapReview(cliReview);
@@ -116,7 +116,7 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     CreateFunction("Function1", 1, 20, CreateCodeSmell("Smell1", null, 5, 10), CreateCodeSmell("Smell2", null, 15, 18)),
                     CreateFunction("Function2", 25, 40, CreateCodeSmell("Smell3", null, 30, 35))
-                }
+                },
             };
 
             var result = MapReview(cliReview);
@@ -133,7 +133,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Category = "Deep Nesting",
                 Details = "Depth: 5",
-                Range = new CodeRangeModel(10, 20, 1, 50)
+                Range = new CodeRangeModel(10, 20, 1, 50),
             };
 
             var result = _mapper.Map(codeSmellModel);
@@ -176,7 +176,7 @@ namespace Codescene.VSExtension.Core.Tests
                         Range = null,
                         CodeSmells = new[] { CreateCodeSmell("Test", null, 1, 5) }
                     }
-                }
+                },
             };
 
             var result = MapReview(cliReview);

@@ -98,7 +98,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = "https://codescene.com/policies",
-                    UseShellExecute = true
+                    UseShellExecute = true,
                 });
                 break;
         }
