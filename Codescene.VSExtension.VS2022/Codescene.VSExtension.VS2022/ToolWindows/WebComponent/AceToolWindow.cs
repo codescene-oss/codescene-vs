@@ -114,7 +114,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
             {
                 IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
                 View = WebComponentConstants.ViewTypes.ACE,
-                Data = data
+                Data = data,
             },
         }).FireAndForget();
     }
@@ -149,7 +149,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                 {
                     IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
                     View = WebComponentConstants.ViewTypes.ACE,
-                    Data = mapper.Map(AceManager.LastRefactoring)
+                    Data = mapper.Map(AceManager.LastRefactoring),
                 },
             });
         }

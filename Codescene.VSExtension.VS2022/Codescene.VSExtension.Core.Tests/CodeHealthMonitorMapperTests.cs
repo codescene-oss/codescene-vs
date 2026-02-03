@@ -153,11 +153,14 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Map_FunctionWithNullRange_HandledCorrectly()
         {
-            var findings = new[] { new FunctionFindingModel
+            var findings = new[]
+            {
+                new FunctionFindingModel
             {
                 Function = new FunctionInfoModel { Name = "TestFn", Range = null },
-                ChangeDetails = new[] { CreateChangeDetail() }
-            }, };
+                ChangeDetails = new[] { CreateChangeDetail() },
+            },
+            };
             var result = _mapper.Map(CreateSingleFileDelta("test.cs", CreateDeltaResponseWithFunctionFindings(findings)));
 
             Assert.IsNull(result.FileDeltaData[0].Delta.FunctionLevelFindings[0].Function.Range);

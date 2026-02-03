@@ -85,7 +85,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 Fn = new WebComponentFileDataBaseFn
                 {
                     Name = fnName,
-                    Range = MapRange(range)
+                    Range = MapRange(range),
                 },
             };
         }

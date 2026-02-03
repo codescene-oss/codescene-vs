@@ -48,7 +48,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     StartLine = codeSmellModel.Range.StartLine,
                     StartColumn = codeSmellModel.Range.StartColumn,
                     EndLine = codeSmellModel.Range.EndLine,
-                    EndColumn = codeSmellModel.Range.EndColumn
+                    EndColumn = codeSmellModel.Range.EndColumn,
                 },
             };
         }
