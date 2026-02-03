@@ -31,7 +31,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     private static int _isStale = 0; // 0 = not stale, 1 = stale (int for Interlocked.CompareExchange)
 
     /// <summary>
-    /// Gets whether the current ACE refactoring is stale (function has been modified).
+    /// Gets a value indicating whether gets whether the current ACE refactoring is stale (function has been modified).
     /// </summary>
     public static bool IsStale => _isStale == 1;
 

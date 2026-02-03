@@ -5,19 +5,19 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
     public class CliCodeSmellModel
     {
         /// <summary>
-        /// Name of codesmell.
+        /// Gets or sets name of codesmell.
         /// </summary>
         [JsonProperty("category")]
         public string Category { get; set; }
 
         /// <summary>
-        /// Details about codesmell, for example nesting depth.
+        /// Gets or sets details about codesmell, for example nesting depth.
         /// </summary>
         [JsonProperty("details")]
         public string Details { get; set; }
 
         /// <summary>
-        /// Range for highlighting this code smell.
+        /// Gets or sets range for highlighting this code smell.
         /// </summary>
         [JsonProperty("highlight-range")]
         public CliRangeModel Range { get; set; }

@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
     public class FnToRefactorModel
     {
         /// <summary>
-        /// Function name (for presentation)
+        /// Gets or sets function name (for presentation)
         /// </summary>
         [JsonProperty("name")]
         public string Name { get; set; }
@@ -25,7 +25,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         public string NippyB64 { get; set; }
 
         /// <summary>
-        /// Range of the function. Use to keep track of what code to replace in the original file.
+        /// Gets or sets range of the function. Use to keep track of what code to replace in the original file.
         /// </summary>
         [JsonProperty("range")]
         public CliRangeModel Range { get; set; }

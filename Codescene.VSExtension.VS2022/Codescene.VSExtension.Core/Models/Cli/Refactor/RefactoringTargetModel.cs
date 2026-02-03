@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         public string Category { get; set; }
 
         /// <summary>
-        /// Start line for the code smell.
+        /// Gets or sets start line for the code smell.
         /// </summary>
         [JsonProperty("line")]
         public int Line { get; set; }

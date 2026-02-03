@@ -9,17 +9,17 @@ namespace Codescene.VSExtension.Core.Models.Ace
     public class AceStateChangedEventArgs : EventArgs
     {
         /// <summary>
-        /// The state before the change.
+        /// Gets the state before the change.
         /// </summary>
         public AceState PreviousState { get; }
 
         /// <summary>
-        /// The new state after the change.
+        /// Gets the new state after the change.
         /// </summary>
         public AceState NewState { get; }
 
         /// <summary>
-        /// Optional error associated with the state change.
+        /// Gets optional error associated with the state change.
         /// </summary>
         public Exception Error { get; }
 

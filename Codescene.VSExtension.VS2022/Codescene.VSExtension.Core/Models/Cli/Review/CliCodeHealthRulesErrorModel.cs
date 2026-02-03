@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
         public string Description { get; set; }
 
         /// <summary>
-        /// How to resolve the error.
+        /// Gets or sets how to resolve the error.
         /// </summary>
         [JsonProperty("remedy")]
         public string Remedy { get; set; }
