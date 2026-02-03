@@ -122,6 +122,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests
             try
             {
                 var result = _handler.GetContent(null, null);
+
                 // Result depends on how Path.Combine handles null
             }
             catch (ArgumentNullException)

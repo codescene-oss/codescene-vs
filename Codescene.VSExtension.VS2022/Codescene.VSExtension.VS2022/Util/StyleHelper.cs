@@ -92,6 +92,7 @@ public static class StyleHelper
             // var buttonBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowButtonActiveGlyphColorKey);
             var textFg = ToHex(textForeground);
             var buttonFgHex = editorBackground.Name == blueThemeColorName ? ToHex(buttonForeground) : darkAndLightThemeBtnTextColorName;
+
             // var buttonBgHex = ToHex(buttonBackground);
             var buttonBgHex = editorBackground.Name == darkThemeColorName
                ? darkThemeFallbackSecondaryBg

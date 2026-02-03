@@ -147,6 +147,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert - original snapshot still contains the job
             Assert.IsTrue(snapshot.Contains(job));
+
             // But current RunningJobs does not
             Assert.IsFalse(DeltaJobTracker.RunningJobs.Contains(job));
         }

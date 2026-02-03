@@ -102,6 +102,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             textView.Closed += (sender, args) =>
             {
                 _logger.Debug($"File closed: {filePath}...");
+
                 // TODO: Stop any pending analysis for optimization?
             };
         }
@@ -212,6 +213,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 if (result != null && result.RawScore != null)
                 {
                     _logger.Info($"File {path} reviewed successfully.");
+
                     // this call has to be awaited, otherwise delta could finish before and update of delta cache won't work
                     // happening in 17.0.0
                     await AceUtils.CheckContainsRefactorableFunctionsAsync(result, code);
