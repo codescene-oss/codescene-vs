@@ -226,7 +226,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _savedFilesTracker, _openFilesObserver);
         }
 
-
         private async Task<List<string>> CollectFilesFromRepoStateAsync()
         {
             return await Task.Run(async () =>

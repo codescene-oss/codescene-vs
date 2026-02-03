@@ -167,13 +167,11 @@ public partial class WebComponentUserControl : UserControl
     /// </summary>
     private static string GenerateCssVariablesFromTheme() => StyleHelper.GenerateCssVariablesFromTheme();
 
-
     private async Task<CoreWebView2Environment> CreatePerWindowEnvAsync(string view)
     {
         string cachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MyExtensionName", $"WebView2Cache_{view}");
         return await CoreWebView2Environment.CreateAsync(userDataFolder: cachePath);
     }
-
 
     private async Task InitializeWebView2Async<T>(T payload, string view)
     {

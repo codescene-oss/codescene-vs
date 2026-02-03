@@ -58,7 +58,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             sb.Append("}");
 
-
             return sb.ToString();
         }
     }

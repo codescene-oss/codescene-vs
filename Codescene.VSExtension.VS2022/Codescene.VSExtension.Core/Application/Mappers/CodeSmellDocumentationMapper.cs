@@ -20,7 +20,6 @@ namespace Codescene.VSExtension.Core.Application.Mappers
             _settingsProvider = settingsProvider;
         }
 
-
         public CodeSmellDocumentationComponentData Map(ShowDocumentationModel model, FnToRefactorModel fnToRefactor, bool aceAcknowledged = false)
         {
             var function = new FunctionModel
