@@ -74,7 +74,10 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
             var solution = await VS.Solutions.GetCurrentSolutionAsync();
             var solutionPath = solution?.FullPath;
-            if (string.IsNullOrEmpty(solutionPath)) return;
+            if (string.IsNullOrEmpty(solutionPath))
+            {
+                return;
+            }
 
             _branchWatcher = new BranchWatcherService();
             _branchWatcher.StartWatching(solutionPath, async (newBranch) => await OnBranchChangedAsync(newBranch));

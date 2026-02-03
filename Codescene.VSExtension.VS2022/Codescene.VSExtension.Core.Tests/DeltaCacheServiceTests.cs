@@ -206,7 +206,9 @@ namespace Codescene.VSExtension.Core.Tests
         {
             Assert.AreEqual(expectedCount, result.Count);
             foreach (var file in expectedFiles)
+            {
                 Assert.IsTrue(result.ContainsKey(file), $"Cache should contain {file}");
+            }
         }
 
         [TestMethod]

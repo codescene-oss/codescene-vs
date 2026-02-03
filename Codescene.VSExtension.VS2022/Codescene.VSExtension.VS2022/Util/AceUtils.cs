@@ -42,7 +42,10 @@ namespace Codescene.VSExtension.VS2022.Util
 
             var preflight = preflightManager.GetPreflightResponse();
 
-            if (model.FunctionRange == null) return null;
+            if (model.FunctionRange == null)
+            {
+                return null;
+            }
 
             var codeSmell = new CliCodeSmellModel()
             {

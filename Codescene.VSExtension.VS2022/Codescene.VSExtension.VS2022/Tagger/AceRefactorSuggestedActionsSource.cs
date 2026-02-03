@@ -44,7 +44,9 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
             () =>
         {
             if (!HasAuthToken())
+            {
                 return false;
+            }
 
             var result = TryGetRefactorableFunctionInRange(range);
             return result.HasValue;
@@ -57,11 +59,15 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
         CancellationToken cancellationToken)
     {
         if (!HasAuthToken())
+        {
             return Enumerable.Empty<SuggestedActionSet>();
+        }
 
         var result = TryGetRefactorableFunctionInRange(range);
         if (!result.HasValue)
+        {
             return Enumerable.Empty<SuggestedActionSet>();
+        }
 
         var (filePath, refactorableFunction) = result.Value;
         var action = new AceRefactorSuggestedAction(filePath, refactorableFunction);
@@ -91,14 +97,18 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
         {
             var filePath = _textBuffer.GetFileName();
             if (string.IsNullOrEmpty(filePath))
+            {
                 return null;
+            }
 
             var currentContent = _textBuffer.CurrentSnapshot.GetText();
             var smells = GetCodeSmellsFromCache(filePath, currentContent);
             var refactorableFunctions = GetRefactorableFunctionsFromCache(filePath, currentContent);
 
             if (smells == null || refactorableFunctions == null)
+            {
                 return null;
+            }
 
             var refactorableFunction = FindRefactorableFunctionInRange(range, smells, refactorableFunctions);
             return refactorableFunction != null ? (filePath, refactorableFunction) : null;
@@ -132,7 +142,9 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
     {
         var cachedReview = _reviewCache.Get(new ReviewCacheQuery(content, filePath));
         if (cachedReview == null)
+        {
             return null;
+        }
 
         var smells = cachedReview.FileLevel.Concat(cachedReview.FunctionLevel).ToList();
         return smells.Count > 0 ? smells : null;

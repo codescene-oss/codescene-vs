@@ -53,7 +53,9 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             foreach (var pair in Cache)
             {
                 if (pair.Value.Delta != null)
+                {
                     result[pair.Key] = pair.Value.Delta;
+                }
             }
 
             return result;

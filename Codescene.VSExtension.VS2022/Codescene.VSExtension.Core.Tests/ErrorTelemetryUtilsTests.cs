@@ -183,7 +183,9 @@ namespace Codescene.VSExtension.Core.Tests
             var ex = new Exception("Test");
 
             for (int i = 0; i < 5; i++)
+            {
                 ErrorTelemetryUtils.IncrementErrorCount();
+            }
 
             Assert.IsFalse(ErrorTelemetryUtils.ShouldSendError(ex));
 

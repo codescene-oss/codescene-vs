@@ -20,7 +20,11 @@ namespace Codescene.VSExtension.VS2022.Cache
 
         public async Task InitializeAsync()
         {
-            if (_initialized) return;
+            if (_initialized)
+            {
+                return;
+            }
+
             _initialized = true;
 
             await UpdateCachePathAsync();

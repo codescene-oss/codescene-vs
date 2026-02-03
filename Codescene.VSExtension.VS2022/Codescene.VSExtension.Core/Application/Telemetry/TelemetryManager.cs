@@ -46,7 +46,10 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
         /// </remarks>
         public void SendTelemetry(string eventName, Dictionary<string, object> additionalEventData = null)
         {
-            if (!TelemetryUtils.IsTelemetryEnabled(_logger)) return;
+            if (!TelemetryUtils.IsTelemetryEnabled(_logger))
+            {
+                return;
+            }
 
             try
             {
@@ -67,8 +70,15 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
 
         public void SendErrorTelemetry(Exception ex, string context, Dictionary<string, object> extraData = null)
         {
-            if (!TelemetryUtils.IsTelemetryEnabled(_logger)) return;
-            if (!ErrorTelemetryUtils.ShouldSendError(ex)) return;
+            if (!TelemetryUtils.IsTelemetryEnabled(_logger))
+            {
+                return;
+            }
+
+            if (!ErrorTelemetryUtils.ShouldSendError(ex))
+            {
+                return;
+            }
 
             try
             {

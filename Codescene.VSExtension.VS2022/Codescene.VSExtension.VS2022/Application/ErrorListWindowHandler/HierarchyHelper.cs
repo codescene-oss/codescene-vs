@@ -18,18 +18,25 @@ public static class HierarchyHelper
         IServiceProvider serviceProvider = VS2022Package.Instance;
 
         if (string.IsNullOrEmpty(filePath) || serviceProvider == null)
+        {
             return null;
+        }
 
         // Get the IVsUIShellOpenDocument service
         var shellOpenDoc = serviceProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
         if (shellOpenDoc == null)
+        {
             return null;
+        }
 
         // Query if the file belongs to a project
         int hr = shellOpenDoc.IsDocumentInAProject(filePath, out IVsUIHierarchy hierarchy, out _, out _, out int found);
 
         var succeeded = ErrorHandler.Succeeded(hr) && found != 0 && hierarchy != null;
-        if (succeeded) return hierarchy;
+        if (succeeded)
+        {
+            return hierarchy;
+        }
 
         return null;
     }

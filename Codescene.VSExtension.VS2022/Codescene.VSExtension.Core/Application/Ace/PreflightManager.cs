@@ -103,7 +103,10 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         public PreFlightResponseModel GetPreflightResponse()
         {
-            if (_preflightResponse == null) return RunPreflight(true);
+            if (_preflightResponse == null)
+            {
+                return RunPreflight(true);
+            }
 
             return _preflightResponse;
         }

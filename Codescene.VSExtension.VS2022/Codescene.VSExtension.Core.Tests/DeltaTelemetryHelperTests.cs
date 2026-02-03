@@ -79,11 +79,15 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var previous = new Dictionary<string, DeltaResponseModel>();
             foreach (var file in previousFiles)
+            {
                 previous[file] = CreateDeltaResponse(-0.5m);
+            }
 
             var current = new Dictionary<string, DeltaResponseModel>();
             foreach (var file in currentFiles)
+            {
                 current[file] = CreateDeltaResponse(-1.0m);
+            }
 
             return (previous, current);
         }
@@ -190,11 +194,15 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var fileFindings = new ChangeDetailModel[fileLevelCount];
             for (int i = 0; i < fileLevelCount; i++)
+            {
                 fileFindings[i] = new ChangeDetailModel();
+            }
 
             var functionFindings = new FunctionFindingModel[functionLevelCount];
             for (int i = 0; i < functionLevelCount; i++)
+            {
                 functionFindings[i] = new FunctionFindingModel();
+            }
 
             return new DeltaResponseModel
             {
@@ -208,9 +216,14 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var findings = new List<FunctionFindingModel>();
             for (int i = 0; i < refactorableCount; i++)
+            {
                 findings.Add(new FunctionFindingModel { RefactorableFn = new FnToRefactorModel { Name = $"Func{i}" } });
+            }
+
             for (int i = 0; i < nonRefactorableCount; i++)
+            {
                 findings.Add(new FunctionFindingModel { RefactorableFn = null });
+            }
 
             return new DeltaResponseModel
             {

@@ -75,11 +75,15 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         // Reset stale state when a new refactoring is being displayed (loading or result)
         // This ensures the stale flag from a previous refactoring doesn't block new stale checks
         if (message.Payload?.Data?.IsStale != true)
+        {
             ResetStaleState();
+        }
 
         _ctrl.UpdateViewAsync(message).FireAndForget();
         if (message.Payload?.Data?.AceResultData != null) // can be null when loading
+        {
             SendTelemetry(responseModel: message.Payload.Data.AceResultData);
+        }
     }
 
     public static bool IsCreated() => _ctrl != null;
@@ -94,7 +98,9 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         // Atomically attempt to swap _isStale from 0 (not stale) to 1 (stale).
         // Only proceeds if we successfully made the transition, preventing duplicate updates.
         if (Interlocked.CompareExchange(ref _isStale, 1, 0) != 0)
+        {
             return;
+        }
 
         // Validate required dependencies before proceeding
         if (_ctrl == null || AceManager.LastRefactoring == null)
@@ -158,7 +164,9 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     public static async Task CloseAsync()
     {
         if (_ctrl is not null && _ctrl.CloseRequested is not null)
+        {
             await _ctrl.CloseRequested();
+        }
     }
 
     private static void SendTelemetry(RefactorResponseModel responseModel)

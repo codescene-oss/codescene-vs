@@ -22,7 +22,9 @@ internal sealed class RevokeTermsCommand : BaseCommand<RevokeTermsCommand>
         var store = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
         if (!store.CollectionExists(Constants.Titles.SETTINGSCOLLECTION))
+        {
             store.CreateCollection(Constants.Titles.SETTINGSCOLLECTION);
+        }
 
         store.SetBoolean(Constants.Titles.SETTINGSCOLLECTION, Constants.Titles.ACCEPTEDTERMSPROPERTY, false);
 

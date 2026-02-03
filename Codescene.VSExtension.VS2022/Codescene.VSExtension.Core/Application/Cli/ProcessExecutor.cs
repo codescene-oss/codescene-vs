@@ -86,14 +86,26 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             handlerArguments.Process.OutputDataReceived += (s, e) =>
             {
-                if (e.Data == null) handlerArguments.OutputTcs.TrySetResult(true);
-                else handlerArguments.Output.AppendLine(e.Data);
+                if (e.Data == null)
+                {
+                    handlerArguments.OutputTcs.TrySetResult(true);
+                }
+                else
+                {
+                    handlerArguments.Output.AppendLine(e.Data);
+                }
             };
 
             handlerArguments.Process.ErrorDataReceived += (s, e) =>
             {
-                if (e.Data == null) handlerArguments.ErrorTcs.TrySetResult(true);
-                else handlerArguments.Error.AppendLine(e.Data);
+                if (e.Data == null)
+                {
+                    handlerArguments.ErrorTcs.TrySetResult(true);
+                }
+                else
+                {
+                    handlerArguments.Error.AppendLine(e.Data);
+                }
             };
         }
 
@@ -126,7 +138,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     return;
                 }
                 // Ignore telemetry timeouts. Also prevent potential infinite loop since we send timeouts to Amplitude.
-                if (arguments.Command.Contains("telemetry")) return;
+                if (arguments.Command.Contains("telemetry"))
+                {
+                    return;
+                }
 
                 throw new TimeoutException($"Process execution exceeded the timeout of {arguments.Timeout.TotalMilliseconds}ms.");
             }

@@ -46,7 +46,10 @@ public class Logger : ILogger
 
         SendErrorTelemetry(ex, message);
 
-        if (ex.Message.Contains("timeout")) SendTimeoutTelemetry();
+        if (ex.Message.Contains("timeout"))
+        {
+            SendTimeoutTelemetry();
+        }
     }
 
     public void Info(string message)

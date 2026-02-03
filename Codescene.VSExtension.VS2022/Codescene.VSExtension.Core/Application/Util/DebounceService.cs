@@ -47,7 +47,9 @@ namespace Codescene.VSExtension.Core.Application.Util
                                 lock (_lock)
                                 {
                                     if (_timers.TryGetValue(key, out var currentCts) && currentCts == cts)
+                                    {
                                         _timers.Remove(key);
+                                    }
                                 }
                                 _logger.Debug($"Performing debounced action... [{key}]");
                                 action();

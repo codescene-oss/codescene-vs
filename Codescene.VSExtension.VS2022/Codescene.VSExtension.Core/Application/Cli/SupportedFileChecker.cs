@@ -18,7 +18,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public bool IsSupported(string filePath)
         {
-            if (string.IsNullOrWhiteSpace(filePath)) return false;
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return false;
+            }
 
             var extension = Path.GetExtension(filePath);
 

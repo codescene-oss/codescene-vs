@@ -33,7 +33,9 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         // Prevent creating multiple instances - return existing control if already created
         // This fixes a race condition where CreateAsync can be called multiple times during startup
         if (_userControl != null)
+        {
             return _userControl;
+        }
 
         var logger = await VS.GetMefServiceAsync<ILogger>();
 
@@ -124,7 +126,10 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         {
             // FRAMESHOW_WinShown (1), FRAMESHOW_TabActivated (2)
             var allowedCodes = new List<int>() { 1, 2 };
-            if (!allowedCodes.Contains(fShow)) return VSConstants.S_OK;
+            if (!allowedCodes.Contains(fShow))
+            {
+                return VSConstants.S_OK;
+            }
 
             Task.Run(async () =>
             {

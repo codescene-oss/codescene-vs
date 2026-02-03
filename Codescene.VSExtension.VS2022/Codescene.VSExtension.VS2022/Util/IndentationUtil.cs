@@ -16,7 +16,9 @@ namespace Codescene.VSExtension.VS2022.Util
         {
             int startLine = Math.Max(0, fnStartLine - 1);
             if (startLine >= snapshot.LineCount)
+            {
                 return new IndentationInfo { Level = 0, UsesTabs = false, TabSize = 4 };
+            }
 
             var line = snapshot.GetLineFromLineNumber(startLine);
             string lineText = line.GetText();
@@ -39,7 +41,10 @@ namespace Codescene.VSExtension.VS2022.Util
                 int tabCount = 0;
                 for (int i = 0; i < leadingWhitespace && i < lineText.Length; i++)
                 {
-                    if (lineText[i] == '\t') tabCount++;
+                    if (lineText[i] == '\t')
+                    {
+                        tabCount++;
+                    }
                 }
                 indentationLevel = tabCount;
             }
@@ -68,13 +73,17 @@ namespace Codescene.VSExtension.VS2022.Util
         private static IndentationPattern AnalyzeIndentationPattern(ITextSnapshot snapshot, int startLine)
         {
             if (startLine >= snapshot.LineCount)
+            {
                 return DefaultIndentationPattern();
+            }
 
             var line = snapshot.GetLineFromLineNumber(startLine);
             string lineText = line.GetText();
 
             if (string.IsNullOrWhiteSpace(lineText))
+            {
                 return DefaultIndentationPattern();
+            }
 
             var (tabCount, spaceCount) = _indentationService.CountLeadingWhitespace(lineText);
 

@@ -49,7 +49,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
             FnToRefactorModel fnToRefactor)
         {
             if (fnToRefactor?.Body == null || string.IsNullOrEmpty(documentContent))
+            {
                 return new StaleCheckResult { IsStale = false, RangeUpdated = false };
+            }
 
             // Get content at the stored range
             var contentAtRange = GetContentAtRange(documentContent, fnToRefactor.Range);
@@ -60,7 +62,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
             // If content matches what's stored, function is not stale
             if (normalizedContentAtRange == normalizedBody)
+            {
                 return new StaleCheckResult { IsStale = false, RangeUpdated = false };
+            }
 
             // Function body doesn't match at range - search elsewhere in document
             // Normalize document content for IndexOf search
@@ -85,7 +89,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
         private static string NormalizeNewlines(string text)
         {
             if (string.IsNullOrEmpty(text))
+            {
                 return text;
+            }
 
             return text.Replace("\r\n", "\n").Replace("\r", "\n");
         }
@@ -96,17 +102,23 @@ namespace Codescene.VSExtension.Core.Application.Ace
         private string GetContentAtRange(string content, CliRangeModel range)
         {
             if (range == null)
+            {
                 return string.Empty;
+            }
 
             var lines = content.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
             var newlineSequence = DetectNewlineSequence(content);
             var context = CreateExtractionContext(range, lines, newlineSequence);
 
             if (!context.IsValid)
+            {
                 return string.Empty;
+            }
 
             if (context.IsSingleLine)
+            {
                 return ExtractSingleLineContent(context);
+            }
 
             return ExtractMultiLineContent(context);
         }
@@ -118,19 +130,27 @@ namespace Codescene.VSExtension.Core.Application.Ace
         private string DetectNewlineSequence(string content)
         {
             if (string.IsNullOrEmpty(content))
+            {
                 return "\n";
+            }
 
             var crlfIndex = content.IndexOf("\r\n", StringComparison.Ordinal);
             if (crlfIndex >= 0)
+            {
                 return "\r\n";
+            }
 
             var lfIndex = content.IndexOf("\n", StringComparison.Ordinal);
             if (lfIndex >= 0)
+            {
                 return "\n";
+            }
 
             var crIndex = content.IndexOf("\r", StringComparison.Ordinal);
             if (crIndex >= 0)
+            {
                 return "\r";
+            }
 
             return "\n";
         }
@@ -142,7 +162,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
             var endLine = range.EndLine - 1;
 
             if (!IsValidRange(startLine, endLine, lines.Length))
+            {
                 return new ExtractionContext { IsValid = false };
+            }
 
             var clampedEndLine = Math.Min(endLine, lines.Length - 1);
 
@@ -171,7 +193,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
             var endCol = Math.Min(line.Length, ctx.EndColumn);
 
             if (startCol >= line.Length)
+            {
                 return string.Empty;
+            }
 
             return line.Substring(startCol, Math.Max(0, endCol - startCol));
         }
@@ -192,7 +216,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
         {
             var firstStartCol = Math.Max(0, ctx.StartColumn - 1);
             if (firstStartCol < ctx.Lines[ctx.StartLine].Length)
+            {
                 result.Append(ctx.Lines[ctx.StartLine].Substring(firstStartCol));
+            }
         }
 
         private static void AppendMiddleLines(System.Text.StringBuilder result, ExtractionContext ctx, string newline)
@@ -208,7 +234,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
         {
             var hasLastLine = ctx.EndLine > ctx.StartLine && ctx.EndLine < ctx.Lines.Length;
             if (!hasLastLine)
+            {
                 return;
+            }
 
             result.Append(newline);
             var lastEndCol = Math.Min(ctx.Lines[ctx.EndLine].Length, ctx.EndColumn);
@@ -259,7 +287,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 var lineEndIndex = currentIndex + lines[lineNum].Length;
 
                 if (targetIndex <= lineEndIndex)
+                {
                     return (lineNum + 1, targetIndex - currentIndex + 1); // Convert to 1-indexed
+                }
 
                 var separatorLength = GetNewlineLengthAtPosition(content, lineEndIndex);
                 currentIndex = lineEndIndex + separatorLength;
@@ -286,10 +316,14 @@ namespace Codescene.VSExtension.Core.Application.Ace
         private static int GetNewlineLengthAtPosition(string content, int position)
         {
             if (position >= content.Length)
+            {
                 return 0;
+            }
 
             if (IsCrlfAt(content, position))
+            {
                 return 2;
+            }
 
             var currentChar = content[position];
             return currentChar == '\r' || currentChar == '\n' ? 1 : 0;

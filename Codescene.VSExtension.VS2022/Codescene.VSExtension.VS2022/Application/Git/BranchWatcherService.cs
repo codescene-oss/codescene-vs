@@ -105,7 +105,9 @@ public class BranchWatcherService : IDisposable
     private string ReadCurrentBranch()
     {
         if (!File.Exists(_headFilePath))
+        {
             return "(missing)";
+        }
 
         var content = File.ReadAllText(_headFilePath).Trim();
         if (content.StartsWith("ref:"))
