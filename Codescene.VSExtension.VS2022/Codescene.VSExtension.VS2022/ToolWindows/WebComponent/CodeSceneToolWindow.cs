@@ -70,7 +70,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         }
     }
 
-    public async static Task UpdateViewAsync()
+    public static async Task UpdateViewAsync()
     {
         if (_userControl == null)
         {

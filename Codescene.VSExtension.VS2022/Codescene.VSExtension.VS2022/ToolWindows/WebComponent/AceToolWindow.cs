@@ -127,7 +127,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         Interlocked.Exchange(ref _isStale, 0);
     }
 
-    public async static Task UpdateViewAsync()
+    public static async Task UpdateViewAsync()
     {
         if (_ctrl == null)
         {
