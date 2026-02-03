@@ -79,7 +79,7 @@ public sealed class VS2022Package : ToolkitPackage
             // Initialize ACE at startup
             RunPreflight();
 
-            SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION);
+            SendTelemetry(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSION);
 
         }
         catch (Exception e)
@@ -88,7 +88,7 @@ public sealed class VS2022Package : ToolkitPackage
             // (e.g. if the extension hasn't fully loaded or the CLI hasn't been downloaded yet).
 
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
-            SendTelemetry(CodeSceneConstants.Telemetry.ON_ACTIVATE_EXTENSION_ERROR);
+            SendTelemetry(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR);
         }
     }
 

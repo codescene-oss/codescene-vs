@@ -6,89 +6,89 @@ namespace Codescene.VSExtension.Core.Consts
     {
         public class Timeout
         {
-            public static readonly TimeSpan DEFAULT_CLI_TIMEOUT = TimeSpan.FromMilliseconds(60000); // 60s
-            public static readonly TimeSpan TELEMETRY_TIMEOUT = TimeSpan.FromMilliseconds(5000); // 5s
+            public static readonly TimeSpan DEFAULTCLITIMEOUT = TimeSpan.FromMilliseconds(60000); // 60s
+            public static readonly TimeSpan TELEMETRYTIMEOUT = TimeSpan.FromMilliseconds(5000); // 5s
         }
 
         public class Titles
         {
             public const string CODESCENE = "CodeScene";
-            public const string CODESCENE_ACE = "CodeScene ACE";
-            public const string BRAIN_CLASS = "Brain Class";
-            public const string BRAIN_METHOD = "Brain Method";
-            public const string BUMPY_ROAD_AHEAD = "Bumpy Road Ahead";
-            public const string CODE_DUPLICATION = "Code Duplication";
-            public const string COMPLEX_CONDITIONAL = "Complex Conditional";
-            public const string COMPLEX_METHOD = "Complex Method";
-            public const string CONSTRUCTOR_OVER_INJECTION = "Constructor Over-Injection";
-            public const string DEEP_GLOBAL_NESTED_COMPLEXITY = "Deep Global Nested Complexity";
-            public const string DEEP_NESTED_COMPLEXITY = "Deep, Nested Complexity";
-            public const string DUPLICATED_ASSERTION_BLOCKS = "Duplicated Assertion Blocks";
-            public const string DUPLICATED_FUNCTION_BLOCKS = "Duplicated Function Blocks";
-            public const string EXCESS_NUMBER_OF_FUNCTION_ARGUMENTS = "Excess Number of Function Arguments";
-            public const string FILE_SIZE_ISSUE = "File Size Issue";
-            public const string GLOBAl_CONDITIONALS = "Global Conditionals";
-            public const string HIGH_DEGREE_OF_CODE_DUPLICATION = "High Degree Of Code Duplication";
-            public const string LARGE_ASSERTION_BLOCKS = "Large Assertion Blocks";
-            public const string LARGE_EMBEDDED_CODE_BLOCK = "Large Embedded Code Block";
-            public const string LARGE_METHOD = "Large Method";
-            public const string LINES_OF_CODE_IN_A_SINGLE_FILE = "Lines Of Code In A Single File";
-            public const string LINES_OF_DECLARATIONS_IN_A_SINGLE_FILE = "Lines Of Declarations In A Single File";
-            public const string LOW_COHESION = "Low Cohesion";
-            public const string MISSING_ARGUMENTS_ABSTRACTIONS = "Missing Arguments Abstractions";
-            public const string MODULARITY_ISSUE = "Modularity Issue";
-            public const string NUMBER_OF_FUNCTIONS_IN_A_SINGLE_MODULE = "Number Of Functions In A Single Module";
-            public const string OVERALL_CODE_COMPLEXITY = "Overall Code Complexity";
-            public const string POTENTIALLY_LOW_COHESION = "Potentially Low Cohesion";
-            public const string PRIMITIVE_OBSESSION = "Primitive Obsession";
-            public const string STRING_HEAVY_FUNCTION_ARGUMENTS = "String Heavy Function Arguments";
-            public const string CODE_HEALTH_MONITOR = "Code Health Monitor";
-            public const string GENERAL_CODE_HEALTH = "General Code Health";
-            public const string ACCEPT_TERMS = "Accept";
-            public const string DECLINE_TERMS = "Decline";
-            public const string VIEW_TERMS = "View Terms & Policies";
-            public const string TERMS_INFO = "By using this extension you agree to CodeScene's Terms and Privacy Policy";
-            public const string SETTINGS_COLLECTION = "CodeSceneExtension";
-            public const string ACCEPTED_TERMS_PROPERTY = "AcceptedTerms";
+            public const string CODESCENEACE = "CodeScene ACE";
+            public const string BRAINCLASS = "Brain Class";
+            public const string BRAINMETHOD = "Brain Method";
+            public const string BUMPYROADAHEAD = "Bumpy Road Ahead";
+            public const string CODEDUPLICATION = "Code Duplication";
+            public const string COMPLEXCONDITIONAL = "Complex Conditional";
+            public const string COMPLEXMETHOD = "Complex Method";
+            public const string CONSTRUCTOROVERINJECTION = "Constructor Over-Injection";
+            public const string DEEPGLOBALNESTEDCOMPLEXITY = "Deep Global Nested Complexity";
+            public const string DEEPNESTEDCOMPLEXITY = "Deep, Nested Complexity";
+            public const string DUPLICATEDASSERTIONBLOCKS = "Duplicated Assertion Blocks";
+            public const string DUPLICATEDFUNCTIONBLOCKS = "Duplicated Function Blocks";
+            public const string EXCESSNUMBEROFFUNCTIONARGUMENTS = "Excess Number of Function Arguments";
+            public const string FILESIZEISSUE = "File Size Issue";
+            public const string GLOBAlCONDITIONALS = "Global Conditionals";
+            public const string HIGHDEGREEOFCODEDUPLICATION = "High Degree Of Code Duplication";
+            public const string LARGEASSERTIONBLOCKS = "Large Assertion Blocks";
+            public const string LARGEEMBEDDEDCODEBLOCK = "Large Embedded Code Block";
+            public const string LARGEMETHOD = "Large Method";
+            public const string LINESOFCODEINASINGLEFILE = "Lines Of Code In A Single File";
+            public const string LINESOFDECLARATIONSINASINGLEFILE = "Lines Of Declarations In A Single File";
+            public const string LOWCOHESION = "Low Cohesion";
+            public const string MISSINGARGUMENTSABSTRACTIONS = "Missing Arguments Abstractions";
+            public const string MODULARITYISSUE = "Modularity Issue";
+            public const string NUMBEROFFUNCTIONSINASINGLEMODULE = "Number Of Functions In A Single Module";
+            public const string OVERALLCODECOMPLEXITY = "Overall Code Complexity";
+            public const string POTENTIALLYLOWCOHESION = "Potentially Low Cohesion";
+            public const string PRIMITIVEOBSESSION = "Primitive Obsession";
+            public const string STRINGHEAVYFUNCTIONARGUMENTS = "String Heavy Function Arguments";
+            public const string CODEHEALTHMONITOR = "Code Health Monitor";
+            public const string GENERALCODEHEALTH = "General Code Health";
+            public const string ACCEPTTERMS = "Accept";
+            public const string DECLINETERMS = "Decline";
+            public const string VIEWTERMS = "View Terms & Policies";
+            public const string TERMSINFO = "By using this extension you agree to CodeScene's Terms and Privacy Policy";
+            public const string SETTINGSCOLLECTION = "CodeSceneExtension";
+            public const string ACCEPTEDTERMSPROPERTY = "AcceptedTerms";
         }
 
         public class Telemetry
         {
-            public const string SOURCE_IDE = "vs";
-            public const string ON_ACTIVATE_EXTENSION = "on_activate_extension";
-            public const string ON_ACTIVATE_EXTENSION_ERROR = "on_activate_extension_error";
+            public const string SOURCEIDE = "vs";
+            public const string ONACTIVATEEXTENSION = "on_activate_extension";
+            public const string ONACTIVATEEXTENSIONERROR = "on_activate_extension_error";
 
-            public const string OPEN_CODE_HEALTH_DOCS = "open_code_health_docs";
-            public const string OPEN_DOCS_PANEL = "open_interactive_docs_panel";
+            public const string OPENCODEHEALTHDOCS = "open_code_health_docs";
+            public const string OPENDOCSPANEL = "open_interactive_docs_panel";
 
-            public const string SETTINGS_VISIBILITY = "control_center/visibility";
-            public const string OPEN_SETTINGS = "control_center/open-settings";
-            public const string OPEN_LINK = "control_center/open-link";
+            public const string SETTINGSVISIBILITY = "control_center/visibility";
+            public const string OPENSETTINGS = "control_center/open-settings";
+            public const string OPENLINK = "control_center/open-link";
 
-            public const string MONITOR_VISIBILITY = "code_health_monitor/visibility";
-            public const string MONITOR_FILE_ADDED = "code_health_monitor/file_added";
-            public const string MONITOR_FILE_UPDATED = "code_health_monitor/file_updated";
-            public const string MONITOR_FILE_REMOVED = "code_health_monitor/file_removed";
+            public const string MONITORVISIBILITY = "code_health_monitor/visibility";
+            public const string MONITORFILEADDED = "code_health_monitor/file_added";
+            public const string MONITORFILEUPDATED = "code_health_monitor/file_updated";
+            public const string MONITORFILEREMOVED = "code_health_monitor/file_removed";
 
-            public const string DETAILS_VISIBILITY = "code_health_details/visibility";
-            public const string DETAILS_FUNCTION_SELECTED = "code_health_details/function_selected";
-            public const string DETAILS_FUNCTION_DESELECTED = "code_health_details/function_deselected";
+            public const string DETAILSVISIBILITY = "code_health_details/visibility";
+            public const string DETAILSFUNCTIONSELECTED = "code_health_details/function_selected";
+            public const string DETAILSFUNCTIONDESELECTED = "code_health_details/function_deselected";
 
-            public const string REVIEW_OR_DELTA_TIMEOUT = "review_or_delta_timeout";
-            public const string UNHANDLED_ERROR = "unhandledError";
+            public const string REVIEWORDELTATIMEOUT = "review_or_delta_timeout";
+            public const string UNHANDLEDERROR = "unhandledError";
 
-            public const string ACE_INFO_PRESENTED = "ace_info/presented";
-            public const string ACE_INFO_ACKNOWLEDGED = "ace_info/acknowledged";
-            public const string ACE_REFACTOR_REQUESTED = "refactor/requested";
-            public const string ACE_REFACTOR_PRESENTED = "refactor/presented";
-            public const string ACE_REFACTOR_APPLIED = "refactor/applied";
-            public const string ACE_REFACTOR_REJECTED = "refactor/rejected";
-            public const string ACE_REFACTOR_COPY_CODE = "refactor/copy-code";
-            public const string ACE_REFACTOR_DIFF_SHOWN = "refactor/diff_shown";
+            public const string ACEINFOPRESENTED = "ace_info/presented";
+            public const string ACEINFOACKNOWLEDGED = "ace_info/acknowledged";
+            public const string ACEREFACTORREQUESTED = "refactor/requested";
+            public const string ACEREFACTORPRESENTED = "refactor/presented";
+            public const string ACEREFACTORAPPLIED = "refactor/applied";
+            public const string ACEREFACTORREJECTED = "refactor/rejected";
+            public const string ACEREFACTORCOPYCODE = "refactor/copy-code";
+            public const string ACEREFACTORDIFFSHOWN = "refactor/diff_shown";
 
-            public const string TERMS_AND_POLICIES_SHOWN = "terms_and_policies_shown";
-            public const string TERMS_AND_POLICIES_RESPONSE = "terms_and_policies_response";
-            public const string REVOKE_TERMS = "revoke_terms";
+            public const string TERMSANDPOLICIESSHOWN = "terms_and_policies_shown";
+            public const string TERMSANDPOLICIESRESPONSE = "terms_and_policies_response";
+            public const string REVOKETERMS = "revoke_terms";
         }
     }
 }

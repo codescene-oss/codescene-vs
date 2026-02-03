@@ -2,14 +2,14 @@ namespace Codescene.VSExtension.Core.Consts
 {
     public class WebComponentConstants
     {
-        public const string VISUAL_STUDIO_IDE_TYPE = "Visual Studio";
+        public const string VISUALSTUDIOIDETYPE = "Visual Studio";
 
         public class ViewTypes
         {
             public const string ACE = "ace";
             public const string DOCS = "docs";
             public const string HOME = "home"; // Code Health Monitor
-            public const string ACE_ACKNOWLEDGE = "aceAcknowledge";
+            public const string ACEACKNOWLEDGE = "aceAcknowledge";
         }
 
         public class AceViewErrorTypes
@@ -38,17 +38,17 @@ namespace Codescene.VSExtension.Core.Consts
             public const string REJECT = "reject";
             public const string RETRY = "retry";
             public const string CLOSE = "close";
-            public const string GOTO_FUNCTION_LOCATION = "goto-function-location";
-            public const string COPY_CODE = "copyCode";
-            public const string SHOW_LOG_OUTPUT = "showLogoutput";
-            public const string OPEN_FILE = "open-file";
-            public const string OPEN_FUNCTION = "open-function";
-            public const string SHOW_DIFF = "showDiff";
-            public const string REQUEST_AND_PRESENT_REFACTORING = "request-and-present-refactoring";
-            public const string UPDATE_RENDERER = "update-renderer";
-            public const string OPEN_DOCS_FOR_FUNCTION = "open-docs-for-function";
+            public const string GOTOFUNCTIONLOCATION = "goto-function-location";
+            public const string COPYCODE = "copyCode";
+            public const string SHOWLOGOUTPUT = "showLogoutput";
+            public const string OPENFILE = "open-file";
+            public const string OPENFUNCTION = "open-function";
+            public const string SHOWDIFF = "showDiff";
+            public const string REQUESTANDPRESENTREFACTORING = "request-and-present-refactoring";
+            public const string UPDATERENDERER = "update-renderer";
+            public const string OPENDOCSFORFUNCTION = "open-docs-for-function";
             public const string CANCEL = "cancel";
-            public const string OPEN_SETTINGS = "open-settings";
+            public const string OPENSETTINGS = "open-settings";
         }
     }
 }

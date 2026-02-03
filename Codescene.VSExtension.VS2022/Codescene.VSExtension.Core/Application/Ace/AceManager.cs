@@ -119,7 +119,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                     { "skipCache", invalidateCache }
                 };
 
-                _telemetryManager.SendTelemetry(Constants.Telemetry.ACE_REFACTOR_REQUESTED, additionalData);
+                _telemetryManager.SendTelemetry(Constants.Telemetry.ACEREFACTORREQUESTED, additionalData);
             });
         }
 

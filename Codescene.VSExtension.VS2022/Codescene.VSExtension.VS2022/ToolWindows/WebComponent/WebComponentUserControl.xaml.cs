@@ -28,12 +28,12 @@ public partial class WebComponentUserControl : UserControl
 {
     private ILogger _logger;
     public Func<Task> CloseRequested;
-    private const string FOLDER_LOCATION = @"ToolWindows\WebComponent";
+    private const string FOLDERLOCATION = @"ToolWindows\WebComponent";
     // Use process ID and view type to make host unique per VS instance and view type
     // This prevents conflicts when multiple instances are open
     private static string GetHost(string view) => $"myapp-{System.Diagnostics.Process.GetCurrentProcess().Id}-{view}.local";
     private string _host;
-    private const string STYLE_ELEMENT_ID = "cs-theme-vars";
+    private const string STYLEELEMENTID = "cs-theme-vars";
     private bool _initialized = false;
     private string _pendingMessage = null;
     private static readonly string[] AllowedDomains =
@@ -105,12 +105,12 @@ public partial class WebComponentUserControl : UserControl
 
         string script = $@"
         (function() {{
-            const existing = document.getElementById('{STYLE_ELEMENT_ID}');
+            const existing = document.getElementById('{STYLEELEMENTID}');
             if (existing) {{
                 existing.remove();
             }}
             const style = document.createElement('style');
-            style.id = '{STYLE_ELEMENT_ID}';
+            style.id = '{STYLEELEMENTID}';
             style.textContent = `{css}`;
             document.head.appendChild(style);
         }})();
@@ -129,7 +129,7 @@ public partial class WebComponentUserControl : UserControl
             window.ideContext = %ideContext%;
             const css = `%cssVars%`;
             const style = document.createElement('style');
-            style.id = '{STYLE_ELEMENT_ID}';
+            style.id = '{STYLEELEMENTID}';
             style.textContent = css;
             document.head.appendChild(style);
         }}
@@ -189,7 +189,7 @@ public partial class WebComponentUserControl : UserControl
 
         var exePath = Assembly.GetExecutingAssembly().Location;
         var exeFolder = Path.GetDirectoryName(exePath);
-        string localFolder = Path.Combine(exeFolder, FOLDER_LOCATION);
+        string localFolder = Path.Combine(exeFolder, FOLDERLOCATION);
 
         _host = GetHost(view);
         webView.CoreWebView2.SetVirtualHostNameToFolderMapping(_host, localFolder, CoreWebView2HostResourceAccessKind.Allow);
@@ -322,7 +322,7 @@ public partial class WebComponentUserControl : UserControl
             };
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(Constants.Telemetry.OPEN_LINK, additionalData);
+            telemetryManager.SendTelemetry(Constants.Telemetry.OPENLINK, additionalData);
         }).FireAndForget();
     }
 }

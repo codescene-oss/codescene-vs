@@ -87,10 +87,10 @@ public class OnClickRefactoringHandler
     {
         AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
         {
-            MessageType = MessageTypes.UPDATE_RENDERER,
+            MessageType = MessageTypes.UPDATERENDERER,
             Payload = new WebComponentPayload<AceComponentData>
             {
-                IdeType = VISUAL_STUDIO_IDE_TYPE,
+                IdeType = VISUALSTUDIOIDETYPE,
                 View = ViewTypes.ACE,
                 Data = _mapper.Map(path, refactorableFunction)
             }
@@ -118,10 +118,10 @@ public class OnClickRefactoringHandler
 
             AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
-                MessageType = MessageTypes.UPDATE_RENDERER,
+                MessageType = MessageTypes.UPDATERENDERER,
                 Payload = new WebComponentPayload<AceComponentData>
                 {
-                    IdeType = VISUAL_STUDIO_IDE_TYPE,
+                    IdeType = VISUALSTUDIOIDETYPE,
                     View = ViewTypes.ACE,
                     Data = data
                 }
@@ -136,10 +136,10 @@ public class OnClickRefactoringHandler
 
             AceToolWindow.UpdateView(new WebComponentMessage<AceComponentData>
             {
-                MessageType = MessageTypes.UPDATE_RENDERER,
+                MessageType = MessageTypes.UPDATERENDERER,
                 Payload = new WebComponentPayload<AceComponentData>
                 {
-                    IdeType = VISUAL_STUDIO_IDE_TYPE,
+                    IdeType = VISUALSTUDIOIDETYPE,
                     View = ViewTypes.ACE,
                     Data = _mapper.Map(path, refactorableFunction, errorType)
                 }

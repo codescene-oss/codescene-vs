@@ -7,7 +7,7 @@ namespace Codescene.VSExtension.Core.Util
     public static class ErrorTelemetryUtils
     {
         private static int _sentErrorsCount = 0;
-        private const int MAX_ERRORS_TO_SEND = 5;
+        private const int MAXERRORSTOSEND = 5;
 
         private static readonly string[] NetworkErrorPatterns = new[]
         {
@@ -29,7 +29,7 @@ namespace Codescene.VSExtension.Core.Util
 
         public static bool ShouldSendError(Exception ex)
         {
-            if (_sentErrorsCount >= MAX_ERRORS_TO_SEND)
+            if (_sentErrorsCount >= MAXERRORSTOSEND)
                 return false;
 
             if (IsTelemetryRelatedError(ex))

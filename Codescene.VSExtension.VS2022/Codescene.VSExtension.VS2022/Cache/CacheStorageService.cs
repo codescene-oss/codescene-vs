@@ -16,7 +16,7 @@ namespace Codescene.VSExtension.VS2022.Cache
         private string _cachePath;
         private bool _initialized;
 
-        private const string REVIEW_RESULTS_FOLDER = ".review-results";
+        private const string REVIEWRESULTSFOLDER = ".review-results";
 
         public async Task InitializeAsync()
         {
@@ -78,7 +78,7 @@ namespace Codescene.VSExtension.VS2022.Cache
             }
 
             var baseLocation = _cachePath;
-            var location = Path.Combine(baseLocation, REVIEW_RESULTS_FOLDER);
+            var location = Path.Combine(baseLocation, REVIEWRESULTSFOLDER);
             if (!Directory.Exists(location))
             {
                 Directory.CreateDirectory(location);
@@ -95,7 +95,7 @@ namespace Codescene.VSExtension.VS2022.Cache
             }
 
             var baseLocation = _cachePath;
-            var location = Path.Combine(baseLocation, REVIEW_RESULTS_FOLDER);
+            var location = Path.Combine(baseLocation, REVIEWRESULTSFOLDER);
             var files = Directory.GetFiles(location);
             foreach (var fileName in files)
             {

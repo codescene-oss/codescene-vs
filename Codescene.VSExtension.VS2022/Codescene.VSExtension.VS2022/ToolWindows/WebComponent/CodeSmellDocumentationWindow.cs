@@ -46,7 +46,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
 
             var payload = new WebComponentPayload<CodeSmellDocumentationComponentData>
             {
-                IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
                 View = WebComponentConstants.ViewTypes.DOCS,
                 Data = mapper.Map(_model, _fnToRefactor, aceAcknowledged)
             };
@@ -97,10 +97,10 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
         {
             UpdateView(new WebComponentMessage<CodeSmellDocumentationComponentData>
             {
-                MessageType = WebComponentConstants.MessageTypes.UPDATE_RENDERER,
+                MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
                 Payload = new WebComponentPayload<CodeSmellDocumentationComponentData>
                 {
-                    IdeType = WebComponentConstants.VISUAL_STUDIO_IDE_TYPE,
+                    IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
                     View = WebComponentConstants.ViewTypes.DOCS,
                     Data = mapper.Map(_model, _fnToRefactor, aceAcknowledged),
                 }

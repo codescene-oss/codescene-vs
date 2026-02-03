@@ -29,8 +29,8 @@ public class Logger : ILogger
         "Codescene",
         LogFileName);
     private static readonly object _fileLock = new object();
-    private const long MAX_LOG_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
-    private const int MAX_BACKUP_FILES = 3;
+    private const long MAXLOGFILESIZEBYTES = 10 * 1024 * 1024; // 10 MB
+    private const int MAXBACKUPFILES = 3;
 
     [ImportingConstructor]
     internal Logger(OutputPaneManager outputPaneManager)
@@ -100,7 +100,7 @@ public class Logger : ILogger
         Task.Run(async () =>
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(Telemetry.REVIEW_OR_DELTA_TIMEOUT);
+            telemetryManager.SendTelemetry(Telemetry.REVIEWORDELTATIMEOUT);
         }).FireAndForget();
     }
 
@@ -111,7 +111,7 @@ public class Logger : ILogger
             try
             {
                 // Check if rotation is needed before writing
-                if (File.Exists(LogFilePath) && new FileInfo(LogFilePath).Length > MAX_LOG_FILE_SIZE_BYTES)
+                if (File.Exists(LogFilePath) && new FileInfo(LogFilePath).Length > MAXLOGFILESIZEBYTES)
                 {
                     RotateLogFiles();
                 }
@@ -136,14 +136,14 @@ public class Logger : ILogger
             var logFileExtension = Path.GetExtension(LogFilePath);
 
             // Remove the oldest backup if it exists
-            var oldestBackup = Path.Combine(logDirectory, $"{logFileName}-{MAX_BACKUP_FILES}{logFileExtension}");
+            var oldestBackup = Path.Combine(logDirectory, $"{logFileName}-{MAXBACKUPFILES}{logFileExtension}");
             if (File.Exists(oldestBackup))
             {
                 File.Delete(oldestBackup);
             }
 
             // Shift existing backups
-            for (int i = MAX_BACKUP_FILES - 1; i >= 1; i--)
+            for (int i = MAXBACKUPFILES - 1; i >= 1; i--)
             {
                 var sourceFile = Path.Combine(logDirectory, $"{logFileName}-{i}{logFileExtension}");
                 var targetFile = Path.Combine(logDirectory, $"{logFileName}-{i + 1}{logFileExtension}");

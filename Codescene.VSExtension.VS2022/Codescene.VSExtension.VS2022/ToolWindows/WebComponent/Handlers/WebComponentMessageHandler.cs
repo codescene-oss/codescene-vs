@@ -75,11 +75,11 @@ internal class WebComponentMessageHandler
                     await HandleInitAsync(msgObject, logger);
                     break;
 
-                case MessageTypes.COPY_CODE:
+                case MessageTypes.COPYCODE:
                     await HandleCopyCodeAsync(msgObject, logger);
                     break;
 
-                case MessageTypes.SHOW_DIFF:
+                case MessageTypes.SHOWDIFF:
                     await HandleShowDiffAsync();
                     break;
 
@@ -95,11 +95,11 @@ internal class WebComponentMessageHandler
                     await HandleRetryRefactoring(msgObject, logger);
                     break;
 
-                case MessageTypes.GOTO_FUNCTION_LOCATION:
+                case MessageTypes.GOTOFUNCTIONLOCATION:
                     await HandleGotoFunctionLocationAsync(msgObject, logger);
                     break;
 
-                case MessageTypes.OPEN_DOCS_FOR_FUNCTION:
+                case MessageTypes.OPENDOCSFORFUNCTION:
                     await HandleOpenDocsForFunctionAsync(msgObject, logger);
                     break;
 
@@ -111,7 +111,7 @@ internal class WebComponentMessageHandler
                     await HandleCloseAsync();
                     break;
 
-                case MessageTypes.OPEN_SETTINGS:
+                case MessageTypes.OPENSETTINGS:
                     await HandleOpenSettingsAsync();
                     break;
 
@@ -119,7 +119,7 @@ internal class WebComponentMessageHandler
                     await HandleAcknowledgedAsync(msgObject, logger);
                     break;
 
-                case MessageTypes.REQUEST_AND_PRESENT_REFACTORING:
+                case MessageTypes.REQUESTANDPRESENTREFACTORING:
                     await HandleRequestAndPresentRefactoringAsync(msgObject, logger);
                     break;
 
@@ -148,7 +148,7 @@ internal class WebComponentMessageHandler
     private async Task HandleCopyCodeAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
         var payload = msgObject.Payload.ToObject<CopyCodePayload>();
-        HandleAceTelemetry(Constants.Telemetry.ACE_REFACTOR_COPY_CODE);
+        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORCOPYCODE);
 
         if (payload.Code == null)
         {
@@ -162,7 +162,7 @@ internal class WebComponentMessageHandler
 
     private async Task HandleShowDiffAsync()
     {
-        HandleAceTelemetry(Constants.Telemetry.ACE_REFACTOR_DIFF_SHOWN);
+        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORDIFFSHOWN);
 
         var diffHandler = await VS.GetMefServiceAsync<ShowDiffHandler>();
         await diffHandler.ShowDiffWindowAsync();
@@ -171,7 +171,7 @@ internal class WebComponentMessageHandler
     private async Task HandleApplyAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
         var payload = msgObject.Payload.ToObject<ApplyPayload>();
-        HandleAceTelemetry(Constants.Telemetry.ACE_REFACTOR_APPLIED);
+        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORAPPLIED);
 
         var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
         await applier.ApplyAsync(payload);
@@ -198,7 +198,7 @@ internal class WebComponentMessageHandler
 
     private async Task HandleRejectAsync()
     {
-        HandleAceTelemetry(Constants.Telemetry.ACE_REFACTOR_REJECTED);
+        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORREJECTED);
 
         if (_control.CloseRequested is not null)
             await _control.CloseRequested();
@@ -281,7 +281,7 @@ internal class WebComponentMessageHandler
         await onClickRefactoringHandler.HandleAsync(
             payload.FileName,
             payload.FnToRefactor,
-            AceConstants.AceEntryPoint.CODE_VISION);
+            AceConstants.AceEntryPoint.CODEVISION);
     }
 
     private async Task HandleOpenSettingsAsync()
@@ -289,7 +289,7 @@ internal class WebComponentMessageHandler
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         await VS.Settings.OpenAsync<OptionsProvider.GeneralOptions>();
 
-        SendTelemetry(Constants.Telemetry.OPEN_SETTINGS);
+        SendTelemetry(Constants.Telemetry.OPENSETTINGS);
     }
 
     // Currently, we only receive this message from the ACE view if the content is marked as 'stale'.
@@ -329,7 +329,7 @@ internal class WebComponentMessageHandler
         await onClickRefactoringHandler.HandleAsync(
             payload.FilePath,
             payload.FnToRefactor,
-            AceConstants.AceEntryPoint.ACE_ACKNOWLEDGEMENT);
+            AceConstants.AceEntryPoint.ACEACKNOWLEDGEMENT);
     }
 
     private void SendTelemetry(string eventName, Dictionary<string, object> additionalData = null)

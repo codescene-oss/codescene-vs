@@ -9,19 +9,19 @@ namespace Codescene.VSExtension.CredentialManagerPersistenceAuthProvider
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CredentialManagerProvider : IPersistenceAuthDataProvider
     {
-        public const string APPLICATION_NAME = "vs-codescene-extension";
+        public const string APPLICATIONNAME = "vs-codescene-extension";
         public void Clear()
         {
-            var storedData = CredentialManager.ReadCredential(APPLICATION_NAME);
+            var storedData = CredentialManager.ReadCredential(APPLICATIONNAME);
             if (storedData != null)
             {
-                CredentialManager.DeleteCredential(APPLICATION_NAME);
+                CredentialManager.DeleteCredential(APPLICATIONNAME);
             }
         }
 
         public LoginResponse GetData()
         {
-            var storedData = CredentialManager.ReadCredential(APPLICATION_NAME);
+            var storedData = CredentialManager.ReadCredential(APPLICATIONNAME);
             if (storedData == null)
             {
                 return null;
@@ -38,7 +38,7 @@ namespace Codescene.VSExtension.CredentialManagerPersistenceAuthProvider
         public void Store(LoginResponse data)
         {
             CredentialManager.WriteCredential(
-                applicationName: APPLICATION_NAME,
+                applicationName: APPLICATIONNAME,
                 userName: data.Name,
                 secret: data.Token,
                 comment: data.UserId,

@@ -65,7 +65,7 @@ internal class AceRefactorSuggestedAction : ISuggestedAction
                 await onClickRefactoringHandler.HandleAsync(
                     _filePath,
                     _refactorableFunction,
-                    AceConstants.AceEntryPoint.INTENTION_ACTION);
+                    AceConstants.AceEntryPoint.INTENTIONACTION);
             }
             catch (Exception e)
             {
