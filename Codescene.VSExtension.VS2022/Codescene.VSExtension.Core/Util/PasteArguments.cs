@@ -76,7 +76,7 @@ namespace Codescene.VSExtension.Core.Util
             else if (argument[idx] == Quote)
             {
                 // Backslashes will be followed by a quote. Must double the number of backslashes.
-                stringBuilder.Append(Backslash, numBackSlash * 2 + 1);
+                stringBuilder.Append(Backslash, (numBackSlash * 2) + 1);
                 stringBuilder.Append(Quote);
                 idx++;
             }
