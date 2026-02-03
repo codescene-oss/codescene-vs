@@ -71,7 +71,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 return cached.FileLevel.Concat(cached.FunctionLevel).ToList() ??[];
             }
 
-            return[];
+            return [];
         }
 
         public void RefreshTags()
