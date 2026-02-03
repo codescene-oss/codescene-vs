@@ -1,7 +1,7 @@
-using LibGit2Sharp;
 using System;
 using System.Diagnostics;
 using System.IO;
+using LibGit2Sharp;
 
 namespace Codescene.VSExtension.VS2022.Application.Git;
 

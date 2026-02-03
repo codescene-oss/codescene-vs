@@ -1,5 +1,5 @@
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using System.Collections.Generic;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 
 namespace Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions
 {

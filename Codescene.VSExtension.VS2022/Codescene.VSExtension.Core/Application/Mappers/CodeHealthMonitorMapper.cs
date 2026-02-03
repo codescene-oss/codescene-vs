@@ -1,11 +1,11 @@
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Linq;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Util;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Linq;
 
 namespace Codescene.VSExtension.Core.Application.Mappers
 {

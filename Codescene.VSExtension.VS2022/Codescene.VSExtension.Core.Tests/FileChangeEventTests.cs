@@ -1,6 +1,6 @@
+using System.IO;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Enums.Git;
-using System.IO;
 
 namespace Codescene.VSExtension.Core.Tests
 {

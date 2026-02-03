@@ -1,7 +1,7 @@
-using Codescene.VSExtension.Core.Application.Cache.Review;
-using Codescene.VSExtension.Core.Models.Cache.Review;
 using System;
 using System.ComponentModel.Composition;
+using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 
 namespace Codescene.VSExtension.VS2022.EditorMargin;
 

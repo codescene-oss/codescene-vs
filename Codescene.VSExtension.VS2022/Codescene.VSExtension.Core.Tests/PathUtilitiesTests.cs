@@ -1,6 +1,6 @@
+using System.IO;
 using Codescene.VSExtension.Core.Application.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
 
 namespace Codescene.VSExtension.Core.Tests
 {

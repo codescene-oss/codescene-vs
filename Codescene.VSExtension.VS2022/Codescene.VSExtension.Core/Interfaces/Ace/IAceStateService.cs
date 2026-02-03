@@ -1,6 +1,6 @@
+using System;
 using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Models.Ace;
-using System;
 
 namespace Codescene.VSExtension.Core.Interfaces.Ace
 {

@@ -1,12 +1,12 @@
-using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Cli;
-using Codescene.VSExtension.Core.Interfaces.Git;
-using LibGit2Sharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Git;
+using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {

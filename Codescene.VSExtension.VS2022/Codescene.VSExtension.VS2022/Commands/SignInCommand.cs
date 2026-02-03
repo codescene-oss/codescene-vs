@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Authentication;
 using Codescene.VSExtension.Core.Models;
@@ -6,8 +8,6 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TaskStatusCenter;
-using System;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022;
 

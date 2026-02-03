@@ -1,8 +1,8 @@
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using static Codescene.VSExtension.Core.Consts.Constants;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;

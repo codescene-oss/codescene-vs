@@ -1,7 +1,7 @@
-using Codescene.VSExtension.Core.Application.Git;
-using LibGit2Sharp;
 using System.Collections.Generic;
 using System.Linq;
+using Codescene.VSExtension.Core.Application.Git;
+using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Tests
 {

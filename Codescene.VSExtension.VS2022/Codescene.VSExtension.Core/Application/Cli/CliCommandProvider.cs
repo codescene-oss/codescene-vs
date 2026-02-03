@@ -1,12 +1,12 @@
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Text;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Util;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Text;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {

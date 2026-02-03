@@ -1,10 +1,10 @@
+using System;
+using System.ComponentModel.Composition;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
-using System;
-using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
 

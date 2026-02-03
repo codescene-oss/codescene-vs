@@ -1,13 +1,13 @@
-using Codescene.VSExtension.Core.Application.Git;
-using Codescene.VSExtension.Core.Interfaces.Git;
-using LibGit2Sharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.Core.Interfaces.Git;
+using LibGit2Sharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Codescene.VSExtension.Core.Tests
 {

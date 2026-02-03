@@ -1,8 +1,8 @@
-using Codescene.VSExtension.Core.Interfaces.Authentication;
-using Codescene.VSExtension.Core.Models;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Net;
+using Codescene.VSExtension.Core.Interfaces.Authentication;
+using Codescene.VSExtension.Core.Models;
 
 namespace Codescene.VSExtension.Core.Application.Authentication
 {

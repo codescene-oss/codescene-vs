@@ -1,9 +1,9 @@
+using System.Collections.Generic;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
-using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Interfaces.Ace
 {

@@ -1,5 +1,5 @@
-using Codescene.VSExtension.Core.Interfaces.Util;
 using System.ComponentModel.Composition;
+using Codescene.VSExtension.Core.Interfaces.Util;
 
 namespace Codescene.VSExtension.Core.Application.Util
 {

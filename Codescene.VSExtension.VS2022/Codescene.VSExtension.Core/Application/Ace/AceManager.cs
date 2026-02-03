@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Interfaces;
@@ -9,10 +13,6 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Ace
 {

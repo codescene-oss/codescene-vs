@@ -1,6 +1,6 @@
-using Codescene.VSExtension.VS2022;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Codescene.VSExtension.VS2022;
 
 [assembly: AssemblyTitle("Codescene.VSExtension.VS2022")]
 [assembly: AssemblyDescription(Vsix.Description)]

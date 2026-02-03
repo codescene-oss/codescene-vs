@@ -1,7 +1,7 @@
-using Codescene.VSExtension.Core.Interfaces.Util;
-using Codescene.VSExtension.Core.Models;
 using System;
 using System.ComponentModel.Composition;
+using Codescene.VSExtension.Core.Interfaces.Util;
+using Codescene.VSExtension.Core.Models;
 
 namespace Codescene.VSExtension.Core.Application.Util
 {

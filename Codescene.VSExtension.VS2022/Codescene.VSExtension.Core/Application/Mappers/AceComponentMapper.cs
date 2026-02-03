@@ -1,9 +1,9 @@
+using System.ComponentModel.Composition;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
-using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.Core.Application.Mappers
 {

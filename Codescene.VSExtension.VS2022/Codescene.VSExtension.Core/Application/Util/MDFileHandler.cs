@@ -1,9 +1,9 @@
-using Codescene.VSExtension.Core.Interfaces.Util;
-using Markdig;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Codescene.VSExtension.Core.Interfaces.Util;
+using Markdig;
 
 namespace Codescene.VSExtension.Core.Application.Util
 {

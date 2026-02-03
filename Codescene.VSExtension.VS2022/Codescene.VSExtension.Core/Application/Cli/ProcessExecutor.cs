@@ -1,7 +1,3 @@
-using Codescene.VSExtension.Core.Consts;
-using Codescene.VSExtension.Core.Exceptions;
-using Codescene.VSExtension.Core.Interfaces.Cli;
-using Newtonsoft.Json;
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -9,6 +5,10 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Exceptions;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Newtonsoft.Json;
 
 [assembly: InternalsVisibleTo("Codescene.VSExtension.Core.Tests")]
 

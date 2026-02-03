@@ -1,9 +1,9 @@
+using System;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
-using System;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.Util;
 

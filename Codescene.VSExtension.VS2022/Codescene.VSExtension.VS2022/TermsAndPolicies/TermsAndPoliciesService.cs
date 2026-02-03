@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Community.VisualStudio.Toolkit;
@@ -7,10 +11,6 @@ using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using CodeSceneConstants = Codescene.VSExtension.Core.Consts.Constants;
 
 namespace Codescene.VSExtension.VS2022.TermsAndPolicies;

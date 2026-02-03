@@ -1,7 +1,3 @@
-using Codescene.VSExtension.Core.Application.Git;
-using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Cli;
-using Codescene.VSExtension.Core.Interfaces.Git;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,6 +5,10 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Git;
 
 namespace Codescene.VSExtension.VS2022.Application.Git
 {

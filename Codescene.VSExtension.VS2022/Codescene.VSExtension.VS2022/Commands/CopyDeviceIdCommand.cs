@@ -1,10 +1,10 @@
+using System;
+using System.Threading.Tasks;
+using System.Windows;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
-using System;
-using System.Threading.Tasks;
-using System.Windows;
 
 namespace Codescene.VSExtension.VS2022.Commands;
 

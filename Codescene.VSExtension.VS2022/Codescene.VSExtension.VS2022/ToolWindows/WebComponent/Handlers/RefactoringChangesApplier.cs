@@ -1,3 +1,6 @@
+using System;
+using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
@@ -5,9 +8,6 @@ using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
-using System;
-using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 

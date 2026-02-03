@@ -1,10 +1,10 @@
+using System;
+using System.Collections.Generic;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Models.Cli.Telemetry;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 
 namespace Codescene.VSExtension.Core.Util
 {

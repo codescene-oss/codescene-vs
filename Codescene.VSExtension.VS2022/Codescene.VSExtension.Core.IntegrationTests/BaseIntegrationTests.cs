@@ -1,10 +1,10 @@
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using Codescene.VSExtension.Core.IntegrationTests.TestImplementations;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Moq;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 
 namespace Codescene.VSExtension.Core.IntegrationTests
 {

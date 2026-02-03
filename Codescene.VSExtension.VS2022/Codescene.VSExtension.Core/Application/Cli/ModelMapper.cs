@@ -1,10 +1,10 @@
-using Codescene.VSExtension.Core.Interfaces.Cli;
-using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cli.Review;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Review;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {

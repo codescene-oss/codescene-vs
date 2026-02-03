@@ -1,5 +1,5 @@
-using Codescene.VSExtension.Core.Application.Cli;
 using System.Reflection;
+using Codescene.VSExtension.Core.Application.Cli;
 
 namespace Codescene.VSExtension.Core.Tests
 {

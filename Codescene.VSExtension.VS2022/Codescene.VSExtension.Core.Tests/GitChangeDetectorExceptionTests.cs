@@ -1,8 +1,8 @@
-using LibGit2Sharp;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Tests
 {
