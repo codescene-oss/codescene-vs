@@ -85,7 +85,6 @@ public sealed class VS2022Package : ToolkitPackage
         {
             // Note: we may not be able to report every failure via telemetry
             // (e.g. if the extension hasn't fully loaded or the CLI hasn't been downloaded yet).
-
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
             SendTelemetry(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR);
         }
