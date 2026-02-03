@@ -28,7 +28,9 @@ internal sealed class CopyDeviceIdCommand : BaseCommand<CopyDeviceIdCommand>
                 logger.Info("Device ID copied to clipboard.");
             }
             else
+            {
                 logger.Warn("Failed to retrieve device ID.");
+            }
         }
         catch (Exception ex)
         {
