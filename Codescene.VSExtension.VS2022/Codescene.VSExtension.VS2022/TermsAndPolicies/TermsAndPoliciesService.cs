@@ -25,15 +25,15 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
     private bool _infoBarShownOnce = false;
     private IVsInfoBarUIElement? _currentTermsInfoBarUiElement;
 
-    private static readonly IVsInfoBarActionItem[] actionItems =
+    private static readonly IVsInfoBarActionItem[] ActionItems =
         [
             new InfoBarButton(CodeSceneConstants.Titles.ACCEPTTERMS),
             new InfoBarButton(CodeSceneConstants.Titles.DECLINETERMS),
             new InfoBarHyperlink(CodeSceneConstants.Titles.VIEWTERMS)
         ];
-    private static readonly InfoBarModel model = new (
+    private static readonly InfoBarModel Model = new (
             [new InfoBarTextSpan(CodeSceneConstants.Titles.TERMSINFO)],
-            actionItems,
+            ActionItems,
             KnownMonikers.StatusInformation,
             isCloseButtonVisible: false);
 
@@ -45,7 +45,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
 
             var termsAccepted = GetAcceptedTerms();
             var factory = Package.GetGlobalService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
-            var uiElement = factory?.CreateInfoBar(model);
+            var uiElement = factory?.CreateInfoBar(Model);
 
             var setupIssue = _currentTermsInfoBarUiElement != null || factory == null || uiElement == null;
             var skipInfoBar = setupIssue || termsAccepted || _infoBarShownOnce;
