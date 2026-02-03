@@ -12,7 +12,8 @@ using System.Threading.Tasks;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class ShowDiffHandler
 {
-    [Import] private readonly IAceManager _aceManager;
+    [Import]
+    private readonly IAceManager _aceManager;
 
     public async Task ShowDiffWindowAsync()
     {
