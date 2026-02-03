@@ -24,33 +24,6 @@ namespace Codescene.VSExtension.Core.Tests
             ClearAllJobs();
         }
 
-        private static void ClearAllJobs()
-        {
-            foreach (var job in DeltaJobTracker.RunningJobs.ToList())
-            {
-                DeltaJobTracker.Remove(job);
-            }
-        }
-
-        private static Job CreateJob(string fileName = "test.cs", string type = "deltaAnalysis") =>
-            new Job { Type = type, State = "running", File = new FileModel { FileName = fileName } };
-
-        private static int CountEvents(Action<Action<Job>> subscribe, Action action)
-        {
-            int count = 0;
-            subscribe(_ => count++);
-            action();
-            return count;
-        }
-
-        private static Job CaptureEventJob(Action<Action<Job>> subscribe, Action action)
-        {
-            Job captured = null;
-            subscribe(job => captured = job);
-            action();
-            return captured;
-        }
-
         [TestMethod]
         public void Add_NewJob_FiresJobStartedEvent()
         {
@@ -169,6 +142,33 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert
             Assert.IsInstanceOfType(jobs, typeof(IReadOnlyCollection<Job>));
+        }
+
+        private static void ClearAllJobs()
+        {
+            foreach (var job in DeltaJobTracker.RunningJobs.ToList())
+            {
+                DeltaJobTracker.Remove(job);
+            }
+        }
+
+        private static Job CreateJob(string fileName = "test.cs", string type = "deltaAnalysis") =>
+            new Job { Type = type, State = "running", File = new FileModel { FileName = fileName } };
+
+        private static int CountEvents(Action<Action<Job>> subscribe, Action action)
+        {
+            int count = 0;
+            subscribe(_ => count++);
+            action();
+            return count;
+        }
+
+        private static Job CaptureEventJob(Action<Action<Job>> subscribe, Action action)
+        {
+            Job captured = null;
+            subscribe(job => captured = job);
+            action();
+            return captured;
         }
     }
 }

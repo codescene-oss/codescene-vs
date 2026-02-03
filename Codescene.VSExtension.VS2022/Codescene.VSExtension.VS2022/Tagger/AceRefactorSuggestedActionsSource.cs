@@ -84,6 +84,16 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
         };
     }
 
+    public void Dispose()
+    {
+    }
+
+    public bool TryGetTelemetryId(out Guid telemetryId)
+    {
+        telemetryId = Guid.Empty;
+        return false;
+    }
+
     private bool HasAuthToken()
     {
         return !string.IsNullOrWhiteSpace(_provider.SettingsProvider?.AuthToken);
@@ -156,15 +166,5 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
     {
         var functions = _aceRefactorableFunctionsCache.Get(new AceRefactorableFunctionsQuery(filePath, content));
         return functions?.Count > 0 ? functions : null;
-    }
-
-    public void Dispose()
-    {
-    }
-
-    public bool TryGetTelemetryId(out Guid telemetryId)
-    {
-        telemetryId = Guid.Empty;
-        return false;
     }
 }

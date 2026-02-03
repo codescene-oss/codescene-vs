@@ -64,6 +64,91 @@ public class GitService : IGitService
         }
     }
 
+    public string GetFileContentForCommit(string path)
+    {
+        try
+        {
+            var repoPath = Repository.Discover(path);
+            if (string.IsNullOrEmpty(repoPath))
+            {
+                _logger.Warn("Repository path is null. Aborting retrieval of file content for specific commit.");
+                return string.Empty;
+            }
+
+            using var repo = new Repository(repoPath);
+            var commitHash = GetBaselineCommit(repo);
+
+            if (string.IsNullOrEmpty(commitHash))
+            {
+                _logger.Debug("No baseline commit found, skipping file content retrieval.");
+                return string.Empty;
+            }
+
+            var repoRoot = repo.Info.WorkingDirectory;
+            var relativePath = GetRelativePath(repoRoot, path).Replace("\\", "/");
+
+            var commit = repo.Lookup<Commit>(commitHash);
+            if (commit == null)
+            {
+                _logger.Warn($"Could not find commit {commitHash}");
+                return string.Empty;
+            }
+
+            var entry = commit[relativePath];
+            if (entry == null)
+            {
+                _logger.Debug($"File {relativePath} not found in commit {commitHash}");
+                return string.Empty;
+            }
+
+            var blob = (Blob)entry.Target;
+            return blob.GetContentText();
+        }
+        catch (Exception e)
+        {
+            _logger.Warn($"Could not get file content for baseline commit: {e.Message}");
+            return string.Empty;
+        }
+    }
+
+    // TODO: Move to helper
+    public static string GetRelativePath(string basePath, string fullPath)
+    {
+        var baseUri = new Uri(AppendDirectorySeparatorChar(basePath));
+        var fullUri = new Uri(fullPath);
+        return Uri.UnescapeDataString(baseUri.MakeRelativeUri(fullUri).ToString().Replace('/', Path.DirectorySeparatorChar));
+    }
+
+    public bool IsFileIgnored(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            _logger.Warn("File path is empty. Aborting ignore checking.");
+            return false;
+        }
+
+        try
+        {
+            var repoPath = Repository.Discover(filePath);
+            if (string.IsNullOrEmpty(repoPath))
+            {
+                _logger.Warn("Repository path is null. Aborting ignore checking.");
+                return false;
+            }
+
+            using var repo = new Repository(repoPath);
+            var repoRoot = repo.Info.WorkingDirectory;
+            var relativePath = GetRelativePath(repoRoot, filePath).Replace("\\", "/");
+
+            return repo.Ignore.IsPathIgnored(relativePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Could not check if file is ignored: {ex.Message}", ex);
+            return false;
+        }
+    }
+
     private bool IsMainBranch(string branchName)
     {
         return MainBranchNames.Contains(branchName);
@@ -122,61 +207,6 @@ public class GitService : IGitService
         }
     }
 
-    public string GetFileContentForCommit(string path)
-    {
-        try
-        {
-            var repoPath = Repository.Discover(path);
-            if (string.IsNullOrEmpty(repoPath))
-            {
-                _logger.Warn("Repository path is null. Aborting retrieval of file content for specific commit.");
-                return string.Empty;
-            }
-
-            using var repo = new Repository(repoPath);
-            var commitHash = GetBaselineCommit(repo);
-
-            if (string.IsNullOrEmpty(commitHash))
-            {
-                _logger.Debug("No baseline commit found, skipping file content retrieval.");
-                return string.Empty;
-            }
-
-            var repoRoot = repo.Info.WorkingDirectory;
-            var relativePath = GetRelativePath(repoRoot, path).Replace("\\", "/");
-
-            var commit = repo.Lookup<Commit>(commitHash);
-            if (commit == null)
-            {
-                _logger.Warn($"Could not find commit {commitHash}");
-                return string.Empty;
-            }
-
-            var entry = commit[relativePath];
-            if (entry == null)
-            {
-                _logger.Debug($"File {relativePath} not found in commit {commitHash}");
-                return string.Empty;
-            }
-
-            var blob = (Blob)entry.Target;
-            return blob.GetContentText();
-        }
-        catch (Exception e)
-        {
-            _logger.Warn($"Could not get file content for baseline commit: {e.Message}");
-            return string.Empty;
-        }
-    }
-
-    // TODO: Move to helper
-    public static string GetRelativePath(string basePath, string fullPath)
-    {
-        var baseUri = new Uri(AppendDirectorySeparatorChar(basePath));
-        var fullUri = new Uri(fullPath);
-        return Uri.UnescapeDataString(baseUri.MakeRelativeUri(fullUri).ToString().Replace('/', Path.DirectorySeparatorChar));
-    }
-
     // TODO: Move to helper
     private static string AppendDirectorySeparatorChar(string path)
     {
@@ -186,35 +216,5 @@ public class GitService : IGitService
         }
 
         return path;
-    }
-
-    public bool IsFileIgnored(string filePath)
-    {
-        if (string.IsNullOrWhiteSpace(filePath))
-        {
-            _logger.Warn("File path is empty. Aborting ignore checking.");
-            return false;
-        }
-
-        try
-        {
-            var repoPath = Repository.Discover(filePath);
-            if (string.IsNullOrEmpty(repoPath))
-            {
-                _logger.Warn("Repository path is null. Aborting ignore checking.");
-                return false;
-            }
-
-            using var repo = new Repository(repoPath);
-            var repoRoot = repo.Info.WorkingDirectory;
-            var relativePath = GetRelativePath(repoRoot, filePath).Replace("\\", "/");
-
-            return repo.Ignore.IsPathIgnored(relativePath);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error($"Could not check if file is ignored: {ex.Message}", ex);
-            return false;
-        }
     }
 }

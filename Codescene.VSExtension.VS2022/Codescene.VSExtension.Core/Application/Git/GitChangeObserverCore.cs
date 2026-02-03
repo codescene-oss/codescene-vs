@@ -22,21 +22,22 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly IGitService _gitService;
         private readonly IAsyncTaskScheduler _taskScheduler;
 
+        private readonly TrackerManager _trackerManager = new TrackerManager();
+
+        private readonly ConcurrentQueue<FileChangeEvent> _eventQueue = new ConcurrentQueue<FileChangeEvent>();
+
         private FileSystemWatcher _fileWatcher;
         private Timer _scheduledTimer;
         private string _solutionPath;
         private string _workspacePath;
         private string _gitRootPath;
 
-        private readonly TrackerManager _trackerManager = new TrackerManager();
-
-        private readonly ConcurrentQueue<FileChangeEvent> _eventQueue = new ConcurrentQueue<FileChangeEvent>();
-
         private ISavedFilesTracker _savedFilesTracker;
         private IOpenFilesObserver _openFilesObserver;
         private GitChangeDetector _gitChangeDetector;
         private FileChangeHandler _fileChangeHandler;
         private Func<Task<List<string>>> _getChangedFilesCallback;
+
 
         public GitChangeObserverCore(ILogger logger, ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker, IGitService gitService,
@@ -48,6 +49,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitService = gitService;
             _taskScheduler = taskScheduler;
         }
+
+        public event EventHandler<string> FileDeletedFromGit;
 
         public ConcurrentQueue<FileChangeEvent> EventQueue => _eventQueue;
 
@@ -84,6 +87,64 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             InitializeTracker();
+        }
+
+        public void Start()
+        {
+            if (_fileWatcher == null)
+            {
+                _logger?.Warn($"GitChangeObserver: Cannot start - file watcher not initialized");
+                return;
+            }
+
+            if (_fileWatcher.EnableRaisingEvents)
+            {
+                return;
+            }
+
+            BindWatcherEvents(_fileWatcher);
+            _fileWatcher.EnableRaisingEvents = true;
+
+            _scheduledTimer = new Timer(ProcessQueuedEventsCallback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        }
+
+        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
+        {
+            return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _savedFilesTracker, _openFilesObserver);
+        }
+
+        public void RemoveFromTracker(string filePath)
+        {
+            _trackerManager.Remove(filePath);
+        }
+
+        public TrackerManager GetTrackerManager()
+        {
+            return _trackerManager;
+        }
+
+        public async Task HandleFileChangeForTestingAsync(string filePath, List<string> changedFiles)
+        {
+            await _fileChangeHandler.HandleFileChangeAsync(filePath, changedFiles);
+        }
+
+        public async Task HandleFileDeleteForTestingAsync(string filePath, List<string> changedFiles)
+        {
+            await _fileChangeHandler.HandleFileDeleteAsync(filePath, changedFiles);
+        }
+
+        public bool ShouldProcessFileForTesting(string filePath, List<string> changedFiles)
+        {
+            return _fileChangeHandler.ShouldProcessFile(filePath, changedFiles);
+        }
+
+        public void Dispose()
+        {
+            _fileWatcher?.Dispose();
+            _fileWatcher = null;
+
+            _scheduledTimer?.Dispose();
+            _scheduledTimer = null;
         }
 
         private void InitializeGitPaths()
@@ -147,25 +208,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             });
         }
 
-        public void Start()
-        {
-            if (_fileWatcher == null)
-            {
-                _logger?.Warn($"GitChangeObserver: Cannot start - file watcher not initialized");
-                return;
-            }
-
-            if (_fileWatcher.EnableRaisingEvents)
-            {
-                return;
-            }
-
-            BindWatcherEvents(_fileWatcher);
-            _fileWatcher.EnableRaisingEvents = true;
-
-            _scheduledTimer = new Timer(ProcessQueuedEventsCallback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-        }
-
         private FileSystemWatcher CreateWatcher(string path)
         {
             return new FileSystemWatcher(path)
@@ -226,11 +268,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
-        {
-            return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _savedFilesTracker, _openFilesObserver);
-        }
-
         private async Task<List<string>> CollectFilesFromRepoStateAsync()
         {
             return await Task.Run(async () =>
@@ -257,42 +294,6 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                 return files;
             });
-        }
-
-        public event EventHandler<string> FileDeletedFromGit;
-
-        public void RemoveFromTracker(string filePath)
-        {
-            _trackerManager.Remove(filePath);
-        }
-
-        public TrackerManager GetTrackerManager()
-        {
-            return _trackerManager;
-        }
-
-        public async Task HandleFileChangeForTestingAsync(string filePath, List<string> changedFiles)
-        {
-            await _fileChangeHandler.HandleFileChangeAsync(filePath, changedFiles);
-        }
-
-        public async Task HandleFileDeleteForTestingAsync(string filePath, List<string> changedFiles)
-        {
-            await _fileChangeHandler.HandleFileDeleteAsync(filePath, changedFiles);
-        }
-
-        public bool ShouldProcessFileForTesting(string filePath, List<string> changedFiles)
-        {
-            return _fileChangeHandler.ShouldProcessFile(filePath, changedFiles);
-        }
-
-        public void Dispose()
-        {
-            _fileWatcher?.Dispose();
-            _fileWatcher = null;
-
-            _scheduledTimer?.Dispose();
-            _scheduledTimer = null;
         }
     }
 }

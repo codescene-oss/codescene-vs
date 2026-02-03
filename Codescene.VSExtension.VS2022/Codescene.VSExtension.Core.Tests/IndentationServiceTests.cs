@@ -16,13 +16,6 @@ public class IndentationServiceTests
         _indentationService = new IndentationService();
     }
 
-    private static IndentationInfo CreateIndentationInfo(int level, bool usesTabs = false, int tabSize = 4) =>
-        new IndentationInfo { Level = level, UsesTabs = usesTabs, TabSize = tabSize };
-
-    private string[] AdjustAndSplitLines(string code, IndentationInfo info) =>
-        _indentationService.AdjustIndentation(code, info)
-            .Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-
     [TestMethod]
     public void AdjustIndentation_WithZeroLevel_ReturnsOriginalCode()
     {
@@ -214,4 +207,11 @@ public class IndentationServiceTests
         // Assert
         Assert.AreEqual(4, tabSize); // Default
     }
+
+    private static IndentationInfo CreateIndentationInfo(int level, bool usesTabs = false, int tabSize = 4) =>
+        new IndentationInfo { Level = level, UsesTabs = usesTabs, TabSize = tabSize };
+
+    private string[] AdjustAndSplitLines(string code, IndentationInfo info) =>
+        _indentationService.AdjustIndentation(code, info)
+            .Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 }

@@ -41,6 +41,17 @@ public class BranchWatcherService : IDisposable
         InitializeGitChangeMonitor();
     }
 
+    public void Stop()
+    {
+        _headWatcher?.Dispose();
+        _headWatcher = null;
+    }
+
+    public void Dispose()
+    {
+        Stop();
+    }
+
     /// <summary>
     /// Discovers the Git repository for the given solution and sets internal paths for .git tracking.
     /// </summary>
@@ -118,16 +129,5 @@ public class BranchWatcherService : IDisposable
         }
 
         return "(detached)";
-    }
-
-    public void Stop()
-    {
-        _headWatcher?.Dispose();
-        _headWatcher = null;
-    }
-
-    public void Dispose()
-    {
-        Stop();
     }
 }

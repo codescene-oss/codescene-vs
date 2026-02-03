@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Models.Cli;
 using Newtonsoft.Json;
 
 [assembly: InternalsVisibleTo("Codescene.VSExtension.Core.Tests")]
@@ -164,50 +165,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             return output.ToString();
-        }
-    }
-
-    internal class AttachOutputHandlersArgs
-    {
-        public Process Process { get; set; }
-
-        public StringBuilder Output { get; set; }
-
-        public StringBuilder Error { get; set; }
-
-        public TaskCompletionSource<bool> OutputTcs { get; set; }
-
-        public TaskCompletionSource<bool> ErrorTcs { get; set; }
-
-        public AttachOutputHandlersArgs(
-            Process process,
-            StringBuilder output,
-            StringBuilder error,
-            TaskCompletionSource<bool> outputTcs,
-            TaskCompletionSource<bool> errorTcs)
-        {
-            Process = process;
-            Output = output;
-            Error = error;
-            OutputTcs = outputTcs;
-            ErrorTcs = errorTcs;
-        }
-    }
-
-    public class WaitForProcessOrTimeoutArgs
-    {
-        public Process Process { get; set; }
-
-        public TaskCompletionSource<bool> OutputTcs { get; set; }
-
-        public TaskCompletionSource<bool> ErrorTcs { get; set; }
-
-        public TimeSpan Timeout { get; set; }
-
-        public string Command { get; set; }
-
-        public WaitForProcessOrTimeoutArgs()
-        {
         }
     }
 }

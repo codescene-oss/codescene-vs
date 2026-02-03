@@ -18,16 +18,6 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
     {
         protected static readonly ConcurrentDictionary<string, V> Cache = new ConcurrentDictionary<string, V>();
 
-        protected string Hash(string content)
-        {
-            using (var sha = SHA256.Create())
-            {
-                var bytes = Encoding.UTF8.GetBytes(content);
-                var hashBytes = sha.ComputeHash(bytes);
-                return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
-            }
-        }
-
         public abstract R Get(Q query);
 
         public abstract void Put(E entry);
@@ -49,6 +39,16 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         public virtual void Clear()
         {
             Cache.Clear();
+        }
+
+        protected string Hash(string content)
+        {
+            using (var sha = SHA256.Create())
+            {
+                var bytes = Encoding.UTF8.GetBytes(content);
+                var hashBytes = sha.ComputeHash(bytes);
+                return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
+            }
         }
     }
 }

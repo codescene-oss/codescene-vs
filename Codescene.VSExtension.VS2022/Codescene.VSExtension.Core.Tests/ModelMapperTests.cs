@@ -10,28 +10,8 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class ModelMapperTests
     {
-        private readonly ModelMapper _mapper = new ModelMapper();
         private const string DefaultFilePath = "test.cs";
-
-        private static CliRangeModel CreateRange(int startLine, int endLine)
-        {
-            return new CliRangeModel { StartLine = startLine, EndLine = endLine, StartColumn = 1, EndColumn = 1 };
-        }
-
-        private static CliCodeSmellModel CreateCodeSmell(string category, string details = null, int startLine = 1, int endLine = 10)
-        {
-            return new CliCodeSmellModel { Category = category, Details = details, Range = CreateRange(startLine, endLine) };
-        }
-
-        private static CliReviewFunctionModel CreateFunction(string name, int startLine, int endLine, params CliCodeSmellModel[] smells)
-        {
-            return new CliReviewFunctionModel { Function = name, Range = CreateRange(startLine, endLine), CodeSmells = smells };
-        }
-
-        private FileReviewModel MapReview(CliReviewModel cliReview, string path = DefaultFilePath)
-        {
-            return _mapper.Map(path, cliReview);
-        }
+        private readonly ModelMapper _mapper = new ModelMapper();
 
         public void Map_NullCliReviewModel_ReturnsEmptyFileReviewModel()
         {
@@ -185,6 +165,26 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.AreEqual(1, result.FunctionLevel.Count);
             Assert.IsNull(result.FunctionLevel.First().FunctionRange);
+        }
+
+        private static CliRangeModel CreateRange(int startLine, int endLine)
+        {
+            return new CliRangeModel { StartLine = startLine, EndLine = endLine, StartColumn = 1, EndColumn = 1 };
+        }
+
+        private static CliCodeSmellModel CreateCodeSmell(string category, string details = null, int startLine = 1, int endLine = 10)
+        {
+            return new CliCodeSmellModel { Category = category, Details = details, Range = CreateRange(startLine, endLine) };
+        }
+
+        private static CliReviewFunctionModel CreateFunction(string name, int startLine, int endLine, params CliCodeSmellModel[] smells)
+        {
+            return new CliReviewFunctionModel { Function = name, Range = CreateRange(startLine, endLine), CodeSmells = smells };
+        }
+
+        private FileReviewModel MapReview(CliReviewModel cliReview, string path = DefaultFilePath)
+        {
+            return _mapper.Map(path, cliReview);
         }
     }
 }

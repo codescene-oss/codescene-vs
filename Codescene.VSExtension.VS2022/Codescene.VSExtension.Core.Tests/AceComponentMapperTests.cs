@@ -18,39 +18,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mapper = new AceComponentMapper();
         }
 
-        private static CliRangeModel CreateRange(int startLine = 10, int endLine = 20, int startColumn = 1, int endColumn = 50)
-        {
-            return new CliRangeModel
-            {
-                StartLine = startLine,
-                EndLine = endLine,
-                StartColumn = startColumn,
-                EndColumn = endColumn,
-            };
-        }
-
-        private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction", CliRangeModel range = null)
-        {
-            return new FnToRefactorModel
-            {
-                Name = name,
-                Range = range ?? CreateRange(),
-            };
-        }
-
-        private static CachedRefactoringActionModel CreateCachedModel(
-            string path = "test.cs",
-            FnToRefactorModel refactorableCandidate = null,
-            RefactorResponseModel refactored = null)
-        {
-            return new CachedRefactoringActionModel
-            {
-                Path = path,
-                RefactorableCandidate = refactorableCandidate ?? CreateFnToRefactor(),
-                Refactored = refactored,
-            };
-        }
-
         [TestMethod]
         public void Map_CachedModel_ReturnsComponentData()
         {
@@ -319,6 +286,39 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _mapper.MapAsStale(model);
 
             Assert.IsNull(result.Error);
+        }
+
+        private static CliRangeModel CreateRange(int startLine = 10, int endLine = 20, int startColumn = 1, int endColumn = 50)
+        {
+            return new CliRangeModel
+            {
+                StartLine = startLine,
+                EndLine = endLine,
+                StartColumn = startColumn,
+                EndColumn = endColumn,
+            };
+        }
+
+        private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction", CliRangeModel range = null)
+        {
+            return new FnToRefactorModel
+            {
+                Name = name,
+                Range = range ?? CreateRange(),
+            };
+        }
+
+        private static CachedRefactoringActionModel CreateCachedModel(
+            string path = "test.cs",
+            FnToRefactorModel refactorableCandidate = null,
+            RefactorResponseModel refactored = null)
+        {
+            return new CachedRefactoringActionModel
+            {
+                Path = path,
+                RefactorableCandidate = refactorableCandidate ?? CreateFnToRefactor(),
+                Refactored = refactored,
+            };
         }
     }
 }

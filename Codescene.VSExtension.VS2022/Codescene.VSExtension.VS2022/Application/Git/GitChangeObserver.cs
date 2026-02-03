@@ -57,12 +57,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         public Timer ScheduledTimer => _core?.ScheduledTimer;
 
-        private void InitializeCore()
-        {
-            _core = new GitChangeObserverCore(_logger, _codeReviewer, _supportedFileChecker, _gitService, _taskScheduler);
-            _core.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
-        }
-
         public void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
         {
             if (_core == null)
@@ -113,6 +107,12 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         public void Dispose()
         {
             _core?.Dispose();
+        }
+
+        private void InitializeCore()
+        {
+            _core = new GitChangeObserverCore(_logger, _codeReviewer, _supportedFileChecker, _gitService, _taskScheduler);
+            _core.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
         }
     }
 }

@@ -31,50 +31,6 @@ public class PreflightManagerTests
         _preflightManager = new PreflightManager(_mockCliExecutor.Object, _mockLogger.Object, _mockAceStateService.Object, _mockSettingsProvider.Object);
     }
 
-    private PreFlightResponseModel CreatePreflightResponse(params string[] fileTypes) =>
-        new PreFlightResponseModel { FileTypes = fileTypes };
-
-    private void SetupSuccessfulPreflight(PreFlightResponseModel response = null)
-    {
-        response ??= CreatePreflightResponse("cs");
-        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Returns(response);
-    }
-
-    private void SetupPreflightReturnsNull() =>
-        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Returns((PreFlightResponseModel)null);
-
-    private void SetupPreflightThrows(Exception exception) =>
-        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Throws(exception);
-
-    private void SetupAuthToken(string token) =>
-        _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
-
-    private void SetupCurrentState(AceState state) =>
-        _mockAceStateService.Setup(x => x.CurrentState).Returns(state);
-
-    private void SetupPreflightWithAceStatus(string token, AceState state, PreFlightResponseModel response = null)
-    {
-        SetupSuccessfulPreflight(response);
-        SetupAuthToken(token);
-        SetupCurrentState(state);
-    }
-
-    private void RunPreflightAndAssertAceStatus(string expectedStatus, bool expectedHasToken)
-    {
-        _preflightManager.RunPreflight();
-        var config = _preflightManager.GetAutoRefactorConfig();
-
-        Assert.IsNotNull(config.AceStatus);
-        Assert.AreEqual(expectedStatus, config.AceStatus.Status);
-        Assert.AreEqual(expectedHasToken, config.AceStatus.HasToken);
-    }
-
-    private void InitializePreflightConfig(string token = "token")
-    {
-        SetupPreflightWithAceStatus(token, AceState.Enabled);
-        _preflightManager.RunPreflight();
-    }
-
     [TestMethod]
     public void IsSupportedLanguage_WhenNoPreflightResponse_ReturnsFalse()
     {
@@ -421,5 +377,49 @@ public class PreflightManagerTests
 
         // Assert
         Assert.IsTrue(_preflightManager.GetAutoRefactorConfig().Disabled);
+    }
+
+    private PreFlightResponseModel CreatePreflightResponse(params string[] fileTypes) =>
+    new PreFlightResponseModel { FileTypes = fileTypes };
+
+    private void SetupSuccessfulPreflight(PreFlightResponseModel response = null)
+    {
+        response ??= CreatePreflightResponse("cs");
+        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Returns(response);
+    }
+
+    private void SetupPreflightReturnsNull() =>
+        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Returns((PreFlightResponseModel)null);
+
+    private void SetupPreflightThrows(Exception exception) =>
+        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Throws(exception);
+
+    private void SetupAuthToken(string token) =>
+        _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
+
+    private void SetupCurrentState(AceState state) =>
+        _mockAceStateService.Setup(x => x.CurrentState).Returns(state);
+
+    private void SetupPreflightWithAceStatus(string token, AceState state, PreFlightResponseModel response = null)
+    {
+        SetupSuccessfulPreflight(response);
+        SetupAuthToken(token);
+        SetupCurrentState(state);
+    }
+
+    private void RunPreflightAndAssertAceStatus(string expectedStatus, bool expectedHasToken)
+    {
+        _preflightManager.RunPreflight();
+        var config = _preflightManager.GetAutoRefactorConfig();
+
+        Assert.IsNotNull(config.AceStatus);
+        Assert.AreEqual(expectedStatus, config.AceStatus.Status);
+        Assert.AreEqual(expectedHasToken, config.AceStatus.HasToken);
+    }
+
+    private void InitializePreflightConfig(string token = "token")
+    {
+        SetupPreflightWithAceStatus(token, AceState.Enabled);
+        _preflightManager.RunPreflight();
     }
 }

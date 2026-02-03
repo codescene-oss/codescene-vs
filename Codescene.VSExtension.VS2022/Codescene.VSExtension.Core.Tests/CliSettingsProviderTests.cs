@@ -19,8 +19,7 @@ namespace Codescene.VSExtension.Core.Tests
             var actualVersion = provider.RequiredDevToolVersion;
 
             // ASSERT: Verify that the returned value is as expected
-            Assert.AreEqual(expectedVersion, actualVersion,
-                "RequiredDevToolVersion should return the expected SHA string.");
+            Assert.AreEqual(expectedVersion, actualVersion, "RequiredDevToolVersion should return the expected SHA string.");
         }
 
         [TestMethod]
@@ -34,8 +33,7 @@ namespace Codescene.VSExtension.Core.Tests
             var actualArtifactName = provider.CliArtifactName;
 
             // ASSERT: Ensure the artifact name matches the expected value
-            Assert.AreEqual(expectedArtifactName, actualArtifactName,
-                "CliArtifactName should return the expected artifact name.");
+            Assert.AreEqual(expectedArtifactName, actualArtifactName, "CliArtifactName should return the expected artifact name.");
         }
 
         [TestMethod]
@@ -49,8 +47,7 @@ namespace Codescene.VSExtension.Core.Tests
             var actualArtifactUrl = provider.CliArtifactUrl;
 
             // ASSERT: Verify that the URL is constructed correctly
-            Assert.AreEqual(expectedArtifactUrl, actualArtifactUrl,
-                "CliArtifactUrl should be the base URL followed by the artifact name.");
+            Assert.AreEqual(expectedArtifactUrl, actualArtifactUrl, "CliArtifactUrl should be the base URL followed by the artifact name.");
         }
 
         [TestMethod]
@@ -64,8 +61,7 @@ namespace Codescene.VSExtension.Core.Tests
             var actualFileName = provider.CliFileName;
 
             // ASSERT: Ensure that the file name is correct
-            Assert.AreEqual(expectedFileName, actualFileName,
-                "CliFileName should return the expected executable name.");
+            Assert.AreEqual(expectedFileName, actualFileName, "CliFileName should return the expected executable name.");
         }
 
         [TestMethod]
@@ -79,8 +75,7 @@ namespace Codescene.VSExtension.Core.Tests
             var actualBaseUrl = provider.ArtifactBaseUrl;
 
             // ASSERT: Verify that the base URL matches the expected value
-            Assert.AreEqual(expectedBaseUrl, actualBaseUrl,
-                "ArtifactBaseUrl should return the expected base URL.");
+            Assert.AreEqual(expectedBaseUrl, actualBaseUrl, "ArtifactBaseUrl should return the expected base URL.");
         }
 
         [TestMethod]
@@ -100,8 +95,7 @@ namespace Codescene.VSExtension.Core.Tests
             var actualFullPath = provider.CliFileFullPath;
 
             // ASSERT: Check if the computed full path is correct
-            Assert.AreEqual(expectedFullPath, actualFullPath,
-                "CliFileFullPath should return the correct full path to the CLI file.");
+            Assert.AreEqual(expectedFullPath, actualFullPath, "CliFileFullPath should return the correct full path to the CLI file.");
         }
     }
 }

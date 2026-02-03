@@ -48,7 +48,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                     _logger.Info("Got preflight response. ACE service is active.");
                     _preflightResponse = response;
                     _aceStateService.SetState(AceState.Enabled);
-                    _autoRefactorConfig = new ()
+                    _autoRefactorConfig = new()
                     {
                         Activated = true,
                         Visible = true,
@@ -62,7 +62,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 {
                     _logger.Info("Problem getting preflight response. ACE service is down.");
                     _preflightResponse = null;
-                    _autoRefactorConfig = new ()
+                    _autoRefactorConfig = new()
                     {
                         Activated = true,
                         Visible = true,
@@ -79,7 +79,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 _preflightResponse = null;
                 _aceStateService.SetState(AceState.Error, ex);
 
-                _autoRefactorConfig = new ()
+                _autoRefactorConfig = new()
                 {
                     Activated = true,
                     Visible = true,
@@ -89,17 +89,6 @@ namespace Codescene.VSExtension.Core.Application.Ace
             }
 
             return null;
-        }
-
-        private AceStatusType GetAceStatus(AceState state)
-        {
-            var hasToken = !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
-
-            return new AceStatusType
-            {
-                Status = MapAceState(state),
-                HasToken = hasToken,
-            };
         }
 
         public bool IsSupportedLanguage(string extension) => _preflightResponse?.FileTypes.Contains(extension.Replace(".", string.Empty).ToLower()) ?? false;
@@ -114,7 +103,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
             return _preflightResponse;
         }
 
-        public AutoRefactorConfig GetAutoRefactorConfig() => _autoRefactorConfig ?? new () { Activated = true, Visible = true, Disabled = false, AceStatus = new AceStatusType { HasToken = false, Status = MapAceState(AceState.Disabled) } };
+        public AutoRefactorConfig GetAutoRefactorConfig() => _autoRefactorConfig ?? new() { Activated = true, Visible = true, Disabled = false, AceStatus = new AceStatusType { HasToken = false, Status = MapAceState(AceState.Disabled) } };
 
         public void SetHasAceToken(bool hasAceToken)
         {
@@ -125,6 +114,17 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
             _autoRefactorConfig.AceStatus.HasToken = hasAceToken;
             _autoRefactorConfig.Disabled = !hasAceToken;
+        }
+
+        private AceStatusType GetAceStatus(AceState state)
+        {
+            var hasToken = !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
+
+            return new AceStatusType
+            {
+                Status = MapAceState(state),
+                HasToken = hasToken,
+            };
         }
 
         private static string MapAceState(AceState state)

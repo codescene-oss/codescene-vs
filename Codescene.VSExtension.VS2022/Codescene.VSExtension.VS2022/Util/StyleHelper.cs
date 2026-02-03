@@ -35,8 +35,6 @@ public static class StyleHelper
         [90] = "E6",
     };
 
-    private static string ToHex(Color c) => $"{c.R:X2}{c.G:X2}{c.B:X2}";
-
     /// <summary>
     /// Generates a CSS string defining theme variables based on the current Visual Studio color theme.
     /// These variables are injected into the WebView to match the IDE's appearance.
@@ -145,4 +143,6 @@ public static class StyleHelper
             return string.Empty;
         }
     }
+
+    private static string ToHex(Color c) => $"{c.R:X2}{c.G:X2}{c.B:X2}";
 }

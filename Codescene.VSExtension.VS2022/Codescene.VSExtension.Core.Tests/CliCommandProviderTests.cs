@@ -20,21 +20,6 @@ namespace Codescene.VSExtension.Core.Tests
         private const string TestFileContent = "content";
         private const string TestCachePath = "/home/user/cache";
 
-        private static List<CliCodeSmellModel> CreateTestCodeSmells()
-        {
-            return new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "test" } };
-        }
-
-        private static PreFlightResponseModel CreateTestPreflight()
-        {
-            return new PreFlightResponseModel { FileTypes = new[] { ".js" } };
-        }
-
-        private static DeltaResponseModel CreateTestDeltaResult()
-        {
-            return new DeltaResponseModel { NewScore = 2, OldScore = 3 };
-        }
-
         [TestInitialize]
         public void Initialize()
         {
@@ -168,17 +153,6 @@ namespace Codescene.VSExtension.Core.Tests
             var command = _commandProvider.SendTelemetryCommand(jsonEvent);
 
             Assert.AreEqual("telemetry --event \"{\\\"name\\\":\\\"test\\\",\\\"value\\\":\\\"data\\\"}\"", command);
-        }
-
-        private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction", string nippyB64 = null)
-        {
-            return new FnToRefactorModel
-            {
-                Name = name,
-                Body = "function body",
-                FileType = "cs",
-                NippyB64 = nippyB64,
-            };
         }
 
         [TestMethod]
@@ -353,6 +327,32 @@ namespace Codescene.VSExtension.Core.Tests
             var expectedOldScore = deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture);
             Assert.AreEqual($"{{\"delta-result\":{{\"new-score\":{expectedNewScore},\"old-score\":{expectedOldScore}}},\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", content);
             Assert.DoesNotContain("cache-path", content);
+        }
+
+        private static List<CliCodeSmellModel> CreateTestCodeSmells()
+        {
+            return new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "test" } };
+        }
+
+        private static PreFlightResponseModel CreateTestPreflight()
+        {
+            return new PreFlightResponseModel { FileTypes = new[] { ".js" } };
+        }
+
+        private static DeltaResponseModel CreateTestDeltaResult()
+        {
+            return new DeltaResponseModel { NewScore = 2, OldScore = 3 };
+        }
+
+        private static FnToRefactorModel CreateFnToRefactor(string name = "TestFunction", string nippyB64 = null)
+        {
+            return new FnToRefactorModel
+            {
+                Name = name,
+                Body = "function body",
+                FileType = "cs",
+                NippyB64 = nippyB64,
+            };
         }
     }
 }

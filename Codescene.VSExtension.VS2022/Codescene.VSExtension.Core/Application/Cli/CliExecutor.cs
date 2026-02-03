@@ -135,11 +135,23 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 operationLabel: "ACE refactoring functions from delta check");
         }
 
+        public string GetDeviceId()
+        {
+            var arguments = _cliCommandProvider.DeviceIdCommand;
+            return ExecuteSimpleCommand(arguments, "Could not get device ID");
+        }
+
+        public string GetFileVersion()
+        {
+            var arguments = _cliCommandProvider.VersionCommand;
+            return ExecuteSimpleCommand(arguments, "Could not get CLI version");
+        }
+
         private IList<FnToRefactorModel> ExecuteFnsToRefactor(
-            bool isValid,
-            string skipMessage,
-            Func<string, string> getPayload,
-            string operationLabel)
+    bool isValid,
+    string skipMessage,
+    Func<string, string> getPayload,
+    string operationLabel)
         {
             if (!isValid)
             {
@@ -169,18 +181,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 operationLabel,
                 () => _executor.Execute(command, payloadContent),
                 errorMessage);
-        }
-
-        public string GetDeviceId()
-        {
-            var arguments = _cliCommandProvider.DeviceIdCommand;
-            return ExecuteSimpleCommand(arguments, "Could not get device ID");
-        }
-
-        public string GetFileVersion()
-        {
-            var arguments = _cliCommandProvider.VersionCommand;
-            return ExecuteSimpleCommand(arguments, "Could not get CLI version");
         }
 
         private T ExecuteWithTimingAndLogging<T>(string label, Func<string> execute, string errorMessage)

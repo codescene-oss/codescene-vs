@@ -49,26 +49,6 @@ namespace Codescene.VSExtension.Core.Util
             return true;
         }
 
-        private static bool IsNetworkError(Exception ex)
-        {
-            var message = ex.Message ?? string.Empty;
-            var exceptionType = ex.GetType().Name;
-
-            if (NetworkErrorPatterns.Any(pattern =>
-                message.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                exceptionType.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0))
-            {
-                return true;
-            }
-
-            if (ex.InnerException != null)
-            {
-                return IsNetworkError(ex.InnerException);
-            }
-
-            return false;
-        }
-
         public static void IncrementErrorCount()
         {
             _sentErrorsCount++;
@@ -106,6 +86,26 @@ namespace Codescene.VSExtension.Core.Util
             result["extraData"] = extraData;
 
             return result;
+        }
+
+        private static bool IsNetworkError(Exception ex)
+        {
+            var message = ex.Message ?? string.Empty;
+            var exceptionType = ex.GetType().Name;
+
+            if (NetworkErrorPatterns.Any(pattern =>
+                message.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                exceptionType.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                return true;
+            }
+
+            if (ex.InnerException != null)
+            {
+                return IsNetworkError(ex.InnerException);
+            }
+
+            return false;
         }
 
         private static bool IsTelemetryRelatedError(Exception ex)
