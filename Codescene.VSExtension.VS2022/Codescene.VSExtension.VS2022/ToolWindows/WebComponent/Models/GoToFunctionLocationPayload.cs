@@ -15,4 +15,3 @@ public class FnData
 
     public CodeRangeModel Range { get; set; }
 }
-

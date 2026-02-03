@@ -23,5 +23,3 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
         public CliRangeModel Range { get; set; }
     }
 }
-
-
