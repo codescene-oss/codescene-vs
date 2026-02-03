@@ -32,9 +32,7 @@ namespace Codescene.VSExtension.VS2022.Util
             return refactorableFunctions.FirstOrDefault(function =>
                 function.RefactoringTargets.Any(target =>
                     target.Category == codeSmell.Category &&
-                    target.Line == codeSmell.Range.StartLine
-                )
-            );
+                    target.Line == codeSmell.Range.StartLine));
         }
 
         public static async Task<FnToRefactorModel> GetRefactorableFunctionAsync(GetRefactorableFunctionsModel model)

@@ -35,8 +35,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
             [new InfoBarTextSpan(CodeSceneConstants.Titles.TERMS_INFO)],
             actionItems,
             KnownMonikers.StatusInformation,
-            isCloseButtonVisible: false
-        );
+            isCloseButtonVisible: false);
 
     public async Task<bool> EvaulateTermsAndPoliciesAcceptanceAsync()
     {

@@ -44,16 +44,14 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 Range.StartLine,
                 Range.EndLine,
                 Range.StartColumn,
-                Range.EndColumn
-            ),
+                Range.EndColumn),
             FunctionRange = FunctionRange is null
             ? null
             : new CodeRangeModel(
                 FunctionRange.StartLine,
                 FunctionRange.EndLine,
                 FunctionRange.StartColumn,
-                FunctionRange.EndColumn
-            )
+                FunctionRange.EndColumn)
         };
 
         // Bindings are defined in UnderlineTaggerTooltip.xaml
@@ -82,10 +80,8 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                             cmdParam.Path,
                             cmdParam.Category,
                             cmdParam.FunctionName,
-                            cmdParam.FunctionRange
-                        ),
-                        fnToRefactor
-                    );
+                            cmdParam.FunctionRange),
+                        fnToRefactor);
                 }
             }
             catch (Exception e)

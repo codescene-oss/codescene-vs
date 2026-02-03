@@ -45,8 +45,7 @@ internal class OutputPaneManager
             ref _paneGuid,
             PaneTitle,
             Convert.ToInt32(isVisible),
-            Convert.ToInt32(isClearedWithSolution)
-        );
+            Convert.ToInt32(isClearedWithSolution));
         outputWindow.GetPane(ref _paneGuid, out _pane);
     }
 }

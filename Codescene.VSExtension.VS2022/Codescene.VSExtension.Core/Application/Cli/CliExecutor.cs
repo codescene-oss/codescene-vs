@@ -53,8 +53,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return ExecuteWithTimingAndLogging<CliReviewModel>(
                 $"CLI file review",
                 () => _executor.Execute(command, payload),
-                $"Review of file {filename} failed"
-            );
+                $"Review of file {filename} failed");
         }
 
         /// <summary>
@@ -77,8 +76,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return ExecuteWithTimingAndLogging<DeltaResponseModel>(
                 "CLI file delta review",
                 () => _executor.Execute("delta", arguments),
-                "Delta for file failed."
-            );
+                "Delta for file failed.");
         }
 
         public PreFlightResponseModel Preflight(bool force = true)
@@ -93,8 +91,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return ExecuteWithTimingAndLogging<PreFlightResponseModel>(
                 "ACE preflight",
                 () => _executor.Execute(arguments, null, Timeout.TELEMETRY_TIMEOUT),
-                "Preflight failed."
-            );
+                "Preflight failed.");
         }
 
         public RefactorResponseModel PostRefactoring(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null)
@@ -115,8 +112,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return ExecuteWithTimingAndLogging<RefactorResponseModel>(
                 "ACE refactoring",
                 () => _executor.Execute(arguments),
-                "Refactoring failed."
-            );
+                "Refactoring failed.");
         }
 
         public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
@@ -125,8 +121,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 isValid: codeSmells != null && codeSmells.Count > 0,
                 skipMessage: "Skipping refactoring functions from code smells. Code smells list was null or empty.",
                 getPayload: cachePath => _cliCommandProvider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codeSmells, preflight),
-                operationLabel: "ACE refactoring functions from code smells check"
-            );
+                operationLabel: "ACE refactoring functions from code smells check");
         }
 
         public IList<FnToRefactorModel> FnsToRefactorFromDelta(string fileName, string fileContent, DeltaResponseModel deltaResult, PreFlightResponseModel preflight)
@@ -135,8 +130,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 isValid: deltaResult != null,
                 skipMessage: "Skipping refactoring functions from delta. Delta result was null.",
                 getPayload: cachePath => _cliCommandProvider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, preflight),
-                operationLabel: "ACE refactoring functions from delta check"
-            );
+                operationLabel: "ACE refactoring functions from delta check");
         }
 
         private IList<FnToRefactorModel> ExecuteFnsToRefactor(
@@ -172,8 +166,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return ExecuteWithTimingAndLogging<IList<FnToRefactorModel>>(
                 operationLabel,
                 () => _executor.Execute(command, payloadContent),
-                errorMessage
-            );
+                errorMessage);
         }
 
         public string GetDeviceId()

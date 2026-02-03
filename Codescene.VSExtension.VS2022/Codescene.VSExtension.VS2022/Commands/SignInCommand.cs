@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.VS2022;
 
-internal class SignInCommand(IAuthenticationService authService, ILogger errorsHandler) : Commands.VSBaseCommand
+internal class SignInCommand(IAuthenticationService authService, ILogger errorsHandler): Commands.VSBaseCommand
 {
     internal const int Id = PackageIds.SignInCommand;
 
