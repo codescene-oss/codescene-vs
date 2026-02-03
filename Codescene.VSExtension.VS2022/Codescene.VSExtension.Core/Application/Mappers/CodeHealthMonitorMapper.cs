@@ -52,7 +52,9 @@ namespace Codescene.VSExtension.Core.Application.Mappers
             var result = new List<FunctionFinding>();
 
             if (model == null)
+            {
                 return result;
+            }
 
             foreach (var item in model)
             {
@@ -100,7 +102,9 @@ namespace Codescene.VSExtension.Core.Application.Mappers
         private List<ChangeDetail> ToChangeDetails(ChangeDetailModel[] model)
         {
             if (model == null)
+            {
                 return new List<ChangeDetail>();
+            }
 
             return model.Select(item => new ChangeDetail
             {

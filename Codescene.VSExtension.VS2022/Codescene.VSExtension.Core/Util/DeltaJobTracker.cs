@@ -19,7 +19,9 @@ namespace Codescene.VSExtension.Core.Util
             lock (_running)
             {
                 if (_running.Add(job))
+                {
                     JobStarted?.Invoke(job);
+                }
             }
         }
 
@@ -28,7 +30,9 @@ namespace Codescene.VSExtension.Core.Util
             lock (_running)
             {
                 if (_running.Remove(job))
+                {
                     JobFinished?.Invoke(job);
+                }
             }
         }
 
@@ -39,7 +43,10 @@ namespace Codescene.VSExtension.Core.Util
         {
             get
             {
-                lock (_running) return _running.ToList().AsReadOnly();
+                lock (_running)
+                {
+                    return _running.ToList().AsReadOnly();
+                }
             }
         }
     }

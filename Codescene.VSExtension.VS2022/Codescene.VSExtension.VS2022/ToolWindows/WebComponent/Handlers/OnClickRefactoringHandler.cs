@@ -48,9 +48,13 @@ public class OnClickRefactoringHandler
             AceAcknowledgeToolWindow.UpdateRefactoringData(refactorableFunction, path);
 
             if (AceAcknowledgeToolWindow.IsCreated())
+            {
                 await AceAcknowledgeToolWindow.UpdateViewAsync();
+            }
             else
+            {
                 await AceAcknowledgeToolWindow.ShowAsync();
+            }
 
             return;
         }
@@ -108,9 +112,14 @@ public class OnClickRefactoringHandler
             var refactored = _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction, entryPoint);
             AceComponentData data;
             if (refactored != null)
+            {
                 data = _mapper.Map(refactored);
+            }
             else
+            {
                 data = _mapper.Map(path, refactorableFunction, AceViewErrorTypes.GENERIC);
+            }
+
             if (cancellationToken.IsCancellationRequested)
             {
                 return;

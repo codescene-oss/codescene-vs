@@ -31,7 +31,10 @@ namespace Codescene.VSExtension.Core.Util
             ITelemetryManager telemetryManager)
         {
             var eventName = GetTelemetryEventName(previousSnapshot, currentCache, entry.FilePath);
-            if (eventName == null) return;
+            if (eventName == null)
+            {
+                return;
+            }
 
             Task.Run(() =>
             {
@@ -59,9 +62,20 @@ namespace Codescene.VSExtension.Core.Util
             var hadBefore = before.ContainsKey(filePath);
             var hasNow = after.ContainsKey(filePath);
 
-            if (!hadBefore && hasNow) return Constants.Telemetry.MONITORFILEADDED;
-            if (hadBefore && !hasNow) return Constants.Telemetry.MONITORFILEREMOVED;
-            if (hadBefore && hasNow) return Constants.Telemetry.MONITORFILEUPDATED;
+            if (!hadBefore && hasNow)
+            {
+                return Constants.Telemetry.MONITORFILEADDED;
+            }
+
+            if (hadBefore && !hasNow)
+            {
+                return Constants.Telemetry.MONITORFILEREMOVED;
+            }
+
+            if (hadBefore && hasNow)
+            {
+                return Constants.Telemetry.MONITORFILEUPDATED;
+            }
 
             return null;
         }

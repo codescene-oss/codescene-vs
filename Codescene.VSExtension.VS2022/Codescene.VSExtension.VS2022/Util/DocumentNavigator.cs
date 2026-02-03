@@ -19,7 +19,9 @@ public static class DocumentNavigator
             var window = dte.ItemOperations.OpenFile(filePath);
 
             if (window == null)
+            {
                 return;
+            }
 
             window.Visible = true;
 

@@ -30,13 +30,19 @@ namespace Codescene.VSExtension.Core.Util
         public static bool ShouldSendError(Exception ex)
         {
             if (_sentErrorsCount >= MAXERRORSTOSEND)
+            {
                 return false;
+            }
 
             if (IsTelemetryRelatedError(ex))
+            {
                 return false;
+            }
 
             if (IsNetworkError(ex))
+            {
                 return false;
+            }
 
             return true;
         }

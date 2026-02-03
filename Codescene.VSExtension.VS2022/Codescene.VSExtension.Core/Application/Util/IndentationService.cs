@@ -16,7 +16,9 @@ namespace Codescene.VSExtension.Core.Application.Util
         public string AdjustIndentation(string code, IndentationInfo indentationInfo)
         {
             if (indentationInfo.Level == 0)
+            {
                 return code;
+            }
 
             string indentationString;
             if (indentationInfo.UsesTabs)
@@ -54,9 +56,14 @@ namespace Codescene.VSExtension.Core.Application.Util
             while (i < lineText.Length && char.IsWhiteSpace(lineText[i]))
             {
                 if (lineText[i] == '\t')
+                {
                     tabCount++;
+                }
                 else if (lineText[i] == ' ')
+                {
                     spaceCount++;
+                }
+
                 i++;
             }
 

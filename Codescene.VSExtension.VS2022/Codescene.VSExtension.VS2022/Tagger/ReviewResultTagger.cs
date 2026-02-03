@@ -42,7 +42,9 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             var smells = TryLoadFromCache();
 
             if (smells.Count == 0)
+            {
                 yield break; // No tags, exit early
+            }
 
             foreach (var visibleSpan in spans)
             {
@@ -63,7 +65,9 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             var cached = _cache.Get(new ReviewCacheQuery(currentContent, _filePath));
 
             if (cached != null)
+            {
                 return cached.FileLevel.Concat(cached.FunctionLevel).ToList() ??[];
+            }
 
             return[];
         }
@@ -98,7 +102,9 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 var codeSmellEndColumn = tagSpanParams.CodeSmell.Range.EndColumn;
 
                 if (codeSmellStartLine < 0 || codeSmellEndLine >= snapshot.LineCount)
+                {
                     return null;
+                }
 
                 var startLine = snapshot.GetLineFromLineNumber(codeSmellStartLine);
                 var endLine = snapshot.GetLineFromLineNumber(codeSmellEndLine);
@@ -110,7 +116,9 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
                 int endPos = endLine.Start + Math.Max(0, Math.Min(codeSmellEndColumn, endLine.Length));
 
                 if (endPos <= startPos)
+                {
                     return null;
+                }
 
                 return new SnapshotSpan(snapshot, Span.FromBounds(startPos, endPos));
             }
@@ -152,7 +160,9 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
+            {
                 return;
+            }
 
             if (disposing)
             {

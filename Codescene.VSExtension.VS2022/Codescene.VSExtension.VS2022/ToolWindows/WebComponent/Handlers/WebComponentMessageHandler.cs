@@ -137,7 +137,10 @@ internal class WebComponentMessageHandler
     private async Task HandleInitAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
         var source = msgObject.Payload?.ToString();
-        if (string.IsNullOrEmpty(source)) return;
+        if (string.IsNullOrEmpty(source))
+        {
+            return;
+        }
 
         logger.Debug($"Webview '{source}' is ready to take messages.");
 
@@ -177,7 +180,9 @@ internal class WebComponentMessageHandler
         await applier.ApplyAsync(payload);
 
         if (_control.CloseRequested is not null)
+        {
             await _control.CloseRequested();
+        }
 
         // Refresh the view after applying changes, because of the bug with two methods with the same name, needs to be revalidated.
         await CodeSceneToolWindow.UpdateViewAsync();
@@ -201,7 +206,9 @@ internal class WebComponentMessageHandler
         HandleAceTelemetry(Constants.Telemetry.ACEREFACTORREJECTED);
 
         if (_control.CloseRequested is not null)
+        {
             await _control.CloseRequested();
+        }
     }
 
     private void HandleAceTelemetry(string telemetryEvent)
@@ -224,7 +231,9 @@ internal class WebComponentMessageHandler
         }
 
         if (_control.CloseRequested is not null)
+        {
             await _control.CloseRequested();
+        }
     }
 
     private async Task HandleGotoFunctionLocationAsync(MessageObj<JToken> msgObject, ILogger logger)
@@ -275,7 +284,9 @@ internal class WebComponentMessageHandler
         }
 
         if (payload.Source == ViewTypes.DOCS && _control.CloseRequested is not null)
+        {
             await _control.CloseRequested();
+        }
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         await onClickRefactoringHandler.HandleAsync(
@@ -296,7 +307,9 @@ internal class WebComponentMessageHandler
     private async Task HandleCloseAsync()
     {
         if (_control.CloseRequested is not null)
+        {
             await _control.CloseRequested();
+        }
     }
 
     private async Task HandleAcknowledgedAsync(MessageObj<JToken> msgObject, ILogger logger)
@@ -323,7 +336,9 @@ internal class WebComponentMessageHandler
 
         // Close the acknowledgement window
         if (_control.CloseRequested is not null)
+        {
             await _control.CloseRequested();
+        }
 
         var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
         await onClickRefactoringHandler.HandleAsync(

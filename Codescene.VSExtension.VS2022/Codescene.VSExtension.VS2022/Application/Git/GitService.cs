@@ -74,7 +74,10 @@ public class GitService : IGitService
             var mainBranch = repository.Branches[mainBranchName]
                           ?? repository.Branches[$"origin/{mainBranchName}"];
 
-            if (mainBranch == null) continue;
+            if (mainBranch == null)
+            {
+                continue;
+            }
 
             try
             {
@@ -176,7 +179,10 @@ public class GitService : IGitService
     private static string AppendDirectorySeparatorChar(string path)
     {
         if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
+        {
             return path + Path.DirectorySeparatorChar;
+        }
+
         return path;
     }
 

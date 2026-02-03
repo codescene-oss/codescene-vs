@@ -51,7 +51,9 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
             var skipInfoBar = setupIssue || termsAccepted || _infoBarShownOnce;
 
             if (skipInfoBar)
+            {
                 return termsAccepted;
+            }
 
             _currentTermsInfoBarUiElement = uiElement;
             uiElement.Advise(this, out _);
@@ -109,15 +111,21 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
         host = null;
 
         if (Package.GetGlobalService(typeof(SVsShell)) is not IVsShell vsShell)
+        {
             return false;
+        }
 
         ThreadHelper.ThrowIfNotOnUIThread();
 
         if (vsShell.GetProperty((int)__VSSPROPID7.VSSPROPID_MainWindowInfoBarHost, out var obj) != VSConstants.S_OK)
+        {
             return false;
+        }
 
         if (obj is not IVsInfoBarHost infoBarHost)
+        {
             return false;
+        }
 
         host = infoBarHost;
         return true;
@@ -129,7 +137,9 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
         {
             Dictionary<string, object> additionalData = null;
             if (!string.IsNullOrEmpty(selection))
+            {
                 additionalData = new Dictionary<string, object> { { "selection", selection } };
+            }
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
             telemetryManager.SendTelemetry(eventName, additionalData);
@@ -160,7 +170,9 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
         var store = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
         if (!store.CollectionExists(CodeSceneConstants.Titles.SETTINGSCOLLECTION))
+        {
             store.CreateCollection(CodeSceneConstants.Titles.SETTINGSCOLLECTION);
+        }
 
         return store;
     }

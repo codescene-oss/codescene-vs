@@ -80,7 +80,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 var entry = cache.Get(new DeltaCacheQuery(path, oldCode, currentCode));
 
                 // If cache hit
-                if (entry.Item1) return entry.Item2;
+                if (entry.Item1)
+                {
+                    return entry.Item2;
+                }
 
                 var oldCodeReview = Review(path, oldCode);
                 var oldRawScore = oldCodeReview?.RawScore ?? string.Empty;

@@ -26,7 +26,9 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
             ThreadHelper.ThrowIfNotOnUIThread();
 
             if (_errorListProvider == null && VS2022Package.Instance != null)
+            {
                 _errorListProvider = new ErrorListProvider(VS2022Package.Instance);
+            }
 
             return _errorListProvider;
         }
@@ -85,7 +87,9 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
                 var isUiThread = ThreadHelper.CheckAccess();
 
                 if (!isUiThread)
+                {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                }
 
                 if (task?.Line == null)
                 {
@@ -121,13 +125,18 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
     public void Handle(FileReviewModel review)
     {
         if (review == null || string.IsNullOrWhiteSpace(review.FilePath))
+        {
             return;
+        }
 
         Delete(review.FilePath);
 
         var issues = review.FunctionLevel.Concat(review.FileLevel).ToList();
 
-        if (!issues.Any()) return;
+        if (!issues.Any())
+        {
+            return;
+        }
 
         Add(issues);
     }

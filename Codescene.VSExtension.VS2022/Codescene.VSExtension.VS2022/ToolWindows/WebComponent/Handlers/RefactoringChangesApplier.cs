@@ -26,7 +26,9 @@ public class RefactoringChangesApplier
 
         var docView = await VS.Documents.OpenAsync(payload.FilePath);
         if (docView?.TextBuffer is not ITextBuffer buffer)
+        {
             return;
+        }
 
         var snapshot = buffer.CurrentSnapshot;
 
@@ -49,7 +51,9 @@ public class RefactoringChangesApplier
         int end = Math.Max(1, fnEndLine) - 1;
 
         if (start >= snapshot.LineCount)
+        {
             return;
+        }
 
         end = Math.Min(end, snapshot.LineCount - 1);
 

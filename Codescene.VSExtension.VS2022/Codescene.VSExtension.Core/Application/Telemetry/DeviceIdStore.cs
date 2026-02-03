@@ -25,7 +25,9 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
         public string GetDeviceId()
         {
             if (!string.IsNullOrEmpty(_deviceId))
+            {
                 return _deviceId;
+            }
 
             try
             {

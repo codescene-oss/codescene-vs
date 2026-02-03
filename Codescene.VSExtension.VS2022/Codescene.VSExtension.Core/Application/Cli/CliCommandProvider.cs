@@ -69,7 +69,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             var args = new List<string> { "refactor", "post" };
             if (skipCache)
+            {
                 args.Add("--skip-cache");
+            }
+
             if (!string.IsNullOrWhiteSpace(token))
             {
                 args.Add("--token");

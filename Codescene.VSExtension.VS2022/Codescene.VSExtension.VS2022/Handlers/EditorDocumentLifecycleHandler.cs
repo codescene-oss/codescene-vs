@@ -118,15 +118,21 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         {
             // Skip if ACE tool window is not open or already marked as stale
             if (!AceToolWindow.IsCreated() || AceToolWindow.IsStale)
+            {
                 return false;
+            }
 
             var lastRefactoring = AceManager.LastRefactoring;
             if (lastRefactoring == null)
+            {
                 return false;
+            }
 
             // Skip if this file is not the one being refactored
             if (!string.Equals(lastRefactoring.Path, filePath, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
+            }
 
             return true;
         }
@@ -142,10 +148,14 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             // Re-check guard conditions in case state changed between scheduling and execution
             var lastRefactoring = AceManager.LastRefactoring;
             if (lastRefactoring == null || AceToolWindow.IsStale)
+            {
                 return;
+            }
 
             if (!string.Equals(lastRefactoring.Path, filePath, StringComparison.OrdinalIgnoreCase))
+            {
                 return;
+            }
 
             var content = buffer.CurrentSnapshot.GetText();
             var result = _aceStaleChecker.IsFunctionUnchangedInDocument(
@@ -191,7 +201,10 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
                 var cache = new ReviewCacheService();
                 var cachedResult = cache.Get(new ReviewCacheQuery(code, path));
-                if (cachedResult != null) return;
+                if (cachedResult != null)
+                {
+                    return;
+                }
 
                 _logger.Info($"Reviewing file {path}...");
                 var result = _reviewer.Review(path, code);
@@ -219,7 +232,9 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 _marginSettings.UpdateMarginData(path, code);
 
                 if (buffer.Properties.TryGetProperty<ReviewResultTagger>(typeof(ReviewResultTagger), out var tagger))
+                {
                     tagger.RefreshTags();
+                }
             }
             catch (Exception e)
             {

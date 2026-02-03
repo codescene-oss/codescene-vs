@@ -39,7 +39,9 @@ internal class OutputPaneManager
         const bool isClearedWithSolution = false;
 
         if (_serviceProvider.GetService(typeof(SVsOutputWindow)) is not IVsOutputWindow outputWindow)
+        {
             throw new InvalidOperationException("Could not get SVsOutputWindow service.");
+        }
 
         outputWindow.CreatePane(
             ref _paneGuid,

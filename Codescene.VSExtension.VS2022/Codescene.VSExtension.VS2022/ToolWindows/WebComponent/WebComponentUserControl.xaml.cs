@@ -99,7 +99,10 @@ public partial class WebComponentUserControl : UserControl
     /// </summary>
     private async Task ApplyThemeToWebViewAsync()
     {
-        if (webView.CoreWebView2 == null) return;
+        if (webView.CoreWebView2 == null)
+        {
+            return;
+        }
 
         var css = GenerateCssVariablesFromTheme().Replace("`", "\\`");
 
@@ -144,7 +147,10 @@ public partial class WebComponentUserControl : UserControl
 
         var ideContext = JsonConvert.SerializeObject(payload, settings);
 
-        if (!ThreadHelper.CheckAccess()) await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        if (!ThreadHelper.CheckAccess())
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        }
 
         var cssVars = GenerateCssVariablesFromTheme();
 
@@ -222,7 +228,9 @@ public partial class WebComponentUserControl : UserControl
         var uri = args.Uri;
         // Allow navigation to our local app host
         if (!string.IsNullOrEmpty(_host) && uri.Equals($"https://{_host}/index.html", StringComparison.OrdinalIgnoreCase))
+        {
             return;
+        }
 
         bool isExternalNavigationAllowed = AllowedDomains.Any(domain => uri.StartsWith(domain, StringComparison.OrdinalIgnoreCase));
         if (isExternalNavigationAllowed)

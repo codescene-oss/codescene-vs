@@ -60,7 +60,9 @@ internal class AceRefactorSuggestedAction : ISuggestedAction
                 var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
 
                 if (onClickRefactoringHandler == null)
+                {
                     return;
+                }
 
                 await onClickRefactoringHandler.HandleAsync(
                     _filePath,

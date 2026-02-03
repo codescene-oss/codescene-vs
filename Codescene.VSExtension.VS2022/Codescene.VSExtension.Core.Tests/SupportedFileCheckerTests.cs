@@ -127,7 +127,9 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 var fileName = "test" + ext;
                 if (!_checker.IsSupported(fileName))
+                {
                     unsupportedExtensions.Add(ext);
+                }
             }
 
             Assert.AreEqual(0, unsupportedExtensions.Count,
@@ -141,7 +143,9 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 var fileName = "test" + ext;
                 if (_checker.IsSupported(fileName))
+                {
                     supportedExtensions.Add(ext);
+                }
             }
 
             Assert.AreEqual(0, supportedExtensions.Count,
@@ -151,7 +155,9 @@ namespace Codescene.VSExtension.Core.Tests
         private void AssertAllSupported(IEnumerable<string> filePaths)
         {
             foreach (var path in filePaths)
+            {
                 Assert.IsTrue(_checker.IsSupported(path), $"{path} should be supported");
+            }
         }
     }
 }
