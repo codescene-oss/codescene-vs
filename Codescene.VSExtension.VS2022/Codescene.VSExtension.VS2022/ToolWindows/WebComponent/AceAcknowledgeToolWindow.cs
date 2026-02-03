@@ -96,7 +96,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
                     {
                         Activated = acknowledgementStateService.IsAcknowledged(),
                         Disabled = !hastoken,
-                        Visible = true
+                        Visible = true,
                     },
                     FnToRefactor = _fnToRefactor,
                 },

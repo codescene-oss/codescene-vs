@@ -23,8 +23,13 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
             {
                 Task.Run(async () =>
                 {
-                    try { await asyncWork(); }
-                    catch (Exception) { }
+                    try
+                    {
+                        await asyncWork();
+                    }
+                    catch (Exception)
+                    {
+                    }
                 });
             }
         }

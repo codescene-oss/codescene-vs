@@ -174,7 +174,7 @@ namespace Codescene.VSExtension.Core.Tests
                     {
                         Function = "TestFunction",
                         Range = null,
-                        CodeSmells = new[] { CreateCodeSmell("Test", null, 1, 5) }
+                        CodeSmells = new[] { CreateCodeSmell("Test", null, 1, 5) },
                     },
                 },
             };
