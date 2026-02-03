@@ -75,7 +75,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
             Assert.AreEqual("TestFunction", result[0].Name);
             _mockExecutor.Verify(x => x.FnsToRefactorFromCodeSmells(fileName, fileContent, codeSmells, preflight), Times.Once);
         }
@@ -260,7 +260,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
             Assert.AreEqual("TestFunction", result[0].Name);
             _mockExecutor.Verify(x => x.FnsToRefactorFromDelta(fileName, fileContent, deltaResponse, preflight), Times.Once);
         }

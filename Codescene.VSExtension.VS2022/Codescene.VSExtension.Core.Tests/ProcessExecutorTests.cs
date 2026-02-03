@@ -42,8 +42,8 @@ namespace Codescene.VSExtension.Core.Tests
             var exception = Assert.Throws<FileNotFoundException>(() =>
                 _processExecutor.Execute("version --sha"));
 
-            Assert.IsTrue(exception.Message.Contains("CodeScene CLI executable not found"));
-            Assert.IsTrue(exception.Message.Contains("bundled with the extension"));
+            Assert.Contains("CodeScene CLI executable not found", exception.Message);
+            Assert.Contains("bundled with the extension", exception.Message);
             Assert.AreEqual(_tempFilePath, exception.FileName);
         }
 

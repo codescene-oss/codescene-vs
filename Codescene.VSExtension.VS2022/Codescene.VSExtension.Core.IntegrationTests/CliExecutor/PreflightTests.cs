@@ -20,7 +20,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
             // Assert
             Assert.IsNotNull(result, "CLI should return a preflight response");
             Assert.IsNotNull(result.FileTypes, "Preflight should include file types");
-            Assert.IsTrue(result.FileTypes.Length > 0, "Preflight should return at least one supported file type");
+            Assert.IsNotEmpty(result.FileTypes, "Preflight should return at least one supported file type");
 
             var fileTypes = result.FileTypes.Select(ft => ft.ToLower()).ToArray();
             Assert.IsTrue(

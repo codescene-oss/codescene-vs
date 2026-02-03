@@ -37,7 +37,7 @@ namespace Codescene.VSExtension.Core.Tests
             queue.Enqueue(event1);
             queue.Enqueue(event2);
 
-            Assert.AreEqual(2, queue.Count, "Events should be queued");
+            Assert.HasCount(2, queue, "Events should be queued");
             AssertFileInTracker(file1, false);
             AssertFileInTracker(file2, false);
 

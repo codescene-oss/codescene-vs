@@ -74,8 +74,8 @@ namespace Codescene.VSExtension.Core.Tests
             var basePath = @"C:\test\project";
             var fullPath = @"C:\test\project\src\file.txt";
             var result = PathUtilities.GetRelativePath(basePath, fullPath);
-            Assert.IsTrue(result.Contains("src"));
-            Assert.IsTrue(result.Contains("file.txt"));
+            Assert.Contains("src", result);
+            Assert.Contains("file.txt", result);
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var pathWithoutSeparator = @"C:\test";
             var result = PathUtilities.AppendDirectorySeparatorChar(pathWithoutSeparator);
-            Assert.IsTrue(result.EndsWith(Path.DirectorySeparatorChar.ToString()));
+            Assert.EndsWith(Path.DirectorySeparatorChar.ToString(), result);
             Assert.AreEqual(pathWithoutSeparator + Path.DirectorySeparatorChar, result);
         }
     }

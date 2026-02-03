@@ -26,13 +26,13 @@ namespace Codescene.VSExtension.Core.Tests
                 var currentBranch = repo.Head.FriendlyName;
                 var candidates = GetMainBranchCandidates(repo);
 
-                Assert.IsTrue(candidates.Count > 0, "Should detect at least one main branch candidate");
+                Assert.IsNotEmpty(candidates, "Should detect at least one main branch candidate");
                 Assert.IsTrue(
                     candidates.Contains("main") || candidates.Contains("master"),
                     "Should detect either 'main' or 'master' as a candidate");
-                Assert.IsTrue(
-                    candidates.Contains(currentBranch),
-                    $"Should detect current branch '{currentBranch}' as a candidate");
+                Assert.Contains(
+currentBranch,
+                    candidates, $"Should detect current branch '{currentBranch}' as a candidate");
             }
         }
 
@@ -48,9 +48,9 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 var candidates = GetMainBranchCandidates(repo);
 
-                Assert.IsTrue(
-                    candidates.Contains("develop"),
-                    "Should detect 'develop' branch when it exists");
+                Assert.Contains(
+"develop",
+                    candidates, "Should detect 'develop' branch when it exists");
             }
         }
 
@@ -71,17 +71,17 @@ namespace Codescene.VSExtension.Core.Tests
                 var expectedBranches = new[] { "main", "master", "develop", "trunk", "dev" };
                 var currentBranch = repo.Head.FriendlyName;
 
-                Assert.IsTrue(candidates.Contains("develop"), "Should detect 'develop'");
-                Assert.IsTrue(candidates.Contains("trunk"), "Should detect 'trunk'");
-                Assert.IsTrue(candidates.Contains("dev"), "Should detect 'dev'");
+                Assert.Contains("develop", candidates, "Should detect 'develop'");
+                Assert.Contains("trunk", candidates, "Should detect 'trunk'");
+                Assert.Contains("dev", candidates, "Should detect 'dev'");
 
                 foreach (var branch in expectedBranches)
                 {
                     if (repo.Branches[branch] != null)
                     {
-                        Assert.IsTrue(
-                            candidates.Contains(branch),
-                            $"Should detect existing branch '{branch}'");
+                        Assert.Contains(
+branch,
+                            candidates, $"Should detect existing branch '{branch}'");
                     }
                 }
             }
@@ -105,13 +105,13 @@ namespace Codescene.VSExtension.Core.Tests
                 var candidates = GetMainBranchCandidates(repo);
 
                 var remoteBranches = repo.Branches.Where(b => b.IsRemote).Select(b => b.FriendlyName).ToList();
-                Assert.IsTrue(remoteBranches.Count > 0, "Should have created remote branches");
+                Assert.IsNotEmpty(remoteBranches, "Should have created remote branches");
 
                 foreach (var remoteBranch in remoteBranches)
                 {
-                    Assert.IsFalse(
-                        candidates.Contains(remoteBranch),
-                        $"Should not include remote branch '{remoteBranch}'");
+                    Assert.DoesNotContain(
+remoteBranch,
+                        candidates, $"Should not include remote branch '{remoteBranch}'");
                 }
             }
         }
@@ -140,7 +140,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 var candidates = GetMainBranchCandidates(repo);
 
-                Assert.AreEqual(0, candidates.Count,
+                Assert.IsEmpty(candidates,
                     "Should return empty list when no main branch candidates exist");
             }
         }

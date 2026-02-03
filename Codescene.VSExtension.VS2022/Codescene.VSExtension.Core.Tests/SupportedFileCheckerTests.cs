@@ -134,7 +134,7 @@ namespace Codescene.VSExtension.Core.Tests
                 }
             }
 
-            Assert.AreEqual(0, unsupportedExtensions.Count,
+            Assert.IsEmpty(unsupportedExtensions,
                 $"Expected extensions to be supported: {string.Join(", ", unsupportedExtensions)}");
         }
 
@@ -150,7 +150,7 @@ namespace Codescene.VSExtension.Core.Tests
                 }
             }
 
-            Assert.AreEqual(0, supportedExtensions.Count,
+            Assert.IsEmpty(supportedExtensions,
                 $"Expected extensions NOT to be supported: {string.Join(", ", supportedExtensions)}");
         }
 

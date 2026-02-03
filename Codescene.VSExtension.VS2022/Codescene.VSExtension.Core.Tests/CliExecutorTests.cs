@@ -222,7 +222,7 @@ namespace Codescene.VSExtension.Core.Tests
                 new PreFlightResponseModel());
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
         }
 
         [TestMethod]
@@ -269,7 +269,7 @@ namespace Codescene.VSExtension.Core.Tests
                 new PreFlightResponseModel());
 
             Assert.IsNotNull(result);
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
         }
 
         [TestMethod]

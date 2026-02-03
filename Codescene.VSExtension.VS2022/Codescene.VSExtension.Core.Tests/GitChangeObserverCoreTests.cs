@@ -24,7 +24,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
 
-            Assert.AreEqual(0, changedFiles.Count, "Should return empty list for clean repository");
+            Assert.IsEmpty(changedFiles, "Should return empty list for clean repository");
         }
 
         [TestMethod]
@@ -124,8 +124,8 @@ namespace Codescene.VSExtension.Core.Tests
             var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
             var fileNames = changedFiles.Select(f => Path.GetFileName(f)).ToList();
 
-            Assert.IsTrue(fileNames.Contains("my file.ts"), "Should include file with spaces: my file.ts");
-            Assert.IsTrue(fileNames.Contains("test file with spaces.js"), "Should include file with spaces: test file with spaces.js");
+            Assert.Contains("my file.ts", fileNames, "Should include file with spaces: my file.ts");
+            Assert.Contains("test file with spaces.js", fileNames, "Should include file with spaces: test file with spaces.js");
         }
 
         [TestMethod]
