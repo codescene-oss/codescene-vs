@@ -17,7 +17,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
         public CliRangeModel Range { get; set; }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         [JsonProperty("code-smells")]
         public CliCodeSmellModel[] CodeSmells { get; set; }

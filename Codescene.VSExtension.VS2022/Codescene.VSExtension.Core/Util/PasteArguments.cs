@@ -10,7 +10,7 @@ namespace Codescene.VSExtension.Core.Util
     internal static partial class PasteArguments
     {
         /// <summary>
-        /// Used to escape special characters in CLI command argument. 
+        /// Used to escape special characters in CLI command argument.
         /// </summary>
         internal static void AppendArgument(StringBuilder stringBuilder, string argument)
         {

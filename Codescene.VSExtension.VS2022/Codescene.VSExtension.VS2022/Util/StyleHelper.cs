@@ -40,7 +40,7 @@ public static class StyleHelper
     /// These variables are injected into the WebView to match the IDE's appearance.
     /// The method reads Visual Studio color settings (like foreground, background, link colors, etc.)
     /// and constructs a CSS `:root` block containing corresponding CSS custom properties.
-    /// 
+    ///
     /// The generated CSS includes:
     /// <list type="bullet">
     ///   <item><description><c>--cs-theme-editor-background</c>: Background color for the editor area.</description></item>
@@ -60,7 +60,7 @@ public static class StyleHelper
     /// IDE-wide font settings (e.g. <c>--cs-theme-font-family</c>, <c>--cs-theme-font-size</c>) are not currently included,
     /// as there is no reliable way to retrieve them via the Visual Studio API.
     /// </note>
-    /// 
+    ///
     /// Additionally, it appends several opacity-based variants (e.g. <c>--cs-theme-foreground-10</c>) for hover/active styling.
     ///
     /// Returns an empty string if the theme data couldn't be accessed (e.g., DTE is unavailable or called from a non-UI thread).

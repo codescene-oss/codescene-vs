@@ -34,7 +34,7 @@ namespace Codescene.VSExtension.Core.Util
         /// Visual Studio 2022 stores telemetry opt-in status in the registry key:
         /// <c>HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VSCommon\17.0\SQM</c>
         /// under the DWORD value <c>OptIn</c>.
-        /// 
+        ///
         /// Value meanings:
         /// - 1: User has opted in to telemetry collection (enabled)
         /// - 0: User has opted out of telemetry collection (disabled)
