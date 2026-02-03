@@ -5,8 +5,10 @@ using Codescene.VSExtension.Core.Models.Cli;
 namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 {
 
-    public class WebComponentFileData : WebComponentFileDataBase
+    public class WebComponentFileDataBaseFn
     {
-        public WebComponentAction Action { get; set; }
+        public string Name { get; set; }
+
+        public CodeRangeModel Range { get; set; }
     }
 }

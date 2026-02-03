@@ -39,8 +39,11 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         {
         }
 
-        public GitChangeObserver(ILogger logger, ICodeReviewer codeReviewer,
-            ISupportedFileChecker supportedFileChecker, IGitService gitService,
+        public GitChangeObserver(
+            ILogger logger,
+            ICodeReviewer codeReviewer,
+            ISupportedFileChecker supportedFileChecker,
+            IGitService gitService,
             IAsyncTaskScheduler taskScheduler)
         {
             _logger = logger;

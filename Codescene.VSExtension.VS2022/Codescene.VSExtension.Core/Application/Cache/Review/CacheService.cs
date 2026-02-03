@@ -10,17 +10,17 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
     /// <summary>
     /// A generic base class for implementing a typed caching mechanism.
     /// </summary>
-    /// <typeparam name="Q">The type of the query used to look up values in the cache.</typeparam>
-    /// <typeparam name="E">The type of the entry object used to populate the cache.</typeparam>
-    /// <typeparam name="V">The internal value type stored in the cache (usually a lightweight wrapper).</typeparam>
-    /// <typeparam name="R">The type of the result returned by the cache lookup.</typeparam>
-    public abstract class CacheService<Q, E, V, R>
+    /// <typeparam name="TQ">The type of the query used to look up values in the cache.</typeparam>
+    /// <typeparam name="TE">The type of the entry object used to populate the cache.</typeparam>
+    /// <typeparam name="TV">The internal value type stored in the cache (usually a lightweight wrapper).</typeparam>
+    /// <typeparam name="TR">The type of the result returned by the cache lookup.</typeparam>
+    public abstract class CacheService<TQ, TE, TV, TR>
     {
-        protected static readonly ConcurrentDictionary<string, V> Cache = new ConcurrentDictionary<string, V>();
+        protected static readonly ConcurrentDictionary<string, TV> Cache = new ConcurrentDictionary<string, TV>();
 
-        public abstract R Get(Q query);
+        public abstract TR Get(TQ query);
 
-        public abstract void Put(E entry);
+        public abstract void Put(TE entry);
 
         public virtual void Invalidate(string key)
         {

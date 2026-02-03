@@ -67,6 +67,7 @@ public static class StyleHelper
     /// </summary>
     public static string GenerateCssVariablesFromTheme()
     {
+        ThreadHelper.ThrowIfNotOnUIThread();
         try
         {
             var dte = (DTE)Package.GetGlobalService(typeof(DTE));
@@ -138,7 +139,7 @@ public static class StyleHelper
 
             return sb.ToString();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return string.Empty;
         }

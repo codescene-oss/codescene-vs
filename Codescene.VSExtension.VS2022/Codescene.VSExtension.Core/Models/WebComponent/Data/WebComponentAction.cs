@@ -5,8 +5,8 @@ using Codescene.VSExtension.Core.Models.Cli;
 namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 {
 
-    public class WebComponentFileData : WebComponentFileDataBase
+    public class WebComponentAction
     {
-        public WebComponentAction Action { get; set; }
+        public WebComponentFileDataBase GoToFunctionLocationPayload { get; set; }
     }
 }

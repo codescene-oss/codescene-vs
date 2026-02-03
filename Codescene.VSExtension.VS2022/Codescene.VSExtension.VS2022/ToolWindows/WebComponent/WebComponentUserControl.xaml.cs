@@ -29,8 +29,6 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 /// </summary>
 public partial class WebComponentUserControl : UserControl
 {
-    public Func<Task> CloseRequested { get; set; }
-
     private const string FOLDERLOCATION = @"ToolWindows\WebComponent";
     private const string STYLEELEMENTID = "cs-theme-vars";
     private static readonly string[] AllowedDomains =
@@ -50,6 +48,8 @@ public partial class WebComponentUserControl : UserControl
     private string _host;
     private bool _initialized = false;
     private string _pendingMessage = null;
+
+    public Func<Task> CloseRequested { get; set; }
 
     public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
     {

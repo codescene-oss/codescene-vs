@@ -49,7 +49,9 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         }
 
         await _ctrl.UpdateViewAsync(message);
-        if (message.Payload?.Data?.AceResultData != null) // can be null when loading
+
+        // can be null when loading
+        if (message.Payload?.Data?.AceResultData != null)
         {
             SendTelemetry(responseModel: message.Payload.Data.AceResultData);
         }

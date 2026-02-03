@@ -56,7 +56,8 @@ namespace Codescene.VSExtension.Core.Application.Mappers
 
         private string AddDocsPrefix(string category)
         {
-            if (category.Contains("docs_issues")) // When opening docs from the monitor, the category is already formatted.
+            // When opening docs from the monitor, the category is already formatted.
+            if (category.Contains("docs_issues"))
             {
                 return category;
             }

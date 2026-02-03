@@ -24,7 +24,8 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class Logger : ILogger
 {
-    private readonly OutputPaneManager _outputPaneManager;
+    private const long MAXLOGFILESIZEBYTES = 10 * 1024 * 1024; // 10 MB
+    private const int MAXBACKUPFILES = 3;
     private static readonly string LogFileName = "codescene-vs-extension-" + Vsix.Version + ".log";
     private static readonly string LogFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -32,8 +33,8 @@ public class Logger : ILogger
         LogFileName);
 
     private static readonly object _fileLock = new object();
-    private const long MAXLOGFILESIZEBYTES = 10 * 1024 * 1024; // 10 MB
-    private const int MAXBACKUPFILES = 3;
+
+    private readonly OutputPaneManager _outputPaneManager;
 
     [ImportingConstructor]
     internal Logger(OutputPaneManager outputPaneManager)

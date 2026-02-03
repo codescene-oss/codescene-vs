@@ -3,7 +3,7 @@
 using System.ComponentModel.Composition;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.VS2022.Tagger;
 using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.PlatformUI;
@@ -11,26 +11,8 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Codescene.VSExtension.VS2022.Controls
 {
-    public class UnderlineTaggerTooltipParams(string category, string details, string path, CodeRangeModel range, string functionName, CodeRangeModel functionRange)
-    {
-        public string Category { get; } = category;
-
-        public string Details { get; } = details;
-
-        public string Path { get; } = path;
-
-        public CodeRangeModel Range { get; } = range;
-
-        public CodeRangeModel FunctionRange { get; } = functionRange;
-
-        public string FunctionName { get; } = functionName;
-    }
-
     public partial class UnderlineTaggerTooltip : UserControl
     {
-        [Import]
-        private ReviewResultTaggerTooltipModel ViewModel { get; set; }
-
         public UnderlineTaggerTooltip(UnderlineTaggerTooltipParams tooltipParams)
         {
             InitializeComponent();
@@ -52,6 +34,9 @@ namespace Codescene.VSExtension.VS2022.Controls
 
             DataContext = ViewModel;
         }
+
+        [Import]
+        private ReviewResultTaggerTooltipModel ViewModel { get; set; }
 
         private void OnThemeChanged(ThemeChangedEventArgs e)
         {

@@ -19,9 +19,9 @@ namespace Codescene.VSExtension.VS2022.Application.ErrorListWindowHandler;
 [PartCreationPolicy(CreationPolicy.Shared)]
 internal class ErrorListWindowHandler : IErrorListWindowHandler
 {
-    private ErrorListProvider? _errorListProvider;
+    private ErrorListProvider _errorListProvider;
 
-    private ErrorListProvider? ErrorListProvider
+    private ErrorListProvider ErrorListProvider
     {
         get
         {

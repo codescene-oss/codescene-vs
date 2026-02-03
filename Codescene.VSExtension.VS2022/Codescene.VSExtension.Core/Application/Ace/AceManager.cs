@@ -38,7 +38,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
             _networkService = networkService;
         }
 
-        public static CachedRefactoringActionModel LastRefactoring;
+        public static CachedRefactoringActionModel LastRefactoring { get; set; }
 
         public IList<FnToRefactorModel> GetRefactorableFunctionsFromCodeSmells(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
         {
