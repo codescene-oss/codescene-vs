@@ -57,7 +57,7 @@ namespace Codescene.VSExtension.VS2022.CodeLens
                     "primitive-obsession" => new PrimitiveObsession(),
                     "string-heavy-function-arguments" => new StringHeavyFunctionArguments(),
                     "general-code-health" => new GeneralCodeHealth(),
-                    _ => new CodeHealthMonitor()   // default
+                    _ => new CodeHealthMonitor() // default
                 };
 
                 return view as TView;
