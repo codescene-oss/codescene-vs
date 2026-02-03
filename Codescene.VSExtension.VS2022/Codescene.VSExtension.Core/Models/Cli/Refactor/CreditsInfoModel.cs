@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         public int Limit { get; set; }
 
         /// <summary>
-        /// Credit reset date in ISO-8601 format
+        /// Gets or sets credit reset date in ISO-8601 format
         /// </summary>
         [JsonProperty("reset")]
         public string Reset { get; set; }

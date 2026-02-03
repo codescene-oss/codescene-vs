@@ -5,7 +5,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
     public class ConfidenceModel
     {
         /// <summary>
-        /// Confidence level
+        /// Gets or sets confidence level
         /// </summary>
         [JsonProperty("level")]
         public int Level { get; set; }
@@ -14,13 +14,13 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         public RecommendedActionModel RecommendedAction { get; set; }
 
         /// <summary>
-        /// Header for use when presenting the reason summaries
+        /// Gets or sets header for use when presenting the reason summaries
         /// </summary>
         [JsonProperty("review-header")]
         public string ReviewHeader { get; set; }
 
         /// <summary>
-        /// Title for presentation
+        /// Gets or sets title for presentation
         /// </summary>
         [JsonProperty("title")]
         public string Title { get; set; }

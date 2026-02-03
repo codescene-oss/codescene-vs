@@ -8,13 +8,13 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         public CreditsInfoModel CreditsInfo { get; set; }
 
         /// <summary>
-        /// Error message.
+        /// Gets or sets error message.
         /// </summary>
         [JsonProperty("message")]
         public string Message { get; set; }
 
         /// <summary>
-        /// Trace id for the request, use for debugging requests
+        /// Gets or sets trace id for the request, use for debugging requests
         /// </summary>
         [JsonProperty("trace-id")]
         public string TraceId { get; set; }

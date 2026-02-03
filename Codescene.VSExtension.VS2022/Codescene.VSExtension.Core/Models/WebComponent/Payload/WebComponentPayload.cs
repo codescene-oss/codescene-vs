@@ -11,12 +11,12 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Payload
         public T Data { get; set; }
 
         /// <summary>
-        /// Determines whether additional features for certain WebViews will be shown.
+        /// Gets or sets a value indicating whether determines whether additional features for certain WebViews will be shown.
         /// </summary>
         public bool Pro { get; set; } = false;
 
         /// <summary>
-        /// Enables developer mode for the WebView. When set to <c>true</c>, this will:
+        /// Gets or sets a value indicating whether enables developer mode for the WebView. When set to <c>true</c>, this will:
         /// - Log internal state changes and messages to the browser console.
         /// - Show a developer tools icon at the top of each view.
         /// - Allow inspection of the input data passed to the WebView.
