@@ -30,10 +30,10 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
         /// <summary>
         /// Called by Visual Studio to retrieve error tags for the currently visible portions of the editor.
-        /// 
+        ///
         /// The 'spans' parameter represents the visible regions of the text buffer (e.g., lines currently on screen).
         /// Visual Studio invokes this method and asks: "For these visible spans, do you have any tags (e.g., underlines) to show?"
-        /// 
+        ///
         /// This method loads any code smells from the cache and maps them to spans in the visible text area,
         /// returning tags only for those that intersect the requested spans.
         /// </summary>
@@ -65,7 +65,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             if (cached != null)
                 return cached.FileLevel.Concat(cached.FunctionLevel).ToList() ??[];
 
-            return [];
+            return[];
         }
 
         public void RefreshTags()
@@ -78,10 +78,10 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
         /// <summary>
         /// Attempts to create a <see cref="SnapshotSpan"/> (a range in the text buffer)
         /// that corresponds to the location of the given <paramref name="codeSmell"/>.
-        /// 
+        ///
         /// The span is based on the start and end line/column info from the code smell model.
         /// It ensures that the calculated range is valid and within the current text snapshot.
-        /// 
+        ///
         /// Returns null if:
         /// - The code smell references a line outside the snapshot.
         /// - The calculated span is invalid (e.g., end before start).

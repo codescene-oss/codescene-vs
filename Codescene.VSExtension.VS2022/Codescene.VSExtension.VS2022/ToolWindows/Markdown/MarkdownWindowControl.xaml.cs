@@ -39,7 +39,7 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.Markdown
 
             var backgroundColor = ColorTranslator.ToHtml(Color.FromArgb(backgroundBrush.Color.A, backgroundBrush.Color.R, backgroundBrush.Color.G, backgroundBrush.Color.B));
             var textColor = ColorTranslator.ToHtml(Color.FromArgb(foregroundBrush.Color.A, foregroundBrush.Color.R, foregroundBrush.Color.G, foregroundBrush.Color.B));
-            // needed for ' 
+            // needed for '
             string meta = "<meta charset=\"UTF-8\">";
             // Inject CSS to match the VS theme
             string css = $@"

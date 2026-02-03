@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Payload
         public T Data { get; set; }
 
         /// <summary>
-        /// Determines whether additional features for certain WebViews will be shown. 
+        /// Determines whether additional features for certain WebViews will be shown.
         /// </summary>
         public bool Pro { get; set; } = false;
 

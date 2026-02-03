@@ -12,12 +12,12 @@ namespace Codescene.VSExtension.Core.Util
     {
         /// <summary>
         /// Sends a telemetry event based on how the delta cache has changed for a specific file.
-        /// 
+        ///
         /// Emits one of the following mutually exclusive events:
         /// - <c>MONITOR_FILE_ADDED</c> when a file appears in the cache but wasn't present before.
         /// - <c>MONITOR_FILE_REMOVED</c> when a file was present before but no longer exists in the current cache.
         /// - <c>MONITOR_FILE_UPDATED</c> when a file exists in both snapshots but has changed.
-        /// 
+        ///
         /// Additional telemetry data is included for the "added" and "updated" events.
         /// </summary>
         /// <param name="previousSnapshot">The state of the delta cache before the current operation.</param>
