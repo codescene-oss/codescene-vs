@@ -71,7 +71,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
 
         private static CodeRangeModel MapRange(CliRangeModel range)
         {
-            return new CodeRangeModel(range.Startline, range.EndLine, range.StartColumn, range.EndColumn);
+            return new CodeRangeModel(range.StartLine, range.EndLine, range.StartColumn, range.EndColumn);
         }
 
         private static WebComponentFileData CreateFileData(

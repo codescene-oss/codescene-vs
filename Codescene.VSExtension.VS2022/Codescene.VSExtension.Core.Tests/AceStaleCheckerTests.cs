@@ -28,7 +28,7 @@ namespace Codescene.VSExtension.Core.Tests
                 Body = body,
                 Range = new CliRangeModel
                 {
-                    Startline = startLine,
+                    StartLine = startLine,
                     EndLine = endLine,
                     StartColumn = startColumn,
                     EndColumn = endColumn
@@ -77,8 +77,8 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsTrue(result.RangeUpdated);
             // Updated range should point to line 3 (1-indexed), original fn.Range should be unchanged
             Assert.IsNotNull(result.UpdatedRange);
-            Assert.AreEqual(3, result.UpdatedRange.Startline);
-            Assert.AreEqual(1, fn.Range.Startline); // Original range should not be mutated
+            Assert.AreEqual(3, result.UpdatedRange.StartLine);
+            Assert.AreEqual(1, fn.Range.StartLine); // Original range should not be mutated
         }
 
         [TestMethod]
@@ -162,8 +162,8 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsFalse(result.IsStale);
             Assert.IsTrue(result.RangeUpdated);
             Assert.IsNotNull(result.UpdatedRange);
-            Assert.AreEqual(6, result.UpdatedRange.Startline); // 1-indexed, line 6
-            Assert.AreEqual(1, fn.Range.Startline); // Original range should not be mutated
+            Assert.AreEqual(6, result.UpdatedRange.StartLine); // 1-indexed, line 6
+            Assert.AreEqual(1, fn.Range.StartLine); // Original range should not be mutated
         }
 
         [TestMethod]
@@ -332,7 +332,7 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsFalse(result.IsStale);
             Assert.IsTrue(result.RangeUpdated);
             Assert.IsNotNull(result.UpdatedRange);
-            Assert.AreEqual(3, result.UpdatedRange.Startline);
+            Assert.AreEqual(3, result.UpdatedRange.StartLine);
         }
 
         [TestMethod]

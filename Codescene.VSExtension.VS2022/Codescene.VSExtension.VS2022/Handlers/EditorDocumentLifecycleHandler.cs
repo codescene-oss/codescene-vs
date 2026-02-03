@@ -162,7 +162,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 // Create a new Range instance for atomic assignment to avoid readers seeing partially-updated state
                 var newRange = new CliRangeModel
                 {
-                    Startline = result.UpdatedRange.Startline,
+                    StartLine = result.UpdatedRange.StartLine,
                     StartColumn = result.UpdatedRange.StartColumn,
                     EndLine = result.UpdatedRange.EndLine,
                     EndColumn = result.UpdatedRange.EndColumn
@@ -260,6 +260,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 await CodeSceneToolWindow.UpdateViewAsync(); // Update loading state
 
                 var deltaResult = _reviewer.Delta(currentReview, currentContent);
+                await AceUtils.UpdateDeltaCacheWithRefactorableFunctions(deltaResult, path, currentContent, _logger);
 
                 var scoreChange = deltaResult?.ScoreChange.ToString() ?? "none";
                 _logger.Info($"Delta analysis complete for file {path}. Code Health score change: {scoreChange}.");

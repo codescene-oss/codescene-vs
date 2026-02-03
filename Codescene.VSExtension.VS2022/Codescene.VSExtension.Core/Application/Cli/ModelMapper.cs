@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using System;
@@ -45,7 +45,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 Details = codeSmellModel.Details,
                 Range = new Models.Cli.CliRangeModel()
                 {
-                    Startline = codeSmellModel.Range.StartLine,
+                    StartLine = codeSmellModel.Range.StartLine,
                     StartColumn = codeSmellModel.Range.StartColumn,
                     EndLine = codeSmellModel.Range.EndLine,
                     EndColumn = codeSmellModel.Range.EndColumn
@@ -61,7 +61,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 Category = review.Category,
                 Details = review.Details,
                 Range = new CodeRangeModel(
-                    review.Range.Startline,
+                    review.Range.StartLine,
                     review.Range.EndLine,
                     review.Range.StartColumn,
                     review.Range.EndColumn
@@ -86,7 +86,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             if (function.Range != null)
             {
                 model.FunctionRange = new CodeRangeModel(
-                    function.Range.Startline,
+                    function.Range.StartLine,
                     function.Range.EndLine,
                     function.Range.StartColumn,
                     function.Range.EndColumn

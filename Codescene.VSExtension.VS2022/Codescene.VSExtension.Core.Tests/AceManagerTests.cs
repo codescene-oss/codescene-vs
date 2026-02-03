@@ -5,6 +5,7 @@ using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Interfaces.Util;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -68,7 +69,7 @@ namespace Codescene.VSExtension.Core.Tests
                 .Returns(expectedResult);
 
             // Act
-            var result = _aceManager.GetRefactorableFunctions(fileName, fileContent, codeSmells, preflight);
+            var result = _aceManager.GetRefactorableFunctionsFromCodeSmells(fileName, fileContent, codeSmells, preflight);
 
             // Assert
             Assert.IsNotNull(result);
@@ -90,7 +91,7 @@ namespace Codescene.VSExtension.Core.Tests
                 .Returns((IList<FnToRefactorModel>)null);
 
             // Act
-            var result = _aceManager.GetRefactorableFunctions(fileName, fileContent, codeSmells, preflight);
+            var result = _aceManager.GetRefactorableFunctionsFromCodeSmells(fileName, fileContent, codeSmells, preflight);
 
             // Assert
             Assert.IsNull(result);
@@ -236,5 +237,49 @@ namespace Codescene.VSExtension.Core.Tests
             _mockExecutor.Verify(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Never);
         }
 
+        [TestMethod]
+        public void GetRefactorableFunctionsFromDelta_DelegatesToExecutor()
+        {
+            // Arrange
+            var fileName = "test.cs";
+            var fileContent = "public class Test { }";
+            var deltaResponse = new DeltaResponseModel { ScoreChange = (decimal)-0.5f };
+            var preflight = new PreFlightResponseModel();
+            var expectedResult = new List<FnToRefactorModel>
+            {
+                new FnToRefactorModel { Name = "TestFunction" }
+            };
+
+            _mockExecutor.Setup(x => x.FnsToRefactorFromDelta(fileName, fileContent, deltaResponse, preflight))
+                .Returns(expectedResult);
+
+            // Act
+            var result = _aceManager.GetRefactorableFunctionsFromDelta(fileName, fileContent, deltaResponse, preflight);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("TestFunction", result[0].Name);
+            _mockExecutor.Verify(x => x.FnsToRefactorFromDelta(fileName, fileContent, deltaResponse, preflight), Times.Once);
+        }
+
+        [TestMethod]
+        public void GetRefactorableFunctionsFromDelta_ReturnsNullWhenExecutorReturnsNull()
+        {
+            // Arrange
+            var fileName = "test.cs";
+            var fileContent = "code";
+            var deltaResponse = new DeltaResponseModel { ScoreChange = (decimal)-0.5f };
+            var preflight = new PreFlightResponseModel();
+
+            _mockExecutor.Setup(x => x.FnsToRefactorFromDelta(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>()))
+                .Returns((IList<FnToRefactorModel>)null);
+
+            // Act
+            var result = _aceManager.GetRefactorableFunctionsFromDelta(fileName, fileContent, deltaResponse, preflight);
+
+            // Assert
+            Assert.IsNull(result);
+        }
     }
 }

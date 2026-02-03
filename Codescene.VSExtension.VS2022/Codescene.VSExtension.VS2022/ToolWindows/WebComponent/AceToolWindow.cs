@@ -156,7 +156,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
     public static async Task CloseAsync()
     {
-        if (_ctrl.CloseRequested is not null)
+        if (_ctrl is not null && _ctrl.CloseRequested is not null)
             await _ctrl.CloseRequested();
     }
 

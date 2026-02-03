@@ -13,7 +13,7 @@ namespace Codescene.VSExtension.Core.Tests
 
         private static CliRangeModel CreateRange(int startLine, int endLine)
         {
-            return new CliRangeModel { Startline = startLine, EndLine = endLine, StartColumn = 1, EndColumn = 1 };
+            return new CliRangeModel { StartLine = startLine, EndLine = endLine, StartColumn = 1, EndColumn = 1 };
         }
 
         private static CliCodeSmellModel CreateCodeSmell(string category, string details = null, int startLine = 1, int endLine = 10)
@@ -140,7 +140,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.AreEqual("Deep Nesting", result.Category);
             Assert.AreEqual("Depth: 5", result.Details);
-            Assert.AreEqual(10, result.Range.Startline);
+            Assert.AreEqual(10, result.Range.StartLine);
         }
 
         [TestMethod]

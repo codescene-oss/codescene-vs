@@ -138,7 +138,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
         private ExtractionContext CreateExtractionContext(CliRangeModel range, string[] lines, string newlineSequence)
         {
             // Range is 1-indexed, convert to 0-indexed
-            var startLine = range.Startline - 1;
+            var startLine = range.StartLine - 1;
             var endLine = range.EndLine - 1;
 
             if (!IsValidRange(startLine, endLine, lines.Length))
@@ -243,7 +243,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
             return new CliRangeModel
             {
-                Startline = startPosition.Line,
+                StartLine = startPosition.Line,
                 StartColumn = startPosition.Column,
                 EndLine = endPosition.Line,
                 EndColumn = endPosition.Column

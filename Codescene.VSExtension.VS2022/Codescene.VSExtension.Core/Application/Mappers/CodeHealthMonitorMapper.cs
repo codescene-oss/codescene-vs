@@ -61,7 +61,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                     Name = item.Function?.Name,
                     Range = item.Function?.Range != null
                         ? new CodeRangeModel(
-                            item.Function.Range.Startline,
+                            item.Function.Range.StartLine,
                             item.Function.Range.EndLine,
                             item.Function.Range.StartColumn,
                             item.Function.Range.EndColumn)
@@ -75,7 +75,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                         Body = item.RefactorableFn.Body,
                         Range = item.RefactorableFn.Range != null
                             ? new CodeRangeModel(
-                                item.RefactorableFn.Range.Startline,
+                                item.RefactorableFn.Range.StartLine,
                                 item.RefactorableFn.Range.EndLine,
                                 item.RefactorableFn.Range.StartColumn,
                                 item.RefactorableFn.Range.EndColumn)

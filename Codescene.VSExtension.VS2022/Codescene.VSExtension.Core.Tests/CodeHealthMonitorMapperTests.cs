@@ -46,7 +46,7 @@ namespace Codescene.VSExtension.Core.Tests
                 Function = new FunctionInfoModel
                 {
                     Name = functionName,
-                    Range = range ?? new CliRangeModel { Startline = 10, EndLine = 20, StartColumn = 1, EndColumn = 50 }
+                    Range = range ?? new CliRangeModel { StartLine = 10, EndLine = 20, StartColumn = 1, EndColumn = 50 }
                 },
                 ChangeDetails = new[] { CreateChangeDetail() },
                 RefactorableFn = refactorableFn
@@ -166,7 +166,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Map_FunctionRange_MappedCorrectly()
         {
-            var range = new CliRangeModel { Startline = 15, EndLine = 30, StartColumn = 5, EndColumn = 80 };
+            var range = new CliRangeModel { StartLine = 15, EndLine = 30, StartColumn = 5, EndColumn = 80 };
             var result = _mapper.Map(CreateSingleFileDelta("test.cs", CreateDeltaResponseWithFunctionFindings(new[] { CreateFunctionFinding(range: range) })));
 
             var functionRange = result.FileDeltaData[0].Delta.FunctionLevelFindings[0].Function.Range;
@@ -185,7 +185,7 @@ namespace Codescene.VSExtension.Core.Tests
                 Body = "function body",
                 NippyB64 = "encoded",
                 FileType = "cs",
-                Range = new CliRangeModel { Startline = 10, EndLine = 20, StartColumn = 1, EndColumn = 50 },
+                Range = new CliRangeModel { StartLine = 10, EndLine = 20, StartColumn = 1, EndColumn = 50 },
                 RefactoringTargets = new[] { new RefactoringTargetModel { Category = "Complex", Line = 15 } }
             };
             var result = _mapper.Map(CreateSingleFileDelta("test.cs", CreateDeltaResponseWithFunctionFindings(new[] { CreateFunctionFinding(refactorableFn: refactorableFn) })));
