@@ -150,6 +150,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 {
                     _logger?.Debug($"GitChangeObserver: Found merge base using branch '{candidateName}'");
                 }
+
                 return mergeBase;
             }
             catch (Exception ex)
@@ -193,6 +194,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 _mainBranchCandidatesCache = new Dictionary<string, List<string>>();
             }
+
             _mainBranchCandidatesCache[gitRoot] = candidates;
 
             return candidates;

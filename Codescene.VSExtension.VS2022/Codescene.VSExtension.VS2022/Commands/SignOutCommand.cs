@@ -17,6 +17,7 @@ internal class SignOutCommand(IAuthenticationService authService, ILogger errors
     {
         _ = SignOutAsync();
     }
+
     private async Task SignOutAsync()
     {
         try
@@ -37,6 +38,7 @@ internal class SignOutCommand(IAuthenticationService authService, ILogger errors
             errorsHandler.Error("Signing out failed", ex);
         }
     }
+
     private async Task ShowStatusAsync(string message = "Successfully signed out.")
     {
         var model = new InfoBarModel([new InfoBarTextSpan(message),], KnownMonikers.PlayStepGroup, true);

@@ -119,6 +119,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 {
                     _workspacePath = Path.GetDirectoryName(_solutionPath);
                 }
+
                 _gitRootPath = _workspacePath;
             }
         }

@@ -88,6 +88,7 @@ namespace Codescene.VSExtension.Core.Application.Util
                     }
                 }
             }
+
             return tabSize;
         }
     }

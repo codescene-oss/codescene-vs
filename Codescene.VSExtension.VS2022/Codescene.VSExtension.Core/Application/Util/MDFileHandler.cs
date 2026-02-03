@@ -21,6 +21,7 @@ namespace Codescene.VSExtension.Core.Application.Util
 
             return null;
         }
+
         private string OpenMarkdownFile(string path, string subPath)
         {
             string toolWindowPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -37,6 +38,7 @@ namespace Codescene.VSExtension.Core.Application.Util
                 return MDFileContentToHTMLConverter("<p>Markdown file not found!</p>");
             }
         }
+
         private string MDFileContentToHTMLConverter(string markdownContent)
         {
             return Markdown.ToHtml(markdownContent);

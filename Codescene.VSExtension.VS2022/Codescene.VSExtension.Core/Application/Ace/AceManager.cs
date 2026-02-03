@@ -100,6 +100,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
                 throw;
             }
+
             LastRefactoring = null;
             return null;
         }

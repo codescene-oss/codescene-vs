@@ -21,6 +21,7 @@ internal class SignInCommand(IAuthenticationService authService, ILogger errorsH
         // var url = string.IsNullOrEmpty(options.ServerUrl) ? General.DEFAULT_SERVER_URL : options.ServerUrl;
         // _ = SignInAsync(url);
     }
+
     private async Task SignInAsync(string url)
     {
         await ShowStartedStatusAsync();
@@ -41,6 +42,7 @@ internal class SignInCommand(IAuthenticationService authService, ILogger errorsH
             await ShowFailedStatusAsync();
         }
     }
+
     private async Task ShowStartedStatusAsync(string message = "Signing in to CodeScene...")
     {
         IVsTaskStatusCenterService tsc = await VS.Services.GetTaskStatusCenterAsync();
@@ -56,6 +58,7 @@ internal class SignInCommand(IAuthenticationService authService, ILogger errorsH
         await VS.StatusBar.ShowProgressAsync(message, 1, 2);
         await VS.StatusBar.ShowMessageAsync(message);
     }
+
     private async Task ShowSuccessStatusAsync(LoginResponse response, string message = "Signed in to CodeScene as ")
     {
         message = $"{message} {response.Name}";
@@ -66,6 +69,7 @@ internal class SignInCommand(IAuthenticationService authService, ILogger errorsH
         await VS.StatusBar.ShowProgressAsync(message, 2, 2);
         await VS.StatusBar.ShowMessageAsync(message);
     }
+
     private async Task ShowFailedStatusAsync(string message = "Signing in to CodeScene failed")
     {
         await VS.StatusBar.ShowProgressAsync(message, 2, 2);

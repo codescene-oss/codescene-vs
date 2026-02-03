@@ -112,6 +112,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 _logger.Debug($"Auto refactor is not supported for language: {extension}");
                 return false;
             }
+
             return true;
         }
     }

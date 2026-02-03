@@ -25,6 +25,7 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.Markdown
             {
                 _mdFileHandler.SetFileName(_fileName);
             }
+
             string htmlContent = _mdFileHandler.GetContent("Resources", null);
 
             SetWebBrowserContent(htmlContent);

@@ -31,6 +31,7 @@ namespace Codescene.VSExtension.Core.Application.Util
             {
                 return path + Path.DirectorySeparatorChar;
             }
+
             return path;
         }
     }

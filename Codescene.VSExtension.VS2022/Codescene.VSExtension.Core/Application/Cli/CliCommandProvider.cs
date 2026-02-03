@@ -89,6 +89,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 args.Add("--fn-to-refactor");
                 args.Add(JsonConvert.SerializeObject(fnToRefactor));
             }
+
             var command = GetArgumentStr(args.ToArray());
             return command;
         }
@@ -100,6 +101,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 PasteArguments.AppendArgument(sb, arg);
             }
+
             return sb.ToString();
         }
 

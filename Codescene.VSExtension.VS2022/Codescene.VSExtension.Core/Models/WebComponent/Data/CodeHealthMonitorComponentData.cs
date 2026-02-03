@@ -45,6 +45,7 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
         public string Status { get; set; }
         public bool HasToken { get; set; }
     }
+
     public class ChangeDetail
     {
         public int? Line { get; set; }
