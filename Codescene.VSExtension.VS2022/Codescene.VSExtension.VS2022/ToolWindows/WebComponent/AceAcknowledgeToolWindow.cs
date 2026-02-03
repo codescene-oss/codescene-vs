@@ -69,7 +69,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
         return ctrl;
     }
 
-    public async static Task UpdateViewAsync()
+    public static async Task UpdateViewAsync()
     {
         if (_ctrl == null)
         {
