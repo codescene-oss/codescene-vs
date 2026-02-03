@@ -55,7 +55,7 @@ namespace Codescene.VSExtension.Core.Util
                 return 0;
             }
 
-            return content.Split(["\r\n", "\r", "\n"], StringSplitOptions.None).Length;
+            return content.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).Length;
         }
 
         /// <summary>
