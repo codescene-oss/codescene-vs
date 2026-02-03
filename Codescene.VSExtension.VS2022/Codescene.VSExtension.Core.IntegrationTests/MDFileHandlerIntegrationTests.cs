@@ -138,7 +138,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests
             _handler.SetFileName("test");
 
             // Act
-            var result = _handler.GetContent("", null);
+            var result = _handler.GetContent(string.Empty, null);
 
             // Assert
             Assert.IsNotNull(result);

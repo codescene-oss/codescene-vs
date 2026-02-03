@@ -245,7 +245,7 @@ internal class WebComponentMessageHandler
         var payload = msgObject.Payload.ToObject<OpenDocsForFunctionPayload>();
         _logger.Debug($"Opening '{payload.DocType}'...");
 
-        var category = DocumentationMappings.DocNameMap[payload.DocType] ?? "";
+        var category = DocumentationMappings.DocNameMap[payload.DocType] ?? string.Empty;
         var fn = await AceUtils.GetRefactorableFunctionAsync(new GetRefactorableFunctionsModel
         {
             Path = payload.FileName,

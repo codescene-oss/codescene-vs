@@ -34,10 +34,10 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
             catch (Exception ex)
             {
                 _logger.Warn($"Failed to fetch device ID: {ex.Message}");
-                _deviceId = "";
+                _deviceId = string.Empty;
             }
 
-            return _deviceId ?? "";
+            return _deviceId ?? string.Empty;
         }
     }
 }

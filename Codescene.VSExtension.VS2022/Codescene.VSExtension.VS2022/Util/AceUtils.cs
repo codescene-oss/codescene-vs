@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.VS2022.Util
                 },
             };
 
-            string fileContent = "";
+            string fileContent = string.Empty;
             var docView = await VS.Documents.OpenAsync(model.Path);
             if (docView?.TextBuffer is ITextBuffer buffer)
             {

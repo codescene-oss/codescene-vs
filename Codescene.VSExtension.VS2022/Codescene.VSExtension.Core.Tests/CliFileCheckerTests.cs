@@ -85,7 +85,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             CreateTempFile();
             SetupCliPathMock();
-            SetupVersionMock("");
+            SetupVersionMock(string.Empty);
 
             var result = _fileChecker.Check();
 

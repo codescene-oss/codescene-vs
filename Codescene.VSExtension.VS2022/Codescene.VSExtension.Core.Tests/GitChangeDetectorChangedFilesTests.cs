@@ -104,7 +104,7 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task GetChangedFilesVsBaselineAsync_EmptyGitRootPath_ReturnsEmptyList()
         {
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                "", _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                string.Empty, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result);
             Assert.AreEqual(0, result.Count);

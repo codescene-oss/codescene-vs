@@ -99,7 +99,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
             };
         }
 
-        public bool IsSupportedLanguage(string extension) => _preflightResponse?.FileTypes.Contains(extension.Replace(".", "").ToLower()) ?? false;
+        public bool IsSupportedLanguage(string extension) => _preflightResponse?.FileTypes.Contains(extension.Replace(".", string.Empty).ToLower()) ?? false;
 
         public PreFlightResponseModel GetPreflightResponse()
         {

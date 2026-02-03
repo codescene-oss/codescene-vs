@@ -68,14 +68,14 @@ namespace Codescene.VSExtension.VS2022.Cache
         {
             using var sha = System.Security.Cryptography.SHA256.Create();
             var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(input.ToLowerInvariant()));
-            return BitConverter.ToString(bytes).Replace("-", "").Substring(0, 16);
+            return BitConverter.ToString(bytes).Replace("-", string.Empty).Substring(0, 16);
         }
 
         public string GetSolutionReviewCacheLocation()
         {
             if (_cachePath == null)
             {
-                return "";
+                return string.Empty;
             }
 
             var baseLocation = _cachePath;

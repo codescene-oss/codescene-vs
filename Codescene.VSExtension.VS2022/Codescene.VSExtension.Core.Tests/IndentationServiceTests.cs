@@ -65,7 +65,7 @@ public class IndentationServiceTests
 
         // Assert
         Assert.AreEqual("    line1", lines[0]);
-        Assert.AreEqual("", lines[1]); // Empty line stays empty
+        Assert.AreEqual(string.Empty, lines[1]); // Empty line stays empty
         Assert.AreEqual("    line3", lines[2]);
     }
 
@@ -153,7 +153,7 @@ public class IndentationServiceTests
     public void CountLeadingWhitespace_ReturnsZero_ForEmptyString()
     {
         // Arrange
-        var lineText = "";
+        var lineText = string.Empty;
 
         // Act
         var (tabCount, spaceCount) = _indentationService.CountLeadingWhitespace(lineText);

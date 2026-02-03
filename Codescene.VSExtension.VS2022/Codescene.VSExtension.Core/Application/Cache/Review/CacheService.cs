@@ -22,7 +22,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             {
                 var bytes = Encoding.UTF8.GetBytes(content);
                 var hashBytes = sha.ComputeHash(bytes);
-                return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+                return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
             }
         }
 

@@ -70,7 +70,7 @@ public static class StyleHelper
         try
         {
             var dte = (DTE)Package.GetGlobalService(typeof(DTE));
-            if (dte == null || !ThreadHelper.CheckAccess()) return "";
+            if (dte == null || !ThreadHelper.CheckAccess()) return string.Empty;
 
             var editorColorProps = dte.get_Properties("FontsAndColors", "TextEditor");
             var editorFontFamily = editorColorProps.Item("FontFamily").Value.ToString();
@@ -138,7 +138,7 @@ public static class StyleHelper
         }
         catch (Exception e)
         {
-            return "";
+            return string.Empty;
         }
     }
 }

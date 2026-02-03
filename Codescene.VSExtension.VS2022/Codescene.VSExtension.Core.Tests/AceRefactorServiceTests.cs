@@ -110,7 +110,7 @@ public class AceRefactorServiceTests
     public void CheckContainsRefactorableFunctions_EmptyFilePath_ReturnsEmptyList()
     {
         // Arrange
-        var fileReview = CreateFileReviewModel(filePath: "");
+        var fileReview = CreateFileReviewModel(filePath: string.Empty);
 
         // Act
         var result = _aceRefactorService.CheckContainsRefactorableFunctions(fileReview, "code");

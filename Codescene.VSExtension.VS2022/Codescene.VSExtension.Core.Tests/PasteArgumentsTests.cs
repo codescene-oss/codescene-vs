@@ -44,7 +44,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void AppendArgument_EmptyString_QuotesAdded()
         {
             var sb = new StringBuilder();
-            PasteArguments.AppendArgument(sb, "");
+            PasteArguments.AppendArgument(sb, string.Empty);
             Assert.AreEqual("\"\"", sb.ToString());
         }
 

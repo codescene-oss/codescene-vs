@@ -22,7 +22,7 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.Markdown
 
         public void InitializeFileHandler()
         {
-            if (_fileName != "")
+            if (_fileName != string.Empty)
             {
                 _mdFileHandler.SetFileName(_fileName);
             }

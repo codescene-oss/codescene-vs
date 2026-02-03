@@ -80,7 +80,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = store.GetDeviceId();
 
             // Assert
-            Assert.AreEqual("", result);
+            Assert.AreEqual(string.Empty, result);
             _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Failed to fetch device ID"))), Times.Once);
         }
 
@@ -98,8 +98,8 @@ namespace Codescene.VSExtension.Core.Tests
             var result2 = store.GetDeviceId();
 
             // Assert - CLI is called each time since empty string is not cached
-            Assert.AreEqual("", result1);
-            Assert.AreEqual("", result2);
+            Assert.AreEqual(string.Empty, result1);
+            Assert.AreEqual(string.Empty, result2);
             _mockCliExecutor.Verify(x => x.GetDeviceId(), Times.Exactly(2));
         }
 
@@ -114,21 +114,21 @@ namespace Codescene.VSExtension.Core.Tests
             var result = store.GetDeviceId();
 
             // Assert
-            Assert.AreEqual("", result);
+            Assert.AreEqual(string.Empty, result);
         }
 
         [TestMethod]
         public void GetDeviceId_WhenCliReturnsEmptyString_ReturnsEmptyString()
         {
             // Arrange
-            _mockCliExecutor.Setup(x => x.GetDeviceId()).Returns("");
+            _mockCliExecutor.Setup(x => x.GetDeviceId()).Returns(string.Empty);
             var store = new DeviceIdStore(_mockLogger.Object, _mockCliExecutor.Object);
 
             // Act
             var result = store.GetDeviceId();
 
             // Assert
-            Assert.AreEqual("", result);
+            Assert.AreEqual(string.Empty, result);
         }
     }
 }

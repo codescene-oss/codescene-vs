@@ -227,7 +227,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var fnToRefactor = CreateFnToRefactor();
 
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false, token: "");
+            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false, token: string.Empty);
 
             Assert.DoesNotContain("--token", command);
         }
@@ -269,7 +269,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void GetRefactorPostCommand_WithEmptyNippyB64_UsesFnToRefactorJsonFlag()
         {
-            var fnToRefactor = CreateFnToRefactor(nippyB64: "");
+            var fnToRefactor = CreateFnToRefactor(nippyB64: string.Empty);
 
             var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);
 

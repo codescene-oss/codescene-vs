@@ -53,7 +53,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 return new List<FnToRefactorModel>();
             }
 
-            var extension = Path.GetExtension(fileName).Replace(".", "");
+            var extension = Path.GetExtension(fileName).Replace(".", string.Empty);
 
             if (!ShouldCheckRefactorableFunctions(extension))
             {

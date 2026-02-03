@@ -235,7 +235,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             else
             {
                 _logger.Warn("Could not get the file path. Aborting review...");
-                return "";
+                return string.Empty;
             }
         }
 

@@ -54,7 +54,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void Review_EmptyPath_ReturnsNull()
         {
             // Arrange
-            var path = "";
+            var path = string.Empty;
             var content = "some code";
 
             // Act
@@ -98,7 +98,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             // Arrange
             var path = "test.cs";
-            var content = "";
+            var content = string.Empty;
 
             // Act
             var result = _codeReviewer.Review(path, content);
@@ -180,7 +180,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void Delta_EmptyFilePath_ReturnsNull()
         {
             // Arrange
-            var review = new FileReviewModel { FilePath = "", RawScore = "raw" };
+            var review = new FileReviewModel { FilePath = string.Empty, RawScore = "raw" };
 
             // Act
             var result = _codeReviewer.Delta(review, "current code");
@@ -240,7 +240,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _codeReviewer.Delta(review, "current code");
 
             // Assert - verify ReviewDelta was called with empty string for current raw score
-            _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), ""), Times.Once);
+            _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), string.Empty), Times.Once);
         }
 
         [TestMethod]

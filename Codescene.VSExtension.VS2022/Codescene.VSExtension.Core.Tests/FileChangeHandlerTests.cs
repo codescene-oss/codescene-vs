@@ -142,7 +142,7 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeLogger,
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
-                "",
+                string.Empty,
                 _trackerManager);
 
             var testFile = "test.cs";

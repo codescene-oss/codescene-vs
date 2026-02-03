@@ -25,7 +25,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
         {
             var function = new FunctionModel
             {
-                Name = model.FunctionName ?? "",
+                Name = model.FunctionName ?? string.Empty,
                 Range = new CodeRangeModel(
                     model.Range?.StartLine ?? 1,
                     model.Range?.EndLine ?? 1,

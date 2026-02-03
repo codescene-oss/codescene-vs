@@ -24,7 +24,7 @@ internal class CustomErrorListEntry : ITableEntry
                 content = errorCode;
                 return true;
             default:
-                content = "";
+                content = string.Empty;
                 return false;
         }
     }

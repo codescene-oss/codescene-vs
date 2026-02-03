@@ -55,7 +55,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         public DeltaResponseModel Delta(FileReviewModel review, string currentCode)
         {
             var path = review.FilePath;
-            var currentRawScore = review.RawScore ?? "";
+            var currentRawScore = review.RawScore ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -83,7 +83,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 if (entry.Item1) return entry.Item2;
 
                 var oldCodeReview = Review(path, oldCode);
-                var oldRawScore = oldCodeReview?.RawScore ?? "";
+                var oldRawScore = oldCodeReview?.RawScore ?? string.Empty;
 
                 // Skip delta if scores are identical (same code health, no meaningful change)
                 if (oldRawScore == currentRawScore)
