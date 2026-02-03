@@ -14,7 +14,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         public string Message { get; set; }
 
         /// <summary>
-        /// Gets or sets trace id for the request, use for debugging requests
+        /// Gets or sets trace id for the request, use for debugging requests.
         /// </summary>
         [JsonProperty("trace-id")]
         public string TraceId { get; set; }

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 namespace Codescene.VSExtension.Core.Interfaces.Cli
 {
     /// <summary>
-    /// Cache storage used by the CLI. Cache locations are sent as parameters
+    /// Cache storage used by the CLI. Cache locations are sent as parameters.
     /// </summary>
     public interface ICacheStorageService
     {
@@ -20,7 +20,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
         string GetSolutionReviewCacheLocation();
 
         /// <summary>
-        /// Removes old cache entries. Default 30 days
+        /// Removes old cache entries. Default 30 days.
         /// </summary>
         /// <param name="nrOfDays"></param>
         void RemoveOldReviewCacheEntries(int nrOfDays = 30);

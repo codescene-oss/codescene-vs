@@ -5,7 +5,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
     public class RefactorResponseModel
     {
         /// <summary>
-        /// Gets or sets refactored code
+        /// Gets or sets refactored code.
         /// </summary>
         [JsonProperty("code")]
         public string Code { get; set; }
@@ -14,7 +14,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         public ConfidenceModel Confidence { get; set; }
 
         /// <summary>
-        /// Gets or sets aCE Credit info
+        /// Gets or sets aCE Credit info.
         /// </summary>
         [JsonProperty("credits-info")]
         public CreditsInfoModel CreditsInfo { get; set; }
@@ -23,7 +23,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         public MetadataModel Metadata { get; set; }
 
         /// <summary>
-        /// Gets or sets list of reasons for refactoring failure
+        /// Gets or sets list of reasons for refactoring failure.
         /// </summary>
         [JsonProperty("reasons")]
         public ReasonModel[] Reasons { get; set; }
@@ -32,13 +32,13 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         public RefactoringPropertiesModel RefactoringProperties { get; set; }
 
         /// <summary>
-        /// Gets or sets trace id for the request, use for debugging requests
+        /// Gets or sets trace id for the request, use for debugging requests.
         /// </summary>
         [JsonProperty("trace-id")]
         public string TraceId { get; set; }
 
         /// <summary>
-        /// Gets or sets c++ declarations
+        /// Gets or sets c++ declarations.
         /// </summary>
         [JsonProperty("declarations")]
         public string Declarations { get; set; } = null;

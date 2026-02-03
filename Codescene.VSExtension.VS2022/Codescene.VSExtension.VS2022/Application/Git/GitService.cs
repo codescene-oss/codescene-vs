@@ -23,7 +23,7 @@ public class GitService : IGitService
     /// <summary>
     /// Gets the baseline commit for delta analysis.
     /// - If on a main branch: returns HEAD commit (compare against current committed state)
-    /// - If on a feature branch: returns merge-base with main branch
+    /// - If on a feature branch: returns merge-base with main branch.
     /// </summary>
     public string GetBaselineCommit(Repository repository)
     {

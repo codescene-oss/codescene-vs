@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for ConstructorOverInjection.xaml
+    /// Interaction logic for ConstructorOverInjection.xaml.
     /// </summary>
     public partial class ConstructorOverInjection : UserControl
     {

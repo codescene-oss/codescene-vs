@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for StringHeavyFunctionArguments.xaml
+    /// Interaction logic for StringHeavyFunctionArguments.xaml.
     /// </summary>
     public partial class StringHeavyFunctionArguments : UserControl
     {

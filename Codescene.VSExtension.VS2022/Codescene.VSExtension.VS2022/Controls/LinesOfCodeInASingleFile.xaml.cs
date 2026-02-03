@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for LinesOfCodeInASingleFile.xaml
+    /// Interaction logic for LinesOfCodeInASingleFile.xaml.
     /// </summary>
     public partial class LinesOfCodeInASingleFile : UserControl
     {

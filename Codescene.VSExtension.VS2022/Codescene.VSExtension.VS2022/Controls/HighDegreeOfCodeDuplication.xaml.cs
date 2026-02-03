@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for HighDegreeOfCodeDuplication.xaml
+    /// Interaction logic for HighDegreeOfCodeDuplication.xaml.
     /// </summary>
     public partial class HighDegreeOfCodeDuplication : UserControl
     {

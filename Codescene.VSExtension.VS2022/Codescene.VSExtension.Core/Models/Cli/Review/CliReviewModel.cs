@@ -7,7 +7,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
     public class CliReviewModel
     {
         /// <summary>
-        /// Gets or sets if file is scorable, this will be a number between 1.0 and 10.0
+        /// Gets or sets if file is scorable, this will be a number between 1.0 and 10.0.
         /// </summary>
         [JsonProperty("score")]
         public float? Score { get; set; }

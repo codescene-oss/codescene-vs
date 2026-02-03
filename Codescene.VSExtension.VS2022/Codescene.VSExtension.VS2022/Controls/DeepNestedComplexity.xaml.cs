@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for DeepNestedComplexity.xaml
+    /// Interaction logic for DeepNestedComplexity.xaml.
     /// </summary>
     public partial class DeepNestedComplexity : UserControl
     {

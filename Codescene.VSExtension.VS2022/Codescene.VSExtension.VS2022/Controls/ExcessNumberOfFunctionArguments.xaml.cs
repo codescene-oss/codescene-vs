@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for ExcessNumberOfFunctionArguments.xaml
+    /// Interaction logic for ExcessNumberOfFunctionArguments.xaml.
     /// </summary>
     public partial class ExcessNumberOfFunctionArguments : UserControl
     {

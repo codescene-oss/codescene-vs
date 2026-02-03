@@ -4,7 +4,7 @@ using System.Windows.Controls;
 namespace Codescene.VSExtension.VS2022.Controls
 {
     /// <summary>
-    /// Interaction logic for GeneralCodeHealth.xaml
+    /// Interaction logic for GeneralCodeHealth.xaml.
     /// </summary>
     public partial class GeneralCodeHealth : UserControl
     {

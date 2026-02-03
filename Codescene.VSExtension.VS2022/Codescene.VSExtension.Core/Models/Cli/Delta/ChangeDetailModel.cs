@@ -6,7 +6,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Delta
     public class ChangeDetailModel
     {
         /// <summary>
-        /// Gets or sets code smell category, for example Complex Method
+        /// Gets or sets code smell category, for example Complex Method.
         /// </summary>
         [JsonProperty("category")]
         public string Category { get; set; }
