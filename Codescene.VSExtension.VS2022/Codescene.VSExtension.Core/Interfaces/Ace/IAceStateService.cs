@@ -4,7 +4,6 @@ using Codescene.VSExtension.Core.Models.Ace;
 
 namespace Codescene.VSExtension.Core.Interfaces.Ace
 {
-
     /// <summary>
     /// Service for tracking and managing ACE feature state.
     /// </summary>

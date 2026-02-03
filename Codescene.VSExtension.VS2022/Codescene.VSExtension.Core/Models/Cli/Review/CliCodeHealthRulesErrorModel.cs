@@ -4,7 +4,6 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
 {
     public class CliCodeHealthRulesErrorModel
     {
-
         [JsonProperty("description")]
         public string Description { get; set; }
 

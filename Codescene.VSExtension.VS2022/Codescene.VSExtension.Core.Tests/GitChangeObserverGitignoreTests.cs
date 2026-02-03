@@ -14,7 +14,6 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class GitChangeObserverGitignoreTests : GitChangeObserverTestBase
     {
-
         [TestMethod]
         public async Task GitIgnoredFiles_AreNotTracked()
         {

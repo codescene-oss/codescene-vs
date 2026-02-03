@@ -17,7 +17,6 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class GitChangeObserverCoreTests : GitChangeObserverTestBase
     {
-
         [TestMethod]
         public async Task GetChangedFilesVsBaseline_ReturnsEmptyArray_ForCleanRepository()
         {

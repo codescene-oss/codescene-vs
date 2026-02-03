@@ -210,7 +210,6 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             foreach (var evt in events)
             {
-
                 if (evt.Type == FileChangeType.Delete)
                 {
                     await _fileChangeHandler.HandleFileDeleteAsync(evt.FilePath, changedFiles);

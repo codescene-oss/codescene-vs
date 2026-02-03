@@ -15,7 +15,6 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class GitChangeObserverTrackerTests : GitChangeObserverTestBase
     {
-
         [TestMethod]
         public async Task TrackerTracksAddedFiles()
         {
