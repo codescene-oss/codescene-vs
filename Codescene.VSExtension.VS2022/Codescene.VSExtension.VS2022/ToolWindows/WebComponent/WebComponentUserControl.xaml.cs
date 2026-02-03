@@ -21,6 +21,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
+
 /// <summary>
 /// Interaction logic for WebComponentUserControl.xaml
 /// </summary>
