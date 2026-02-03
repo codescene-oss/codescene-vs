@@ -93,10 +93,15 @@ namespace Codescene.VSExtension.Core.Application.Mappers
         private sealed class CreateAceComponentDataParams
         {
             public bool Loading { get; set; }
+
             public string Error { get; set; }
+
             public bool IsStale { get; set; }
+
             public WebComponentFileData FileData { get; set; }
+
             public FnToRefactorModel FnToRefactor { get; set; }
+
             public RefactorResponseModel AceResultData { get; set; }
         }
 

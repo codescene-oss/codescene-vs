@@ -102,6 +102,7 @@ namespace Codescene.VSExtension.VS2022.Util
         private struct IndentationPattern
         {
             public bool UsesTabs { get; set; }
+
             public int TabSize { get; set; }
         }
     }

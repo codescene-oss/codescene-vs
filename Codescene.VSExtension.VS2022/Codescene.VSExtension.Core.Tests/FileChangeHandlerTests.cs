@@ -320,14 +320,18 @@ namespace Codescene.VSExtension.Core.Tests
             public List<string> ErrorMessages = new List<string>();
 
             public void Debug(string message) => DebugMessages.Add(message);
+
             public void Info(string message) => InfoMessages.Add(message);
+
             public void Warn(string message) => WarnMessages.Add(message);
+
             public void Error(string message, Exception ex) => ErrorMessages.Add(message);
         }
 
         private class FakeCodeReviewer : ICodeReviewer
         {
             public int ReviewCallCount { get; private set; }
+
             public bool ThrowOnReview { get; set; }
 
             public FileReviewModel Review(string path, string content)

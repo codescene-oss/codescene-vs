@@ -20,6 +20,7 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
 {
     public override Type PaneType => typeof(Pane);
+
     private static WebComponentUserControl _ctrl = null;
 
     private static FnToRefactorModel _fnToRefactor;

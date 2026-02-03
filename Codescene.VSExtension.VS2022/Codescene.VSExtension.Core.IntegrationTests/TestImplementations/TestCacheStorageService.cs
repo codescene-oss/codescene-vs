@@ -11,7 +11,9 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
         internal Mock<ICacheStorageService> Mock = new ();
 
         public string GetSolutionReviewCacheLocation() => Mock.Object.GetSolutionReviewCacheLocation();
+
         public Task InitializeAsync() => Mock.Object.InitializeAsync();
+
         public void RemoveOldReviewCacheEntries(int nrOfDays = 30) => Mock.Object.RemoveOldReviewCacheEntries(nrOfDays);
     }
 }

@@ -6,7 +6,9 @@ namespace Codescene.VSExtension.Core.Models
     public struct IndentationInfo
     {
         public int Level { get; set; }
+
         public bool UsesTabs { get; set; }
+
         public int TabSize { get; set; }
     }
 }

@@ -28,6 +28,7 @@ public class Logger : ILogger
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Codescene",
         LogFileName);
+
     private static readonly object _fileLock = new object();
     private const long MAXLOGFILESIZEBYTES = 10 * 1024 * 1024; // 10 MB
     private const int MAXBACKUPFILES = 3;

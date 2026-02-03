@@ -11,6 +11,7 @@ namespace Codescene.VSExtension.VS2022.CodeLens
         public class ToolWindowInfo
         {
             public Func<object> Creator { get; }
+
             public string Category { get; }
 
             public ToolWindowInfo(Func<object> creator, string category)
@@ -53,6 +54,7 @@ namespace Codescene.VSExtension.VS2022.CodeLens
             { 29, new ToolWindowInfo(() => new PrimitiveObsession(), Constants.Titles.PRIMITIVEOBSESSION) },
             { 30, new ToolWindowInfo(() => new StringHeavyFunctionArguments(), Constants.Titles.STRINGHEAVYFUNCTIONARGUMENTS) },
         };
+
         public static readonly Dictionary<string, int> CategoryToIdMap = ToolWindowCreators.ToDictionary(kvp => kvp.Value.Category, kvp => kvp.Key);
     }
 }

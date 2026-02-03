@@ -9,7 +9,9 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     internal class TestSettingsProvider : ISettingsProvider
     {
         internal Mock<ISettingsProvider> Mock = new ();
+
         public bool ShowDebugLogs => Mock.Object.ShowDebugLogs;
+
         public string AuthToken => Mock.Object.AuthToken;
     }
 }

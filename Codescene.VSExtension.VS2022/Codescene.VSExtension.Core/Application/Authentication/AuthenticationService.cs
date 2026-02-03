@@ -23,6 +23,7 @@ namespace Codescene.VSExtension.Core.Application.Authentication
         private LoginResponse _loginResponse = null;
 
         public event AuthSignedInHandler OnSignedIn;
+
         public event AuthSignedOutHandler OnSignedOut;
 
         public LoginResponse GetData()

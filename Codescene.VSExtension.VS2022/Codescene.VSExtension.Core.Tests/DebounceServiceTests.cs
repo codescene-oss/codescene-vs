@@ -24,6 +24,7 @@ public class DebounceServiceTests
     private sealed class ActionTracker
     {
         public bool WasExecuted { get; private set; }
+
         public Action Execute => () => WasExecuted = true;
     }
 

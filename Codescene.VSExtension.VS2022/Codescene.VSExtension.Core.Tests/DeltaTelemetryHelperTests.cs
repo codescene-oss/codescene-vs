@@ -95,8 +95,11 @@ namespace Codescene.VSExtension.Core.Tests
         private class TelemetryScenario
         {
             public string[] PreviousFiles { get; private set; }
+
             public string[] CurrentFiles { get; private set; }
+
             public string EntryFile { get; private set; }
+
             public DeltaResponseModel EntryDelta { get; private set; }
 
             public static TelemetryScenario FileAdded(string file) =>

@@ -11,8 +11,11 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
         internal Mock<IExtensionMetadataProvider> Mock = new ();
 
         public string GetDescription() => Mock.Object.GetDescription();
+
         public string GetDisplayName() => Mock.Object.GetDisplayName();
+
         public string GetPublisher() => Mock.Object.GetPublisher();
+
         public string GetVersion() => Mock.Object.GetVersion();
     }
 }

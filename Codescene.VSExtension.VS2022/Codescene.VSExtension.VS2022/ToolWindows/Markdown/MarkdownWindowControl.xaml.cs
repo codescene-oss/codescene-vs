@@ -12,6 +12,7 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.Markdown
         private IMDFileHandler _mdFileHandler;
 
         private string _fileName;
+
         public MarkdownWindowControl(string fileName)
         {
             InitializeComponent();

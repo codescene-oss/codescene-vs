@@ -7,6 +7,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests
     public class IntegrationSetupTests : BaseIntegrationTests
     {
         private ICliSettingsProvider _settingsProvider;
+
         [TestInitialize]
         public override void Initialize()
         {

@@ -5,12 +5,14 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
     public class WebComponentFileDataBase
     {
         public string FileName { get; set; }
+
         public WebComponentFileDataBaseFn Fn { get; set; }
     }
 
     public class WebComponentFileDataBaseFn
     {
         public string Name { get; set; }
+
         public CodeRangeModel Range { get; set; }
     }
 

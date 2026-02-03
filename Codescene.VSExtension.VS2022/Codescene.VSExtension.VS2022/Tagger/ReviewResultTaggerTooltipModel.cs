@@ -17,10 +17,15 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
     public class ReviewResultTaggerTooltipModel
     {
         public string Category { get; set; }
+
         public string Details { get; set; }
+
         public string Path { get; set; }
+
         public CodeRangeModel Range { get; set; }
+
         public CodeRangeModel FunctionRange { get; set; }
+
         public string FunctionName { get; set; }
 
         public ICommand YourCommand { get; }

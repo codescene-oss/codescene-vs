@@ -34,6 +34,7 @@ public partial class WebComponentUserControl : UserControl
     // Use process ID and view type to make host unique per VS instance and view type
     // This prevents conflicts when multiple instances are open
     private static string GetHost(string view) => $"myapp-{System.Diagnostics.Process.GetCurrentProcess().Id}-{view}.local";
+
     private string _host;
     private const string STYLEELEMENTID = "cs-theme-vars";
     private bool _initialized = false;

@@ -6,8 +6,10 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
     {
         [JsonProperty("path")]
         public string FilePath { get; set; }
+
         [JsonProperty("file-content")]
         public string FileContent { get; set; }
+
         [JsonProperty("cache-path")]
         public string CachePath { get; set; }
     }

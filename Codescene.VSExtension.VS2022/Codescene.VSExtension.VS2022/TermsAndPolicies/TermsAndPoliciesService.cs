@@ -31,6 +31,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
             new InfoBarButton(CodeSceneConstants.Titles.DECLINETERMS),
             new InfoBarHyperlink(CodeSceneConstants.Titles.VIEWTERMS)
         ];
+
     private static readonly InfoBarModel Model = new (
             [new InfoBarTextSpan(CodeSceneConstants.Titles.TERMSINFO)],
             ActionItems,
