@@ -56,7 +56,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             )
         };
 
-        //Bindings are defined in UnderlineTaggerTooltip.xaml
+        // Bindings are defined in UnderlineTaggerTooltip.xaml
         private async void ExecuteYourCommand(object parameter)
         {
             var logger = await VS.GetMefServiceAsync<ILogger>();

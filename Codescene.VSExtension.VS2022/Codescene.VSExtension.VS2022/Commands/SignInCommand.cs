@@ -17,9 +17,9 @@ internal class SignInCommand(IAuthenticationService authService, ILogger errorsH
 
     protected override void InvokeInternal()
     {
-        //var options = General.Instance;
-        //var url = string.IsNullOrEmpty(options.ServerUrl) ? General.DEFAULT_SERVER_URL : options.ServerUrl;
-        //_ = SignInAsync(url);
+        // var options = General.Instance;
+        // var url = string.IsNullOrEmpty(options.ServerUrl) ? General.DEFAULT_SERVER_URL : options.ServerUrl;
+        // _ = SignInAsync(url);
     }
     private async Task SignInAsync(string url)
     {

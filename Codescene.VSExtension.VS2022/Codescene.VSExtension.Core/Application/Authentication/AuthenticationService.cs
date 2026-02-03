@@ -18,7 +18,7 @@ namespace Codescene.VSExtension.Core.Application.Authentication
             _persistenceDataProvider = persistenceDataProvider;
         }
 
-        const string NEXT = "/configuration/devtools-tokens/add/vscode"; //change later with visual studio next parameter
+        const string NEXT = "/configuration/devtools-tokens/add/vscode"; // change later with visual studio next parameter
 
         private LoginResponse _loginResponse = null;
 
@@ -32,7 +32,7 @@ namespace Codescene.VSExtension.Core.Application.Authentication
 
         public bool IsLoggedIn()
         {
-            //First check in-memory object
+            // First check in-memory object
             if (_loginResponse == null)
             {
                 _loginResponse = _persistenceDataProvider.GetData();
@@ -47,9 +47,9 @@ namespace Codescene.VSExtension.Core.Application.Authentication
             string redirectUri = "http://localhost:5000/callback/";
 
 
-            //**** this line is temporary until we get implemted redirect on the Codescene side ************
+            // **** this line is temporary until we get implemted redirect on the Codescene side ************
             authUrl = "http://localhost:5000/callback/?token=0dbyR4WxyzwoIrb6eRVKRr5_PCSqrGPvr7ImdcUv_6Q.wun7jHqanjJ-wvAFYkU8Tim3cwGNZKgsMOa7taAvrRc&name=emirprljaca&user-id=66622";
-            //***************************************************************************************
+            // ***************************************************************************************
 
             Process.Start(new ProcessStartInfo
             {
