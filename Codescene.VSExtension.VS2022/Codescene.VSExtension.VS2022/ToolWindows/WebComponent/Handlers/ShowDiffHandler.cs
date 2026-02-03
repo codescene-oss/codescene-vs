@@ -1,4 +1,4 @@
-﻿using Codescene.VSExtension.Core.Interfaces.Ace;
+using Codescene.VSExtension.Core.Interfaces.Ace;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -31,7 +31,7 @@ public class ShowDiffHandler
             return;
 
         var snapshot = buffer.CurrentSnapshot;
-        var start = Math.Max(1, cache.RefactorableCandidate.Range.Startline) - 1;
+        var start = Math.Max(1, cache.RefactorableCandidate.Range.StartLine) - 1;
         var end = Math.Min(Math.Max(1, cache.RefactorableCandidate.Range.EndLine) - 1,
                             snapshot.LineCount - 1);
         if (start >= snapshot.LineCount) return;

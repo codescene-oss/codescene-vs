@@ -54,12 +54,11 @@ namespace Codescene.VSExtension.VS2022.Util
                 {
                     StartColumn = model.FunctionRange.StartColumn,
                     EndColumn = model.FunctionRange.EndColumn,
-                    Startline = model.FunctionRange.StartLine,
+                    StartLine = model.FunctionRange.StartLine,
                     EndLine = model.FunctionRange.EndLine,
                 },
             };
 
-            // Get the current code snapshot from the document
             string fileContent = "";
             var docView = await VS.Documents.OpenAsync(model.Path);
             if (docView?.TextBuffer is ITextBuffer buffer)
@@ -97,7 +96,6 @@ namespace Codescene.VSExtension.VS2022.Util
 
         public static bool ShouldSkipUpdate(string path, string fileName, DeltaResponseModel delta, ILogger logger)
         {
-            // Check fileName before proceeding
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 logger.Warn($"Invalid file name for path: {path}");
@@ -134,7 +132,6 @@ namespace Codescene.VSExtension.VS2022.Util
 
         public static void UpdateFindingIfNotUpdated(FunctionFindingModel finding, string functionName, IList<FnToRefactorModel> refactorableFunctions)
         {
-            // update only if not already updated, for case when multiple methods have same name
             if (finding.RefactorableFn == null)
             {
                 var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName && CheckRange(finding, fn));
@@ -147,9 +144,15 @@ namespace Codescene.VSExtension.VS2022.Util
 
         public static bool CheckRange(FunctionFindingModel finding, FnToRefactorModel refFunction)
         {
-            // this check (using <= instead of ==) is because of ComplexConditional code smell which is inside of the method (only in js, maybe a bug in cli)
-            return refFunction.Range.Startline <= finding.Function.Range.Startline &&
-                finding.Function.Range.Startline <= refFunction.Range.EndLine;
+            var findingRange = finding.Function?.Range;
+            var refactorRange = refFunction?.Range;
+
+            if (findingRange == null || refactorRange == null)
+            {
+                return false;
+            }
+
+            return refactorRange.StartLine <= findingRange.StartLine && findingRange.StartLine <= refactorRange.EndLine;
         }
     }
 }

@@ -162,7 +162,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 // Create a new Range instance for atomic assignment to avoid readers seeing partially-updated state
                 var newRange = new CliRangeModel
                 {
-                    Startline = result.UpdatedRange.Startline,
+                    StartLine = result.UpdatedRange.StartLine,
                     StartColumn = result.UpdatedRange.StartColumn,
                     EndLine = result.UpdatedRange.EndLine,
                     EndColumn = result.UpdatedRange.EndColumn

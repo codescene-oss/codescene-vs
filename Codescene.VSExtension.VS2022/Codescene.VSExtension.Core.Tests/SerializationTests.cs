@@ -24,7 +24,7 @@ namespace Codescene.VSExtension.Core.Tests
 
         private static void AssertStartPosition(CliRangeModel actual, CliRangeModel expected)
         {
-            Assert.AreEqual(expected.Startline, actual.Startline, "StartLine mismatch");
+            Assert.AreEqual(expected.StartLine, actual.StartLine, "StartLine mismatch");
             Assert.AreEqual(expected.StartColumn, actual.StartColumn, "StartColumn mismatch");
         }
 
@@ -35,7 +35,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         private static CliRangeModel CreateExpectedRange(int startLine, int startCol, int endLine, int endCol) =>
-            new CliRangeModel { Startline = startLine, StartColumn = startCol, EndLine = endLine, EndColumn = endCol };
+            new CliRangeModel { StartLine = startLine, StartColumn = startCol, EndLine = endLine, EndColumn = endCol };
 
         private static void AssertJsonContainsProperties(string json, params string[] properties)
         {
@@ -165,7 +165,7 @@ namespace Codescene.VSExtension.Core.Tests
                 Name = "TestFunction",
                 Body = "code",
                 FileType = "js",
-                Range = new CliRangeModel { Startline = 1, StartColumn = 1, EndLine = 10, EndColumn = 1 }
+                Range = new CliRangeModel { StartLine = 1, StartColumn = 1, EndLine = 10, EndColumn = 1 }
             };
 
             var json = JsonConvert.SerializeObject(model);
@@ -217,7 +217,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void CliRangeModel_Serialize_UsesKebabCaseProperties()
         {
-            var model = new CliRangeModel { Startline = 1, StartColumn = 1, EndLine = 100, EndColumn = 50 };
+            var model = new CliRangeModel { StartLine = 1, StartColumn = 1, EndLine = 100, EndColumn = 50 };
 
             var json = JsonConvert.SerializeObject(model);
 
@@ -253,7 +253,7 @@ namespace Codescene.VSExtension.Core.Tests
         private static void AssertCodeSmellRange(CliCodeSmellModel result, int expectedRangeStartLine)
         {
             Assert.IsNotNull(result.Range);
-            Assert.AreEqual(expectedRangeStartLine, result.Range.Startline);
+            Assert.AreEqual(expectedRangeStartLine, result.Range.StartLine);
         }
 
         [TestMethod]

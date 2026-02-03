@@ -20,7 +20,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             return new CliRangeModel
             {
-                Startline = startLine,
+                StartLine = startLine,
                 EndLine = endLine,
                 StartColumn = startColumn,
                 EndColumn = endColumn

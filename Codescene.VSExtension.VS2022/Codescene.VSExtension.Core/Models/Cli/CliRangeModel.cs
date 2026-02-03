@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Models.Cli
 {
@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Models.Cli
         /// Range start line. 1-indexed.
         /// </summary>
         [JsonProperty("start-line")]
-        public int Startline { get; set; }
+        public int StartLine { get; set; }
 
         /// <summary>
         /// Range start column. 1-indexed.
