@@ -62,7 +62,8 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _fileChecker.Check();
 
             Assert.IsFalse(result);
-            _mockLogger.Verify(l => l.Error(
+            _mockLogger.Verify(
+                l => l.Error(
                 It.Is<string>(s => s.Contains("not found") && s.Contains("bundled")),
                 It.IsAny<FileNotFoundException>()), Times.Once);
         }
@@ -116,7 +117,8 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _fileChecker.Check();
 
             Assert.IsFalse(result);
-            _mockLogger.Verify(l => l.Error(
+            _mockLogger.Verify(
+                l => l.Error(
                 It.Is<string>(s => s.Contains("Failed to check")),
                 It.IsAny<Exception>()), Times.Once);
         }

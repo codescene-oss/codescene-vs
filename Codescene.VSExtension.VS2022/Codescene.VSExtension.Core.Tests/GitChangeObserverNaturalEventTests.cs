@@ -24,9 +24,11 @@ namespace Codescene.VSExtension.Core.Tests
 
             await Task.Delay(100);
 
-            var file1Tracked = await WaitForConditionAsync(() =>
+            var file1Tracked = await WaitForConditionAsync(
+                () =>
                 _gitChangeObserverCore.GetTrackerManager().Contains(file1), 5000);
-            var file2Tracked = await WaitForConditionAsync(() =>
+            var file2Tracked = await WaitForConditionAsync(
+                () =>
                 _gitChangeObserverCore.GetTrackerManager().Contains(file2), 5000);
 
             Assert.IsTrue(file1Tracked, "File1 should eventually be tracked");

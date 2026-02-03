@@ -40,7 +40,8 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
         SnapshotSpan range,
         CancellationToken cancellationToken)
     {
-        return Task.Factory.StartNew(() =>
+        return Task.Factory.StartNew(
+            () =>
         {
             if (!HasAuthToken())
                 return false;

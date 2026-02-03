@@ -19,7 +19,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.AreEqual(0, result.Count, "Should return empty list on exception");
-            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Error getting changed files")),
+            Assert.IsTrue(
+                _fakeLogger.WarnMessages.Any(m => m.Contains("Error getting changed files")),
                 "Should log warning message on exception");
         }
 
@@ -32,7 +33,8 @@ namespace Codescene.VSExtension.Core.Tests
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
-            Assert.IsTrue(_fakeLogger.DebugMessages.Any(m => m.Contains("Could not determine merge base")),
+            Assert.IsTrue(
+                _fakeLogger.DebugMessages.Any(m => m.Contains("Could not determine merge base")),
                 "Should log debug message when GetMergeBaseCommit throws");
         }
 
@@ -210,7 +212,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle FindMergeBase exception gracefully");
-            Assert.IsTrue(_fakeLogger.DebugMessages.Any(m => m.Contains("Could not determine merge base")),
+            Assert.IsTrue(
+                _fakeLogger.DebugMessages.Any(m => m.Contains("Could not determine merge base")),
                 "Should log debug message when FindMergeBase throws exception");
         }
 
@@ -227,7 +230,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle Diff.Compare exception gracefully");
-            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Error getting changed files")),
+            Assert.IsTrue(
+                _fakeLogger.WarnMessages.Any(m => m.Contains("Error getting changed files")),
                 "Should log warning message when Diff.Compare throws exception");
         }
 
@@ -244,7 +248,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle RetrieveStatus exception gracefully");
-            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Error getting changed files")),
+            Assert.IsTrue(
+                _fakeLogger.WarnMessages.Any(m => m.Contains("Error getting changed files")),
                 "Should log warning message when RetrieveStatus throws exception");
         }
 
