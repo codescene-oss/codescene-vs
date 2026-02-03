@@ -8,6 +8,5 @@ namespace Codescene.VSExtension.Core.Models
         public string FunctionName { get; set; }
         public CodeRangeModel Range { get; set; }
         public CodeRangeModel FunctionRange { get; set; } = null;
-
     }
 }

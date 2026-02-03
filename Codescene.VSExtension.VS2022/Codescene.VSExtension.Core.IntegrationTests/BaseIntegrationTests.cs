@@ -60,6 +60,5 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         {
             _container.ComposeExportedValue<T>(instance);
         }
-
     }
 }

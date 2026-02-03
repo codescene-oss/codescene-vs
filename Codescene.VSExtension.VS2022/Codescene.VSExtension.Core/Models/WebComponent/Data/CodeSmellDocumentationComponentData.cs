@@ -14,7 +14,6 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
         public string FileName { get; set; }
         public FunctionModel Fn { get; set; }
         public FnToRefactorModel FnToRefactor { get; set; } = null;
-
     }
 
     public class FunctionModel

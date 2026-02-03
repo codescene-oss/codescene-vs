@@ -18,5 +18,4 @@ namespace Codescene.VSExtension.VS2022.Controls
             e.Handled = true; // Prevents the default handling of the event
         }
     }
-
 }

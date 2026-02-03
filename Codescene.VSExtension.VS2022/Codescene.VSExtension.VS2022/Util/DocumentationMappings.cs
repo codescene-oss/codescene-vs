@@ -38,5 +38,4 @@ public static class DocumentationMappings
             { "docs_issues_primitive_obsession", Constants.Titles.PRIMITIVEOBSESSION },
             { "docs_issues_string_heavy_function_arguments", Constants.Titles.STRINGHEAVYFUNCTIONARGUMENTS },
         };
-
 }

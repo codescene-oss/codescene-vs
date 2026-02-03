@@ -52,7 +52,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
             var hasAuthToken = !string.IsNullOrWhiteSpace(settings.AuthToken);
             _preflightManager.SetHasAceToken(hasAuthToken);
             RefreshWindows().FireAndForget();
-
         }
 
         private void OnStateChanged(object sender, AceStateChangedEventArgs e)
@@ -99,7 +98,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private void OnAceDisabled()
         {
             _logger.Debug("ACE disabled");
-
         }
 
         /// <summary>

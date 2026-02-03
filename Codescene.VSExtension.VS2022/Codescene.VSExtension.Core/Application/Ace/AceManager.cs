@@ -122,6 +122,5 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 _telemetryManager.SendTelemetry(Constants.Telemetry.ACEREFACTORREQUESTED, additionalData);
             });
         }
-
     }
 }
