@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using System.Collections.Generic;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;

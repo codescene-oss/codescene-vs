@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using Codescene.VSExtension.Core.Application.Telemetry;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;

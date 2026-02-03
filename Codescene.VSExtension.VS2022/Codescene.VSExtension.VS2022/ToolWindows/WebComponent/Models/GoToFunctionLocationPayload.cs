@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using Codescene.VSExtension.Core.Models;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;

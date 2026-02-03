@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models.Ace;

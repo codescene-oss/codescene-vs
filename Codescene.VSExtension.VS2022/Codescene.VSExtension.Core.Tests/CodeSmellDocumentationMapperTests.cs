@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models;

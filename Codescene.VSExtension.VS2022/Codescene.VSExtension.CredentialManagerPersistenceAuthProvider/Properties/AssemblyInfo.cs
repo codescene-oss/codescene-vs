@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;

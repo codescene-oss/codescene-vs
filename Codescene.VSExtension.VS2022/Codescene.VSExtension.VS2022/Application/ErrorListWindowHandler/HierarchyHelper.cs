@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using System;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;

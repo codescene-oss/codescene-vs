@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using Codescene.VSExtension.Core.IntegrationTests.TestImplementations;

@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 
 internal class MessageObj<T>

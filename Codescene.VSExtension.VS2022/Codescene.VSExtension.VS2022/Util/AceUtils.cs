@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

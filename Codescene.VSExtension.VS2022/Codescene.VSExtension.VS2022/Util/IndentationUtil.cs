@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using System;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Models;

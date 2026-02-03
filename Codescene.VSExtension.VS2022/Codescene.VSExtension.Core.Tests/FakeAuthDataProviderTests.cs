@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using Codescene.VSExtension.Core.Application.Authentication;
 
 namespace Codescene.VSExtension.Core.Tests

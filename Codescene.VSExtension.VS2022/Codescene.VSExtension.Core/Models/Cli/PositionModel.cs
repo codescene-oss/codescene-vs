@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Models.Cli

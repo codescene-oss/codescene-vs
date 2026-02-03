@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Tests

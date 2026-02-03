@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 namespace Codescene.VSExtension.Core.Models.WebComponent.Model
 {
     public class ShowDocumentationModel

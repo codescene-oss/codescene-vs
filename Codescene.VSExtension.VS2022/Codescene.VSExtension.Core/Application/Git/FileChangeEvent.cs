@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using Codescene.VSExtension.Core.Enums.Git;
 
 namespace Codescene.VSExtension.Core.Application.Git
