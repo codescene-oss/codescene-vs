@@ -116,5 +116,4 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
     }
 
     public static bool IsCreated() => _ctrl != null;
-
 }

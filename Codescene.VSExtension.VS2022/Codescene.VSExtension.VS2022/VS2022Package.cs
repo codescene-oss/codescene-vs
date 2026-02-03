@@ -80,7 +80,6 @@ public sealed class VS2022Package : ToolkitPackage
             RunPreflight();
 
             SendTelemetry(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSION);
-
         }
         catch (Exception e)
         {

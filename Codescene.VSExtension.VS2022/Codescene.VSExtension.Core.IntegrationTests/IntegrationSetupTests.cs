@@ -26,7 +26,6 @@ namespace Codescene.VSExtension.Core.IntegrationTests
             var cliFilePath = cliSettingsProvider.CliFileFullPath;
             // Assert
             Assert.IsTrue(File.Exists(cliFilePath), $"CLI file does not exist at path: {cliFilePath}");
-
         }
 
         /// <summary>

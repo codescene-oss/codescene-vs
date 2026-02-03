@@ -112,6 +112,5 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 AceResultData = aceParams.AceResultData,
             };
         }
-
     }
 }

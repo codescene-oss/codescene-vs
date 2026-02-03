@@ -11,5 +11,4 @@ namespace Codescene.VSExtension.Core.Models.Cache.Review
             FilePath = filePath;
         }
     }
-
 }

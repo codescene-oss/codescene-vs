@@ -97,6 +97,5 @@ namespace Codescene.VSExtension.Core.Tests
             AssertFileInChangedList(changedFiles, "merge1.ts", false);
             AssertFileInChangedList(changedFiles, "merge2.ts", false);
         }
-
     }
 }
