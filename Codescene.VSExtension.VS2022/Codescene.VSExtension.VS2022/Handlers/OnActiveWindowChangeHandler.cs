@@ -29,6 +29,7 @@ public class OnActiveWindowChangeHandler
     {
         try
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             HandleFocusedFile(gotFocus);
         }
         catch (Exception e)

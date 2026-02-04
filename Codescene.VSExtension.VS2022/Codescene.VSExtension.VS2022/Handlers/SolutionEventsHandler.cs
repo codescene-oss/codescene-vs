@@ -33,8 +33,12 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
         if (isUiThread)
         {
-            _solution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
-            _solution.AdviseSolutionEvents(this, out _cookie);
+            var solution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
+            if (solution != null)
+            {
+                solution.AdviseSolutionEvents(this, out _cookie);
+                _solution = solution;
+            }
         }
     }
 
@@ -82,7 +86,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             }
 
             _branchWatcher = new BranchWatcherService();
-            _branchWatcher.StartWatching(solutionPath, async (newBranch) => await OnBranchChangedAsync(newBranch));
+            _branchWatcher.StartWatching(solutionPath, (newBranch) => OnBranchChangedAsync(newBranch).FireAndForget());
         });
 
         return VSConstants.S_OK;
@@ -112,6 +116,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
     public void Dispose()
     {
+        ThreadHelper.ThrowIfNotOnUIThread();
         var canDispose = ThreadHelper.CheckAccess() && _solution != null && _cookie != 0;
 
         if (canDispose)

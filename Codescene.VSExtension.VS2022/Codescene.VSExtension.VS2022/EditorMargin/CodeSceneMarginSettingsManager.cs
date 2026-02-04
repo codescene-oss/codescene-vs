@@ -2,8 +2,10 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cache.Review;
+using Microsoft.VisualStudio.Shell;
 
 namespace Codescene.VSExtension.VS2022.EditorMargin;
 
@@ -11,7 +13,7 @@ namespace Codescene.VSExtension.VS2022.EditorMargin;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class CodeSceneMarginSettingsManager
 {
-    public event Action ScoreUpdated;
+    public event Func<Task> ScoreUpdated;
 
     public bool HasScore { get; private set; } = false;
 
@@ -27,12 +29,12 @@ public class CodeSceneMarginSettingsManager
         FileInFocus = path;
         FileInFocusContent = content;
         HasScore = cacheItem != null;
-        ScoreUpdated?.Invoke();
+        ScoreUpdated?.Invoke().FireAndForget();
     }
 
     public void HideMargin()
     {
         HasScore = false;
-        ScoreUpdated?.Invoke();
+        ScoreUpdated?.Invoke().FireAndForget();
     }
 }

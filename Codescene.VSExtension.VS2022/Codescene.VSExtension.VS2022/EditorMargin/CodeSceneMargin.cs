@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -37,10 +38,10 @@ public class CodeSceneMargin : IWpfTextViewMargin
             Children = { _label },
         };
 
-        _settings.ScoreUpdated += UpdateUI;
+        _settings.ScoreUpdated += UpdateUIAsync;
         VSColorTheme.ThemeChanged += OnThemeChanged;
 
-        UpdateUI();
+        UpdateUIAsync().FireAndForget();
     }
 
     public FrameworkElement VisualElement => _rootPanel;
@@ -55,7 +56,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
 
     public void Dispose()
     {
-        _settings.ScoreUpdated -= UpdateUI;
+        _settings.ScoreUpdated -= UpdateUIAsync;
     }
 
     public ITextViewMargin GetTextViewMargin(string marginName)
@@ -75,10 +76,11 @@ public class CodeSceneMargin : IWpfTextViewMargin
         return new SolidColorBrush(mediaColor);
     }
 
-    private void UpdateUI()
+    private async Task UpdateUIAsync()
     {
-        _rootPanel.Dispatcher.Invoke(() =>
+        await ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
             bool show = _settings.HasScore;
             _rootPanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
 
