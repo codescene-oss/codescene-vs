@@ -44,7 +44,7 @@ restore:
 # Build only runs if source files or assets are newer than .build-timestamp
 .build-timestamp: $(CS_FILES) $(PROJ_FILES) .copy-assets
 	@dotnet.exe restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln > restore.log 2>&1 && del restore.log || (type restore.log && del restore.log && exit /b 1)
-	@cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release > build.log 2>&1 && del build.log || (type build.log && del build.log && exit /b 1)
+	@cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release -v:minimal > build.log 2>&1 && del build.log || (pwsh.exe -File ..\.github\filter-build-log.ps1 -LogFile build.log && del build.log && exit /b 1)
 	@echo Build completed at %date% %time% > .build-timestamp
 
 build: .build-timestamp
@@ -75,7 +75,7 @@ format-check:
 	$(call call_cached,$(CACHE_KEY),dotnet.exe format Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --verify-no-changes) > format-check.log 2>&1 && del format-check.log || (type format.log && del format-check.log && exit /b 1)
 
 .run-analyzers: restore
-	@$(call call_cached,$(CACHE_KEY),cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release -p:RunStyleCopAnalyzers=true)
+	@$(call call_cached,$(CACHE_KEY),cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release -p:RunStyleCopAnalyzers=true -v:minimal)
 
 stylecop: restore
 	@make .run-analyzers > analyzers.log 2>&1

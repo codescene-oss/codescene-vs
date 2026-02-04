@@ -11,7 +11,16 @@ if ($exitCode -eq 0) {
     $fileList = $changedFiles -split ' '
 
     make .run-analyzers > analyzers.log 2>&1
-    if ($LASTEXITCODE -ne 0) {
+    $buildExitCode = $LASTEXITCODE
+
+    $content = Get-Content 'analyzers.log' | Where-Object {
+        $_ -notmatch 'SourceItems item:' -and
+        $_ -notmatch 'csc\.exe\s+' -and
+        $_ -notmatch "BuildResponseFile = '"
+    }
+    $content | Set-Content 'analyzers.log'
+
+    if ($buildExitCode -ne 0) {
         exit 1
     }
 
@@ -32,6 +41,5 @@ if ($exitCode -eq 0) {
         exit 0
     }
 } else {
-    Write-Host 'No changed C# files to check' -ForegroundColor Yellow
     exit 0
 }
