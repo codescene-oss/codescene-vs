@@ -63,10 +63,13 @@
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
     <Compile Include="Application\Adapters\VsAsyncTaskScheduler.cs" />
+    <Compile Include="Application\Adapters\VsDocumentSaveEventSource.cs" />
+    <Compile Include="Application\Adapters\VsOpenFilesObserver.cs" />
     <Compile Include="Application\Git\BranchWatcherService.cs" />
     <Compile Include="Application\Git\GitChangeObserver.cs" />
     <Compile Include="Application\Git\GitService.cs" />
     <Compile Include="Application\Git\IGitChangeObserver.cs" />
+    <Compile Include="Application\Git\SavedFilesTracker.cs" />
     <Compile Include="Application\Services\AceAcknowledgementStateService.cs" />
     <Compile Include="Cache\CacheStorageService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />

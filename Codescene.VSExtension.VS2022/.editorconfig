@@ -9,10 +9,14 @@ trim_trailing_whitespace = true
 [*.cs]
 # SA0001: XML documentation comments must begin with standard text
 dotnet_diagnostic.SA0001.severity = none
+# SA1005: Single line comment should begin with a space (disabled to allow aligned table-style comments)
+dotnet_diagnostic.SA1005.severity = none
 # SA1101PrefixLocalCallsWithThis
 dotnet_diagnostic.SA1101.severity = none
 # SA1309FieldNamesMustNotBeginWithUnderscore
 dotnet_diagnostic.SA1309.severity = none
+# SA1515: Single-line comment should be preceded by blank line (disabled to allow header comments directly before DataRow)
+dotnet_diagnostic.SA1515.severity = none
 # CS0649: Field is never assigned to, and will always have its default value
 dotnet_diagnostic.CS0649.severity = none
 # CS0067: Event is never used
