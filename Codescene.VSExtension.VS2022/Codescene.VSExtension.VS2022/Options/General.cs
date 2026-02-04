@@ -27,6 +27,7 @@ public class General : BaseOptionModel<General>
     public General()
     : base()
     {
+        Load();
         // Store initial values
         _previousAuthToken = AuthToken;
         _previousShowDebugLogs = ShowDebugLogs;
