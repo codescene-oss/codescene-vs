@@ -21,6 +21,5 @@ if ($exitCode -eq 0) {
         exit 0
     }
 } else {
-    Write-Host 'No changed C# files to check' -ForegroundColor Yellow
     exit 0
 }

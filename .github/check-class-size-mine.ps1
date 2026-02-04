@@ -1,3 +1,16 @@
+function Report-AndExit {
+    param(
+        [string[]]$Violations
+    )
+
+    if ($Violations.Count -gt 0) {
+        $Violations | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+        exit 1
+    } else {
+        exit 0
+    }
+}
+
 $changedFiles = pwsh.exe -File .github/mine.ps1
 $exitCode = $LASTEXITCODE
 
@@ -14,13 +27,7 @@ if ($exitCode -eq 0) {
         }
     }
 
-    if ($violations.Count -gt 0) {
-        $violations | ForEach-Object { Write-Host $_ -ForegroundColor Red }
-        exit 1
-    } else {
-        exit 0
-    }
+    Report-AndExit -Violations $violations
 } else {
-    Write-Host 'No changed C# files to check' -ForegroundColor Yellow
     exit 0
 }
