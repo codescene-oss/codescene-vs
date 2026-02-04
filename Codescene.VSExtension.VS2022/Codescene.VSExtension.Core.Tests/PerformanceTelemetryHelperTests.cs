@@ -43,7 +43,7 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert
             _mockTelemetryManager.Verify(
                 t => t.SendTelemetry(
-                    Constants.Telemetry.ANALYSIS_PERFORMANCE,
+                    Constants.Telemetry.ANALYSISPERFORMANCE,
                     It.IsAny<Dictionary<string, object>>()),
                 Times.Once);
         }
@@ -77,7 +77,7 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(Constants.Titles.DELTA, capturedData["type"]);
             Assert.AreEqual(250L, capturedData["elapsedMs"]);
             Assert.AreEqual("javascript", capturedData["language"]);
-            Assert.AreEqual(Constants.Telemetry.SOURCE_IDE, capturedData["editor-type"]);
+            Assert.AreEqual(Constants.Telemetry.SOURCEIDE, capturedData["editor-type"]);
             Assert.AreEqual(200, capturedData["loc"]);
         }
 

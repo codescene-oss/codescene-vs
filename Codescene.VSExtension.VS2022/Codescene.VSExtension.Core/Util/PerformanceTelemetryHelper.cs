@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +24,10 @@ namespace Codescene.VSExtension.Core.Util
             ILogger logger,
             PerformanceTelemetryData data)
         {
-            if (telemetryManager == null || data == null) return;
+            if (telemetryManager == null || data == null)
+            {
+                return;
+            }
 
             try
             {
@@ -30,9 +35,9 @@ namespace Codescene.VSExtension.Core.Util
                 {
                     { "type", data.Type },
                     { "elapsedMs", data.ElapsedMs },
-                    { "language", language },
+                    { "language", data.Language ?? string.Empty },
                     { "editor-type", Constants.Telemetry.SOURCEIDE },
-                    { "loc", loc }
+                    { "loc", data.Loc },
                 };
 
                 telemetryManager.SendTelemetry(Constants.Telemetry.ANALYSISPERFORMANCE, additionalData);
