@@ -152,6 +152,8 @@ internal class WebComponentMessageHandler
 
     private async Task HandleCopyCodeAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
         var payload = msgObject.Payload.ToObject<CopyCodePayload>();
         HandleAceTelemetry(Constants.Telemetry.ACEREFACTORCOPYCODE);
 

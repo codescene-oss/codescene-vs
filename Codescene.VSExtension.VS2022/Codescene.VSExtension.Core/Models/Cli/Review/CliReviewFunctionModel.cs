@@ -19,7 +19,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
         public CliRangeModel Range { get; set; }
 
         /// <summary>
-        ///
+        /// Gets or sets the code smells associated with the function.
         /// </summary>
         [JsonProperty("code-smells")]
         public CliCodeSmellModel[] CodeSmells { get; set; }

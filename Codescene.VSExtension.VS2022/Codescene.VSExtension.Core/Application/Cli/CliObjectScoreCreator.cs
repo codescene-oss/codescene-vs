@@ -20,11 +20,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
         }
 
         /// <summary>
-        ///
+        /// <param name="oldScore">Raw base64 encoded old score.</param>
+        /// <param name="newScore">Raw base64 encoded new score.</param>
         /// </summary>
-        /// <param name="oldScore">Raw base64 encoded score.</param>
-        /// <param name="newScore">Raw base64 encoded score.</param>
-        /// <returns></returns>
+        /// <returns>score as json.</returns>
         public string Create(string oldScore, string newScore)
         {
             if (string.IsNullOrWhiteSpace(oldScore) && string.IsNullOrWhiteSpace(newScore))
