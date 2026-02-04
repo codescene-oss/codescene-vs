@@ -105,7 +105,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
         /// <summary>
         /// Attempts to create a <see cref="SnapshotSpan"/> (a range in the text buffer)
-        /// that corresponds to the location of the given <paramref name="codeSmell"/>.
+        /// that corresponds to the location of the given <paramref name="tagSpanParams"/>.
         ///
         /// The span is based on the start and end line/column info from the code smell model.
         /// It ensures that the calculated range is valid and within the current text snapshot.
