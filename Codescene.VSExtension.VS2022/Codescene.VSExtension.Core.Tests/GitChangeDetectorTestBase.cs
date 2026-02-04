@@ -201,6 +201,16 @@ namespace Codescene.VSExtension.Core.Tests
                 return _savedFiles;
             }
 
+            public void ClearSavedFiles()
+            {
+                _savedFiles.Clear();
+            }
+
+            public void RemoveFromTracker(string filePath)
+            {
+                _savedFiles.Remove(filePath);
+            }
+
             public void AddSavedFile(string filePath)
             {
                 _savedFiles.Add(filePath);
