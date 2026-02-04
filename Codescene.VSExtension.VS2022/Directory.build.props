@@ -3,6 +3,9 @@
   <PropertyGroup>
     <RunStyleCopAnalyzers>true</RunStyleCopAnalyzers>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
   <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)\stylecop.json" Link="stylecop.json" />
   </ItemGroup>

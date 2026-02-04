@@ -7,6 +7,8 @@ charset = utf-8
 insert_final_newline = true
 trim_trailing_whitespace = true
 [*.cs]
+# SA0001: XML documentation comments must begin with standard text
+dotnet_diagnostic.SA0001.severity = none
 # SA1101PrefixLocalCallsWithThis
 dotnet_diagnostic.SA1101.severity = none
 # SA1309FieldNamesMustNotBeginWithUnderscore
@@ -17,8 +19,12 @@ dotnet_diagnostic.CS0649.severity = none
 dotnet_diagnostic.CS0067.severity = none
 # CVST005: Command has not been initialized
 dotnet_diagnostic.CVST005.severity = none
-
-
+# IDE0028: Simplify collection initialization
+dotnet_diagnostic.IDE0028.severity = none
+# IDE0090: Use 'new(...)'
+dotnet_diagnostic.IDE0090.severity = none
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none
 
 [{*Tests.cs,*TestBase.cs,*TestHelpers.cs,Test*.cs}]
 # CS8618: Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
