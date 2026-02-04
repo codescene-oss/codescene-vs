@@ -25,8 +25,6 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
     {
         get
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
             if (_errorListProvider == null && VS2022Package.Instance != null)
             {
                 _errorListProvider = new ErrorListProvider(VS2022Package.Instance);
@@ -41,6 +39,8 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
     /// </summary>
     public void Handle(FileReviewModel review)
     {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
         if (review == null || string.IsNullOrWhiteSpace(review.FilePath))
         {
             return;
@@ -60,6 +60,7 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
 
     private void Add(IEnumerable<CodeSmellModel> issues)
     {
+        ThreadHelper.ThrowIfNotOnUIThread();
         foreach (var issue in issues)
         {
             Add(issue);
@@ -80,6 +81,7 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
 
     private void Add(CodeSmellModel issue)
     {
+        ThreadHelper.ThrowIfNotOnUIThread();
         var errorTask = new ErrorTask
         {
             ErrorCategory = TaskErrorCategory.Warning,

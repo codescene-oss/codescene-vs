@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
+using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 
 namespace Codescene.VSExtension.VS2022.Application.Adapters
@@ -16,7 +17,8 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
         {
             try
             {
-                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                var threadHelper = ToolkitThreadHelper.Create();
+                threadHelper.JoinableTaskFactory.RunAsync(async () =>
                 {
                     await asyncWork();
                 }).FileAndForget("VsAsyncTaskScheduler/ScheduledWork");
@@ -32,7 +34,7 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
                     catch (Exception)
                     {
                     }
-                });
+                }).FileAndForget("VsAsyncTaskScheduler/ScheduledWork");
             }
         }
     }

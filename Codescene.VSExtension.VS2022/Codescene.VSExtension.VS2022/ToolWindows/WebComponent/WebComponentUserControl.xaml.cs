@@ -136,7 +136,11 @@ public partial class WebComponentUserControl : UserControl
     /// Gets a CSS string defining theme variables based on the current Visual Studio color theme.
     /// These variables are used for styling elements inside the WebView to match the IDE appearance.
     /// </summary>
-    private static string GenerateCssVariablesFromTheme() => StyleHelper.GenerateCssVariablesFromTheme();
+    private static string GenerateCssVariablesFromTheme()
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        return StyleHelper.GenerateCssVariablesFromTheme();
+    }
 
     // Use process ID and view type to make host unique per VS instance and view type
     // This prevents conflicts when multiple instances are open
@@ -144,6 +148,7 @@ public partial class WebComponentUserControl : UserControl
 
     private void Initialize<T>(T payload, string view)
     {
+        ThreadHelper.ThrowIfNotOnUIThread();
         OnThemeChanged(null);
         _ = InitializeWebView2Async(payload, view);
         VSColorTheme.ThemeChanged += OnThemeChanged;
@@ -169,6 +174,8 @@ public partial class WebComponentUserControl : UserControl
         {
             return;
         }
+
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         var css = GenerateCssVariablesFromTheme().Replace("`", "\\`");
 

@@ -151,6 +151,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
 
     private bool GetAcceptedTerms()
     {
+        ThreadHelper.ThrowIfNotOnUIThread();
         var store = GetOrCreateSettingsStore();
 
         return store.PropertyExists(CodeSceneConstants.Titles.SETTINGSCOLLECTION, CodeSceneConstants.Titles.ACCEPTEDTERMSPROPERTY) &&
@@ -159,6 +160,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
 
     private void SetAcceptedTerms(bool value)
     {
+        ThreadHelper.ThrowIfNotOnUIThread();
         var store = GetOrCreateSettingsStore();
 
         store.SetBoolean(CodeSceneConstants.Titles.SETTINGSCOLLECTION, CodeSceneConstants.Titles.ACCEPTEDTERMSPROPERTY, value);
