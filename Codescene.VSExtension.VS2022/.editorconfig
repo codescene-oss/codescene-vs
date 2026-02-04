@@ -1,6 +1,10 @@
 
 root = true
 
+# NuGet package files (injected AssemblyInfo etc.) - not our code
+[**/.nuget/packages/**]
+dotnet_analyzer_diagnostic.severity = none
+
 # All files
 [*]
 charset = utf-8
