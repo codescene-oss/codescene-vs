@@ -3,7 +3,8 @@ root = true
 
 # NuGet package files (injected AssemblyInfo etc.) - not our code
 [**/.nuget/packages/**]
-dotnet_analyzer_diagnostic.severity = none
+dotnet_analyzer_diagnostic.SA1518.severity = none
+dotnet_analyzer_diagnostic.SA1636.severity = none
 
 # All files
 [*]

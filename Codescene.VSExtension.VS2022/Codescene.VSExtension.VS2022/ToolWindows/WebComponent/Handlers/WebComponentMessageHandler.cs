@@ -78,7 +78,7 @@ internal class WebComponentMessageHandler
                     break;
 
                 case MessageTypes.COPYCODE:
-                    HandleCopyCode(msgObject, logger);
+                    await HandleCopyCodeAsync(msgObject, logger);
                     break;
 
                 case MessageTypes.SHOWDIFF:
@@ -150,8 +150,10 @@ internal class WebComponentMessageHandler
         await _control.MarkAsInitializedAsync();
     }
 
-    private void HandleCopyCode(MessageObj<JToken> msgObject, ILogger logger)
+    private async Task HandleCopyCodeAsync(MessageObj<JToken> msgObject, ILogger logger)
     {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
         var payload = msgObject.Payload.ToObject<CopyCodePayload>();
         HandleAceTelemetry(Constants.Telemetry.ACEREFACTORCOPYCODE);
 
