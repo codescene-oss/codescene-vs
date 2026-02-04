@@ -18,13 +18,13 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
         /// <summary>
         /// Returns the folder to store the review cache that should be scoped to the current solution.
         /// </summary>
-        /// <returns>location of cache</returns>
+        /// <returns>location of cache.</returns>
         string GetSolutionReviewCacheLocation();
 
         /// <summary>
         /// Removes old cache entries. Default 30 days.
         /// </summary>
-        /// <param name="nrOfDays">How many days old the cache files should be before deleting</param>
+        /// <param name="nrOfDays">How many days old the cache files should be before deleting.</param>
         void RemoveOldReviewCacheEntries(int nrOfDays = 30);
     }
 }
