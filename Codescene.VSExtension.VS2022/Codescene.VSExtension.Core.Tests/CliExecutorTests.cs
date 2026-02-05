@@ -324,7 +324,7 @@ namespace Codescene.VSExtension.Core.Tests
             // Act & Assert
             var exception = Assert.Throws<MissingAuthTokenException>(() =>
                 _cliExecutor.PostRefactoring(fnToRefactor));
-            Assert.IsTrue(exception.Message.Contains("Authentication token is missing"));
+            Assert.Contains(exception.Message, "Authentication token is missing");
         }
 
         [TestMethod]
@@ -433,7 +433,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
             Assert.AreEqual("Function1", result[0].Name);
         }
 
@@ -517,7 +517,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.AreEqual(1, result.Count);
+            Assert.HasCount(1, result);
             Assert.AreEqual("Function1", result[0].Name);
         }
 

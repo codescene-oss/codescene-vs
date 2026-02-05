@@ -1,3 +1,5 @@
+// Copyright (c) CodeScene. All rights reserved.
+
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
@@ -283,7 +285,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         // ExtractLanguage Tests
-
         [TestMethod]
         public void ExtractLanguage_WithFnToRefactor_ReturnsFileTypeFromModel()
         {
