@@ -36,22 +36,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetReviewFileContentCommand_ShouldIncludeIdeApiAndFilename()
-        {
-            var command = _commandProvider.GetReviewFileContentCommand("testfile.txt");
-
-            Assert.AreEqual("review --file-name testfile.txt", command);
-        }
-
-        [TestMethod]
-        public void GetReviewPathCommand_ShouldIncludeIdeApiAndPath()
-        {
-            var command = _commandProvider.GetReviewPathCommand("some/path");
-
-            Assert.AreEqual("review some/path", command);
-        }
-
-        [TestMethod]
         public void GetReviewFileContentPayload_ReturnsCorrectJson()
         {
             var payload = _commandProvider.GetReviewFileContentPayload(TestFileName, TestFileContent, TestCachePath);

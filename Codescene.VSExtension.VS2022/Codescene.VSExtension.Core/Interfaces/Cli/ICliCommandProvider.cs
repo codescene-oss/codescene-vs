@@ -17,8 +17,6 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
 
         string ReviewFileContentCommand { get; }
 
-        string GetReviewPathCommand(string path);
-
         string SendTelemetryCommand(string jsonEvent);
 
         string GetReviewFileContentPayload(string filePath, string fileContent, string cachePath);

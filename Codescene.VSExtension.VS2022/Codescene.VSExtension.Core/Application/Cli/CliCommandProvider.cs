@@ -73,17 +73,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 args.Add("--fn-to-refactor-nippy-b64");
                 args.Add(fnToRefactor.NippyB64);
             }
-            else
-            {
-                args.Add("--fn-to-refactor");
-                args.Add(JsonConvert.SerializeObject(fnToRefactor));
-            }
 
             var command = GetArgumentStr(args.ToArray());
             return command;
         }
-
-        public string GetReviewFileContentCommand(string path) => GetArgumentStr("review", "--file-name", path);
 
         public string GetReviewFileContentPayload(string filePath, string fileContent, string cachePath)
         {
@@ -96,8 +89,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return JsonConvert.SerializeObject(request, SerializerSettings);
         }
 
-        public string GetReviewPathCommand(string path) => GetArgumentStr("review", path);
-
         public string GetReviewDeltaCommand(string oldScore, string newScore)
         {
             var scores = _creator.Create(oldScore, newScore);
@@ -109,7 +100,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var sb = new StringBuilder();
             foreach (var arg in args)
             {
-                PasteArguments.AppendArgument(sb, arg);
+                //PasteArguments.AppendArgument(sb, arg);
+                sb.Append(arg).Append(" ");
             }
 
             return sb.ToString();
