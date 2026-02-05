@@ -38,36 +38,52 @@ namespace Codescene.VSExtension.Core.Tests
         public void GetSavedFiles_ReturnsDefensiveCopy()
         {
             _fakeOpenFilesObserver.AddOpenFile(@"C:\test\file1.cs");
+            _fakeOpenFilesObserver.AddOpenFile(@"C:\test\file2.cs");
             _fakeEventSource.SimulateSave(@"C:\test\file1.cs");
+            _fakeEventSource.SimulateSave(@"C:\test\file2.cs");
 
             var result1 = _tracker.GetSavedFiles();
             var result2 = _tracker.GetSavedFiles();
 
             Assert.AreNotSame(result1, result2, "Should return different instances");
-            Assert.AreEqual(1, result1.Count());
-            Assert.AreEqual(1, result2.Count());
+
+            var list1 = result1.ToList();
+            var list2 = result2.ToList();
+
+            Assert.HasCount(2, list1, "First result should have 2 files");
+            Assert.HasCount(2, list2, "Second result should have 2 files");
+
+            Assert.Contains(@"C:\test\file1.cs", list1, "First result should contain file1.cs");
+            Assert.Contains(@"C:\test\file2.cs", list1, "First result should contain file2.cs");
+            Assert.Contains(@"C:\test\file1.cs", list2, "Second result should contain file1.cs");
+            Assert.Contains(@"C:\test\file2.cs", list2, "Second result should contain file2.cs");
+
+            var beforeCount = _tracker.GetSavedFiles().Count();
+            list1.Clear();
+            var afterCount = _tracker.GetSavedFiles().Count();
+
+            Assert.AreEqual(beforeCount, afterCount, "Modifying returned list should not affect internal state");
+            Assert.AreEqual(2, afterCount, "Internal state should still have 2 files after clearing returned list");
         }
 
         [TestMethod]
-        public void OnDocumentSaved_OnlyTracksVisibleFiles()
+        //       isVisible  expectedCount
+        [DataRow(true,      1,             DisplayName = "Tracks visible files")]
+        [DataRow(false,     0,             DisplayName = "Does not track invisible files")]
+        public void OnDocumentSaved_TracksBasedOnVisibility(bool isVisible, int expectedCount)
         {
-            _fakeEventSource.SimulateSave(@"C:\test\invisible.cs");
+            var filePath = @"C:\test\file.cs";
+
+            if (isVisible)
+            {
+                _fakeOpenFilesObserver.AddOpenFile(filePath);
+            }
+
+            _fakeEventSource.SimulateSave(filePath);
 
             var result = _tracker.GetSavedFiles();
 
-            Assert.AreEqual(0, result.Count(), "Should not track files that are not visible");
-        }
-
-        [TestMethod]
-        public void OnDocumentSaved_TracksVisibleFiles()
-        {
-            _fakeOpenFilesObserver.AddOpenFile(@"C:\test\visible.cs");
-            _fakeEventSource.SimulateSave(@"C:\test\visible.cs");
-
-            var result = _tracker.GetSavedFiles();
-
-            Assert.AreEqual(1, result.Count(), "Should track visible files");
-            Assert.AreEqual(@"C:\test\visible.cs", result.First());
+            Assert.AreEqual(expectedCount, result.Count());
         }
 
         [TestMethod]
