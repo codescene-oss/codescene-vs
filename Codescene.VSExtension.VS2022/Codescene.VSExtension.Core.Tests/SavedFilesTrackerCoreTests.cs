@@ -167,14 +167,37 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.AreEqual(1, result.Count(), "Should not duplicate files with case-insensitive comparison");
         }
+
+        [TestMethod]
+        public void Start_CallsEventSourceStart()
+        {
+            Assert.IsFalse(_fakeEventSource.StartCalled, "Start should not be called initially");
+
+            _tracker.Start();
+
+            Assert.IsTrue(_fakeEventSource.StartCalled, "Start should be called on event source");
+        }
+
+        [TestMethod]
+        public void Dispose_CalledTwice_DoesNotThrow()
+        {
+            _fakeOpenFilesObserver.AddOpenFile(@"C:\test\file.cs");
+            _fakeEventSource.SimulateSave(@"C:\test\file.cs");
+
+            _tracker.Dispose();
+            _tracker.Dispose();
+        }
     }
 
     public class FakeDocumentSaveEventSource : IDocumentSaveEventSource
     {
         public event EventHandler<string> DocumentSaved;
 
+        public bool StartCalled { get; private set; }
+
         public void Start()
         {
+            StartCalled = true;
         }
 
         public void SimulateSave(string filePath)
