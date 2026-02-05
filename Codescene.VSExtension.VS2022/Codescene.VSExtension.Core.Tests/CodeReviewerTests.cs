@@ -236,14 +236,14 @@ namespace Codescene.VSExtension.Core.Tests
                 .Returns(new CliReviewModel { RawScore = "old-raw" });
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
                 .Returns(new FileReviewModel { RawScore = "old-raw" });
-            _mockExecutor.Setup(x => x.ReviewDelta(It.IsAny<string>(), It.IsAny<string>()))
+            _mockExecutor.Setup(x => x.ReviewDelta(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(new Models.Cli.Delta.DeltaResponseModel());
 
             // Act - should not throw
             var result = _codeReviewer.Delta(review, "current code");
 
             // Assert - verify ReviewDelta was called with empty string for current raw score
-            _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), string.Empty), Times.Once);
+            _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), string.Empty, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
@@ -309,7 +309,7 @@ namespace Codescene.VSExtension.Core.Tests
                 .Returns(new CliReviewModel { RawScore = "old-raw" });
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
                 .Returns(new FileReviewModel { RawScore = "old-raw" });
-            _mockExecutor.Setup(x => x.ReviewDelta("old-raw", "new-raw"))
+            _mockExecutor.Setup(x => x.ReviewDelta("old-raw", "new-raw", "test.cs", currentCode))
                 .Returns(new Models.Cli.Delta.DeltaResponseModel { ScoreChange = -0.5m });
 
             // Act
@@ -317,7 +317,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert
             Assert.IsNotNull(result);
-            _mockExecutor.Verify(x => x.ReviewDelta("old-raw", "new-raw"), Times.Once);
+            _mockExecutor.Verify(x => x.ReviewDelta("old-raw", "new-raw", "test.cs", currentCode), Times.Once);
         }
     }
 }

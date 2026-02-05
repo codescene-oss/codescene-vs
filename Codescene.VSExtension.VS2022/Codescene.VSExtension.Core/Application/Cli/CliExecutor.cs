@@ -25,26 +25,20 @@ namespace Codescene.VSExtension.Core.Application.Cli
     public class CliExecutor : ICliExecutor
     {
         private readonly ILogger _logger;
-        private readonly ICliCommandProvider _cliCommandProvider; // TODO: evaulate if this is needed, if  ExecuteCommand(string arguments, string content = null) is replaced with IProcessExecutor
-        private readonly IProcessExecutor _executor;
+        private readonly ICliServices _cliServices;
         private readonly ISettingsProvider _settingsProvider;
-        private readonly ICacheStorageService _cacheStorageService;
         private readonly Lazy<ITelemetryManager> _telemetryManagerLazy;
 
         [ImportingConstructor]
         public CliExecutor(
             ILogger logger,
-            ICliCommandProvider cliCommandProvider,
-            IProcessExecutor executor,
+            ICliServices cliServices,
             ISettingsProvider settingsProvider,
-            ICacheStorageService cacheStorageService,
             [Import(AllowDefault = true)] Lazy<ITelemetryManager> telemetryManagerLazy = null)
         {
-            _logger = logger;
-            _cliCommandProvider = cliCommandProvider;
-            _executor = executor;
-            _settingsProvider = settingsProvider;
-            _cacheStorageService = cacheStorageService;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _cliServices = cliServices ?? throw new ArgumentNullException(nameof(cliServices));
+            _settingsProvider = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
             _telemetryManagerLazy = telemetryManagerLazy;
         }
 
@@ -68,13 +62,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
         /// <returns>A <see cref="CliReviewModel"/> containing the review results, or null if the review fails.</returns>
         public CliReviewModel ReviewContent(string filename, string content)
         {
-            var command = _cliCommandProvider.ReviewFileContentCommand;
-            var payload = _cliCommandProvider.GetReviewFileContentPayload(filename, content, _cacheStorageService.GetSolutionReviewCacheLocation());
+            var command = _cliServices.CommandProvider.ReviewFileContentCommand;
+            var payload = _cliServices.CommandProvider.GetReviewFileContentPayload(filename, content, _cliServices.CacheStorage.GetSolutionReviewCacheLocation());
 
             long elapsedMs = 0;
             var result = ExecuteWithTimingAndLogging<CliReviewModel>(
                 $"CLI file review",
-                () => _executor.Execute(command, payload),
+                () => _cliServices.ProcessExecutor.Execute(command, payload),
                 $"Review of file {filename} failed",
                 out elapsedMs
             );
@@ -108,7 +102,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         /// <returns>A <see cref="DeltaResponseModel"/> containing delta results, or null if execution fails or arguments are invalid.</returns>
         public DeltaResponseModel ReviewDelta(string oldScore, string newScore, string filePath = null, string fileContent = null)
         {
-            var arguments = _cliCommandProvider.GetReviewDeltaCommand(oldScore, newScore);
+            var arguments = _cliServices.CommandProvider.GetReviewDeltaCommand(oldScore, newScore);
 
             if (string.IsNullOrEmpty(arguments))
             {
@@ -119,7 +113,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             long elapsedMs = 0;
             var result = ExecuteWithTimingAndLogging<DeltaResponseModel>(
                 "CLI file delta review",
-                () => _executor.Execute(Titles.DELTA, arguments),
+                () => _cliServices.ProcessExecutor.Execute(Titles.DELTA, arguments),
                 "Delta for file failed.",
                 out elapsedMs
             );
@@ -144,7 +138,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public PreFlightResponseModel Preflight(bool force = true)
         {
-            var arguments = _cliCommandProvider.GetPreflightSupportInformationCommand(force: force);
+            var arguments = _cliServices.CommandProvider.GetPreflightSupportInformationCommand(force: force);
             if (string.IsNullOrEmpty(arguments))
             {
                 _logger.Warn("Skipping preflight. Arguments were not defined.");
@@ -153,7 +147,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             return ExecuteWithTimingAndLogging<PreFlightResponseModel>(
                 "ACE preflight",
-                () => _executor.Execute(arguments, null, Timeout.TELEMETRYTIMEOUT),
+                () => _cliServices.ProcessExecutor.Execute(arguments, null, Timeout.TELEMETRYTIMEOUT),
                 "Preflight failed.");
         }
 
@@ -165,7 +159,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 throw new MissingAuthTokenException("Authentication token is missing. Please set it in the extension settings.");
             }
 
-            var arguments = _cliCommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: effectiveToken);
+            var arguments = _cliServices.CommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: effectiveToken);
             if (string.IsNullOrEmpty(arguments))
             {
                 _logger.Warn("Skipping refactoring. Arguments were not defined.");
@@ -175,7 +169,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             long elapsedMs = 0;
             var result = ExecuteWithTimingAndLogging<RefactorResponseModel>(
                 "ACE refactoring",
-                () => _executor.Execute(arguments),
+                () => _cliServices.ProcessExecutor.Execute(arguments),
                 "Refactoring failed.",
                 out elapsedMs
             );
@@ -219,7 +213,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return ExecuteFnsToRefactor(
                 isValid: codeSmells != null && codeSmells.Count > 0,
                 skipMessage: "Skipping refactoring functions from code smells. Code smells list was null or empty.",
-                getPayload: cachePath => _cliCommandProvider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codeSmells, preflight),
+                getPayload: cachePath => _cliServices.CommandProvider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codeSmells, preflight),
                 operationLabel: "ACE refactoring functions from code smells check");
         }
 
@@ -228,19 +222,19 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return ExecuteFnsToRefactor(
                 isValid: deltaResult != null,
                 skipMessage: "Skipping refactoring functions from delta. Delta result was null.",
-                getPayload: cachePath => _cliCommandProvider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, preflight),
+                getPayload: cachePath => _cliServices.CommandProvider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, preflight),
                 operationLabel: "ACE refactoring functions from delta check");
         }
 
         public string GetDeviceId()
         {
-            var arguments = _cliCommandProvider.DeviceIdCommand;
+            var arguments = _cliServices.CommandProvider.DeviceIdCommand;
             return ExecuteSimpleCommand(arguments, "Could not get device ID");
         }
 
         public string GetFileVersion()
         {
-            var arguments = _cliCommandProvider.VersionCommand;
+            var arguments = _cliServices.CommandProvider.VersionCommand;
             return ExecuteSimpleCommand(arguments, "Could not get CLI version");
         }
 
@@ -256,7 +250,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            var cachePath = _cacheStorageService.GetSolutionReviewCacheLocation();
+            var cachePath = _cliServices.CacheStorage.GetSolutionReviewCacheLocation();
             var payloadContent = getPayload(cachePath);
 
             return ExecuteFnsToRefactorCommand(payloadContent, operationLabel, operationLabel + " failed.");
@@ -264,7 +258,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private IList<FnToRefactorModel> ExecuteFnsToRefactorCommand(string payloadContent, string operationLabel, string errorMessage)
         {
-            _cacheStorageService.RemoveOldReviewCacheEntries();
+            _cliServices.CacheStorage.RemoveOldReviewCacheEntries();
 
             if (string.IsNullOrEmpty(payloadContent))
             {
@@ -272,11 +266,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            var command = _cliCommandProvider.RefactorCommand;
+            var command = _cliServices.CommandProvider.RefactorCommand;
 
             return ExecuteWithTimingAndLogging<IList<FnToRefactorModel>>(
                 operationLabel,
-                () => _executor.Execute(command, payloadContent),
+                () => _cliServices.ProcessExecutor.Execute(command, payloadContent),
                 errorMessage);
         }
 
@@ -315,7 +309,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             try
             {
-                var result = _executor.Execute(arguments);
+                var result = _cliServices.ProcessExecutor.Execute(arguments);
 
                 return result?.Trim().TrimEnd('\r', '\n');
             }
@@ -325,6 +319,5 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return string.Empty;
             }
         }
-
     }
 }
