@@ -408,7 +408,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mockCommandProvider.Verify(x => x.GetRefactorPostCommand(fnToRefactor, true, token), Times.Once);
         }
 
-
         [TestMethod]
         public void FnsToRefactorFromCodeSmells_WithValidResponse_ReturnsListOfFnToRefactor()
         {
