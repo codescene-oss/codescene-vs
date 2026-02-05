@@ -42,18 +42,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _telemetryManagerLazy = telemetryManagerLazy;
         }
 
-        private ITelemetryManager GetTelemetryManager()
-        {
-            try
-            {
-                return _telemetryManagerLazy?.Value;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         /// <summary>
         /// Reviews a file's content by invoking the CLI with the appropriate arguments.
         /// </summary>
@@ -70,8 +58,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 $"CLI file review",
                 () => _cliServices.ProcessExecutor.Execute(command, payload),
                 $"Review of file {filename} failed",
-                out elapsedMs
-            );
+                out elapsedMs);
 
             if (result != null)
             {
@@ -115,8 +102,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 "CLI file delta review",
                 () => _cliServices.ProcessExecutor.Execute(Titles.DELTA, arguments),
                 "Delta for file failed.",
-                out elapsedMs
-            );
+                out elapsedMs);
 
             if (result != null && !string.IsNullOrEmpty(filePath))
             {
@@ -171,8 +157,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 "ACE refactoring",
                 () => _cliServices.ProcessExecutor.Execute(arguments),
                 "Refactoring failed.",
-                out elapsedMs
-            );
+                out elapsedMs);
 
             if (result != null && fnToRefactor != null)
             {
@@ -190,22 +175,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             return result;
-        }
-
-        private void SendPerformanceTelemetry(PerformanceTelemetryData telemetryData)
-        {
-            var telemetryManager = GetTelemetryManager();
-            Task.Run(() =>
-            {
-                try
-                {
-                    PerformanceTelemetryHelper.SendPerformanceTelemetry(telemetryManager, _logger, telemetryData);
-                }
-                catch (Exception e)
-                {
-                    _logger?.Debug($"Failed to send performance telemetry asynchronously: {e.Message}");
-                }
-            });
         }
 
         public IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
@@ -236,6 +205,34 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             var arguments = _cliServices.CommandProvider.VersionCommand;
             return ExecuteSimpleCommand(arguments, "Could not get CLI version");
+        }
+
+        private ITelemetryManager GetTelemetryManager()
+        {
+            try
+            {
+                return _telemetryManagerLazy?.Value;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private void SendPerformanceTelemetry(PerformanceTelemetryData telemetryData)
+        {
+            var telemetryManager = GetTelemetryManager();
+            Task.Run(() =>
+            {
+                try
+                {
+                    PerformanceTelemetryHelper.SendPerformanceTelemetry(telemetryManager, _logger, telemetryData);
+                }
+                catch (Exception e)
+                {
+                    _logger?.Debug($"Failed to send performance telemetry asynchronously: {e.Message}");
+                }
+            });
         }
 
         private IList<FnToRefactorModel> ExecuteFnsToRefactor(
