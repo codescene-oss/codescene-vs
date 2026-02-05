@@ -324,7 +324,7 @@ namespace Codescene.VSExtension.Core.Tests
             // Act & Assert
             var exception = Assert.Throws<MissingAuthTokenException>(() =>
                 _cliExecutor.PostRefactoring(fnToRefactor));
-            Assert.Contains(exception.Message, "Authentication token is missing");
+            Assert.Contains("Authentication token is missing", exception.Message);
         }
 
         [TestMethod]
