@@ -8,11 +8,10 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 [assembly: InternalsVisibleTo("Codescene.VSExtension.Core.Tests")]
 [assembly: InternalsVisibleTo("Codescene.VSExtension.Core.IntegrationTests")]
 
+[assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1518:File is required to end with a single newline character", Justification = "File ends with proper newline, false positive in pipeline")]
+
 namespace Codescene.VSExtension.Core.Application.Cli;
 
-/// <summary>
-/// Facade service that encapsulates CLI-related dependencies to reduce constructor over-injection.
-/// </summary>
 [Export(typeof(ICliServices))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 [SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1009:Closing parenthesis should not be followed by a space", Justification = "Space is required by C# syntax for primary constructors with inheritance")]
@@ -32,4 +31,3 @@ internal class CliServices(
 
     public ICacheStorageService CacheStorage => _cacheStorage;
 }
-
