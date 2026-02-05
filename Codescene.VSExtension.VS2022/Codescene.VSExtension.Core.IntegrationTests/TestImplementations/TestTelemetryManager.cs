@@ -1,6 +1,8 @@
+// Copyright (c) CodeScene. All rights reserved.
+
+using System.ComponentModel.Composition;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Moq;
-using System.ComponentModel.Composition;
 
 namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
 {
@@ -10,10 +12,14 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     {
         internal Mock<ITelemetryManager> Mock = new();
 
-        public void SendTelemetry(string eventName, System.Collections.Generic.Dictionary<string, object> additionalEventData = null)
+        public void SendTelemetry(string eventName, Dictionary<string, object> additionalEventData = null)
         {
             Mock.Object.SendTelemetry(eventName, additionalEventData);
         }
+
+        public void SendErrorTelemetry(Exception ex, string context, Dictionary<string, object> extraData = null)
+        {
+            Mock.Object.SendErrorTelemetry(ex, context, extraData);
+        }
     }
 }
-

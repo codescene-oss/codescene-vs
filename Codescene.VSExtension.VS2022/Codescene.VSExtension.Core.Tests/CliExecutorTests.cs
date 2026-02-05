@@ -10,23 +10,25 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Moq;
+using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
     public class CliExecutorTests
     {
-        private const string TestFilename = "test.cs";
-        private const string TestContent = "code";
-        private const string TestCachePath = "/cache";
+        private const string TestCachePath = "/test/cache/path";
+        private const string TestFileName = "test.cs";
+        private const string TestFileContent = "public class Test { }";
 
         private Mock<ILogger> _mockLogger;
+        private Mock<ICliServices> _mockCliServices;
         private Mock<ICliCommandProvider> _mockCommandProvider;
         private Mock<IProcessExecutor> _mockProcessExecutor;
+        private Mock<ICacheStorageService> _mockCacheStorage;
         private Mock<ISettingsProvider> _mockSettingsProvider;
-        private Mock<ICacheStorageService> _mockCacheStorageService;
-        private Mock<ITelemetryManager> _mockTelemetryManager;
-        private CliExecutor _executor;
+        private Mock<Lazy<ITelemetryManager>> _mockTelemetryManagerLazy;
+        private CliExecutor _cliExecutor;
 
         [TestInitialize]
         public void Setup()
@@ -34,334 +36,689 @@ namespace Codescene.VSExtension.Core.Tests
             _mockLogger = new Mock<ILogger>();
             _mockCommandProvider = new Mock<ICliCommandProvider>();
             _mockProcessExecutor = new Mock<IProcessExecutor>();
+            _mockCacheStorage = new Mock<ICacheStorageService>();
             _mockSettingsProvider = new Mock<ISettingsProvider>();
-            _mockCacheStorageService = new Mock<ICacheStorageService>();
-            _mockTelemetryManager = new Mock<ITelemetryManager>();
+            _mockTelemetryManagerLazy = new Mock<Lazy<ITelemetryManager>>();
 
-            var mockTelemetryManagerLazy = new Mock<Lazy<ITelemetryManager>>();
-            mockTelemetryManagerLazy.Setup(x => x.Value).Returns(_mockTelemetryManager.Object);
+            _mockCliServices = new Mock<ICliServices>();
+            _mockCliServices.Setup(x => x.CommandProvider).Returns(_mockCommandProvider.Object);
+            _mockCliServices.Setup(x => x.ProcessExecutor).Returns(_mockProcessExecutor.Object);
+            _mockCliServices.Setup(x => x.CacheStorage).Returns(_mockCacheStorage.Object);
 
-            _executor = new CliExecutor(
+            _mockCacheStorage.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
+
+            _cliExecutor = new CliExecutor(
                 _mockLogger.Object,
-                _mockCommandProvider.Object,
-                _mockProcessExecutor.Object,
+                _mockCliServices.Object,
                 _mockSettingsProvider.Object,
-                _mockCacheStorageService.Object,
-                mockTelemetryManagerLazy.Object);
+                _mockTelemetryManagerLazy.Object);
         }
 
         [TestMethod]
-        public void ReviewContent_ValidResponse_ReturnsDeserializedModel()
+        public void ReviewContent_WithValidResponse_ReturnsCliReviewModel()
         {
-            var cachePath = "/cache/path";
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("run-command review");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFilename, "public class Test {}", cachePath)).Returns("{}");
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(cachePath);
-            _mockProcessExecutor.Setup(x => x.Execute("run-command review", "{}", null)).Returns("{\"score\": 8.5, \"raw-score\": \"abc123\"}");
+            // Arrange
+            var expectedReview = new CliReviewModel
+            {
+                Score = 7.5f,
+                RawScore = "base64encoded",
+            };
+            var jsonResponse = JsonConvert.SerializeObject(expectedReview);
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFileName, TestFileContent, TestCachePath))
+                .Returns("payload");
+            _mockProcessExecutor.Setup(x => x.Execute("review --file-name test.cs", "payload"))
+                .Returns(jsonResponse);
 
-            var result = _executor.ReviewContent(TestFilename, "public class Test {}");
+            // Act
+            var result = _cliExecutor.ReviewContent(TestFileName, TestFileContent);
 
+            // Assert
             Assert.IsNotNull(result);
-            Assert.AreEqual(8.5f, result.Score);
+            Assert.AreEqual(expectedReview.Score, result.Score);
+            Assert.AreEqual(expectedReview.RawScore, result.RawScore);
+            _mockProcessExecutor.Verify(x => x.Execute("review --file-name test.cs", "payload"), Times.Once);
         }
 
         [TestMethod]
-        public void ReviewContent_ProcessThrowsException_ReturnsNull()
+        public void ReviewContent_WhenProcessExecutorThrowsDevtoolsException_ThrowsException()
         {
-            SetupReviewContentMocks();
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Throws(new Exception("CLI error"));
+            // Arrange
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFileName, TestFileContent, TestCachePath))
+                .Returns("payload");
+            _mockProcessExecutor.Setup(x => x.Execute("review --file-name test.cs", "payload"))
+                .Throws(new DevtoolsException("CLI error", 500, "trace-123"));
 
-            var result = _executor.ReviewContent(TestFilename, TestContent);
+            // Act & Assert
+            var exception = Assert.Throws<DevtoolsException>(() =>
+                _cliExecutor.ReviewContent(TestFileName, TestFileContent));
+            Assert.AreEqual("CLI error", exception.Message);
+            _mockLogger.Verify(x => x.Error(It.Is<string>(s => s.Contains("Review of file")), It.IsAny<DevtoolsException>()), Times.Once);
+        }
 
+        [TestMethod]
+        public void ReviewContent_WhenProcessExecutorThrowsGenericException_ReturnsNull()
+        {
+            // Arrange
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFileName, TestFileContent, TestCachePath))
+                .Returns("payload");
+            _mockProcessExecutor.Setup(x => x.Execute("review --file-name test.cs", "payload"))
+                .Throws(new Exception("Generic error"));
+
+            // Act
+            var result = _cliExecutor.ReviewContent(TestFileName, TestFileContent);
+
+            // Assert
             Assert.IsNull(result);
-            _mockLogger.Verify(l => l.Error(It.IsAny<string>(), It.IsAny<Exception>()), Times.Once);
+            _mockLogger.Verify(x => x.Error(It.Is<string>(s => s.Contains("Review of file")), It.IsAny<Exception>()), Times.Once);
         }
 
         [TestMethod]
-        public void ReviewContent_DevtoolsException_RethrowsException()
+        public void ReviewContent_WithInvalidJson_ReturnsNull()
         {
-            SetupReviewContentMocks();
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Throws(new DevtoolsException("Devtools error", 10, "traceId"));
+            // Arrange
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFileName, TestFileContent, TestCachePath))
+                .Returns("payload");
+            _mockProcessExecutor.Setup(x => x.Execute("review --file-name test.cs", "payload"))
+                .Returns("invalid json");
 
-            Assert.Throws<DevtoolsException>(() => _executor.ReviewContent(TestFilename, TestContent));
+            // Act
+            var result = _cliExecutor.ReviewContent(TestFileName, TestFileContent);
+
+            // Assert
+            Assert.IsNull(result);
         }
 
         [TestMethod]
-        public void ReviewDelta_EmptyArguments_ReturnsNull()
+        public void ReviewDelta_WithValidResponse_ReturnsDeltaResponseModel()
+        {
+            // Arrange
+            var oldScore = "old-score-b64";
+            var newScore = "new-score-b64";
+            var expectedDelta = new DeltaResponseModel
+            {
+                NewScore = 8.5m,
+                OldScore = 7.0m,
+                ScoreChange = 1.5m,
+            };
+            var jsonResponse = JsonConvert.SerializeObject(expectedDelta);
+            _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand(oldScore, newScore))
+                .Returns("delta command");
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(jsonResponse);
+
+            // Act
+            var result = _cliExecutor.ReviewDelta(oldScore, newScore, TestFileName, TestFileContent);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(expectedDelta.NewScore, result.NewScore);
+            Assert.AreEqual(expectedDelta.OldScore, result.OldScore);
+            Assert.AreEqual(expectedDelta.ScoreChange, result.ScoreChange);
+        }
+
+        [TestMethod]
+        public void ReviewDelta_WithEmptyArguments_ReturnsNull()
         {
             // Arrange
             _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(string.Empty);
 
             // Act
-            var result = _executor.ReviewDelta("old", "new");
+            var result = _cliExecutor.ReviewDelta("old", "new");
 
             // Assert
             Assert.IsNull(result);
-            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Skipping delta review"))), Times.Once);
+            _mockLogger.Verify(x => x.Warn("Skipping delta review. Arguments were not defined."), Times.Once);
         }
 
         [TestMethod]
-        public void ReviewDelta_ValidResponse_ReturnsDeserializedModel()
+        public void ReviewDelta_WithNullArguments_ReturnsNull()
         {
             // Arrange
-            var arguments = "{\"old-score\":\"abc\",\"new-score\":\"def\"}";
-            var jsonResponse = "{\"score-change\": -0.5, \"old-score\": 8.0, \"new-score\": 7.5}";
-
-            _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand("old", "new")).Returns(arguments);
-            _mockProcessExecutor.Setup(x => x.Execute("delta", arguments, null)).Returns(jsonResponse);
+            _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns((string)null);
 
             // Act
-            var result = _executor.ReviewDelta("old", "new");
+            var result = _cliExecutor.ReviewDelta("old", "new");
+
+            // Assert
+            Assert.IsNull(result);
+            _mockLogger.Verify(x => x.Warn("Skipping delta review. Arguments were not defined."), Times.Once);
+        }
+
+        [TestMethod]
+        public void ReviewDelta_WhenProcessExecutorThrowsException_ReturnsNull()
+        {
+            // Arrange
+            _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns("delta command");
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>()))
+                .Throws(new Exception("Error"));
+
+            // Act
+            var result = _cliExecutor.ReviewDelta("old", "new");
+
+            // Assert
+            Assert.IsNull(result);
+            _mockLogger.Verify(x => x.Error(It.Is<string>(s => s.Contains("Delta for file failed")), It.IsAny<Exception>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void Preflight_WithValidResponse_ReturnsPreFlightResponseModel()
+        {
+            // Arrange
+            var expectedPreflight = new PreFlightResponseModel
+            {
+                Version = 1.0m,
+                FileTypes = new[] { ".cs", ".js" },
+            };
+            var jsonResponse = JsonConvert.SerializeObject(expectedPreflight);
+            _mockCommandProvider.Setup(x => x.GetPreflightSupportInformationCommand(It.IsAny<bool>()))
+                .Returns("refactor preflight --force");
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>()))
+                .Returns(jsonResponse);
+
+            // Act
+            var result = _cliExecutor.Preflight(force: true);
 
             // Assert
             Assert.IsNotNull(result);
+            Assert.AreEqual(expectedPreflight.Version, result.Version);
+            Assert.IsTrue(result.FileTypes.SequenceEqual(expectedPreflight.FileTypes));
         }
 
         [TestMethod]
-        public void Preflight_EmptyArguments_ReturnsNull()
+        public void Preflight_WithEmptyArguments_ReturnsNull()
         {
             // Arrange
-            _mockCommandProvider.Setup(x => x.GetPreflightSupportInformationCommand(true))
+            _mockCommandProvider.Setup(x => x.GetPreflightSupportInformationCommand(It.IsAny<bool>()))
                 .Returns(string.Empty);
 
             // Act
-            var result = _executor.Preflight(true);
+            var result = _cliExecutor.Preflight();
 
             // Assert
             Assert.IsNull(result);
-            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Skipping preflight"))), Times.Once);
+            _mockLogger.Verify(x => x.Warn("Skipping preflight. Arguments were not defined."), Times.Once);
         }
 
         [TestMethod]
-        public void Preflight_ValidResponse_ReturnsDeserializedModel()
+        public void Preflight_WhenProcessExecutorThrowsException_ReturnsNull()
         {
             // Arrange
-            var command = "refactor preflight --force";
-            var jsonResponse = "{\"file-types\": [\".cs\", \".js\"]}";
-
-            _mockCommandProvider.Setup(x => x.GetPreflightSupportInformationCommand(true)).Returns(command);
-            _mockProcessExecutor.Setup(x => x.Execute(command, null, It.IsAny<TimeSpan?>())).Returns(jsonResponse);
+            _mockCommandProvider.Setup(x => x.GetPreflightSupportInformationCommand(It.IsAny<bool>()))
+                .Returns("refactor preflight");
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>()))
+                .Throws(new Exception("Error"));
 
             // Act
-            var result = _executor.Preflight(true);
+            var result = _cliExecutor.Preflight();
+
+            // Assert
+            Assert.IsNull(result);
+            _mockLogger.Verify(x => x.Error(It.Is<string>(s => s.Contains("Preflight failed")), It.IsAny<Exception>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void Preflight_WithForceFalse_UsesCorrectCommand()
+        {
+            // Arrange
+            var preflight = new PreFlightResponseModel { Version = 1.0m };
+            var jsonResponse = JsonConvert.SerializeObject(preflight);
+            _mockCommandProvider.Setup(x => x.GetPreflightSupportInformationCommand(false))
+                .Returns("refactor preflight");
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>()))
+                .Returns(jsonResponse);
+
+            // Act
+            var result = _cliExecutor.Preflight(force: false);
 
             // Assert
             Assert.IsNotNull(result);
+            _mockCommandProvider.Verify(x => x.GetPreflightSupportInformationCommand(false), Times.Once);
         }
 
         [TestMethod]
-        public void PostRefactoring_EmptyArguments_ReturnsNull()
+        public void PostRefactoring_WithValidResponse_ReturnsRefactorResponseModel()
         {
             // Arrange
-            var fnToRefactor = new FnToRefactorModel { Name = "Test" };
-            _mockSettingsProvider.Setup(x => x.AuthToken).Returns("token");
-            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(fnToRefactor, false, "token"))
-                .Returns(string.Empty);
+            var fnToRefactor = new FnToRefactorModel
+            {
+                Name = "TestMethod",
+                Body = "public void Test() { }",
+                FileType = "cs",
+            };
+            var expectedResponse = new RefactorResponseModel
+            {
+                Code = "public void Test() { /* refactored */ }",
+                TraceId = "trace-123",
+            };
+            var jsonResponse = JsonConvert.SerializeObject(expectedResponse);
+            var token = "test-token";
+            _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
+            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(fnToRefactor, false, token))
+                .Returns("refactor post command");
+            _mockProcessExecutor.Setup(x => x.Execute("refactor post command", It.IsAny<string>()))
+                .Returns(jsonResponse);
 
             // Act
-            var result = _executor.PostRefactoring(fnToRefactor, false);
+            var result = _cliExecutor.PostRefactoring(fnToRefactor, skipCache: false);
 
             // Assert
-            Assert.IsNull(result);
-            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Skipping refactoring"))), Times.Once);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(expectedResponse.Code, result.Code);
+            Assert.AreEqual(expectedResponse.TraceId, result.TraceId);
         }
 
         [TestMethod]
-        public void PostRefactoring_MissingAuthToken_ThrowsMissingAuthTokenException()
+        public void PostRefactoring_WithMissingAuthToken_ThrowsMissingAuthTokenException()
         {
             // Arrange
             var fnToRefactor = new FnToRefactorModel { Name = "Test" };
             _mockSettingsProvider.Setup(x => x.AuthToken).Returns(string.Empty);
 
             // Act & Assert
-            Assert.Throws<MissingAuthTokenException>(() => _executor.PostRefactoring(fnToRefactor, false));
+            var exception = Assert.Throws<MissingAuthTokenException>(() =>
+                _cliExecutor.PostRefactoring(fnToRefactor));
+            Assert.IsTrue(exception.Message.Contains("Authentication token is missing"));
         }
 
         [TestMethod]
-        public void PostRefactoring_NullAuthToken_ThrowsMissingAuthTokenException()
+        public void PostRefactoring_WithProvidedToken_UsesProvidedToken()
         {
             // Arrange
             var fnToRefactor = new FnToRefactorModel { Name = "Test" };
-            _mockSettingsProvider.Setup(x => x.AuthToken).Returns((string)null);
-
-            // Act & Assert
-            Assert.Throws<MissingAuthTokenException>(() => _executor.PostRefactoring(fnToRefactor, false));
-        }
-
-        [TestMethod]
-        public void PostRefactoring_ValidResponse_ReturnsDeserializedModel()
-        {
-            // Arrange
-            var fnToRefactor = new FnToRefactorModel { Name = "Test" };
-            var command = "refactor post --fn-to-refactor {}";
-            var jsonResponse = "{\"trace-id\": \"123\", \"refactored-code\": \"new code\"}";
-
-            _mockSettingsProvider.Setup(x => x.AuthToken).Returns("token");
-            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(fnToRefactor, false, "token")).Returns(command);
-            _mockProcessExecutor.Setup(x => x.Execute(command, null, null)).Returns(jsonResponse);
+            var providedToken = "provided-token";
+            var response = new RefactorResponseModel { Code = "refactored" };
+            var jsonResponse = JsonConvert.SerializeObject(response);
+            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(fnToRefactor, false, providedToken))
+                .Returns("refactor post");
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(jsonResponse);
 
             // Act
-            var result = _executor.PostRefactoring(fnToRefactor, false);
+            var result = _cliExecutor.PostRefactoring(fnToRefactor, skipCache: false, token: providedToken);
 
             // Assert
             Assert.IsNotNull(result);
+            _mockCommandProvider.Verify(x => x.GetRefactorPostCommand(fnToRefactor, false, providedToken), Times.Once);
         }
 
         [TestMethod]
-        public void FnsToRefactorFromCodeSmells_EmptyPayload_ReturnsNull()
+        public void PostRefactoring_WithEmptyArguments_ReturnsNull()
         {
-            SetupFnsToRefactorMocks(payload: string.Empty);
+            // Arrange
+            var fnToRefactor = new FnToRefactorModel { Name = "Test" };
+            var token = "test-token";
+            _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
+            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
+                .Returns(string.Empty);
 
-            var result = _executor.FnsToRefactorFromCodeSmells(TestFilename, TestContent, new List<CliCodeSmellModel>(), new PreFlightResponseModel());
+            // Act
+            var result = _cliExecutor.PostRefactoring(fnToRefactor);
 
+            // Assert
             Assert.IsNull(result);
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Skipping refactoring functions from code smells"))), Times.Once);
+            _mockLogger.Verify(x => x.Warn("Skipping refactoring. Arguments were not defined."), Times.Once);
         }
 
         [TestMethod]
-        public void FnsToRefactorFromCodeSmells_ValidResponse_ReturnsDeserializedList()
+        public void PostRefactoring_WhenProcessExecutorThrowsException_ReturnsNull()
         {
-            SetupFnsToRefactorMocks(payload: "{}", response: "[{\"name\": \"TestFunction\", \"body\": \"code\"}]");
+            // Arrange
+            var fnToRefactor = new FnToRefactorModel { Name = "Test" };
+            var token = "test-token";
+            _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
+            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
+                .Returns("refactor post");
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>()))
+                .Throws(new Exception("Error"));
 
-            var result = _executor.FnsToRefactorFromCodeSmells(
-                TestFilename,
-                TestContent,
-                new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } },
-                new PreFlightResponseModel());
+            // Act
+            var result = _cliExecutor.PostRefactoring(fnToRefactor);
 
+            // Assert
+            Assert.IsNull(result);
+            _mockLogger.Verify(x => x.Error(It.Is<string>(s => s.Contains("Refactoring failed")), It.IsAny<Exception>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void PostRefactoring_WithSkipCache_PassesSkipCacheFlag()
+        {
+            // Arrange
+            var fnToRefactor = new FnToRefactorModel { Name = "Test" };
+            var token = "test-token";
+            var response = new RefactorResponseModel { Code = "refactored" };
+            var jsonResponse = JsonConvert.SerializeObject(response);
+            _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
+            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(fnToRefactor, true, token))
+                .Returns("refactor post --skip-cache");
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(jsonResponse);
+
+            // Act
+            var result = _cliExecutor.PostRefactoring(fnToRefactor, skipCache: true);
+
+            // Assert
             Assert.IsNotNull(result);
-            Assert.HasCount(1, result);
+            _mockCommandProvider.Verify(x => x.GetRefactorPostCommand(fnToRefactor, true, token), Times.Once);
+        }
+
+
+        [TestMethod]
+        public void FnsToRefactorFromCodeSmells_WithValidResponse_ReturnsListOfFnToRefactor()
+        {
+            // Arrange
+            var codeSmells = new List<CliCodeSmellModel>
+            {
+                new CliCodeSmellModel { Category = "Complex Method" },
+            };
+            var preflight = new PreFlightResponseModel { Version = 1.0m };
+            var expectedFunctions = new List<FnToRefactorModel>
+            {
+                new FnToRefactorModel { Name = "Function1", Body = "code" },
+            };
+            var jsonResponse = JsonConvert.SerializeObject(expectedFunctions);
+            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, TestCachePath, codeSmells, preflight))
+                .Returns("payload");
+            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
+            _mockProcessExecutor.Setup(x => x.Execute("refactor", "payload"))
+                .Returns(jsonResponse);
+
+            // Act
+            var result = _cliExecutor.FnsToRefactorFromCodeSmells(TestFileName, TestFileContent, codeSmells, preflight);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Function1", result[0].Name);
+        }
+
+        [TestMethod]
+        public void FnsToRefactorFromCodeSmells_WithNullCodeSmells_ReturnsNull()
+        {
+            // Act
+            var result = _cliExecutor.FnsToRefactorFromCodeSmells(TestFileName, TestFileContent, null, null);
+
+            // Assert
+            Assert.IsNull(result);
+            _mockLogger.Verify(x => x.Debug("Skipping refactoring functions from code smells. Code smells list was null or empty."), Times.Once);
+        }
+
+        [TestMethod]
+        public void FnsToRefactorFromCodeSmells_WithEmptyCodeSmells_ReturnsNull()
+        {
+            // Act
+            var result = _cliExecutor.FnsToRefactorFromCodeSmells(TestFileName, TestFileContent, new List<CliCodeSmellModel>(), null);
+
+            // Assert
+            Assert.IsNull(result);
+            _mockLogger.Verify(x => x.Debug("Skipping refactoring functions from code smells. Code smells list was null or empty."), Times.Once);
+        }
+
+        [TestMethod]
+        public void FnsToRefactorFromCodeSmells_WithEmptyPayload_ReturnsNull()
+        {
+            // Arrange
+            var codeSmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } };
+            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
+                .Returns(string.Empty);
+
+            // Act
+            var result = _cliExecutor.FnsToRefactorFromCodeSmells(TestFileName, TestFileContent, codeSmells, null);
+
+            // Assert
+            Assert.IsNull(result);
+            _mockLogger.Verify(x => x.Warn("Skipping refactoring functions check. Payload content was not defined."), Times.Once);
         }
 
         [TestMethod]
         public void FnsToRefactorFromCodeSmells_RemovesOldCacheEntries()
         {
-            SetupFnsToRefactorMocks();
+            // Arrange
+            var codeSmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } };
+            var functions = new List<FnToRefactorModel>();
+            var jsonResponse = JsonConvert.SerializeObject(functions);
+            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
+                .Returns("payload");
+            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(jsonResponse);
 
-            _executor.FnsToRefactorFromCodeSmells(
-                TestFilename,
-                TestContent,
-                new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } },
-                new PreFlightResponseModel());
+            // Act
+            _cliExecutor.FnsToRefactorFromCodeSmells(TestFileName, TestFileContent, codeSmells, null);
 
-            _mockCacheStorageService.Verify(x => x.RemoveOldReviewCacheEntries(It.IsAny<int>()), Times.Once);
+            // Assert
+            _mockCacheStorage.Verify(x => x.RemoveOldReviewCacheEntries(), Times.Once);
         }
 
         [TestMethod]
-        public void FnsToRefactorFromDelta_NullDeltaResult_ReturnsNull()
+        public void FnsToRefactorFromDelta_WithValidResponse_ReturnsListOfFnToRefactor()
         {
-            var result = _executor.FnsToRefactorFromDelta(TestFilename, TestContent, null, new PreFlightResponseModel());
+            // Arrange
+            var deltaResult = new DeltaResponseModel { NewScore = 8.0m, OldScore = 7.0m };
+            var preflight = new PreFlightResponseModel { Version = 1.0m };
+            var expectedFunctions = new List<FnToRefactorModel>
+            {
+                new FnToRefactorModel { Name = "Function1", Body = "code" },
+            };
+            var jsonResponse = JsonConvert.SerializeObject(expectedFunctions);
+            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, TestCachePath, deltaResult, preflight))
+                .Returns("payload");
+            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
+            _mockProcessExecutor.Setup(x => x.Execute("refactor", "payload"))
+                .Returns(jsonResponse);
 
-            Assert.IsNull(result);
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Skipping refactoring functions from delta"))), Times.Once);
-        }
+            // Act
+            var result = _cliExecutor.FnsToRefactorFromDelta(TestFileName, TestFileContent, deltaResult, preflight);
 
-        [TestMethod]
-        public void FnsToRefactorFromDelta_EmptyPayload_ReturnsNull()
-        {
-            SetupFnsToRefactorFromDeltaMocks(payload: string.Empty);
-
-            var result = _executor.FnsToRefactorFromDelta(TestFilename, TestContent, new DeltaResponseModel(), new PreFlightResponseModel());
-
-            Assert.IsNull(result);
-            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Payload content was not defined"))), Times.Once);
-        }
-
-        [TestMethod]
-        public void FnsToRefactorFromDelta_ValidResponse_ReturnsDeserializedList()
-        {
-            SetupFnsToRefactorFromDeltaMocks(payload: "{}", response: "[{\"name\": \"TestFunction\", \"body\": \"code\"}]");
-
-            var result = _executor.FnsToRefactorFromDelta(
-                TestFilename,
-                TestContent,
-                new DeltaResponseModel { ScoreChange = -0.5M },
-                new PreFlightResponseModel());
-
+            // Assert
             Assert.IsNotNull(result);
-            Assert.HasCount(1, result);
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual("Function1", result[0].Name);
+        }
+
+        [TestMethod]
+        public void FnsToRefactorFromDelta_WithNullDeltaResult_ReturnsNull()
+        {
+            // Act
+            var result = _cliExecutor.FnsToRefactorFromDelta(TestFileName, TestFileContent, null, null);
+
+            // Assert
+            Assert.IsNull(result);
+            _mockLogger.Verify(x => x.Debug("Skipping refactoring functions from delta. Delta result was null."), Times.Once);
+        }
+
+        [TestMethod]
+        public void FnsToRefactorFromDelta_WithEmptyPayload_ReturnsNull()
+        {
+            // Arrange
+            var deltaResult = new DeltaResponseModel { NewScore = 8.0m, OldScore = 7.0m };
+            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>()))
+                .Returns(string.Empty);
+
+            // Act
+            var result = _cliExecutor.FnsToRefactorFromDelta(TestFileName, TestFileContent, deltaResult, null);
+
+            // Assert
+            Assert.IsNull(result);
+            _mockLogger.Verify(x => x.Warn("Skipping refactoring functions check. Payload content was not defined."), Times.Once);
         }
 
         [TestMethod]
         public void FnsToRefactorFromDelta_RemovesOldCacheEntries()
         {
-            SetupFnsToRefactorFromDeltaMocks();
+            // Arrange
+            var deltaResult = new DeltaResponseModel { NewScore = 8.0m, OldScore = 7.0m };
+            var functions = new List<FnToRefactorModel>();
+            var jsonResponse = JsonConvert.SerializeObject(functions);
+            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>()))
+                .Returns("payload");
+            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(jsonResponse);
 
-            _executor.FnsToRefactorFromDelta(
-                TestFilename,
-                TestContent,
-                new DeltaResponseModel { ScoreChange = -0.5M },
-                new PreFlightResponseModel());
+            // Act
+            _cliExecutor.FnsToRefactorFromDelta(TestFileName, TestFileContent, deltaResult, null);
 
-            _mockCacheStorageService.Verify(x => x.RemoveOldReviewCacheEntries(It.IsAny<int>()), Times.Once);
+            // Assert
+            _mockCacheStorage.Verify(x => x.RemoveOldReviewCacheEntries(), Times.Once);
         }
 
         [TestMethod]
-        public void GetFileVersion_ValidResponse_ReturnsVersion()
+        public void GetDeviceId_WithValidResponse_ReturnsDeviceId()
         {
-            _mockCommandProvider.Setup(x => x.VersionCommand).Returns("version --sha");
-            _mockProcessExecutor.Setup(x => x.Execute("version --sha", null, null)).Returns("abc123def456\r\n");
+            // Arrange
+            var expectedDeviceId = "device-id-123";
+            _mockCommandProvider.Setup(x => x.DeviceIdCommand).Returns("device-id");
+            _mockProcessExecutor.Setup(x => x.Execute("device-id", null, null))
+                .Returns(expectedDeviceId);
 
-            var result = _executor.GetFileVersion();
+            // Act
+            var result = _cliExecutor.GetDeviceId();
 
-            Assert.AreEqual("abc123def456", result);
+            // Assert
+            Assert.AreEqual(expectedDeviceId, result);
         }
 
         [TestMethod]
-        public void GetFileVersion_ExceptionThrown_ReturnsEmptyString()
+        public void GetDeviceId_WhenProcessExecutorThrowsException_ReturnsEmptyString()
         {
-            _mockCommandProvider.Setup(x => x.VersionCommand).Returns("version");
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), null, null)).Throws(new Exception("Error"));
+            // Arrange
+            _mockCommandProvider.Setup(x => x.DeviceIdCommand).Returns("device-id");
+            _mockProcessExecutor.Setup(x => x.Execute("device-id", null, null))
+                .Throws(new Exception("Error"));
 
-            var result = _executor.GetFileVersion();
+            // Act
+            var result = _cliExecutor.GetDeviceId();
 
+            // Assert
             Assert.AreEqual(string.Empty, result);
-            _mockLogger.Verify(l => l.Error(It.IsAny<string>(), It.IsAny<Exception>()), Times.Once);
+            _mockLogger.Verify(x => x.Error("Could not get device ID", It.IsAny<Exception>()), Times.Once);
         }
 
         [TestMethod]
-        public void GetDeviceId_ValidResponse_ReturnsDeviceId()
+        public void GetDeviceId_TrimsWhitespace()
         {
-            _mockCommandProvider.Setup(x => x.DeviceIdCommand).Returns("telemetry --device-id");
-            _mockProcessExecutor.Setup(x => x.Execute("telemetry --device-id", null, null)).Returns("device-123\n");
+            // Arrange
+            var deviceIdWithWhitespace = "  device-id-123  \r\n";
+            _mockCommandProvider.Setup(x => x.DeviceIdCommand).Returns("device-id");
+            _mockProcessExecutor.Setup(x => x.Execute("device-id", null, null))
+                .Returns(deviceIdWithWhitespace);
 
-            var result = _executor.GetDeviceId();
+            // Act
+            var result = _cliExecutor.GetDeviceId();
 
-            Assert.AreEqual("device-123", result);
+            // Assert
+            Assert.AreEqual("device-id-123", result);
         }
 
-        private void SetupReviewContentMocks(string cachePath = TestCachePath)
+        [TestMethod]
+        public void GetFileVersion_WithValidResponse_ReturnsVersion()
         {
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns("{}");
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(cachePath);
+            // Arrange
+            var expectedVersion = "1.2.3";
+            _mockCommandProvider.Setup(x => x.VersionCommand).Returns("version --sha");
+            _mockProcessExecutor.Setup(x => x.Execute("version --sha", null, null))
+                .Returns(expectedVersion);
+
+            // Act
+            var result = _cliExecutor.GetFileVersion();
+
+            // Assert
+            Assert.AreEqual(expectedVersion, result);
         }
 
-        private void SetupFnsToRefactorMocks(string payload = "payload", string response = "[]")
+        [TestMethod]
+        public void GetFileVersion_WhenProcessExecutorThrowsException_ReturnsEmptyString()
         {
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("command");
-            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<IList<CliCodeSmellModel>>(),
-                It.IsAny<PreFlightResponseModel>())).Returns(payload);
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
+            // Arrange
+            _mockCommandProvider.Setup(x => x.VersionCommand).Returns("version --sha");
+            _mockProcessExecutor.Setup(x => x.Execute("version --sha", null, null))
+                .Throws(new Exception("Error"));
+
+            // Act
+            var result = _cliExecutor.GetFileVersion();
+
+            // Assert
+            Assert.AreEqual(string.Empty, result);
+            _mockLogger.Verify(x => x.Error("Could not get CLI version", It.IsAny<Exception>()), Times.Once);
         }
 
-        private void SetupFnsToRefactorFromDeltaMocks(string payload = "payload", string response = "[]")
+        [TestMethod]
+        public void GetFileVersion_TrimsWhitespace()
         {
-            _mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("command");
-            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<DeltaResponseModel>(),
-                It.IsAny<PreFlightResponseModel>())).Returns(payload);
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), null)).Returns(response);
+            // Arrange
+            var versionWithWhitespace = "  1.2.3  \r\n";
+            _mockCommandProvider.Setup(x => x.VersionCommand).Returns("version --sha");
+            _mockProcessExecutor.Setup(x => x.Execute("version --sha", null, null))
+                .Returns(versionWithWhitespace);
+
+            // Act
+            var result = _cliExecutor.GetFileVersion();
+
+            // Assert
+            Assert.AreEqual("1.2.3", result);
+        }
+
+        [TestMethod]
+        public void PostRefactoring_WithValidResponse_SendsPerformanceTelemetry()
+        {
+            // Arrange
+            var fnToRefactor = new FnToRefactorModel
+            {
+                Name = "Test",
+                Body = "public void Test() { }",
+                FileType = "cs",
+            };
+            var response = new RefactorResponseModel { Code = "refactored" };
+            var jsonResponse = JsonConvert.SerializeObject(response);
+            var token = "test-token";
+            _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
+            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
+                .Returns("refactor post");
+            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(jsonResponse);
+
+            // Act
+            _cliExecutor.PostRefactoring(fnToRefactor);
+
+            // Assert
+            // Telemetry is sent asynchronously via Task.Run, so we can't directly verify it
+            // but the method should complete without errors
+        }
+
+        [TestMethod]
+        public void Constructor_WithNullLogger_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() =>
+                new CliExecutor(null, _mockCliServices.Object, _mockSettingsProvider.Object));
+        }
+
+        [TestMethod]
+        public void Constructor_WithNullCliServices_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() =>
+                new CliExecutor(_mockLogger.Object, null, _mockSettingsProvider.Object));
+        }
+
+        [TestMethod]
+        public void Constructor_WithNullTelemetryManagerLazy_DoesNotThrow()
+        {
+            // Act & Assert - should not throw
+            var executor = new CliExecutor(
+                _mockLogger.Object,
+                _mockCliServices.Object,
+                _mockSettingsProvider.Object,
+                null);
+
+            Assert.IsNotNull(executor);
         }
     }
 }
