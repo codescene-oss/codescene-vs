@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 
@@ -9,8 +10,12 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 
 namespace Codescene.VSExtension.Core.Application.Cli;
 
+/// <summary>
+/// Facade service that encapsulates CLI-related dependencies to reduce constructor over-injection.
+/// </summary>
 [Export(typeof(ICliServices))]
 [PartCreationPolicy(CreationPolicy.Shared)]
+[SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1009:Closing parenthesis should not be followed by a space", Justification = "Space is required by C# syntax for primary constructors with inheritance")]
 [method: ImportingConstructor]
 internal class CliServices(
     ICliCommandProvider commandProvider,
@@ -27,3 +32,4 @@ internal class CliServices(
 
     public ICacheStorageService CacheStorage => _cacheStorage;
 }
+
