@@ -7,13 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-02-05
+
+### Added
+
+- error telemetry (#113)
+- auto close docs and ace on solution close (#110)
+- gitignore skips review (#109)
+- ace stale state (#99)
+- pass refactorable function from monitor to code smell docs
+- Update Monitor refactorable functions flow to fetch from delta
+- Toggle ACE UI by token (#97)
+- Ace Status in Code Health Monitor (#95)
+- Implement cache-path parameter
+- Ace status management (#88)
+- Set up Stylecop
+- Add CodeRabbit
+- Add CLAUDE.md
+
+### Changed
+
+- Revamp Makefile (#105)
+
 ## [0.4.1] - 2026-01-15
+
 ### Fixed
+
 - pass function range into function-level code smell docs
 - Cancel refactoring timing fixes
 - handle arguments with empty spaces
 - enable help center and clickup navigation via cwf
+
 ### Changed
+
 - fix constructor over-injection code smell
 - prefer `dotnet` command
 - fix failing tests
@@ -22,16 +48,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - extract scripts to standalone files
 - fix code duplication
 
-
 ## [0.4.0] - 2025-12-31
+
 ### Added
+
 - Enable CodeScene ACE feature
 - Extend CWF with declarations payload
 - Enhance ACE payloads
 - Add Auth Token to settings
 - Add ACE acknowledgement view
 - Add generic ACE error view, clean up mapper
+
 ### Fixed
+
 - Fix ACE tooltip to trigger refactoring for correct function
 - Update refactorable functions logic with --file-name parameter
 - Update process executor logic to work with latest CLI
@@ -40,116 +69,169 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make CS GUIDs unique in menu actions
 
 ## [0.3.1] - 2025-12-12
+
 ### Fixed
+
 - Add ExtensionSettings action handling
 
 ## [0.3.0] - 2025-10-21
+
 ### Added
+
 - Bump CLI version to 1.0.14
 - Add Code Health Monitor to Freemium
 
 ## [0.2.7] - 2025-10-07
+
 ### Fixed
+
 - Update extension startup to wait for IDE initialization finish
 
 ## [0.2.6] - 2025-09-24
+
 ### Changed
+
 - Update ACE wording
 
 ## [0.2.5] - 2025-09-18
+
 ### Changed
+
 - Improve code health review time by 50% (CLI version 1.0.8)
 
 ## [0.2.4] - 2025-09-08
+
 ### Fixed
+
 - Add missing tags
+
 ### Changed
+
 - Prepare asset files
 
 ## [0.2.3] - 2025-09-05
+
 ### Fixed
+
 - Corrected publishing manifest and asset handling for Visual Studio Marketplace.
 
 ## [0.2.2] - 2025-09-05
+
 ### Changed
+
 - Fix for overview gif
 
 ## [0.2.1] - 2025-09-04
+
 ### Fixed
+
 - VSIX Publish pipeline fixed
 
 ## [0.2.0] - 2025-09-04
+
 ### Changed
+
 - Updated release script
 - Refactor and clean up code
 - Removed unnecessary .vscode folder
 
 ## [0.1.4] - 2025-08-21
+
 ### Changed
+
 - Webview message handling for file focus.
 - Review timeout from 10s to 60s.
+
 ### Fixed
+
 - Code smell finding tooltip coloring on light themes.
 
 ## [0.1.3] - 2025-08-18
+
 ### Added
+
 - Introduced a Terms & Policies acceptance step. Users must review and accept before using the extension's analysis capabilities.
 
 ## [0.1.2] - 2025-08-14
+
 ### Fixed
+
 - VS2022 compatibility.
+
 ### Changed
+
 - Updated webview to v1.2.0.
 - Bumped cli version to 1.0.5.
 
 ## [0.1.1] - 2025-08-12
+
 ### Fixed
+
 - Hovering color on Home links
+
 ### Changed
+
 - Updated webview to v1.1.1.
 
 ## [0.1.0] - 2025-08-11
+
 ### Fixed
+
 - Extension installation issues on lower VS2022 versions.
 - Device id generation algorithm
 - Whitelisted supporthub.codescene domain
+
 ### Changed
+
 - Updated webview to v1.1.0.
 - Bumped cli version to 1.0.3.
 
 ## [0.0.6] - 2025-07-07
+
 ### Changed
+
 - Updated webview to v1.0.1.
 - Added more styling support to webviews.
 
 ## [0.0.5] - 2025-07-04
+
 ### Added
+
 - Optional extension usage telemetry.
+
 ### Changed
+
 - Updated webview to v1.0.0.
 
 ## [0.0.4] - 2025-07-01
+
 ### Added
+
 - Option to enable and disable showing CodeScene debug logs for more detailed output.
 
 ## [0.0.3] - 2025-06-30
+
 ### Added
+
 - Review analysis timeout.
 
 ## [0.0.2] - 2025-06-30
+
 ### Added
+
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 ### Changed
+
 - Review flow optimization.
 
 ## [0.0.1] - 2025-06-10
+
 ### Added
+
 - Code Health Review and diagnostics with squiggly lines.
 - Visibility of diagnostics in Error List and detailed hover information.
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
-
-
-
