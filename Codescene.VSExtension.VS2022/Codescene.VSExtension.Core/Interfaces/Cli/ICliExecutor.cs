@@ -11,6 +11,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
     {
         CliReviewModel ReviewContent(string filename, string content);
         DeltaResponseModel ReviewDelta(string oldScore, string newScore, string filePath = null, string fileContent = null);
+
         string GetFileVersion();
 
         string GetDeviceId();
