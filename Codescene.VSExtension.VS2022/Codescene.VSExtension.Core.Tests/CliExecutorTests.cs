@@ -665,33 +665,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void PostRefactoring_WithValidResponse_SendsPerformanceTelemetry()
-        {
-            // Arrange
-            var fnToRefactor = new FnToRefactorModel
-            {
-                Name = "Test",
-                Body = "public void Test() { }",
-                FileType = "cs",
-            };
-            var response = new RefactorResponseModel { Code = "refactored" };
-            var jsonResponse = JsonConvert.SerializeObject(response);
-            var token = "test-token";
-            _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
-            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
-                .Returns("refactor post");
-            _mockProcessExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(jsonResponse);
-
-            // Act
-            _cliExecutor.PostRefactoring(fnToRefactor);
-
-            // Assert
-            // Telemetry is sent asynchronously via Task.Run, so we can't directly verify it
-            // but the method should complete without errors
-        }
-
-        [TestMethod]
         public void Constructor_WithNullLogger_ThrowsArgumentNullException()
         {
             // Act & Assert

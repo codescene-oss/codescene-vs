@@ -10,7 +10,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class TestTelemetryManager : ITelemetryManager
     {
-        internal Mock<ITelemetryManager> Mock = new();
+        internal Mock<ITelemetryManager> Mock = new Mock<ITelemetryManager>();
 
         public void SendTelemetry(string eventName, Dictionary<string, object> additionalEventData = null)
         {
