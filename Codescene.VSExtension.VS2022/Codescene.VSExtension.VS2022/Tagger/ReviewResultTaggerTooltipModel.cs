@@ -2,11 +2,11 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Windows.Input;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
-using Codescene.VSExtension.VS2022.CodeLens;
 using Codescene.VSExtension.VS2022.Commands;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Codescene.VSExtension.VS2022.Util;
@@ -72,7 +72,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
             {
                 var cmdParam = parameter as CodeSmellTooltipModel;
 
-                if (cmdParam != null && ToolWindowRegistry.CategoryToIdMap.TryGetValue(cmdParam.Category, out int toolWindowId))
+                if (cmdParam != null && DocumentationMappings.DocNameMap.Values.Contains(cmdParam.Category))
                 {
                     var fnToRefactor = await AceUtils.GetRefactorableFunctionAsync(new GetRefactorableFunctionsModel
                     {
