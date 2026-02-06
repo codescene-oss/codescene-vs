@@ -19,6 +19,7 @@ public static class DocumentationMappings
             { "docs_issues_complex_method", Constants.Titles.COMPLEXMETHOD },
             { "docs_issues_constructor_over_injection", Constants.Titles.CONSTRUCTOROVERINJECTION },
             { "docs_issues_duplicated_assertion_blocks", Constants.Titles.DUPLICATEDASSERTIONBLOCKS },
+            { "docs_issues_duplicated_function_blocks", Constants.Titles.DUPLICATEDFUNCTIONBLOCKS },
             { "docs_issues_code_duplication", Constants.Titles.CODEDUPLICATION },
             { "docs_issues_file_size_issue", Constants.Titles.FILESIZEISSUE },
             { "docs_issues_excess_number_of_function_arguments", Constants.Titles.EXCESSNUMBEROFFUNCTIONARGUMENTS },

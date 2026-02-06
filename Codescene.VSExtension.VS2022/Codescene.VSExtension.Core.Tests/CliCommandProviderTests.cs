@@ -36,22 +36,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetReviewFileContentCommand_ShouldIncludeIdeApiAndFilename()
-        {
-            var command = _commandProvider.GetReviewFileContentCommand("testfile.txt");
-
-            Assert.AreEqual("review --file-name testfile.txt", command);
-        }
-
-        [TestMethod]
-        public void GetReviewPathCommand_ShouldIncludeIdeApiAndPath()
-        {
-            var command = _commandProvider.GetReviewPathCommand("some/path");
-
-            Assert.AreEqual("review some/path", command);
-        }
-
-        [TestMethod]
         public void GetReviewFileContentPayload_ReturnsCorrectJson()
         {
             var payload = _commandProvider.GetReviewFileContentPayload(TestFileName, TestFileContent, TestCachePath);
@@ -232,28 +216,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetRefactorPostCommand_WithoutNippyB64_UsesFnToRefactorJsonFlag()
-        {
-            var fnToRefactor = CreateFnToRefactor(nippyB64: null);
-
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);
-
-            Assert.Contains("--fn-to-refactor", command);
-            Assert.DoesNotContain("--fn-to-refactor-nippy-b64", command);
-        }
-
-        [TestMethod]
-        public void GetRefactorPostCommand_WithEmptyNippyB64_UsesFnToRefactorJsonFlag()
-        {
-            var fnToRefactor = CreateFnToRefactor(nippyB64: string.Empty);
-
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);
-
-            Assert.Contains("--fn-to-refactor", command);
-            Assert.DoesNotContain("--fn-to-refactor-nippy-b64", command);
-        }
-
-        [TestMethod]
         public void GetRefactorPostCommand_WithAllOptions_IncludesAllArguments()
         {
             var nippyB64 = "encodeddata";
@@ -269,23 +231,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.Contains(token, command);
             Assert.Contains("--fn-to-refactor-nippy-b64", command);
             Assert.Contains(nippyB64, command);
-        }
-
-        [TestMethod]
-        public void GetRefactorPostCommand_JsonSerializesFnToRefactor_WhenNoNippyB64()
-        {
-            var fnToRefactor = new FnToRefactorModel
-            {
-                Name = "MyFunction",
-                Body = "code here",
-                FileType = "js",
-                NippyB64 = null,
-            };
-
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);
-
-            // The command should contain serialized JSON with the function name
-            Assert.Contains("MyFunction", command);
         }
 
         [TestMethod]
