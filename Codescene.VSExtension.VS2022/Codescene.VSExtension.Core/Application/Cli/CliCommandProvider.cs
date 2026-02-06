@@ -100,7 +100,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var sb = new StringBuilder();
             foreach (var arg in args)
             {
-                //PasteArguments.AppendArgument(sb, arg);
                 sb.Append(arg).Append(" ");
             }
 
