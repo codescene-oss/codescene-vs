@@ -58,5 +58,13 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void ToSnakeCase_NumbersPreserved()
             => Assert.AreEqual("test123_value", TextUtils.ToSnakeCase("Test123 Value"));
+
+        [TestMethod]
+        public void NormalizeLineEndings_MixedLineEndings_ReturnsNormalized()
+        {
+            var input = "Line1\rLine2\nLine3\r\nLine4";
+            var expected = $"Line1{Environment.NewLine}Line2{Environment.NewLine}Line3{Environment.NewLine}Line4";
+            Assert.AreEqual(expected, TextUtils.NormalizeLineEndings(input));
+        }
     }
 }

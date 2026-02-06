@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces.Ace;
+using Codescene.VSExtension.Core.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -22,7 +23,7 @@ public class ShowDiffHandler
         var cache = _aceManager.GetCachedRefactoredCode();
         var newCode = cache.Refactored.Code;
 
-        var replacement = newCode.EndsWith(Environment.NewLine) ? newCode : newCode + Environment.NewLine;
+        var normalizedNewCode = TextUtils.NormalizeLineEndings(newCode);
         var tempOriginalPath = Path.GetTempFileName();
         var tempRefactoredPath = Path.GetTempFileName();
 
@@ -49,7 +50,7 @@ public class ShowDiffHandler
             snapshot.GetLineFromLineNumber(start).Start.Position, snapshot.GetLineFromLineNumber(end).EndIncludingLineBreak.Position - snapshot.GetLineFromLineNumber(start).Start.Position);
 
         var original = snapshot.GetText();
-        var refactored = original.Remove(span.Start, span.Length).Insert(span.Start, replacement);
+        var refactored = original.Remove(span.Start, span.Length).Insert(span.Start, normalizedNewCode);
 
         // Write files (could be moved to background thread if desired, but it's fast)
         File.WriteAllText(tempOriginalPath, original);
