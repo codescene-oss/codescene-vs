@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using Codescene.VSExtension.Core.Application.Mappers;
+using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -286,6 +287,47 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _mapper.MapAsStale(model);
 
             Assert.IsNull(result.Error);
+        }
+
+        [TestMethod]
+        public void MapRange_MapsPropertiesCorrectly()
+        {
+            var range = CreateRange(5, 15, 2, 40);
+            var result = AceComponentMapper.MapRange(range);
+            Assert.AreEqual(5, result.StartLine);
+            Assert.AreEqual(15, result.EndLine);
+            Assert.AreEqual(2, result.StartColumn);
+            Assert.AreEqual(40, result.EndColumn);
+        }
+
+        [TestMethod]
+        public void MapRange_NullInput_ReturnsNull()
+        {
+            var result = AceComponentMapper.MapRange((CliRangeModel)null);
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public void MapCodeRange_MapsPropertiesCorrectly()
+        {
+            var range = CreateCodeRange(5, 15, 2, 40);
+            var result = AceComponentMapper.MapRange(range);
+            Assert.AreEqual(5, result.StartLine);
+            Assert.AreEqual(15, result.EndLine);
+            Assert.AreEqual(2, result.StartColumn);
+            Assert.AreEqual(40, result.EndColumn);
+        }
+
+        [TestMethod]
+        public void MapCodeRange_NullInput_ReturnsNull()
+        {
+            var result = AceComponentMapper.MapRange((CodeRangeModel)null);
+            Assert.IsNull(result);
+        }
+
+        private static CodeRangeModel CreateCodeRange(int startLine = 10, int endLine = 20, int startColumn = 1, int endColumn = 50)
+        {
+            return new CodeRangeModel(startLine, endLine, startColumn, endColumn);
         }
 
         private static CliRangeModel CreateRange(int startLine = 10, int endLine = 20, int startColumn = 1, int endColumn = 50)

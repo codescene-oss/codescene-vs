@@ -71,18 +71,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Map_NullRange_DefaultsToLine1()
-        {
-            var model = new ShowDocumentationModel("test.cs", "Category", "Function", null);
-            var result = _mapper.Map(model, CreateFnToRefactor());
-
-            Assert.AreEqual(1, result.FileData.Fn.Range.StartLine);
-            Assert.AreEqual(1, result.FileData.Fn.Range.EndLine);
-            Assert.AreEqual(1, result.FileData.Fn.Range.StartColumn);
-            Assert.AreEqual(1, result.FileData.Fn.Range.EndColumn);
-        }
-
-        [TestMethod]
         public void Map_ValidRange_MappedCorrectly()
         {
             var range = new CodeRangeModel(10, 25, 5, 80);

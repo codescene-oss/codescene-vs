@@ -27,11 +27,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
             var function = new FunctionModel
             {
                 Name = model.FunctionName ?? string.Empty,
-                Range = new CodeRangeModel(
-                    model.Range?.StartLine ?? 1,
-                    model.Range?.EndLine ?? 1,
-                    model.Range?.StartColumn ?? 1,
-                    model.Range?.EndColumn ?? 1),
+                Range = model.Range,
             };
 
             var hasToken = !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);

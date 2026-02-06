@@ -74,7 +74,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
                 if (cmdParam != null && DocumentationMappings.DocNameMap.Values.Contains(cmdParam.Category))
                 {
-                    var fnToRefactor = await AceUtils.GetRefactorableFunctionAsync(new GetRefactorableFunctionsModel
+                    var fnToRefactor = await AceUtils.GetRefactorableFunctionCodeSmellAsync(new GetRefactorableFunctionsModel
                     {
                         Path = cmdParam.Path,
                         Range = cmdParam.Range,
