@@ -30,8 +30,12 @@ namespace Codescene.VSExtension.Core.Util
         /// null, returns null.</returns>
         public static string NormalizeLineEndings(string input)
         {
-            var lineEnding = Environment.NewLine;
-            return Regex.Replace(input, @"\r\n|\r|\n", lineEnding);
+            if (input == null)
+            {
+                return null;
+            }
+
+            return Regex.Replace(input, @"\r\n|\r|\n", Environment.NewLine);
         }
     }
 }
