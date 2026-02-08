@@ -21,10 +21,11 @@ CS_FILES := $(wildcard Codescene.VSExtension.VS2022/*.cs) \
             $(wildcard Codescene.VSExtension.VS2022/**/**/**/*.cs) \
             $(wildcard Codescene.VSExtension.VS2022/**/**/**/**/*.cs)
 
-PROJ_FILES := $(wildcard Codescene.VSExtension.VS2022/*.csproj) \
-              $(wildcard Codescene.VSExtension.VS2022/*.sln) \
-              $(wildcard Codescene.VSExtension.VS2022/**/*.csproj) \
-              $(wildcard Codescene.VSExtension.VS2022/**/**/*.csproj)
+PROJ_FILES_RAW := $(wildcard Codescene.VSExtension.VS2022/*.csproj) \
+                  $(wildcard Codescene.VSExtension.VS2022/*.sln) \
+                  $(wildcard Codescene.VSExtension.VS2022/**/*.csproj) \
+                  $(wildcard Codescene.VSExtension.VS2022/**/**/*.csproj)
+PROJ_FILES := $(filter-out %_wpftmp.csproj,$(PROJ_FILES_RAW))
 
 cs-cwf.zip:
 	@pwsh.exe .github/cwf.ps1 > cs-cwf.log 2>&1 && del cs-cwf.log || (type cs-cwf.log && del cs-cwf.log && exit /b 1)

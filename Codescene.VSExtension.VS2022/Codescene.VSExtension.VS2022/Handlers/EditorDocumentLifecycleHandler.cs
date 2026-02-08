@@ -99,7 +99,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 _debounceService.Debounce(
                     filePath,
                     () => Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget(),
-                    TimeSpan.FromSeconds(3));
+                    TimeSpan.FromSeconds(1));
             };
 
             textView.Closed += (sender, args) =>
