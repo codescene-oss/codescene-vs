@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
@@ -258,7 +260,7 @@ internal class WebComponentMessageHandler
         _logger.Debug($"Opening '{payload.DocType}'...");
 
         var category = DocumentationMappings.DocNameMap[payload.DocType] ?? string.Empty;
-        var fn = await AceUtils.GetRefactorableFunctionAsync(new GetRefactorableFunctionsModel
+        var fn = await AceUtils.GetRefactorableFunctionDeltaAsync(new GetRefactorableFunctionsModel
         {
             Path = payload.FileName,
             Category = category,
@@ -269,8 +271,8 @@ internal class WebComponentMessageHandler
         new ShowDocumentationModel(
             payload.FileName,
             payload.DocType,
-            payload.Fn?.Name,
-            payload.Fn?.Range),
+            fn?.Name,
+            AceComponentMapper.MapRange(fn?.Range)),
         fn,
         DocsEntryPoint.CodeHealthMonitor);
     }

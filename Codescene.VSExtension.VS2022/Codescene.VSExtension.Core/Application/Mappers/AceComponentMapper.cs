@@ -13,6 +13,32 @@ namespace Codescene.VSExtension.Core.Application.Mappers
     [PartCreationPolicy(CreationPolicy.Shared)]
     public partial class AceComponentMapper
     {
+        public static CodeRangeModel MapRange(CliRangeModel range)
+        {
+            if (range == null)
+            {
+                return null;
+            }
+
+            return new CodeRangeModel(range.StartLine, range.EndLine, range.StartColumn, range.EndColumn);
+        }
+
+        public static CliRangeModel MapRange(CodeRangeModel range)
+        {
+            if (range == null)
+            {
+                return null;
+            }
+
+            return new CliRangeModel
+            {
+                StartLine = range.StartLine,
+                EndLine = range.EndLine,
+                StartColumn = range.StartColumn,
+                EndColumn = range.EndColumn,
+            };
+        }
+
         public AceComponentData Map(CachedRefactoringActionModel model)
         {
             return MapCachedModel(model, isStale: false);
@@ -35,11 +61,6 @@ namespace Codescene.VSExtension.Core.Application.Mappers
         public AceComponentData MapAsStale(CachedRefactoringActionModel model)
         {
             return MapCachedModel(model, isStale: true);
-        }
-
-        private static CodeRangeModel MapRange(CliRangeModel range)
-        {
-            return new CodeRangeModel(range.StartLine, range.EndLine, range.StartColumn, range.EndColumn);
         }
 
         private static WebComponentFileData CreateFileData(
