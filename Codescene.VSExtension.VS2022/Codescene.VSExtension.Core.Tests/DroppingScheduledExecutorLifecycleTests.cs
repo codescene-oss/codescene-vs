@@ -25,13 +25,13 @@ public class DroppingScheduledExecutorLifecycleTests : DroppingScheduledExecutor
     }
 
     [TestMethod]
-    public void Start_WhenDisposed_ThrowsObjectDisposedException()
+    public void Start_WhenDisposed_DoesNothing()
     {
         _executor = new DroppingScheduledExecutor(() => Task.CompletedTask, TimeSpan.FromMilliseconds(100), _mockLogger.Object);
 
         _executor.Dispose();
 
-        Assert.Throws<ObjectDisposedException>(() => _executor.Start());
+        _executor.Start();
     }
 
     [TestMethod]

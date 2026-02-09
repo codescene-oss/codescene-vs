@@ -49,7 +49,7 @@ namespace Codescene.VSExtension.Core.Application.Util
             {
                 if (_disposed)
                 {
-                    throw new ObjectDisposedException(nameof(DroppingScheduledExecutor));
+                    return;
                 }
 
                 if (_timer != null)
