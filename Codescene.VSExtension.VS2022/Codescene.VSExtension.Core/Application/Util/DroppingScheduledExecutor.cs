@@ -47,110 +47,147 @@ namespace Codescene.VSExtension.Core.Application.Util
         {
             lock (_lock)
             {
-                if (_disposed)
-                {
-                    return;
-                }
-
-                if (_timer != null)
-                {
-                    _logger.Warn("DroppingScheduledExecutor already started");
-                    return;
-                }
-
-                _stopped = false;
-                _timer = new Timer(OnTimerCallback, null, _interval, _interval);
+                StartImpl();
             }
-
-            _logger.Debug($"DroppingScheduledExecutor started with interval: {_interval.TotalSeconds}s");
         }
 
         public void Stop()
         {
             lock (_lock)
             {
-                _stopped = true;
-                if (_timer != null)
-                {
-                    _timer.Dispose();
-                    _timer = null;
-                }
+                StopImpl();
             }
-
-            _logger.Debug("DroppingScheduledExecutor stopped");
         }
 
         public void Dispose()
         {
             lock (_lock)
             {
-                if (_disposed)
-                {
-                    return;
-                }
+                DisposeImpl();
+            }
+        }
 
-                if (_timer != null)
-                {
-                    _timer.Dispose();
-                    _timer = null;
-                }
-
-                _disposed = true;
+        private void StartImpl()
+        {
+            if (_disposed)
+            {
+                return;
             }
 
+            if (_timer != null)
+            {
+                _logger.Warn("DroppingScheduledExecutor already started");
+                return;
+            }
+
+            _stopped = false;
+            _timer = new Timer(OnTimerCallback, null, _interval, _interval);
+            _logger.Debug($"DroppingScheduledExecutor started with interval: {_interval.TotalSeconds}s");
+        }
+
+        private void StopImpl()
+        {
+            _stopped = true;
+            if (_timer != null)
+            {
+                _timer.Dispose();
+                _timer = null;
+            }
+
+            _logger.Debug("DroppingScheduledExecutor stopped");
+        }
+
+        private void DisposeImpl()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (_timer != null)
+            {
+                _timer.Dispose();
+                _timer = null;
+            }
+
+            _disposed = true;
             _logger.Debug("DroppingScheduledExecutor disposed");
         }
 
-        private async void OnTimerCallback(object state)
+        private bool TryBeginExecution()
         {
-            bool shouldExecute;
             lock (_lock)
             {
-                shouldExecute = !_stopped && !_disposed && !_isRunning;
-                if (shouldExecute)
-                {
-                    _isRunning = true;
-                }
+                return TryBeginExecutionImpl();
             }
+        }
 
+        private bool TryBeginExecutionImpl()
+        {
+            bool shouldExecute = !_stopped && !_disposed && !_isRunning;
             if (shouldExecute)
             {
-                bool stillValid;
-                lock (_lock)
-                {
-                    stillValid = !_stopped && !_disposed;
-                }
-
-                if (!stillValid)
-                {
-                    lock (_lock)
-                    {
-                        _isRunning = false;
-                    }
-
-                    return;
-                }
-
-                try
-                {
-                    _logger.Debug("DroppingScheduledExecutor: executing scheduled action");
-                    await _wrappedAction();
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error("DroppingScheduledExecutor: error executing scheduled action", ex);
-                }
-                finally
-                {
-                    lock (_lock)
-                    {
-                        _isRunning = false;
-                    }
-                }
+                _isRunning = true;
             }
             else
             {
                 _logger.Debug("DroppingScheduledExecutor: dropping execution (previous still running)");
+            }
+
+            return shouldExecute;
+        }
+
+        private void EndExecution()
+        {
+            lock (_lock)
+            {
+                EndExecutionImpl();
+            }
+        }
+
+        private void EndExecutionImpl()
+        {
+            _isRunning = false;
+        }
+
+        private bool IsStillValid()
+        {
+            lock (_lock)
+            {
+                return IsStillValidImpl();
+            }
+        }
+
+        private bool IsStillValidImpl()
+        {
+            return !_stopped && !_disposed;
+        }
+
+        private async void OnTimerCallback(object state)
+        {
+            if (!TryBeginExecution())
+            {
+                return;
+            }
+
+            if (!IsStillValid())
+            {
+                EndExecution();
+                return;
+            }
+
+            try
+            {
+                _logger.Debug("DroppingScheduledExecutor: executing scheduled action");
+                await _wrappedAction();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("DroppingScheduledExecutor: error executing scheduled action", ex);
+            }
+            finally
+            {
+                EndExecution();
             }
         }
     }
