@@ -94,6 +94,40 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void GetMergeBaseCommit_WithDivergentBranches_ReturnsBranchPoint()
+        {
+            CommitFile("fileB.cs", "content B", "Commit B");
+
+            Commit expectedMergeBase;
+            using (var repo = new Repository(_testRepoPath))
+            {
+                expectedMergeBase = repo.Head.Tip;
+            }
+
+            ExecGit("checkout -b feature-branch");
+
+            CommitFile("featureE.cs", "feature E", "Commit E");
+            CommitFile("featureF.cs", "feature F", "Commit F");
+
+            ExecGit("checkout master");
+            CommitFile("fileC.cs", "content C", "Commit C");
+            CommitFile("fileD.cs", "content D", "Commit D");
+
+            ExecGit("checkout feature-branch");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var result = _finder.GetMergeBaseCommit(repo);
+
+                Assert.IsNotNull(result, "Should find merge base for divergent branches");
+                Assert.AreEqual(
+                    expectedMergeBase.Sha,
+                    result.Sha,
+                    "Merge base should be commit B (branch point), not latest master");
+            }
+        }
+
+        [TestMethod]
         public void IsMainBranch_WithMainBranches_ReturnsTrue()
         {
             Assert.IsTrue(_finder.IsMainBranch("main"), "Should recognize 'main'");
