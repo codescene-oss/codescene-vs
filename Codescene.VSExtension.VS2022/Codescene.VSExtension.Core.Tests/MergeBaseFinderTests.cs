@@ -26,13 +26,12 @@ namespace Codescene.VSExtension.Core.Tests
             Directory.CreateDirectory(emptyRepoPath);
             Repository.Init(emptyRepoPath);
 
+            Commit result = null;
             try
             {
                 using (var repo = new Repository(emptyRepoPath))
                 {
-                    var result = _finder.GetMergeBaseCommit(repo);
-
-                    Assert.IsNull(result, "Should return null for empty repository with no commits");
+                    result = _finder.GetMergeBaseCommit(repo);
                 }
             }
             finally
@@ -45,6 +44,8 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                 }
             }
+
+            Assert.IsNull(result, "Should return null for empty repository with no commits");
         }
 
         [TestMethod]
@@ -52,17 +53,11 @@ namespace Codescene.VSExtension.Core.Tests
         {
             CorruptGitObjects();
 
-            try
+            using (var repo = new Repository(_testRepoPath))
             {
-                using (var repo = new Repository(_testRepoPath))
-                {
-                    var result = _finder.GetMergeBaseCommit(repo);
+                var result = _finder.GetMergeBaseCommit(repo);
 
-                    Assert.IsNull(result, "Should return null when git operations fail");
-                }
-            }
-            catch
-            {
+                Assert.IsNull(result, "Should return null when git operations fail");
             }
         }
 
@@ -80,6 +75,12 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void GetMergeBaseCommit_OnFeatureBranchWithMergeBase_ReturnsCommit()
         {
+            Commit expectedMergeBase;
+            using (var repo = new Repository(_testRepoPath))
+            {
+                expectedMergeBase = repo.Head.Tip;
+            }
+
             ExecGit("checkout -b feature-branch");
             CommitFile("feature.cs", "feature content", "Add feature");
 
@@ -87,8 +88,42 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 var result = _finder.GetMergeBaseCommit(repo);
 
-                Assert.IsNotNull(result, "Should find merge base on feature branch");
+                Assert.AreEqual(expectedMergeBase.Sha, result.Sha, "Should return the initial commit as merge base");
                 Assert.IsTrue(_fakeLogger.DebugMessages.Exists(m => m.Contains("Found merge base using branch")), "Should log merge base found");
+            }
+        }
+
+        [TestMethod]
+        public void GetMergeBaseCommit_WithDivergentBranches_ReturnsBranchPoint()
+        {
+            CommitFile("fileB.cs", "content B", "Commit B");
+
+            Commit expectedMergeBase;
+            using (var repo = new Repository(_testRepoPath))
+            {
+                expectedMergeBase = repo.Head.Tip;
+            }
+
+            ExecGit("checkout -b feature-branch");
+
+            CommitFile("featureE.cs", "feature E", "Commit E");
+            CommitFile("featureF.cs", "feature F", "Commit F");
+
+            ExecGit("checkout master");
+            CommitFile("fileC.cs", "content C", "Commit C");
+            CommitFile("fileD.cs", "content D", "Commit D");
+
+            ExecGit("checkout feature-branch");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var result = _finder.GetMergeBaseCommit(repo);
+
+                Assert.IsNotNull(result, "Should find merge base for divergent branches");
+                Assert.AreEqual(
+                    expectedMergeBase.Sha,
+                    result.Sha,
+                    "Merge base should be commit B (branch point), not latest master");
             }
         }
 
@@ -133,17 +168,11 @@ namespace Codescene.VSExtension.Core.Tests
 
             CorruptGitObjects();
 
-            try
+            using (var repo = new Repository(_testRepoPath))
             {
-                using (var repo = new Repository(_testRepoPath))
-                {
-                    var result = _finder.GetMergeBaseCommit(repo);
+                var result = _finder.GetMergeBaseCommit(repo);
 
-                    Assert.IsNotEmpty(_fakeLogger.DebugMessages, "Should log debug messages");
-                }
-            }
-            catch
-            {
+                Assert.IsNotEmpty(_fakeLogger.DebugMessages, "Should log debug messages");
             }
         }
     }
