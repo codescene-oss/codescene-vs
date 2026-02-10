@@ -59,7 +59,12 @@ internal class OutputPaneManager
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        _pane.Activate();
+        if (_pane == null)
+        {
+            await InitializeAsync();
+        }
+
+        _pane?.Activate();
 
         if (_serviceProvider.GetService(typeof(SVsUIShell)) is not IVsUIShell shell)
         {
@@ -67,7 +72,6 @@ internal class OutputPaneManager
         }
 
         object inputVariant = null;
-        // Show the output window
         shell.PostExecCommand(VSConstants.GUID_VSStandardCommandSet97, (uint)VSConstants.VSStd97CmdID.OutputWindow, 0, ref inputVariant);
     }
 }
