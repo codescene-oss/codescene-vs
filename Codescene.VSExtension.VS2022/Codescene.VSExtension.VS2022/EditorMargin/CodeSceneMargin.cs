@@ -78,6 +78,23 @@ public class CodeSceneMargin : IWpfTextViewMargin
         return this;
     }
 
+    private static string GetDeltaScore(bool hasDelta, string path)
+    {
+        if (!hasDelta)
+        {
+            return null;
+        }
+
+        var delta = new DeltaCacheService().GetDeltaForFile(path);
+        return delta != null ? $"{delta.OldScore} → {delta.NewScore}" : null;
+    }
+
+    private static string GetReviewScore(string code, string path)
+    {
+        var item = new ReviewCacheService().Get(new ReviewCacheQuery(code, path));
+        return item != null ? $"{item.Score}/10" : null;
+    }
+
     private void OnThemeChanged(ThemeChangedEventArgs e)
     {
         var brush = GetThemedBrush(EnvironmentColors.ToolWindowTextColorKey);
@@ -108,28 +125,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
                 return;
             }
 
-            var score = "N/A";
-            if (_settings.HasDelta)
-            {
-                var deltaCache = new DeltaCacheService();
-                var delta = deltaCache.GetDeltaForFile(path);
-                if (delta != null)
-                {
-                    score = $"{delta.OldScore} → {delta.NewScore}";
-                }
-            }
-
-            if (score == "N/A")
-            {
-                var cache = new ReviewCacheService();
-                var item = cache.Get(new ReviewCacheQuery(code, path));
-
-                if (item != null && score != "0")
-                {
-                    score = $"{item.Score}/10";
-                }
-            }
-
+            var score = GetDeltaScore(_settings.HasDelta, path) ?? GetReviewScore(code, path) ?? "N/A";
             _label.Text = $"Code Health: {score} ({Path.GetFileName(path)})";
         });
     }
