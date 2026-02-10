@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 using Microsoft.VisualStudio.Shell;
 
@@ -17,18 +18,33 @@ public class CodeSceneMarginSettingsManager
 
     public bool HasScore { get; private set; } = false;
 
+    public bool HasDelta { get; private set; } = false;
+
     public string FileInFocus { get; private set; } = null;
 
     public string FileInFocusContent { get; private set; } = null;
 
     public void UpdateMarginData(string path, string content)
     {
-        var cache = new ReviewCacheService();
-        var cacheItem = cache.Get(new ReviewCacheQuery(content, path));
-
         FileInFocus = path;
         FileInFocusContent = content;
-        HasScore = cacheItem != null;
+
+        var deltaCache = new DeltaCacheService();
+        var delta = deltaCache.GetDeltaForFile(path);
+
+        if (delta != null)
+        {
+            HasDelta = true;
+            HasScore = true;
+        }
+        else
+        {
+            var cache = new ReviewCacheService();
+            var cacheItem = cache.Get(new ReviewCacheQuery(content, path));
+            HasScore = cacheItem != null;
+            HasDelta = false;
+        }
+
         ScoreUpdated?.Invoke().FireAndForget();
     }
 
