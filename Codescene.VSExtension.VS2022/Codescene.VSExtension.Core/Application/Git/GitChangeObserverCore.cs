@@ -21,6 +21,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly IGitService _gitService;
         private readonly IAsyncTaskScheduler _taskScheduler;
+        private readonly IGitChangeLister _gitChangeLister;
 
         private readonly TrackerManager _trackerManager = new TrackerManager();
 
@@ -43,13 +44,15 @@ namespace Codescene.VSExtension.Core.Application.Git
             ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker,
             IGitService gitService,
-            IAsyncTaskScheduler taskScheduler)
+            IAsyncTaskScheduler taskScheduler,
+            IGitChangeLister gitChangeLister)
         {
             _logger = logger;
             _codeReviewer = codeReviewer;
             _supportedFileChecker = supportedFileChecker;
             _gitService = gitService;
             _taskScheduler = taskScheduler;
+            _gitChangeLister = gitChangeLister;
         }
 
         public event EventHandler<string> FileDeletedFromGit;
@@ -80,6 +83,9 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             InitializeGitPaths();
 
+            _gitChangeLister.Initialize(_gitRootPath, _workspacePath);
+            _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
+
             _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager);
             _fileChangeHandler.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
 
@@ -108,6 +114,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             _fileWatcher.EnableRaisingEvents = true;
 
             _scheduledTimer = new Timer(ProcessQueuedEventsCallback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+
+            _gitChangeLister.StartPeriodicScanning();
         }
 
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
@@ -142,11 +150,38 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public void Dispose()
         {
+            _gitChangeLister.StopPeriodicScanning();
+            _gitChangeLister.FilesDetected -= OnGitChangeListerFilesDetected;
+
             _fileWatcher?.Dispose();
             _fileWatcher = null;
 
             _scheduledTimer?.Dispose();
             _scheduledTimer = null;
+        }
+
+        private void OnGitChangeListerFilesDetected(object sender, HashSet<string> absolutePaths)
+        {
+            _taskScheduler.Schedule(async () =>
+            {
+                try
+                {
+                    await Task.Run(() =>
+                    {
+                        foreach (var absolutePath in absolutePaths)
+                        {
+                            if (File.Exists(absolutePath) && !_trackerManager.Contains(absolutePath))
+                            {
+                                _trackerManager.Add(absolutePath);
+                            }
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger?.Warn($"GitChangeObserver: Error processing detected files: {ex.Message}");
+                }
+            });
         }
 
         private void InitializeGitPaths()
@@ -197,10 +232,13 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 try
                 {
-                    var files = await CollectFilesFromRepoStateAsync();
-                    foreach (var file in files)
+                    var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
+                    foreach (var absolutePath in absolutePaths)
                     {
-                        _trackerManager.Add(file);
+                        if (File.Exists(absolutePath))
+                        {
+                            _trackerManager.Add(absolutePath);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -268,34 +306,6 @@ namespace Codescene.VSExtension.Core.Application.Git
                     await _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles);
                 }
             }
-        }
-
-        private async Task<List<string>> CollectFilesFromRepoStateAsync()
-        {
-            return await Task.Run(async () =>
-            {
-                var files = new List<string>();
-
-                try
-                {
-                    var changedFiles = await _getChangedFilesCallback();
-
-                    foreach (var relativePath in changedFiles)
-                    {
-                        var fullPath = Path.Combine(_gitRootPath, relativePath);
-                        if (File.Exists(fullPath))
-                        {
-                            files.Add(fullPath);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger?.Warn($"GitChangeObserver: Error collecting files from repo state: {ex.Message}");
-                }
-
-                return files;
-            });
         }
     }
 }

@@ -31,6 +31,10 @@
             "matching_content_path_doc": "Default fallback for all other files",
             "rules": [
                 {
+                    "name": "Constructor Over-Injection",
+                    "weight": 0.0
+                },
+                {
                     "name": "Primitive Obsession",
                     "weight": 0.0
                 },

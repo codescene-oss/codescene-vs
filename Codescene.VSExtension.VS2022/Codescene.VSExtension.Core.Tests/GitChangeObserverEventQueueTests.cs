@@ -60,7 +60,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
                 _fakeGitService,
-                new FakeAsyncTaskScheduler());
+                new FakeAsyncTaskScheduler(),
+                _fakeGitChangeLister);
 
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
@@ -109,7 +110,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
                 _fakeGitService,
-                new FakeAsyncTaskScheduler());
+                new FakeAsyncTaskScheduler(),
+                _fakeGitChangeLister);
 
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
@@ -137,6 +139,22 @@ namespace Codescene.VSExtension.Core.Tests
             _gitChangeObserverCore.Dispose();
 
             Assert.IsNull(_gitChangeObserverCore.ScheduledTimer, "Scheduled timer should be null after disposal");
+        }
+
+        [TestMethod]
+        public void FilesDetected_WithAbsolutePaths_AddsCorrectPathToTracker()
+        {
+            var absolutePath = Path.Combine(_testRepoPath, "detected.ts");
+            File.WriteAllText(absolutePath, "export const x = 1;");
+
+            var detectedFiles = new HashSet<string> { absolutePath };
+
+            _fakeGitChangeLister.SimulateFilesDetected(detectedFiles);
+
+            var trackerManager = _gitChangeObserverCore.GetTrackerManager();
+            Assert.IsTrue(
+                trackerManager.Contains(absolutePath),
+                $"Tracker should contain the absolute path '{absolutePath}'");
         }
     }
 }

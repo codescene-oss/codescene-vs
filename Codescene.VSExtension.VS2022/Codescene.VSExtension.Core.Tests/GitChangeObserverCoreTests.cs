@@ -135,5 +135,92 @@ namespace Codescene.VSExtension.Core.Tests
 
             _gitChangeObserverCore.Dispose();
         }
+
+        [TestMethod]
+        public void OnGitChangeListerFilesDetected_AddsExistingFilesToTracker()
+        {
+            var existingFile = CreateFile("tracked.ts", "export const x = 1;");
+            var files = new HashSet<string> { existingFile };
+
+            _fakeGitChangeLister.SimulateFilesDetected(files);
+
+            AssertFileInTracker(existingFile, true);
+        }
+
+        [TestMethod]
+        public void OnGitChangeListerFilesDetected_SkipsNonExistentFiles()
+        {
+            var nonExistentFile = Path.Combine(_testRepoPath, "nonexistent.ts");
+            var files = new HashSet<string> { nonExistentFile };
+
+            _fakeGitChangeLister.SimulateFilesDetected(files);
+
+            AssertFileInTracker(nonExistentFile, false);
+        }
+
+        [TestMethod]
+        public async Task OnGitChangeListerFilesDetected_WhenExceptionThrown_LogsWarning()
+        {
+            _fakeLogger.WarnMessages.Clear();
+
+            var eventHandler = typeof(GitChangeObserverCore).GetMethod("OnGitChangeListerFilesDetected", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            var exceptionThrown = false;
+            try
+            {
+                eventHandler?.Invoke(_gitChangeObserverCore, new object[] { this, null });
+            }
+            catch
+            {
+                exceptionThrown = true;
+            }
+
+            Assert.IsFalse(exceptionThrown, "Exception should be caught and logged, not thrown");
+
+            await WaitForConditionAsync(() => _fakeLogger.WarnMessages.Count > 0, 2000);
+
+            Assert.IsNotEmpty(_fakeLogger.WarnMessages, "Should log warning when exception is thrown");
+            Assert.IsTrue(
+                _fakeLogger.WarnMessages.Exists(msg => msg.Contains("Error processing detected files")),
+                "Warning should mention error processing detected files");
+        }
+
+        [TestMethod]
+        public async Task InitializeTracker_SkipsNonExistentFiles()
+        {
+            var existingFile = CreateFile("existing.ts", "export const x = 1;");
+            var nonExistentFile = Path.Combine(_testRepoPath, "nonexistent.ts");
+
+            _fakeGitChangeLister.FilesToReturn = new HashSet<string> { existingFile, nonExistentFile };
+
+            var newObserver = CreateGitChangeObserverCore();
+            var newTracker = newObserver.GetTrackerManager();
+
+            await WaitForConditionAsync(() => newTracker.Contains(existingFile), 2000);
+
+            Assert.IsTrue(newTracker.Contains(existingFile), "Existing file should be in tracker");
+            Assert.IsFalse(newTracker.Contains(nonExistentFile), "Non-existent file should not be in tracker");
+
+            newObserver.Dispose();
+        }
+
+        [TestMethod]
+        public async Task InitializeTracker_WhenExceptionThrown_LogsWarning()
+        {
+            _fakeLogger.WarnMessages.Clear();
+
+            _fakeGitChangeLister.ThrowOnCollectFiles = true;
+
+            var newObserver = CreateGitChangeObserverCore();
+
+            await WaitForConditionAsync(() => _fakeLogger.WarnMessages.Count > 0, 2000);
+
+            Assert.IsNotEmpty(_fakeLogger.WarnMessages, "Should log warning when CollectFilesFromRepoStateAsync throws");
+            Assert.IsTrue(
+                _fakeLogger.WarnMessages.Exists(msg => msg.Contains("Error initializing tracker")),
+                "Warning should mention error initializing tracker");
+
+            newObserver.Dispose();
+        }
     }
 }

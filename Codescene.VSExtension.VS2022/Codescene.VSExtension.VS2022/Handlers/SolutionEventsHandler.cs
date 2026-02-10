@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.VS2022.Application.Git;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
@@ -22,6 +23,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     private uint _cookie;
     private IVsSolution _solution;
     private BranchWatcherService _branchWatcher;
+    private IGitChangeObserver _gitChangeObserver;
 
     /// <summary>
     /// Subscribes to solution events using the Visual Studio shell service.
@@ -87,6 +89,8 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
             _branchWatcher = new BranchWatcherService();
             _branchWatcher.StartWatching(solutionPath, (newBranch) => OnBranchChangedAsync(newBranch).FireAndForget());
+
+            await InitializeGitChangeObserverAsync(solutionPath);
         });
 
         return VSConstants.S_OK;
@@ -96,6 +100,8 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     {
         _branchWatcher?.Dispose();
         _branchWatcher = null;
+        _gitChangeObserver?.Dispose();
+        _gitChangeObserver = null;
         return VSConstants.S_OK;
     }
 
@@ -136,6 +142,53 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 await logAction(logger);
             }
         });
+    }
+
+    private async Task InitializeGitChangeObserverAsync(string solutionPath)
+    {
+        try
+        {
+            _gitChangeObserver = await VS.GetMefServiceAsync<IGitChangeObserver>();
+            if (_gitChangeObserver == null)
+            {
+                Log(logger =>
+                {
+                    logger.Warn("Failed to obtain IGitChangeObserver service.");
+                    return Task.CompletedTask;
+                });
+                return;
+            }
+
+            var savedFilesTracker = await VS.GetMefServiceAsync<ISavedFilesTracker>();
+            var openFilesObserver = await VS.GetMefServiceAsync<IOpenFilesObserver>();
+
+            if (savedFilesTracker == null || openFilesObserver == null)
+            {
+                Log(logger =>
+                {
+                    logger.Warn("Failed to obtain required services for GitChangeObserver.");
+                    return Task.CompletedTask;
+                });
+                return;
+            }
+
+            _gitChangeObserver.Initialize(solutionPath, savedFilesTracker, openFilesObserver);
+            _gitChangeObserver.Start();
+
+            Log(logger =>
+            {
+                logger.Info("GitChangeObserver initialized and started.");
+                return Task.CompletedTask;
+            });
+        }
+        catch (Exception ex)
+        {
+            Log(logger =>
+            {
+                logger.Error("Failed to initialize GitChangeObserver.", ex);
+                return Task.CompletedTask;
+            });
+        }
     }
 
     private async Task OnBranchChangedAsync(string newBranch)
