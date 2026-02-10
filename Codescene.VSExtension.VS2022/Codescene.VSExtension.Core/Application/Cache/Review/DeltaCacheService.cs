@@ -62,5 +62,20 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
             return result;
         }
+
+        public DeltaResponseModel GetDeltaForFile(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath))
+            {
+                return null;
+            }
+
+            if (Cache.TryGetValue(filePath, out var item))
+            {
+                return item.Delta;
+            }
+
+            return null;
+        }
     }
 }
