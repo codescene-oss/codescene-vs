@@ -82,7 +82,6 @@
     <Compile Include="TermsAndPolicies\TermsAndPoliciesService.cs" />
     <Compile Include="Handlers\SolutionEventsHandler.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
-    <Compile Include="Commands\SignOutCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="Controls\UnderlineTaggerTooltip.xaml.cs">
       <DependentUpon>UnderlineTaggerTooltip.xaml</DependentUpon>
@@ -98,7 +97,6 @@
     <Compile Include="Commands\Base\VSBaseCommand.cs" />
     <Compile Include="Options\General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Commands\SignInCommand.cs" />
     <Compile Include="ToolWindows\WebComponent\AceToolWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\AceAcknowledgeToolWindow.cs" />
     <Compile Include="ToolWindows\WebComponent\Handlers\OnClickRefactoringHandler.cs" />
@@ -133,10 +131,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>source.extension.vsixmanifest</DependentUpon>
-    </Compile>
-    <Compile Include="ToolWindows\Markdown\MarkdownWindow.cs" />
-    <Compile Include="ToolWindows\Markdown\MarkdownWindowControl.xaml.cs">
-      <DependentUpon>MarkdownWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="VSCommandTable.cs">
       <AutoGen>True</AutoGen>
@@ -173,21 +167,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Resource Include="Resources\StatusError.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\StatusHelp.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\StatusInformation.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\StatusOK.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Resources\User.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
       <Generator>VsixManifestGenerator</Generator>
@@ -267,10 +246,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ToolWindows\Markdown\MarkdownWindowControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="ToolWindows\WebComponent\WebComponentUserControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -280,10 +255,6 @@
     <ProjectReference Include="..\Codescene.VSExtension.Core\Codescene.VSExtension.Core.csproj">
       <Project>{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}</Project>
       <Name>Codescene.VSExtension.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Codescene.VSExtension.CredentialManagerPersistenceAuthProvider\Codescene.VSExtension.CredentialManagerPersistenceAuthProvider.csproj">
-      <Project>{3e9f599c-61b2-4224-b730-e406fe8e641c}</Project>
-      <Name>Codescene.VSExtension.CredentialManagerPersistenceAuthProvider</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
