@@ -7,14 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codescene.VSExtension.VS202
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codescene.VSExtension.Core", "Codescene.VSExtension.Core\Codescene.VSExtension.Core.csproj", "{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codescene.VSExtension.CredentialManagerPersistenceAuthProvider", "Codescene.VSExtension.CredentialManagerPersistenceAuthProvider\Codescene.VSExtension.CredentialManagerPersistenceAuthProvider.csproj", "{3E9F599C-61B2-4224-B730-E406FE8E641C}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Code", "Code", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{0BEFB960-515A-498F-AE79-7F7FB22FBA44}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Auth", "Auth", "{948BA09A-025A-4FAD-BDB4-EA4D24B1A02C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codescene.VSExtension.Core.IntegrationTests", "Codescene.VSExtension.Core.IntegrationTests\Codescene.VSExtension.Core.IntegrationTests.csproj", "{7FAB5EB5-032B-4F74-AA9E-BBA9666857EC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Codescene.VSExtension.Core.Tests", "Codescene.VSExtension.Core.Tests\Codescene.VSExtension.Core.Tests.csproj", "{93D7E50D-85BC-4D1E-B1DA-917B4ED28BCB}"
@@ -60,18 +52,6 @@ Global
 		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Release|arm64.Build.0 = Release|Any CPU
 		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Release|x86.ActiveCfg = Release|Any CPU
 		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388}.Release|x86.Build.0 = Release|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Debug|arm64.ActiveCfg = Debug|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Debug|arm64.Build.0 = Debug|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Debug|x86.Build.0 = Debug|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Release|arm64.ActiveCfg = Release|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Release|arm64.Build.0 = Release|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Release|x86.ActiveCfg = Release|Any CPU
-		{3E9F599C-61B2-4224-B730-E406FE8E641C}.Release|x86.Build.0 = Release|Any CPU
 		{7FAB5EB5-032B-4F74-AA9E-BBA9666857EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7FAB5EB5-032B-4F74-AA9E-BBA9666857EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FAB5EB5-032B-4F74-AA9E-BBA9666857EC}.Debug|arm64.ActiveCfg = Debug|Any CPU
@@ -99,15 +79,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{4417AD28-F9DC-40CA-AD25-CD8D5B8877D0} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{3217B4FD-5A1B-4DEB-B1D9-BCBDF5F22388} = {0BEFB960-515A-498F-AE79-7F7FB22FBA44}
-		{3E9F599C-61B2-4224-B730-E406FE8E641C} = {948BA09A-025A-4FAD-BDB4-EA4D24B1A02C}
-		{0BEFB960-515A-498F-AE79-7F7FB22FBA44} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{948BA09A-025A-4FAD-BDB4-EA4D24B1A02C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{7FAB5EB5-032B-4F74-AA9E-BBA9666857EC} = {0BEFB960-515A-498F-AE79-7F7FB22FBA44}
-		{93D7E50D-85BC-4D1E-B1DA-917B4ED28BCB} = {0BEFB960-515A-498F-AE79-7F7FB22FBA44}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {27EC421E-F3DD-4291-8368-AA1AD1FD923E}
