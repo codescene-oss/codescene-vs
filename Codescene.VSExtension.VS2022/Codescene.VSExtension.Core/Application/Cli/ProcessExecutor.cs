@@ -85,6 +85,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
         }
 
+        private static bool ShouldPrintError(int code)
+        {
+            return code == 10 || code == 11;
+        }
+
         private void AttachOutputHandlers(AttachOutputHandlersArgs handlerArguments)
         {
             handlerArguments.Process.OutputDataReceived += (s, e) =>
@@ -156,7 +161,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var code = process.ExitCode;
             if (code != 0)
             {
-                if (code == 10)
+                if (ShouldPrintError(code))
                 {
                     throw JsonConvert.DeserializeObject<DevtoolsException>(output.ToString());
                 }

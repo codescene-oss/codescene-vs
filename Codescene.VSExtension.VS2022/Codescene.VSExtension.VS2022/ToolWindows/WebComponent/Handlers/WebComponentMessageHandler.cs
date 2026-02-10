@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Codescene.VSExtension.Core.Application.Ace;
@@ -13,6 +12,7 @@ using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.Core.Util;
+using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.Application.Services;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
@@ -127,7 +127,9 @@ internal class WebComponentMessageHandler
                 case MessageTypes.REQUESTANDPRESENTREFACTORING:
                     await HandleRequestAndPresentRefactoringAsync(msgObject, logger);
                     break;
-
+                case MessageTypes.SHOWLOGOUTPUT:
+                    await HandleOpenLogOutputAsync();
+                    break;
                 default:
                     logger.Debug($"Unknown message type: {msgObject.MessageType}");
                     break;
@@ -353,6 +355,12 @@ internal class WebComponentMessageHandler
             payload.FilePath,
             payload.FnToRefactor,
             AceConstants.AceEntryPoint.ACEACKNOWLEDGEMENT);
+    }
+
+    private async Task HandleOpenLogOutputAsync()
+    {
+        var outputPaneManager = await VS.GetMefServiceAsync<OutputPaneManager>();
+        await outputPaneManager.ShowAsync();
     }
 
     private void SendTelemetry(string eventName, Dictionary<string, object> additionalData = null)
