@@ -42,6 +42,7 @@ public class CodeSceneMarginSettingsManager
             var cache = new ReviewCacheService();
             var cacheItem = cache.Get(new ReviewCacheQuery(content, path));
             HasScore = cacheItem != null;
+            HasDelta = false;
         }
 
         ScoreUpdated?.Invoke().FireAndForget();
