@@ -7,6 +7,11 @@ using Codescene.VSExtension.Core.Interfaces;
 
 namespace Codescene.VSExtension.Core.Application.Util
 {
+    /// <summary>
+    /// Executes an async action on a periodic schedule, "dropping" (skipping) executions
+    /// if the previous one is still running. Guarantees that no action executes after
+    /// Stop() or Dispose() returns.
+    /// </summary>
     public class DroppingScheduledExecutor : IDisposable
     {
         private readonly object _lock = new object();
@@ -15,6 +20,10 @@ namespace Codescene.VSExtension.Core.Application.Util
         private readonly Func<Task> _wrappedAction;
         private readonly TimeSpan _interval;
         private readonly ILogger _logger;
+
+        // Signaled when no execution is in progress. Stop()/Dispose() wait on this
+        // to guarantee no action runs after they return. Starts signaled (true).
+        private readonly ManualResetEventSlim _notExecuting = new ManualResetEventSlim(true);
 
         private Timer _timer;
         private bool _isRunning = false;
@@ -32,6 +41,7 @@ namespace Codescene.VSExtension.Core.Application.Util
             _interval = interval;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
+            // Secondary defense: early-exit if stopped. The primary gate is TryBeginExecution().
             _wrappedAction = async () =>
             {
                 if (_stopped)
@@ -57,13 +67,27 @@ namespace Codescene.VSExtension.Core.Application.Util
             {
                 StopImpl();
             }
+
+            // Wait for any in-flight execution to complete before returning.
+            // This guarantees no action runs after Stop() returns.
+            _notExecuting.Wait();
         }
 
         public void Dispose()
         {
+            // Track if already disposed to avoid double-wait and ObjectDisposedException.
+            bool wasAlreadyDisposed;
             lock (_lock)
             {
+                wasAlreadyDisposed = _disposed;
                 DisposeImpl();
+            }
+
+            if (!wasAlreadyDisposed)
+            {
+                // Wait for any in-flight execution, then clean up the event.
+                _notExecuting.Wait();
+                _notExecuting.Dispose();
             }
         }
 
@@ -122,19 +146,24 @@ namespace Codescene.VSExtension.Core.Application.Util
             }
         }
 
+        // Atomic check-and-commit: either we fail the check, or we commit to execution
+        // by setting _isRunning and resetting _notExecuting while still holding the lock.
+        // This prevents the TOCTOU race where Stop/Dispose could slip in between check and execution.
         private bool TryBeginExecutionImpl()
         {
-            bool shouldExecute = !_stopped && !_disposed && !_isRunning;
-            if (shouldExecute)
+            if (_stopped || _disposed || _isRunning)
             {
-                _isRunning = true;
-            }
-            else
-            {
-                _logger.Debug("DroppingScheduledExecutor: dropping execution (previous still running)");
+                if (_isRunning)
+                {
+                    _logger.Debug("DroppingScheduledExecutor: dropping execution (previous still running)");
+                }
+
+                return false;
             }
 
-            return shouldExecute;
+            _isRunning = true;
+            _notExecuting.Reset();
+            return true;
         }
 
         private void EndExecution()
@@ -143,6 +172,9 @@ namespace Codescene.VSExtension.Core.Application.Util
             {
                 EndExecutionImpl();
             }
+
+            // Signal outside lock to avoid potential deadlock with Stop()/Dispose() waiting.
+            _notExecuting.Set();
         }
 
         private void EndExecutionImpl()
@@ -150,29 +182,10 @@ namespace Codescene.VSExtension.Core.Application.Util
             _isRunning = false;
         }
 
-        private bool IsStillValid()
-        {
-            lock (_lock)
-            {
-                return IsStillValidImpl();
-            }
-        }
-
-        private bool IsStillValidImpl()
-        {
-            return !_stopped && !_disposed;
-        }
-
         private async void OnTimerCallback(object state)
         {
             if (!TryBeginExecution())
             {
-                return;
-            }
-
-            if (!IsStillValid())
-            {
-                EndExecution();
                 return;
             }
 

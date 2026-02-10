@@ -203,4 +203,43 @@ public class DroppingScheduledExecutorRaceConditionTests
             failures,
             $"Bug detected: {failures}/{iterations} iterations had actions execute after Dispose() returned");
     }
+
+    [TestMethod]
+    public async Task Dispose_WaitsForInFlightExecution_BeforeReturning()
+    {
+        using (var actionStarted = new ManualResetEventSlim(false))
+        using (var actionCanComplete = new ManualResetEventSlim(false))
+        {
+            var actionCompleted = false;
+            var disposeReturned = false;
+
+            Func<Task> action = async () =>
+            {
+                actionStarted.Set();
+                actionCanComplete.Wait(TimeSpan.FromSeconds(10));
+                actionCompleted = true;
+                await Task.CompletedTask;
+            };
+
+            var executor = new DroppingScheduledExecutor(action, TimeSpan.FromMilliseconds(10), _mockLogger.Object);
+            executor.Start();
+
+            Assert.IsTrue(actionStarted.Wait(TimeSpan.FromSeconds(5)), "Action did not start");
+
+            var disposeTask = Task.Run(() =>
+            {
+                executor.Dispose();
+                disposeReturned = true;
+            });
+
+            await Task.Delay(100);
+            Assert.IsFalse(disposeReturned, "Dispose() returned while action was still running");
+
+            actionCanComplete.Set();
+            await disposeTask;
+
+            Assert.IsTrue(actionCompleted);
+            Assert.IsTrue(disposeReturned);
+        }
+    }
 }
