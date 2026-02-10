@@ -198,6 +198,53 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void GetDeltaForFile_NullPath_ReturnsNull()
+        {
+            var result = _cacheService.GetDeltaForFile(null);
+
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public void GetDeltaForFile_EmptyPath_ReturnsNull()
+        {
+            var result = _cacheService.GetDeltaForFile(string.Empty);
+
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public void GetDeltaForFile_FileNotInCache_ReturnsNull()
+        {
+            PutCacheEntry("other.cs", "b", "c", CreateDelta(1.0m));
+
+            var result = _cacheService.GetDeltaForFile("missing.cs");
+
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public void GetDeltaForFile_FileInCache_ReturnsDelta()
+        {
+            PutCacheEntry("file.cs", "b", "c", CreateDelta(2.5m));
+
+            var result = _cacheService.GetDeltaForFile("file.cs");
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(2.5m, result.ScoreChange);
+        }
+
+        [TestMethod]
+        public void GetDeltaForFile_FileInCacheWithNullDelta_ReturnsNull()
+        {
+            PutCacheEntry("file.cs", "b", "c", delta: null);
+
+            var result = _cacheService.GetDeltaForFile("file.cs");
+
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
         public void UpdateKey_MovesEntryToNewKey()
         {
             // Arrange
