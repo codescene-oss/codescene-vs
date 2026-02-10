@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using static Codescene.VSExtension.Core.Consts.Constants;
@@ -52,5 +53,25 @@ internal class OutputPaneManager
             Convert.ToInt32(isVisible),
             Convert.ToInt32(isClearedWithSolution));
         outputWindow.GetPane(ref _paneGuid, out _pane);
+    }
+
+    public async Task ShowAsync()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        if (_pane == null)
+        {
+            await InitializeAsync();
+        }
+
+        _pane?.Activate();
+
+        if (_serviceProvider.GetService(typeof(SVsUIShell)) is not IVsUIShell shell)
+        {
+            throw new InvalidOperationException("Could not get SVsUIShell service.");
+        }
+
+        object inputVariant = null;
+        shell.PostExecCommand(VSConstants.GUID_VSStandardCommandSet97, (uint)VSConstants.VSStd97CmdID.OutputWindow, 0, ref inputVariant);
     }
 }
