@@ -13,6 +13,7 @@ namespace Codescene.VSExtension.Core.Tests
         private const string DefaultFilePath = "test.cs";
         private readonly ModelMapper _mapper = new ModelMapper();
 
+        [TestMethod]
         public void Map_NullCliReviewModel_ReturnsEmptyFileReviewModel()
         {
             var result = MapReview(null);
@@ -96,7 +97,7 @@ namespace Codescene.VSExtension.Core.Tests
                 Score = 5.0f,
                 FunctionLevelCodeSmells = new List<CliReviewFunctionModel>
                 {
-                    CreateFunction("Function1", 1, 20, CreateCodeSmell("Smell1", null, 5, 10), CreateCodeSmell("Smell2", null, 15, 18)),
+                    CreateFunction("Function1", 1, 20, CreateCodeSmell("Smell1", null, 5), CreateCodeSmell("Smell2", null, 15, 18)),
                     CreateFunction("Function2", 25, 40, CreateCodeSmell("Smell3", null, 30, 35)),
                 },
             };

@@ -358,7 +358,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Extract only the middle part using columns
             // StartColumn is 1-indexed, EndColumn is used as exclusive boundary for substring
-            var startIdx = fullLine.IndexOf("function"); // 0-indexed: 7
+            var startIdx = fullLine.IndexOf("function", StringComparison.Ordinal); // 0-indexed: 7
             var startCol = startIdx + 1; // 1-indexed: 8
             var endCol = startIdx + body.Length; // Exclusive end for substring: 36
             var fn = CreateFnToRefactor(body: body, startLine: 2, endLine: 2, startColumn: startCol, endColumn: endCol);

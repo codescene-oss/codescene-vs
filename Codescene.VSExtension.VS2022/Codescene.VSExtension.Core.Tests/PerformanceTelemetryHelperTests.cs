@@ -321,7 +321,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void ExtractLanguage_WithFilePath_ReturnsExtension()
         {
             // Act
-            var result = PerformanceTelemetryHelper.ExtractLanguage("test.cs", null);
+            var result = PerformanceTelemetryHelper.ExtractLanguage("test.cs");
 
             // Assert
             Assert.AreEqual("cs", result);
@@ -331,7 +331,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void ExtractLanguage_WithFilePathUpperCase_ReturnsLowerCaseExtension()
         {
             // Act
-            var result = PerformanceTelemetryHelper.ExtractLanguage("test.CS", null);
+            var result = PerformanceTelemetryHelper.ExtractLanguage("test.CS");
 
             // Assert
             Assert.AreEqual("cs", result);
@@ -341,7 +341,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void ExtractLanguage_WithFilePathMultipleDots_ReturnsLastExtension()
         {
             // Act
-            var result = PerformanceTelemetryHelper.ExtractLanguage("test.config.js", null);
+            var result = PerformanceTelemetryHelper.ExtractLanguage("test.config.js");
 
             // Assert
             Assert.AreEqual("js", result);
@@ -351,7 +351,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void ExtractLanguage_WithFilePathNoExtension_ReturnsEmptyString()
         {
             // Act
-            var result = PerformanceTelemetryHelper.ExtractLanguage("testfile", null);
+            var result = PerformanceTelemetryHelper.ExtractLanguage("testfile");
 
             // Assert
             Assert.AreEqual(string.Empty, result);
@@ -361,7 +361,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void ExtractLanguage_WithNullFilePath_ReturnsEmptyString()
         {
             // Act
-            var result = PerformanceTelemetryHelper.ExtractLanguage(null, null);
+            var result = PerformanceTelemetryHelper.ExtractLanguage(null);
 
             // Assert
             Assert.AreEqual(string.Empty, result);
@@ -371,7 +371,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void ExtractLanguage_WithEmptyFilePath_ReturnsEmptyString()
         {
             // Act
-            var result = PerformanceTelemetryHelper.ExtractLanguage(string.Empty, null);
+            var result = PerformanceTelemetryHelper.ExtractLanguage(string.Empty);
 
             // Assert
             Assert.AreEqual(string.Empty, result);
@@ -381,7 +381,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void ExtractLanguage_WithFilePathLeadingDot_RemovesDot()
         {
             // Act
-            var result = PerformanceTelemetryHelper.ExtractLanguage("test..cs", null);
+            var result = PerformanceTelemetryHelper.ExtractLanguage("test..cs");
 
             // Assert
             Assert.AreEqual("cs", result);
@@ -391,7 +391,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void ExtractLanguage_WithoutFnToRefactorAndFilePath_ReturnsEmptyString()
         {
             // Act
-            var result = PerformanceTelemetryHelper.ExtractLanguage(null, null);
+            var result = PerformanceTelemetryHelper.ExtractLanguage(null);
 
             // Assert
             Assert.AreEqual(string.Empty, result);
@@ -417,7 +417,7 @@ namespace Codescene.VSExtension.Core.Tests
             foreach (var testCase in testCases)
             {
                 // Act
-                var result = PerformanceTelemetryHelper.ExtractLanguage(testCase.Key, null);
+                var result = PerformanceTelemetryHelper.ExtractLanguage(testCase.Key);
 
                 // Assert
                 Assert.AreEqual(testCase.Value, result, $"Failed for {testCase.Key}");

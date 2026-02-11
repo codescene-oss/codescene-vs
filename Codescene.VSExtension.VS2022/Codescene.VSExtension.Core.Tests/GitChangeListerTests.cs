@@ -1,11 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Git;
 using LibGit2Sharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Codescene.VSExtension.Core.Tests
 {

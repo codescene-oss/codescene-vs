@@ -38,7 +38,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests
             // The initial state before any operations should be Loading
             // Note: By the time this test runs, preflight might have already changed the state
             // This test verifies the service is properly initialized
-            Assert.IsNotNull(_aceStateService?.CurrentState);
+            Assert.AreEqual(AceState.Loading, _aceStateService.CurrentState);
         }
 
         [TestMethod]
@@ -46,7 +46,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         {
             // Arrange
             var stateHistory = new List<AceState>();
-            _aceStateService.StateChanged += (s, e) => stateHistory.Add(e.NewState);
+            _aceStateService.StateChanged += (_, e) => stateHistory.Add(e.NewState);
 
             // Act
             _preflightManager.RunPreflight(force: true);
@@ -65,7 +65,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         {
             // Arrange
             AceStateChangedEventArgs capturedArgs = null;
-            _aceStateService.StateChanged += (s, e) => capturedArgs = e;
+            _aceStateService.StateChanged += (_, e) => capturedArgs = e;
 
             // Act - Directly set state to test event args
             _aceStateService.SetState(AceState.Enabled);
@@ -111,7 +111,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         {
             // Arrange
             var stateHistory = new List<AceState>();
-            _aceStateService.StateChanged += (s, e) => stateHistory.Add(e.NewState);
+            _aceStateService.StateChanged += (_, e) => stateHistory.Add(e.NewState);
 
             // Act
             _aceStateService.SetState(AceState.Enabled);

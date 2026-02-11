@@ -1,7 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System;
-using System.IO;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Moq;

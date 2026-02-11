@@ -1,6 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.Threading;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models.Cache.Delta;

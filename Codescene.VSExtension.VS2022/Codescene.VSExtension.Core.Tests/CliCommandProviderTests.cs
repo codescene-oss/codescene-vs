@@ -48,7 +48,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var codeSmells = CreateTestCodeSmells();
 
-            var content = _commandProvider.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, TestCachePath, codeSmells, null);
+            var content = _commandProvider.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, TestCachePath, codeSmells);
 
             Assert.AreEqual($"{{\"code-smells\":[{{\"category\":\"{codeSmells.First().Category}\"}}],\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"cache-path\":\"{TestCachePath}\"}}", content);
         }
@@ -69,7 +69,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var deltaResult = CreateTestDeltaResult();
 
-            var content = _commandProvider.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, TestCachePath, deltaResult, null);
+            var content = _commandProvider.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, TestCachePath, deltaResult);
 
             var expectedNewScore = deltaResult.NewScore.ToString("0.0", CultureInfo.InvariantCulture);
             var expectedOldScore = deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture);
@@ -252,7 +252,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var codeSmells = CreateTestCodeSmells();
 
-            var content = _commandProvider.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, cachePath, codeSmells, null);
+            var content = _commandProvider.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, cachePath, codeSmells);
 
             Assert.AreEqual($"{{\"code-smells\":[{{\"category\":\"{codeSmells.First().Category}\"}}],\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", content);
             Assert.DoesNotContain("cache-path", content);
@@ -266,7 +266,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var deltaResult = CreateTestDeltaResult();
 
-            var content = _commandProvider.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, cachePath, deltaResult, null);
+            var content = _commandProvider.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, cachePath, deltaResult);
 
             var expectedNewScore = deltaResult.NewScore.ToString("0.0", CultureInfo.InvariantCulture);
             var expectedOldScore = deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture);

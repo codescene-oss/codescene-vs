@@ -1,10 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Moq;
@@ -25,7 +21,7 @@ public class DroppingScheduledExecutorRaceConditionTests
     [TestMethod]
     public async Task Stop_ActionExecutesAfterStopReturns_RaceCondition()
     {
-        var stopReturnTime = long.MaxValue;
+        long stopReturnTime;
         var executionStartTimes = new List<long>();
         var executionTimesLock = new object();
 
@@ -72,7 +68,7 @@ public class DroppingScheduledExecutorRaceConditionTests
 
         for (int i = 0; i < iterations; i++)
         {
-            var stopReturnTime = long.MaxValue;
+            long stopReturnTime;
             var executionStartTimes = new List<long>();
             var executionTimesLock = new object();
 
@@ -118,7 +114,6 @@ public class DroppingScheduledExecutorRaceConditionTests
     [TestMethod]
     public async Task Dispose_ActionExecutesAfterDisposeReturns_RaceCondition()
     {
-        var disposeReturnTime = long.MaxValue;
         var executionStartTimes = new List<long>();
         var executionTimesLock = new object();
 
@@ -139,7 +134,7 @@ public class DroppingScheduledExecutorRaceConditionTests
         await Task.Delay(50);
 
         executor.Dispose();
-        disposeReturnTime = Stopwatch.GetTimestamp();
+        var disposeReturnTime = Stopwatch.GetTimestamp();
 
         await Task.Delay(100);
 
@@ -163,7 +158,6 @@ public class DroppingScheduledExecutorRaceConditionTests
 
         for (int i = 0; i < iterations; i++)
         {
-            var disposeReturnTime = long.MaxValue;
             var executionStartTimes = new List<long>();
             var executionTimesLock = new object();
 
@@ -184,7 +178,7 @@ public class DroppingScheduledExecutorRaceConditionTests
             await Task.Delay(30);
 
             executor.Dispose();
-            disposeReturnTime = Stopwatch.GetTimestamp();
+            var disposeReturnTime = Stopwatch.GetTimestamp();
 
             await Task.Delay(50);
 

@@ -61,7 +61,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Get_DifferentBaselineContent_ReturnsStaleEntry()
         {
-            var uniquePath = "baseline_test_" + System.Guid.NewGuid() + ".cs";
+            var uniquePath = "baseline_test_" + Guid.NewGuid() + ".cs";
             PutCacheEntry(uniquePath, "original baseline", DefaultCurrent, CreateDelta(-1.0m));
 
             var result = _cacheService.Get(new DeltaCacheQuery(uniquePath, "different baseline", DefaultCurrent));
@@ -73,7 +73,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Get_DifferentCurrentContent_ReturnsStaleEntry()
         {
-            var uniquePath = "current_test_" + System.Guid.NewGuid() + ".cs";
+            var uniquePath = "current_test_" + Guid.NewGuid() + ".cs";
             PutCacheEntry(uniquePath, DefaultBaseline, "original current", CreateDelta(-1.0m));
 
             var result = _cacheService.Get(new DeltaCacheQuery(uniquePath, DefaultBaseline, "different current"));
