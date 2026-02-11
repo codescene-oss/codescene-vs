@@ -168,8 +168,16 @@ namespace Codescene.VSExtension.Core.Application.Git
                     return changedFiles;
                 }
 
-                var diff = repo.Diff.Compare<TreeChanges>(mergeBase.Tree, repo.Head.Tip.Tree);
-                ProcessDiffChanges(diff, gitRootPath, workspacePath, changedFiles);
+                var relativePaths = CollectChangedFilesFromDiff(repo, mergeBase, gitRootPath, workspacePath);
+
+                foreach (var relativePath in relativePaths)
+                {
+                    var absolutePath = ConvertToAbsolutePath(relativePath, gitRootPath);
+                    if (ShouldReviewFile(absolutePath))
+                    {
+                        changedFiles.Add(absolutePath);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -282,30 +290,6 @@ namespace Codescene.VSExtension.Core.Application.Git
                    item.State == FileStatus.Ignored ||
                    item.State.HasFlag(FileStatus.DeletedFromWorkdir) ||
                    item.State.HasFlag(FileStatus.DeletedFromIndex);
-        }
-
-        private void ProcessDiffChanges(
-            TreeChanges diff,
-            string gitRootPath,
-            string workspacePath,
-            HashSet<string> changedFiles)
-        {
-            foreach (var change in diff)
-            {
-                var absolutePath = ConvertToAbsolutePath(change.Path, gitRootPath);
-
-                if (!IsFileInWorkspace(change.Path, gitRootPath, workspacePath))
-                {
-                    continue;
-                }
-
-                if (!ShouldReviewFile(absolutePath))
-                {
-                    continue;
-                }
-
-                changedFiles.Add(absolutePath);
-            }
         }
 
         private bool ShouldReviewFile(string absolutePath)
