@@ -67,10 +67,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             process.Start();
 
-            WriteInput(process, content);
-
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+
+            WriteInput(process, content);
 
             var timeoutArgs = new WaitForProcessOrTimeoutArgs()
             {
