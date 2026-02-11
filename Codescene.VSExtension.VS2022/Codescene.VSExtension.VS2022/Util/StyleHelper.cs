@@ -1,12 +1,15 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
 using EnvDTE;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace Codescene.VSExtension.VS2022.Util;
 
@@ -73,65 +76,23 @@ public static class StyleHelper
     /// </summary>
     public static string GenerateCssVariablesFromTheme()
     {
-        ThreadHelper.ThrowIfNotOnUIThread();
         try
         {
-            var dte = (DTE)Package.GetGlobalService(typeof(DTE));
+            var dte = GetDteService();
             if (dte == null || !ThreadHelper.CheckAccess())
             {
                 return string.Empty;
             }
 
-            var editorColorProps = dte.Properties["FontsAndColors", "TextEditor"];
-            var editorFontFamily = editorColorProps.Item("FontFamily").Value.ToString();
-
-            var textForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
-            var linkForeground = VSColorTheme.GetThemedColor(EnvironmentColors.HelpHowDoIPaneLinkColorKey);
-
-            var editorBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
-            var codeBlockBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBorderColorKey);
-
-            bool isDarkTheme = editorBackground.Name == DarkThemeColorName || editorBackground.Name == DarkThemeColorNameVS2026;
-            bool isLightTheme = editorBackground.Name == BlueThemeColorName || editorBackground.Name == LightThemeColorNameVS2026;
-
-            var buttonForeground = VSColorTheme.GetThemedColor(EnvironmentColors.BrandedUITextColorKey);
-            var buttonBackground = VSColorTheme.GetThemedColor(EnvironmentColors.EnvironmentBackgroundColorKey);
-
-            var secondaryButtonForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
-            var secondaryButtonBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowButtonDownActiveGlyphBrushKey);
-
-            var textFgHex = ToHex(textForeground);
-            var editorBgHex = ToHex(editorBackground);
-            var textLinkFgHex = ToHex(linkForeground);
-            var codeBlockBgHex = ToHex(codeBlockBackground);
-
-            // For VS2022 Dark and Blue theme, and for VS2026 Dark and Light, we use a custom blue color. Other themes, use that themes primary color.
-            var buttonFgHex = isLightTheme || isDarkTheme ? BlueBtnTextColorName : ToHex(buttonForeground);
-            var buttonBgHex = isLightTheme || isDarkTheme ? BlueBtnBackgroundColorName : ToHex(buttonBackground);
-
-            var secondaryButtonFgHex = ToHex(secondaryButtonForeground);
-            var secondaryButtonBgHex = ToHex(secondaryButtonBackground);
+            var editorFontFamily = GetEditorFontFamily(dte);
+            var colors = GetThemeColors();
 
             var sb = new StringBuilder();
 
-            sb.AppendLine(":root {");
-            sb.AppendLine($"  --cs-theme-editor-background: #{editorBgHex};");
-            sb.AppendLine($"  --cs-theme-textLink-foreground: #{textLinkFgHex};");
-            sb.AppendLine($"  --cs-theme-panel-background: #{textFgHex};");
-            sb.AppendLine($"  --cs-theme-textCodeBlock-background: #{codeBlockBgHex};");
-
-            sb.AppendLine($"  --cs-theme-font-size: {FontSize}px;");
-            sb.AppendLine($"  --cs-theme-editor-font-family: '{editorFontFamily}', monospace;");
-            sb.AppendLine($"  --cs-theme-editor-font-size: {CodeBlockFontSize}px;");
-
-            // To be able to handle more variations of the colors (hover, active, selected, etc.) we add a few extra variants for certain variables:
-            LoopOpacity(sb, "--cs-theme-foreground", textFgHex);
-            LoopOpacity(sb, "--cs-theme-button-foreground", buttonFgHex);
-            LoopOpacity(sb, "--cs-theme-button-background", buttonBgHex);
-            LoopOpacity(sb, "--cs-theme-button-secondaryForeground", secondaryButtonFgHex);
-            LoopOpacity(sb, "--cs-theme-button-secondaryBackground", secondaryButtonBgHex);
-
-            sb.AppendLine("}");
+            AppendRootStart(sb);
+            AppendBasicCssVariables(sb, editorFontFamily, colors);
+            AppendOpacityVariants(sb, colors);
+            AppendRootEnd(sb);
 
             return sb.ToString();
         }
@@ -139,6 +100,85 @@ public static class StyleHelper
         {
             return string.Empty;
         }
+    }
+
+    private static DTE GetDteService()
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        return (DTE)Package.GetGlobalService(typeof(DTE));
+    }
+
+    private static string GetEditorFontFamily(DTE dte)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var editorColorProps = dte.Properties["FontsAndColors", "TextEditor"];
+        return editorColorProps.Item("FontFamily").Value.ToString();
+    }
+
+    private static (string TextFgHex, string EditorBgHex, string TextLinkFgHex, string CodeBlockBgHex, string ButtonFgHex, string ButtonBgHex, string SecondaryButtonFgHex, string SecondaryButtonBgHex) GetThemeColors()
+    {
+        var textForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
+        var linkForeground = VSColorTheme.GetThemedColor(EnvironmentColors.HelpHowDoIPaneLinkColorKey);
+
+        var editorBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
+        var codeBlockBackground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBorderColorKey);
+
+        bool isDarkTheme = editorBackground.Name == DarkThemeColorName || editorBackground.Name == DarkThemeColorNameVS2026;
+        bool isLightTheme = editorBackground.Name == BlueThemeColorName || editorBackground.Name == LightThemeColorNameVS2026;
+
+        var buttonForeground = VSColorTheme.GetThemedColor(EnvironmentColors.BrandedUITextColorKey);
+        var buttonBackground = VSColorTheme.GetThemedColor(EnvironmentColors.EnvironmentBackgroundColorKey);
+
+        var secondaryButtonForeground = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowTextColorKey);
+        var secondaryButtonBackground = VSColorTheme.GetThemedColor(EnvironmentColors.SystemButtonFaceColorKey);
+
+        var textFgHex = ToHex(textForeground);
+        var editorBgHex = ToHex(editorBackground);
+        var textLinkFgHex = ToHex(linkForeground);
+        var codeBlockBgHex = ToHex(codeBlockBackground);
+
+        // For VS2022 Dark and Blue theme, and for VS2026 Dark and Light, we use a custom blue color. Other themes, use that themes primary color.
+        var buttonFgHex = isLightTheme || isDarkTheme ? BlueBtnTextColorName : ToHex(buttonForeground);
+        var buttonBgHex = isLightTheme || isDarkTheme ? BlueBtnBackgroundColorName : ToHex(buttonBackground);
+
+        var secondaryButtonFgHex = ToHex(secondaryButtonForeground);
+        var secondaryButtonBgHex = ToHex(secondaryButtonBackground);
+
+        return (textFgHex, editorBgHex, textLinkFgHex, codeBlockBgHex, buttonFgHex, buttonBgHex, secondaryButtonFgHex, secondaryButtonBgHex);
+    }
+
+    private static void AppendRootStart(StringBuilder sb)
+    {
+        sb.AppendLine(":root {");
+    }
+
+    private static void AppendBasicCssVariables(StringBuilder sb, string editorFontFamily, (string TextFgHex, string EditorBgHex, string TextLinkFgHex, string CodeBlockBgHex, string ButtonFgHex, string ButtonBgHex, string SecondaryButtonFgHex, string SecondaryButtonBgHex) colors)
+    {
+        sb.AppendLine($"  --cs-theme-editor-background: #{colors.EditorBgHex};");
+        sb.AppendLine($"  --cs-theme-textLink-foreground: #{colors.TextLinkFgHex};");
+        sb.AppendLine($"  --cs-theme-panel-background: #{colors.TextFgHex};");
+        sb.AppendLine($"  --cs-theme-textCodeBlock-background: #{colors.CodeBlockBgHex};");
+
+        sb.AppendLine($"  --cs-theme-font-size: {FontSize}px;");
+        sb.AppendLine($"  --cs-theme-editor-font-family: '{editorFontFamily}', monospace;");
+        sb.AppendLine($"  --cs-theme-editor-font-size: {CodeBlockFontSize}px;");
+    }
+
+    private static void AppendOpacityVariants(StringBuilder sb, (string TextFgHex, string EditorBgHex, string TextLinkFgHex, string CodeBlockBgHex, string ButtonFgHex, string ButtonBgHex, string SecondaryButtonFgHex, string SecondaryButtonBgHex) colors)
+    {
+        // To be able to handle more variations of the colors (hover, active, selected, etc.) we add a few extra variants for certain variables:
+        LoopOpacity(sb, "--cs-theme-foreground", colors.TextFgHex);
+        LoopOpacity(sb, "--cs-theme-button-foreground", colors.ButtonFgHex);
+        LoopOpacity(sb, "--cs-theme-button-background", colors.ButtonBgHex);
+        LoopOpacity(sb, "--cs-theme-button-secondaryForeground", colors.SecondaryButtonFgHex);
+        LoopOpacity(sb, "--cs-theme-button-secondaryBackground", colors.SecondaryButtonBgHex);
+    }
+
+    private static void AppendRootEnd(StringBuilder sb)
+    {
+        sb.AppendLine("}");
     }
 
     private static void LoopOpacity(StringBuilder sb, string baseName, string hex)
