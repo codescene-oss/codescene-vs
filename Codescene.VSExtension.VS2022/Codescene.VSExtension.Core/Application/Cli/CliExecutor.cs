@@ -53,12 +53,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var command = _cliServices.CommandProvider.ReviewFileContentCommand;
             var payload = _cliServices.CommandProvider.GetReviewFileContentPayload(filename, content, _cliServices.CacheStorage.GetSolutionReviewCacheLocation());
 
-            long elapsedMs = 0;
             var result = ExecuteWithTimingAndLogging<CliReviewModel>(
-                $"CLI file review",
+                "CLI file review",
                 () => _cliServices.ProcessExecutor.Execute(command, payload),
                 $"Review of file {filename} failed",
-                out elapsedMs);
+                out var elapsedMs);
 
             if (result != null)
             {
@@ -97,12 +96,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            long elapsedMs = 0;
             var result = ExecuteWithTimingAndLogging<DeltaResponseModel>(
                 "CLI file delta review",
                 () => _cliServices.ProcessExecutor.Execute(Titles.DELTA, arguments),
                 "Delta for file failed.",
-                out elapsedMs);
+                out var elapsedMs);
 
             if (result != null && !string.IsNullOrEmpty(filePath))
             {
@@ -152,12 +150,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            long elapsedMs = 0;
             var result = ExecuteWithTimingAndLogging<RefactorResponseModel>(
                 "ACE refactoring",
                 () => _cliServices.ProcessExecutor.Execute(arguments),
                 "Refactoring failed.",
-                out elapsedMs);
+                out var elapsedMs);
 
             if (result != null && fnToRefactor != null)
             {
@@ -273,8 +270,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private T ExecuteWithTimingAndLogging<T>(string label, Func<string> execute, string errorMessage)
         {
-            long elapsedMs;
-            return ExecuteWithTimingAndLogging<T>(label, execute, errorMessage, out elapsedMs);
+            return ExecuteWithTimingAndLogging<T>(label, execute, errorMessage, out _);
         }
 
         private T ExecuteWithTimingAndLogging<T>(string label, Func<string> execute, string errorMessage, out long elapsedMs)
@@ -293,7 +289,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             catch (DevtoolsException e)
             {
                 _logger.Error(errorMessage, e);
-                throw e;
+                throw;
             }
             catch (Exception e)
             {

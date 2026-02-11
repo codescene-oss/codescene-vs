@@ -70,14 +70,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             };
         }
 
-        private CodeSmellModel Map(string path, string functionName, CliCodeSmellModel review)
-        {
-            var model = Map(path, review);
-            model.FunctionName = functionName;
-
-            return model;
-        }
-
         private CodeSmellModel Map(string path, CliReviewFunctionModel function, CliCodeSmellModel review)
         {
             var model = Map(path, review);

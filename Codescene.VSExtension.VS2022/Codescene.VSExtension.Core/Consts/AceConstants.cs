@@ -10,7 +10,6 @@ namespace Codescene.VSExtension.Core.Consts
             public const string CODEVISION = "codelens (code-health-monitor)";
             public const string ACEACKNOWLEDGEMENT = "ace-acknowledgement";
             public const string RETRY = "retry";
-            public const string CODEHEALTHDETAILS = "code-health-details";
         }
     }
 }

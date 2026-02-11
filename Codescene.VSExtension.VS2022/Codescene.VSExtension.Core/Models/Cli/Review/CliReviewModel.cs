@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Codescene.VSExtension.Core.Models.Cli.Review
 {

@@ -1,7 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
-
 namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 {
     public class CodeSmellDocumentationComponentData

@@ -22,7 +22,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
     {
         private readonly ILogger _logger;
         private readonly IModelMapper _mapper;
-        private readonly ICliExecutor _executer;
+        private readonly ICliExecutor _executor;
         private readonly ITelemetryManager _telemetryManager;
         private readonly IGitService _git;
 
@@ -30,13 +30,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
         public CodeReviewer(
             ILogger logger,
             IModelMapper mapper,
-            ICliExecutor executer,
+            ICliExecutor executor,
             ITelemetryManager telemetryManager,
             IGitService git)
         {
             _logger = logger;
             _mapper = mapper;
-            _executer = executer;
+            _executor = executor;
             _telemetryManager = telemetryManager;
             _git = git;
         }
@@ -51,7 +51,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            var review = _executer.ReviewContent(fileName, content);
+            var review = _executor.ReviewContent(fileName, content);
             return _mapper.Map(path, review);
         }
 
@@ -62,7 +62,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (string.IsNullOrWhiteSpace(path))
             {
-                _logger.Warn($"Could not review file, missing file path.");
+                _logger.Warn("Could not review file, missing file path.");
                 return null;
             }
 
@@ -102,7 +102,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     return null;
                 }
 
-                var delta = _executer.ReviewDelta(oldRawScore, currentRawScore, path, currentCode);
+                var delta = _executor.ReviewDelta(oldRawScore, currentRawScore, path, currentCode);
 
                 var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(cache.GetAll());
                 var cacheEntry = new DeltaCacheEntry(path, oldCode, currentCode, delta);

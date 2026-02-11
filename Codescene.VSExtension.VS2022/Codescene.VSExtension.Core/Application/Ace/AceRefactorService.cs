@@ -109,13 +109,13 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         public bool ShouldCheckRefactorableFunctions(string extension)
         {
-            if (_preflightManager.IsSupportedLanguage(extension) == false)
+            if (_preflightManager.IsSupportedLanguage(extension))
             {
-                _logger.Debug($"Auto refactor is not supported for language: {extension}");
-                return false;
+                return true;
             }
 
-            return true;
+            _logger.Debug($"Auto refactor is not supported for language: {extension}");
+            return false;
         }
     }
 }

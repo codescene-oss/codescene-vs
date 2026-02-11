@@ -11,10 +11,6 @@ namespace Codescene.VSExtension.Core.Models.Cli
 {
     public class WaitForProcessOrTimeoutArgs
     {
-        public WaitForProcessOrTimeoutArgs()
-        {
-        }
-
         public Process Process { get; set; }
 
         public TaskCompletionSource<bool> OutputTcs { get; set; }

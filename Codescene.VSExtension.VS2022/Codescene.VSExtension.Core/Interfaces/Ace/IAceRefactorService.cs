@@ -12,15 +12,5 @@ namespace Codescene.VSExtension.Core.Interfaces.Ace
         /// Checks if a file contains refactorable functions based on its code smells.
         /// </summary>
         IList<FnToRefactorModel> CheckContainsRefactorableFunctions(FileReviewModel result, string code);
-
-        /// <summary>
-        /// Finds the refactorable function that matches a specific code smell.
-        /// </summary>
-        FnToRefactorModel GetRefactorableFunction(CodeSmellModel codeSmell, IList<FnToRefactorModel> refactorableFunctions);
-
-        /// <summary>
-        /// Determines if refactorable functions should be checked for the given file extension.
-        /// </summary>
-        bool ShouldCheckRefactorableFunctions(string extension);
     }
 }
