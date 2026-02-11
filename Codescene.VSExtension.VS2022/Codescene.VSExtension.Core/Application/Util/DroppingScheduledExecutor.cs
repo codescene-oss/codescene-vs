@@ -10,44 +10,40 @@ namespace Codescene.VSExtension.Core.Application.Util
     public class DroppingScheduledExecutor : IDisposable
     {
         private readonly object _lock = new object();
-
         private readonly Func<Task> _action;
-        private readonly Func<Task> _wrappedAction;
         private readonly TimeSpan _interval;
         private readonly ILogger _logger;
 
         private Timer _timer;
-        private bool _isRunning = false;
-        private bool _stopped = false;
-        private bool _disposed = false;
+        private bool _isRunning;
+        private bool _stopped;
+        private bool _disposed;
 
         public DroppingScheduledExecutor(Func<Task> action, TimeSpan interval, ILogger logger)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
-            _action = action;
-            _interval = interval;
+            _action = action ?? throw new ArgumentNullException(nameof(action));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            _wrappedAction = async () =>
-            {
-                if (_stopped)
-                {
-                    return;
-                }
-
-                await _action();
-            };
+            _interval = interval;
         }
 
         public void Start()
         {
             lock (_lock)
             {
-                StartImpl();
+                if (_disposed)
+                {
+                    return;
+                }
+
+                if (_timer != null)
+                {
+                    _logger.Warn("DroppingScheduledExecutor already started");
+                    return;
+                }
+
+                _stopped = false;
+                _timer = new Timer(OnTimerCallback, null, _interval, _interval);
+                _logger.Debug($"DroppingScheduledExecutor started with interval: {_interval.TotalSeconds}s");
             }
         }
 
@@ -55,7 +51,10 @@ namespace Codescene.VSExtension.Core.Application.Util
         {
             lock (_lock)
             {
-                StopImpl();
+                _stopped = true;
+                _timer?.Dispose();
+                _timer = null;
+                _logger.Debug("DroppingScheduledExecutor stopped");
             }
         }
 
@@ -63,123 +62,43 @@ namespace Codescene.VSExtension.Core.Application.Util
         {
             lock (_lock)
             {
-                DisposeImpl();
-            }
-        }
+                if (_disposed)
+                {
+                    return;
+                }
 
-        private void StartImpl()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (_timer != null)
-            {
-                _logger.Warn("DroppingScheduledExecutor already started");
-                return;
-            }
-
-            _stopped = false;
-            _timer = new Timer(OnTimerCallback, null, _interval, _interval);
-            _logger.Debug($"DroppingScheduledExecutor started with interval: {_interval.TotalSeconds}s");
-        }
-
-        private void StopImpl()
-        {
-            _stopped = true;
-            if (_timer != null)
-            {
-                _timer.Dispose();
+                _timer?.Dispose();
                 _timer = null;
+                _disposed = true;
+                _logger.Debug("DroppingScheduledExecutor disposed");
             }
-
-            _logger.Debug("DroppingScheduledExecutor stopped");
-        }
-
-        private void DisposeImpl()
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (_timer != null)
-            {
-                _timer.Dispose();
-                _timer = null;
-            }
-
-            _disposed = true;
-            _logger.Debug("DroppingScheduledExecutor disposed");
-        }
-
-        private bool TryBeginExecution()
-        {
-            lock (_lock)
-            {
-                return TryBeginExecutionImpl();
-            }
-        }
-
-        private bool TryBeginExecutionImpl()
-        {
-            bool shouldExecute = !_stopped && !_disposed && !_isRunning;
-            if (shouldExecute)
-            {
-                _isRunning = true;
-            }
-            else
-            {
-                _logger.Debug("DroppingScheduledExecutor: dropping execution (previous still running)");
-            }
-
-            return shouldExecute;
-        }
-
-        private void EndExecution()
-        {
-            lock (_lock)
-            {
-                EndExecutionImpl();
-            }
-        }
-
-        private void EndExecutionImpl()
-        {
-            _isRunning = false;
-        }
-
-        private bool IsStillValid()
-        {
-            lock (_lock)
-            {
-                return IsStillValidImpl();
-            }
-        }
-
-        private bool IsStillValidImpl()
-        {
-            return !_stopped && !_disposed;
         }
 
         private async void OnTimerCallback(object state)
         {
-            if (!TryBeginExecution())
+            bool shouldExecute;
+            lock (_lock)
             {
-                return;
+                shouldExecute = !_stopped && !_disposed && !_isRunning;
+                if (shouldExecute)
+                {
+                    _isRunning = true;
+                }
+                else if (_isRunning)
+                {
+                    _logger.Debug("DroppingScheduledExecutor: dropping execution (previous still running)");
+                }
             }
 
-            if (!IsStillValid())
+            if (!shouldExecute)
             {
-                EndExecution();
                 return;
             }
 
             try
             {
                 _logger.Debug("DroppingScheduledExecutor: executing scheduled action");
-                await _wrappedAction();
+                await _action();
             }
             catch (Exception ex)
             {
@@ -187,7 +106,10 @@ namespace Codescene.VSExtension.Core.Application.Util
             }
             finally
             {
-                EndExecution();
+                lock (_lock)
+                {
+                    _isRunning = false;
+                }
             }
         }
     }
