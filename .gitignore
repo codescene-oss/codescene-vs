@@ -404,7 +404,6 @@ FodyWeavers.xsd
 **/ToolWindows/WebComponent/index.css
 **/ToolWindows/WebComponent/index.html
 
-git2-3f4182d.dll
 *.swp
 /cs-cwf
 /cs-cwf/index.css
