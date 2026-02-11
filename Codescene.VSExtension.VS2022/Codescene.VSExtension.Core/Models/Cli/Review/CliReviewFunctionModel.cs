@@ -7,7 +7,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
     public class CliReviewFunctionModel
     {
         /// <summary>
-        /// Gets or sets the name of the function which has codesmell(s).
+        /// Gets or sets the name of the function which has code smell(s).
         /// </summary>
         [JsonProperty("function")]
         public string Function { get; set; }

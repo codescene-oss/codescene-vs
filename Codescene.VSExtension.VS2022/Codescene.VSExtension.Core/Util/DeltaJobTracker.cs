@@ -12,7 +12,7 @@ namespace Codescene.VSExtension.Core.Util
     /// </summary>
     public static class DeltaJobTracker
     {
-        private static readonly HashSet<Job> _running = new HashSet<Job>();
+        private static readonly HashSet<Job> Running = new HashSet<Job>();
 
         public static event Action<Job> JobStarted;
 
@@ -25,18 +25,18 @@ namespace Codescene.VSExtension.Core.Util
         {
             get
             {
-                lock (_running)
+                lock (Running)
                 {
-                    return _running.ToList().AsReadOnly();
+                    return Running.ToList().AsReadOnly();
                 }
             }
         }
 
         public static void Add(Job job)
         {
-            lock (_running)
+            lock (Running)
             {
-                if (_running.Add(job))
+                if (Running.Add(job))
                 {
                     JobStarted?.Invoke(job);
                 }
@@ -45,9 +45,9 @@ namespace Codescene.VSExtension.Core.Util
 
         public static void Remove(Job job)
         {
-            lock (_running)
+            lock (Running)
             {
-                if (_running.Remove(job))
+                if (Running.Remove(job))
                 {
                     JobFinished?.Invoke(job);
                 }

@@ -8,7 +8,7 @@ using Codescene.VSExtension.VS2022.EditorMargin;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 
-namespace Codescene.VSExtension.VS2022.DocumentEventsHandler;
+namespace Codescene.VSExtension.VS2022.Handlers;
 
 [Export(typeof(OnActiveWindowChangeHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
@@ -52,7 +52,7 @@ public class OnActiveWindowChangeHandler
             {
                 // Get latest content for file currently in focus and update margin
                 var editPoint = textDoc.StartPoint.CreateEditPoint();
-                string content = editPoint.GetText(textDoc.EndPoint);
+                var content = editPoint.GetText(textDoc.EndPoint);
 
                 _marginSettings.UpdateMarginData(path, content);
                 return;

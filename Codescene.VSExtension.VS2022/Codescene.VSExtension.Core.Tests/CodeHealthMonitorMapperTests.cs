@@ -3,7 +3,6 @@
 using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Interfaces.Ace;
-using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;

@@ -1,6 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.Collections.Generic;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;

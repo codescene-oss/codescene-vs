@@ -11,7 +11,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
 {
     [Export(typeof(AceComponentMapper))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public partial class AceComponentMapper
+    public class AceComponentMapper
     {
         public static CodeRangeModel MapRange(CliRangeModel range)
         {

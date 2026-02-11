@@ -83,15 +83,15 @@ namespace Codescene.VSExtension.VS2022.Cache
 
         private async Task UpdateCachePathAsync()
         {
-            string workspaceId = await GetWorkspaceIdentifierAsync();
+            var workspaceId = await GetWorkspaceIdentifierAsync();
 
-            string basePath = Path.Combine(
+            var basePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "Codescene");
 
             if (!string.IsNullOrEmpty(workspaceId))
             {
-                string hash = ComputeHash(workspaceId);
+                var hash = ComputeHash(workspaceId);
                 _cachePath = Path.Combine(basePath, "WorkspaceCache", hash);
             }
             else

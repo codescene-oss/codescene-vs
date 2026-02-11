@@ -7,7 +7,6 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
-using Codescene.VSExtension.Core.Util;
 using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Application.Cli

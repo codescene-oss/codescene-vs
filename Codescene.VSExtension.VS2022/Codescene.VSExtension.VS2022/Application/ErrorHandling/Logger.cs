@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.VS2022.Options;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using static Codescene.VSExtension.Core.Consts.Constants;
@@ -32,7 +33,7 @@ public class Logger : ILogger
         "Codescene",
         LogFileName);
 
-    private static readonly object _fileLock = new object();
+    private static readonly object FileLock = new object();
 
     private readonly OutputPaneManager _outputPaneManager;
 
@@ -113,7 +114,7 @@ public class Logger : ILogger
 
     private void WriteToFile(string message)
     {
-        lock (_fileLock)
+        lock (FileLock)
         {
             try
             {
@@ -150,7 +151,7 @@ public class Logger : ILogger
             }
 
             // Shift existing backups
-            for (int i = MAXBACKUPFILES - 1; i >= 1; i--)
+            for (var i = MAXBACKUPFILES - 1; i >= 1; i--)
             {
                 var sourceFile = Path.Combine(logDirectory, $"{logFileName}-{i}{logFileExtension}");
                 var targetFile = Path.Combine(logDirectory, $"{logFileName}-{i + 1}{logFileExtension}");

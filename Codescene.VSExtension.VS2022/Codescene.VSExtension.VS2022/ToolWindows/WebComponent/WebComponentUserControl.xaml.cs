@@ -43,11 +43,11 @@ public partial class WebComponentUserControl : UserControl
         "https://helpcenter.codescene.com",
     };
 
-    private ILogger _logger;
+    private readonly ILogger _logger;
 
     private string _host;
-    private bool _initialized = false;
-    private string _pendingMessage = null;
+    private bool _initialized;
+    private string _pendingMessage;
 
     public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
     {
@@ -179,7 +179,7 @@ public partial class WebComponentUserControl : UserControl
 
         var css = GenerateCssVariablesFromTheme().Replace("`", "\\`");
 
-        string script = $@"
+        var script = $@"
         (function() {{
             const existing = document.getElementById('{STYLEELEMENTID}');
             if (existing) {{
@@ -236,7 +236,7 @@ public partial class WebComponentUserControl : UserControl
 
     private async Task<CoreWebView2Environment> CreatePerWindowEnvAsync(string view)
     {
-        string cachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MyExtensionName", $"WebView2Cache_{view}");
+        var cachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MyExtensionName", $"WebView2Cache_{view}");
         return await CoreWebView2Environment.CreateAsync(userDataFolder: cachePath);
     }
 
@@ -248,19 +248,19 @@ public partial class WebComponentUserControl : UserControl
 
         webView.CoreWebView2.NavigationStarting += HandleNavigationStarting;
 
-        webView.NavigationCompleted += (_, args) =>
+        webView.NavigationCompleted += (_, _) =>
         {
             loadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
         };
 
-        webView.CoreWebView2.WebMessageReceived += (object sender, CoreWebView2WebMessageReceivedEventArgs e) =>
+        webView.CoreWebView2.WebMessageReceived += (sender, e) =>
         {
-            _ = OnWebMessageReceivedAsync(sender, e);
+            _ = OnWebMessageReceivedAsync(e);
         };
 
         var exePath = Assembly.GetExecutingAssembly().Location;
         var exeFolder = Path.GetDirectoryName(exePath);
-        string localFolder = Path.Combine(exeFolder, FOLDERLOCATION);
+        var localFolder = Path.Combine(exeFolder, FOLDERLOCATION);
 
         _host = GetHost(view);
         webView.CoreWebView2.SetVirtualHostNameToFolderMapping(_host, localFolder, CoreWebView2HostResourceAccessKind.Allow);
@@ -298,7 +298,7 @@ public partial class WebComponentUserControl : UserControl
             return;
         }
 
-        bool isExternalNavigationAllowed = AllowedDomains.Any(domain => uri.StartsWith(domain, StringComparison.OrdinalIgnoreCase));
+        var isExternalNavigationAllowed = AllowedDomains.Any(domain => uri.StartsWith(domain, StringComparison.OrdinalIgnoreCase));
         if (isExternalNavigationAllowed)
         {
             try
@@ -326,7 +326,7 @@ public partial class WebComponentUserControl : UserControl
         }
     }
 
-    private async Task OnWebMessageReceivedAsync(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+    private async Task OnWebMessageReceivedAsync(CoreWebView2WebMessageReceivedEventArgs e)
     {
         var handler = new WebComponentMessageHandler(this);
         await handler.HandleAsync(e.WebMessageAsJson);

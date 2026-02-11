@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Codescene.VSExtension.VS2022.UnderlineTagger;
+namespace Codescene.VSExtension.VS2022.Tagger;
 
 internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
 {

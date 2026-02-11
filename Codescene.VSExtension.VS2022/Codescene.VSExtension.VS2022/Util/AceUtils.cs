@@ -49,7 +49,7 @@ namespace Codescene.VSExtension.VS2022.Util
                 return null;
             }
 
-            string fileContent = await GetFileContentAsync(model);
+            var fileContent = await GetFileContentAsync(model);
 
             var deltaCache = new DeltaCacheService();
             var cache = deltaCache.GetAll();
@@ -87,7 +87,7 @@ namespace Codescene.VSExtension.VS2022.Util
                 },
             };
 
-            string fileContent = await GetFileContentAsync(model);
+            var fileContent = await GetFileContentAsync(model);
 
             var refactorableFunctions = aceManager.GetRefactorableFunctionsFromCodeSmells(model.Path, fileContent, new List<CliCodeSmellModel> { codeSmell }, preflight);
             return refactorableFunctions?.FirstOrDefault();
@@ -180,7 +180,7 @@ namespace Codescene.VSExtension.VS2022.Util
 
         private static async Task<string> GetFileContentAsync(GetRefactorableFunctionsModel model)
         {
-            string fileContent = string.Empty;
+            var fileContent = string.Empty;
             var docView = await VS.Documents.OpenAsync(model.Path);
             if (docView?.TextBuffer is ITextBuffer buffer)
             {

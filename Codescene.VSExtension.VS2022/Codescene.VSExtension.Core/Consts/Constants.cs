@@ -65,10 +65,8 @@ namespace Codescene.VSExtension.Core.Consts
             public const string ONACTIVATEEXTENSION = "on_activate_extension";
             public const string ONACTIVATEEXTENSIONERROR = "on_activate_extension_error";
 
-            public const string OPENCODEHEALTHDOCS = "open_code_health_docs";
             public const string OPENDOCSPANEL = "open_interactive_docs_panel";
 
-            public const string SETTINGSVISIBILITY = "control_center/visibility";
             public const string OPENSETTINGS = "control_center/open-settings";
             public const string OPENLINK = "control_center/open-link";
 
@@ -77,16 +75,10 @@ namespace Codescene.VSExtension.Core.Consts
             public const string MONITORFILEUPDATED = "code_health_monitor/file_updated";
             public const string MONITORFILEREMOVED = "code_health_monitor/file_removed";
 
-            public const string DETAILSVISIBILITY = "code_health_details/visibility";
-            public const string DETAILSFUNCTIONSELECTED = "code_health_details/function_selected";
-            public const string DETAILSFUNCTIONDESELECTED = "code_health_details/function_deselected";
-
             public const string REVIEWORDELTATIMEOUT = "review_or_delta_timeout";
             public const string UNHANDLEDERROR = "unhandledError";
             public const string ANALYSISPERFORMANCE = "analysis/performance";
 
-            public const string ACEINFOPRESENTED = "ace_info/presented";
-            public const string ACEINFOACKNOWLEDGED = "ace_info/acknowledged";
             public const string ACEREFACTORREQUESTED = "refactor/requested";
             public const string ACEREFACTORPRESENTED = "refactor/presented";
             public const string ACEREFACTORAPPLIED = "refactor/applied";

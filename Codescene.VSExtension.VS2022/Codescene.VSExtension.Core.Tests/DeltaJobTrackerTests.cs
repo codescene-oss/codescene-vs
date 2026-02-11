@@ -1,7 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Util;
 using FileModel = Codescene.VSExtension.Core.Models.WebComponent.Data.File;
 

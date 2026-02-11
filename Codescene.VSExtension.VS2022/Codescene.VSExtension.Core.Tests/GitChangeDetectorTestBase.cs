@@ -1,9 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;

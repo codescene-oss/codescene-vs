@@ -32,7 +32,7 @@ public static class HierarchyHelper
         }
 
         // Query if the file belongs to a project
-        int hr = shellOpenDoc.IsDocumentInAProject(filePath, out IVsUIHierarchy hierarchy, out _, out _, out int found);
+        var hr = shellOpenDoc.IsDocumentInAProject(filePath, out var hierarchy, out _, out _, out var found);
 
         var succeeded = ErrorHandler.Succeeded(hr) && found != 0 && hierarchy != null;
         if (succeeded)

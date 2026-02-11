@@ -115,13 +115,13 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
 
             _runningDocumentTable.GetDocumentInfo(
                 docCookie,
-                out uint flags,
-                out uint readLocks,
-                out uint editLocks,
-                out string moniker,
-                out IVsHierarchy hierarchy,
-                out uint itemId,
-                out IntPtr docData);
+                out _,
+                out _,
+                out _,
+                out var moniker,
+                out _,
+                out _,
+                out var docData);
 
             if (docData != IntPtr.Zero)
             {

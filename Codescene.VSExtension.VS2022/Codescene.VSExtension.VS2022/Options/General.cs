@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 
-namespace Codescene.VSExtension.VS2022;
+namespace Codescene.VSExtension.VS2022.Options;
 
-internal partial class OptionsProvider
+internal class OptionsProvider
 {
     // Register the options with this attribute on your package class:
     // [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene.VSExtension.VS2022", "General", 0, 0, true, SupportsProfiles = true)]
@@ -21,11 +21,10 @@ internal partial class OptionsProvider
 public class General : BaseOptionModel<General>
 {
     // Track previous values to detect changes
-    private string _previousAuthToken = string.Empty;
-    private bool _previousShowDebugLogs = false;
+    private string _previousAuthToken;
+    private bool _previousShowDebugLogs;
 
     public General()
-    : base()
     {
         Load();
 

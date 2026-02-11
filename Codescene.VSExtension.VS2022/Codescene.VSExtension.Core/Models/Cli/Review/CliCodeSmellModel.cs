@@ -7,13 +7,13 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
     public class CliCodeSmellModel
     {
         /// <summary>
-        /// Gets or sets name of codesmell.
+        /// Gets or sets name of code smell.
         /// </summary>
         [JsonProperty("category")]
         public string Category { get; set; }
 
         /// <summary>
-        /// Gets or sets details about codesmell, for example nesting depth.
+        /// Gets or sets details about code smell, for example nesting depth.
         /// </summary>
         [JsonProperty("details")]
         public string Details { get; set; }

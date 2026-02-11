@@ -55,34 +55,34 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 CreateNoWindow = true,
             };
 
-            using (var process = new Process { StartInfo = processInfo })
+            using var process = new Process();
+            process.StartInfo = processInfo;
+
+            var outputBuilder = new StringBuilder();
+            var errorBuilder = new StringBuilder();
+            var outputTcs = new TaskCompletionSource<bool>();
+            var errorTcs = new TaskCompletionSource<bool>();
+
+            AttachOutputHandlers(new AttachOutputHandlersArgs(process, outputBuilder, errorBuilder, outputTcs, errorTcs));
+
+            process.Start();
+
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            WriteInput(process, content);
+
+            var timeoutArgs = new WaitForProcessOrTimeoutArgs()
             {
-                var outputBuilder = new StringBuilder();
-                var errorBuilder = new StringBuilder();
-                var outputTcs = new TaskCompletionSource<bool>();
-                var errorTcs = new TaskCompletionSource<bool>();
+                Process = process,
+                OutputTcs = outputTcs,
+                ErrorTcs = errorTcs,
+                Timeout = actualTimeout,
+                Command = arguments,
+            };
+            WaitForProcessOrTimeout(timeoutArgs);
 
-                AttachOutputHandlers(new AttachOutputHandlersArgs(process, outputBuilder, errorBuilder, outputTcs, errorTcs));
-
-                process.Start();
-
-                WriteInput(process, content);
-
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-
-                var timeoutArgs = new WaitForProcessOrTimeoutArgs()
-                {
-                    Process = process,
-                    OutputTcs = outputTcs,
-                    ErrorTcs = errorTcs,
-                    Timeout = actualTimeout,
-                    Command = arguments,
-                };
-                WaitForProcessOrTimeout(timeoutArgs);
-
-                return HandleResult(process, outputBuilder, errorBuilder);
-            }
+            return HandleResult(process, outputBuilder, errorBuilder);
         }
 
         private static bool ShouldPrintError(int code)
@@ -92,7 +92,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private void AttachOutputHandlers(AttachOutputHandlersArgs handlerArguments)
         {
-            handlerArguments.Process.OutputDataReceived += (s, e) =>
+            handlerArguments.Process.OutputDataReceived += (_, e) =>
             {
                 if (e.Data == null)
                 {
@@ -104,7 +104,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 }
             };
 
-            handlerArguments.Process.ErrorDataReceived += (s, e) =>
+            handlerArguments.Process.ErrorDataReceived += (_, e) =>
             {
                 if (e.Data == null)
                 {

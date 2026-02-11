@@ -43,6 +43,6 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         /// Gets or sets c++ declarations.
         /// </summary>
         [JsonProperty("declarations")]
-        public string Declarations { get; set; } = null;
+        public string Declarations { get; set; }
     }
 }

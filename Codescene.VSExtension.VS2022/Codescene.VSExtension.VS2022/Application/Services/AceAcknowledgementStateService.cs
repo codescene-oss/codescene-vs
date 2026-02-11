@@ -23,7 +23,7 @@ public class AceAcknowledgementStateService
         {
             using var key = Registry.CurrentUser.OpenSubKey(REGPATH, writable: true)
                  ?? Registry.CurrentUser.CreateSubKey(REGPATH);
-            object value = key.GetValue(REGKEY);
+            var value = key?.GetValue(REGKEY);
 
             var isAcknowledged = value is int intVal && intVal == 1;
             _logger.Debug($"ACE acknowledged: {isAcknowledged}");
@@ -43,7 +43,7 @@ public class AceAcknowledgementStateService
         {
             using var key = Registry.CurrentUser.OpenSubKey(REGPATH, writable: true)
                  ?? Registry.CurrentUser.CreateSubKey(REGPATH);
-            key.SetValue(REGKEY, 1, RegistryValueKind.DWord);
+            key?.SetValue(REGKEY, 1, RegistryValueKind.DWord);
         }
         catch (Exception e)
         {

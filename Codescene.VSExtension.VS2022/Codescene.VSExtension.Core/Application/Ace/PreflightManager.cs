@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Codescene.VSExtension.Core.Enums;
-using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -18,7 +17,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class PreflightManager : IPreflightManager
     {
-        private readonly ICliExecutor _executer;
+        private readonly ICliExecutor _executor;
         private readonly ILogger _logger;
         private readonly IAceStateService _aceStateService;
         private readonly ISettingsProvider _settingsProvider;
@@ -26,9 +25,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
         private AutoRefactorConfig _autoRefactorConfig;
 
         [ImportingConstructor]
-        public PreflightManager(ICliExecutor executer, ILogger logger, IAceStateService aceStateService, ISettingsProvider settingsProvider)
+        public PreflightManager(ICliExecutor executor, ILogger logger, IAceStateService aceStateService, ISettingsProvider settingsProvider)
         {
-            _executer = executer;
+            _executor = executor;
             _logger = logger;
             _aceStateService = aceStateService;
             _settingsProvider = settingsProvider;
@@ -41,7 +40,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
             _aceStateService.SetState(AceState.Loading);
             try
             {
-                var response = _executer.Preflight(force);
+                var response = _executor.Preflight(force);
 
                 if (response != null)
                 {

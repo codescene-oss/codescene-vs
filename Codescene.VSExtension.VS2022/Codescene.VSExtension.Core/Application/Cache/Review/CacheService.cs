@@ -43,12 +43,10 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         protected string Hash(string content)
         {
-            using (var sha = SHA256.Create())
-            {
-                var bytes = Encoding.UTF8.GetBytes(content);
-                var hashBytes = sha.ComputeHash(bytes);
-                return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
-            }
+            using var sha = SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(content);
+            var hashBytes = sha.ComputeHash(bytes);
+            return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
         }
     }
 }
