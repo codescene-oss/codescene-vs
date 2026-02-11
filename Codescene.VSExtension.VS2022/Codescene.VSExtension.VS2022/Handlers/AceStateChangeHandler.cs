@@ -110,8 +110,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private void OnAceWentOffline()
         {
             _logger.Debug("ACE went offline");
-
-            ShowNotificationAsync("CodeScene ACE is running in offline mode. Some features may be unavailable.").FireAndForget();
         }
 
         /// <summary>
@@ -121,7 +119,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private void OnAceCameBackOnline()
         {
             _logger.Debug("ACE back online");
-            ShowNotificationAsync("CodeScene ACE is back online.").FireAndForget();
         }
 
         private async Task RefreshWindowsAsync()
@@ -134,27 +131,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
             catch (Exception ex)
             {
                 _logger.Error("Failed to refresh Tool Windows", ex);
-            }
-        }
-
-        private async Task ShowNotificationAsync(string message)
-        {
-            try
-            {
-                var model = new InfoBarModel(
-                    [new InfoBarTextSpan(message)],
-                    KnownMonikers.StatusWarning,
-                    isCloseButtonVisible: true);
-
-                var infoBar = await VS.InfoBar.CreateAsync(ToolWindowGuids80.SolutionExplorer, model);
-                if (infoBar != null)
-                {
-                    await infoBar.TryShowInfoBarUIAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error("Failed to show notification", ex);
             }
         }
     }
