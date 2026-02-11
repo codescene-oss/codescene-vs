@@ -204,10 +204,17 @@ public partial class WebComponentUserControl : UserControl
         function setContext() {{
             window.ideContext = %ideContext%;
             const css = `%cssVars%`;
-            const style = document.createElement('style');
-            style.id = '{STYLEELEMENTID}';
-            style.textContent = css;
-            document.head.appendChild(style);
+            function injectStyle() {{
+                const style = document.createElement('style');
+                style.id = '{STYLEELEMENTID}';
+                style.textContent = css;
+                document.head.appendChild(style);
+            }}
+            if (document.head) {{
+                injectStyle();
+            }} else {{
+                document.addEventListener('DOMContentLoaded', injectStyle);
+            }}
         }}
         setContext();
         ";
