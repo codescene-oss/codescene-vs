@@ -9,27 +9,27 @@ namespace Codescene.VSExtension.VS2022.Util
 {
     public class IndentationUtil
     {
-        private static readonly IndentationService _indentationService = new IndentationService();
+        private static readonly IndentationService IndentationService = new IndentationService();
 
         /// <summary>
         /// Detects the indentation style (tabs vs spaces) and level of a given function in the text snapshot.
         /// </summary>
         public static IndentationInfo DetectIndentation(ITextSnapshot snapshot, int fnStartLine)
         {
-            int startLine = Math.Max(0, fnStartLine - 1);
+            var startLine = Math.Max(0, fnStartLine - 1);
             if (startLine >= snapshot.LineCount)
             {
                 return new IndentationInfo { Level = 0, UsesTabs = false, TabSize = 4 };
             }
 
             var line = snapshot.GetLineFromLineNumber(startLine);
-            string lineText = line.GetText();
+            var lineText = line.GetText();
 
             // Analyze the indentation pattern
             var indentationAnalysis = AnalyzeIndentationPattern(snapshot, startLine);
 
             // Count leading whitespace for this specific line
-            int leadingWhitespace = 0;
+            var leadingWhitespace = 0;
             while (leadingWhitespace < lineText.Length && char.IsWhiteSpace(lineText[leadingWhitespace]))
             {
                 leadingWhitespace++;
@@ -40,8 +40,8 @@ namespace Codescene.VSExtension.VS2022.Util
             if (indentationAnalysis.UsesTabs)
             {
                 // Count tabs in the leading whitespace
-                int tabCount = 0;
-                for (int i = 0; i < leadingWhitespace && i < lineText.Length; i++)
+                var tabCount = 0;
+                for (var i = 0; i < leadingWhitespace && i < lineText.Length; i++)
                 {
                     if (lineText[i] == '\t')
                     {
@@ -70,7 +70,7 @@ namespace Codescene.VSExtension.VS2022.Util
         /// </summary>
         public static string AdjustIndentation(string code, IndentationInfo indentationInfo)
         {
-            return _indentationService.AdjustIndentation(code, indentationInfo);
+            return IndentationService.AdjustIndentation(code, indentationInfo);
         }
 
         private static IndentationPattern AnalyzeIndentationPattern(ITextSnapshot snapshot, int startLine)
@@ -81,17 +81,17 @@ namespace Codescene.VSExtension.VS2022.Util
             }
 
             var line = snapshot.GetLineFromLineNumber(startLine);
-            string lineText = line.GetText();
+            var lineText = line.GetText();
 
             if (string.IsNullOrWhiteSpace(lineText))
             {
                 return DefaultIndentationPattern();
             }
 
-            var (tabCount, spaceCount) = _indentationService.CountLeadingWhitespace(lineText);
+            var (tabCount, spaceCount) = IndentationService.CountLeadingWhitespace(lineText);
 
-            bool usesTabs = tabCount > 0;
-            int tabSize = _indentationService.DetermineTabSize(usesTabs, spaceCount);
+            var usesTabs = tabCount > 0;
+            var tabSize = IndentationService.DetermineTabSize(usesTabs, spaceCount);
 
             return new IndentationPattern { UsesTabs = usesTabs, TabSize = tabSize };
         }

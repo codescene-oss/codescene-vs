@@ -11,7 +11,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Codescene.VSExtension.VS2022.Listeners;
+namespace Codescene.VSExtension.VS2022.Handlers;
 
 /// <summary>
 /// Handles solution-level events in Visual Studio (e.g. when a solution is opened or closed).
@@ -131,10 +131,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         _ = Task.Run(async () =>
         {
             var logger = await VS.GetMefServiceAsync<ILogger>();
-            if (logger != null)
-            {
-                await logAction(logger);
-            }
+            await logAction(logger);
         });
     }
 

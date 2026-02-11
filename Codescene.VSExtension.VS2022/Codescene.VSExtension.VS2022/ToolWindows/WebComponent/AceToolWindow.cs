@@ -25,11 +25,11 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
 public class AceToolWindow : BaseToolWindow<AceToolWindow>
 {
-    private static WebComponentUserControl _ctrl = null;
-    private static int _isStale = 0; // 0 = not stale, 1 = stale (int for Interlocked.CompareExchange)
+    private static WebComponentUserControl _ctrl;
+    private static int _isStale; // 0 = not stale, 1 = stale (int for Interlocked.CompareExchange)
 
     /// <summary>
-    /// Gets a value indicating whether gets whether the current ACE refactoring is stale (function has been modified).
+    /// Gets a value indicating whether it gets whether the current ACE refactoring is stale (function has been modified).
     /// </summary>
     public static bool IsStale => _isStale == 1;
 
@@ -102,34 +102,6 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         Interlocked.Exchange(ref _isStale, 0);
     }
 
-    public static async Task UpdateViewAsync()
-    {
-        if (_ctrl == null)
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            await ShowAsync();
-            return;
-        }
-
-        ResetStaleState();
-
-        var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
-
-        if (AceManager.LastRefactoring != null)
-        {
-            await UpdateViewAsync(new WebComponentMessage<AceComponentData>
-            {
-                MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
-                Payload = new WebComponentPayload<AceComponentData>
-                {
-                    IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
-                    View = WebComponentConstants.ViewTypes.ACE,
-                    Data = mapper.Map(AceManager.LastRefactoring),
-                },
-            });
-        }
-    }
-
     public static async Task CloseAsync()
     {
         if (_ctrl is not null && _ctrl.CloseRequested is not null)
@@ -180,7 +152,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                     { "isCached", responseModel.Metadata.Cached },
                 };
 
-            telemetryManager.SendTelemetry(Constants.Telemetry.ACEREFACTORPRESENTED, additionalData);
+            telemetryManager.SendTelemetry(Telemetry.ACEREFACTORPRESENTED, additionalData);
         }).FireAndForget();
     }
 

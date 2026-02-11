@@ -37,10 +37,10 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
     [Import]
     private readonly ILogger _logger;
 
-    private bool _infoBarShownOnce = false;
+    private bool _infoBarShownOnce;
     private IVsInfoBarUIElement _currentTermsInfoBarUiElement;
 
-    public async Task<bool> EvaulateTermsAndPoliciesAcceptanceAsync()
+    public async Task<bool> EvaluateTermsAndPoliciesAcceptanceAsync()
     {
         try
         {
@@ -61,14 +61,16 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
             _currentTermsInfoBarUiElement = uiElement;
             uiElement.Advise(this, out _);
 
-            if (TryGetMainInfoBarHost(out var mainHost))
+            if (!TryGetMainInfoBarHost(out var mainHost))
             {
-                mainHost.AddInfoBar(uiElement);
-                _infoBarShownOnce = true;
-                SendTelemetry(CodeSceneConstants.Telemetry.TERMSANDPOLICIESSHOWN);
+                return false;
             }
 
-            return termsAccepted;
+            mainHost.AddInfoBar(uiElement);
+            _infoBarShownOnce = true;
+            SendTelemetry(CodeSceneConstants.Telemetry.TERMSANDPOLICIESSHOWN);
+
+            return false;
         }
         catch (Exception e)
         {

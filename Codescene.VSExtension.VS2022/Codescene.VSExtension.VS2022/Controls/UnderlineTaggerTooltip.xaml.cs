@@ -4,7 +4,6 @@ using System.ComponentModel.Composition;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Codescene.VSExtension.VS2022.Tagger;
-using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -45,9 +44,9 @@ namespace Codescene.VSExtension.VS2022.Controls
 
         private void ApplyThemeAwareTextColor()
         {
-            System.Drawing.Color drawingColor = VSColorTheme.GetThemedColor(EnvironmentColors.ToolTipTextColorKey);
+            var drawingColor = VSColorTheme.GetThemedColor(EnvironmentColors.ToolTipTextColorKey);
 
-            Color mediaColor = Color.FromArgb(
+            var mediaColor = Color.FromArgb(
                 drawingColor.A, drawingColor.R, drawingColor.G, drawingColor.B);
 
             ThemedTextBlock.Foreground = new SolidColorBrush(mediaColor);

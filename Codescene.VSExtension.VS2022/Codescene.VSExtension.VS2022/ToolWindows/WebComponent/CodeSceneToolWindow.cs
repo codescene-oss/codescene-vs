@@ -26,7 +26,7 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
 public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 {
-    private static WebComponentUserControl _userControl = null;
+    private static WebComponentUserControl _userControl;
 
     public override Type PaneType => typeof(Pane);
 
@@ -53,7 +53,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 Pro = true,
             },
         };
-        ILogger logger = await VS.GetMefServiceAsync<ILogger>();
+        await VS.GetMefServiceAsync<ILogger>();
         _userControl.UpdateViewAsync(message).FireAndForget();
     }
 

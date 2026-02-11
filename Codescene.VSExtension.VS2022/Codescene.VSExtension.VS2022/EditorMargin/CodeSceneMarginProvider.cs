@@ -21,6 +21,6 @@ public class CodeSceneMarginProvider : IWpfTextViewMarginProvider
         IWpfTextViewHost textViewHost,
         IWpfTextViewMargin marginContainer)
     {
-        return new CodeSceneMargin(_settings) as IWpfTextViewMargin;
+        return new CodeSceneMargin(_settings);
     }
 }

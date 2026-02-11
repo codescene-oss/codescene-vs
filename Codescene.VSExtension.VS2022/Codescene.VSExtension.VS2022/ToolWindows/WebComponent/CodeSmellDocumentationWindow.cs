@@ -22,7 +22,7 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
 public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentationWindow>
 {
-    private static WebComponentUserControl _userControl = null;
+    private static WebComponentUserControl _userControl;
     private static ShowDocumentationModel _model;
     private static FnToRefactorModel _fnToRefactor;
 
@@ -108,7 +108,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
             return ctrl;
         }
 
-        logger.Warn($"Could not open doc '{_model.Category}' for file {_model.Path}");
+        logger.Warn($"Could not open doc '{_model?.Category}' for file {_model?.Path}");
         return null;
     }
 

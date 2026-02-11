@@ -3,7 +3,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
@@ -35,7 +34,7 @@ public class RefactoringChangesApplier
         var snapshot = buffer.CurrentSnapshot;
 
         // Check if newCode already starts with whitespace
-        bool startsWithSpace = newCode.Length > 0 && char.IsWhiteSpace(newCode[0]);
+        var startsWithSpace = newCode.Length > 0 && char.IsWhiteSpace(newCode[0]);
 
         IndentationInfo indentationInfo = default;
         if (!startsWithSpace)
@@ -49,8 +48,8 @@ public class RefactoringChangesApplier
             newCode = IndentationUtil.AdjustIndentation(newCode, indentationInfo);
         }
 
-        int start = Math.Max(1, fnStartLine) - 1;
-        int end = Math.Max(1, fnEndLine) - 1;
+        var start = Math.Max(1, fnStartLine) - 1;
+        var end = Math.Max(1, fnEndLine) - 1;
 
         if (start >= snapshot.LineCount)
         {
@@ -77,8 +76,8 @@ public class RefactoringChangesApplier
             new Span(startLine.Start.Position, newCode.Length));
 
         var view = docView.TextView;
-        view.Selection.Select(selectionSpan, isReversed: false);
-        view.Caret.MoveTo(selectionSpan.Start);
-        view.ViewScroller.EnsureSpanVisible(selectionSpan);
+        view?.Selection.Select(selectionSpan, isReversed: false);
+        view?.Caret.MoveTo(selectionSpan.Start);
+        view?.ViewScroller.EnsureSpanVisible(selectionSpan);
     }
 }

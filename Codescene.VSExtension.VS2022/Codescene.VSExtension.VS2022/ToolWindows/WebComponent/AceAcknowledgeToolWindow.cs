@@ -21,7 +21,7 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
 public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
 {
-    private static WebComponentUserControl _ctrl = null;
+    private static WebComponentUserControl _ctrl;
 
     private static FnToRefactorModel _fnToRefactor;
     private static string _filePath;
@@ -48,7 +48,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
         var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
         var settingsProvider = await VS.GetMefServiceAsync<ISettingsProvider>();
 
-        var hastoken = !string.IsNullOrWhiteSpace(settingsProvider?.AuthToken);
+        var hastoken = !string.IsNullOrWhiteSpace(settingsProvider.AuthToken);
         var message = new WebComponentMessage<AceAcknowledgeComponentData>
         {
             MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
@@ -80,7 +80,7 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
         var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
         var settingsProvider = await VS.GetMefServiceAsync<ISettingsProvider>();
 
-        var hastoken = !string.IsNullOrWhiteSpace(settingsProvider?.AuthToken);
+        var hastoken = !string.IsNullOrWhiteSpace(settingsProvider.AuthToken);
         var payload = new WebComponentPayload<AceAcknowledgeComponentData>
         {
             IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,

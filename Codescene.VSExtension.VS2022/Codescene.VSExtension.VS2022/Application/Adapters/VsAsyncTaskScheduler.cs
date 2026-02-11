@@ -33,6 +33,7 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
                     }
                     catch (Exception)
                     {
+                        // ignored
                     }
                 }).FileAndForget("VsAsyncTaskScheduler/ScheduledWork");
             }

@@ -28,16 +28,16 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
                     return;
                 }
 
-                rdt.GetRunningDocumentsEnum(out IEnumRunningDocuments enumerator);
+                rdt.GetRunningDocumentsEnum(out var enumerator);
                 if (enumerator == null)
                 {
                     return;
                 }
 
-                uint[] cookies = new uint[1];
+                var cookies = new uint[1];
                 while (true)
                 {
-                    int hr = enumerator.Next(1, cookies, out uint fetched);
+                    var hr = enumerator.Next(1, cookies, out var fetched);
                     if (hr != VSConstants.S_OK || fetched == 0)
                     {
                         break;
@@ -45,13 +45,13 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
 
                     rdt.GetDocumentInfo(
                         cookies[0],
-                        out uint flags,
-                        out uint readLocks,
-                        out uint editLocks,
-                        out string moniker,
-                        out IVsHierarchy hierarchy,
-                        out uint itemId,
-                        out IntPtr docData);
+                        out _,
+                        out _,
+                        out _,
+                        out var moniker,
+                        out _,
+                        out _,
+                        out var docData);
 
                     if (docData != IntPtr.Zero)
                     {

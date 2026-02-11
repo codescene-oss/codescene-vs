@@ -32,7 +32,7 @@ public class OnClickRefactoringHandler
     [Import]
     private readonly IAceManager _aceManager;
 
-    private CancellationTokenSource _cancellationTokenSource = null;
+    private CancellationTokenSource _cancellationTokenSource;
 
     public string Path { get; private set; }
 
@@ -86,7 +86,7 @@ public class OnClickRefactoringHandler
         }
         catch (Exception ex)
         {
-            _logger.Error("Error ocurred during ACE refactoring cancellation", ex);
+            _logger.Error("Error occurred during ACE refactoring cancellation", ex);
         }
     }
 
@@ -142,10 +142,10 @@ public class OnClickRefactoringHandler
         }
         catch (Exception ex)
         {
-            _logger.Error("Error ocurred during ACE refactoring", ex);
+            _logger.Error("Error occurred during ACE refactoring", ex);
 
             // Determine error type based on exception
-            string errorType = DetermineErrorType(ex);
+            var errorType = DetermineErrorType(ex);
 
             await AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
             {

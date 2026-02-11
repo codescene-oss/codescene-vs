@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
-using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 using Microsoft.VisualStudio.Shell;
 
@@ -16,13 +15,13 @@ public class CodeSceneMarginSettingsManager
 {
     public event Func<Task> ScoreUpdated;
 
-    public bool HasScore { get; private set; } = false;
+    public bool HasScore { get; private set; }
 
-    public bool HasDelta { get; private set; } = false;
+    public bool HasDelta { get; private set; }
 
-    public string FileInFocus { get; private set; } = null;
+    public string FileInFocus { get; private set; }
 
-    public string FileInFocusContent { get; private set; } = null;
+    public string FileInFocusContent { get; private set; }
 
     public void UpdateMarginData(string path, string content)
     {

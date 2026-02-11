@@ -69,7 +69,7 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
 
     private string FormatMessage(CodeSmellModel codeSmell, bool includeDetails = true)
     {
-        string title = $"{Titles.CODESCENE} - {codeSmell.Category}";
+        var title = $"{Titles.CODESCENE} - {codeSmell.Category}";
 
         if (includeDetails && !string.IsNullOrEmpty(codeSmell.Details))
         {
@@ -95,11 +95,11 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
             HelpKeyword = FormatMessage(issue, false),
         };
 
-        errorTask.Navigate += (sender, e) => { OpenDocumentWithIssue(sender, e, issue.Path); };
+        errorTask.Navigate += (sender, _) => { OpenDocumentWithIssue(sender, issue.Path); };
         ErrorListProvider?.Tasks?.Add(errorTask);
     }
 
-    private void OpenDocumentWithIssue(object sender, EventArgs e, string path)
+    private void OpenDocumentWithIssue(object sender, string path)
     {
         Task.Run(async () =>
         {
@@ -126,9 +126,9 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
                 await DocumentNavigator.OpenFileAndGoToLineAsync(path, task.Line + 1, logger);
                 logger.Debug($"Opened document '{path}' from error list...");
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                logger.Error($"Unable to open document '{path}'", e);
+                logger.Error($"Unable to open document '{path}'", ex);
             }
         }).FireAndForget();
     }
@@ -138,6 +138,11 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
         var tasksForFile = ErrorListProvider?.Tasks?.OfType<ErrorTask>()
              .Where(task => string.Equals(task.Document, path, StringComparison.OrdinalIgnoreCase))
              .ToList();
+
+        if (tasksForFile == null)
+        {
+            return;
+        }
 
         foreach (var task in tasksForFile)
         {

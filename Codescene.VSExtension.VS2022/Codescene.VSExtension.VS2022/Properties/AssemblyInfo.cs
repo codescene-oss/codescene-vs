@@ -17,9 +17,3 @@ using Codescene.VSExtension.VS2022;
 
 [assembly: AssemblyVersion(Vsix.Version)]
 [assembly: AssemblyFileVersion(Vsix.Version)]
-
-namespace System.Runtime.CompilerServices;
-
-public class IsExternalInit
-{
-}

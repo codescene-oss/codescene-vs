@@ -7,6 +7,7 @@ using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models.Ace;
+using Codescene.VSExtension.VS2022.Options;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
@@ -146,9 +147,12 @@ namespace Codescene.VSExtension.VS2022.Handlers
                     isCloseButtonVisible: true);
 
                 var infoBar = await VS.InfoBar.CreateAsync(ToolWindowGuids80.SolutionExplorer, model);
-                await infoBar.TryShowInfoBarUIAsync();
+                if (infoBar != null)
+                {
+                    await infoBar.TryShowInfoBarUIAsync();
+                }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error("Failed to show notification", ex);
             }

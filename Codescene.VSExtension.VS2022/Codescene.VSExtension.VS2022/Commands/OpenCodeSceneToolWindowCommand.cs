@@ -15,7 +15,7 @@ namespace Codescene.VSExtension.VS2022.Commands
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
             var logger = await VS.GetMefServiceAsync<ILogger>();
-            logger?.Info("Opening Code Health Monitor tool window...");
+            logger.Info("Opening Code Health Monitor tool window...");
 
             try
             {
@@ -23,7 +23,7 @@ namespace Codescene.VSExtension.VS2022.Commands
             }
             catch (Exception ex)
             {
-                logger?.Error("Could not open CodeScene tool window.", ex);
+                logger.Error("Could not open CodeScene tool window.", ex);
             }
         }
     }

@@ -29,7 +29,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
 
         _label = new TextBlock
         {
-            Text = $"Code Health: N/A",
+            Text = "Code Health: N/A",
             Margin = new Thickness(5),
             VerticalAlignment = VerticalAlignment.Center,
             Foreground = GetThemedBrush(EnvironmentColors.ToolWindowTextColorKey),
@@ -52,10 +52,10 @@ public class CodeSceneMargin : IWpfTextViewMargin
             Children = { _pulseIcon, _label },
         };
 
-        _settings.ScoreUpdated += UpdateUIAsync;
+        _settings.ScoreUpdated += UpdateUiAsync;
         VSColorTheme.ThemeChanged += OnThemeChanged;
 
-        UpdateUIAsync().FireAndForget();
+        UpdateUiAsync().FireAndForget();
     }
 
     public FrameworkElement VisualElement => _rootPanel;
@@ -70,7 +70,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
 
     public void Dispose()
     {
-        _settings.ScoreUpdated -= UpdateUIAsync;
+        _settings.ScoreUpdated -= UpdateUiAsync;
     }
 
     public ITextViewMargin GetTextViewMargin(string marginName)
@@ -109,12 +109,12 @@ public class CodeSceneMargin : IWpfTextViewMargin
         return new SolidColorBrush(mediaColor);
     }
 
-    private async Task UpdateUIAsync()
+    private async Task UpdateUiAsync()
     {
         await ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
-            bool show = _settings.HasScore;
+            var show = _settings.HasScore;
             _rootPanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
 
             var path = _settings.FileInFocus;

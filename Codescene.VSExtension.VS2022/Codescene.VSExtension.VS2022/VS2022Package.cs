@@ -8,9 +8,8 @@ using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
-using Codescene.VSExtension.VS2022.DocumentEventsHandler;
 using Codescene.VSExtension.VS2022.Handlers;
-using Codescene.VSExtension.VS2022.Listeners;
+using Codescene.VSExtension.VS2022.Options;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
 using EnvDTE;
@@ -85,8 +84,8 @@ public sealed class VS2022Package : ToolkitPackage
         {
             // Note: we may not be able to report every failure via telemetry
             // (e.g. if the extension hasn't fully loaded or the CLI hasn't been downloaded yet).
-            System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
             SendTelemetry(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR);
+            System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
         }
     }
 
@@ -133,7 +132,7 @@ public sealed class VS2022Package : ToolkitPackage
         // If not initialized, wait for it using a simple polling approach
         const int maxWaitTimeMs = 120000; // 120 seconds max wait (2 min)
         const int pollIntervalMs = 1000;   // Check every 1s
-        int elapsedMs = 0;
+        var elapsedMs = 0;
 
         while (!VsShellUtilities.ShellIsInitialized && elapsedMs < maxWaitTimeMs)
         {

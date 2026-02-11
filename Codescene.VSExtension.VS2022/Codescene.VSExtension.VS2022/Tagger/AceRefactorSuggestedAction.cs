@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 
-namespace Codescene.VSExtension.VS2022.UnderlineTagger;
+namespace Codescene.VSExtension.VS2022.Tagger;
 
 internal class AceRefactorSuggestedAction : ISuggestedAction
 {
@@ -60,11 +60,6 @@ internal class AceRefactorSuggestedAction : ISuggestedAction
 
                 logger = await VS.GetMefServiceAsync<ILogger>();
                 var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
-
-                if (onClickRefactoringHandler == null)
-                {
-                    return;
-                }
 
                 await onClickRefactoringHandler.HandleAsync(
                     _filePath,
