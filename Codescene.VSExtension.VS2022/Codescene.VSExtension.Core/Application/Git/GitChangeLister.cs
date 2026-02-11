@@ -158,33 +158,31 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         protected virtual HashSet<string> CollectFilesFromGitDiff(Repository repo, string gitRootPath, string workspacePath)
         {
-            var changedFiles = new HashSet<string>();
-
             try
             {
-                var mergeBase = _mergeBaseFinder.GetMergeBaseCommit(repo);
-                if (mergeBase == null || repo.Head?.Tip == null)
-                {
-                    return changedFiles;
-                }
-
-                var relativePaths = CollectChangedFilesFromDiff(repo, mergeBase, gitRootPath, workspacePath);
-
-                foreach (var relativePath in relativePaths)
-                {
-                    var absolutePath = ConvertToAbsolutePath(relativePath, gitRootPath);
-                    if (ShouldReviewFile(absolutePath))
-                    {
-                        changedFiles.Add(absolutePath);
-                    }
-                }
+                var relativePaths = GetChangedFilesFromMergeBase(repo, gitRootPath, workspacePath);
+                return ConvertAndFilterPaths(relativePaths, gitRootPath);
             }
             catch (Exception ex)
             {
                 _logger?.Debug($"GitChangeLister: Error collecting files from git diff: {ex.Message}");
+                return new HashSet<string>();
+            }
+        }
+
+        protected HashSet<string> ConvertAndFilterPaths(IEnumerable<string> relativePaths, string gitRootPath)
+        {
+            var result = new HashSet<string>();
+            foreach (var relativePath in relativePaths)
+            {
+                var absolutePath = ConvertToAbsolutePath(relativePath, gitRootPath);
+                if (ShouldReviewFile(absolutePath))
+                {
+                    result.Add(absolutePath);
+                }
             }
 
-            return changedFiles;
+            return result;
         }
 
         private async Task<HashSet<string>> ExecuteGitOperationAsync(

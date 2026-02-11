@@ -29,6 +29,11 @@ namespace Codescene.VSExtension.Core.Tests
             await task;
         }
 
+        public HashSet<string> InvokeConvertAndFilterPaths(IEnumerable<string> relativePaths, string gitRootPath)
+        {
+            return ConvertAndFilterPaths(relativePaths, gitRootPath);
+        }
+
         public override async Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath)
         {
             if (ThrowInCollectFilesFromRepoStateAsync)
