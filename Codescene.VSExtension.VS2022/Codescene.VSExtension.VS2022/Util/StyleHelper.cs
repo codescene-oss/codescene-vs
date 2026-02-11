@@ -1,15 +1,12 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Text;
 using EnvDTE;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 
 namespace Codescene.VSExtension.VS2022.Util;
 
@@ -78,6 +75,8 @@ public static class StyleHelper
     {
         try
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             var dte = GetDteService();
             if (dte == null || !ThreadHelper.CheckAccess())
             {
