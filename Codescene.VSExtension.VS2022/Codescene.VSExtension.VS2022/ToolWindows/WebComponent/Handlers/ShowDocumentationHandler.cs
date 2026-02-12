@@ -59,12 +59,9 @@ public class ShowDocumentationHandler
             CodeSmellDocumentationWindow.UpdateView(new WebComponentMessage<CodeSmellDocumentationComponentData>
             {
                 MessageType = MessageTypes.UPDATERENDERER,
-                Payload = new WebComponentPayload<CodeSmellDocumentationComponentData>
-                {
-                    IdeType = VISUALSTUDIOIDETYPE,
-                    View = ViewTypes.DOCS,
-                    Data = mapper.Map(model, fnToRefactor, aceAcknowledged),
-                },
+                Payload = WebComponentPayload<CodeSmellDocumentationComponentData>.Create(
+                    ViewTypes.DOCS,
+                    mapper.Map(model, fnToRefactor, aceAcknowledged)),
             });
         }
         catch (Exception e)

@@ -61,12 +61,9 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
             UpdateView(new WebComponentMessage<CodeSmellDocumentationComponentData>
             {
                 MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
-                Payload = new WebComponentPayload<CodeSmellDocumentationComponentData>
-                {
-                    IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
-                    View = WebComponentConstants.ViewTypes.DOCS,
-                    Data = mapper.Map(_model, _fnToRefactor, aceAcknowledged),
-                },
+                Payload = WebComponentPayload<CodeSmellDocumentationComponentData>.Create(
+                    WebComponentConstants.ViewTypes.DOCS,
+                    mapper.Map(_model, _fnToRefactor, aceAcknowledged)),
             });
         }
         catch (Exception e)
@@ -87,12 +84,9 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
         {
             logger.Info($"Opening doc '{_model.Category}' for file {_model.Path}");
 
-            var payload = new WebComponentPayload<CodeSmellDocumentationComponentData>
-            {
-                IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
-                View = WebComponentConstants.ViewTypes.DOCS,
-                Data = mapper.Map(_model, _fnToRefactor, aceAcknowledged),
-            };
+            var payload = WebComponentPayload<CodeSmellDocumentationComponentData>.Create(
+                WebComponentConstants.ViewTypes.DOCS,
+                mapper.Map(_model, _fnToRefactor, aceAcknowledged));
 
             var ctrl = new WebComponentUserControl(payload, logger)
             {

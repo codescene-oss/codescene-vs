@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Collections.Generic;
+using Codescene.VSExtension.Core.Consts;
 
 namespace Codescene.VSExtension.Core.Models.WebComponent.Payload
 {
@@ -27,5 +28,22 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Payload
         public bool Devmode { get; set; } = false;
 
         public List<string> FeatureFlags { get; set; } = new List<string>() { "jobs", "open-settings", "ace-status-indicator" }; // Include loaders feature
+
+        /// <summary>
+        /// Helper for creating a Payload for the CWF Web views.
+        /// </summary>
+        public static WebComponentPayload<T> Create(string view, T data, bool pro = false)
+        {
+            return new WebComponentPayload<T>
+            {
+                IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
+                View = view,
+                Pro = pro,
+                Data = data,
+#if DEBUG
+                Devmode = true,
+#endif
+            };
+        }
     }
 }
