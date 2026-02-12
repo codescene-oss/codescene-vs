@@ -1,0 +1,21 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.2",
+  "base_commit_sha": "c72d6537267a70011c9e13d5e43aa138d87ab2fd",
+  "prompts": {
+    "02402d53b194aa1f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fef621e4-59ea-461d-982a-91b497e3b64d",
+        "model": "composer-1.5"
+      },
+      "human_author": "Martin Säfsten <martin.safsten@codescene.com>",
+      "messages": [],
+      "total_additions": 186,
+      "total_deletions": 157,
+      "accepted_lines": 53,
+      "overriden_lines": 0
+    }
+  }
+}
