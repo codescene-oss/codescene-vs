@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 
@@ -15,11 +16,27 @@ public class CodeSceneMarginSettingsManager
 
     public void NotifyScoreUpdated()
     {
-        ScoreUpdated?.Invoke().FireAndForget();
+        InvokeAllSubscribersAsync().FireAndForget();
     }
 
     public void HideMargin()
     {
-        ScoreUpdated?.Invoke().FireAndForget();
+        InvokeAllSubscribersAsync().FireAndForget();
+    }
+
+    private async Task InvokeAllSubscribersAsync()
+    {
+        var handler = ScoreUpdated;
+        if (handler == null)
+        {
+            return;
+        }
+
+        var tasks = handler.GetInvocationList()
+            .Cast<Func<Task>>()
+            .Select(subscriber => subscriber())
+            .ToArray();
+
+        await Task.WhenAll(tasks);
     }
 }
