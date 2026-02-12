@@ -55,7 +55,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             return await ExecuteGitOperationAsync(gitRootPath, workspacePath, "getting changed files vs merge base", repo =>
             {
-                return GetChangedFilesFromMergeBase(repo, gitRootPath, workspacePath);
+                return GetChangedFilesVsMergeBase(repo, gitRootPath, workspacePath);
             });
         }
 
@@ -160,7 +160,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             try
             {
-                var relativePaths = GetChangedFilesFromMergeBase(repo, gitRootPath, workspacePath);
+                var relativePaths = GetChangedFilesVsMergeBase(repo, gitRootPath, workspacePath);
                 return ConvertAndFilterPaths(relativePaths, gitRootPath);
             }
             catch (Exception ex)
@@ -240,7 +240,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return !string.IsNullOrEmpty(gitRootPath) && Directory.Exists(gitRootPath);
         }
 
-        private HashSet<string> GetChangedFilesFromMergeBase(Repository repo, string gitRootPath, string workspacePath)
+        private HashSet<string> GetChangedFilesVsMergeBase(Repository repo, string gitRootPath, string workspacePath)
         {
             var mergeBase = _mergeBaseFinder.GetMergeBaseCommit(repo);
             if (mergeBase == null)
@@ -258,10 +258,10 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return new HashSet<string>();
             }
 
-            return CollectChangedFilesFromDiff(repo, mergeBase, gitRootPath, workspacePath);
+            return GetCommittedChanges(repo, mergeBase, gitRootPath, workspacePath);
         }
 
-        private HashSet<string> CollectChangedFilesFromDiff(
+        private HashSet<string> GetCommittedChanges(
             Repository repo,
             Commit mergeBase,
             string gitRootPath,
