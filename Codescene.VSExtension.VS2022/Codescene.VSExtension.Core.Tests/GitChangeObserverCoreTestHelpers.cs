@@ -64,20 +64,29 @@ namespace Codescene.VSExtension.Core.Tests
 
     public class FakeLogger : ILogger
     {
+        public readonly List<string> DebugMessages = new List<string>();
+        public readonly List<string> InfoMessages = new List<string>();
+        public readonly List<string> WarnMessages = new List<string>();
+        public readonly List<(string, Exception)> ErrorMessages = new List<(string, Exception)>();
+
         public void Debug(string message)
         {
+            DebugMessages.Add(message);
         }
 
         public void Info(string message)
         {
+            InfoMessages.Add(message);
         }
 
         public void Warn(string message)
         {
+            WarnMessages.Add(message);
         }
 
         public void Error(string message, Exception ex)
         {
+            ErrorMessages.Add((message, ex));
         }
     }
 
@@ -173,6 +182,52 @@ namespace Codescene.VSExtension.Core.Tests
         }
     }
 
+    public class FakeGitChangeLister : IGitChangeLister
+    {
+        public event EventHandler<HashSet<string>> FilesDetected;
+
+        public bool ThrowOnCollectFiles { get; set; }
+
+        public HashSet<string> FilesToReturn { get; set; } = new HashSet<string>();
+
+        public Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath)
+        {
+            return Task.FromResult(new HashSet<string>());
+        }
+
+        public Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, string workspacePath)
+        {
+            return Task.FromResult(new HashSet<string>());
+        }
+
+        public void Initialize(string gitRootPath, string workspacePath)
+        {
+        }
+
+        public void StartPeriodicScanning()
+        {
+        }
+
+        public void StopPeriodicScanning()
+        {
+        }
+
+        public Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath)
+        {
+            if (ThrowOnCollectFiles)
+            {
+                throw new Exception("Simulated error in CollectFilesFromRepoStateAsync");
+            }
+
+            return Task.FromResult(FilesToReturn);
+        }
+
+        public void SimulateFilesDetected(HashSet<string> files)
+        {
+            FilesDetected?.Invoke(this, files);
+        }
+    }
+
     internal class TestableGitChangeObserverCore : GitChangeObserverCore
     {
         public TestableGitChangeObserverCore(
@@ -180,8 +235,9 @@ namespace Codescene.VSExtension.Core.Tests
             ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker,
             IGitService gitService,
-            IAsyncTaskScheduler taskScheduler)
-            : base(logger, codeReviewer, supportedFileChecker, gitService, taskScheduler)
+            IAsyncTaskScheduler taskScheduler,
+            IGitChangeLister gitChangeLister)
+            : base(logger, codeReviewer, supportedFileChecker, gitService, taskScheduler, gitChangeLister)
         {
         }
 

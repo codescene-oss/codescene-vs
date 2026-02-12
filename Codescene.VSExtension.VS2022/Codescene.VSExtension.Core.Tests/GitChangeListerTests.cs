@@ -1,6 +1,14 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -14,6 +22,12 @@ namespace Codescene.VSExtension.Core.Tests
         public void SetupLister()
         {
             _lister = new GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+        }
+
+        [TestCleanup]
+        public void CleanupLister()
+        {
+            _lister?.Dispose();
         }
 
         [TestMethod]
@@ -222,6 +236,77 @@ namespace Codescene.VSExtension.Core.Tests
             var result = await _lister.GetAllChangedFilesAsync(_testRepoPath, _testRepoPath);
 
             Assert.DoesNotContain(filePath, result, "Should exclude deleted files");
+        }
+
+        [TestMethod]
+        public void StartPeriodicScanning_WhenAlreadyStarted_LogsWarningAndReturns()
+        {
+            _lister.Initialize(_testRepoPath, _testRepoPath);
+            _lister.StartPeriodicScanning();
+
+            _fakeLogger.WarnMessages.Clear();
+            _lister.StartPeriodicScanning();
+
+            Assert.HasCount(1, _fakeLogger.WarnMessages, "Should log warning when already started");
+            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("already started")), "Warning should mention already started");
+        }
+
+        [TestMethod]
+        public void StopPeriodicScanning_WhenNotStarted_DoesNotThrow()
+        {
+            _lister.StopPeriodicScanning();
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsMergeBaseAsync_OnFeatureBranch_ReturnsCommittedChanges()
+        {
+            ExecGit("checkout -b feature-branch");
+
+            var committedFile = Path.Combine(_testRepoPath, "feature-file.cs");
+            CommitFile("feature-file.cs", "feature content", "Add feature file");
+
+            var result = await _lister.GetChangedFilesVsMergeBaseAsync(_testRepoPath, _testRepoPath);
+
+            Assert.IsTrue(result.Any(f => f.Contains("feature-file.cs")), "Should detect committed changes on feature branch");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsMergeBaseAsync_OnMainBranch_ReturnsEmptySet()
+        {
+            var result = await _lister.GetChangedFilesVsMergeBaseAsync(_testRepoPath, _testRepoPath);
+
+            Assert.IsEmpty(result, "Should return empty set on main branch");
+        }
+
+        [TestMethod]
+        public void Initialize_SetsGitRootAndWorkspacePath()
+        {
+            _lister.Initialize(_testRepoPath, _testRepoPath);
+
+            var fileInRepo = Path.Combine(_testRepoPath, "initialized.cs");
+            File.WriteAllText(fileInRepo, "content");
+
+            var result = _lister.GetAllChangedFilesAsync(_testRepoPath, _testRepoPath).Result;
+
+            Assert.IsNotEmpty(result, "Should be able to use lister after initialization");
+        }
+
+        [TestMethod]
+        public void Dispose_MultipleCalls_DoesNotThrow()
+        {
+            _lister.Dispose();
+            _lister.Dispose();
+        }
+
+        [TestMethod]
+        public void Dispose_StopsPeriodicScanning()
+        {
+            _lister.Initialize(_testRepoPath, _testRepoPath);
+            _lister.StartPeriodicScanning();
+
+            _lister.Dispose();
+
+            _lister.StartPeriodicScanning();
         }
     }
 }

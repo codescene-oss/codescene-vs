@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
@@ -12,13 +13,18 @@ using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
-    public class GitChangeLister : IGitChangeLister
+    public class GitChangeLister : IGitChangeLister, IDisposable
     {
-        private const int MaxUntrackedFilesPerLocation = 5;
-
         private readonly ISavedFilesTracker _savedFilesTracker;
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly ILogger _logger;
+        private readonly UntrackedFileProcessor _untrackedFileProcessor = new UntrackedFileProcessor();
+        private readonly MergeBaseFinder _mergeBaseFinder;
+
+        private string _gitRootPath;
+        private string _workspacePath;
+        private DroppingScheduledExecutor _scheduledExecutor;
+        private bool _disposed = false;
 
         public GitChangeLister(
             ISavedFilesTracker savedFilesTracker,
@@ -28,72 +34,82 @@ namespace Codescene.VSExtension.Core.Application.Git
             _savedFilesTracker = savedFilesTracker ?? throw new ArgumentNullException(nameof(savedFilesTracker));
             _supportedFileChecker = supportedFileChecker ?? throw new ArgumentNullException(nameof(supportedFileChecker));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _mergeBaseFinder = new MergeBaseFinder(logger);
         }
+
+        public event EventHandler<HashSet<string>> FilesDetected;
 
         public virtual async Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath)
         {
-            return await Task.Run(() =>
+            return await ExecuteGitOperationAsync(gitRootPath, workspacePath, "getting all changed files", repo =>
             {
-                try
-                {
-                    if (string.IsNullOrEmpty(gitRootPath) || !Directory.Exists(gitRootPath))
-                    {
-                        return new HashSet<string>();
-                    }
-
-                    var repoPath = Repository.Discover(gitRootPath);
-                    if (string.IsNullOrEmpty(repoPath))
-                    {
-                        return new HashSet<string>();
-                    }
-
-                    using (var repo = new Repository(repoPath))
-                    {
-                        var statusFiles = CollectFilesFromRepoState(repo, gitRootPath, workspacePath);
-                        var diffFiles = CollectFilesFromGitDiff(repo, gitRootPath, workspacePath);
-
-                        var allFiles = new HashSet<string>(statusFiles);
-                        allFiles.UnionWith(diffFiles);
-
-                        return allFiles;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger?.Warn($"GitChangeLister: Error getting all changed files: {ex.Message}");
-                    return new HashSet<string>();
-                }
+                var statusFiles = CollectFilesFromRepoState(repo, gitRootPath, workspacePath);
+                var diffFiles = CollectFilesFromGitDiff(repo, gitRootPath, workspacePath);
+                var allFiles = new HashSet<string>(statusFiles);
+                allFiles.UnionWith(diffFiles);
+                return allFiles;
             });
         }
 
         public virtual async Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, string workspacePath)
         {
-            return await Task.Run(() =>
+            return await ExecuteGitOperationAsync(gitRootPath, workspacePath, "getting changed files vs merge base", repo =>
             {
-                try
-                {
-                    if (!IsValidGitRoot(gitRootPath))
-                    {
-                        return new HashSet<string>();
-                    }
-
-                    var repoPath = Repository.Discover(gitRootPath);
-                    if (string.IsNullOrEmpty(repoPath))
-                    {
-                        return new HashSet<string>();
-                    }
-
-                    using (var repo = new Repository(repoPath))
-                    {
-                        return GetChangedFilesFromMergeBase(repo, gitRootPath, workspacePath);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger?.Warn($"GitChangeLister: Error getting changed files vs merge base: {ex.Message}");
-                    return new HashSet<string>();
-                }
+                return GetChangedFilesVsMergeBase(repo, gitRootPath, workspacePath);
             });
+        }
+
+        public void Initialize(string gitRootPath, string workspacePath)
+        {
+            _gitRootPath = gitRootPath;
+            _workspacePath = workspacePath;
+        }
+
+        public void StartPeriodicScanning()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (_scheduledExecutor != null)
+            {
+                _logger?.Warn("GitChangeLister: Periodic scanning already started");
+                return;
+            }
+
+            _scheduledExecutor = new DroppingScheduledExecutor(
+                PeriodicScanAsync,
+                TimeSpan.FromSeconds(9),
+                _logger);
+
+            _scheduledExecutor.Start();
+        }
+
+        public void StopPeriodicScanning()
+        {
+            _scheduledExecutor?.Stop();
+        }
+
+        public virtual async Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath)
+        {
+            return await ExecuteGitOperationAsync(gitRootPath, workspacePath, "collecting files from repo state", repo =>
+            {
+                return CollectFilesFromRepoState(repo, gitRootPath, workspacePath);
+            });
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            StopPeriodicScanning();
+            _scheduledExecutor?.Dispose();
+            _scheduledExecutor = null;
+            _disposed = true;
         }
 
         protected virtual HashSet<string> CollectFilesFromRepoState(Repository repo, string gitRootPath, string workspacePath)
@@ -122,7 +138,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                     if (item.State == FileStatus.NewInWorkdir)
                     {
-                        AddUntrackedFileToDirectory(item.FilePath, absolutePath, untrackedByDirectory);
+                        _untrackedFileProcessor.AddUntrackedFileToDirectory(item.FilePath, absolutePath, untrackedByDirectory);
                     }
                     else
                     {
@@ -130,7 +146,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                     }
                 }
 
-                ProcessUntrackedDirectories(untrackedByDirectory, savedFiles, changedFiles);
+                _untrackedFileProcessor.ProcessUntrackedDirectories(untrackedByDirectory, savedFiles, changedFiles);
             }
             catch (Exception ex)
             {
@@ -142,54 +158,80 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         protected virtual HashSet<string> CollectFilesFromGitDiff(Repository repo, string gitRootPath, string workspacePath)
         {
-            var changedFiles = new HashSet<string>();
-
             try
             {
-                var mergeBase = GetMergeBaseCommit(repo);
-                if (mergeBase == null || repo.Head?.Tip == null)
-                {
-                    return changedFiles;
-                }
-
-                var diff = repo.Diff.Compare<TreeChanges>(mergeBase.Tree, repo.Head.Tip.Tree);
-                ProcessDiffChanges(diff, gitRootPath, workspacePath, changedFiles);
+                var relativePaths = GetChangedFilesVsMergeBase(repo, gitRootPath, workspacePath);
+                return ConvertAndFilterPaths(relativePaths, gitRootPath);
             }
             catch (Exception ex)
             {
                 _logger?.Debug($"GitChangeLister: Error collecting files from git diff: {ex.Message}");
+                return new HashSet<string>();
             }
-
-            return changedFiles;
         }
 
-        protected virtual Commit GetMergeBaseCommit(Repository repo)
+        protected HashSet<string> ConvertAndFilterPaths(IEnumerable<string> relativePaths, string gitRootPath)
+        {
+            var result = new HashSet<string>();
+            foreach (var relativePath in relativePaths)
+            {
+                var absolutePath = ConvertToAbsolutePath(relativePath, gitRootPath);
+                if (ShouldReviewFile(absolutePath))
+                {
+                    result.Add(absolutePath);
+                }
+            }
+
+            return result;
+        }
+
+        private async Task<HashSet<string>> ExecuteGitOperationAsync(
+            string gitRootPath,
+            string workspacePath,
+            string operationName,
+            Func<Repository, HashSet<string>> operation)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    if (!IsValidGitRoot(gitRootPath))
+                    {
+                        return new HashSet<string>();
+                    }
+
+                    var repoPath = Repository.Discover(gitRootPath);
+                    if (string.IsNullOrEmpty(repoPath))
+                    {
+                        return new HashSet<string>();
+                    }
+
+                    using (var repo = new Repository(repoPath))
+                    {
+                        return operation(repo);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.Warn($"GitChangeLister: Error {operationName}: {ex.Message}");
+                    return new HashSet<string>();
+                }
+            });
+        }
+
+        private async Task PeriodicScanAsync()
         {
             try
             {
-                var currentBranch = repo.Head;
-                if (currentBranch == null || currentBranch.Tip == null)
+                var files = await CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
+                if (files != null && files.Count > 0)
                 {
-                    return null;
+                    FilesDetected?.Invoke(this, files);
                 }
-
-                var mainBranchCandidates = new[] { "main", "master", "develop", "trunk", "dev" };
-
-                foreach (var candidateName in mainBranchCandidates)
-                {
-                    var mergeBase = TryFindMergeBaseWithBranch(repo, currentBranch, candidateName);
-                    if (mergeBase != null)
-                    {
-                        return mergeBase;
-                    }
-                }
-
-                return null;
             }
             catch (Exception ex)
             {
-                _logger?.Debug($"GitChangeLister: Could not determine merge base: {ex.Message}");
-                return null;
+                _logger?.Warn($"GitChangeLister: Error during periodic scan: {ex.Message}");
             }
         }
 
@@ -198,12 +240,12 @@ namespace Codescene.VSExtension.Core.Application.Git
             return !string.IsNullOrEmpty(gitRootPath) && Directory.Exists(gitRootPath);
         }
 
-        private HashSet<string> GetChangedFilesFromMergeBase(Repository repo, string gitRootPath, string workspacePath)
+        private HashSet<string> GetChangedFilesVsMergeBase(Repository repo, string gitRootPath, string workspacePath)
         {
-            var mergeBase = GetMergeBaseCommit(repo);
+            var mergeBase = _mergeBaseFinder.GetMergeBaseCommit(repo);
             if (mergeBase == null)
             {
-                if (repo.Head != null && !IsMainBranch(repo.Head.FriendlyName))
+                if (repo.Head != null && !_mergeBaseFinder.IsMainBranch(repo.Head.FriendlyName))
                 {
                     _logger?.Warn("GitChangeLister: On non-main branch but can't determine merge-base");
                 }
@@ -216,10 +258,10 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return new HashSet<string>();
             }
 
-            return CollectChangedFilesFromDiff(repo, mergeBase, gitRootPath, workspacePath);
+            return GetCommittedChanges(repo, mergeBase, gitRootPath, workspacePath);
         }
 
-        private HashSet<string> CollectChangedFilesFromDiff(
+        private HashSet<string> GetCommittedChanges(
             Repository repo,
             Commit mergeBase,
             string gitRootPath,
@@ -246,93 +288,6 @@ namespace Codescene.VSExtension.Core.Application.Git
                    item.State == FileStatus.Ignored ||
                    item.State.HasFlag(FileStatus.DeletedFromWorkdir) ||
                    item.State.HasFlag(FileStatus.DeletedFromIndex);
-        }
-
-        private void AddUntrackedFileToDirectory(
-            string relativePath,
-            string absolutePath,
-            Dictionary<string, List<string>> untrackedByDirectory)
-        {
-            var directory = string.IsNullOrEmpty(Path.GetDirectoryName(relativePath)) ? "__root__" : Path.GetDirectoryName(relativePath);
-
-            if (!untrackedByDirectory.ContainsKey(directory))
-            {
-                untrackedByDirectory[directory] = new List<string>();
-            }
-
-            untrackedByDirectory[directory].Add(absolutePath);
-        }
-
-        private void ProcessUntrackedDirectories(
-            Dictionary<string, List<string>> untrackedByDirectory,
-            HashSet<string> savedFiles,
-            HashSet<string> changedFiles)
-        {
-            foreach (var kvp in untrackedByDirectory)
-            {
-                var files = kvp.Value;
-                var filesToAdd = files.Count > MaxUntrackedFilesPerLocation
-                    ? files.Where(f => savedFiles.Contains(f))
-                    : files;
-
-                changedFiles.UnionWith(filesToAdd);
-            }
-        }
-
-        private void ProcessDiffChanges(
-            TreeChanges diff,
-            string gitRootPath,
-            string workspacePath,
-            HashSet<string> changedFiles)
-        {
-            foreach (var change in diff)
-            {
-                var absolutePath = ConvertToAbsolutePath(change.Path, gitRootPath);
-
-                if (!IsFileInWorkspace(change.Path, gitRootPath, workspacePath))
-                {
-                    continue;
-                }
-
-                if (!ShouldReviewFile(absolutePath))
-                {
-                    continue;
-                }
-
-                changedFiles.Add(absolutePath);
-            }
-        }
-
-        private Commit TryFindMergeBaseWithBranch(Repository repo, Branch currentBranch, string candidateName)
-        {
-            var mainBranch = repo.Branches[candidateName];
-            if (!IsValidBranchForMergeBase(mainBranch, currentBranch))
-            {
-                return null;
-            }
-
-            try
-            {
-                var mergeBase = repo.ObjectDatabase.FindMergeBase(currentBranch.Tip, mainBranch.Tip);
-                if (mergeBase != null)
-                {
-                    _logger?.Debug($"GitChangeLister: Found merge base using branch '{candidateName}'");
-                    return mergeBase;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.Debug($"GitChangeLister: Could not find merge base with '{candidateName}': {ex.Message}");
-            }
-
-            return null;
-        }
-
-        private bool IsValidBranchForMergeBase(Branch mainBranch, Branch currentBranch)
-        {
-            return mainBranch != null &&
-                   mainBranch.Tip != null &&
-                   currentBranch.FriendlyName != mainBranch.FriendlyName;
         }
 
         private bool ShouldReviewFile(string absolutePath)
@@ -371,12 +326,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 return Path.Combine(basePath, relativePath);
             }
-        }
-
-        private bool IsMainBranch(string branchName)
-        {
-            return !string.IsNullOrEmpty(branchName) &&
-                   new[] { "main", "master", "develop", "trunk", "dev" }.Contains(branchName, StringComparer.OrdinalIgnoreCase);
         }
     }
 }

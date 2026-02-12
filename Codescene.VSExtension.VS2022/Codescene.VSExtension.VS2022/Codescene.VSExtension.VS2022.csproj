@@ -67,6 +67,7 @@
     <Compile Include="Application\Adapters\VsOpenFilesSource.cs" />
     <Compile Include="Application\Git\BranchWatcherService.cs" />
     <Compile Include="Application\Git\GitChangeObserver.cs" />
+    <Compile Include="Application\Git\GitChangeListerService.cs" />
     <Compile Include="Application\Git\GitService.cs" />
     <Compile Include="Application\Git\IGitChangeObserver.cs" />
     <Compile Include="Application\Git\SavedFilesTracker.cs" />
