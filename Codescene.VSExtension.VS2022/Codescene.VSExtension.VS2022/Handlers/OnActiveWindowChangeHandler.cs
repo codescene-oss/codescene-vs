@@ -48,17 +48,13 @@ public class OnActiveWindowChangeHandler
             var path = focused.Document.FullName;
             var isSupportedFile = _supportedFileChecker.IsSupported(path);
 
-            if (isSupportedFile && doc.Object("TextDocument") is TextDocument textDoc)
+            if (isSupportedFile && doc.Object("TextDocument") is TextDocument)
             {
-                // Get latest content for file currently in focus and update margin
-                var editPoint = textDoc.StartPoint.CreateEditPoint();
-                var content = editPoint.GetText(textDoc.EndPoint);
-
-                _marginSettings.UpdateMarginData(path, content);
+                _marginSettings.NotifyScoreUpdated();
                 return;
             }
         }
 
-        _marginSettings.HideMargin(); // For unsupported files, or non-document (code) files
+        _marginSettings.HideMargin();
     }
 }

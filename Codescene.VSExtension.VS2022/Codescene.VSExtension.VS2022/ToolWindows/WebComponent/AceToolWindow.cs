@@ -85,12 +85,9 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         _ctrl.UpdateViewAsync(new WebComponentMessage<AceComponentData>
         {
             MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
-            Payload = new WebComponentPayload<AceComponentData>
-            {
-                IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
-                View = WebComponentConstants.ViewTypes.ACE,
-                Data = data,
-            },
+            Payload = WebComponentPayload<AceComponentData>.Create(
+                WebComponentConstants.ViewTypes.ACE,
+                data),
         }).FireAndForget();
     }
 
@@ -118,12 +115,9 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
         var handler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
 
-        var payload = new WebComponentPayload<AceComponentData>
-        {
-            IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
-            View = WebComponentConstants.ViewTypes.ACE,
-            Data = mapper.Map(handler.Path, handler.RefactorableFunction),
-        };
+        var payload = WebComponentPayload<AceComponentData>.Create(
+            WebComponentConstants.ViewTypes.ACE,
+            mapper.Map(handler.Path, handler.RefactorableFunction));
 
         var ctrl = new WebComponentUserControl(payload, logger)
         {

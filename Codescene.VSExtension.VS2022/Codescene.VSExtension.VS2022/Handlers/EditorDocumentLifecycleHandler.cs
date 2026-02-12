@@ -233,7 +233,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(result);
-                _marginSettings.UpdateMarginData(path, code);
+                _marginSettings.NotifyScoreUpdated();
 
                 if (buffer.Properties.TryGetProperty<ReviewResultTagger>(typeof(ReviewResultTagger), out var tagger))
                 {

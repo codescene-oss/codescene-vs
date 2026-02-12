@@ -95,12 +95,9 @@ public class OnClickRefactoringHandler
         await AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
         {
             MessageType = MessageTypes.UPDATERENDERER,
-            Payload = new WebComponentPayload<AceComponentData>
-            {
-                IdeType = VISUALSTUDIOIDETYPE,
-                View = ViewTypes.ACE,
-                Data = _mapper.Map(path, refactorableFunction),
-            },
+            Payload = WebComponentPayload<AceComponentData>.Create(
+                ViewTypes.ACE,
+                _mapper.Map(path, refactorableFunction)),
         });
     }
 
@@ -132,12 +129,9 @@ public class OnClickRefactoringHandler
             await AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
             {
                 MessageType = MessageTypes.UPDATERENDERER,
-                Payload = new WebComponentPayload<AceComponentData>
-                {
-                    IdeType = VISUALSTUDIOIDETYPE,
-                    View = ViewTypes.ACE,
-                    Data = data,
-                },
+                Payload = WebComponentPayload<AceComponentData>.Create(
+                    ViewTypes.ACE,
+                    data),
             });
         }
         catch (Exception ex)
@@ -150,12 +144,9 @@ public class OnClickRefactoringHandler
             await AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
             {
                 MessageType = MessageTypes.UPDATERENDERER,
-                Payload = new WebComponentPayload<AceComponentData>
-                {
-                    IdeType = VISUALSTUDIOIDETYPE,
-                    View = ViewTypes.ACE,
-                    Data = _mapper.Map(path, refactorableFunction, errorType),
-                },
+                Payload = WebComponentPayload<AceComponentData>.Create(
+                    ViewTypes.ACE,
+                    _mapper.Map(path, refactorableFunction, errorType)),
             });
         }
         finally
