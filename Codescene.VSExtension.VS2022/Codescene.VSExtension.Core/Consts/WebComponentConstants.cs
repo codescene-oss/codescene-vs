@@ -23,7 +23,6 @@ namespace Codescene.VSExtension.Core.Consts
         public class StateTypes
         {
             public const string RUNNING = "running";
-            public const string QUEUED = "queued";
         }
 
         public class JobTypes
@@ -43,8 +42,6 @@ namespace Codescene.VSExtension.Core.Consts
             public const string GOTOFUNCTIONLOCATION = "goto-function-location";
             public const string COPYCODE = "copyCode";
             public const string SHOWLOGOUTPUT = "showLogoutput";
-            public const string OPENFILE = "open-file";
-            public const string OPENFUNCTION = "open-function";
             public const string SHOWDIFF = "showDiff";
             public const string REQUESTANDPRESENTREFACTORING = "request-and-present-refactoring";
             public const string UPDATERENDERER = "update-renderer";

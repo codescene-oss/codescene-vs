@@ -1,10 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System;
-using System.IO;
 using Codescene.VSExtension.Core.Application.Git;
 using LibGit2Sharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Codescene.VSExtension.Core.Tests
 {

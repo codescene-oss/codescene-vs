@@ -13,17 +13,17 @@ namespace Codescene.VSExtension.Core.Application.Cli
     public class CliFileChecker : ICliFileChecker
     {
         private readonly ILogger _logger;
-        private readonly ICliExecutor _cliExecuter;
+        private readonly ICliExecutor _cliExecutor;
         private readonly ICliSettingsProvider _cliSettingsProvider;
 
         [ImportingConstructor]
         public CliFileChecker(
             ILogger logger,
-            ICliExecutor cliExecuter,
+            ICliExecutor cliExecutor,
             ICliSettingsProvider cliSettingsProvider)
         {
             _logger = logger;
-            _cliExecuter = cliExecuter;
+            _cliExecutor = cliExecutor;
             _cliSettingsProvider = cliSettingsProvider;
         }
 
@@ -37,7 +37,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     return false;
                 }
 
-                var currentCliVersion = _cliExecuter.GetFileVersion();
+                var currentCliVersion = _cliExecutor.GetFileVersion();
                 if (string.IsNullOrEmpty(currentCliVersion))
                 {
                     _logger.Warn("Could not determine CLI version. The CLI file exists but version check failed.");

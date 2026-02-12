@@ -2,7 +2,6 @@
 
 using System.ComponentModel.Composition;
 using Codescene.VSExtension.Core.Interfaces.Extension;
-using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;

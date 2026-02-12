@@ -19,7 +19,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public string CliArtifactUrl => $"{ArtifactBaseUrl}{CliArtifactName}";
 
-        public string CliFileName => $"cs-ide.exe";
+        public string CliFileName => "cs-ide.exe";
 
         public string ArtifactBaseUrl => "https://downloads.codescene.io/enterprise/cli/";
 

@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Codescene.VSExtension.VS2022.UnderlineTagger;
+namespace Codescene.VSExtension.VS2022.Tagger;
 
 [Export(typeof(ISuggestedActionsSourceProvider))]
 [Name("CodeScene ACE Refactor Suggested Actions")]

@@ -1,11 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Git;
-using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Git;
 
 namespace Codescene.VSExtension.Core.Tests

@@ -592,8 +592,7 @@ namespace Codescene.VSExtension.Core.Tests
             var executor = new CliExecutor(
                 _mockLogger.Object,
                 _mockCliServices.Object,
-                _mockSettingsProvider.Object,
-                null);
+                _mockSettingsProvider.Object);
 
             Assert.IsNotNull(executor);
         }

@@ -1,6 +1,6 @@
-﻿# --- SETTINGS ---
-$manifest  = 'Codescene.VSExtension.VS2022/source.extension.vsixmanifest'
-$vsix      = 'Codescene.VSExtension.VS2022/source.extension.cs'
+# --- SETTINGS ---
+$manifest  = Join-Path $PSScriptRoot 'Codescene.VSExtension.VS2022\Codescene.VSExtension.VS2022\source.extension.vsixmanifest'
+$vsix      = Join-Path $PSScriptRoot 'Codescene.VSExtension.VS2022\Codescene.VSExtension.VS2022\source.extension.cs'
 $changelog = Join-Path $PSScriptRoot "CHANGELOG.md"
 
 function Get-VersionFromChangelog {
@@ -111,6 +111,21 @@ function Update-Files {
     Set-Content -Path $vsix -Value $updatedSrc -Encoding UTF8
 }
 
+function Open-ChangelogForEdit {
+    if (Get-Command code -ErrorAction SilentlyContinue) {
+        & code --wait $changelog
+    } elseif ($env:EDITOR) {
+        $parts = $env:EDITOR -split '\s+', 2
+        if ($parts.Length -gt 1) {
+            & $parts[0] $parts[1] $changelog
+        } else {
+            & $env:EDITOR $changelog
+        }
+    } else {
+        Start-Process notepad $changelog -Wait
+    }
+}
+
 function Commit-And-Tag {
     param($version)
     git add -- $manifest $vsix $changelog | Out-Null
@@ -123,18 +138,32 @@ function Commit-And-Tag {
 }
 
 function Main {
-    $currentVersion = Get-VersionFromChangelog $changelog
-    if (-not $currentVersion) { $currentVersion = Get-VersionFromManifest $manifest }
-    Write-Host "Current version: $currentVersion"
+    Push-Location $PSScriptRoot
+    try {
+        $currentVersion = Get-VersionFromChangelog $changelog
+        if (-not $currentVersion) { $currentVersion = Get-VersionFromManifest $manifest }
+        Write-Host "Current version: $currentVersion"
 
-    $newVersion = Bump-Version $currentVersion
-    Write-Host "New version: $newVersion"
+        $newVersion = Bump-Version $currentVersion
+        Write-Host "New version: $newVersion"
 
-    $rawCommits = Collect-Commits
-    $groups = Group-Commits $rawCommits
-    Update-Changelog $newVersion $groups
-    Update-Files $newVersion
-    Commit-And-Tag $newVersion
+        $rawCommits = Collect-Commits
+        $groups = Group-Commits $rawCommits
+        Update-Changelog $newVersion $groups
+
+        Open-ChangelogForEdit
+        $response = Read-Host "Edit the changelog now, then press Enter to continue (or 'q' to abort)"
+        if ($response -eq 'q') {
+            git checkout -- $changelog
+            Write-Host "Aborted. Changelog reverted."
+            return
+        }
+
+        Update-Files $newVersion
+        Commit-And-Tag $newVersion
+    } finally {
+        Pop-Location
+    }
 }
 
 Main

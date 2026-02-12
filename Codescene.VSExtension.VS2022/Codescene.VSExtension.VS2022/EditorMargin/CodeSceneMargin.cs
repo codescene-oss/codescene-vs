@@ -9,6 +9,7 @@ using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using WpfPath = System.Windows.Shapes.Path;
 
@@ -22,14 +23,16 @@ public class CodeSceneMargin : IWpfTextViewMargin
     private readonly TextBlock _label;
     private readonly WpfPath _pulseIcon;
     private readonly CodeSceneMarginSettingsManager _settings;
+    private readonly IWpfTextView _textView;
 
-    public CodeSceneMargin(CodeSceneMarginSettingsManager settings)
+    public CodeSceneMargin(CodeSceneMarginSettingsManager settings, IWpfTextView textView)
     {
         _settings = settings;
+        _textView = textView;
 
         _label = new TextBlock
         {
-            Text = $"Code Health: N/A",
+            Text = "Code Health: N/A",
             Margin = new Thickness(5),
             VerticalAlignment = VerticalAlignment.Center,
             Foreground = GetThemedBrush(EnvironmentColors.ToolWindowTextColorKey),
@@ -52,10 +55,10 @@ public class CodeSceneMargin : IWpfTextViewMargin
             Children = { _pulseIcon, _label },
         };
 
-        _settings.ScoreUpdated += UpdateUIAsync;
+        _settings.ScoreUpdated += UpdateUiAsync;
         VSColorTheme.ThemeChanged += OnThemeChanged;
 
-        UpdateUIAsync().FireAndForget();
+        UpdateUiAsync().FireAndForget();
     }
 
     public FrameworkElement VisualElement => _rootPanel;
@@ -70,7 +73,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
 
     public void Dispose()
     {
-        _settings.ScoreUpdated -= UpdateUIAsync;
+        _settings.ScoreUpdated -= UpdateUiAsync;
     }
 
     public ITextViewMargin GetTextViewMargin(string marginName)
@@ -78,13 +81,8 @@ public class CodeSceneMargin : IWpfTextViewMargin
         return this;
     }
 
-    private static string GetDeltaScore(bool hasDelta, string path)
+    private static string GetDeltaScore(string path)
     {
-        if (!hasDelta)
-        {
-            return null;
-        }
-
         var delta = new DeltaCacheService().GetDeltaForFile(path);
         return delta != null ? $"{delta.OldScore} → {delta.NewScore}" : null;
     }
@@ -93,6 +91,18 @@ public class CodeSceneMargin : IWpfTextViewMargin
     {
         var item = new ReviewCacheService().Get(new ReviewCacheQuery(code, path));
         return item != null ? $"{item.Score}/10" : null;
+    }
+
+    private static bool TryGetFilePath(ITextBuffer buffer, out string path)
+    {
+        if (buffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document))
+        {
+            path = document.FilePath;
+            return true;
+        }
+
+        path = null;
+        return false;
     }
 
     private void OnThemeChanged(ThemeChangedEventArgs e)
@@ -109,23 +119,30 @@ public class CodeSceneMargin : IWpfTextViewMargin
         return new SolidColorBrush(mediaColor);
     }
 
-    private async Task UpdateUIAsync()
+    private async Task UpdateUiAsync()
     {
         await ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
-            bool show = _settings.HasScore;
-            _rootPanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            if (!TryGetFilePath(_textView.TextBuffer, out var path) || string.IsNullOrEmpty(path))
+            {
+                _rootPanel.Visibility = Visibility.Collapsed;
+                return;
+            }
 
-            var path = _settings.FileInFocus;
-            var code = _settings.FileInFocusContent;
+            var code = _textView.TextBuffer.CurrentSnapshot.GetText();
+            var delta = new DeltaCacheService().GetDeltaForFile(path);
+            var hasDelta = delta != null;
+            var hasScore = hasDelta || new ReviewCacheService().Get(new ReviewCacheQuery(code, path)) != null;
 
-            if (!show || path == null)
+            _rootPanel.Visibility = hasScore ? Visibility.Visible : Visibility.Collapsed;
+
+            if (!hasScore)
             {
                 return;
             }
 
-            var score = GetDeltaScore(_settings.HasDelta, path) ?? GetReviewScore(code, path) ?? "N/A";
+            var score = GetDeltaScore(path) ?? GetReviewScore(code, path) ?? "N/A";
             _label.Text = $"Code Health: {score} ({Path.GetFileName(path)})";
         });
     }

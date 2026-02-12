@@ -1,9 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System;
-using System.ComponentModel.Composition;
 using Codescene.VSExtension.Core.Models.Cli;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 
 namespace Codescene.VSExtension.Core.Models.Ace
 {

@@ -45,7 +45,7 @@ public class AceStateServiceTests
     public void SetState_ShouldFireStateChangedEvent()
     {
         AceStateChangedEventArgs? capturedArgs = null;
-        _aceStateService.StateChanged += (s, e) => capturedArgs = e;
+        _aceStateService.StateChanged += (_, e) => capturedArgs = e;
 
         _aceStateService.SetState(AceState.Enabled);
 
@@ -68,7 +68,7 @@ public class AceStateServiceTests
     public void SetState_WithError_ShouldIncludeErrorInEventArgs()
     {
         AceStateChangedEventArgs? capturedArgs = null;
-        _aceStateService.StateChanged += (s, e) => capturedArgs = e;
+        _aceStateService.StateChanged += (_, e) => capturedArgs = e;
         var exception = new Exception("Test error");
 
         _aceStateService.SetState(AceState.Error, exception);
@@ -115,7 +115,7 @@ public class AceStateServiceTests
         _aceStateService.SetState(AceState.Error, new Exception("First error"));
         var secondException = new Exception("Second error");
         AceStateChangedEventArgs? capturedArgs = null;
-        _aceStateService.StateChanged += (s, e) => capturedArgs = e;
+        _aceStateService.StateChanged += (_, e) => capturedArgs = e;
 
         _aceStateService.SetError(secondException);
 
@@ -198,7 +198,7 @@ public class AceStateServiceTests
     public void SetState_MultipleTransitions_ShouldTrackCorrectly()
     {
         var stateHistory = new List<AceState>();
-        _aceStateService.StateChanged += (s, e) => stateHistory.Add(e.NewState);
+        _aceStateService.StateChanged += (_, e) => stateHistory.Add(e.NewState);
 
         _aceStateService.SetState(AceState.Enabled);
         _aceStateService.SetState(AceState.Offline);

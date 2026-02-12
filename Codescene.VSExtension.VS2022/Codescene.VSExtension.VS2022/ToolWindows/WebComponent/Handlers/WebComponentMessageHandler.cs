@@ -14,6 +14,7 @@ using Codescene.VSExtension.Core.Models.WebComponent.Model;
 using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.Application.Services;
+using Codescene.VSExtension.VS2022.Options;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
@@ -53,7 +54,7 @@ internal class WebComponentMessageHandler
         }
         catch (Exception ex)
         {
-            _logger.Error($"Unable to process webview message. Deserialization failed.", ex);
+            _logger.Error("Unable to process webview message. Deserialization failed.", ex);
             return;
         }
 
@@ -89,7 +90,7 @@ internal class WebComponentMessageHandler
                     break;
 
                 case MessageTypes.APPLY:
-                    await HandleApplyAsync(msgObject, logger);
+                    await HandleApplyAsync(msgObject);
                     break;
 
                 case MessageTypes.REJECT:
@@ -105,7 +106,7 @@ internal class WebComponentMessageHandler
                     break;
 
                 case MessageTypes.OPENDOCSFORFUNCTION:
-                    await HandleOpenDocsForFunctionAsync(msgObject, logger);
+                    await HandleOpenDocsForFunctionAsync(msgObject);
                     break;
 
                 case MessageTypes.CANCEL:
@@ -180,7 +181,7 @@ internal class WebComponentMessageHandler
         await diffHandler.ShowDiffWindowAsync();
     }
 
-    private async Task HandleApplyAsync(MessageObj<JToken> msgObject, ILogger logger)
+    private async Task HandleApplyAsync(MessageObj<JToken> msgObject)
     {
         var payload = msgObject.Payload.ToObject<ApplyPayload>();
         HandleAceTelemetry(Constants.Telemetry.ACEREFACTORAPPLIED);
@@ -234,10 +235,7 @@ internal class WebComponentMessageHandler
     {
         var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
 
-        if (onClickRefactoringHandler != null)
-        {
-            onClickRefactoringHandler.HandleCancel();
-        }
+        onClickRefactoringHandler.HandleCancel();
 
         if (_control.CloseRequested is not null)
         {
@@ -256,7 +254,7 @@ internal class WebComponentMessageHandler
             logger);
     }
 
-    private async Task HandleOpenDocsForFunctionAsync(MessageObj<JToken> msgObject, ILogger logger)
+    private async Task HandleOpenDocsForFunctionAsync(MessageObj<JToken> msgObject)
     {
         var payload = msgObject.Payload.ToObject<OpenDocsForFunctionPayload>();
         _logger.Debug($"Opening '{payload.DocType}'...");
@@ -269,7 +267,7 @@ internal class WebComponentMessageHandler
             FunctionRange = payload.Fn?.Range,
         });
 
-        await _showDocsHandler?.HandleAsync(
+        await _showDocsHandler.HandleAsync(
         new ShowDocumentationModel(
             payload.FileName,
             payload.DocType,
@@ -288,7 +286,7 @@ internal class WebComponentMessageHandler
 
         if (payload.FnToRefactor == null)
         {
-            logger.Warn($"Function to refactor not found. Cannot proceed with refactoring.");
+            logger.Warn("Function to refactor not found. Cannot proceed with refactoring.");
             return;
         }
 

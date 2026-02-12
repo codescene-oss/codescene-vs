@@ -1,8 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.IO;
 using Codescene.VSExtension.Core.Application.Util;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Codescene.VSExtension.Core.Tests
 {

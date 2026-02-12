@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Globalization;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Ace;
 using Codescene.VSExtension.Core.Application.Cache.Review;
@@ -16,9 +17,9 @@ using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.EditorMargin;
+using Codescene.VSExtension.VS2022.Tagger;
 using Codescene.VSExtension.VS2022.TermsAndPolicies;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
-using Codescene.VSExtension.VS2022.UnderlineTagger;
 using Codescene.VSExtension.VS2022.Util;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -26,10 +27,10 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 
-namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
+namespace Codescene.VSExtension.VS2022.Handlers
 {
     [Export(typeof(IWpfTextViewCreationListener))]
-    [ContentType("code")] // Only call this for code files (e.g. .cs, .js)
+    [ContentType("code")] // Only call this for code files (e.g .cs, .js)
     [TextViewRole(PredefinedTextViewRoles.Document)] // Only when it's a regular document (not e.g. an output window)
     public class EditorDocumentLifecycleHandler : IWpfTextViewCreationListener
     {
@@ -63,7 +64,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         public void TextViewCreated(IWpfTextView textView)
         {
             var buffer = textView.TextBuffer;
-            string filePath = GetFilePath(buffer);
+            var filePath = GetFilePath(buffer);
             var isSupportedForReview = _supportedFileChecker.IsSupported(filePath);
 
             if (!isSupportedForReview)
@@ -81,13 +82,13 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
             }
 
             _logger.Debug($"File opened: {filePath}. ");
-            string initialContent = buffer.CurrentSnapshot.GetText();
+            buffer.CurrentSnapshot.GetText();
 
             // Run on background thread:
             Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget();
 
             // Triggered when the file content changes (typing, etc.)
-            buffer.Changed += (sender, args) =>
+            buffer.Changed += (_, _) =>
             {
                 // Check ACE staleness - guard first to avoid unnecessary snapshot access
                 if (ShouldCheckAceStaleStatus(filePath))
@@ -102,7 +103,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                     TimeSpan.FromSeconds(1));
             };
 
-            textView.Closed += (sender, args) =>
+            textView.Closed += (_, _) =>
             {
                 _logger.Debug($"File closed: {filePath}...");
 
@@ -191,7 +192,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
         {
             try
             {
-                var termsAccepted = await _termsAndPoliciesService.EvaulateTermsAndPoliciesAcceptanceAsync();
+                var termsAccepted = await _termsAndPoliciesService.EvaluateTermsAndPoliciesAcceptanceAsync();
 
                 if (!termsAccepted)
                 {
@@ -232,7 +233,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
 
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 _errorListWindowHandler.Handle(result);
-                _marginSettings.UpdateMarginData(path, code);
+                _marginSettings.NotifyScoreUpdated();
 
                 if (buffer.Properties.TryGetProperty<ReviewResultTagger>(typeof(ReviewResultTagger), out var tagger))
                 {
@@ -282,7 +283,7 @@ namespace Codescene.VSExtension.VS2022.DocumentEventsHandler
                 var deltaResult = _reviewer.Delta(currentReview, currentContent);
                 await AceUtils.UpdateDeltaCacheWithRefactorableFunctionsAsync(deltaResult, path, currentContent, _logger);
 
-                var scoreChange = deltaResult?.ScoreChange.ToString() ?? "none";
+                var scoreChange = deltaResult?.ScoreChange.ToString(CultureInfo.InvariantCulture) ?? "none";
                 _logger.Info($"Delta analysis complete for file {path}. Code Health score change: {scoreChange}.");
             }
             catch (Exception e)

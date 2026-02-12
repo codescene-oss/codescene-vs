@@ -50,7 +50,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         }
 
         /// <summary>
-        /// Tests mocking strategy, and Test_Mocking2 validates that mocking the same service in parallell works as expected.
+        /// Tests mocking strategy, and Test_Mocking2 validates that mocking the same service in parallel works as expected.
         /// </summary>
         [TestMethod]
         public void Test_Mocking()

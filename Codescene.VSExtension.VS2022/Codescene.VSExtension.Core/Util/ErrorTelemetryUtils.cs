@@ -28,7 +28,7 @@ namespace Codescene.VSExtension.Core.Util
             "The remote name could not be resolved",
         };
 
-        private static int _sentErrorsCount = 0;
+        private static int _sentErrorsCount;
 
         public static bool ShouldSendError(Exception ex)
         {

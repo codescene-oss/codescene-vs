@@ -2,7 +2,6 @@
 
 using Codescene.VSExtension.Core.Application.Ace;
 using Codescene.VSExtension.Core.Enums;
-using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;

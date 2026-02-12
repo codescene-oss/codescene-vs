@@ -7,12 +7,11 @@ using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.VS2022.Controls;
-using Codescene.VSExtension.VS2022.Tagger;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Codescene.VSExtension.VS2022.UnderlineTagger
+namespace Codescene.VSExtension.VS2022.Tagger
 {
     public class ReviewResultTagger : ITagger<IErrorTag>, IDisposable
     {
@@ -92,7 +91,7 @@ namespace Codescene.VSExtension.VS2022.UnderlineTagger
 
         private List<CodeSmellModel> TryLoadFromCache()
         {
-            string currentContent = _buffer.CurrentSnapshot.GetText();
+            var currentContent = _buffer.CurrentSnapshot.GetText();
             var cached = _cache.Get(new ReviewCacheQuery(currentContent, _filePath));
 
             if (cached != null)

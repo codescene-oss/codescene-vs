@@ -11,6 +11,8 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 
+namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
+
 [Export(typeof(ShowDiffHandler))]
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class ShowDiffHandler
@@ -59,7 +61,7 @@ public class ShowDiffHandler
         var diffService = await VS.GetServiceAsync<SVsDifferenceService, IVsDifferenceService>();
 
         // Open the diff window (must be on UI thread)
-        diffService.OpenComparisonWindow2(
+        diffService?.OpenComparisonWindow2(
             tempOriginalPath,
             tempRefactoredPath,
             "Code Comparison",

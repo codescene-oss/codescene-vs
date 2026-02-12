@@ -240,7 +240,7 @@ namespace Codescene.VSExtension.Core.Tests
                 .Returns(new Models.Cli.Delta.DeltaResponseModel());
 
             // Act - should not throw
-            var result = _codeReviewer.Delta(review, "current code");
+            _codeReviewer.Delta(review, "current code");
 
             // Assert - verify ReviewDelta was called with empty string for current raw score
             _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), string.Empty, It.IsAny<string>(), It.IsAny<string>()), Times.Once);

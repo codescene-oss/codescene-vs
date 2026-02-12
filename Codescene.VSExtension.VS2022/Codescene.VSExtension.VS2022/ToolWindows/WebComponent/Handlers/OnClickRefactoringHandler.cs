@@ -32,7 +32,7 @@ public class OnClickRefactoringHandler
     [Import]
     private readonly IAceManager _aceManager;
 
-    private CancellationTokenSource _cancellationTokenSource = null;
+    private CancellationTokenSource _cancellationTokenSource;
 
     public string Path { get; private set; }
 
@@ -86,7 +86,7 @@ public class OnClickRefactoringHandler
         }
         catch (Exception ex)
         {
-            _logger.Error("Error ocurred during ACE refactoring cancellation", ex);
+            _logger.Error("Error occurred during ACE refactoring cancellation", ex);
         }
     }
 
@@ -95,12 +95,9 @@ public class OnClickRefactoringHandler
         await AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
         {
             MessageType = MessageTypes.UPDATERENDERER,
-            Payload = new WebComponentPayload<AceComponentData>
-            {
-                IdeType = VISUALSTUDIOIDETYPE,
-                View = ViewTypes.ACE,
-                Data = _mapper.Map(path, refactorableFunction),
-            },
+            Payload = WebComponentPayload<AceComponentData>.Create(
+                ViewTypes.ACE,
+                _mapper.Map(path, refactorableFunction)),
         });
     }
 
@@ -132,30 +129,24 @@ public class OnClickRefactoringHandler
             await AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
             {
                 MessageType = MessageTypes.UPDATERENDERER,
-                Payload = new WebComponentPayload<AceComponentData>
-                {
-                    IdeType = VISUALSTUDIOIDETYPE,
-                    View = ViewTypes.ACE,
-                    Data = data,
-                },
+                Payload = WebComponentPayload<AceComponentData>.Create(
+                    ViewTypes.ACE,
+                    data),
             });
         }
         catch (Exception ex)
         {
-            _logger.Error("Error ocurred during ACE refactoring", ex);
+            _logger.Error("Error occurred during ACE refactoring", ex);
 
             // Determine error type based on exception
-            string errorType = DetermineErrorType(ex);
+            var errorType = DetermineErrorType(ex);
 
             await AceToolWindow.UpdateViewAsync(new WebComponentMessage<AceComponentData>
             {
                 MessageType = MessageTypes.UPDATERENDERER,
-                Payload = new WebComponentPayload<AceComponentData>
-                {
-                    IdeType = VISUALSTUDIOIDETYPE,
-                    View = ViewTypes.ACE,
-                    Data = _mapper.Map(path, refactorableFunction, errorType),
-                },
+                Payload = WebComponentPayload<AceComponentData>.Create(
+                    ViewTypes.ACE,
+                    _mapper.Map(path, refactorableFunction, errorType)),
             });
         }
         finally

@@ -26,7 +26,7 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
 public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 {
-    private static WebComponentUserControl _userControl = null;
+    private static WebComponentUserControl _userControl;
 
     public override Type PaneType => typeof(Pane);
 
@@ -45,15 +45,12 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         var message = new WebComponentMessage<CodeHealthMonitorComponentData>
         {
             MessageType = MessageTypes.UPDATERENDERER,
-            Payload = new WebComponentPayload<CodeHealthMonitorComponentData>
-            {
-                IdeType = VISUALSTUDIOIDETYPE,
-                View = ViewTypes.HOME,
-                Data = mapper.Map(deltaCache.GetAll()),
-                Pro = true,
-            },
+            Payload = WebComponentPayload<CodeHealthMonitorComponentData>.Create(
+                ViewTypes.HOME,
+                mapper.Map(deltaCache.GetAll()),
+                true),
         };
-        ILogger logger = await VS.GetMefServiceAsync<ILogger>();
+        await VS.GetMefServiceAsync<ILogger>();
         _userControl.UpdateViewAsync(message).FireAndForget();
     }
 
@@ -73,13 +70,10 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
             var deltaCache = new DeltaCacheService();
             var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
 
-            var payload = new WebComponentPayload<CodeHealthMonitorComponentData>
-            {
-                IdeType = VISUALSTUDIOIDETYPE,
-                View = ViewTypes.HOME,
-                Data = mapper.Map(deltaCache.GetAll()),
-                Pro = true,
-            };
+            var payload = WebComponentPayload<CodeHealthMonitorComponentData>.Create(
+                ViewTypes.HOME,
+                mapper.Map(deltaCache.GetAll()),
+                true);
 
             var ctrl = new WebComponentUserControl(payload, logger)
             {

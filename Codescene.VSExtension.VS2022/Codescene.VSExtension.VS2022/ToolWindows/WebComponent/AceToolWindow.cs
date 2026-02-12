@@ -25,11 +25,11 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
 public class AceToolWindow : BaseToolWindow<AceToolWindow>
 {
-    private static WebComponentUserControl _ctrl = null;
-    private static int _isStale = 0; // 0 = not stale, 1 = stale (int for Interlocked.CompareExchange)
+    private static WebComponentUserControl _ctrl;
+    private static int _isStale; // 0 = not stale, 1 = stale (int for Interlocked.CompareExchange)
 
     /// <summary>
-    /// Gets a value indicating whether gets whether the current ACE refactoring is stale (function has been modified).
+    /// Gets a value indicating whether it gets whether the current ACE refactoring is stale (function has been modified).
     /// </summary>
     public static bool IsStale => _isStale == 1;
 
@@ -85,12 +85,9 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         _ctrl.UpdateViewAsync(new WebComponentMessage<AceComponentData>
         {
             MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
-            Payload = new WebComponentPayload<AceComponentData>
-            {
-                IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
-                View = WebComponentConstants.ViewTypes.ACE,
-                Data = data,
-            },
+            Payload = WebComponentPayload<AceComponentData>.Create(
+                WebComponentConstants.ViewTypes.ACE,
+                data),
         }).FireAndForget();
     }
 
@@ -100,34 +97,6 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
     public static void ResetStaleState()
     {
         Interlocked.Exchange(ref _isStale, 0);
-    }
-
-    public static async Task UpdateViewAsync()
-    {
-        if (_ctrl == null)
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            await ShowAsync();
-            return;
-        }
-
-        ResetStaleState();
-
-        var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
-
-        if (AceManager.LastRefactoring != null)
-        {
-            await UpdateViewAsync(new WebComponentMessage<AceComponentData>
-            {
-                MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
-                Payload = new WebComponentPayload<AceComponentData>
-                {
-                    IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
-                    View = WebComponentConstants.ViewTypes.ACE,
-                    Data = mapper.Map(AceManager.LastRefactoring),
-                },
-            });
-        }
     }
 
     public static async Task CloseAsync()
@@ -146,12 +115,9 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
         var handler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
 
-        var payload = new WebComponentPayload<AceComponentData>
-        {
-            IdeType = WebComponentConstants.VISUALSTUDIOIDETYPE,
-            View = WebComponentConstants.ViewTypes.ACE,
-            Data = mapper.Map(handler.Path, handler.RefactorableFunction),
-        };
+        var payload = WebComponentPayload<AceComponentData>.Create(
+            WebComponentConstants.ViewTypes.ACE,
+            mapper.Map(handler.Path, handler.RefactorableFunction));
 
         var ctrl = new WebComponentUserControl(payload, logger)
         {
@@ -180,7 +146,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                     { "isCached", responseModel.Metadata.Cached },
                 };
 
-            telemetryManager.SendTelemetry(Constants.Telemetry.ACEREFACTORPRESENTED, additionalData);
+            telemetryManager.SendTelemetry(Telemetry.ACEREFACTORPRESENTED, additionalData);
         }).FireAndForget();
     }
 

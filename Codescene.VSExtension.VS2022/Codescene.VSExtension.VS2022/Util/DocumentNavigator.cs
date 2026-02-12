@@ -18,7 +18,7 @@ public static class DocumentNavigator
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var dte = await ServiceProvider.GetGlobalServiceAsync(typeof(DTE)) as DTE2;
-            var window = dte.ItemOperations.OpenFile(filePath);
+            var window = dte?.ItemOperations.OpenFile(filePath);
 
             if (window == null)
             {

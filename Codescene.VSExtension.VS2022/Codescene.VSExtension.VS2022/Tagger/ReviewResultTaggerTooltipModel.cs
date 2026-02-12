@@ -12,7 +12,7 @@ using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 
-namespace Codescene.VSExtension.VS2022.UnderlineTagger
+namespace Codescene.VSExtension.VS2022.Tagger
 {
     [Export(typeof(ReviewResultTaggerTooltipModel))]
     [PartCreationPolicy(CreationPolicy.NonShared)]

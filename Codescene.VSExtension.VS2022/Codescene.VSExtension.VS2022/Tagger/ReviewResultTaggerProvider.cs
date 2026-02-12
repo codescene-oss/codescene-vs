@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Codescene.VSExtension.VS2022.UnderlineTagger;
+namespace Codescene.VSExtension.VS2022.Tagger;
 
 [Export(typeof(ITaggerProvider))]
 [ContentType("code")]
@@ -32,7 +32,7 @@ public class ReviewResultTaggerProvider : ITaggerProvider
         var path = buffer?.GetFileName();
         if (buffer == null)
         {
-            _logger.Warn($"Could not create tagger for undefined buffer.");
+            _logger.Warn("Could not create tagger for undefined buffer.");
             return null;
         }
 
