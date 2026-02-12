@@ -69,7 +69,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(nameof(GitChangeLister));
+                return;
             }
 
             if (_scheduledExecutor != null)

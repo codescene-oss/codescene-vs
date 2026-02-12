@@ -252,21 +252,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void StartPeriodicScanning_WhenDisposed_ThrowsObjectDisposedException()
-        {
-            _lister.Dispose();
-
-            try
-            {
-                _lister.StartPeriodicScanning();
-                Assert.Fail("Should throw ObjectDisposedException");
-            }
-            catch (ObjectDisposedException)
-            {
-            }
-        }
-
-        [TestMethod]
         public void StopPeriodicScanning_WhenNotStarted_DoesNotThrow()
         {
             _lister.StopPeriodicScanning();
@@ -321,14 +306,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             _lister.Dispose();
 
-            try
-            {
-                _lister.StartPeriodicScanning();
-                Assert.Fail("Should throw ObjectDisposedException");
-            }
-            catch (ObjectDisposedException)
-            {
-            }
+            _lister.StartPeriodicScanning();
         }
     }
 }

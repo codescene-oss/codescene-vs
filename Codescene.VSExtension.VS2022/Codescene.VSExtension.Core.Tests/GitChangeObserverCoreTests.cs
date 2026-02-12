@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using Codescene.VSExtension.Core.Application.Git;
 using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Tests
