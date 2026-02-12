@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-02-12
+
+### Added
+
+- editor margin shows delta (#206)
+- add CLI request performance telemetry (ace, review, delta)
+
+### Fixed
+
+- code health editor margin multiple windows (#215)
+- remove ace offline message (#214)
+- vs2026 theme support (#213)
+- normalize line endings of ACE refactored code (#200)
+
 ## [0.4.2] - 2026-02-05
 
 ### Added
