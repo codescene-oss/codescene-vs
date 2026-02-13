@@ -11,6 +11,8 @@ namespace Codescene.VSExtension.VS2022.Application.Git
     {
         event EventHandler<string> FileDeletedFromGit;
 
+        event EventHandler ViewUpdateRequested;
+
         void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver);
 
         void Start();

@@ -94,7 +94,7 @@ namespace Codescene.VSExtension.Core.Tests
     {
         public FileReviewModel Review(string path, string content)
         {
-            return new FileReviewModel { FilePath = path };
+            return new FileReviewModel { FilePath = path, RawScore = "8.5" };
         }
 
         public DeltaResponseModel? Delta(FileReviewModel review, string currentCode)
