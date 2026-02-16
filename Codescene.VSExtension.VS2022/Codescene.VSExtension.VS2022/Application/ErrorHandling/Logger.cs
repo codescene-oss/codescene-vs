@@ -83,7 +83,7 @@ public class Logger : ILogger
 
     private void HandleLog(string message, string level)
     {
-        var logMsg = $"[{level}] {message}";
+        var logMsg = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{level}] {message}";
         WriteAsync(logMsg).FireAndForget();
         WriteToFile(logMsg);
     }
@@ -124,7 +124,7 @@ public class Logger : ILogger
                     RotateLogFiles();
                 }
 
-                File.AppendAllText(LogFilePath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {message}{Environment.NewLine}");
+                File.AppendAllText(LogFilePath, $"{message}{Environment.NewLine}");
             }
             catch (Exception ex)
             {
