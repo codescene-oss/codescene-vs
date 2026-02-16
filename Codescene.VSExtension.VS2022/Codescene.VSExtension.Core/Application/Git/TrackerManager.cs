@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Codescene.VSExtension.Core.Interfaces;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
@@ -9,12 +10,21 @@ namespace Codescene.VSExtension.Core.Application.Git
     {
         private readonly HashSet<string> _tracker = new HashSet<string>();
         private readonly object _lock = new object();
+        private readonly ILogger _logger;
+
+        public TrackerManager(ILogger logger = null)
+        {
+            _logger = logger;
+        }
 
         public void Add(string filePath)
         {
             lock (_lock)
             {
                 _tracker.Add(filePath);
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> TrackerManager: Added file to tracker: {filePath} (total: {_tracker.Count})");
+                #endif
             }
         }
 
@@ -30,7 +40,15 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             lock (_lock)
             {
-                return _tracker.Remove(filePath);
+                var removed = _tracker.Remove(filePath);
+                if (removed)
+                {
+                    #if FEATURE_INITIAL_GIT_OBSERVER
+                    _logger?.Info($">>> TrackerManager: Removed file from tracker: {filePath} (total: {_tracker.Count})");
+                    #endif
+                }
+
+                return removed;
             }
         }
 
@@ -38,7 +56,11 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             lock (_lock)
             {
-                return _tracker.Where(tf => tf.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase)).ToList();
+                var matches = _tracker.Where(tf => tf.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase)).ToList();
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> TrackerManager: GetFilesStartingWith prefix '{prefix}' found {matches.Count} matches");
+                #endif
+                return matches;
             }
         }
 
@@ -46,6 +68,9 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             lock (_lock)
             {
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> TrackerManager: Removing {filesToRemove.Count} files from tracker");
+                #endif
                 foreach (var file in filesToRemove)
                 {
                     _tracker.Remove(file);

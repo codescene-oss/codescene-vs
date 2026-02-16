@@ -18,7 +18,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ISavedFilesTracker _savedFilesTracker;
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly ILogger _logger;
-        private readonly UntrackedFileProcessor _untrackedFileProcessor = new UntrackedFileProcessor();
+        private readonly UntrackedFileProcessor _untrackedFileProcessor;
         private readonly MergeBaseFinder _mergeBaseFinder;
 
         private string _gitRootPath;
@@ -34,6 +34,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _savedFilesTracker = savedFilesTracker ?? throw new ArgumentNullException(nameof(savedFilesTracker));
             _supportedFileChecker = supportedFileChecker ?? throw new ArgumentNullException(nameof(supportedFileChecker));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _untrackedFileProcessor = new UntrackedFileProcessor(logger);
             _mergeBaseFinder = new MergeBaseFinder(logger);
         }
 
@@ -41,7 +42,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public virtual async Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath)
         {
-            return await ExecuteGitOperationAsync(gitRootPath, workspacePath, "getting all changed files", repo =>
+            var result = await ExecuteGitOperationAsync(gitRootPath, workspacePath, "getting all changed files", repo =>
             {
                 var statusFiles = CollectFilesFromRepoState(repo, gitRootPath, workspacePath);
                 var diffFiles = CollectFilesFromGitDiff(repo, gitRootPath, workspacePath);
@@ -49,20 +50,31 @@ namespace Codescene.VSExtension.Core.Application.Git
                 allFiles.UnionWith(diffFiles);
                 return allFiles;
             });
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeLister: GetAllChangedFilesAsync found {result.Count} files");
+            #endif
+            return result;
         }
 
         public virtual async Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, string workspacePath)
         {
-            return await ExecuteGitOperationAsync(gitRootPath, workspacePath, "getting changed files vs merge base", repo =>
+            var result = await ExecuteGitOperationAsync(gitRootPath, workspacePath, "getting changed files vs merge base", repo =>
             {
                 return GetChangedFilesVsMergeBase(repo, gitRootPath, workspacePath);
             });
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeLister: GetChangedFilesVsMergeBaseAsync found {result.Count} files");
+            #endif
+            return result;
         }
 
         public void Initialize(string gitRootPath, string workspacePath)
         {
             _gitRootPath = gitRootPath;
             _workspacePath = workspacePath;
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeLister: Initialized with gitRoot='{gitRootPath}', workspace='{workspacePath}'");
+            #endif
         }
 
         public void StartPeriodicScanning()
@@ -84,19 +96,29 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _logger);
 
             _scheduledExecutor.Start();
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info(">>> GitChangeLister: Started periodic scanning with 9 second interval");
+            #endif
         }
 
         public void StopPeriodicScanning()
         {
             _scheduledExecutor?.Stop();
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info(">>> GitChangeLister: Stopped periodic scanning");
+            #endif
         }
 
         public virtual async Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath)
         {
-            return await ExecuteGitOperationAsync(gitRootPath, workspacePath, "collecting files from repo state", repo =>
+            var result = await ExecuteGitOperationAsync(gitRootPath, workspacePath, "collecting files from repo state", repo =>
             {
                 return CollectFilesFromRepoState(repo, gitRootPath, workspacePath);
             });
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeLister: CollectFilesFromRepoStateAsync collected {result.Count} files");
+            #endif
+            return result;
         }
 
         public void Dispose()
@@ -106,6 +128,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info(">>> GitChangeLister: Disposing and cleaning up resources");
+            #endif
             StopPeriodicScanning();
             _scheduledExecutor?.Dispose();
             _scheduledExecutor = null;
@@ -147,6 +172,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
 
                 _untrackedFileProcessor.ProcessUntrackedDirectories(untrackedByDirectory, savedFiles, changedFiles);
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> GitChangeLister: CollectFilesFromRepoState collected {changedFiles.Count} files from repo state");
+                #endif
             }
             catch (Exception ex)
             {
@@ -161,7 +189,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             try
             {
                 var relativePaths = GetChangedFilesVsMergeBase(repo, gitRootPath, workspacePath);
-                return ConvertAndFilterPaths(relativePaths, gitRootPath);
+                var result = ConvertAndFilterPaths(relativePaths, gitRootPath);
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> GitChangeLister: CollectFilesFromGitDiff collected {result.Count} files from git diff");
+                #endif
+                return result;
             }
             catch (Exception ex)
             {
@@ -191,6 +223,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             string operationName,
             Func<Repository, HashSet<string>> operation)
         {
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeLister: Starting operation '{operationName}'");
+            #endif
             return await Task.Run(() =>
             {
                 try
@@ -226,6 +261,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 var files = await CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
                 if (files != null && files.Count > 0)
                 {
+                    #if FEATURE_INITIAL_GIT_OBSERVER
+                    _logger?.Info($">>> GitChangeLister: Periodic scan detected {files.Count} files");
+                    #endif
                     FilesDetected?.Invoke(this, files);
                 }
             }
@@ -237,11 +275,24 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private bool IsValidGitRoot(string gitRootPath)
         {
-            return !string.IsNullOrEmpty(gitRootPath) && Directory.Exists(gitRootPath);
+            var isValid = !string.IsNullOrEmpty(gitRootPath) && Directory.Exists(gitRootPath);
+            if (!isValid)
+            {
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> GitChangeLister: Invalid git root path '{gitRootPath}'");
+                #endif
+            }
+
+            return isValid;
         }
 
         private HashSet<string> GetChangedFilesVsMergeBase(Repository repo, string gitRootPath, string workspacePath)
         {
+            var currentBranch = repo.Head?.FriendlyName ?? "unknown";
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeLister: Getting changed files vs merge base on branch '{currentBranch}'");
+            #endif
+
             var mergeBase = _mergeBaseFinder.GetMergeBaseCommit(repo);
             if (mergeBase == null)
             {
@@ -279,6 +330,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
             }
 
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeLister: GetCommittedChanges found {changedFiles.Count} committed changes");
+            #endif
             return changedFiles;
         }
 
