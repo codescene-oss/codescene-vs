@@ -57,6 +57,8 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public event EventHandler<string> FileDeletedFromGit;
 
+        public event EventHandler ViewUpdateRequested;
+
         public ConcurrentQueue<FileChangeEvent> EventQueue => _eventQueue;
 
         public FileSystemWatcher FileWatcher => _fileWatcher;
@@ -86,7 +88,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitChangeLister.Initialize(_gitRootPath, _workspacePath);
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
 
-            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager);
+            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager, PerformDeltaAnalysisAsync, OnFileDeleted);
             _fileChangeHandler.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
 
             if (!string.IsNullOrEmpty(_workspacePath) && Directory.Exists(_workspacePath))
@@ -115,7 +117,9 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             _scheduledTimer = new Timer(ProcessQueuedEventsCallback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 
+#if FEATURE_PERIODIC_GIT_SCAN
             _gitChangeLister.StartPeriodicScanning();
+#endif
         }
 
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
@@ -160,22 +164,46 @@ namespace Codescene.VSExtension.Core.Application.Git
             _scheduledTimer = null;
         }
 
+        private async Task PerformDeltaAnalysisAsync(string filePath, string content)
+        {
+            try
+            {
+                var review = _codeReviewer.Review(filePath, content);
+                if (review?.RawScore != null)
+                {
+                    var delta = _codeReviewer.Delta(review, content);
+                    ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.Warn($"GitChangeObserver: Error performing delta analysis: {ex.Message}");
+            }
+        }
+
+        private void OnFileDeleted(string filePath)
+        {
+            var deltaCache = new Core.Application.Cache.Review.DeltaCacheService();
+            deltaCache.Invalidate(filePath);
+            ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+        }
+
         private void OnGitChangeListerFilesDetected(object sender, HashSet<string> absolutePaths)
         {
             _taskScheduler.Schedule(async () =>
             {
                 try
                 {
-                    await Task.Run(() =>
+                    var changedFiles = await _getChangedFilesCallback();
+
+                    foreach (var absolutePath in absolutePaths)
                     {
-                        foreach (var absolutePath in absolutePaths)
+                        if (File.Exists(absolutePath) && !_trackerManager.Contains(absolutePath))
                         {
-                            if (File.Exists(absolutePath) && !_trackerManager.Contains(absolutePath))
-                            {
-                                _trackerManager.Add(absolutePath);
-                            }
+                            _trackerManager.Add(absolutePath);
+                            await _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles);
                         }
-                    });
+                    }
                 }
                 catch (Exception ex)
                 {

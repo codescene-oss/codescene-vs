@@ -42,6 +42,13 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 _solution = solution;
             }
         }
+
+#if FEATURE_INITIAL_GIT_OBSERVER
+        Task.Run(async () =>
+        {
+            await WaitForSolutionAndInitializeAsync();
+        }).FireAndForget();
+#endif
     }
 
     /// <summary>
@@ -139,6 +146,38 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             var logger = await VS.GetMefServiceAsync<ILogger>();
             await logAction(logger);
         });
+    }
+
+    private async Task WaitForSolutionAndInitializeAsync()
+    {
+        const int maxWaitTimeMs = 12000;
+        const int pollIntervalMs = 250;
+        var elapsedMs = 0;
+
+        string solutionPath = null;
+
+        while (string.IsNullOrEmpty(solutionPath) && elapsedMs < maxWaitTimeMs)
+        {
+            var solution = await VS.Solutions.GetCurrentSolutionAsync();
+            solutionPath = solution?.FullPath;
+
+            if (string.IsNullOrEmpty(solutionPath))
+            {
+                await Task.Delay(pollIntervalMs);
+                elapsedMs += pollIntervalMs;
+            }
+        }
+
+        Log(logger =>
+        {
+            logger.Info($">>> SolutionEventsHandler: Solution/folder check completed - path = '{solutionPath}' (waited {elapsedMs}ms)");
+            return Task.CompletedTask;
+        });
+
+        if (!string.IsNullOrEmpty(solutionPath))
+        {
+            await InitializeGitChangeObserverAsync(solutionPath);
+        }
     }
 
     private async Task InitializeGitChangeObserverAsync(string solutionPath)

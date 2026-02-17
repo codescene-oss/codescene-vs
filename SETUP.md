@@ -60,10 +60,11 @@ Also make sure to close the IDE before setting the env variable to ensure that t
 
 If a property is not provided, it defaults to false.
 
-| Flag name           | Description                                                                        |
-|---------------------|------------------------------------------------------------------------------------|
-| FEATURE_ACE         | Enables ACE.                                                                       |
-|                     |                                                                                    |
+| Flag name                    | Description                                                                        |
+|------------------------------|------------------------------------------------------------------------------------|
+| FEATURE_ACE                  | Enables ACE.                                                                       |
+| FEATURE_PERIODIC_GIT_SCAN    | Enables periodic git status scanning (9-second interval). Disabled by default.    |
+| FEATURE_INITIAL_GIT_OBSERVER | Enables initial GitChangeObserver invocation on startup. Disabled by default.     |
 
 
 ## Useful links

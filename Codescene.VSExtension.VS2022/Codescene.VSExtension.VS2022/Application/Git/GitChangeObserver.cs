@@ -11,6 +11,9 @@ using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
+using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
+using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Shell;
 
 namespace Codescene.VSExtension.VS2022.Application.Git
 {
@@ -37,6 +40,8 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         private IGitChangeLister _gitChangeLister;
 
         private GitChangeObserverCore _core;
+        private EventHandler<string> _fileDeletedHandler;
+        private EventHandler _viewUpdateHandler;
 
         public GitChangeObserver()
         {
@@ -60,6 +65,8 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         }
 
         public event EventHandler<string> FileDeletedFromGit;
+
+        public event EventHandler ViewUpdateRequested;
 
         public ConcurrentQueue<FileChangeEvent> EventQueue => _core?.EventQueue;
 
@@ -114,13 +121,33 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         public void Dispose()
         {
+            if (_core != null)
+            {
+                _core.FileDeletedFromGit -= _fileDeletedHandler;
+                _core.ViewUpdateRequested -= _viewUpdateHandler;
+            }
+
             _core?.Dispose();
         }
 
         private void InitializeCore()
         {
             _core = new GitChangeObserverCore(_logger, _codeReviewer, _supportedFileChecker, _gitService, _taskScheduler, _gitChangeLister);
-            _core.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
+
+            _fileDeletedHandler = (sender, args) => FileDeletedFromGit?.Invoke(this, args);
+            _viewUpdateHandler = OnViewUpdateRequested;
+
+            _core.FileDeletedFromGit += _fileDeletedHandler;
+            _core.ViewUpdateRequested += _viewUpdateHandler;
+        }
+
+        private void OnViewUpdateRequested(object sender, EventArgs e)
+        {
+            ViewUpdateRequested?.Invoke(this, e);
+            Task.Run(async () =>
+            {
+                await CodeSceneToolWindow.UpdateViewAsync();
+            }).FireAndForget();
         }
     }
 }
