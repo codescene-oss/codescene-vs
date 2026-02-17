@@ -49,6 +49,26 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task HandleFileDelete_RaisesViewUpdateRequestedEvent()
+        {
+            var eventRaised = false;
+            _gitChangeObserverCore.ViewUpdateRequested += (sender, e) => eventRaised = true;
+
+            var newFile = CreateFile("event-test.ts", "export const x = 1;");
+            _gitChangeObserverCore.Start();
+            await Task.Delay(500);
+            await TriggerFileChangeAsync(newFile);
+            AssertFileInTracker(newFile);
+
+            File.Delete(newFile);
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+
+            await _gitChangeObserverCore.HandleFileDeleteForTestingAsync(newFile, changedFiles);
+
+            Assert.IsTrue(eventRaised, "ViewUpdateRequested event should be raised when a tracked file is deleted");
+        }
+
+        [TestMethod]
         public async Task HandleFileDelete_HandlesDirectoryDeletion()
         {
             var subDir = Path.Combine(_testRepoPath, "subdir");
