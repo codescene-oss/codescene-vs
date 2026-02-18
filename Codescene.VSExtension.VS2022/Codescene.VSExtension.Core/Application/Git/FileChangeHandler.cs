@@ -46,6 +46,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             var isDirectory = !Path.HasExtension(filePath);
             if (isDirectory)
             {
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> FileChangeHandler: Skipping directory: {filePath}");
+                #endif
                 return;
             }
 
@@ -54,6 +57,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> FileChangeHandler: Processing file change: {filePath}");
+            #endif
             _trackerManager.Add(filePath);
 
             await ReviewFileAsync(filePath);
@@ -63,6 +69,9 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             await Task.Run(() =>
             {
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> FileChangeHandler: Processing file delete: {filePath}");
+                #endif
                 var wasTracked = _trackerManager.Contains(filePath);
                 if (wasTracked)
                 {
@@ -85,6 +94,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                         : filePath + Path.DirectorySeparatorChar;
 
                     var filesToDelete = _trackerManager.GetFilesStartingWith(directoryPrefix);
+                    #if FEATURE_INITIAL_GIT_OBSERVER
+                    _logger?.Info($">>> FileChangeHandler: Handling directory delete '{filePath}' - removing {filesToDelete.Count} files");
+                    #endif
                     _trackerManager.RemoveAll(filesToDelete);
 
                     foreach (var fileToDelete in filesToDelete)
@@ -99,11 +111,17 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             if (!_supportedFileChecker.IsSupported(filePath))
             {
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> FileChangeHandler: File not processed - unsupported file type: {filePath}");
+                #endif
                 return false;
             }
 
             if (!IsFileInChangedList(filePath, changedFiles))
             {
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> FileChangeHandler: File not processed - not in changed list: {filePath}");
+                #endif
                 return false;
             }
 
@@ -118,6 +136,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             var relativePath = PathUtilities.GetRelativePath(_workspacePath, filePath);
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> FileChangeHandler: Checking if file is in changed list - relative path: '{relativePath}'");
+            #endif
 
             var normalizedRelativePath = relativePath.Replace('\\', '/');
 
@@ -130,19 +151,34 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 if (!File.Exists(filePath))
                 {
+                    #if FEATURE_INITIAL_GIT_OBSERVER
+                    _logger?.Info($">>> FileChangeHandler: File does not exist for review: {filePath}");
+                    #endif
                     return;
                 }
 
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> FileChangeHandler: Starting review for file: {filePath}");
+                #endif
                 var content = File.ReadAllText(filePath);
                 var review = _codeReviewer.Review(filePath, content);
 
                 if (review != null)
                 {
                     _logger?.Debug($"GitChangeObserver: File reviewed: {filePath}");
+                    #if FEATURE_INITIAL_GIT_OBSERVER
+                    _logger?.Info($">>> FileChangeHandler: Completed review for file: {filePath}");
+                    #endif
                     if (_onFileReviewedCallback != null)
                     {
                         await _onFileReviewedCallback(filePath, content);
                     }
+                }
+                else
+                {
+                    #if FEATURE_INITIAL_GIT_OBSERVER
+                    _logger?.Info($">>> FileChangeHandler: Review returned null for file: {filePath}");
+                    #endif
                 }
             }
             catch (Exception ex)

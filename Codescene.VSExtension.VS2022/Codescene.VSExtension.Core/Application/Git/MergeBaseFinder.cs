@@ -26,6 +26,10 @@ namespace Codescene.VSExtension.Core.Application.Git
                     return null;
                 }
 
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> MergeBaseFinder: Finding merge base for branch '{currentBranch.FriendlyName}'");
+                #endif
+
                 var mainBranchCandidates = new[] { "main", "master", "develop", "trunk", "dev" };
 
                 foreach (var candidateName in mainBranchCandidates)
@@ -33,10 +37,16 @@ namespace Codescene.VSExtension.Core.Application.Git
                     var mergeBase = TryFindMergeBaseWithBranch(repo, currentBranch, candidateName);
                     if (mergeBase != null)
                     {
+                        #if FEATURE_INITIAL_GIT_OBSERVER
+                        _logger?.Info($">>> MergeBaseFinder: Found merge base commit {mergeBase.Sha.Substring(0, 8)} for branch '{currentBranch.FriendlyName}'");
+                        #endif
                         return mergeBase;
                     }
                 }
 
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> MergeBaseFinder: No merge base found for branch '{currentBranch.FriendlyName}'");
+                #endif
                 return null;
             }
             catch (Exception ex)
@@ -66,6 +76,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 if (mergeBase != null)
                 {
                     _logger?.Debug($"GitChangeLister: Found merge base using branch '{candidateName}'");
+                    #if FEATURE_INITIAL_GIT_OBSERVER
+                    _logger?.Info($">>> MergeBaseFinder: Successfully found merge base with branch '{candidateName}'");
+                    #endif
                     return mergeBase;
                 }
             }

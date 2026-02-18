@@ -43,7 +43,11 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                     using (var repo = new Repository(repoPath))
                     {
-                        return GetChangedFilesFromRepository(repo, gitRootPath, savedFilesTracker, openFilesObserver);
+                        var changedFiles = GetChangedFilesFromRepository(repo, gitRootPath, savedFilesTracker, openFilesObserver);
+                        #if FEATURE_INITIAL_GIT_OBSERVER
+                        _logger?.Info($">>> GitChangeDetector: Found {changedFiles.Count} changed files vs baseline");
+                        #endif
+                        return changedFiles;
                     }
                 }
                 catch (Exception ex)
@@ -65,8 +69,15 @@ namespace Codescene.VSExtension.Core.Application.Git
             if (_mainBranchCandidatesCache != null &&
                 _mainBranchCandidatesCache.TryGetValue(gitRoot, out var cached))
             {
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> GitChangeDetector: Returning cached main branch candidates ({cached.Count} candidates)");
+                #endif
                 return cached;
             }
+
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info(">>> GitChangeDetector: Computing main branch candidates");
+            #endif
 
             var possibleMainBranches = new[] { "main", "master", "develop", "trunk", "dev" };
 
@@ -91,6 +102,11 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         protected virtual List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
         {
+            var currentBranch = repo.Head?.FriendlyName ?? "unknown";
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeDetector: Getting changed files from repository on branch '{currentBranch}'");
+            #endif
+
             var baseCommit = GetMergeBaseCommit(repo);
             if (baseCommit == null)
             {
@@ -100,6 +116,10 @@ namespace Codescene.VSExtension.Core.Application.Git
             var filesToExclude = BuildExclusionSet(savedFilesTracker, openFilesObserver);
             var committedChanges = GetCommittedChanges(repo, baseCommit, gitRootPath);
             var statusChanges = GetStatusChanges(repo, filesToExclude, gitRootPath);
+
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeDetector: Found {committedChanges.Count} committed changes and {statusChanges.Count} status changes");
+            #endif
 
             var changedFiles = new List<string>();
             changedFiles.AddRange(committedChanges);
@@ -197,6 +217,10 @@ namespace Codescene.VSExtension.Core.Application.Git
                         changes.Add(relativePath);
                     }
                 }
+
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> GitChangeDetector: Collected {changes.Count} committed changes");
+                #endif
             }
             catch (Exception ex)
             {
@@ -221,6 +245,10 @@ namespace Codescene.VSExtension.Core.Application.Git
                         changes.Add(item.FilePath);
                     }
                 }
+
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> GitChangeDetector: Collected {changes.Count} status changes");
+                #endif
             }
             catch (Exception ex)
             {
@@ -237,6 +265,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             AddFilesToExclusionSet(exclusionSet, savedFilesTracker?.GetSavedFiles());
             AddFilesToExclusionSet(exclusionSet, openFilesObserver?.GetAllVisibleFileNames());
 
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeDetector: Built exclusion set with {exclusionSet.Count} files");
+            #endif
             return exclusionSet;
         }
 
@@ -267,6 +298,9 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             if (item.State == FileStatus.Unaltered || item.State == FileStatus.Ignored)
             {
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> GitChangeDetector: File excluded - unaltered or ignored: {item.FilePath}");
+                #endif
                 return false;
             }
 
@@ -274,10 +308,21 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             if (filesToExclude.Contains(fullPath))
             {
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> GitChangeDetector: File excluded - in exclusion set: {item.FilePath}");
+                #endif
                 return false;
             }
 
-            return _supportedFileChecker.IsSupported(fullPath);
+            var isSupported = _supportedFileChecker.IsSupported(fullPath);
+            if (!isSupported)
+            {
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> GitChangeDetector: File excluded - unsupported file type: {item.FilePath}");
+                #endif
+            }
+
+            return isSupported;
         }
     }
 }
