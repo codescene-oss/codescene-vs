@@ -22,11 +22,10 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly IGitService _gitService;
         private readonly IAsyncTaskScheduler _taskScheduler;
         private readonly IGitChangeLister _gitChangeLister;
-        private readonly ConcurrentQueue<FileChangeEvent> _eventQueue = new ConcurrentQueue<FileChangeEvent>();
 
         private TrackerManager _trackerManager;
         private FileSystemWatcher _fileWatcher;
-        private Timer _scheduledTimer;
+        private FileChangeEventProcessor _eventProcessor;
         private string _solutionPath;
         private string _workspacePath;
         private string _gitRootPath;
@@ -58,11 +57,11 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public event EventHandler ViewUpdateRequested;
 
-        public ConcurrentQueue<FileChangeEvent> EventQueue => _eventQueue;
+        public ConcurrentQueue<FileChangeEvent> EventQueue => _eventProcessor?.EventQueue;
 
         public FileSystemWatcher FileWatcher => _fileWatcher;
 
-        public Timer ScheduledTimer => _scheduledTimer;
+        public Timer ScheduledTimer => _eventProcessor?.ScheduledTimer;
 
         public void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, Func<Task<List<string>>> getChangedFilesCallback = null)
         {
@@ -81,6 +80,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             _openFilesObserver = openFilesObserver;
             _getChangedFilesCallback = getChangedFilesCallback ?? GetChangedFilesVsBaselineAsync;
             _gitChangeDetector = new GitChangeDetector(_logger, _supportedFileChecker);
+
+            _eventProcessor = new FileChangeEventProcessor(_logger, _taskScheduler, ProcessEventAsync, _getChangedFilesCallback);
 
             InitializeGitPaths();
 
@@ -118,7 +119,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             BindWatcherEvents(_fileWatcher);
             _fileWatcher.EnableRaisingEvents = true;
 
-            _scheduledTimer = new Timer(ProcessQueuedEventsCallback, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            _eventProcessor.Start(TimeSpan.FromSeconds(1));
 
 #if FEATURE_PERIODIC_GIT_SCAN
             _gitChangeLister.StartPeriodicScanning();
@@ -169,8 +170,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             _fileWatcher?.Dispose();
             _fileWatcher = null;
 
-            _scheduledTimer?.Dispose();
-            _scheduledTimer = null;
+            _eventProcessor?.Dispose();
+            _eventProcessor = null;
         }
 
         private async Task PerformDeltaAnalysisAsync(string filePath, string content)
@@ -340,69 +341,33 @@ namespace Codescene.VSExtension.Core.Application.Git
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeObserverCore: File created event enqueued: '{e.FullPath}'");
                 #endif
-                _eventQueue.Enqueue(new FileChangeEvent(FileChangeType.Create, e.FullPath));
+                _eventProcessor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, e.FullPath));
             };
             watcher.Changed += (sender, e) =>
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeObserverCore: File changed event enqueued: '{e.FullPath}'");
                 #endif
-                _eventQueue.Enqueue(new FileChangeEvent(FileChangeType.Change, e.FullPath));
+                _eventProcessor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, e.FullPath));
             };
             watcher.Deleted += (sender, e) =>
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeObserverCore: File deleted event enqueued: '{e.FullPath}'");
                 #endif
-                _eventQueue.Enqueue(new FileChangeEvent(FileChangeType.Delete, e.FullPath));
+                _eventProcessor.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, e.FullPath));
             };
         }
 
-        private void ProcessQueuedEventsCallback(object state)
+        private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles)
         {
-            _taskScheduler.Schedule(async () =>
+            if (evt.Type == FileChangeType.Delete)
             {
-                try
-                {
-                    await ProcessQueuedEventsAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger?.Warn($"GitChangeObserver: Error processing queued events: {ex.Message}");
-                }
-            });
-        }
-
-        private async Task ProcessQueuedEventsAsync()
-        {
-            var events = new List<FileChangeEvent>();
-
-            while (_eventQueue.TryDequeue(out var evt))
-            {
-                events.Add(evt);
+                await _fileChangeHandler.HandleFileDeleteAsync(evt.FilePath, changedFiles);
             }
-
-            if (events.Count == 0)
+            else
             {
-                return;
-            }
-
-            #if FEATURE_INITIAL_GIT_OBSERVER
-            _logger?.Info($">>> GitChangeObserverCore: Processing {events.Count} queued file change events");
-            #endif
-
-            var changedFiles = await _getChangedFilesCallback();
-
-            foreach (var evt in events)
-            {
-                if (evt.Type == FileChangeType.Delete)
-                {
-                    await _fileChangeHandler.HandleFileDeleteAsync(evt.FilePath, changedFiles);
-                }
-                else
-                {
-                    await _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles);
-                }
+                await _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles);
             }
         }
     }
