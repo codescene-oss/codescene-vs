@@ -102,7 +102,7 @@ public class Logger : ILogger
     {
         var logMsg = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{level}] {message}";
         await WriteToOutputAsync(logMsg);
-        WriteToFile(logMsg);
+        await Task.Run(() => WriteToFile(logMsg));
     }
 
     private async Task WriteToOutputAsync(string message)
