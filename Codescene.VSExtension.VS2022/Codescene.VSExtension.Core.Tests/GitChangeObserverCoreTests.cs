@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.Core.Models;
 using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -210,6 +211,29 @@ namespace Codescene.VSExtension.Core.Tests
                 "Warning should mention error initializing tracker");
 
             newObserver.Dispose();
+        }
+
+        [TestMethod]
+        public async Task HandleFileChange_AddsDeltaJobAndRemovesWhenComplete()
+        {
+            var testFile = CreateFile("test.cs", "public class Test {}");
+            var jobsStarted = new List<Job>();
+            var jobsFinished = new List<Job>();
+
+            Codescene.VSExtension.Core.Util.DeltaJobTracker.JobStarted += (job) => jobsStarted.Add(job);
+            Codescene.VSExtension.Core.Util.DeltaJobTracker.JobFinished += (job) => jobsFinished.Add(job);
+
+            await TriggerFileChangeAsync(testFile);
+
+            await WaitForConditionAsync(() => jobsStarted.Count > 0 && jobsFinished.Count > 0, 2000);
+
+            Assert.HasCount(1, jobsStarted, "Should add exactly one delta job");
+            Assert.HasCount(1, jobsFinished, "Should remove exactly one delta job");
+            Assert.AreEqual(testFile, jobsStarted[0].File.FileName, "Job should track the correct file");
+            Assert.AreEqual(testFile, jobsFinished[0].File.FileName, "Finished job should be the same file");
+
+            var runningJobs = Codescene.VSExtension.Core.Util.DeltaJobTracker.RunningJobs;
+            Assert.IsEmpty(runningJobs, "No jobs should be running after completion");
         }
     }
 }

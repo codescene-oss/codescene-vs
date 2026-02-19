@@ -182,14 +182,14 @@ namespace Codescene.VSExtension.Core.Application.Git
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeObserverCore: Starting delta analysis for '{filePath}'");
             #endif
+            var pendingJob = new Job
+            {
+                Type = JobTypes.DELTA,
+                State = StateTypes.RUNNING,
+                File = new Models.WebComponent.Data.File { FileName = filePath },
+            };
             try
             {
-                var pendingJob = new Job
-                {
-                    Type = JobTypes.DELTA,
-                    State = StateTypes.RUNNING,
-                    File = new Models.WebComponent.Data.File { FileName = filePath },
-                };
                 DeltaJobTracker.Add(pendingJob);
                 ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
 
@@ -197,8 +197,6 @@ namespace Codescene.VSExtension.Core.Application.Git
                 if (review?.RawScore != null)
                 {
                     var delta = _codeReviewer.Delta(review, content);
-                    DeltaJobTracker.Remove(pendingJob);
-                    ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
                     #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: Delta analysis completed for '{filePath}'");
                     #endif
@@ -207,6 +205,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             catch (Exception ex)
             {
                 _logger?.Warn($"GitChangeObserver: Error performing delta analysis: {ex.Message}");
+            }
+            finally
+            {
+                DeltaJobTracker.Remove(pendingJob);
+                ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
             }
         }
 
