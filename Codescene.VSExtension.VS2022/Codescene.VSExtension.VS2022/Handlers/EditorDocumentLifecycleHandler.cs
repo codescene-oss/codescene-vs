@@ -196,7 +196,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
                 if (!termsAccepted)
                 {
-                    _logger.Warn("Skipping CodeScene analysis, Terms & Policies have not been accepted.");
+                    _logger.Warn("Skipping CodeScene analysis, Terms & Policies have not been accepted.", true);
                     return;
                 }
 
@@ -209,7 +209,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
                     return;
                 }
 
-                _logger.Info($"Reviewing file {path}...");
+                _logger.Info($"Reviewing file {path}...", true);
                 var result = _reviewer.Review(path, code);
 
                 cache.Put(new ReviewCacheEntry(code, path, result));

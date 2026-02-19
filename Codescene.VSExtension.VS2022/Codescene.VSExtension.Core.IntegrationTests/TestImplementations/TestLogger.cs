@@ -16,8 +16,8 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
 
         public void Error(string message, Exception ex) => Mock.Object.Error(message, ex);
 
-        public void Info(string message) => Mock.Object.Info(message);
+        public void Info(string message, bool statusBar = false) => Mock.Object.Info(message, statusBar);
 
-        public void Warn(string message) => Mock.Object.Warn(message);
+        public void Warn(string message, bool statusBar = false) => Mock.Object.Warn(message, statusBar);
     }
 }

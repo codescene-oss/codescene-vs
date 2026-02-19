@@ -79,8 +79,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
                 if (refactorableFunctions.Any())
                 {
-                    _logger.Info($"Found {refactorableFunctions.Count} refactorable function(s) in path {path}");
-
+                    _logger.Info($"Found {refactorableFunctions.Count} refactorable function(s) in path {path}", true);
                     var cacheEntry = new AceRefactorableFunctionsEntry(path, code, refactorableFunctions);
                     _logger.Debug($"Caching refactorable functions for path: {path}.");
                     _cache.Put(cacheEntry);

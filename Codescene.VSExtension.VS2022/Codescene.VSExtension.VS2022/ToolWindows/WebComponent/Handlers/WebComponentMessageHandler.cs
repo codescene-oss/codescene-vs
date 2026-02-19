@@ -324,7 +324,7 @@ internal class WebComponentMessageHandler
         var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
         acknowledgementStateService.SetAcknowledged();
 
-        _logger?.Info("ACE usage acknowledged.");
+        _logger?.Info("ACE usage acknowledged.", true);
 
         var payload = msgObject.Payload.ToObject<AceAcknowledgePayload>();
         if (payload.FnToRefactor == null)
