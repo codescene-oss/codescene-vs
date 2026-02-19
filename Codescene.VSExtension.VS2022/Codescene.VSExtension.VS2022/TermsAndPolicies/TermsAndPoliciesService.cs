@@ -97,7 +97,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
                 var hasAccepted = actionItem.Text == CodeSceneConstants.Titles.ACCEPTTERMS;
                 SetAcceptedTerms(hasAccepted);
 
-                _logger.Info($"User has {(hasAccepted ? "accepted" : "declined")} Terms & Policies. {(hasAccepted ? "Analysis will run when the file is updated or reopened." : string.Empty)}");
+                _logger.Info($"User has {(hasAccepted ? "accepted" : "declined")} Terms & Policies. {(hasAccepted ? "Analysis will run when the file is updated or reopened." : string.Empty)}", true);
 
                 infoBarUIElement.Close();
                 break;

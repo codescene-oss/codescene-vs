@@ -86,23 +86,23 @@ namespace Codescene.VSExtension.Core.Application.Ace
         {
             if (IsTransitionToOnline(previousState, newState))
             {
-                _logger.Info("CodeScene ACE is back online.");
+                _logger.Info("CodeScene ACE is back online.", true);
             }
             else if (IsTransitionToOffline(previousState, newState))
             {
-                _logger.Warn("CodeScene ACE is running in offline mode. Some features may be unavailable.");
+                _logger.Warn("CodeScene ACE is running in offline mode. Some features may be unavailable.", true);
             }
             else if (IsTransitionToError(previousState, newState))
             {
-                _logger.Warn("CodeScene ACE encountered an error.");
+                _logger.Warn("CodeScene ACE encountered an error.", true);
             }
             else if (IsTransitionToActive(previousState, newState))
             {
-                _logger.Info("CodeScene ACE is active.");
+                _logger.Info("CodeScene ACE is active.", true);
             }
             else if (newState == AceState.Disabled)
             {
-                _logger.Info("CodeScene ACE has been disabled.");
+                _logger.Info("CodeScene ACE has been disabled.", true);
             }
         }
 

@@ -157,11 +157,11 @@ namespace Codescene.VSExtension.Core.Tests
 
             public void Debug(string message) => DebugMessages.Add(message);
 
-            public void Info(string message)
+            public void Info(string message, bool statusBar = false)
             {
             }
 
-            public void Warn(string message) => WarnMessages.Add(message);
+            public void Warn(string message, bool statusBar = false) => WarnMessages.Add(message);
 
             public void Error(string message, Exception ex)
             {

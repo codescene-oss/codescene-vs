@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.VS2022.Options;
@@ -27,6 +28,11 @@ public class Logger : ILogger
 {
     private const long MAXLOGFILESIZEBYTES = 10 * 1024 * 1024; // 10 MB
     private const int MAXBACKUPFILES = 3;
+    private const string ERROR = "ERROR";
+    private const string WARNING = "WARN";
+    private const string INFORMATION = "INFO";
+    private const string DEBUG = "DEBUG";
+
     private static readonly string LogFileName = "codescene-vs-extension-" + Vsix.Version + ".log";
     private static readonly string LogFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -47,28 +53,34 @@ public class Logger : ILogger
     public void Error(string message, Exception ex)
     {
         var fullMessage = $"{message}: {ex.Message}";
-        HandleLog(fullMessage, "ERROR");
+        WriteLogAsync(fullMessage, ERROR).FireAndForget();
 
-        SendErrorTelemetry(ex, message);
+        SendErrorTelemetryAsync(ex, message).FireAndForget();
 
-        if (ex.Message.Contains("timeout"))
+        if (ex.Message.ToLowerInvariant().Contains("timeout"))
         {
-            SendTimeoutTelemetry();
+            SendTimeoutTelemetryAsync().FireAndForget();
         }
     }
 
-    public void Info(string message)
+    public void Info(string message, bool statusBar = false)
     {
-        HandleLog(message, "INFO");
-        VS.StatusBar.ShowMessageAsync($"{Titles.CODESCENE}: {message}").FireAndForget();
+        WriteLogAsync(message, INFORMATION).FireAndForget();
         Console.WriteLine(message);
+        if (statusBar)
+        {
+            SendToStatusBarAsync(message).FireAndForget();
+        }
     }
 
-    public void Warn(string message)
+    public void Warn(string message, bool statusBar = false)
     {
-        HandleLog(message, "WARN");
-        VS.StatusBar.ShowMessageAsync(message).FireAndForget();
+        WriteLogAsync(message, WARNING).FireAndForget();
         Console.WriteLine(message);
+        if (statusBar)
+        {
+            SendToStatusBarAsync(message).FireAndForget();
+        }
     }
 
     public void Debug(string message)
@@ -77,39 +89,38 @@ public class Logger : ILogger
 
         if (General.Instance.ShowDebugLogs)
         {
-            HandleLog(message, "DEBUG");
+            WriteLogAsync(message, DEBUG).FireAndForget();
         }
     }
 
-    private void HandleLog(string message, string level)
+    private static async Task SendToStatusBarAsync(string message)
     {
-        var logMsg = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{level}] {message}";
-        WriteAsync(logMsg).FireAndForget();
-        WriteToFile(logMsg);
+        await VS.StatusBar.ShowMessageAsync($"{Titles.CODESCENE}: {message}");
     }
 
-    private async Task WriteAsync(string message)
+    private async Task WriteLogAsync(string message, string level)
+    {
+        var logMsg = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} [{level}] {message}";
+        await WriteToOutputAsync(logMsg);
+        await Task.Run(() => WriteToFile(logMsg));
+    }
+
+    private async Task WriteToOutputAsync(string message)
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         _outputPaneManager.Pane?.OutputStringThreadSafe($"{message}{Environment.NewLine}");
     }
 
-    private void SendErrorTelemetry(Exception ex, string context)
+    private async Task SendErrorTelemetryAsync(Exception ex, string context)
     {
-        Task.Run(async () =>
-        {
-            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendErrorTelemetry(ex, context);
-        }).FireAndForget();
+        var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+        telemetryManager?.SendErrorTelemetry(ex, context);
     }
 
-    private void SendTimeoutTelemetry()
+    private async Task SendTimeoutTelemetryAsync()
     {
-        Task.Run(async () =>
-        {
-            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(Telemetry.REVIEWORDELTATIMEOUT);
-        }).FireAndForget();
+        var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+        telemetryManager?.SendTelemetry(Telemetry.REVIEWORDELTATIMEOUT);
     }
 
     private void WriteToFile(string message)

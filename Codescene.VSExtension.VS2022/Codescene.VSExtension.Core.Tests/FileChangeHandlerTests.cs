@@ -317,9 +317,9 @@ namespace Codescene.VSExtension.Core.Tests
 
             public void Debug(string message) => DebugMessages.Add(message);
 
-            public void Info(string message) => InfoMessages.Add(message);
+            public void Info(string message, bool statusBar = false) => InfoMessages.Add(message);
 
-            public void Warn(string message) => WarnMessages.Add(message);
+            public void Warn(string message, bool statusBar = false) => WarnMessages.Add(message);
 
             public void Error(string message, Exception ex) => ErrorMessages.Add(message);
         }

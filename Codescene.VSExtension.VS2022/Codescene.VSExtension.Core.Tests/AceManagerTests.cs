@@ -235,7 +235,7 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNull(result);
             Assert.IsNull(AceManager.LastRefactoring);
             _mockAceStateService.Verify(s => s.SetState(AceState.Offline), Times.Once);
-            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("No internet connection"))), Times.Once);
+            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("No internet connection")), It.IsAny<bool>()), Times.Once);
             _mockExecutor.Verify(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Never);
         }
 

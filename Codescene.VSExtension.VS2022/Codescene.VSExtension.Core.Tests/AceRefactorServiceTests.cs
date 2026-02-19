@@ -179,7 +179,7 @@ public class AceRefactorServiceTests
 
         _aceRefactorService.CheckContainsRefactorableFunctions(CreateFileReviewModel(), "code");
 
-        _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Found 1 refactorable function"))), Times.Once);
+        _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Found 1 refactorable function")), It.IsAny<bool>()), Times.Once);
     }
 
     [TestMethod]

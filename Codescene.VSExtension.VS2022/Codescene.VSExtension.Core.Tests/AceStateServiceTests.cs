@@ -162,7 +162,7 @@ public class AceStateServiceTests
 
         _aceStateService.SetState(AceState.Offline);
 
-        _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("offline mode"))), Times.Once);
+        _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("offline mode")), It.IsAny<bool>()), Times.Once);
     }
 
     [TestMethod]
@@ -172,7 +172,7 @@ public class AceStateServiceTests
 
         _aceStateService.SetState(AceState.Enabled);
 
-        _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("back online"))), Times.Once);
+        _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("back online")), It.IsAny<bool>()), Times.Once);
     }
 
     [TestMethod]
@@ -181,7 +181,7 @@ public class AceStateServiceTests
         // Initial state is Loading, transitioning to Enabled
         _aceStateService.SetState(AceState.Enabled);
 
-        _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("ACE is active"))), Times.Once);
+        _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("ACE is active")), It.IsAny<bool>()), Times.Once);
     }
 
     [TestMethod]
@@ -191,7 +191,7 @@ public class AceStateServiceTests
 
         _aceStateService.SetState(AceState.Disabled);
 
-        _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("disabled"))), Times.Once);
+        _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("disabled")), It.IsAny<bool>()), Times.Once);
     }
 
     [TestMethod]

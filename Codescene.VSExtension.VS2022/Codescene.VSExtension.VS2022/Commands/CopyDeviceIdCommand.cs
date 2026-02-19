@@ -27,11 +27,11 @@ internal sealed class CopyDeviceIdCommand : BaseCommand<CopyDeviceIdCommand>
             if (!string.IsNullOrWhiteSpace(deviceId))
             {
                 Clipboard.SetText(deviceId);
-                logger.Info("Device ID copied to clipboard.");
+                logger.Info("Device ID copied to clipboard.", true);
             }
             else
             {
-                logger.Warn("Failed to retrieve device ID.");
+                logger.Warn("Failed to retrieve device ID.", true);
             }
         }
         catch (Exception ex)

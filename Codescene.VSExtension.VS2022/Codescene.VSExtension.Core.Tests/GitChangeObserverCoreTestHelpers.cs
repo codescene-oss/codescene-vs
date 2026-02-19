@@ -74,12 +74,12 @@ namespace Codescene.VSExtension.Core.Tests
             DebugMessages.Add(message);
         }
 
-        public void Info(string message)
+        public void Info(string message, bool statusBar = false)
         {
             InfoMessages.Add(message);
         }
 
-        public void Warn(string message)
+        public void Warn(string message, bool statusBar = false)
         {
             WarnMessages.Add(message);
         }

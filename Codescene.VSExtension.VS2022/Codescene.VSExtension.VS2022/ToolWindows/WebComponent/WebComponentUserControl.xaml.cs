@@ -318,7 +318,7 @@ public partial class WebComponentUserControl : UserControl
 
                 args.Cancel = true;
 
-                _logger.Info($"Opened link '{uri}' in external browser.");
+                _logger.Info($"Opened link '{uri}' in external browser.", true);
                 SendTelemetry(uri);
             }
             catch (Exception ex)

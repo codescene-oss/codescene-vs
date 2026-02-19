@@ -31,7 +31,7 @@ internal sealed class RevokeTermsCommand : BaseCommand<RevokeTermsCommand>
         store.SetBoolean(Constants.Titles.SETTINGSCOLLECTION, Constants.Titles.ACCEPTEDTERMSPROPERTY, false);
 
         var logger = await VS.GetMefServiceAsync<ILogger>();
-        logger.Info("Terms & Policies revoked. Existing analysis results will be cleared upon file update or reopening. You will be prompted to accept CodeScene's Terms & Policies the next time the extension loads.");
+        logger.Info("Terms & Policies revoked. Existing analysis results will be cleared upon file update or reopening. You will be prompted to accept CodeScene's Terms & Policies the next time the extension loads.", true);
 
         var cache = new ReviewCacheService();
         cache.Clear();

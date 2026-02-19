@@ -57,7 +57,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
             // Check network connectivity before proceeding
             if (!_networkService.IsNetworkAvailable())
             {
-                _logger.Warn("No internet connection available. Refactoring requires network access.");
+                _logger.Warn("No internet connection available. Refactoring requires network access.", true);
                 _aceStateService.SetState(AceState.Offline);
                 LastRefactoring = null;
                 return null;
@@ -71,7 +71,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
                 if (refactoredFunction != null)
                 {
-                    _logger.Info($"Refactoring function: {refactorableFunction.Name}...");
+                    _logger.Info($"Refactoring function: {refactorableFunction.Name}...", true);
                     _logger.Debug($"Refactoring trace-id: {refactoredFunction.TraceId}.");
 
                     // Clear any previous errors on success (matching VSCode behavior)
