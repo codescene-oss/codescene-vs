@@ -220,20 +220,31 @@ namespace Codescene.VSExtension.Core.Tests
             var jobsStarted = new List<Job>();
             var jobsFinished = new List<Job>();
 
-            Codescene.VSExtension.Core.Util.DeltaJobTracker.JobStarted += (job) => jobsStarted.Add(job);
-            Codescene.VSExtension.Core.Util.DeltaJobTracker.JobFinished += (job) => jobsFinished.Add(job);
+            Action<Job> onJobStarted = (job) => jobsStarted.Add(job);
+            Action<Job> onJobFinished = (job) => jobsFinished.Add(job);
 
-            await TriggerFileChangeAsync(testFile);
+            Codescene.VSExtension.Core.Util.DeltaJobTracker.JobStarted += onJobStarted;
+            Codescene.VSExtension.Core.Util.DeltaJobTracker.JobFinished += onJobFinished;
 
-            await WaitForConditionAsync(() => jobsStarted.Count > 0 && jobsFinished.Count > 0, 2000);
+            try
+            {
+                await TriggerFileChangeAsync(testFile);
 
-            Assert.HasCount(1, jobsStarted, "Should add exactly one delta job");
-            Assert.HasCount(1, jobsFinished, "Should remove exactly one delta job");
-            Assert.AreEqual(testFile, jobsStarted[0].File.FileName, "Job should track the correct file");
-            Assert.AreEqual(testFile, jobsFinished[0].File.FileName, "Finished job should be the same file");
+                await WaitForConditionAsync(() => jobsStarted.Count > 0 && jobsFinished.Count > 0, 2000);
 
-            var runningJobs = Codescene.VSExtension.Core.Util.DeltaJobTracker.RunningJobs;
-            Assert.IsEmpty(runningJobs, "No jobs should be running after completion");
+                Assert.HasCount(1, jobsStarted, "Should add exactly one delta job");
+                Assert.HasCount(1, jobsFinished, "Should remove exactly one delta job");
+                Assert.AreEqual(testFile, jobsStarted[0].File.FileName, "Job should track the correct file");
+                Assert.AreEqual(testFile, jobsFinished[0].File.FileName, "Finished job should be the same file");
+
+                var runningJobs = Codescene.VSExtension.Core.Util.DeltaJobTracker.RunningJobs;
+                Assert.IsEmpty(runningJobs, "No jobs should be running after completion");
+            }
+            finally
+            {
+                Codescene.VSExtension.Core.Util.DeltaJobTracker.JobStarted -= onJobStarted;
+                Codescene.VSExtension.Core.Util.DeltaJobTracker.JobFinished -= onJobFinished;
+            }
         }
     }
 }
