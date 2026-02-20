@@ -100,29 +100,25 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task ReviewAsync_EmptyContent_ReturnsNull()
         {
-            // Arrange
             var path = "test.cs";
             var content = string.Empty;
 
-            // Act
             var result = await _codeReviewer.ReviewAsync(path, content);
 
-            // Assert
             Assert.IsNull(result);
+            _mockExecutor.Verify(x => x.ReviewContentAsync(It.IsAny<string>(), It.Is<string>(s => string.IsNullOrWhiteSpace(s)), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [TestMethod]
         public async Task ReviewAsync_WhitespaceContent_ReturnsNull()
         {
-            // Arrange
             var path = "test.cs";
             var content = "   ";
 
-            // Act
             var result = await _codeReviewer.ReviewAsync(path, content);
 
-            // Assert
             Assert.IsNull(result);
+            _mockExecutor.Verify(x => x.ReviewContentAsync(It.IsAny<string>(), It.Is<string>(s => string.IsNullOrWhiteSpace(s)), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [TestMethod]
@@ -333,7 +329,7 @@ namespace Codescene.VSExtension.Core.Tests
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", currentCode, false, It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", oldCode, true, It.IsAny<CancellationToken>())).ReturnsAsync(baselineCliReview);
             _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(review);
-            _mockMapper.Setup(x => x.Map(path, baselineCliReview)).Returns(new FileReviewModel { RawScore = "baseline-raw" });
+            _mockMapper.Setup(x => x.Map(path, baselineCliReview)).Returns(new FileReviewModel { FilePath = path, RawScore = "baseline-raw", Score = 7.0f });
 
             var (actualReview, actualBaseline) = await _codeReviewer.ReviewAndBaselineAsync(path, currentCode);
 
@@ -352,13 +348,25 @@ namespace Codescene.VSExtension.Core.Tests
 
             _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns((string)null);
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", currentCode, false, It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
-            _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", string.Empty, true, It.IsAny<CancellationToken>())).ReturnsAsync(new CliReviewModel { RawScore = string.Empty });
             _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(review);
 
             var (actualReview, actualBaseline) = await _codeReviewer.ReviewAndBaselineAsync(path, currentCode);
 
             Assert.IsNotNull(actualReview);
             Assert.AreEqual(string.Empty, actualBaseline);
+            _mockExecutor.Verify(x => x.ReviewContentAsync(It.IsAny<string>(), It.Is<string>(s => string.IsNullOrWhiteSpace(s)), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task GetOrComputeBaselineRawScoreAsync_WhenBaselineContentEmpty_ReturnsEmptyWithoutCallingExecutor()
+        {
+            var path = "test.cs";
+            var baselineContent = string.Empty;
+
+            var result = await _codeReviewer.GetOrComputeBaselineRawScoreAsync(path, baselineContent);
+
+            Assert.AreEqual(string.Empty, result);
+            _mockExecutor.Verify(x => x.ReviewContentAsync(It.IsAny<string>(), It.Is<string>(s => string.IsNullOrWhiteSpace(s)), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [TestMethod]
