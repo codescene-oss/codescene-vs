@@ -88,11 +88,11 @@ namespace Codescene.VSExtension.Core.Tests
             _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
             _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object);
 
-            var exception = await Assert.ThrowsExceptionAsync<TimeoutException>(() =>
+            var exception = await Assert.ThrowsAsync<TimeoutException>(() =>
                 _processExecutor.ExecuteAsync("127.0.0.1 -n 100", null, TimeSpan.FromMilliseconds(1)));
 
-            Assert.IsTrue(exception.Message.Contains("timeout"));
-            Assert.IsTrue(exception.Message.Contains("1"));
+            Assert.Contains("timeout", exception.Message);
+            Assert.Contains("1", exception.Message);
         }
 
         [TestMethod]
@@ -110,7 +110,7 @@ namespace Codescene.VSExtension.Core.Tests
             using var cts = new CancellationTokenSource();
             cts.Cancel();
 
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(() =>
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
                 _processExecutor.ExecuteAsync("127.0.0.1 -n 100", null, TimeSpan.FromMilliseconds(50), cts.Token));
         }
 

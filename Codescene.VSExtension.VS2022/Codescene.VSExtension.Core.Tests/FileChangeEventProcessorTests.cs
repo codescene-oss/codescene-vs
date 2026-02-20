@@ -39,7 +39,7 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(FileChangeType.Change, capturedEvt.Type);
             Assert.AreEqual("test.cs", capturedEvt.FilePath);
             Assert.IsNotNull(capturedChangedFiles);
-            Assert.AreEqual(1, capturedChangedFiles.Count);
+            Assert.HasCount(1, capturedChangedFiles);
             Assert.AreEqual("file1.cs", capturedChangedFiles[0]);
         }
 
