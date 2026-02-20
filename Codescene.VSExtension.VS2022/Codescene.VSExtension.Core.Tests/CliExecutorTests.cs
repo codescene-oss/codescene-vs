@@ -241,7 +241,7 @@ namespace Codescene.VSExtension.Core.Tests
             _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
                 .ReturnsAsync(jsonResponse);
 
-            var result = _cliExecutor.PreflightAsync(force: false);
+            var result = await _cliExecutor.PreflightAsync(force: false);
 
             Assert.IsNotNull(result);
             _mockCommandProvider.Verify(x => x.GetPreflightSupportInformationCommand(false), Times.Once);

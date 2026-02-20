@@ -46,7 +46,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 return;
             }
 
-            var prefix = filePath + "|";
+            var prefix = filePath.ToLowerInvariant() + "|";
             foreach (var key in Cache.Keys.Where(k => k.StartsWith(prefix)).ToList())
             {
                 Cache.TryRemove(key, out _);

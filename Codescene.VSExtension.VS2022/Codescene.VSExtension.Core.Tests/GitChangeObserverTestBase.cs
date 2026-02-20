@@ -13,7 +13,6 @@ namespace Codescene.VSExtension.Core.Tests
         protected FakeLogger _fakeLogger;
         protected FakeCodeReviewer _fakeCodeReviewer;
         protected FakeSupportedFileChecker _fakeSupportedFileChecker;
-        protected FakeGitService _fakeGitService;
         protected FakeAsyncTaskScheduler _fakeTaskScheduler;
         protected FakeSavedFilesTracker _fakeSavedFilesTracker;
         protected FakeOpenFilesObserver _fakeOpenFilesObserver;
@@ -56,7 +55,6 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeLogger = new FakeLogger();
             _fakeCodeReviewer = new FakeCodeReviewer();
             _fakeSupportedFileChecker = new FakeSupportedFileChecker();
-            _fakeGitService = new FakeGitService();
             _fakeTaskScheduler = new FakeAsyncTaskScheduler();
             _fakeSavedFilesTracker = new FakeSavedFilesTracker();
             _fakeOpenFilesObserver = new FakeOpenFilesObserver();

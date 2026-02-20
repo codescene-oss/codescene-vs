@@ -74,8 +74,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return cts;
             });
 
-            _inFlightReviewCancellation[key] = cts;
-
             try
             {
                 var command = _cliServices.CommandProvider.ReviewFileContentCommand;

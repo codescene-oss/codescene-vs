@@ -233,7 +233,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
                 .Returns("old code");
-            _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), It.IsAny<string>()))
+            _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CliReviewModel { RawScore = "old-raw" });
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
                 .Returns(new FileReviewModel { RawScore = "old-raw" });

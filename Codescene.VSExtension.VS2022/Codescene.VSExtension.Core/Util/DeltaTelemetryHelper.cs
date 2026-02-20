@@ -54,7 +54,10 @@ namespace Codescene.VSExtension.Core.Util
                     };
                 }
 
-                await telemetryManager?.SendTelemetryAsync(eventName, additionalData);
+                if (telemetryManager != null)
+                {
+                    await telemetryManager.SendTelemetryAsync(eventName, additionalData);
+                }
             });
         }
 

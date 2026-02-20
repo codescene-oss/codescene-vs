@@ -211,8 +211,11 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
                 _logger.Info($"Reviewing file {path}...", true);
                 var (result, baselineRawScore) = await RunReviewAndBaselineAsync(path, code);
+                if (result != null)
+                {
+                    cache.Put(new ReviewCacheEntry(code, path, result));
+                }
 
-                cache.Put(new ReviewCacheEntry(code, path, result));
                 await ApplyReviewResultsAsync(result, code, baselineRawScore, buffer);
             }
             catch (Exception e)
