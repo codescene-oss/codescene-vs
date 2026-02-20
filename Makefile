@@ -6,7 +6,7 @@ include .github/sha.mk
 # Lazy-once cache key - computed on first use, then cached for rest of Make invocation
 CACHE_KEY = $(eval CACHE_KEY := $$(call get_cache_key))$(CACHE_KEY)
 
-.PHONY: test test1 test-mine coverage-mine copy-assets restore format format-all format-check class-size-mine no-regions-mine test-cache test-sha install-cli delta pr-size clean-vs-exp prebuild
+.PHONY: test test1 test-mine coverage-mine copy-assets restore format format-all format-check class-size-mine no-regions-mine test-cache test-sha install-cli delta pr-size clean prebuild
 
 # You might need something like:
 # export PATH="$PATH:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/Extensions/TestPlatform"
@@ -42,7 +42,7 @@ copy-assets: .copy-assets
 restore:
 	@dotnet.exe restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln > restore.log 2>&1 && del restore.log || (type restore.log && del restore.log && exit /b 1)
 
-prebuild: $(CS_FILES) $(PROJ_FILES) .copy-assets clean-vs-exp
+prebuild: $(CS_FILES) $(PROJ_FILES) .copy-assets clean
 
 # Build only runs if source files or assets are newer than .build-timestamp
 .build-timestamp: prebuild
@@ -97,5 +97,5 @@ delta:
 pr-size:
 	@pwsh.exe -File .github/pr-size.ps1
 
-clean-vs-exp:
+clean:
 	@pwsh.exe -Command "Get-ChildItem \"$$env:LOCALAPPDATA\Microsoft\VisualStudio\" -Filter '*Exp' -Directory | ForEach-Object { Remove-Item \"$$_.FullName\" -Recurse -Force -ErrorAction SilentlyContinue }"
