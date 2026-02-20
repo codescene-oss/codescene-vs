@@ -25,6 +25,8 @@ namespace Codescene.VSExtension.Core.Application.Git
         private string _workspacePath;
         private DroppingScheduledExecutor _scheduledExecutor;
         private bool _disposed = false;
+        private bool _initialScanDone = false;
+        private RepoState _lastRepoState;
 
         public GitChangeLister(
             ISavedFilesTracker savedFilesTracker,
@@ -72,6 +74,8 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             _gitRootPath = gitRootPath;
             _workspacePath = workspacePath;
+            _initialScanDone = false;
+            _lastRepoState = null;
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeLister: Initialized with gitRoot='{gitRootPath}', workspace='{workspacePath}'");
             #endif
@@ -258,7 +262,12 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             try
             {
-                var files = await CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
+                var needsFullScan = !_initialScanDone || await HasRepoStateChangedAsync();
+                var files = needsFullScan
+                    ? await GetAllChangedFilesAsync(_gitRootPath, _workspacePath)
+                    : await CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
+                _initialScanDone = true;
+                await UpdateLastRepoStateAsync();
                 if (files != null && files.Count > 0)
                 {
                     #if FEATURE_INITIAL_GIT_OBSERVER
@@ -271,6 +280,61 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 _logger?.Warn($"GitChangeLister: Error during periodic scan: {ex.Message}");
             }
+        }
+
+        private async Task<bool> HasRepoStateChangedAsync()
+        {
+            var current = await GetRepoStateAsync(_gitRootPath);
+            if (current == null || _lastRepoState == null)
+            {
+                return _lastRepoState != null;
+            }
+
+            return current.HeadSha != _lastRepoState.HeadSha
+                || current.Branch != _lastRepoState.Branch
+                || current.MergeBaseSha != _lastRepoState.MergeBaseSha;
+        }
+
+        private async Task UpdateLastRepoStateAsync()
+        {
+            _lastRepoState = await GetRepoStateAsync(_gitRootPath);
+        }
+
+        private async Task<RepoState> GetRepoStateAsync(string gitRootPath)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    if (!IsValidGitRoot(gitRootPath))
+                    {
+                        return null;
+                    }
+
+                    var repoPath = Repository.Discover(gitRootPath);
+                    if (string.IsNullOrEmpty(repoPath))
+                    {
+                        return null;
+                    }
+
+                    using (var repo = new Repository(repoPath))
+                    {
+                        var head = repo.Head;
+                        if (head?.Tip == null)
+                        {
+                            return null;
+                        }
+
+                        var mergeBase = _mergeBaseFinder.GetMergeBaseCommit(repo);
+                        return new RepoState(head.Tip.Sha, head.FriendlyName ?? string.Empty, mergeBase?.Sha ?? string.Empty);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.Debug($"GitChangeLister: Error getting repo state: {ex.Message}");
+                    return null;
+                }
+            });
         }
 
         private bool IsValidGitRoot(string gitRootPath)
@@ -380,6 +444,26 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 return Path.Combine(basePath, relativePath);
             }
+        }
+
+        private class RepoState
+        {
+            private readonly string _headSha;
+            private readonly string _branch;
+            private readonly string _mergeBaseSha;
+
+            public RepoState(string headSha, string branch, string mergeBaseSha)
+            {
+                _headSha = headSha;
+                _branch = branch;
+                _mergeBaseSha = mergeBaseSha;
+            }
+
+            public string HeadSha => _headSha;
+
+            public string Branch => _branch;
+
+            public string MergeBaseSha => _mergeBaseSha;
         }
     }
 }

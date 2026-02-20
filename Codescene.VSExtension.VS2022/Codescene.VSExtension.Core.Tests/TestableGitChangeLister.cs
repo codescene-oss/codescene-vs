@@ -34,6 +34,16 @@ namespace Codescene.VSExtension.Core.Tests
             return ConvertAndFilterPaths(relativePaths, gitRootPath);
         }
 
+        public override async Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath)
+        {
+            if (ThrowInCollectFilesFromRepoStateAsync)
+            {
+                throw new Exception("Simulated exception in CollectFilesFromRepoStateAsync");
+            }
+
+            return await base.GetAllChangedFilesAsync(gitRootPath, workspacePath);
+        }
+
         public override async Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath)
         {
             if (ThrowInCollectFilesFromRepoStateAsync)
