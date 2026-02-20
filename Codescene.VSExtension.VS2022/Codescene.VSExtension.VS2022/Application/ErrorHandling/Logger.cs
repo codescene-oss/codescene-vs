@@ -116,7 +116,7 @@ public class Logger : ILogger
         var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
         if (telemetryManager != null)
         {
-            telemetryManager.SendErrorTelemetryAsync(ex, context);
+            telemetryManager.SendErrorTelemetryAsync(ex, context).FireAndForget();
         }
     }
 

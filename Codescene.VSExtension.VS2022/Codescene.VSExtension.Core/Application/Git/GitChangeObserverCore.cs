@@ -304,34 +304,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        private void InitializeTracker()
-        {
-            _taskScheduler.Schedule(async () =>
-            {
-                try
-                {
-                    var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
-                    var addedCount = 0;
-                    foreach (var absolutePath in absolutePaths)
-                    {
-                        if (File.Exists(absolutePath))
-                        {
-                            _trackerManager.Add(absolutePath);
-                            addedCount++;
-                        }
-                    }
-
-                    #if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> GitChangeObserverCore: Initialized tracker with {addedCount} files");
-                    #endif
-                }
-                catch (Exception ex)
-                {
-                    _logger?.Warn($"GitChangeObserver: Error initializing tracker: {ex.Message}");
-                }
-            });
-        }
-
         private FileSystemWatcher CreateWatcher(string path)
         {
             #if FEATURE_INITIAL_GIT_OBSERVER

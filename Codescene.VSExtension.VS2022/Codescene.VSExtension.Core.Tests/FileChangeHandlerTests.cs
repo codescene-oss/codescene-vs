@@ -17,7 +17,6 @@ namespace Codescene.VSExtension.Core.Tests
         private FakeLogger _fakeLogger;
         private FakeCodeReviewer _fakeCodeReviewer;
         private FakeSupportedFileChecker _fakeSupportedFileChecker;
-        private FakeGitService _fakeGitService;
         private TrackerManager _trackerManager;
 
         [TestInitialize]
@@ -29,7 +28,6 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeLogger = new FakeLogger();
             _fakeCodeReviewer = new FakeCodeReviewer();
             _fakeSupportedFileChecker = new FakeSupportedFileChecker();
-            _fakeGitService = new FakeGitService();
             _trackerManager = new TrackerManager();
 
             _handler = new FileChangeHandler(

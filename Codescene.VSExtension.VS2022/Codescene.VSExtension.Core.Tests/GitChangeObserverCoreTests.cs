@@ -176,44 +176,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task InitializeTracker_SkipsNonExistentFiles()
-        {
-            var existingFile = CreateFile("existing.ts", "export const x = 1;");
-            var nonExistentFile = Path.Combine(_testRepoPath, "nonexistent.ts");
-
-            _fakeGitChangeLister.FilesToReturn = new HashSet<string> { existingFile, nonExistentFile };
-
-            var newObserver = CreateGitChangeObserverCore();
-            var newTracker = newObserver.GetTrackerManager();
-
-            await WaitForConditionAsync(() => newTracker.Contains(existingFile), 2000);
-
-            Assert.IsTrue(newTracker.Contains(existingFile), "Existing file should be in tracker");
-            Assert.IsFalse(newTracker.Contains(nonExistentFile), "Non-existent file should not be in tracker");
-
-            newObserver.Dispose();
-        }
-
-        [TestMethod]
-        public async Task InitializeTracker_WhenExceptionThrown_LogsWarning()
-        {
-            _fakeLogger.WarnMessages.Clear();
-
-            _fakeGitChangeLister.ThrowOnCollectFiles = true;
-
-            var newObserver = CreateGitChangeObserverCore();
-
-            await WaitForConditionAsync(() => _fakeLogger.WarnMessages.Count > 0, 2000);
-
-            Assert.IsNotEmpty(_fakeLogger.WarnMessages, "Should log warning when CollectFilesFromRepoStateAsync throws");
-            Assert.IsTrue(
-                _fakeLogger.WarnMessages.Exists(msg => msg.Contains("Error initializing tracker")),
-                "Warning should mention error initializing tracker");
-
-            newObserver.Dispose();
-        }
-
-        [TestMethod]
         public async Task HandleFileChange_AddsDeltaJobAndRemovesWhenComplete()
         {
             var testFile = CreateFile("test.cs", "public class Test {}");
