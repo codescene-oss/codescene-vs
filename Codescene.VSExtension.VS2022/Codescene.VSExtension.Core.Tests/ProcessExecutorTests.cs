@@ -74,5 +74,62 @@ namespace Codescene.VSExtension.Core.Tests
                 // The important thing is that FileNotFoundException was not thrown, meaning the file existence check passed
             }
         }
+
+        [TestMethod]
+        public async Task Execute_WhenTimeoutExceeded_ThrowsTimeoutException()
+        {
+            var pingPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "ping.exe");
+            if (!File.Exists(pingPath))
+            {
+                Assert.Inconclusive("ping.exe not found, skipping timeout test");
+                return;
+            }
+
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object);
+
+            var exception = await Assert.ThrowsExceptionAsync<TimeoutException>(() =>
+                _processExecutor.ExecuteAsync("127.0.0.1 -n 100", null, TimeSpan.FromMilliseconds(1)));
+
+            Assert.IsTrue(exception.Message.Contains("timeout"));
+            Assert.IsTrue(exception.Message.Contains("1"));
+        }
+
+        [TestMethod]
+        public async Task Execute_WhenTimeoutExceededAndCancellationRequested_ThrowsOperationCanceledException()
+        {
+            var pingPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "ping.exe");
+            if (!File.Exists(pingPath))
+            {
+                Assert.Inconclusive("ping.exe not found, skipping timeout test");
+                return;
+            }
+
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object);
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            await Assert.ThrowsExceptionAsync<OperationCanceledException>(() =>
+                _processExecutor.ExecuteAsync("127.0.0.1 -n 100", null, TimeSpan.FromMilliseconds(50), cts.Token));
+        }
+
+        [TestMethod]
+        public async Task Execute_WhenTimeoutExceededWithTelemetryArgument_ReturnsEmptyString()
+        {
+            var pingPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "ping.exe");
+            if (!File.Exists(pingPath))
+            {
+                Assert.Inconclusive("ping.exe not found, skipping timeout test");
+                return;
+            }
+
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object);
+
+            var result = await _processExecutor.ExecuteAsync("telemetry some-command", null, TimeSpan.FromMilliseconds(1));
+
+            Assert.AreEqual(string.Empty, result);
+        }
     }
 }

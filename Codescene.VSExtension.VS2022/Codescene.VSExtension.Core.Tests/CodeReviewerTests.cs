@@ -318,5 +318,82 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNotNull(result);
             _mockExecutor.Verify(x => x.ReviewDeltaAsync(It.Is<ReviewDeltaRequest>(r => r.OldScore == "old-raw" && r.NewScore == "new-raw" && r.FilePath == "test.cs" && r.FileContent == currentCode), It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        [TestMethod]
+        public async Task ReviewAndBaselineAsync_ReturnsReviewAndBaselineRawScore()
+        {
+            var path = "test.cs";
+            var currentCode = "public class Test { }";
+            var oldCode = "public class OldTest { }";
+            var review = new FileReviewModel { FilePath = path, RawScore = "current-raw", Score = 8.5f };
+            var cliReview = new CliReviewModel { RawScore = "current-raw" };
+            var baselineCliReview = new CliReviewModel { RawScore = "baseline-raw" };
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", currentCode, false, It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
+            _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", oldCode, true, It.IsAny<CancellationToken>())).ReturnsAsync(baselineCliReview);
+            _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(review);
+
+            var (actualReview, actualBaseline) = await _codeReviewer.ReviewAndBaselineAsync(path, currentCode);
+
+            Assert.IsNotNull(actualReview);
+            Assert.AreEqual("current-raw", actualReview.RawScore);
+            Assert.AreEqual("baseline-raw", actualBaseline);
+        }
+
+        [TestMethod]
+        public async Task ReviewAndBaselineAsync_WhenGitReturnsNull_UsesEmptyStringForOldCode()
+        {
+            var path = "test.cs";
+            var currentCode = "public class Test { }";
+            var cliReview = new CliReviewModel { RawScore = "current-raw" };
+            var review = new FileReviewModel { FilePath = path, RawScore = "current-raw" };
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns((string)null);
+            _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", currentCode, false, It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
+            _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", string.Empty, true, It.IsAny<CancellationToken>())).ReturnsAsync(new CliReviewModel { RawScore = string.Empty });
+            _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(review);
+
+            var (actualReview, actualBaseline) = await _codeReviewer.ReviewAndBaselineAsync(path, currentCode);
+
+            Assert.IsNotNull(actualReview);
+            Assert.AreEqual(string.Empty, actualBaseline);
+        }
+
+        [TestMethod]
+        public async Task GetOrComputeBaselineRawScoreAsync_WhenCached_ReturnsCachedScore()
+        {
+            var path = "test.cs";
+            var baselineContent = "cached content";
+
+            _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), baselineContent, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CliReviewModel { RawScore = "cached-raw" });
+            _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
+                .Returns(new FileReviewModel { RawScore = "cached-raw" });
+
+            var result = await _codeReviewer.GetOrComputeBaselineRawScoreAsync(path, baselineContent);
+            var secondResult = await _codeReviewer.GetOrComputeBaselineRawScoreAsync(path, baselineContent);
+
+            Assert.AreEqual("cached-raw", result);
+            Assert.AreEqual("cached-raw", secondResult);
+            _mockExecutor.Verify(x => x.ReviewContentAsync(It.IsAny<string>(), baselineContent, true, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task GetOrComputeBaselineRawScoreAsync_WhenReviewReturnsNullRawScore_DoesNotCache()
+        {
+            var path = "uncached.cs";
+            var baselineContent = "content without raw score";
+
+            _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), baselineContent, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CliReviewModel { RawScore = null });
+            _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
+                .Returns(new FileReviewModel { RawScore = null });
+
+            var result = await _codeReviewer.GetOrComputeBaselineRawScoreAsync(path, baselineContent);
+
+            Assert.AreEqual(string.Empty, result);
+            _mockExecutor.Verify(x => x.ReviewContentAsync(It.IsAny<string>(), baselineContent, true, It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }

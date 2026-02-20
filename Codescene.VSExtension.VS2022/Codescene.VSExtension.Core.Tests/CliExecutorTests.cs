@@ -271,5 +271,56 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsNotNull(executor);
         }
+
+        [TestMethod]
+        public async Task ReviewContentAsync_WhenCancelled_ReturnsNull()
+        {
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFileName, TestFileContent, TestCachePath))
+                .Returns("payload");
+            var completion = new TaskCompletionSource<string>();
+            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name test.cs", "payload", null, It.IsAny<CancellationToken>()))
+                .Returns(completion.Task);
+
+            var cts = new CancellationTokenSource();
+            var task = _cliExecutor.ReviewContentAsync(TestFileName, TestFileContent, false, cts.Token);
+            cts.Cancel();
+
+            var result = await task;
+
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public async Task ReviewContentAsync_WhenSecondCallCancelsFirst_FirstReturnsNull()
+        {
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFileName, TestFileContent, TestCachePath))
+                .Returns("payload");
+            var firstCompletion = new TaskCompletionSource<string>();
+            var callCount = 0;
+            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name test.cs", "payload", null, It.IsAny<CancellationToken>()))
+                .Returns<string, string, TimeSpan?, CancellationToken>((cmd, payload, timeout, ct) =>
+                {
+                    callCount++;
+                    if (callCount == 1)
+                    {
+                        return firstCompletion.Task;
+                    }
+
+                    return Task.FromResult(JsonConvert.SerializeObject(new CliReviewModel { Score = 7.5f, RawScore = "raw" }));
+                });
+
+            var firstTask = _cliExecutor.ReviewContentAsync(TestFileName, TestFileContent, false);
+            await Task.Delay(50);
+            var secondTask = _cliExecutor.ReviewContentAsync(TestFileName, TestFileContent, false);
+            firstCompletion.SetCanceled();
+
+            var firstResult = await firstTask;
+            var secondResult = await secondTask;
+
+            Assert.IsNull(firstResult);
+            Assert.IsNotNull(secondResult);
+        }
     }
 }
