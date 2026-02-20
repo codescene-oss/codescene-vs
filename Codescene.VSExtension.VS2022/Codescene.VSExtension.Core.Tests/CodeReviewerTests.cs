@@ -333,6 +333,7 @@ namespace Codescene.VSExtension.Core.Tests
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", currentCode, false, It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", oldCode, true, It.IsAny<CancellationToken>())).ReturnsAsync(baselineCliReview);
             _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(review);
+            _mockMapper.Setup(x => x.Map(path, baselineCliReview)).Returns(new FileReviewModel { RawScore = "baseline-raw" });
 
             var (actualReview, actualBaseline) = await _codeReviewer.ReviewAndBaselineAsync(path, currentCode);
 
