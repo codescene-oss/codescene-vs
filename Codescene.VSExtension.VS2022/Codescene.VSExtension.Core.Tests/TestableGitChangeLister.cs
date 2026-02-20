@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
@@ -26,6 +27,8 @@ namespace Codescene.VSExtension.Core.Tests
 
         public int CollectFilesFromRepoStateCallCount { get; private set; }
 
+        public bool ThrowInGetRepoStateAsync { get; set; }
+
         public void ResetCallCounts()
         {
             GetAllChangedFilesCallCount = 0;
@@ -34,7 +37,7 @@ namespace Codescene.VSExtension.Core.Tests
 
         public async Task InvokePeriodicScanAsync()
         {
-            var method = typeof(GitChangeLister).GetMethod("PeriodicScanAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var method = typeof(GitChangeLister).GetMethod("PeriodicScanAsync", BindingFlags.NonPublic | BindingFlags.Instance);
             var task = (Task)method.Invoke(this, null);
             await task;
         }
@@ -64,6 +67,16 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             return await base.CollectFilesFromRepoStateAsync(gitRootPath, workspacePath);
+        }
+
+        protected override async Task<RepoState> GetRepoStateAsync(string gitRootPath)
+        {
+            if (ThrowInGetRepoStateAsync)
+            {
+                throw new InvalidOperationException("Simulated GetRepoStateAsync failure");
+            }
+
+            return await base.GetRepoStateAsync(gitRootPath);
         }
     }
 }

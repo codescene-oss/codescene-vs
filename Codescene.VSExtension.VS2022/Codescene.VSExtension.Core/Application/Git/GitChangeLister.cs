@@ -206,6 +206,43 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
+        protected virtual async Task<RepoState> GetRepoStateAsync(string gitRootPath)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    if (!IsValidGitRoot(gitRootPath))
+                    {
+                        return null;
+                    }
+
+                    var repoPath = Repository.Discover(gitRootPath);
+                    if (string.IsNullOrEmpty(repoPath))
+                    {
+                        return null;
+                    }
+
+                    using (var repo = new Repository(repoPath))
+                    {
+                        var head = repo.Head;
+                        if (head?.Tip == null)
+                        {
+                            return null;
+                        }
+
+                        var mergeBase = _mergeBaseFinder.GetMergeBaseCommit(repo);
+                        return new RepoState(head.Tip.Sha, head.FriendlyName ?? string.Empty, mergeBase?.Sha ?? string.Empty);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.Debug($"GitChangeLister: Error getting repo state: {ex.Message}");
+                    return null;
+                }
+            });
+        }
+
         protected HashSet<string> ConvertAndFilterPaths(IEnumerable<string> relativePaths, string gitRootPath)
         {
             var result = new HashSet<string>();
@@ -303,43 +340,6 @@ namespace Codescene.VSExtension.Core.Application.Git
         private async Task UpdateLastRepoStateAsync()
         {
             _lastRepoState = await GetRepoStateAsync(_gitRootPath);
-        }
-
-        private async Task<RepoState> GetRepoStateAsync(string gitRootPath)
-        {
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    if (!IsValidGitRoot(gitRootPath))
-                    {
-                        return null;
-                    }
-
-                    var repoPath = Repository.Discover(gitRootPath);
-                    if (string.IsNullOrEmpty(repoPath))
-                    {
-                        return null;
-                    }
-
-                    using (var repo = new Repository(repoPath))
-                    {
-                        var head = repo.Head;
-                        if (head?.Tip == null)
-                        {
-                            return null;
-                        }
-
-                        var mergeBase = _mergeBaseFinder.GetMergeBaseCommit(repo);
-                        return new RepoState(head.Tip.Sha, head.FriendlyName ?? string.Empty, mergeBase?.Sha ?? string.Empty);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger?.Debug($"GitChangeLister: Error getting repo state: {ex.Message}");
-                    return null;
-                }
-            });
         }
 
         private bool IsValidGitRoot(string gitRootPath)
@@ -451,7 +451,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        private class RepoState
+        protected class RepoState
         {
             private readonly string _headSha;
             private readonly string _branch;
