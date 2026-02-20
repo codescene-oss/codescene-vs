@@ -22,6 +22,16 @@ namespace Codescene.VSExtension.Core.Tests
 
         public bool ThrowInCollectFilesFromRepoStateAsync { get; set; }
 
+        public int GetAllChangedFilesCallCount { get; private set; }
+
+        public int CollectFilesFromRepoStateCallCount { get; private set; }
+
+        public void ResetCallCounts()
+        {
+            GetAllChangedFilesCallCount = 0;
+            CollectFilesFromRepoStateCallCount = 0;
+        }
+
         public async Task InvokePeriodicScanAsync()
         {
             var method = typeof(GitChangeLister).GetMethod("PeriodicScanAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -36,6 +46,7 @@ namespace Codescene.VSExtension.Core.Tests
 
         public override async Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath)
         {
+            GetAllChangedFilesCallCount++;
             if (ThrowInCollectFilesFromRepoStateAsync)
             {
                 throw new Exception("Simulated exception in CollectFilesFromRepoStateAsync");
@@ -46,6 +57,7 @@ namespace Codescene.VSExtension.Core.Tests
 
         public override async Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath)
         {
+            CollectFilesFromRepoStateCallCount++;
             if (ThrowInCollectFilesFromRepoStateAsync)
             {
                 throw new Exception("Simulated exception in CollectFilesFromRepoStateAsync");
