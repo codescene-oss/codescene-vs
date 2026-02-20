@@ -349,7 +349,7 @@ public partial class WebComponentUserControl : UserControl
             };
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(Constants.Telemetry.OPENLINK, additionalData);
+            await telemetryManager.SendTelemetryAsync(Constants.Telemetry.OPENLINK, additionalData);
         }).FireAndForget();
     }
 }

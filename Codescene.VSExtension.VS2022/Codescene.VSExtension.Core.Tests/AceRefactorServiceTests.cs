@@ -89,13 +89,13 @@ public class AceRefactorServiceTests
     }
 
     [TestMethod]
-    public void CheckContainsRefactorableFunctions_EmptyFilePath_ReturnsEmptyList()
+    public async Task CheckContainsRefactorableFunctionsAsync_EmptyFilePath_ReturnsEmptyList()
     {
         // Arrange
         var fileReview = CreateFileReviewModel(filePath: string.Empty);
 
         // Act
-        var result = _aceRefactorService.CheckContainsRefactorableFunctions(fileReview, "code");
+        var result = await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(fileReview, "code");
 
         // Assert
         Assert.IsEmpty(result);
@@ -103,58 +103,58 @@ public class AceRefactorServiceTests
     }
 
     [TestMethod]
-    public void CheckContainsRefactorableFunctions_WhitespaceFilePath_ReturnsEmptyList()
+    public async Task CheckContainsRefactorableFunctionsAsync_WhitespaceFilePath_ReturnsEmptyList()
     {
         // Arrange
         var fileReview = CreateFileReviewModel(filePath: "   ");
 
         // Act
-        var result = _aceRefactorService.CheckContainsRefactorableFunctions(fileReview, "code");
+        var result = await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(fileReview, "code");
 
         // Assert
         Assert.IsEmpty(result);
     }
 
     [TestMethod]
-    public void CheckContainsRefactorableFunctions_UnsupportedExtension_ReturnsEmptyList()
+    public async Task CheckContainsRefactorableFunctionsAsync_UnsupportedExtension_ReturnsEmptyList()
     {
         // Arrange
         var fileReview = CreateFileReviewModel(filePath: "test.unsupported");
         _mockPreflightManager.Setup(x => x.IsSupportedLanguage("unsupported")).Returns(false);
 
         // Act
-        var result = _aceRefactorService.CheckContainsRefactorableFunctions(fileReview, "code");
+        var result = await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(fileReview, "code");
 
         // Assert
         Assert.IsEmpty(result);
     }
 
     [TestMethod]
-    public void CheckContainsRefactorableFunctions_ExceptionThrown_ReturnsEmptyListAndLogsError()
+    public async Task CheckContainsRefactorableFunctionsAsync_ExceptionThrown_ReturnsEmptyListAndLogsError()
     {
         SetupSupportedLanguage();
         SetupAceManagerThrows(new Exception("Test exception"));
 
-        var result = _aceRefactorService.CheckContainsRefactorableFunctions(CreateFileReviewModel(), "code");
+        var result = await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(CreateFileReviewModel(), "code");
 
         Assert.IsEmpty(result);
         _mockLogger.Verify(l => l.Error(It.Is<string>(s => s.Contains("Error checking refactorable functions")), It.IsAny<Exception>()), Times.Once);
     }
 
     [TestMethod]
-    public void CheckContainsRefactorableFunctions_NoRefactorableFunctions_ReturnsEmptyList()
+    public async Task CheckContainsRefactorableFunctionsAsync_NoRefactorableFunctions_ReturnsEmptyList()
     {
         SetupSupportedLanguage();
         SetupAceManagerReturns(new List<FnToRefactorModel>());
 
-        var result = _aceRefactorService.CheckContainsRefactorableFunctions(CreateFileReviewModel(), "code");
+        var result = await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(CreateFileReviewModel(), "code");
 
         Assert.IsEmpty(result);
         _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("No refactorable functions found"))), Times.Once);
     }
 
     [TestMethod]
-    public void CheckContainsRefactorableFunctions_RefactorableFunctionsFound_ReturnsTheFunctions()
+    public async Task CheckContainsRefactorableFunctionsAsync_RefactorableFunctionsFound_ReturnsTheFunctions()
     {
         SetupSupportedLanguage();
         var refactorableFunctions = new List<FnToRefactorModel>
@@ -164,7 +164,7 @@ public class AceRefactorServiceTests
         };
         SetupAceManagerReturns(refactorableFunctions);
 
-        var result = _aceRefactorService.CheckContainsRefactorableFunctions(CreateFileReviewModel(), "code");
+        var result = await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(CreateFileReviewModel(), "code");
 
         Assert.HasCount(2, result);
         Assert.AreEqual("Function1", result[0].Name);
@@ -172,18 +172,18 @@ public class AceRefactorServiceTests
     }
 
     [TestMethod]
-    public void CheckContainsRefactorableFunctions_RefactorableFunctionsFound_LogsInfo()
+    public async Task CheckContainsRefactorableFunctionsAsync_RefactorableFunctionsFound_LogsInfo()
     {
         SetupSupportedLanguage();
         SetupAceManagerReturns(new List<FnToRefactorModel> { CreateRefactorableFunction("Function1", "Complex Method", 10) });
 
-        _aceRefactorService.CheckContainsRefactorableFunctions(CreateFileReviewModel(), "code");
+        await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(CreateFileReviewModel(), "code");
 
         _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Found 1 refactorable function")), It.IsAny<bool>()), Times.Once);
     }
 
     [TestMethod]
-    public void CheckContainsRefactorableFunctions_MapsCodeSmellsToCliModel()
+    public async Task CheckContainsRefactorableFunctionsAsync_MapsCodeSmellsToCliModel()
     {
         var codeSmell = CreateCodeSmell("Complex Method", 10);
         var fileReview = new FileReviewModel
@@ -197,20 +197,20 @@ public class AceRefactorServiceTests
         _mockMapper.Setup(x => x.Map(codeSmell)).Returns(new CliCodeSmellModel { Category = "Complex Method" });
         SetupAceManagerReturns(new List<FnToRefactorModel>());
 
-        _aceRefactorService.CheckContainsRefactorableFunctions(fileReview, "code");
+        await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(fileReview, "code");
 
         _mockMapper.Verify(m => m.Map(codeSmell), Times.Once);
     }
 
     [TestMethod]
-    public void CheckContainsRefactorableFunctions_CallsGetPreflightResponse()
+    public async Task CheckContainsRefactorableFunctionsAsync_CallsGetPreflightResponse()
     {
         SetupSupportedLanguage();
         SetupAceManagerReturns(new List<FnToRefactorModel>());
 
-        _aceRefactorService.CheckContainsRefactorableFunctions(CreateFileReviewModel(), "code");
+        await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(CreateFileReviewModel(), "code");
 
-        _mockPreflightManager.Verify(p => p.GetPreflightResponse(), Times.AtLeast(1));
+        _mockPreflightManager.Verify(p => p.GetPreflightResponseAsync(), Times.AtLeast(1));
     }
 
     private static CodeSmellModel CreateCodeSmell(string category, int startLine) =>
@@ -232,20 +232,20 @@ public class AceRefactorServiceTests
     _mockPreflightManager.Setup(x => x.IsSupportedLanguage(extension)).Returns(true);
 
     private void SetupAceManagerReturns(IList<FnToRefactorModel> functions) =>
-        _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmells(
+        _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmellsAsync(
             It.IsAny<string>(),
             It.IsAny<string>(),
             It.IsAny<List<CliCodeSmellModel>>(),
             It.IsAny<PreFlightResponseModel>()))
-            .Returns(functions);
+            .ReturnsAsync(functions);
 
     private void SetupAceManagerThrows(Exception ex) =>
-        _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmells(
+        _mockAceManager.Setup(x => x.GetRefactorableFunctionsFromCodeSmellsAsync(
             It.IsAny<string>(),
             It.IsAny<string>(),
             It.IsAny<List<CliCodeSmellModel>>(),
             It.IsAny<PreFlightResponseModel>()))
-            .Throws(ex);
+            .ThrowsAsync(ex);
 
     private FnToRefactorModel FindRefactorableFunction(CodeSmellModel smell, params FnToRefactorModel[] functions) =>
         _aceRefactorService.GetRefactorableFunction(smell, functions.ToList());

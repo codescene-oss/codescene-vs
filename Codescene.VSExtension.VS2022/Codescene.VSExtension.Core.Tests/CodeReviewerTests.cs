@@ -6,6 +6,7 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Moq;
 
@@ -39,14 +40,14 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Review_NullPath_ReturnsNull()
+        public async Task ReviewAsync_NullPath_ReturnsNull()
         {
             // Arrange
             string? path = null;
             var content = "some code";
 
             // Act
-            var result = _codeReviewer.Review(path, content);
+            var result = await _codeReviewer.ReviewAsync(path, content);
 
             // Assert
             Assert.IsNull(result);
@@ -54,42 +55,42 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Review_EmptyPath_ReturnsNull()
+        public async Task ReviewAsync_EmptyPath_ReturnsNull()
         {
             // Arrange
             var path = string.Empty;
             var content = "some code";
 
             // Act
-            var result = _codeReviewer.Review(path, content);
+            var result = await _codeReviewer.ReviewAsync(path, content);
 
             // Assert
             Assert.IsNull(result);
         }
 
         [TestMethod]
-        public void Review_WhitespacePath_ReturnsNull()
+        public async Task ReviewAsync_WhitespacePath_ReturnsNull()
         {
             // Arrange
             var path = "   ";
             var content = "some code";
 
             // Act
-            var result = _codeReviewer.Review(path, content);
+            var result = await _codeReviewer.ReviewAsync(path, content);
 
             // Assert
             Assert.IsNull(result);
         }
 
         [TestMethod]
-        public void Review_NullContent_ReturnsNull()
+        public async Task ReviewAsync_NullContent_ReturnsNull()
         {
             // Arrange
             var path = "test.cs";
             string? content = null;
 
             // Act
-            var result = _codeReviewer.Review(path, content);
+            var result = await _codeReviewer.ReviewAsync(path, content);
 
             // Assert
             Assert.IsNull(result);
@@ -97,35 +98,35 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Review_EmptyContent_ReturnsNull()
+        public async Task ReviewAsync_EmptyContent_ReturnsNull()
         {
             // Arrange
             var path = "test.cs";
             var content = string.Empty;
 
             // Act
-            var result = _codeReviewer.Review(path, content);
+            var result = await _codeReviewer.ReviewAsync(path, content);
 
             // Assert
             Assert.IsNull(result);
         }
 
         [TestMethod]
-        public void Review_WhitespaceContent_ReturnsNull()
+        public async Task ReviewAsync_WhitespaceContent_ReturnsNull()
         {
             // Arrange
             var path = "test.cs";
             var content = "   ";
 
             // Act
-            var result = _codeReviewer.Review(path, content);
+            var result = await _codeReviewer.ReviewAsync(path, content);
 
             // Assert
             Assert.IsNull(result);
         }
 
         [TestMethod]
-        public void Review_ValidInput_CallsExecutorAndMapper()
+        public async Task ReviewAsync_ValidInput_CallsExecutorAndMapper()
         {
             // Arrange
             var path = "C:/project/test.cs";
@@ -133,46 +134,46 @@ namespace Codescene.VSExtension.Core.Tests
             var cliReview = new CliReviewModel { Score = 8.5f, RawScore = "raw123" };
             var expectedResult = new FileReviewModel { FilePath = path, Score = 8.5f };
 
-            _mockExecutor.Setup(x => x.ReviewContent("test.cs", content)).Returns(cliReview);
+            _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", content, It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
             _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(expectedResult);
 
             // Act
-            var result = _codeReviewer.Review(path, content);
+            var result = await _codeReviewer.ReviewAsync(path, content);
 
             // Assert
             Assert.IsNotNull(result);
             Assert.AreEqual(path, result.FilePath);
             Assert.AreEqual(8.5f, result.Score);
-            _mockExecutor.Verify(x => x.ReviewContent("test.cs", content), Times.Once);
+            _mockExecutor.Verify(x => x.ReviewContentAsync("test.cs", content, It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
             _mockMapper.Verify(x => x.Map(path, cliReview), Times.Once);
         }
 
         [TestMethod]
-        public void Review_ExtractsFileNameFromPath()
+        public async Task ReviewAsync_ExtractsFileNameFromPath()
         {
             // Arrange
             var path = "C:/some/deep/path/to/MyFile.cs";
             var content = "code";
             var cliReview = new CliReviewModel();
 
-            _mockExecutor.Setup(x => x.ReviewContent("MyFile.cs", content)).Returns(cliReview);
+            _mockExecutor.Setup(x => x.ReviewContentAsync("MyFile.cs", content, It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>())).Returns(new FileReviewModel());
 
             // Act
-            _codeReviewer.Review(path, content);
+            await _codeReviewer.ReviewAsync(path, content);
 
-            // Assert - verify executor was called with just the filename, not the full path
-            _mockExecutor.Verify(x => x.ReviewContent("MyFile.cs", content), Times.Once);
+            // Assert
+            _mockExecutor.Verify(x => x.ReviewContentAsync("MyFile.cs", content, It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
-        public void Delta_NullFilePath_ReturnsNull()
+        public async Task DeltaAsync_NullFilePath_ReturnsNull()
         {
             // Arrange
             var review = new FileReviewModel { FilePath = null, RawScore = "raw" };
 
             // Act
-            var result = _codeReviewer.Delta(review, "current code");
+            var result = await _codeReviewer.DeltaAsync(review, "current code");
 
             // Assert
             Assert.IsNull(result);
@@ -180,13 +181,13 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Delta_EmptyFilePath_ReturnsNull()
+        public async Task DeltaAsync_EmptyFilePath_ReturnsNull()
         {
             // Arrange
             var review = new FileReviewModel { FilePath = string.Empty, RawScore = "raw" };
 
             // Act
-            var result = _codeReviewer.Delta(review, "current code");
+            var result = await _codeReviewer.DeltaAsync(review, "current code");
 
             // Assert
             Assert.IsNull(result);
@@ -194,20 +195,20 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Delta_WhitespaceFilePath_ReturnsNull()
+        public async Task DeltaAsync_WhitespaceFilePath_ReturnsNull()
         {
             // Arrange
             var review = new FileReviewModel { FilePath = "   ", RawScore = "raw" };
 
             // Act
-            var result = _codeReviewer.Delta(review, "current code");
+            var result = await _codeReviewer.DeltaAsync(review, "current code");
 
             // Assert
             Assert.IsNull(result);
         }
 
         [TestMethod]
-        public void Delta_WhenExceptionThrown_LogsErrorAndReturnsNull()
+        public async Task DeltaAsync_WhenExceptionThrown_LogsErrorAndReturnsNull()
         {
             // Arrange
             var review = new FileReviewModel { FilePath = "test.cs", RawScore = "raw" };
@@ -217,7 +218,7 @@ namespace Codescene.VSExtension.Core.Tests
                 .Throws(expectedException);
 
             // Act
-            var result = _codeReviewer.Delta(review, "current code");
+            var result = await _codeReviewer.DeltaAsync(review, "current code");
 
             // Assert
             Assert.IsNull(result);
@@ -225,29 +226,29 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Delta_NullRawScore_UsesEmptyString()
+        public async Task DeltaAsync_NullRawScore_UsesEmptyString()
         {
             // Arrange
             var review = new FileReviewModel { FilePath = "test.cs", RawScore = null };
 
             _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
                 .Returns("old code");
-            _mockExecutor.Setup(x => x.ReviewContent(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(new CliReviewModel { RawScore = "old-raw" });
+            _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new CliReviewModel { RawScore = "old-raw" });
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
                 .Returns(new FileReviewModel { RawScore = "old-raw" });
-            _mockExecutor.Setup(x => x.ReviewDelta(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(new Models.Cli.Delta.DeltaResponseModel());
+            _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DeltaResponseModel());
 
             // Act - should not throw
-            _codeReviewer.Delta(review, "current code");
+            await _codeReviewer.DeltaAsync(review, "current code");
 
-            // Assert - verify ReviewDelta was called with empty string for current raw score
-            _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), string.Empty, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            // Assert
+            _mockExecutor.Verify(x => x.ReviewDeltaAsync(It.Is<ReviewDeltaRequest>(r => r.NewScore == string.Empty), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
-        public void Delta_IdenticalContent_ReturnsNullAndSkipsDeltaAnalysis()
+        public async Task DeltaAsync_IdenticalContent_ReturnsNullAndSkipsDeltaAnalysis()
         {
             // Arrange
             var currentCode = "public class Test { }";
@@ -258,18 +259,17 @@ namespace Codescene.VSExtension.Core.Tests
                 .Returns(currentCode);
 
             // Act
-            var result = _codeReviewer.Delta(review, currentCode);
+            var result = await _codeReviewer.DeltaAsync(review, currentCode);
 
             // Assert
             Assert.IsNull(result);
             _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("content unchanged since baseline"))), Times.Once);
 
-            // ReviewDelta should NOT be called since content is identical
-            _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _mockExecutor.Verify(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [TestMethod]
-        public void Delta_IdenticalScores_ReturnsNullAndSkipsDeltaAnalysis()
+        public async Task DeltaAsync_IdenticalScores_ReturnsNullAndSkipsDeltaAnalysis()
         {
             // Arrange
             var oldCode = "public class Test { int x = 1; }";
@@ -279,24 +279,23 @@ namespace Codescene.VSExtension.Core.Tests
 
             _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
                 .Returns(oldCode);
-            _mockExecutor.Setup(x => x.ReviewContent(It.IsAny<string>(), oldCode))
-                .Returns(new CliReviewModel { RawScore = identicalRawScore });
+            _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), oldCode, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CliReviewModel { RawScore = identicalRawScore });
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
                 .Returns(new FileReviewModel { RawScore = identicalRawScore });
 
             // Act
-            var result = _codeReviewer.Delta(review, currentCode);
+            var result = await _codeReviewer.DeltaAsync(review, currentCode);
 
             // Assert
             Assert.IsNull(result);
             _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("scores are identical"))), Times.Once);
 
-            // ReviewDelta should NOT be called since scores are identical
-            _mockExecutor.Verify(x => x.ReviewDelta(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _mockExecutor.Verify(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [TestMethod]
-        public void Delta_DifferentContent_CallsReviewDelta()
+        public async Task DeltaAsync_DifferentContent_CallsReviewDelta()
         {
             // Arrange
             var oldCode = "public class Test { }";
@@ -305,19 +304,19 @@ namespace Codescene.VSExtension.Core.Tests
 
             _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
                 .Returns(oldCode);
-            _mockExecutor.Setup(x => x.ReviewContent(It.IsAny<string>(), oldCode))
-                .Returns(new CliReviewModel { RawScore = "old-raw" });
+            _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), oldCode, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CliReviewModel { RawScore = "old-raw" });
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
                 .Returns(new FileReviewModel { RawScore = "old-raw" });
-            _mockExecutor.Setup(x => x.ReviewDelta("old-raw", "new-raw", "test.cs", currentCode))
-                .Returns(new Models.Cli.Delta.DeltaResponseModel { ScoreChange = -0.5m });
+            _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DeltaResponseModel { ScoreChange = -0.5m });
 
             // Act
-            var result = _codeReviewer.Delta(review, currentCode);
+            var result = await _codeReviewer.DeltaAsync(review, currentCode);
 
             // Assert
             Assert.IsNotNull(result);
-            _mockExecutor.Verify(x => x.ReviewDelta("old-raw", "new-raw", "test.cs", currentCode), Times.Once);
+            _mockExecutor.Verify(x => x.ReviewDeltaAsync(It.Is<ReviewDeltaRequest>(r => r.OldScore == "old-raw" && r.NewScore == "new-raw" && r.FilePath == "test.cs" && r.FileContent == currentCode), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

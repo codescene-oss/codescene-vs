@@ -38,7 +38,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Act & Assert
             var exception = Assert.Throws<FileNotFoundException>(() =>
-                _processExecutor.Execute("version --sha"));
+                _processExecutor.ExecuteAsync("version --sha").GetAwaiter().GetResult());
 
             Assert.Contains("CodeScene CLI executable not found", exception.Message);
             Assert.Contains("bundled with the extension", exception.Message);
@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.Core.Tests
             // but the important part is that FileNotFoundException is not thrown at the file existence check stage
             try
             {
-                _processExecutor.Execute("version --sha");
+                _processExecutor.ExecuteAsync("version --sha").GetAwaiter().GetResult();
 
                 // If we get here without FileNotFoundException, the file existence check passed
             }

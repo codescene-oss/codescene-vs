@@ -22,7 +22,6 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ILogger _logger;
         private readonly ICodeReviewer _codeReviewer;
         private readonly ISupportedFileChecker _supportedFileChecker;
-        private readonly IGitService _gitService;
         private readonly IAsyncTaskScheduler _taskScheduler;
         private readonly IGitChangeLister _gitChangeLister;
 
@@ -43,14 +42,12 @@ namespace Codescene.VSExtension.Core.Application.Git
             ILogger logger,
             ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker,
-            IGitService gitService,
             IAsyncTaskScheduler taskScheduler,
             IGitChangeLister gitChangeLister)
         {
             _logger = logger;
             _codeReviewer = codeReviewer;
             _supportedFileChecker = supportedFileChecker;
-            _gitService = gitService;
             _taskScheduler = taskScheduler;
             _gitChangeLister = gitChangeLister;
             _trackerManager = new TrackerManager(_logger);
@@ -102,8 +99,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 _fileWatcher = CreateWatcher(_workspacePath);
             }
-
-            InitializeTracker();
         }
 
         public void Start()
@@ -177,7 +172,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _eventProcessor = null;
         }
 
-        private async Task PerformDeltaAnalysisAsync(string filePath, string content)
+        private async Task PerformDeltaAnalysisAsync(string filePath, string content, FileReviewModel review, string baselineRawScore = null)
         {
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeObserverCore: Starting delta analysis for '{filePath}'");
@@ -193,10 +188,10 @@ namespace Codescene.VSExtension.Core.Application.Git
                 DeltaJobTracker.Add(pendingJob);
                 ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
 
-                var review = _codeReviewer.Review(filePath, content);
                 if (review?.RawScore != null)
                 {
-                    var delta = _codeReviewer.Delta(review, content);
+                    var delta = await _codeReviewer.DeltaAsync(review, content, baselineRawScore);
+                    ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
                     #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: Delta analysis completed for '{filePath}'");
                     #endif
@@ -220,6 +215,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             #endif
             var deltaCache = new Core.Application.Cache.Review.DeltaCacheService();
             deltaCache.Invalidate(filePath);
+            var baselineCache = new Core.Application.Cache.Review.BaselineReviewCacheService();
+            baselineCache.Invalidate(filePath);
             ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
         }
 

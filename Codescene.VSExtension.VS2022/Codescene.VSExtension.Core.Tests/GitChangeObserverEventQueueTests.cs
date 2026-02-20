@@ -50,7 +50,6 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeLogger,
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
-                _fakeGitService,
                 new FakeAsyncTaskScheduler(),
                 _fakeGitChangeLister);
 
@@ -100,7 +99,6 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeLogger,
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
-                _fakeGitService,
                 new FakeAsyncTaskScheduler(),
                 _fakeGitChangeLister);
 

@@ -96,7 +96,6 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeLogger,
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
-                _fakeGitService,
                 _fakeTaskScheduler,
                 _fakeGitChangeLister);
 

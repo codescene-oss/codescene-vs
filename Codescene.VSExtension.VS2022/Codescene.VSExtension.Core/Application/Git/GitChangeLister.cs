@@ -104,6 +104,8 @@ namespace Codescene.VSExtension.Core.Application.Git
         public void StopPeriodicScanning()
         {
             _scheduledExecutor?.Stop();
+            _scheduledExecutor?.Dispose();
+            _scheduledExecutor = null;
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeLister: Stopped periodic scanning");
             #endif
@@ -132,8 +134,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             _logger?.Info(">>> GitChangeLister: Disposing and cleaning up resources");
             #endif
             StopPeriodicScanning();
-            _scheduledExecutor?.Dispose();
-            _scheduledExecutor = null;
             _disposed = true;
         }
 

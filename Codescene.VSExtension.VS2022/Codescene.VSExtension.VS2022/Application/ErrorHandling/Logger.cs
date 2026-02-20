@@ -114,13 +114,13 @@ public class Logger : ILogger
     private async Task SendErrorTelemetryAsync(Exception ex, string context)
     {
         var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-        telemetryManager?.SendErrorTelemetry(ex, context);
+        telemetryManager?.SendErrorTelemetryAsync(ex, context);
     }
 
     private async Task SendTimeoutTelemetryAsync()
     {
         var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-        telemetryManager?.SendTelemetry(Telemetry.REVIEWORDELTATIMEOUT);
+        await telemetryManager?.SendTelemetryAsync(Telemetry.REVIEWORDELTATIMEOUT);
     }
 
     private void WriteToFile(string message)

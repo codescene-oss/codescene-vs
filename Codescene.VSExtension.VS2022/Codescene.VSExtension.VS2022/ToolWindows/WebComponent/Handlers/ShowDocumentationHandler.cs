@@ -82,7 +82,7 @@ public class ShowDocumentationHandler
             };
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(Constants.Telemetry.OPENDOCSPANEL, additionalData);
+            await telemetryManager.SendTelemetryAsync(Constants.Telemetry.OPENDOCSPANEL, additionalData);
         }).FireAndForget();
     }
 }

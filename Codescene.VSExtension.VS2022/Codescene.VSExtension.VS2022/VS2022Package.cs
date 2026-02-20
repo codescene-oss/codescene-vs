@@ -107,7 +107,7 @@ public sealed class VS2022Package : ToolkitPackage
         Task.Run(async () =>
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(eventName);
+            await telemetryManager.SendTelemetryAsync(eventName);
         }).FireAndForget();
     }
 
@@ -116,7 +116,7 @@ public sealed class VS2022Package : ToolkitPackage
         Task.Run(async () =>
         {
             var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
-            preflightManager.RunPreflight(true);
+            await preflightManager.RunPreflightAsync(true);
         }).FireAndForget();
     }
 
@@ -175,7 +175,7 @@ public sealed class VS2022Package : ToolkitPackage
     private async Task CheckCliFileAsync()
     {
         var cliFileChecker = await GetServiceAsync<ICliFileChecker>();
-        cliFileChecker.Check();
+        await Task.Run(async () => cliFileChecker.CheckAsync());
     }
 
     private async Task SubscribeOnActiveWindowChangeAsync()

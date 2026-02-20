@@ -1,6 +1,8 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 
