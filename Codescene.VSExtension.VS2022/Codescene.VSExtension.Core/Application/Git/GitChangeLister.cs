@@ -285,9 +285,14 @@ namespace Codescene.VSExtension.Core.Application.Git
         private async Task<bool> HasRepoStateChangedAsync()
         {
             var current = await GetRepoStateAsync(_gitRootPath);
+            if (current == null && _lastRepoState == null)
+            {
+                return false;
+            }
+
             if (current == null || _lastRepoState == null)
             {
-                return _lastRepoState != null;
+                return true;
             }
 
             return current.HeadSha != _lastRepoState.HeadSha
