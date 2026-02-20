@@ -239,34 +239,34 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public async Task<string> GetDeviceIdAsync()
         {
-            try
-            {
-                var result = await _cliServices.ProcessExecutor.ExecuteAsync(_cliServices.CommandProvider.DeviceIdCommand);
-                return result?.Trim().TrimEnd('\r', '\n');
-            }
-            catch (Exception e)
-            {
-                _logger.Error("Could not get device ID", e);
-                return string.Empty;
-            }
+            return await ExecuteSimpleCommandAsync(
+                _cliServices.CommandProvider.DeviceIdCommand,
+                "Could not get device ID");
         }
 
         public async Task<string> GetFileVersionAsync()
         {
+            return await ExecuteSimpleCommandAsync(
+                _cliServices.CommandProvider.VersionCommand,
+                "Could not get CLI version");
+        }
+
+        private static string GetReviewCancellationKey(string filename, bool isBaseline) =>
+          string.IsNullOrEmpty(filename) ? string.Empty : filename + (isBaseline ? ":baseline" : ":current");
+
+        private async Task<string> ExecuteSimpleCommandAsync(string command, string errorMessage)
+        {
             try
             {
-                var result = await _cliServices.ProcessExecutor.ExecuteAsync(_cliServices.CommandProvider.VersionCommand);
+                var result = await _cliServices.ProcessExecutor.ExecuteAsync(command);
                 return result?.Trim().TrimEnd('\r', '\n');
             }
             catch (Exception e)
             {
-                _logger.Error("Could not get CLI version", e);
+                _logger.Error(errorMessage, e);
                 return string.Empty;
             }
         }
-
-        private static string GetReviewCancellationKey(string filename, bool isBaseline) =>
-            string.IsNullOrEmpty(filename) ? string.Empty : filename + (isBaseline ? ":baseline" : ":current");
 
         private ITelemetryManager GetTelemetryManager()
         {
