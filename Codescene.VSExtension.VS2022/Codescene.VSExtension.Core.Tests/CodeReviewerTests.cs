@@ -393,8 +393,11 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = await _codeReviewer.GetOrComputeBaselineRawScoreAsync(path, baselineContent);
 
+            var secondResult = await _codeReviewer.GetOrComputeBaselineRawScoreAsync(path, baselineContent);
+
             Assert.AreEqual(string.Empty, result);
-            _mockExecutor.Verify(x => x.ReviewContentAsync(It.IsAny<string>(), baselineContent, true, It.IsAny<CancellationToken>()), Times.Once);
+            Assert.AreEqual(string.Empty, secondResult);
+            _mockExecutor.Verify(x => x.ReviewContentAsync(It.IsAny<string>(), baselineContent, true, It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
     }
 }

@@ -119,6 +119,16 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Put_WithEmptyBaselineContent_DoesNotStore()
+        {
+            _cache.Put("file.cs", string.Empty, "raw-score");
+
+            var (found, _) = _cache.Get("file.cs", "content");
+
+            Assert.IsFalse(found);
+        }
+
+        [TestMethod]
         public void Put_WithNullRawScore_StoresEmptyString()
         {
             _cache.Put("file.cs", "content", null);
