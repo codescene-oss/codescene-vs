@@ -6,7 +6,7 @@ include .github/sha.mk
 # Lazy-once cache key - computed on first use, then cached for rest of Make invocation
 CACHE_KEY = $(eval CACHE_KEY := $$(call get_cache_key))$(CACHE_KEY)
 
-.PHONY: test test1 test-mine coverage-mine copy-assets restore format format-all format-check class-size-mine no-regions-mine test-cache test-sha install-cli delta pr-size clean prebuild
+.PHONY: test test1 test-mine coverage-mine copy-assets restore format format-all format-check class-size-mine no-regions-mine test-cache test-sha install-cli delta pr-size clean prebuild quit-vs
 
 # You might need something like:
 # export PATH="$PATH:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/Extensions/TestPlatform"
@@ -42,17 +42,20 @@ copy-assets: .copy-assets
 restore:
 	@dotnet.exe restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln > restore.log 2>&1 && del restore.log || (type restore.log && del restore.log && exit /b 1)
 
+quit-vs:
+	@pwsh.exe -File .github/quit-vs.ps1 > quit-vs.log 2>&1 && del quit-vs.log || (type quit-vs.log && del quit-vs.log && exit /b 1)
+
 prebuild: $(CS_FILES) $(PROJ_FILES) .copy-assets clean
 
 # Build only runs if source files or assets are newer than .build-timestamp
-.build-timestamp: prebuild
+.build-timestamp: quit-vs prebuild
 	@dotnet.exe restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln > restore.log 2>&1 && del restore.log || (type restore.log && del restore.log && exit /b 1)
 	@cd Codescene.VSExtension.VS2022 && MSBuild.exe Codescene.VSExtension.sln -p:Configuration=Release -v:minimal > build.log 2>&1 && del build.log || (pwsh.exe -File ..\.github\filter-build-log.ps1 -LogFile build.log && del build.log && exit /b 1)
 	@echo Build completed at %date% %time% > .build-timestamp
 
 build: .build-timestamp
 
-test: build
+test: quit-vs build
 	$(call call_cached,$(CACHE_KEY),pwsh.exe -File .github/test.ps1)
 
 # make test1 TEST=GitChangeObserverTests
