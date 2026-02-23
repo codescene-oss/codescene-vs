@@ -3,20 +3,17 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Codescene.VSExtension.Core.Enums.Git;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
     public class FileChangeEventProcessor : IDisposable
     {
-        private const int MaxConcurrentFileProcessing = 4;
-
         private readonly ConcurrentQueue<FileChangeEvent> _eventQueue = new ConcurrentQueue<FileChangeEvent>();
-        private readonly SemaphoreSlim _concurrencySemaphore = new SemaphoreSlim(MaxConcurrentFileProcessing, MaxConcurrentFileProcessing);
+        private readonly SemaphoreSlim _concurrencySemaphore;
         private readonly ILogger _logger;
         private readonly Func<FileChangeEvent, List<string>, Task> _processEventCallback;
         private readonly Func<Task<List<string>>> _getChangedFilesCallback;
@@ -33,6 +30,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             _taskScheduler = taskScheduler;
             _processEventCallback = processEventCallback;
             _getChangedFilesCallback = getChangedFilesCallback;
+
+            var numberOfThreads = CoreCountUtils.GetParallelizationCountByCoreCount(Environment.ProcessorCount);
+            _concurrencySemaphore = new SemaphoreSlim(numberOfThreads, numberOfThreads);
         }
 
         public ConcurrentQueue<FileChangeEvent> EventQueue => _eventQueue;
