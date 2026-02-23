@@ -137,7 +137,7 @@ namespace Codescene.VSExtension.Core.Tests
             var testableLister = new TestableGitChangeLister(
                 _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
             testableLister.Initialize(_testRepoPath, _testRepoPath);
-            testableLister.ThrowInCollectFilesFromRepoStateAsync = true;
+            testableLister.ThrowInGetAllChangedFilesAsync = true;
 
             _fakeLogger.WarnMessages.Clear();
 

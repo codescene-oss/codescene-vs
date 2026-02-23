@@ -20,7 +20,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
         }
 
-        public bool ThrowInCollectFilesFromRepoStateAsync { get; set; }
+        public bool ThrowInGetAllChangedFilesAsync { get; set; }
 
         public async Task InvokePeriodicScanAsync()
         {
@@ -34,14 +34,14 @@ namespace Codescene.VSExtension.Core.Tests
             return ConvertAndFilterPaths(relativePaths, gitRootPath);
         }
 
-        public override async Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath)
+        public override async Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath)
         {
-            if (ThrowInCollectFilesFromRepoStateAsync)
+            if (ThrowInGetAllChangedFilesAsync)
             {
                 throw new Exception("Simulated exception in CollectFilesFromRepoStateAsync");
             }
 
-            return await base.CollectFilesFromRepoStateAsync(gitRootPath, workspacePath);
+            return await base.GetAllChangedFilesAsync(gitRootPath, workspacePath);
         }
     }
 }
