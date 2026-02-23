@@ -255,6 +255,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
             }
         }
 
+        /// <summary> Try to get the ITextDocument, which contains the file path. </summary>
         private string GetFilePath(ITextBuffer buffer)
         {
             if (buffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document))
@@ -286,7 +287,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
             {
                 DeltaJobTracker.Add(job);
 
-                await CodeSceneToolWindow.UpdateViewAsync();
+                await CodeSceneToolWindow.UpdateViewAsync(); // Update loading state
 
                 var deltaResult = await _reviewer.DeltaAsync(currentReview, currentContent, precomputedBaselineRawScore);
                 await AceUtils.UpdateDeltaCacheWithRefactorableFunctionsAsync(deltaResult, path, currentContent, _logger);
