@@ -1,6 +1,8 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
@@ -9,20 +11,20 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
 {
     public interface ICliExecutor
     {
-        CliReviewModel ReviewContent(string filename, string content);
+        Task<DeltaResponseModel> ReviewDeltaAsync(ReviewDeltaRequest request, CancellationToken cancellationToken = default);
 
-        DeltaResponseModel ReviewDelta(string oldScore, string newScore, string filePath = null, string fileContent = null);
+        Task<CliReviewModel> ReviewContentAsync(string filename, string content, bool isBaseLine = false, CancellationToken cancellationToken = default);
 
-        string GetFileVersion();
+        Task<string> GetFileVersionAsync();
 
-        string GetDeviceId();
+        Task<string> GetDeviceIdAsync();
 
-        PreFlightResponseModel Preflight(bool force = true);
+        Task<PreFlightResponseModel> PreflightAsync(bool force = true);
 
-        RefactorResponseModel PostRefactoring(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null);
+        Task<RefactorResponseModel> PostRefactoringAsync(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null);
 
-        IList<FnToRefactorModel> FnsToRefactorFromCodeSmells(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight);
+        Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight);
 
-        IList<FnToRefactorModel> FnsToRefactorFromDelta(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight);
+        Task<IList<FnToRefactorModel>> FnsToRefactorFromDeltaAsync(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight);
     }
 }

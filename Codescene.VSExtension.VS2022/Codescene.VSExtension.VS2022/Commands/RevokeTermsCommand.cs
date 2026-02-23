@@ -44,7 +44,7 @@ internal sealed class RevokeTermsCommand : BaseCommand<RevokeTermsCommand>
         Task.Run(async () =>
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(Constants.Telemetry.REVOKETERMS);
+            await telemetryManager.SendTelemetryAsync(Constants.Telemetry.REVOKETERMS);
         }).FireAndForget();
     }
 }

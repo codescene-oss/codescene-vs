@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 
@@ -27,7 +28,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _cliSettingsProvider = cliSettingsProvider;
         }
 
-        public bool Check()
+        public async Task<bool> CheckAsync()
         {
             try
             {
@@ -37,7 +38,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     return false;
                 }
 
-                var currentCliVersion = _cliExecutor.GetFileVersion();
+                var currentCliVersion = await _cliExecutor.GetFileVersionAsync();
                 if (string.IsNullOrEmpty(currentCliVersion))
                 {
                     _logger.Warn("Could not determine CLI version. The CLI file exists but version check failed.");

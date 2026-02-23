@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
@@ -39,9 +40,9 @@ namespace Codescene.VSExtension.Core.Application.Ace
             _logger = logger;
         }
 
-        public IList<FnToRefactorModel> CheckContainsRefactorableFunctions(FileReviewModel result, string code)
+        public async Task<IList<FnToRefactorModel>> CheckContainsRefactorableFunctionsAsync(FileReviewModel result, string code)
         {
-            _preflightManager.GetPreflightResponse();
+            await _preflightManager.GetPreflightResponseAsync();
 
             var path = result.FilePath;
             var fileName = Path.GetFileName(path);
@@ -71,11 +72,11 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 cliCodeSmellModelList.Add(cliCodeSmellModel);
             }
 
-            var preflight = _preflightManager.GetPreflightResponse();
+            var preflight = await _preflightManager.GetPreflightResponseAsync();
 
             try
             {
-                var refactorableFunctions = _aceManager.GetRefactorableFunctionsFromCodeSmells(fileName, code, cliCodeSmellModelList, preflight);
+                var refactorableFunctions = await _aceManager.GetRefactorableFunctionsFromCodeSmellsAsync(fileName, code, cliCodeSmellModelList, preflight);
 
                 if (refactorableFunctions.Any())
                 {

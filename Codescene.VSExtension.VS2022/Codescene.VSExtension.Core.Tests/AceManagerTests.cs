@@ -55,7 +55,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetRefactorableFunctions_DelegatesToExecutor()
+        public async Task GetRefactorableFunctions_DelegatesToExecutor()
         {
             // Arrange
             var fileName = "test.cs";
@@ -67,21 +67,21 @@ namespace Codescene.VSExtension.Core.Tests
                 new FnToRefactorModel { Name = "TestFunction" },
             };
 
-            _mockExecutor.Setup(x => x.FnsToRefactorFromCodeSmells(fileName, fileContent, codeSmells, preflight))
-                .Returns(expectedResult);
+            _mockExecutor.Setup(x => x.FnsToRefactorFromCodeSmellsAsync(fileName, fileContent, codeSmells, preflight))
+                .ReturnsAsync(expectedResult);
 
             // Act
-            var result = _aceManager.GetRefactorableFunctionsFromCodeSmells(fileName, fileContent, codeSmells, preflight);
+            var result = await _aceManager.GetRefactorableFunctionsFromCodeSmellsAsync(fileName, fileContent, codeSmells, preflight);
 
             // Assert
             Assert.IsNotNull(result);
             Assert.HasCount(1, result);
             Assert.AreEqual("TestFunction", result[0].Name);
-            _mockExecutor.Verify(x => x.FnsToRefactorFromCodeSmells(fileName, fileContent, codeSmells, preflight), Times.Once);
+            _mockExecutor.Verify(x => x.FnsToRefactorFromCodeSmellsAsync(fileName, fileContent, codeSmells, preflight), Times.Once);
         }
 
         [TestMethod]
-        public void GetRefactorableFunctions_ReturnsNullWhenExecutorReturnsNull()
+        public async Task GetRefactorableFunctions_ReturnsNullWhenExecutorReturnsNull()
         {
             // Arrange
             var fileName = "test.cs";
@@ -89,29 +89,29 @@ namespace Codescene.VSExtension.Core.Tests
             var codeSmells = new List<CliCodeSmellModel>();
             var preflight = new PreFlightResponseModel();
 
-            _mockExecutor.Setup(x => x.FnsToRefactorFromCodeSmells(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
-                .Returns((IList<FnToRefactorModel>)null);
+            _mockExecutor.Setup(x => x.FnsToRefactorFromCodeSmellsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>()))
+                .ReturnsAsync((IList<FnToRefactorModel>)null);
 
             // Act
-            var result = _aceManager.GetRefactorableFunctionsFromCodeSmells(fileName, fileContent, codeSmells, preflight);
+            var result = await _aceManager.GetRefactorableFunctionsFromCodeSmellsAsync(fileName, fileContent, codeSmells, preflight);
 
             // Assert
             Assert.IsNull(result);
         }
 
         [TestMethod]
-        public void Refactor_WhenExecutorReturnsNull_LogsInfoAndReturnsNull()
+        public async Task Refactor_WhenExecutorReturnsNull_LogsInfoAndReturnsNull()
         {
             // Arrange
             var path = "test.cs";
             var fnToRefactor = new FnToRefactorModel { Name = "TestMethod" };
             var entryPoint = "toolbar";
 
-            _mockExecutor.Setup(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
-                .Returns((RefactorResponseModel)null);
+            _mockExecutor.Setup(x => x.PostRefactoringAsync(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
+                .ReturnsAsync((RefactorResponseModel)null);
 
             // Act
-            var result = _aceManager.Refactor(path, fnToRefactor, entryPoint);
+            var result = await _aceManager.RefactorAsync(path, fnToRefactor, entryPoint);
 
             // Assert
             Assert.IsNull(result);
@@ -119,7 +119,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Refactor_WhenExceptionThrown_LogsErrorSetsErrorAndRethrows()
+        public async Task Refactor_WhenExceptionThrown_LogsErrorSetsErrorAndRethrows()
         {
             // Arrange
             var path = "test.cs";
@@ -127,11 +127,11 @@ namespace Codescene.VSExtension.Core.Tests
             var entryPoint = "toolbar";
             var expectedException = new Exception("Refactoring failed");
 
-            _mockExecutor.Setup(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
-                .Throws(expectedException);
+            _mockExecutor.Setup(x => x.PostRefactoringAsync(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
+                .ThrowsAsync(expectedException);
 
             // Act & Assert
-            var ex = Assert.Throws<Exception>(() => _aceManager.Refactor(path, fnToRefactor, entryPoint));
+            var ex = await Assert.ThrowsAsync<Exception>(() => _aceManager.RefactorAsync(path, fnToRefactor, entryPoint));
 
             Assert.AreEqual("Refactoring failed", ex.Message);
             _mockLogger.Verify(l => l.Error(It.Is<string>(s => s.Contains("TestMethod")), expectedException), Times.Once);
@@ -174,7 +174,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Refactor_WhenSuccessful_ClearsErrorAndCachesResult()
+        public async Task RefactorAsync_WhenSuccessful_ClearsErrorAndCachesResult()
         {
             // Arrange
             var path = "test.cs";
@@ -182,11 +182,11 @@ namespace Codescene.VSExtension.Core.Tests
             var entryPoint = "toolbar";
             var refactoredResponse = new RefactorResponseModel { Code = "refactored", TraceId = "trace-456" };
 
-            _mockExecutor.Setup(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
-                .Returns(refactoredResponse);
+            _mockExecutor.Setup(x => x.PostRefactoringAsync(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
+                .ReturnsAsync(refactoredResponse);
 
             // Act
-            var result = _aceManager.Refactor(path, fnToRefactor, entryPoint);
+            var result = await _aceManager.RefactorAsync(path, fnToRefactor, entryPoint);
 
             // Assert
             Assert.IsNotNull(result);
@@ -198,7 +198,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Refactor_WhenSuccessfulAndWasOffline_TransitionsToEnabled()
+        public async Task RefactorAsync_WhenSuccessfulAndWasOffline_TransitionsToEnabled()
         {
             // Arrange
             var path = "test.cs";
@@ -207,11 +207,11 @@ namespace Codescene.VSExtension.Core.Tests
             var refactoredResponse = new RefactorResponseModel { Code = "refactored", TraceId = "trace-789" };
 
             _mockAceStateService.Setup(s => s.CurrentState).Returns(AceState.Offline);
-            _mockExecutor.Setup(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
-                .Returns(refactoredResponse);
+            _mockExecutor.Setup(x => x.PostRefactoringAsync(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()))
+                .ReturnsAsync(refactoredResponse);
 
             // Act
-            var result = _aceManager.Refactor(path, fnToRefactor, entryPoint);
+            var result = await _aceManager.RefactorAsync(path, fnToRefactor, entryPoint);
 
             // Assert
             Assert.IsNotNull(result);
@@ -219,7 +219,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Refactor_WhenNetworkUnavailable_SetsOfflineStateAndReturnsNull()
+        public async Task RefactorAsync_WhenNetworkUnavailable_SetsOfflineStateAndReturnsNull()
         {
             // Arrange
             var path = "test.cs";
@@ -229,18 +229,18 @@ namespace Codescene.VSExtension.Core.Tests
             _mockNetworkService.Setup(n => n.IsNetworkAvailable()).Returns(false);
 
             // Act
-            var result = _aceManager.Refactor(path, fnToRefactor, entryPoint);
+            var result = await _aceManager.RefactorAsync(path, fnToRefactor, entryPoint);
 
             // Assert
             Assert.IsNull(result);
             Assert.IsNull(AceManager.LastRefactoring);
             _mockAceStateService.Verify(s => s.SetState(AceState.Offline), Times.Once);
             _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("No internet connection")), It.IsAny<bool>()), Times.Once);
-            _mockExecutor.Verify(x => x.PostRefactoring(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Never);
+            _mockExecutor.Verify(x => x.PostRefactoringAsync(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
-        public void GetRefactorableFunctionsFromDelta_DelegatesToExecutor()
+        public async Task GetRefactorableFunctionsFromDeltaAsync_DelegatesToExecutor()
         {
             // Arrange
             var fileName = "test.cs";
@@ -252,21 +252,21 @@ namespace Codescene.VSExtension.Core.Tests
                 new FnToRefactorModel { Name = "TestFunction" },
             };
 
-            _mockExecutor.Setup(x => x.FnsToRefactorFromDelta(fileName, fileContent, deltaResponse, preflight))
-                .Returns(expectedResult);
+            _mockExecutor.Setup(x => x.FnsToRefactorFromDeltaAsync(fileName, fileContent, deltaResponse, preflight))
+                .ReturnsAsync(expectedResult);
 
             // Act
-            var result = _aceManager.GetRefactorableFunctionsFromDelta(fileName, fileContent, deltaResponse, preflight);
+            var result = await _aceManager.GetRefactorableFunctionsFromDeltaAsync(fileName, fileContent, deltaResponse, preflight);
 
             // Assert
             Assert.IsNotNull(result);
             Assert.HasCount(1, result);
             Assert.AreEqual("TestFunction", result[0].Name);
-            _mockExecutor.Verify(x => x.FnsToRefactorFromDelta(fileName, fileContent, deltaResponse, preflight), Times.Once);
+            _mockExecutor.Verify(x => x.FnsToRefactorFromDeltaAsync(fileName, fileContent, deltaResponse, preflight), Times.Once);
         }
 
         [TestMethod]
-        public void GetRefactorableFunctionsFromDelta_ReturnsNullWhenExecutorReturnsNull()
+        public async Task GetRefactorableFunctionsFromDelta_ReturnsNullWhenExecutorReturnsNull()
         {
             // Arrange
             var fileName = "test.cs";
@@ -274,11 +274,11 @@ namespace Codescene.VSExtension.Core.Tests
             var deltaResponse = new DeltaResponseModel { ScoreChange = -0.5M };
             var preflight = new PreFlightResponseModel();
 
-            _mockExecutor.Setup(x => x.FnsToRefactorFromDelta(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>()))
-                .Returns((IList<FnToRefactorModel>)null);
+            _mockExecutor.Setup(x => x.FnsToRefactorFromDeltaAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>()))
+                .ReturnsAsync((IList<FnToRefactorModel>)null);
 
             // Act
-            var result = _aceManager.GetRefactorableFunctionsFromDelta(fileName, fileContent, deltaResponse, preflight);
+            var result = await _aceManager.GetRefactorableFunctionsFromDeltaAsync(fileName, fileContent, deltaResponse, preflight);
 
             // Assert
             Assert.IsNull(result);

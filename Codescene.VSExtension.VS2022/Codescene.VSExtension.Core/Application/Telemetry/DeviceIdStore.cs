@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
@@ -24,7 +25,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
             _cli = cli ?? throw new ArgumentNullException(nameof(cli));
         }
 
-        public string GetDeviceId()
+        public async Task<string> GetDeviceIdAsync()
         {
             if (!string.IsNullOrEmpty(_deviceId))
             {
@@ -33,7 +34,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
 
             try
             {
-                _deviceId = _cli.GetDeviceId();
+                _deviceId = await _cli.GetDeviceIdAsync();
             }
             catch (Exception ex)
             {

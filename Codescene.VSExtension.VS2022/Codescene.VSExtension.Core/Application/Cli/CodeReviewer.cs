@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -41,7 +43,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _git = git;
         }
 
-        public FileReviewModel Review(string path, string content)
+        public async Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
         {
             var fileName = Path.GetFileName(path);
 
@@ -51,11 +53,22 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            var review = _executor.ReviewContent(fileName, content);
+            var review = await _executor.ReviewContentAsync(fileName, content, isBaseline, cancellationToken);
             return _mapper.Map(path, review);
         }
 
-        public DeltaResponseModel Delta(FileReviewModel review, string currentCode)
+        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, CancellationToken cancellationToken = default)
+        {
+            var oldCode = _git.GetFileContentForCommit(path) ?? string.Empty;
+            var reviewTask = ReviewAsync(path, currentCode, false, cancellationToken);
+            var baselineTask = GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, cancellationToken);
+            await Task.WhenAll(reviewTask, baselineTask).ConfigureAwait(false);
+            var review = await reviewTask;
+            var baselineRawScore = (await baselineTask) ?? string.Empty;
+            return (review, baselineRawScore);
+        }
+
+        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, CancellationToken cancellationToken = default)
         {
             var path = review.FilePath;
             var currentRawScore = review.RawScore ?? string.Empty;
@@ -75,7 +88,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 if (oldCode == currentCode)
                 {
                     _logger.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: content unchanged since baseline.");
-
                     // Cache null delta to remove file from monitor if it was previously shown
                     cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, null));
                     return null;
@@ -89,20 +101,18 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     return entry.Item2;
                 }
 
-                var oldCodeReview = Review(path, oldCode);
-                var oldRawScore = oldCodeReview?.RawScore ?? string.Empty;
+                var oldRawScore = precomputedBaselineRawScore ?? await GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, cancellationToken);
 
                 // Skip delta if scores are identical (same code health, no meaningful change)
                 if (oldRawScore == currentRawScore)
                 {
                     _logger.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: scores are identical.");
-
                     // Cache null delta to remove file from monitor if it was previously shown
                     cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, null));
                     return null;
                 }
 
-                var delta = _executor.ReviewDelta(oldRawScore, currentRawScore, path, currentCode);
+                var delta = await _executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = oldRawScore, NewScore = currentRawScore, FilePath = path, FileContent = currentCode }, cancellationToken);
 
                 var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(cache.GetAll());
                 var cacheEntry = new DeltaCacheEntry(path, oldCode, currentCode, delta);
@@ -117,6 +127,30 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 _logger.Error($"Could not perform delta analysis on file {path}", e);
                 return null;
             }
+        }
+
+        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, CancellationToken cancellationToken = default)
+        {
+            return await GetOrComputeBaselineRawScoreInternalAsync(path, baselineContent, cancellationToken);
+        }
+
+        private async Task<string> GetOrComputeBaselineRawScoreInternalAsync(string path, string oldCode, CancellationToken cancellationToken)
+        {
+            var baselineCache = new BaselineReviewCacheService();
+            var baselineEntry = baselineCache.Get(path, oldCode);
+            if (baselineEntry.Found)
+            {
+                return baselineEntry.RawScore ?? string.Empty;
+            }
+
+            var oldCodeReview = await ReviewAsync(path, oldCode, isBaseline: true, cancellationToken);
+            var oldRawScore = oldCodeReview?.RawScore ?? string.Empty;
+            if (oldCodeReview?.RawScore != null)
+            {
+                baselineCache.Put(path, oldCode, oldCodeReview.RawScore);
+            }
+
+            return oldRawScore;
         }
     }
 }

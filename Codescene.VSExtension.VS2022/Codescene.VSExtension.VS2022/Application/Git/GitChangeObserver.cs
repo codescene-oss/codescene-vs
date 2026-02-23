@@ -31,9 +31,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         private ISupportedFileChecker _supportedFileChecker;
 
         [Import]
-        private IGitService _gitService;
-
-        [Import]
         private IAsyncTaskScheduler _taskScheduler;
 
         [Import]
@@ -51,14 +48,12 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             ILogger logger,
             ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker,
-            IGitService gitService,
             IAsyncTaskScheduler taskScheduler,
             IGitChangeLister gitChangeLister)
         {
             _logger = logger;
             _codeReviewer = codeReviewer;
             _supportedFileChecker = supportedFileChecker;
-            _gitService = gitService;
             _taskScheduler = taskScheduler;
             _gitChangeLister = gitChangeLister;
             InitializeCore();
@@ -132,7 +127,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         private void InitializeCore()
         {
-            _core = new GitChangeObserverCore(_logger, _codeReviewer, _supportedFileChecker, _gitService, _taskScheduler, _gitChangeLister);
+            _core = new GitChangeObserverCore(_logger, _codeReviewer, _supportedFileChecker, _taskScheduler, _gitChangeLister);
 
             _fileDeletedHandler = (sender, args) => FileDeletedFromGit?.Invoke(this, args);
             _viewUpdateHandler = OnViewUpdateRequested;

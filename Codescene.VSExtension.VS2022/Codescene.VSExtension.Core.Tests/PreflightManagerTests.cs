@@ -54,10 +54,10 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void RunPreflight_LogsDebugMessage()
+    public async Task RunPreflightAsync_LogsDebugMessage()
     {
         // Act
-        _preflightManager.RunPreflight(true);
+        await _preflightManager.RunPreflightAsync(true);
 
         // Assert
         _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Running preflight"))), Times.Once);
@@ -65,10 +65,10 @@ public class PreflightManagerTests
 
     [TestMethod]
     [Description("GetPreflightResponse calls RunPreflight when not cached")]
-    public void GetPreflightResponse_WhenNotCached_CallsRunPreflight()
+    public async Task GetPreflightResponseAsync_WhenNotCached_CallsRunPreflight()
     {
         // Act
-        var result = _preflightManager.GetPreflightResponse();
+        var result = await _preflightManager.GetPreflightResponseAsync();
 
         // Assert
         Assert.IsNull(result);
@@ -91,14 +91,14 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void RunPreflight_WhenExecutorThrowsException_SetsErrorState()
+    public async Task RunPreflightAsync_WhenExecutorThrowsException_SetsErrorState()
     {
         // Arrange
         var expectedException = new Exception("CLI error");
         SetupPreflightThrows(expectedException);
 
         // Act
-        var result = _preflightManager.RunPreflight();
+        var result = await _preflightManager.RunPreflightAsync();
 
         // Assert
         Assert.IsNull(result);
@@ -107,13 +107,13 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void RunPreflight_WhenExecutorReturnsNull_SetsOfflineState()
+    public async Task RunPreflightAsync_WhenExecutorReturnsNull_SetsOfflineState()
     {
         // Arrange
         SetupPreflightReturnsNull();
 
         // Act
-        var result = _preflightManager.RunPreflight();
+        var result = await _preflightManager.RunPreflightAsync();
 
         // Assert
         Assert.IsNull(result);
@@ -122,14 +122,14 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void RunPreflight_WhenExecutorReturnsResponse_SetsEnabledState()
+    public async Task RunPreflightAsync_WhenExecutorReturnsResponse_SetsEnabledState()
     {
         // Arrange
         var response = CreatePreflightResponse("cs", "js");
         SetupSuccessfulPreflight(response);
 
         // Act
-        var result = _preflightManager.RunPreflight();
+        var result = await _preflightManager.RunPreflightAsync();
 
         // Assert
         Assert.IsNotNull(result);
@@ -140,56 +140,56 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void IsSupportedLanguage_WhenPreflightResponseExists_ReturnsTrue()
+    public async Task IsSupportedLanguage_WhenPreflightResponseExists_ReturnsTrue()
     {
         // Arrange
         SetupSuccessfulPreflight(CreatePreflightResponse("cs", "js", "ts"));
-        _preflightManager.RunPreflight();
+        await _preflightManager.RunPreflightAsync();
 
         // Act & Assert
         Assert.IsTrue(_preflightManager.IsSupportedLanguage(".cs"));
     }
 
     [TestMethod]
-    public void GetPreflightResponse_WhenCached_ReturnsCachedResponse()
+    public async Task GetPreflightResponseAsync_WhenCached_ReturnsCachedResponse()
     {
         // Arrange
         var response = CreatePreflightResponse("cs");
         SetupSuccessfulPreflight(response);
-        _preflightManager.RunPreflight();
+        await _preflightManager.RunPreflightAsync();
         _mockCliExecutor.Invocations.Clear();
 
         // Act
-        var result = _preflightManager.GetPreflightResponse();
+        var result = await _preflightManager.GetPreflightResponseAsync();
 
         // Assert
         Assert.IsNotNull(result);
         Assert.AreEqual(response, result);
-        _mockCliExecutor.Verify(x => x.Preflight(It.IsAny<bool>()), Times.Never);
+        _mockCliExecutor.Verify(x => x.PreflightAsync(It.IsAny<bool>()), Times.Never);
     }
 
     [TestMethod]
-    public void RunPreflight_WhenSuccessful_SetsAceStatusWithToken()
+    public async Task RunPreflightAsync_WhenSuccessful_SetsAceStatusWithToken()
     {
         // Arrange
         SetupPreflightWithAceStatus("valid-token", AceState.Enabled);
 
         // Act & Assert
-        RunPreflightAndAssertAceStatus("enabled", expectedHasToken: true);
+        await RunPreflightAndAssertAceStatus("enabled", expectedHasToken: true);
     }
 
     [TestMethod]
-    public void RunPreflight_WhenSuccessful_SetsAceStatusWithoutToken()
+    public async Task RunPreflightAsync_WhenSuccessful_SetsAceStatusWithoutToken()
     {
         // Arrange
         SetupPreflightWithAceStatus(string.Empty, AceState.Enabled);
 
         // Act & Assert
-        RunPreflightAndAssertAceStatus("enabled", expectedHasToken: false);
+        await RunPreflightAndAssertAceStatus("enabled", expectedHasToken: false);
     }
 
     [TestMethod]
-    public void RunPreflight_WhenOffline_SetsCorrectAceStatus()
+    public async Task RunPreflightAsync_WhenOffline_SetsCorrectAceStatus()
     {
         // Arrange
         SetupPreflightReturnsNull();
@@ -197,11 +197,11 @@ public class PreflightManagerTests
         SetupCurrentState(AceState.Loading);
 
         // Act & Assert
-        RunPreflightAndAssertAceStatus("loading", expectedHasToken: true);
+        await RunPreflightAndAssertAceStatus("loading", expectedHasToken: true);
     }
 
     [TestMethod]
-    public void RunPreflight_WhenError_SetsCorrectAceStatus()
+    public async Task RunPreflightAsync_WhenError_SetsCorrectAceStatus()
     {
         // Arrange
         SetupPreflightThrows(new Exception("Test error"));
@@ -209,14 +209,14 @@ public class PreflightManagerTests
         SetupCurrentState(AceState.Error);
 
         // Act & Assert
-        RunPreflightAndAssertAceStatus("error", expectedHasToken: true);
+        await RunPreflightAndAssertAceStatus("error", expectedHasToken: true);
     }
 
     [TestMethod]
-    public void SetHasAceToken_UpdatesHasTokenCorrectly()
+    public async Task SetHasAceToken_UpdatesHasTokenCorrectly()
     {
         // Arrange - initialize config without token
-        InitializePreflightConfig(token: string.Empty);
+        await InitializePreflightConfig(token: string.Empty);
         Assert.IsFalse(_preflightManager.GetAutoRefactorConfig().AceStatus.HasToken);
 
         // Act
@@ -227,10 +227,10 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void SetHasAceToken_CanSetToFalse()
+    public async Task SetHasAceToken_CanSetToFalse()
     {
         // Arrange - initialize config with token
-        InitializePreflightConfig(token: "valid-token");
+        await InitializePreflightConfig(token: "valid-token");
         Assert.IsTrue(_preflightManager.GetAutoRefactorConfig().AceStatus.HasToken);
 
         // Act
@@ -254,11 +254,11 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void IsSupportedLanguage_WhenExtensionNotInList_ReturnsFalse()
+    public async Task IsSupportedLanguage_WhenExtensionNotInList_ReturnsFalse()
     {
         // Arrange
         SetupSuccessfulPreflight(CreatePreflightResponse("cs", "js"));
-        _preflightManager.RunPreflight();
+        await _preflightManager.RunPreflightAsync();
 
         // Act
         var result = _preflightManager.IsSupportedLanguage(".py");
@@ -268,11 +268,11 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void IsSupportedLanguage_WithUpperCaseExtension_ReturnsTrue()
+    public async Task IsSupportedLanguage_WithUpperCaseExtension_ReturnsTrue()
     {
         // Arrange
         SetupSuccessfulPreflight(CreatePreflightResponse("cs", "js"));
-        _preflightManager.RunPreflight();
+        await _preflightManager.RunPreflightAsync();
 
         // Act
         var result = _preflightManager.IsSupportedLanguage(".CS");
@@ -282,11 +282,11 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void IsSupportedLanguage_WithoutDotPrefix_ReturnsTrue()
+    public async Task IsSupportedLanguage_WithoutDotPrefix_ReturnsTrue()
     {
         // Arrange
         SetupSuccessfulPreflight(CreatePreflightResponse("cs", "js"));
-        _preflightManager.RunPreflight();
+        await _preflightManager.RunPreflightAsync();
 
         // Act
         var result = _preflightManager.IsSupportedLanguage("cs");
@@ -300,7 +300,7 @@ public class PreflightManagerTests
     [DataRow("", false, DisplayName = "Empty token sets HasToken to false")]
     [DataRow("   ", false, DisplayName = "Whitespace token sets HasToken to false")]
     [DataRow("valid-token", true, DisplayName = "Valid token sets HasToken to true")]
-    public void RunPreflight_SetsHasTokenBasedOnAuthToken(string token, bool expectedHasToken)
+    public async Task RunPreflightAsync_SetsHasTokenBasedOnAuthToken(string token, bool expectedHasToken)
     {
         // Arrange
         SetupSuccessfulPreflight();
@@ -308,7 +308,7 @@ public class PreflightManagerTests
         SetupCurrentState(AceState.Enabled);
 
         // Act
-        _preflightManager.RunPreflight();
+        await _preflightManager.RunPreflightAsync();
         var config = _preflightManager.GetAutoRefactorConfig();
 
         // Assert
@@ -316,11 +316,11 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void GetAutoRefactorConfig_AfterSuccessfulPreflight_ReturnsConfiguredValues()
+    public async Task GetAutoRefactorConfig_AfterSuccessfulPreflight_ReturnsConfiguredValues()
     {
         // Arrange
         SetupPreflightWithAceStatus("token", AceState.Enabled);
-        _preflightManager.RunPreflight();
+        await _preflightManager.RunPreflightAsync();
 
         // Act
         var config = _preflightManager.GetAutoRefactorConfig();
@@ -337,13 +337,13 @@ public class PreflightManagerTests
     [DataRow("", true, DisplayName = "Empty token sets Disabled to true")]
     [DataRow("   ", true, DisplayName = "Whitespace token sets Disabled to true")]
     [DataRow("valid-token", false, DisplayName = "Valid token sets Disabled to false")]
-    public void RunPreflight_SetsDisabledBasedOnAuthToken(string token, bool expectedDisabled)
+    public async Task RunPreflightAsync_SetsDisabledBasedOnAuthToken(string token, bool expectedDisabled)
     {
         // Arrange
         SetupPreflightWithAceStatus(token, AceState.Enabled);
 
         // Act
-        _preflightManager.RunPreflight();
+        await _preflightManager.RunPreflightAsync();
         var config = _preflightManager.GetAutoRefactorConfig();
 
         // Assert
@@ -351,10 +351,10 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void SetHasAceToken_WhenSetToTrue_SetsDisabledFalse()
+    public async Task SetHasAceToken_WhenSetToTrue_SetsDisabledFalse()
     {
         // Arrange - initialize config without token (Disabled = true)
-        InitializePreflightConfig(token: string.Empty);
+        await InitializePreflightConfig(token: string.Empty);
         Assert.IsTrue(_preflightManager.GetAutoRefactorConfig().Disabled);
 
         // Act
@@ -365,10 +365,10 @@ public class PreflightManagerTests
     }
 
     [TestMethod]
-    public void SetHasAceToken_WhenSetToFalse_SetsDisabledTrue()
+    public async Task SetHasAceToken_WhenSetToFalse_SetsDisabledTrue()
     {
         // Arrange - initialize config with valid token (Disabled = false)
-        InitializePreflightConfig(token: "valid-token");
+        await InitializePreflightConfig(token: "valid-token");
         Assert.IsFalse(_preflightManager.GetAutoRefactorConfig().Disabled);
 
         // Act
@@ -384,14 +384,14 @@ public class PreflightManagerTests
     private void SetupSuccessfulPreflight(PreFlightResponseModel? response = null)
     {
         response ??= CreatePreflightResponse("cs");
-        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Returns(response);
+        _mockCliExecutor.Setup(x => x.PreflightAsync(It.IsAny<bool>())).ReturnsAsync(response);
     }
 
     private void SetupPreflightReturnsNull() =>
-        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Returns((PreFlightResponseModel)null);
+        _mockCliExecutor.Setup(x => x.PreflightAsync(It.IsAny<bool>())).ReturnsAsync((PreFlightResponseModel)null);
 
     private void SetupPreflightThrows(Exception exception) =>
-        _mockCliExecutor.Setup(x => x.Preflight(It.IsAny<bool>())).Throws(exception);
+        _mockCliExecutor.Setup(x => x.PreflightAsync(It.IsAny<bool>())).ThrowsAsync(exception);
 
     private void SetupAuthToken(string token) =>
         _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
@@ -406,9 +406,9 @@ public class PreflightManagerTests
         SetupCurrentState(state);
     }
 
-    private void RunPreflightAndAssertAceStatus(string expectedStatus, bool expectedHasToken)
+    private async Task RunPreflightAndAssertAceStatus(string expectedStatus, bool expectedHasToken)
     {
-        _preflightManager.RunPreflight();
+        await _preflightManager.RunPreflightAsync();
         var config = _preflightManager.GetAutoRefactorConfig();
 
         Assert.IsNotNull(config.AceStatus);
@@ -416,9 +416,9 @@ public class PreflightManagerTests
         Assert.AreEqual(expectedHasToken, config.AceStatus.HasToken);
     }
 
-    private void InitializePreflightConfig(string token = "token")
+    private async Task InitializePreflightConfig(string token = "token")
     {
         SetupPreflightWithAceStatus(token, AceState.Enabled);
-        _preflightManager.RunPreflight();
+        await _preflightManager.RunPreflightAsync();
     }
 }

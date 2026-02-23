@@ -24,7 +24,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void SendPerformanceTelemetry_ValidData_SendsTelemetryWithCorrectEventName()
+        public async Task SendPerformanceTelemetryAsyncValidData_SendsTelemetryWithCorrectEventName()
         {
             // Arrange
             var data = new PerformanceTelemetryData
@@ -37,21 +37,21 @@ namespace Codescene.VSExtension.Core.Tests
             };
 
             // Act
-            PerformanceTelemetryHelper.SendPerformanceTelemetry(
+            await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(
                 _mockTelemetryManager.Object,
                 _mockLogger.Object,
                 data);
 
             // Assert
             _mockTelemetryManager.Verify(
-                t => t.SendTelemetry(
+                t => t.SendTelemetryAsync(
                     Constants.Telemetry.ANALYSISPERFORMANCE,
                     It.IsAny<Dictionary<string, object>>()),
                 Times.Once);
         }
 
         [TestMethod]
-        public void SendPerformanceTelemetry_ValidData_IncludesAllRequiredFields()
+        public async Task SendPerformanceTelemetryAsyncValidData_IncludesAllRequiredFields()
         {
             // Arrange
             var data = new PerformanceTelemetryData
@@ -65,11 +65,11 @@ namespace Codescene.VSExtension.Core.Tests
 
             Dictionary<string, object> capturedData = null;
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
                 .Callback<string, Dictionary<string, object>>((_, d) => capturedData = d);
 
             // Act
-            PerformanceTelemetryHelper.SendPerformanceTelemetry(
+            await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(
                 _mockTelemetryManager.Object,
                 _mockLogger.Object,
                 data);
@@ -84,7 +84,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void SendPerformanceTelemetry_NullLanguage_UsesEmptyString()
+        public async Task SendPerformanceTelemetryAsyncNullLanguage_UsesEmptyString()
         {
             // Arrange
             var data = new PerformanceTelemetryData
@@ -97,11 +97,11 @@ namespace Codescene.VSExtension.Core.Tests
 
             Dictionary<string, object> capturedData = null;
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
                 .Callback<string, Dictionary<string, object>>((_, d) => capturedData = d);
 
             // Act
-            PerformanceTelemetryHelper.SendPerformanceTelemetry(
+            await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(
                 _mockTelemetryManager.Object,
                 _mockLogger.Object,
                 data);
@@ -112,7 +112,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void SendPerformanceTelemetry_NullTelemetryManager_DoesNotThrow()
+        public async Task SendPerformanceTelemetryAsyncNullTelemetryManager_DoesNotThrow()
         {
             // Arrange
             var data = new PerformanceTelemetryData
@@ -122,29 +122,29 @@ namespace Codescene.VSExtension.Core.Tests
             };
 
             // Act & Assert - should not throw
-            PerformanceTelemetryHelper.SendPerformanceTelemetry(
+            await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(
                 null,
                 _mockLogger.Object,
                 data);
         }
 
         [TestMethod]
-        public void SendPerformanceTelemetry_NullData_DoesNotThrow()
+        public async Task SendPerformanceTelemetryAsyncNullData_DoesNotThrow()
         {
             // Act & Assert - should not throw
-            PerformanceTelemetryHelper.SendPerformanceTelemetry(
+            await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(
                 _mockTelemetryManager.Object,
                 _mockLogger.Object,
                 null);
 
             // Assert - should not send telemetry
             _mockTelemetryManager.Verify(
-                t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
+                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
                 Times.Never);
         }
 
         [TestMethod]
-        public void SendPerformanceTelemetry_ExceptionThrown_LogsErrorAndDoesNotThrow()
+        public async Task SendPerformanceTelemetryAsyncExceptionThrown_LogsErrorAndDoesNotThrow()
         {
             // Arrange
             var data = new PerformanceTelemetryData
@@ -154,11 +154,11 @@ namespace Codescene.VSExtension.Core.Tests
             };
 
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetry(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
                 .Throws(new Exception("Telemetry error"));
 
             // Act & Assert - should not throw
-            PerformanceTelemetryHelper.SendPerformanceTelemetry(
+            await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(
                 _mockTelemetryManager.Object,
                 _mockLogger.Object,
                 data);
@@ -170,7 +170,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void SendPerformanceTelemetry_NullLogger_DoesNotThrow()
+        public async Task SendPerformanceTelemetryAsyncNullLogger_DoesNotThrow()
         {
             // Arrange
             var data = new PerformanceTelemetryData
@@ -180,7 +180,7 @@ namespace Codescene.VSExtension.Core.Tests
             };
 
             // Act & Assert - should not throw
-            PerformanceTelemetryHelper.SendPerformanceTelemetry(
+            await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(
                 _mockTelemetryManager.Object,
                 null,
                 data);

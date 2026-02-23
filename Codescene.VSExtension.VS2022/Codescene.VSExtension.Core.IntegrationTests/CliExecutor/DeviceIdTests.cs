@@ -12,11 +12,11 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
         public override void Cleanup() => base.Cleanup();
 
         [TestMethod]
-        public void GetDeviceId_ReturnsNonEmptyStableId()
+        public async Task GetDeviceIdAsync_ReturnsNonEmptyStableId()
         {
             // Act
-            var deviceId1 = cliExecutor.GetDeviceId();
-            var deviceId2 = cliExecutor.GetDeviceId();
+            var deviceId1 = await cliExecutor.GetDeviceIdAsync();
+            var deviceId2 = await cliExecutor.GetDeviceIdAsync();
 
             // Assert
             Assert.IsFalse(string.IsNullOrWhiteSpace(deviceId1), "Device ID should not be empty");

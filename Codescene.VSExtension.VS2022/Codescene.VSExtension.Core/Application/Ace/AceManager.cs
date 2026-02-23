@@ -40,17 +40,17 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         public static CachedRefactoringActionModel LastRefactoring { get; set; }
 
-        public IList<FnToRefactorModel> GetRefactorableFunctionsFromCodeSmells(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
+        public async Task<IList<FnToRefactorModel>> GetRefactorableFunctionsFromCodeSmellsAsync(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
         {
-            return _executor.FnsToRefactorFromCodeSmells(fileName, fileContent, codeSmells, preflight);
+            return await _executor.FnsToRefactorFromCodeSmellsAsync(fileName, fileContent, codeSmells, preflight);
         }
 
-        public IList<FnToRefactorModel> GetRefactorableFunctionsFromDelta(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight)
+        public async Task<IList<FnToRefactorModel>> GetRefactorableFunctionsFromDeltaAsync(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight)
         {
-            return _executor.FnsToRefactorFromDelta(fileName, fileContent, deltaResponse, preflight);
+            return await _executor.FnsToRefactorFromDeltaAsync(fileName, fileContent, deltaResponse, preflight);
         }
 
-        public CachedRefactoringActionModel Refactor(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false)
+        public async Task<CachedRefactoringActionModel> RefactorAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false)
         {
             _logger.Info($"Starting refactoring of function: {refactorableFunction.Name} in file: {path}");
 
@@ -67,7 +67,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
             try
             {
-                var refactoredFunction = _executor.PostRefactoring(fnToRefactor: refactorableFunction);
+                var refactoredFunction = await _executor.PostRefactoringAsync(fnToRefactor: refactorableFunction);
 
                 if (refactoredFunction != null)
                 {
@@ -114,7 +114,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         private void SendTelemetry(string entryPoint, bool invalidateCache)
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 var additionalData = new Dictionary<string, object>
                 {
@@ -122,7 +122,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                     { "skipCache", invalidateCache },
                 };
 
-                _telemetryManager.SendTelemetry(Constants.Telemetry.ACEREFACTORREQUESTED, additionalData);
+                await _telemetryManager.SendTelemetryAsync(Constants.Telemetry.ACEREFACTORREQUESTED, additionalData);
             });
         }
     }

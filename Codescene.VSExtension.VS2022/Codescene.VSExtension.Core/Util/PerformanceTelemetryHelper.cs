@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
@@ -19,7 +20,7 @@ namespace Codescene.VSExtension.Core.Util
         /// <param name="telemetryManager">The telemetry manager to send the event.</param>
         /// <param name="logger">Logger for error handling.</param>
         /// <param name="data">The performance telemetry data.</param>
-        public static void SendPerformanceTelemetry(
+        public static async Task SendPerformanceTelemetryAsync(
             ITelemetryManager telemetryManager,
             ILogger logger,
             PerformanceTelemetryData data)
@@ -40,7 +41,7 @@ namespace Codescene.VSExtension.Core.Util
                     { "loc", data.Loc },
                 };
 
-                telemetryManager.SendTelemetry(Constants.Telemetry.ANALYSISPERFORMANCE, additionalData);
+                await telemetryManager.SendTelemetryAsync(Constants.Telemetry.ANALYSISPERFORMANCE, additionalData);
             }
             catch (Exception e)
             {
