@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Collections.Generic;
+using System.IO;
 using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 
@@ -42,6 +43,13 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         /// </summary>
         public override void Put(DeltaCacheEntry entry)
         {
+            // Race condition fix: if file is deleted during review, Invalidate() is called but
+            // Put() may execute after invalidation. Prevent storing results for deleted files.
+            if (!File.Exists(entry.FilePath))
+            {
+                return;
+            }
+
             var headHash = Hash(entry.BaselineContent);
             var currentContentHash = Hash(entry.CurrentFileContent);
 
