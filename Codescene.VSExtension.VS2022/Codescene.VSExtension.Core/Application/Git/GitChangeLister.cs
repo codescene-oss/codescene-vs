@@ -258,7 +258,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             try
             {
-                var files = await CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
+                var files = await GetAllChangedFilesAsync(_gitRootPath, _workspacePath);
                 if (files != null && files.Count > 0)
                 {
                     #if FEATURE_INITIAL_GIT_OBSERVER
