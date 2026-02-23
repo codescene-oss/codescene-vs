@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -46,7 +47,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
         /// a CLI command, using a defined timeout. If telemetry is disabled or an error occurs,
         /// the method logs the issue and returns silently.
         /// </remarks>
-        public void SendTelemetry(string eventName, Dictionary<string, object> additionalEventData = null)
+        public async Task SendTelemetryAsync(string eventName, Dictionary<string, object> additionalEventData = null)
         {
             if (!TelemetryUtils.IsTelemetryEnabled(_logger))
             {
@@ -57,12 +58,11 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
             {
                 string eventJson = TelemetryUtils.GetTelemetryEventJson(
                     eventName,
-                    _deviceIdStore.GetDeviceId(),
+                    await _deviceIdStore.GetDeviceIdAsync(),
                     _extensionMetadataProvider.GetVersion(),
                     additionalEventData);
                 var arguments = _cliCommandProvider.SendTelemetryCommand(eventJson);
-
-                _executor.Execute(arguments, null, Constants.Timeout.TELEMETRYTIMEOUT);
+                await _executor.ExecuteAsync(arguments, null, Constants.Timeout.TELEMETRYTIMEOUT);
             }
             catch (Exception e)
             {
@@ -70,7 +70,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
             }
         }
 
-        public void SendErrorTelemetry(Exception ex, string context, Dictionary<string, object> extraData = null)
+        public async Task SendErrorTelemetryAsync(Exception ex, string context, Dictionary<string, object> extraData = null)
         {
             if (!TelemetryUtils.IsTelemetryEnabled(_logger))
             {
@@ -94,7 +94,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
                     }
                 }
 
-                SendTelemetry(Constants.Telemetry.UNHANDLEDERROR, errorData);
+                await SendTelemetryAsync(Constants.Telemetry.UNHANDLEDERROR, errorData);
                 ErrorTelemetryUtils.IncrementErrorCount();
             }
             catch (Exception e)

@@ -76,15 +76,15 @@ public sealed class VS2022Package : ToolkitPackage
             await InitializeAceStateChangeHandlerAsync();
 
             // Initialize ACE at startup
-            RunPreflight();
+            RunPreflightAsync().FireAndForget();
 
-            SendTelemetry(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSION);
+            SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSION).FireAndForget();
         }
         catch (Exception e)
         {
             // Note: we may not be able to report every failure via telemetry
             // (e.g. if the extension hasn't fully loaded or the CLI hasn't been downloaded yet).
-            SendTelemetry(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR);
+            SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR).FireAndForget();
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
         }
     }
@@ -102,22 +102,22 @@ public sealed class VS2022Package : ToolkitPackage
         await GetServiceAsync<AceStateChangeHandler>();
     }
 
-    private void SendTelemetry(string eventName)
+    private async Task SendTelemetryAsync(string eventName)
     {
-        Task.Run(async () =>
+        var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+        if (telemetryManager != null)
         {
-            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(eventName);
-        }).FireAndForget();
+            await telemetryManager.SendTelemetryAsync(eventName);
+        }
     }
 
-    private void RunPreflight()
+    private async Task RunPreflightAsync()
     {
-        Task.Run(async () =>
+        var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
+        if (preflightManager != null)
         {
-            var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
-            preflightManager.RunPreflight(true);
-        }).FireAndForget();
+            await preflightManager.RunPreflightAsync(true);
+        }
     }
 
     private async Task WaitForShellInitializationAsync(CancellationToken cancellationToken)
@@ -175,7 +175,10 @@ public sealed class VS2022Package : ToolkitPackage
     private async Task CheckCliFileAsync()
     {
         var cliFileChecker = await GetServiceAsync<ICliFileChecker>();
-        cliFileChecker.Check();
+        if (cliFileChecker != null)
+        {
+            await cliFileChecker.CheckAsync();
+        }
     }
 
     private async Task SubscribeOnActiveWindowChangeAsync()

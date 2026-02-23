@@ -92,15 +92,29 @@ namespace Codescene.VSExtension.Core.Tests
 
     public class FakeCodeReviewer : ICodeReviewer
     {
-        public FileReviewModel Review(string path, string content)
+        public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
         {
-            return new FileReviewModel { FilePath = path, RawScore = "8.5" };
+            return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
         }
 
-        public DeltaResponseModel? Delta(FileReviewModel review, string currentCode)
+        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, CancellationToken cancellationToken = default)
         {
-            return null;
+            var review = await ReviewAsync(path, currentCode, false, cancellationToken);
+            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, cancellationToken);
+            return (review, baselineRawScore ?? string.Empty);
         }
+
+        public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, CancellationToken cancellationToken = default) =>
+            Task.FromResult("8.0");
+
+        public FileReviewModel Review(string path, string content) =>
+            ReviewAsync(path, content).GetAwaiter().GetResult();
+
+        public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, CancellationToken cancellationToken = default) =>
+            Task.FromResult<DeltaResponseModel>(null);
+
+        public DeltaResponseModel Delta(FileReviewModel review, string currentCode) =>
+            DeltaAsync(review, currentCode).GetAwaiter().GetResult();
     }
 
     public class FakeSupportedFileChecker : ISupportedFileChecker
@@ -234,10 +248,9 @@ namespace Codescene.VSExtension.Core.Tests
             ILogger logger,
             ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker,
-            IGitService gitService,
             IAsyncTaskScheduler taskScheduler,
             IGitChangeLister gitChangeLister)
-            : base(logger, codeReviewer, supportedFileChecker, gitService, taskScheduler, gitChangeLister)
+            : base(logger, codeReviewer, supportedFileChecker, taskScheduler, gitChangeLister)
         {
         }
 

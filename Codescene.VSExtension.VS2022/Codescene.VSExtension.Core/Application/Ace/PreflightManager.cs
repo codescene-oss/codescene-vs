@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
@@ -33,14 +34,14 @@ namespace Codescene.VSExtension.Core.Application.Ace
             _settingsProvider = settingsProvider;
         }
 
-        public PreFlightResponseModel RunPreflight(bool force = false)
+        public async Task<PreFlightResponseModel> RunPreflightAsync(bool force = false)
         {
             _logger.Debug($"Running preflight with force: {force}");
             var hasToken = !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
             _aceStateService.SetState(AceState.Loading);
             try
             {
-                var response = _executor.Preflight(force);
+                var response = await _executor.PreflightAsync(force);
 
                 if (response != null)
                 {
@@ -92,11 +93,11 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         public bool IsSupportedLanguage(string extension) => _preflightResponse?.FileTypes.Contains(extension.Replace(".", string.Empty).ToLower()) ?? false;
 
-        public PreFlightResponseModel GetPreflightResponse()
+        public async Task<PreFlightResponseModel> GetPreflightResponseAsync()
         {
             if (_preflightResponse == null)
             {
-                return RunPreflight(true);
+                return await RunPreflightAsync(true);
             }
 
             return _preflightResponse;

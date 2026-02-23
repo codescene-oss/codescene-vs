@@ -147,7 +147,7 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
             }
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(eventName, additionalData);
+            await telemetryManager.SendTelemetryAsync(eventName, additionalData);
         }).FireAndForget();
     }
 

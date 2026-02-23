@@ -30,7 +30,7 @@ namespace Codescene.VSExtension.Core.Tests
             var blockingReviewer = new BlockingCodeReviewer(aboutToStore, canProceed, _deltaCache);
 
             var observer = new GitChangeObserverCore(
-                _fakeLogger, blockingReviewer, _fakeSupportedFileChecker, _fakeGitService, _fakeTaskScheduler, _fakeGitChangeLister);
+                _fakeLogger, blockingReviewer, _fakeSupportedFileChecker, _fakeTaskScheduler, _fakeGitChangeLister);
 
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
@@ -57,7 +57,7 @@ namespace Codescene.VSExtension.Core.Tests
             var blockingReviewer = new BlockingCodeReviewer(aboutToStore, canProceed, _deltaCache);
 
             var observer = new GitChangeObserverCore(
-                _fakeLogger, blockingReviewer, _fakeSupportedFileChecker, _fakeGitService, _fakeTaskScheduler, _fakeGitChangeLister);
+                _fakeLogger, blockingReviewer, _fakeSupportedFileChecker, _fakeTaskScheduler, _fakeGitChangeLister);
 
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
@@ -98,12 +98,12 @@ namespace Codescene.VSExtension.Core.Tests
                 _cache = cache;
             }
 
-            public FileReviewModel Review(string path, string content)
+            public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
             {
-                return new FileReviewModel { FilePath = path, RawScore = "8.5" };
+                return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
             }
 
-            public DeltaResponseModel Delta(FileReviewModel review, string currentCode)
+            public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, CancellationToken cancellationToken = default)
             {
                 _aboutToStore.Set();
                 _canProceed.Wait();
@@ -112,7 +112,19 @@ namespace Codescene.VSExtension.Core.Tests
                 var entry = new DeltaCacheEntry(review.FilePath, string.Empty, currentCode, delta);
                 _cache.Put(entry);
 
-                return delta;
+                return Task.FromResult(delta);
+            }
+
+            public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, CancellationToken cancellationToken = default)
+            {
+                var review = await ReviewAsync(path, currentCode, false, cancellationToken);
+                var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, cancellationToken);
+                return (review, baselineRawScore ?? string.Empty);
+            }
+
+            public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult("8.0");
             }
         }
     }

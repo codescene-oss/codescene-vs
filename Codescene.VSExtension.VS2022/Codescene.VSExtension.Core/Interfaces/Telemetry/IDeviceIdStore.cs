@@ -1,5 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Threading.Tasks;
+
 namespace Codescene.VSExtension.Core.Interfaces.Telemetry
 {
     /// <summary>
@@ -11,6 +13,6 @@ namespace Codescene.VSExtension.Core.Interfaces.Telemetry
     /// </remarks>
     public interface IDeviceIdStore
     {
-        string GetDeviceId();
+        Task<string> GetDeviceIdAsync();
     }
 }

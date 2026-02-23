@@ -37,13 +37,13 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         /// Validates that the CLI is up and running and is callable via the real CliExecutor implementation.
         /// </summary>
         [TestMethod]
-        public void Cli_VersionCheck_ShouldReturnCorrectVersion()
+        public async Task Cli_VersionCheck_ShouldReturnCorrectVersion()
         {
             // Arrange
             var cliExecutor = GetService<ICliExecutor>();
 
             // Act
-            var versionOutput = cliExecutor.GetFileVersion().Trim();
+            var versionOutput = (await cliExecutor.GetFileVersionAsync()).Trim();
 
             // Assert
             Assert.AreEqual(_settingsProvider.RequiredDevToolVersion, versionOutput);

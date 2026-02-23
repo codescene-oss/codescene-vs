@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Exceptions;
@@ -29,7 +30,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _cliSettingsProvider = cliSettingsProvider ?? throw new ArgumentNullException(nameof(cliSettingsProvider));
         }
 
-        public string Execute(string arguments, string content = null, TimeSpan? timeout = null)
+        public async Task<string> ExecuteAsync(string arguments, string content = null, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
         {
             var cliFilePath = _cliSettingsProvider.CliFileFullPath;
 
@@ -43,6 +44,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             var actualTimeout = timeout ?? Constants.Timeout.DEFAULTCLITIMEOUT;
+            using var timeoutCts = new CancellationTokenSource();
+            timeoutCts.CancelAfter(actualTimeout);
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
             var processInfo = new ProcessStartInfo
             {
@@ -57,13 +61,17 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             using var process = new Process();
             process.StartInfo = processInfo;
+            process.EnableRaisingEvents = true;
 
             var outputBuilder = new StringBuilder();
             var errorBuilder = new StringBuilder();
             var outputTcs = new TaskCompletionSource<bool>();
             var errorTcs = new TaskCompletionSource<bool>();
+            var exitTcs = new TaskCompletionSource<bool>();
 
             AttachOutputHandlers(new AttachOutputHandlersArgs(process, outputBuilder, errorBuilder, outputTcs, errorTcs));
+
+            process.Exited += (_, _) => exitTcs.TrySetResult(true);
 
             process.Start();
 
@@ -72,15 +80,38 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             WriteInput(process, content);
 
-            var timeoutArgs = new WaitForProcessOrTimeoutArgs()
+            var mainTask = Task.WhenAll(exitTcs.Task, outputTcs.Task, errorTcs.Task);
+            var timeoutTask = Task.Delay(actualTimeout, linkedCts.Token);
+
+            var completedTask = await Task.WhenAny(mainTask, timeoutTask).ConfigureAwait(false);
+
+            if (completedTask == timeoutTask)
             {
-                Process = process,
-                OutputTcs = outputTcs,
-                ErrorTcs = errorTcs,
-                Timeout = actualTimeout,
-                Command = arguments,
-            };
-            WaitForProcessOrTimeout(timeoutArgs);
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        process.Kill();
+                    }
+                }
+                catch
+                {
+                }
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException(cancellationToken);
+                }
+
+                if (arguments.Contains("telemetry"))
+                {
+                    return string.Empty;
+                }
+
+                throw new TimeoutException($"Process execution exceeded the timeout of {actualTimeout.TotalMilliseconds}ms.");
+            }
+
+            await mainTask.ConfigureAwait(false);
 
             return HandleResult(process, outputBuilder, errorBuilder);
         }
@@ -123,36 +154,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 process.StandardInput.Write(content);
                 process.StandardInput.Close();
-            }
-        }
-
-        private void WaitForProcessOrTimeout(WaitForProcessOrTimeoutArgs arguments)
-        {
-            var waitTask = Task.Run(() =>
-            {
-                arguments.Process.WaitForExit();
-                arguments.OutputTcs.Task.Wait();
-                arguments.ErrorTcs.Task.Wait();
-            });
-
-            if (!waitTask.Wait(arguments.Timeout))
-            {
-                try
-                {
-                    arguments.Process.Kill();
-                }
-                catch
-                {
-                    return;
-                }
-
-                // Ignore telemetry timeouts. Also prevent potential infinite loop since we send timeouts to Amplitude.
-                if (arguments.Command.Contains("telemetry"))
-                {
-                    return;
-                }
-
-                throw new TimeoutException($"Process execution exceeded the timeout of {arguments.Timeout.TotalMilliseconds}ms.");
             }
         }
 

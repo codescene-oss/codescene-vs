@@ -60,6 +60,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         {
             var cache = new DeltaCacheService();
             cache.Clear();
+            new BaselineReviewCacheService().Clear();
 
             CodeSceneToolWindow.UpdateViewAsync().FireAndForget();
             AceToolWindow.CloseAsync().FireAndForget();
@@ -239,6 +240,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
             var cache = new DeltaCacheService();
             cache.Clear();
+            new BaselineReviewCacheService().Clear();
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             CodeSceneToolWindow.UpdateViewAsync().FireAndForget();

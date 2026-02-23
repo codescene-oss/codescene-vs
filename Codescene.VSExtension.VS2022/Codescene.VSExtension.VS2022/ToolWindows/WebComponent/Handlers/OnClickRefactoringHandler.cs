@@ -110,7 +110,7 @@ public class OnClickRefactoringHandler
                 return;
             }
 
-            var refactored = _aceManager.Refactor(path: path, refactorableFunction: refactorableFunction, entryPoint);
+            var refactored = await _aceManager.RefactorAsync(path: path, refactorableFunction: refactorableFunction, entryPoint);
             AceComponentData data;
             if (refactored != null)
             {

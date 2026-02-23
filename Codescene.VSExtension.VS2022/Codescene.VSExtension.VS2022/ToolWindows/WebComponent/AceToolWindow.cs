@@ -146,7 +146,7 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                     { "isCached", responseModel.Metadata.Cached },
                 };
 
-            telemetryManager.SendTelemetry(Telemetry.ACEREFACTORPRESENTED, additionalData);
+            await telemetryManager.SendTelemetryAsync(Telemetry.ACEREFACTORPRESENTED, additionalData);
         }).FireAndForget();
     }
 
