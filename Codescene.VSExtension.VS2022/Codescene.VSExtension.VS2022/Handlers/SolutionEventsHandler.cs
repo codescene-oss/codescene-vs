@@ -24,7 +24,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     private IVsSolution _solution;
     private BranchWatcherService _branchWatcher;
     private IGitChangeObserver _gitChangeObserver;
-    private volatile bool _gitObserverInitialized;
 
     /// <summary>
     /// Subscribes to solution events using the Visual Studio shell service.
@@ -111,7 +110,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         _branchWatcher = null;
         _gitChangeObserver?.Dispose();
         _gitChangeObserver = null;
-        _gitObserverInitialized = false;
         return VSConstants.S_OK;
     }
 
@@ -185,13 +183,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
     private async Task InitializeGitChangeObserverAsync(string solutionPath)
     {
-        if (_gitObserverInitialized)
-        {
-            return;
-        }
-
-        _gitObserverInitialized = true;
-
         try
         {
             _gitChangeObserver = await VS.GetMefServiceAsync<IGitChangeObserver>();

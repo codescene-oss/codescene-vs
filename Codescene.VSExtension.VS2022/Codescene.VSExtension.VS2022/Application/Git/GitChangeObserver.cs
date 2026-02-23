@@ -123,7 +123,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             }
 
             _core?.Dispose();
-            _core = null;
         }
 
         private void InitializeCore()
