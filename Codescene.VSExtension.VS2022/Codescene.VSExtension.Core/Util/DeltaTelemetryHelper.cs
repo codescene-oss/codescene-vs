@@ -38,7 +38,7 @@ namespace Codescene.VSExtension.Core.Util
                 return;
             }
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 var delta = entry.Delta;
                 Dictionary<string, object> additionalData = null;
@@ -54,7 +54,10 @@ namespace Codescene.VSExtension.Core.Util
                     };
                 }
 
-                telemetryManager?.SendTelemetry(eventName, additionalData);
+                if (telemetryManager != null)
+                {
+                    await telemetryManager.SendTelemetryAsync(eventName, additionalData);
+                }
             });
         }
 

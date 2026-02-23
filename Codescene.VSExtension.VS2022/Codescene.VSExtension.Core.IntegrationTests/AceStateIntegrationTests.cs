@@ -42,14 +42,14 @@ namespace Codescene.VSExtension.Core.IntegrationTests
         }
 
         [TestMethod]
-        public void PreflightManager_SetsEnabledOrOffline_AfterPreflight()
+        public async Task PreflightManager_SetsEnabledOrOffline_AfterPreflight()
         {
             // Arrange
             var stateHistory = new List<AceState>();
             _aceStateService.StateChanged += (_, e) => stateHistory.Add(e.NewState);
 
             // Act
-            _preflightManager.RunPreflight(force: true);
+            await _preflightManager.RunPreflightAsync(force: true);
 
             // Assert
             Assert.IsNotEmpty(stateHistory, "State should have changed at least once");

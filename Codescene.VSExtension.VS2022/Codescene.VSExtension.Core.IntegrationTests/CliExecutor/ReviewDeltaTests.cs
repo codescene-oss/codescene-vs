@@ -1,5 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using Codescene.VSExtension.Core.Models.Cli.Delta;
+
 namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
 {
     [TestClass]
@@ -12,7 +14,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
         public override void Cleanup() => base.Cleanup();
 
         [TestMethod]
-        public void ReviewDelta_WithValidScores_ReturnsDeltaResponse()
+        public async Task ReviewDeltaAsync_WithValidScores_ReturnsDeltaResponse()
         {
             // Arrange
             var filename = "Test.cs";
@@ -37,8 +39,8 @@ public class Complex
     }
 }";
 
-            var simpleReview = cliExecutor.ReviewContent(filename, simpleCode);
-            var complexReview = cliExecutor.ReviewContent(filename, complexCode);
+            var simpleReview = await cliExecutor.ReviewContentAsync(filename, simpleCode);
+            var complexReview = await cliExecutor.ReviewContentAsync(filename, complexCode);
 
             // Skip test if we couldn't get raw scores
             if (string.IsNullOrEmpty(simpleReview?.RawScore) || string.IsNullOrEmpty(complexReview?.RawScore))
@@ -48,7 +50,7 @@ public class Complex
             }
 
             // Act
-            var delta = cliExecutor.ReviewDelta(simpleReview!.RawScore!, complexReview!.RawScore!);
+            var delta = await cliExecutor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = simpleReview!.RawScore!, NewScore = complexReview!.RawScore! });
 
             // Assert
             Assert.IsNotNull(delta, "CLI should return a delta response");

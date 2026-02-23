@@ -12,14 +12,14 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     {
         internal Mock<ITelemetryManager> Mock = new Mock<ITelemetryManager>();
 
-        public void SendTelemetry(string eventName, Dictionary<string, object> additionalEventData = null)
+        public async Task SendTelemetryAsync(string eventName, Dictionary<string, object> additionalEventData = null)
         {
-            Mock.Object.SendTelemetry(eventName, additionalEventData);
+            await Mock.Object.SendTelemetryAsync(eventName, additionalEventData);
         }
 
-        public void SendErrorTelemetry(Exception ex, string context, Dictionary<string, object> extraData = null)
+        public async Task SendErrorTelemetryAsync(Exception ex, string context, Dictionary<string, object> extraData = null)
         {
-            Mock.Object.SendErrorTelemetry(ex, context, extraData);
+            await Mock.Object.SendErrorTelemetryAsync(ex, context, extraData);
         }
     }
 }

@@ -40,25 +40,25 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void SendTelemetry_WhenExceptionThrown_LogsDebugAndDoesNotRethrow()
+        public async Task SendTelemetry_WhenExceptionThrown_LogsDebugAndDoesNotRethrow()
         {
             // Arrange
             var eventName = "test-event";
-            _mockDeviceIdStore.Setup(x => x.GetDeviceId()).Returns("device-123");
+            _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("telemetry command");
-            _mockExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>()))
-                .Throws(new Exception("Telemetry failed"));
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+                .ThrowsAsync(new Exception("Telemetry failed"));
 
             // Act - should not throw
-            _telemetryManager.SendTelemetry(eventName);
+            await _telemetryManager.SendTelemetryAsync(eventName);
 
             // Assert
             _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Unable to send telemetry"))), Times.Once);
         }
 
         [TestMethod]
-        public void SendTelemetry_WithAdditionalData_DoesNotThrow()
+        public async Task SendTelemetryAsync_WithAdditionalData_DoesNotThrow()
         {
             // Arrange
             var eventName = "test-event";
@@ -68,75 +68,75 @@ namespace Codescene.VSExtension.Core.Tests
                 { "key2", 42 },
             };
 
-            _mockDeviceIdStore.Setup(x => x.GetDeviceId()).Returns("device-123");
+            _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("telemetry command");
-            _mockExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>()))
-                .Returns("success");
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync("success");
 
             // Act - should not throw
-            _telemetryManager.SendTelemetry(eventName, additionalData);
+            await _telemetryManager.SendTelemetryAsync(eventName, additionalData);
 
             // Assert - no exception means success
             // Note: Actual execution depends on TelemetryUtils.IsTelemetryEnabled() which reads registry
         }
 
         [TestMethod]
-        public void SendTelemetry_GetsDeviceIdFromStore()
+        public async Task SendTelemetryAsync_GetsDeviceIdFromStore()
         {
             // Arrange
             var eventName = "test-event";
-            _mockDeviceIdStore.Setup(x => x.GetDeviceId()).Returns("my-device-id");
+            _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("my-device-id");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("2.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("cmd");
-            _mockExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>()))
-                .Returns("ok");
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync("ok");
 
             // Act
-            _telemetryManager.SendTelemetry(eventName);
+            await _telemetryManager.SendTelemetryAsync(eventName);
 
             // Assert - device ID store should be called (if telemetry is enabled)
             // Note: This verification depends on TelemetryUtils.IsTelemetryEnabled() returning true
         }
 
         [TestMethod]
-        public void SendTelemetry_GetsVersionFromMetadataProvider()
+        public async Task SendTelemetryAsync_GetsVersionFromMetadataProvider()
         {
             // Arrange
             var eventName = "test-event";
-            _mockDeviceIdStore.Setup(x => x.GetDeviceId()).Returns("device-123");
+            _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("3.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("cmd");
-            _mockExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>()))
-                .Returns("ok");
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync("ok");
 
             // Act
-            _telemetryManager.SendTelemetry(eventName);
+            await _telemetryManager.SendTelemetryAsync(eventName);
 
             // Assert - metadata provider should be called (if telemetry is enabled)
             // Note: This verification depends on TelemetryUtils.IsTelemetryEnabled() returning true
         }
 
         [TestMethod]
-        public void SendErrorTelemetry_WhenExceptionThrown_LogsDebugAndDoesNotRethrow()
+        public async Task SendErrorTelemetry_WhenExceptionThrown_LogsDebugAndDoesNotRethrow()
         {
             // Arrange
             var ex = new InvalidOperationException("Test error");
-            _mockDeviceIdStore.Setup(x => x.GetDeviceId()).Returns("device-123");
+            _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("telemetry command");
-            _mockExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>()))
-                .Throws(new Exception("Telemetry failed"));
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+                .ThrowsAsync(new Exception("Telemetry failed"));
 
             // Act - should not throw
-            _telemetryManager.SendErrorTelemetry(ex, "Test context");
+            await _telemetryManager.SendErrorTelemetryAsync(ex, "Test context");
 
             // Assert - SendErrorTelemetry calls SendTelemetry which has its own exception handling
             _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Unable to send telemetry"))), Times.Once);
         }
 
         [TestMethod]
-        public void SendErrorTelemetry_WithExtraData_DoesNotThrow()
+        public async Task SendErrorTelemetry_WithExtraData_DoesNotThrow()
         {
             // Arrange
             var ex = new Exception("Test error");
@@ -146,53 +146,53 @@ namespace Codescene.VSExtension.Core.Tests
                 { "key2", 42 },
             };
 
-            _mockDeviceIdStore.Setup(x => x.GetDeviceId()).Returns("device-123");
+            _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("telemetry command");
-            _mockExecutor.Setup(x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>()))
-                .Returns("success");
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync("success");
 
             // Act - should not throw
-            _telemetryManager.SendErrorTelemetry(ex, "Test context", extraData);
+            await _telemetryManager.SendErrorTelemetryAsync(ex, "Test context", extraData);
 
             // Assert - no exception means success
         }
 
         [TestMethod]
-        public void SendErrorTelemetry_TelemetryRelatedError_DoesNotSend()
+        public async Task SendErrorTelemetry_TelemetryRelatedError_DoesNotSend()
         {
             // Arrange
             var ex = new Exception("Failed to send telemetry");
 
-            _mockDeviceIdStore.Setup(x => x.GetDeviceId()).Returns("device-123");
+            _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("cmd");
 
             // Act
-            _telemetryManager.SendErrorTelemetry(ex, "context");
+            await _telemetryManager.SendErrorTelemetryAsync(ex, "context");
 
             // Assert - executor should not be called for telemetry-related errors
             _mockExecutor.Verify(
-                x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>()),
+                x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()),
                 Times.Never);
         }
 
         [TestMethod]
-        public void SendErrorTelemetry_NetworkError_DoesNotSend()
+        public async Task SendErrorTelemetry_NetworkError_DoesNotSend()
         {
             // Arrange
             var ex = new Exception("ECONNREFUSED: Connection refused");
 
-            _mockDeviceIdStore.Setup(x => x.GetDeviceId()).Returns("device-123");
+            _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("cmd");
 
             // Act
-            _telemetryManager.SendErrorTelemetry(ex, "context");
+            await _telemetryManager.SendErrorTelemetryAsync(ex, "context");
 
             // Assert - executor should not be called for network errors
             _mockExecutor.Verify(
-                x => x.Execute(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>()),
+                x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()),
                 Times.Never);
         }
     }

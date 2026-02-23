@@ -366,7 +366,7 @@ internal class WebComponentMessageHandler
         Task.Run(async () =>
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            telemetryManager.SendTelemetry(eventName, additionalData);
+            await telemetryManager.SendTelemetryAsync(eventName, additionalData);
         }).FireAndForget();
     }
 }

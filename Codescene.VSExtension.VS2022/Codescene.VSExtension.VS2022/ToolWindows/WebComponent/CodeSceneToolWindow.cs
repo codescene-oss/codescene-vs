@@ -42,12 +42,14 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         var deltaCache = new DeltaCacheService();
         var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
 
+        var allDeltas = deltaCache.GetAll();
+
         var message = new WebComponentMessage<CodeHealthMonitorComponentData>
         {
             MessageType = MessageTypes.UPDATERENDERER,
             Payload = WebComponentPayload<CodeHealthMonitorComponentData>.Create(
                 ViewTypes.HOME,
-                mapper.Map(deltaCache.GetAll()),
+                mapper.Map(allDeltas),
                 true),
         };
         await VS.GetMefServiceAsync<ILogger>();
@@ -156,7 +158,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 };
 
                 var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-                telemetryManager.SendTelemetry(Telemetry.MONITORVISIBILITY, additionalData);
+                await telemetryManager.SendTelemetryAsync(Telemetry.MONITORVISIBILITY, additionalData);
             }).FireAndForget();
         }
     }

@@ -37,49 +37,49 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetDeviceId_ReturnsValueFromCli()
+        public async Task GetDeviceIdAsync_ReturnsValueFromCli()
         {
             // Arrange
             var expectedDeviceId = "device-abc-123";
-            _mockCliExecutor.Setup(x => x.GetDeviceId()).Returns(expectedDeviceId);
+            _mockCliExecutor.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync(expectedDeviceId);
             var store = new DeviceIdStore(_mockLogger.Object, _mockCliExecutor.Object);
 
             // Act
-            var result = store.GetDeviceId();
+            var result = await store.GetDeviceIdAsync();
 
             // Assert
             Assert.AreEqual(expectedDeviceId, result);
-            _mockCliExecutor.Verify(x => x.GetDeviceId(), Times.Once);
+            _mockCliExecutor.Verify(x => x.GetDeviceIdAsync(), Times.Once);
         }
 
         [TestMethod]
-        public void GetDeviceId_CachesResultOnSubsequentCalls()
+        public async Task GetDeviceIdAsync_CachesResultOnSubsequentCalls()
         {
             // Arrange
             var expectedDeviceId = "cached-device-id";
-            _mockCliExecutor.Setup(x => x.GetDeviceId()).Returns(expectedDeviceId);
+            _mockCliExecutor.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync(expectedDeviceId);
             var store = new DeviceIdStore(_mockLogger.Object, _mockCliExecutor.Object);
 
             // Act - call twice
-            var result1 = store.GetDeviceId();
-            var result2 = store.GetDeviceId();
+            var result1 = await store.GetDeviceIdAsync();
+            var result2 = await store.GetDeviceIdAsync();
 
             // Assert - CLI should only be called once due to caching
             Assert.AreEqual(expectedDeviceId, result1);
             Assert.AreEqual(expectedDeviceId, result2);
-            _mockCliExecutor.Verify(x => x.GetDeviceId(), Times.Once);
+            _mockCliExecutor.Verify(x => x.GetDeviceIdAsync(), Times.Once);
         }
 
         [TestMethod]
-        public void GetDeviceId_WhenExceptionThrown_LogsWarningAndReturnsEmptyString()
+        public async Task GetDeviceIdAsync_WhenExceptionThrown_LogsWarningAndReturnsEmptyString()
         {
             // Arrange
             var expectedException = new Exception("CLI failed");
-            _mockCliExecutor.Setup(x => x.GetDeviceId()).Throws(expectedException);
+            _mockCliExecutor.Setup(x => x.GetDeviceIdAsync()).Throws(expectedException);
             var store = new DeviceIdStore(_mockLogger.Object, _mockCliExecutor.Object);
 
             // Act
-            var result = store.GetDeviceId();
+            var result = await store.GetDeviceIdAsync();
 
             // Assert
             Assert.AreEqual(string.Empty, result);
@@ -87,47 +87,47 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetDeviceId_AfterException_RetriesOnSubsequentCalls()
+        public async Task GetDeviceIdAsync_AfterException_RetriesOnSubsequentCalls()
         {
             // Arrange
             // Note: The implementation sets _deviceId = "" on exception, but the check
             // is !string.IsNullOrEmpty(_deviceId), so empty string is NOT cached
-            _mockCliExecutor.Setup(x => x.GetDeviceId()).Throws(new Exception("CLI failed"));
+            _mockCliExecutor.Setup(x => x.GetDeviceIdAsync()).Throws(new Exception("CLI failed"));
             var store = new DeviceIdStore(_mockLogger.Object, _mockCliExecutor.Object);
 
             // Act - call twice
-            var result1 = store.GetDeviceId();
-            var result2 = store.GetDeviceId();
+            var result1 = await store.GetDeviceIdAsync();
+            var result2 = await store.GetDeviceIdAsync();
 
             // Assert - CLI is called each time since empty string is not cached
             Assert.AreEqual(string.Empty, result1);
             Assert.AreEqual(string.Empty, result2);
-            _mockCliExecutor.Verify(x => x.GetDeviceId(), Times.Exactly(2));
+            _mockCliExecutor.Verify(x => x.GetDeviceIdAsync(), Times.Exactly(2));
         }
 
         [TestMethod]
-        public void GetDeviceId_WhenCliReturnsNull_ReturnsEmptyString()
+        public async Task GetDeviceIdAsync_WhenCliReturnsNull_ReturnsEmptyString()
         {
             // Arrange
-            _mockCliExecutor.Setup(x => x.GetDeviceId()).Returns((string)null);
+            _mockCliExecutor.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync((string)null);
             var store = new DeviceIdStore(_mockLogger.Object, _mockCliExecutor.Object);
 
             // Act
-            var result = store.GetDeviceId();
+            var result = await store.GetDeviceIdAsync();
 
             // Assert
             Assert.AreEqual(string.Empty, result);
         }
 
         [TestMethod]
-        public void GetDeviceId_WhenCliReturnsEmptyString_ReturnsEmptyString()
+        public async Task GetDeviceIdAsync_WhenCliReturnsEmptyString_ReturnsEmptyString()
         {
             // Arrange
-            _mockCliExecutor.Setup(x => x.GetDeviceId()).Returns(string.Empty);
+            _mockCliExecutor.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync(string.Empty);
             var store = new DeviceIdStore(_mockLogger.Object, _mockCliExecutor.Object);
 
             // Act
-            var result = store.GetDeviceId();
+            var result = await store.GetDeviceIdAsync();
 
             // Assert
             Assert.AreEqual(string.Empty, result);

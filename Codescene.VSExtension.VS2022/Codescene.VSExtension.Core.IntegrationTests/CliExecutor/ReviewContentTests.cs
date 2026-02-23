@@ -12,7 +12,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
         public override void Cleanup() => base.Cleanup();
 
         [TestMethod]
-        public void ReviewContent_ValidCSharpCode_ReturnsValidReview()
+        public async Task ReviewContentAsync_ValidCSharpCode_ReturnsValidReview()
         {
             // Arrange
             var filename = "Test.cs";
@@ -26,7 +26,7 @@ public class Calculator
 }";
 
             // Act
-            var result = cliExecutor.ReviewContent(filename, content);
+            var result = await cliExecutor.ReviewContentAsync(filename, content);
 
             // Assert
             Assert.IsNotNull(result, "CLI should return a review result for valid code");
@@ -36,7 +36,7 @@ public class Calculator
         }
 
         [TestMethod]
-        public void ReviewContent_ValidJavaScriptCode_ReturnsValidReview()
+        public async Task ReviewContentAsync_ValidJavaScriptCode_ReturnsValidReview()
         {
             // Arrange
             var filename = "test.js";
@@ -49,7 +49,7 @@ module.exports = { calculateSum };
 ";
 
             // Act
-            var result = cliExecutor.ReviewContent(filename, content);
+            var result = await cliExecutor.ReviewContentAsync(filename, content);
 
             // Assert
             Assert.IsNotNull(result, "CLI should return a review result for valid JavaScript code");
@@ -57,7 +57,7 @@ module.exports = { calculateSum };
         }
 
         [TestMethod]
-        public void ReviewContent_ComplexCode_ReturnsCodeSmells()
+        public async Task ReviewContentAsync_ComplexCode_ReturnsCodeSmells()
         {
             // Arrange - Code with intentional complexity
             var filename = "Complex.cs";
@@ -86,7 +86,7 @@ public class ComplexProcessor
 }";
 
             // Act
-            var result = cliExecutor.ReviewContent(filename, content);
+            var result = await cliExecutor.ReviewContentAsync(filename, content);
 
             // Assert
             Assert.IsNotNull(result, "CLI should return a review result");

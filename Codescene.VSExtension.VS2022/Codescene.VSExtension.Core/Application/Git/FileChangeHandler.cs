@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Git;
+using Codescene.VSExtension.Core.Models;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
@@ -18,7 +20,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly string _workspacePath;
         private readonly TrackerManager _trackerManager;
-        private readonly Func<string, string, Task> _onFileReviewedCallback;
+        private readonly Func<string, string, FileReviewModel, string, Task> _onFileReviewedCallback;
         private readonly Action<string> _onFileDeletedCallback;
 
         public FileChangeHandler(
@@ -27,7 +29,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             ISupportedFileChecker supportedFileChecker,
             string workspacePath,
             TrackerManager trackerManager,
-            Func<string, string, Task> onFileReviewedCallback = null,
+            Func<string, string, FileReviewModel, string, Task> onFileReviewedCallback = null,
             Action<string> onFileDeletedCallback = null)
         {
             _logger = logger;
@@ -167,7 +169,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _logger?.Info($">>> FileChangeHandler: Starting review for file: {filePath}");
                 #endif
                 var content = File.ReadAllText(filePath);
-                var review = _codeReviewer.Review(filePath, content);
+                var (review, baselineRawScore) = await _codeReviewer.ReviewAndBaselineAsync(filePath, content).ConfigureAwait(false);
 
                 if (review != null)
                 {
@@ -177,7 +179,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                     #endif
                     if (_onFileReviewedCallback != null)
                     {
-                        await _onFileReviewedCallback(filePath, content);
+                        await _onFileReviewedCallback(filePath, content, review, baselineRawScore);
                     }
                 }
                 else

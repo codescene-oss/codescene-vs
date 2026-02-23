@@ -210,39 +210,48 @@ namespace Codescene.VSExtension.VS2022.Handlers
                 }
 
                 _logger.Info($"Reviewing file {path}...", true);
-                var result = _reviewer.Review(path, code);
-
-                cache.Put(new ReviewCacheEntry(code, path, result));
-
-                if (result != null && result.RawScore != null)
+                var (result, baselineRawScore) = await RunReviewAndBaselineAsync(path, code);
+                if (result != null)
                 {
-                    _logger.Info($"File {path} reviewed successfully.");
-
-                    // this call has to be awaited, otherwise delta could finish before and update of delta cache won't work
-                    // happening in 17.0.0
-                    await AceUtils.CheckContainsRefactorableFunctionsAsync(result, code);
-
-                    DeltaReviewAsync(result, code).FireAndForget();
-                }
-                else
-                {
-                    _logger.Warn($"Review of file {path} returned no results.");
+                    cache.Put(new ReviewCacheEntry(code, path, result));
                 }
 
-                await CodeSceneToolWindow.UpdateViewAsync();
-
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                _errorListWindowHandler.Handle(result);
-                _marginSettings.NotifyScoreUpdated();
-
-                if (buffer.Properties.TryGetProperty<ReviewResultTagger>(typeof(ReviewResultTagger), out var tagger))
-                {
-                    tagger.RefreshTags();
-                }
+                await ApplyReviewResultsAsync(result, code, baselineRawScore, buffer);
             }
             catch (Exception e)
             {
                 _logger.Error($"Could not update cache or review file {path}", e);
+            }
+        }
+
+        private async Task<(FileReviewModel result, string baselineRawScore)> RunReviewAndBaselineAsync(string path, string code)
+        {
+            var (result, baselineRawScore) = await _reviewer.ReviewAndBaselineAsync(path, code).ConfigureAwait(false);
+            return (result, baselineRawScore ?? string.Empty);
+        }
+
+        private async Task ApplyReviewResultsAsync(FileReviewModel result, string code, string baselineRawScore, ITextBuffer buffer)
+        {
+            var path = result?.FilePath ?? string.Empty;
+            if (result?.RawScore != null)
+            {
+                _logger.Info($"File {path} reviewed successfully.");
+                await AceUtils.CheckContainsRefactorableFunctionsAsync(result, code);
+                await DeltaReviewAsync(result, code, baselineRawScore);
+            }
+            else
+            {
+                _logger.Warn($"Review of file {path} returned no results.");
+                await CodeSceneToolWindow.UpdateViewAsync();
+            }
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            _errorListWindowHandler.Handle(result);
+            _marginSettings.NotifyScoreUpdated();
+
+            if (buffer.Properties.TryGetProperty<ReviewResultTagger>(typeof(ReviewResultTagger), out var tagger))
+            {
+                tagger.RefreshTags();
             }
         }
 
@@ -264,7 +273,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
         /// Triggers delta analysis based on review of the most current content in a file.
         /// Updates or opens the Code Health Monitor tool window.
         /// </summary>
-        private async Task DeltaReviewAsync(FileReviewModel currentReview, string currentContent)
+        private async Task DeltaReviewAsync(FileReviewModel currentReview, string currentContent, string precomputedBaselineRawScore = null)
         {
             var path = currentReview.FilePath;
             var job = new Job
@@ -280,7 +289,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
                 await CodeSceneToolWindow.UpdateViewAsync(); // Update loading state
 
-                var deltaResult = _reviewer.Delta(currentReview, currentContent);
+                var deltaResult = await _reviewer.DeltaAsync(currentReview, currentContent, precomputedBaselineRawScore);
                 await AceUtils.UpdateDeltaCacheWithRefactorableFunctionsAsync(deltaResult, path, currentContent, _logger);
 
                 var scoreChange = deltaResult?.ScoreChange.ToString(CultureInfo.InvariantCulture) ?? "none";

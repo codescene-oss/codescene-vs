@@ -24,7 +24,7 @@ namespace Codescene.VSExtension.VS2022.Util
         public static async Task<IList<FnToRefactorModel>> CheckContainsRefactorableFunctionsAsync(FileReviewModel result, string code)
         {
             var aceRefactorService = await VS.GetMefServiceAsync<IAceRefactorService>();
-            return aceRefactorService.CheckContainsRefactorableFunctions(result, code);
+            return await aceRefactorService.CheckContainsRefactorableFunctionsAsync(result, code);
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Codescene.VSExtension.VS2022.Util
         {
             var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
             var aceManager = await VS.GetMefServiceAsync<IAceManager>();
-            var preflight = preflightManager.GetPreflightResponse();
+            var preflight = await preflightManager.GetPreflightResponseAsync();
 
             if (model.FunctionRange == null)
             {
@@ -56,7 +56,7 @@ namespace Codescene.VSExtension.VS2022.Util
 
             if (cache.TryGetValue(model.Path, out var delta) && delta != null)
             {
-                var refactorableFunctions = aceManager.GetRefactorableFunctionsFromDelta(model.Path, fileContent, delta, preflight);
+                var refactorableFunctions = await aceManager.GetRefactorableFunctionsFromDeltaAsync(model.Path, fileContent, delta, preflight);
                 return refactorableFunctions?.FirstOrDefault();
             }
 
@@ -67,7 +67,7 @@ namespace Codescene.VSExtension.VS2022.Util
         {
             var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
             var aceManager = await VS.GetMefServiceAsync<IAceManager>();
-            var preflight = preflightManager.GetPreflightResponse();
+            var preflight = await preflightManager.GetPreflightResponseAsync();
 
             if (model.FunctionRange == null)
             {
@@ -89,7 +89,7 @@ namespace Codescene.VSExtension.VS2022.Util
 
             var fileContent = await GetFileContentAsync(model);
 
-            var refactorableFunctions = aceManager.GetRefactorableFunctionsFromCodeSmells(model.Path, fileContent, new List<CliCodeSmellModel> { codeSmell }, preflight);
+            var refactorableFunctions = await aceManager.GetRefactorableFunctionsFromCodeSmellsAsync(model.Path, fileContent, new List<CliCodeSmellModel> { codeSmell }, preflight);
             return refactorableFunctions?.FirstOrDefault();
         }
 
@@ -98,7 +98,7 @@ namespace Codescene.VSExtension.VS2022.Util
             var aceManager = await VS.GetMefServiceAsync<IAceManager>();
             var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
             var fileName = Path.GetFileName(path);
-            var preflight = preflightManager.GetPreflightResponse();
+            var preflight = await preflightManager.GetPreflightResponseAsync();
 
             logger.Info($"Checking if refactorable functions from delta available for file {path}");
             if (ShouldSkipUpdate(path, fileName, delta, logger))
@@ -106,7 +106,7 @@ namespace Codescene.VSExtension.VS2022.Util
                 return;
             }
 
-            var refactorableFunctions = aceManager.GetRefactorableFunctionsFromDelta(fileName, code, delta, preflight);
+            var refactorableFunctions = await aceManager.GetRefactorableFunctionsFromDeltaAsync(fileName, code, delta, preflight);
             if (refactorableFunctions == null || !refactorableFunctions.Any())
             {
                 logger.Debug("No refactorable functions found. Skipping update of delta cache.");

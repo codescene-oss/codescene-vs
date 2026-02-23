@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 
@@ -9,9 +10,9 @@ namespace Codescene.VSExtension.Core.Interfaces.Ace
     {
         bool IsSupportedLanguage(string extension);
 
-        PreFlightResponseModel RunPreflight(bool force = false);
+        Task<PreFlightResponseModel> RunPreflightAsync(bool force = false);
 
-        PreFlightResponseModel GetPreflightResponse();
+        Task<PreFlightResponseModel> GetPreflightResponseAsync();
 
         AutoRefactorConfig GetAutoRefactorConfig();
 

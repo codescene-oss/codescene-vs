@@ -20,7 +20,7 @@ internal sealed class CopyDeviceIdCommand : BaseCommand<CopyDeviceIdCommand>
         try
         {
             var deviceIdStore = await VS.GetMefServiceAsync<IDeviceIdStore>();
-            var deviceId = deviceIdStore.GetDeviceId();
+            var deviceId = await deviceIdStore.GetDeviceIdAsync();
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 

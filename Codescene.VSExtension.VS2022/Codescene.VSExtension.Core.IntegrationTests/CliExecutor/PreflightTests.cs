@@ -12,10 +12,10 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
         public override void Cleanup() => base.Cleanup();
 
         [TestMethod]
-        public void Preflight_ReturnsFileTypes()
+        public async Task PreflightAsync_ReturnsFileTypes()
         {
             // Act
-            var result = cliExecutor.Preflight(force: true);
+            var result = await cliExecutor.PreflightAsync(force: true);
 
             // Assert
             Assert.IsNotNull(result, "CLI should return a preflight response");
