@@ -6,6 +6,7 @@ using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Moq;
@@ -17,6 +18,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
     {
         private Mock<ICodeReviewer> _mockInnerReviewer = null!;
         private Mock<ILogger> _mockLogger = null!;
+        private Mock<IGitService> _mockGitService = null!;
         private ReviewCacheService _cacheService = null!;
         private CachingCodeReviewer _cachingReviewer = null!;
 
@@ -25,8 +27,9 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         {
             _mockInnerReviewer = new Mock<ICodeReviewer>();
             _mockLogger = new Mock<ILogger>();
+            _mockGitService = new Mock<IGitService>();
             _cacheService = new ReviewCacheService();
-            _cachingReviewer = new CachingCodeReviewer(_mockInnerReviewer.Object, _cacheService, _mockLogger.Object);
+            _cachingReviewer = new CachingCodeReviewer(_mockInnerReviewer.Object, _cacheService, null, null, _mockLogger.Object, _mockGitService.Object, null);
         }
 
         [TestCleanup]
@@ -83,21 +86,33 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         {
             var path = "test.cs";
             var currentCode = "current code";
-            var expectedReview = new FileReviewModel { FilePath = path, Score = 8.0f };
-            var expectedBaseline = "baseline123";
+            var baselineCode = "baseline code";
+            var expectedReview = new FileReviewModel { FilePath = path, Score = 8.0f, RawScore = "9.5" };
+            var baselineReview = new FileReviewModel { FilePath = path, RawScore = "8.0" };
             var cts = new CancellationTokenSource();
             var specificToken = cts.Token;
 
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(baselineCode);
+
             _mockInnerReviewer
-                .Setup(r => r.ReviewAndBaselineAsync(path, currentCode, specificToken))
-                .ReturnsAsync((expectedReview, expectedBaseline));
+                .Setup(r => r.ReviewAsync(path, currentCode, false, specificToken))
+                .ReturnsAsync(expectedReview);
+
+            _mockInnerReviewer
+                .Setup(r => r.ReviewAsync(path, baselineCode, true, specificToken))
+                .ReturnsAsync(baselineReview);
 
             await _cachingReviewer.ReviewAndBaselineAsync(path, currentCode, specificToken);
 
             _mockInnerReviewer.Verify(
-                r => r.ReviewAndBaselineAsync(path, currentCode, specificToken),
+                r => r.ReviewAsync(path, currentCode, false, specificToken),
                 Times.Once,
-                "Must pass the exact CancellationToken to inner reviewer");
+                "Must pass the exact CancellationToken to inner reviewer for current review");
+
+            _mockInnerReviewer.Verify(
+                r => r.ReviewAsync(path, baselineCode, true, specificToken),
+                Times.Once,
+                "Must pass the exact CancellationToken to inner reviewer for baseline review");
         }
 
         [TestMethod]
@@ -106,17 +121,18 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var path = "test.cs";
             var baselineContent = "baseline content";
             var expectedScore = "baseline123";
+            var baselineReview = new FileReviewModel { FilePath = path, RawScore = expectedScore };
             var cts = new CancellationTokenSource();
             var specificToken = cts.Token;
 
             _mockInnerReviewer
-                .Setup(r => r.GetOrComputeBaselineRawScoreAsync(path, baselineContent, specificToken))
-                .ReturnsAsync(expectedScore);
+                .Setup(r => r.ReviewAsync(path, baselineContent, true, specificToken))
+                .ReturnsAsync(baselineReview);
 
             await _cachingReviewer.GetOrComputeBaselineRawScoreAsync(path, baselineContent, specificToken);
 
             _mockInnerReviewer.Verify(
-                r => r.GetOrComputeBaselineRawScoreAsync(path, baselineContent, specificToken),
+                r => r.ReviewAsync(path, baselineContent, true, specificToken),
                 Times.Once,
                 "Must pass the exact CancellationToken to inner reviewer");
         }

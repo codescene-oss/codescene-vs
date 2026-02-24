@@ -6,6 +6,7 @@ using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Models;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
@@ -24,7 +25,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             _mockInnerReviewer = new Mock<ICodeReviewer>();
             _mockLogger = new Mock<ILogger>();
             _cacheService = new ReviewCacheService();
-            _cachingReviewer = new CachingCodeReviewer(_mockInnerReviewer.Object, _cacheService, _mockLogger.Object);
+            _cachingReviewer = new CachingCodeReviewer(_mockInnerReviewer.Object, _cacheService, null, null, _mockLogger.Object, null, null);
         }
 
         [TestCleanup]
@@ -39,15 +40,16 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var path = "GetOrComputeBaselineRawScoreAsync_DelegatesToInnerReviewer.cs";
             var baselineContent = "baseline content";
             var expectedScore = "baseline123";
+            var baselineReview = new FileReviewModel { FilePath = path, RawScore = expectedScore };
 
             _mockInnerReviewer
-                .Setup(r => r.GetOrComputeBaselineRawScoreAsync(path, baselineContent, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(expectedScore);
+                .Setup(r => r.ReviewAsync(path, baselineContent, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(baselineReview);
 
             var result = await _cachingReviewer.GetOrComputeBaselineRawScoreAsync(path, baselineContent);
 
             Assert.AreEqual(expectedScore, result);
-            _mockInnerReviewer.Verify(r => r.GetOrComputeBaselineRawScoreAsync(path, baselineContent, It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, baselineContent, true, It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             _mockInnerReviewer = new Mock<ICodeReviewer>();
             _mockLogger = new Mock<ILogger>();
             _cacheService = new ReviewCacheService();
-            _cachingReviewer = new CachingCodeReviewer(_mockInnerReviewer.Object, _cacheService, _mockLogger.Object);
+            _cachingReviewer = new CachingCodeReviewer(_mockInnerReviewer.Object, _cacheService, null, null, _mockLogger.Object, null, null);
         }
 
         [TestCleanup]
@@ -39,18 +39,16 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         {
             var path = "ReviewAndBaselineAsync_DelegatesToInnerReviewer.cs";
             var currentCode = "current code";
-            var expectedReview = new FileReviewModel { FilePath = path, Score = 8.0f };
-            var expectedBaselineScore = "baseline123";
+            var expectedReview = new FileReviewModel { FilePath = path, Score = 8.0f, RawScore = "9.5" };
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAndBaselineAsync(path, currentCode, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((expectedReview, expectedBaselineScore));
+                .Setup(r => r.ReviewAsync(path, currentCode, false, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedReview);
 
             var result = await _cachingReviewer.ReviewAndBaselineAsync(path, currentCode);
 
             Assert.AreEqual(expectedReview, result.review);
-            Assert.AreEqual(expectedBaselineScore, result.baselineRawScore);
-            _mockInnerReviewer.Verify(r => r.ReviewAndBaselineAsync(path, currentCode, It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, currentCode, false, It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }
