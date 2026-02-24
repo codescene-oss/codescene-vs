@@ -37,7 +37,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return await _innerReviewer.ReviewAsync(path, content, isBaseline, cancellationToken);
             }
 
-            var query = new ReviewCacheQuery(content, path);
+            var normalizedPath = path.ToLowerInvariant();
+            var query = new ReviewCacheQuery(content, normalizedPath);
             var cached = _cache.Get(query);
 
             if (cached != null)
@@ -83,7 +84,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (result != null)
             {
-                var entry = new ReviewCacheEntry(content, path, result);
+                var entry = new ReviewCacheEntry(content, path.ToLowerInvariant(), result);
                 _cache.Put(entry);
                 _logger?.Debug($"CachingCodeReviewer: Cached result for '{path}'.");
             }

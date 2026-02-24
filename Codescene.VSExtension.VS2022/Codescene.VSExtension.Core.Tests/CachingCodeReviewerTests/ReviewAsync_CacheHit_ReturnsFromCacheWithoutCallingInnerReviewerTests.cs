@@ -46,7 +46,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "cached123",
             };
 
-            _cacheService.Put(new Models.Cache.Review.ReviewCacheEntry(content, path, cachedResult));
+            _cacheService.Put(new Models.Cache.Review.ReviewCacheEntry(content, path.ToLowerInvariant(), cachedResult));
 
             var result = await _cachingReviewer.ReviewAsync(path, content);
 

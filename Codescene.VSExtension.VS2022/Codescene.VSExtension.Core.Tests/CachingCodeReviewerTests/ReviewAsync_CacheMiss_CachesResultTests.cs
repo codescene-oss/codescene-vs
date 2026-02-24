@@ -51,7 +51,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             await _cachingReviewer.ReviewAsync(path, content);
 
-            var cachedResult = _cacheService.Get(new Models.Cache.Review.ReviewCacheQuery(content, path));
+            var cachedResult = _cacheService.Get(new Models.Cache.Review.ReviewCacheQuery(content, path.ToLowerInvariant()));
             Assert.IsNotNull(cachedResult);
             Assert.AreEqual(expectedResult.Score, cachedResult.Score);
         }

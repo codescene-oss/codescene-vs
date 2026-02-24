@@ -50,7 +50,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var firstResult = await _cachingReviewer.ReviewAsync(path, content);
             Assert.AreEqual(8.0f, firstResult.Score);
 
-            _cacheService.Invalidate(path);
+            _cacheService.Invalidate(path.ToLowerInvariant());
 
             var secondResult = await _cachingReviewer.ReviewAsync(path, content);
 
