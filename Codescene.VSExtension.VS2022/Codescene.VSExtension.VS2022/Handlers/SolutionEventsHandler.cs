@@ -66,6 +66,12 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             AceToolWindow.CloseAsync().FireAndForget();
             CodeSmellDocumentationWindow.HideAsync().FireAndForget();
 
+            Task.Run(async () =>
+            {
+                var savedFilesTracker = await VS.GetMefServiceAsync<ISavedFilesTracker>();
+                savedFilesTracker?.ClearSavedFiles();
+            }).FireAndForget();
+
             Log(logger =>
             {
                 logger.Info("Solution or folder was closed. Clearing delta cache...");
