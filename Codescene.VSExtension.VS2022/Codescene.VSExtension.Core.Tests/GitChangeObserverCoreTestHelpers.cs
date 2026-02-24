@@ -92,8 +92,11 @@ namespace Codescene.VSExtension.Core.Tests
 
     public class FakeCodeReviewer : ICodeReviewer
     {
+        public readonly List<string> ReviewedPaths = new List<string>();
+
         public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
         {
+            ReviewedPaths.Add(path);
             return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
         }
 

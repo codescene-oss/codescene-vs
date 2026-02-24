@@ -314,11 +314,17 @@ namespace Codescene.VSExtension.Core.Application.Git
                 {
                     var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
                     var addedCount = 0;
+                    var changedFiles = await _getChangedFilesCallback();
                     foreach (var absolutePath in absolutePaths)
                     {
                         if (File.Exists(absolutePath))
                         {
                             _trackerManager.Add(absolutePath);
+                            var path = absolutePath;
+                            _taskScheduler.Schedule(async () =>
+                            {
+                                await _fileChangeHandler.HandleFileChangeAsync(path, changedFiles);
+                            });
                             addedCount++;
                         }
                     }
