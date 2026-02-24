@@ -77,5 +77,33 @@ namespace Codescene.VSExtension.Core.Tests
             AssertFileInChangedList(changedFiles, "merge1.ts", false);
             AssertFileInChangedList(changedFiles, "merge2.ts", false);
         }
+
+        [TestMethod]
+        public async Task FileModificationAndRevertCycle_UpdatesCodeHealthMonitor()
+        {
+            var fileName = "healthy-file.ts";
+            var originalContent = "export function hello() { return \"world\"; }";
+            var filePath = CommitFile(fileName, originalContent, "Add healthy file");
+
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            AssertFileInChangedList(changedFiles, fileName, false);
+
+            var modifiedContent = "export function hello() { return \"modified\"; }";
+            File.WriteAllText(filePath, modifiedContent);
+
+            await TriggerFileChangeAsync(filePath);
+            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            AssertFileInChangedList(changedFiles, fileName, true);
+            AssertFileInTracker(filePath, true);
+
+            File.WriteAllText(filePath, originalContent);
+
+            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            AssertFileInChangedList(changedFiles, fileName, false);
+
+            await TriggerFileChangeAsync(filePath);
+
+            AssertFileInTracker(filePath, false);
+        }
     }
 }
