@@ -160,7 +160,7 @@ namespace Codescene.VSExtension.Core.Tests
             try
             {
                 testableInstance.Initialize(_testRepoPath, _testRepoPath);
-                testableInstance.ThrowInCollectFilesFromRepoStateAsync = true;
+                testableInstance.ThrowInGetAllChangedFilesAsync = true;
 
                 await testableInstance.InvokePeriodicScanAsync();
 

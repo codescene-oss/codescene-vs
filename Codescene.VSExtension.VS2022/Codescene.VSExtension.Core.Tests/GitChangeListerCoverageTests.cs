@@ -115,6 +115,35 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task PeriodicScan_WithCommittedChangesOnly_FiresFilesDetectedEvent()
+        {
+            var testableLister = new TestableGitChangeLister(
+                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+
+            try
+            {
+                ExecGit("checkout -b feature-branch");
+
+                var committedFile = Path.Combine(_testRepoPath, "committed-feature.cs");
+                CommitFile("committed-feature.cs", "feature content", "Add feature file");
+
+                testableLister.Initialize(_testRepoPath, _testRepoPath);
+
+                HashSet<string> detectedFiles = null;
+                testableLister.FilesDetected += (sender, files) => detectedFiles = files;
+
+                await testableLister.InvokePeriodicScanAsync();
+
+                Assert.IsNotNull(detectedFiles, "FilesDetected event should have fired for committed changes");
+                Assert.Contains(committedFile, detectedFiles, "Should detect the committed file on feature branch");
+            }
+            finally
+            {
+                testableLister?.Dispose();
+            }
+        }
+
+        [TestMethod]
         public async Task PeriodicScan_WithNoFiles_DoesNotFireEvent()
         {
             var testableLister = new TestableGitChangeLister(
@@ -137,7 +166,7 @@ namespace Codescene.VSExtension.Core.Tests
             var testableLister = new TestableGitChangeLister(
                 _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
             testableLister.Initialize(_testRepoPath, _testRepoPath);
-            testableLister.ThrowInCollectFilesFromRepoStateAsync = true;
+            testableLister.ThrowInGetAllChangedFilesAsync = true;
 
             _fakeLogger.WarnMessages.Clear();
 
