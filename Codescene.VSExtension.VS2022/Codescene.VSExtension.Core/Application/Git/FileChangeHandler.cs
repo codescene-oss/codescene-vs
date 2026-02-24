@@ -56,6 +56,12 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             if (!ShouldProcessFile(filePath, changedFiles))
             {
+                if (_trackerManager.Contains(filePath))
+                {
+                    _trackerManager.Remove(filePath);
+                    FireFileDeletedFromGit(filePath);
+                }
+
                 return;
             }
 

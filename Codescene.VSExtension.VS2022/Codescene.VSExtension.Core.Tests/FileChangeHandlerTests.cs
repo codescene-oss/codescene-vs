@@ -295,6 +295,31 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task HandleFileChangeAsync_RevertedTrackedFile_RemovesFromTrackerAndFiresFileDeletedFromGit()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "test.cs");
+            File.WriteAllText(testFile, "public class Test {}");
+            _trackerManager.Add(testFile);
+
+            var eventFired = false;
+            string? deletedPath = null;
+            _handler.FileDeletedFromGit += (sender, e) =>
+            {
+                eventFired = true;
+                deletedPath = e;
+            };
+
+            var changedFiles = new List<string> { "other.cs" };
+
+            await _handler.HandleFileChangeAsync(testFile, changedFiles);
+
+            Assert.IsFalse(_trackerManager.Contains(testFile));
+            Assert.IsTrue(eventFired);
+            Assert.AreEqual(testFile, deletedPath);
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount);
+        }
+
+        [TestMethod]
         public async Task HandleFileChangeAsync_UnsupportedFileType_ReturnsEarlyWithoutProcessing()
         {
             var testFile = Path.Combine(_testWorkspacePath, "test.txt");
