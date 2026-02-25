@@ -145,6 +145,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 return await ComputeDeltaInternalAsync(review, currentCode, precomputedBaselineRawScore, cancellationToken);
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception e)
             {
                 _logger?.Error($"Could not perform delta analysis on file {path}", e);
