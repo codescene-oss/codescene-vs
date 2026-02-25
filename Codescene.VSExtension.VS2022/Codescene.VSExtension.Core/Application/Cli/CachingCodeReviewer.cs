@@ -58,7 +58,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             var normalizedPath = path.ToLowerInvariant();
-            var query = new ReviewCacheQuery(content, normalizedPath);
+            var query = new ReviewCacheQuery(content, normalizedPath, isBaseline);
             var cached = _cache.Get(query);
 
             if (cached != null)
@@ -67,7 +67,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return cached;
             }
 
-            var pendingKey = GetPendingKey(content, path);
+            var pendingKey = GetPendingKey(content, path, isBaseline);
 
             var pendingTask = _pendingReviews.GetOrAdd(pendingKey, _ =>
                 ReviewInternalAsync(path, content, isBaseline, cancellationToken));
@@ -85,7 +85,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, CancellationToken cancellationToken = default)
         {
             var normalizedPath = path.ToLowerInvariant();
-            var reviewQuery = new ReviewCacheQuery(currentCode, normalizedPath);
+            var reviewQuery = new ReviewCacheQuery(currentCode, normalizedPath, isBaseline: false);
             var cachedReview = _cache.Get(reviewQuery);
 
             FileReviewModel review;
@@ -101,7 +101,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
                 if (review != null)
                 {
-                    var entry = new ReviewCacheEntry(currentCode, normalizedPath, review);
+                    var entry = new ReviewCacheEntry(currentCode, normalizedPath, review, isBaseline: false);
                     _cache.Put(entry);
                 }
             }
@@ -249,7 +249,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (result != null)
             {
-                var entry = new ReviewCacheEntry(content, path.ToLowerInvariant(), result);
+                var entry = new ReviewCacheEntry(content, path.ToLowerInvariant(), result, isBaseline);
                 _cache.Put(entry);
                 _logger?.Debug($"CachingCodeReviewer: Cached result for '{path}'.");
             }
@@ -257,14 +257,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return result;
         }
 
-        private string GetPendingKey(string content, string path)
+        private string GetPendingKey(string content, string path, bool isBaseline)
         {
             using (var sha = SHA256.Create())
             {
                 var bytes = Encoding.UTF8.GetBytes(content);
                 var hashBytes = sha.ComputeHash(bytes);
                 var hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
-                return path.ToLowerInvariant() + "|" + hash;
+                return path.ToLowerInvariant() + "|" + hash + "|baseline=" + isBaseline;
             }
         }
 
