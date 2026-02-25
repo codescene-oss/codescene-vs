@@ -37,7 +37,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _supportedFileChecker = supportedFileChecker ?? throw new ArgumentNullException(nameof(supportedFileChecker));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
-            _untrackedFileProcessor = new UntrackedFileProcessor(logger);
+            _untrackedFileProcessor = new UntrackedFileProcessor(_gitService, logger);
             _mergeBaseFinder = new MergeBaseFinder(logger);
         }
 
