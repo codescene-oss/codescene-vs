@@ -17,7 +17,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void SetupLister()
         {
-            _lister = new Application.Git.GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+            _lister = new Application.Git.GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
         }
 
         [TestCleanup]
@@ -97,7 +97,7 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task PeriodicScan_WithModifiedFiles_FiresFilesDetectedEvent()
         {
             var testableLister = new TestableGitChangeLister(
-                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
             testableLister.Initialize(_testRepoPath, _testRepoPath);
 
             var modifiedFile = Path.Combine(_testRepoPath, "periodic.cs");
@@ -118,7 +118,7 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task PeriodicScan_WithCommittedChangesOnly_FiresFilesDetectedEvent()
         {
             var testableLister = new TestableGitChangeLister(
-                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
 
             try
             {
@@ -147,7 +147,7 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task PeriodicScan_WithNoFiles_DoesNotFireEvent()
         {
             var testableLister = new TestableGitChangeLister(
-                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
             testableLister.Initialize(_testRepoPath, _testRepoPath);
 
             bool eventFired = false;
@@ -164,7 +164,7 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task PeriodicScan_ExceptionThrown_LogsWarning()
         {
             var testableLister = new TestableGitChangeLister(
-                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
             testableLister.Initialize(_testRepoPath, _testRepoPath);
             testableLister.ThrowInGetAllChangedFilesAsync = true;
 
@@ -183,7 +183,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void ConvertAndFilterPaths_EmptyInput_ReturnsEmptySet()
         {
             var testableLister = new TestableGitChangeLister(
-                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
 
             var result = testableLister.InvokeConvertAndFilterPaths(new List<string>(), _testRepoPath);
 
@@ -195,8 +195,10 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void ConvertAndFilterPaths_RelativePathsConverted_ToAbsolutePaths()
         {
+            CreateFile("file1.cs", "content");
+            CreateFile("subdir/file2.cs", "content");
             var testableLister = new TestableGitChangeLister(
-                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
             var relativePaths = new List<string> { "file1.cs", "subdir/file2.cs" };
 
             var result = testableLister.InvokeConvertAndFilterPaths(relativePaths, _testRepoPath);
@@ -210,8 +212,11 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void ConvertAndFilterPaths_FiltersUnsupportedFiles()
         {
+            CreateFile("file1.cs", "content");
+            CreateFile("file2.txt", "content");
+            CreateFile("file3.md", "content");
             var testableLister = new TestableGitChangeLister(
-                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
             var relativePaths = new List<string> { "file1.cs", "file2.txt", "file3.md" };
 
             var result = testableLister.InvokeConvertAndFilterPaths(relativePaths, _testRepoPath);
@@ -225,8 +230,11 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void ConvertAndFilterPaths_IncludesOnlySupportedFiles()
         {
+            CreateFile("file1.cs", "content");
+            CreateFile("file2.js", "content");
+            CreateFile("file3.py", "content");
             var testableLister = new TestableGitChangeLister(
-                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
             var relativePaths = new List<string> { "file1.cs", "file2.js", "file3.py" };
 
             var result = testableLister.InvokeConvertAndFilterPaths(relativePaths, _testRepoPath);
@@ -239,8 +247,13 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void ConvertAndFilterPaths_MixedSupportedAndUnsupported_FiltersProperly()
         {
+            CreateFile("supported1.cs", "content");
+            CreateFile("unsupported1.txt", "content");
+            CreateFile("supported2.js", "content");
+            CreateFile("unsupported2.md", "content");
+            CreateFile("supported3.py", "content");
             var testableLister = new TestableGitChangeLister(
-                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
             var relativePaths = new List<string>
             {
                 "supported1.cs",
@@ -265,8 +278,12 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void ConvertAndFilterPaths_WithSubdirectories_HandlesProperly()
         {
+            CreateFile("root.cs", "content");
+            CreateFile("subdir1/file1.cs", "content");
+            CreateFile("subdir1/subdir2/file2.js", "content");
+            CreateFile("subdir3/unsupported.txt", "content");
             var testableLister = new TestableGitChangeLister(
-                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+                _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
             var relativePaths = new List<string>
             {
                 "root.cs",

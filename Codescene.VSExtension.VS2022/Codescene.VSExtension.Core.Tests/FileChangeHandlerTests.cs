@@ -35,7 +35,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
                 _testWorkspacePath,
-                _trackerManager);
+                _trackerManager,
+                new FakeGitService());
         }
 
         [TestCleanup]
@@ -122,7 +123,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
                 null,
-                _trackerManager);
+                _trackerManager,
+                new FakeGitService());
 
             var testFile = "test.cs";
             var changedFiles = new List<string> { "test.cs" };
@@ -140,7 +142,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
                 string.Empty,
-                _trackerManager);
+                _trackerManager,
+                new FakeGitService());
 
             var testFile = "test.cs";
             var changedFiles = new List<string> { "test.cs" };

@@ -18,6 +18,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ISavedFilesTracker _savedFilesTracker;
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly ILogger _logger;
+        private readonly IGitService _gitService;
         private readonly UntrackedFileProcessor _untrackedFileProcessor;
         private readonly MergeBaseFinder _mergeBaseFinder;
 
@@ -29,11 +30,13 @@ namespace Codescene.VSExtension.Core.Application.Git
         public GitChangeLister(
             ISavedFilesTracker savedFilesTracker,
             ISupportedFileChecker supportedFileChecker,
-            ILogger logger)
+            ILogger logger,
+            IGitService gitService)
         {
             _savedFilesTracker = savedFilesTracker ?? throw new ArgumentNullException(nameof(savedFilesTracker));
             _supportedFileChecker = supportedFileChecker ?? throw new ArgumentNullException(nameof(supportedFileChecker));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             _untrackedFileProcessor = new UntrackedFileProcessor(logger);
             _mergeBaseFinder = new MergeBaseFinder(logger);
         }
@@ -162,6 +165,11 @@ namespace Codescene.VSExtension.Core.Application.Git
                         continue;
                     }
 
+                    if (_gitService.IsFileIgnored(absolutePath))
+                    {
+                        continue;
+                    }
+
                     if (item.State == FileStatus.NewInWorkdir)
                     {
                         _untrackedFileProcessor.AddUntrackedFileToDirectory(item.FilePath, absolutePath, untrackedByDirectory);
@@ -173,6 +181,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
 
                 _untrackedFileProcessor.ProcessUntrackedDirectories(untrackedByDirectory, savedFiles, changedFiles);
+                changedFiles.RemoveWhere(path => _gitService.IsFileIgnored(path));
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeLister: CollectFilesFromRepoState collected {changedFiles.Count} files from repo state");
                 #endif
@@ -209,6 +218,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             foreach (var relativePath in relativePaths)
             {
                 var absolutePath = ConvertToAbsolutePath(relativePath, gitRootPath);
+                if (!File.Exists(absolutePath) || _gitService.IsFileIgnored(absolutePath))
+                {
+                    continue;
+                }
+
                 if (ShouldReviewFile(absolutePath))
                 {
                     result.Add(absolutePath);
@@ -325,6 +339,12 @@ namespace Codescene.VSExtension.Core.Application.Git
             foreach (var change in diff)
             {
                 var relativePath = change.Path;
+                var fullPath = Path.Combine(gitRootPath, relativePath);
+                if (!File.Exists(fullPath) || _gitService.IsFileIgnored(fullPath))
+                {
+                    continue;
+                }
+
                 if (IsFileInWorkspace(relativePath, gitRootPath, workspacePath))
                 {
                     changedFiles.Add(relativePath);

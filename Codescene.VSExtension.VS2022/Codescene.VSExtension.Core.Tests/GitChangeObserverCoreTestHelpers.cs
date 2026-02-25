@@ -249,8 +249,9 @@ namespace Codescene.VSExtension.Core.Tests
             ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker,
             IAsyncTaskScheduler taskScheduler,
-            IGitChangeLister gitChangeLister)
-            : base(logger, codeReviewer, supportedFileChecker, taskScheduler, gitChangeLister)
+            IGitChangeLister gitChangeLister,
+            IGitService gitService)
+            : base(logger, codeReviewer, supportedFileChecker, taskScheduler, gitChangeLister, gitService)
         {
         }
 

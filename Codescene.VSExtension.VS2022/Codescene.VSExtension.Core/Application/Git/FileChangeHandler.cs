@@ -22,6 +22,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly TrackerManager _trackerManager;
         private readonly Func<string, string, FileReviewModel, string, Task> _onFileReviewedCallback;
         private readonly Action<string> _onFileDeletedCallback;
+        private readonly IGitService _gitService;
 
         public FileChangeHandler(
             ILogger logger,
@@ -29,6 +30,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             ISupportedFileChecker supportedFileChecker,
             string workspacePath,
             TrackerManager trackerManager,
+            IGitService gitService,
             Func<string, string, FileReviewModel, string, Task> onFileReviewedCallback = null,
             Action<string> onFileDeletedCallback = null)
         {
@@ -37,6 +39,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _supportedFileChecker = supportedFileChecker;
             _workspacePath = workspacePath;
             _trackerManager = trackerManager;
+            _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             _onFileReviewedCallback = onFileReviewedCallback;
             _onFileDeletedCallback = onFileDeletedCallback;
         }
@@ -117,6 +120,11 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public bool ShouldProcessFile(string filePath, List<string> changedFiles)
         {
+            if (_gitService.IsFileIgnored(filePath))
+            {
+                return false;
+            }
+
             if (!_supportedFileChecker.IsSupported(filePath))
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER

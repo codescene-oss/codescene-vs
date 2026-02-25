@@ -15,8 +15,9 @@ namespace Codescene.VSExtension.Core.Tests
         public TestableGitChangeLister(
             ISavedFilesTracker savedFilesTracker,
             ISupportedFileChecker supportedFileChecker,
-            ILogger logger)
-            : base(savedFilesTracker, supportedFileChecker, logger)
+            ILogger logger,
+            IGitService gitService)
+            : base(savedFilesTracker, supportedFileChecker, logger, gitService)
         {
         }
 
