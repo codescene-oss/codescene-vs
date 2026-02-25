@@ -40,14 +40,10 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var path = "NullContent_DelegatesToInnerReviewer.cs";
             string content = null!;
 
-            _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()))
-                .ReturnsAsync((FileReviewModel?)null);
-
             var result = await _cachingReviewer.ReviewAsync(path, content);
 
             Assert.IsNull(result);
-            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerReviewer.Verify(r => r.ReviewAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

@@ -54,8 +54,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             if (string.IsNullOrWhiteSpace(content) || string.IsNullOrWhiteSpace(path))
             {
-                _logger?.Debug($"CachingCodeReviewer: Null or empty content/path for '{path}', delegating to inner reviewer.");
-                return await _innerReviewer.ReviewAsync(path, content, isBaseline, cancellationToken);
+                return null;
             }
 
             var normalizedPath = path.ToLowerInvariant();
