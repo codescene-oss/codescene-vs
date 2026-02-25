@@ -53,6 +53,9 @@ namespace Codescene.VSExtension.Core.Tests
             var logger = new FakeLogger();
             var taskScheduler = new FakeAsyncTaskScheduler();
 
+            bool IsExpectedWarning(string m) =>
+                m.Contains("Error processing file change event") && m.Contains("simulated error");
+
             Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles) =>
                 throw new InvalidOperationException("simulated error");
 
@@ -63,14 +66,13 @@ namespace Codescene.VSExtension.Core.Tests
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "test.cs"));
                 processor.Start(TimeSpan.FromMilliseconds(10));
                 var deadline = DateTime.UtcNow.AddSeconds(5);
-                while (DateTime.UtcNow < deadline &&
-                    !logger.WarnMessages.Any(m => m.Contains("Error processing file change event") && m.Contains("simulated error")))
+                while (DateTime.UtcNow < deadline && !logger.WarnMessages.Any(IsExpectedWarning))
                 {
                     await Task.Delay(20);
                 }
             }
 
-            Assert.IsTrue(logger.WarnMessages.Any(m => m.Contains("Error processing file change event") && m.Contains("simulated error")));
+            Assert.IsTrue(logger.WarnMessages.Any(IsExpectedWarning));
         }
     }
 }

@@ -211,17 +211,9 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                 foreach (var change in diff)
                 {
-                    var relativePath = change.Path;
-                    var fullPath = Path.Combine(gitRootPath, relativePath);
-
-                    if (!File.Exists(fullPath) || _gitService.IsFileIgnored(fullPath))
+                    if (ShouldIncludeCommittedChange(change.Path, gitRootPath))
                     {
-                        continue;
-                    }
-
-                    if (_supportedFileChecker.IsSupported(fullPath))
-                    {
-                        changes.Add(relativePath);
+                        changes.Add(change.Path);
                     }
                 }
 
@@ -263,6 +255,17 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             return changes;
+        }
+
+        private bool ShouldIncludeCommittedChange(string relativePath, string gitRootPath)
+        {
+            var fullPath = Path.Combine(gitRootPath, relativePath);
+            if (!File.Exists(fullPath) || _gitService.IsFileIgnored(fullPath))
+            {
+                return false;
+            }
+
+            return _supportedFileChecker.IsSupported(fullPath);
         }
 
         private HashSet<string> BuildExclusionSet(ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)

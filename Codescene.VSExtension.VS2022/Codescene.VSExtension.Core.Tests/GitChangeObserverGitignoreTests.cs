@@ -10,7 +10,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task DeletedFileOnBranchWithGitignore_IsNotInChangedListAndNotReviewed()
         {
-            var fileName = "removed-on-branch.ts";
+            var fileName = "gitignored.ts";
             CommitFile(fileName, "export const x = 1;", "Add file on main");
 
             using (var repo = new Repository(_testRepoPath))
