@@ -17,6 +17,7 @@ namespace Codescene.VSExtension.Core.Tests
         protected FakeSavedFilesTracker _fakeSavedFilesTracker;
         protected FakeOpenFilesObserver _fakeOpenFilesObserver;
         protected FakeGitChangeLister _fakeGitChangeLister;
+        protected FakeGitService _fakeGitService;
 
         [TestInitialize]
         public void Setup()
@@ -59,6 +60,7 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeSavedFilesTracker = new FakeSavedFilesTracker();
             _fakeOpenFilesObserver = new FakeOpenFilesObserver();
             _fakeGitChangeLister = new FakeGitChangeLister();
+            _fakeGitService = new FakeGitService();
 
             _gitChangeObserverCore = CreateGitChangeObserverCore();
 
@@ -95,9 +97,10 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
                 _fakeTaskScheduler,
-                _fakeGitChangeLister);
+                _fakeGitChangeLister,
+                _fakeGitService);
 
-            observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+            observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, null);
 
             return observer;
         }

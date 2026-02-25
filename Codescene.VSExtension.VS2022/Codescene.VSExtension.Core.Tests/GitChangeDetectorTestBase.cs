@@ -17,6 +17,7 @@ namespace Codescene.VSExtension.Core.Tests
         protected FakeSupportedFileChecker _fakeSupportedFileChecker;
         protected FakeSavedFilesTracker _fakeSavedFilesTracker;
         protected FakeOpenFilesObserver _fakeOpenFilesObserver;
+        protected FakeGitService _fakeGitService;
 
         [TestInitialize]
         public void Setup()
@@ -37,8 +38,9 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeSupportedFileChecker = new FakeSupportedFileChecker();
             _fakeSavedFilesTracker = new FakeSavedFilesTracker();
             _fakeOpenFilesObserver = new FakeOpenFilesObserver();
+            _fakeGitService = new FakeGitService();
 
-            _detector = new GitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            _detector = new GitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
         }
 
         [TestCleanup]
@@ -59,6 +61,18 @@ namespace Codescene.VSExtension.Core.Tests
         protected List<string> GetMainBranchCandidates(Repository repo)
         {
             return _detector.GetMainBranchCandidates(repo);
+        }
+
+        protected void CreateFile(string relativePath, string content)
+        {
+            var filePath = Path.Combine(_testRepoPath, relativePath);
+            var dir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            File.WriteAllText(filePath, content);
         }
 
         protected string CommitFile(string filename, string content, string message)
@@ -231,8 +245,8 @@ namespace Codescene.VSExtension.Core.Tests
 
         protected class TestableGitChangeDetector : GitChangeDetector
         {
-            public TestableGitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker)
-                : base(logger, supportedFileChecker)
+            public TestableGitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker, IGitService gitService)
+                : base(logger, supportedFileChecker, gitService)
             {
             }
 

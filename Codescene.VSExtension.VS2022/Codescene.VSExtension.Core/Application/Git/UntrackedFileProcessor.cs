@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Git;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
@@ -11,9 +12,11 @@ namespace Codescene.VSExtension.Core.Application.Git
     {
         private const int MaxUntrackedFilesPerLocation = 5;
         private readonly ILogger _logger;
+        private readonly IGitService _gitService;
 
-        public UntrackedFileProcessor(ILogger logger = null)
+        public UntrackedFileProcessor(IGitService gitService, ILogger logger = null)
         {
+            _gitService = gitService;
             _logger = logger;
         }
 
@@ -22,6 +25,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             string absolutePath,
             Dictionary<string, List<string>> untrackedByDirectory)
         {
+            if (_gitService.IsFileIgnored(absolutePath))
+            {
+                return;
+            }
+
             var directory = string.IsNullOrEmpty(Path.GetDirectoryName(relativePath)) ? "__root__" : Path.GetDirectoryName(relativePath);
 
             if (!untrackedByDirectory.ContainsKey(directory))
