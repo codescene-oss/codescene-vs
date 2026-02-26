@@ -16,12 +16,14 @@ namespace Codescene.VSExtension.Core.Application.Git
     {
         private readonly ILogger _logger;
         private readonly ISupportedFileChecker _supportedFileChecker;
+        private readonly IGitService _gitService;
         private Dictionary<string, List<string>> _mainBranchCandidatesCache;
 
-        public GitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker)
+        public GitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker, IGitService gitService)
         {
             _logger = logger;
             _supportedFileChecker = supportedFileChecker;
+            _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
         }
 
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
@@ -209,12 +211,9 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                 foreach (var change in diff)
                 {
-                    var relativePath = change.Path;
-                    var fullPath = Path.Combine(gitRootPath, relativePath);
-
-                    if (_supportedFileChecker.IsSupported(fullPath))
+                    if (ShouldIncludeCommittedChange(change.Path, gitRootPath))
                     {
-                        changes.Add(relativePath);
+                        changes.Add(change.Path);
                     }
                 }
 
@@ -256,6 +255,17 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             return changes;
+        }
+
+        private bool ShouldIncludeCommittedChange(string relativePath, string gitRootPath)
+        {
+            var fullPath = Path.Combine(gitRootPath, relativePath);
+            if (!File.Exists(fullPath) || _gitService.IsFileIgnored(fullPath))
+            {
+                return false;
+            }
+
+            return _supportedFileChecker.IsSupported(fullPath);
         }
 
         private HashSet<string> BuildExclusionSet(ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
@@ -305,6 +315,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             var fullPath = Path.Combine(gitRootPath, item.FilePath);
+
+            if (_gitService.IsFileIgnored(fullPath))
+            {
+                return false;
+            }
 
             if (filesToExclude.Contains(fullPath))
             {

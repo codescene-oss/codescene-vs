@@ -22,7 +22,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void SetupLister()
         {
-            _lister = new GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+            _lister = new GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
         }
 
         [TestCleanup]
@@ -107,7 +107,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task PeriodicScanAsync_DetectsChangesAndFiresEvent()
         {
-            var testableInstance = new TestableGitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+            var testableInstance = new TestableGitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
 
             try
             {
@@ -133,7 +133,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task PeriodicScanAsync_WithNoChanges_DoesNotFireEvent()
         {
-            var testableInstance = new TestableGitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+            var testableInstance = new TestableGitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
 
             try
             {
@@ -155,7 +155,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task PeriodicScanAsync_WhenExceptionThrown_LogsWarning()
         {
-            var testableInstance = new TestableGitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+            var testableInstance = new TestableGitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
 
             try
             {

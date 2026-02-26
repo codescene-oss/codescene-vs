@@ -10,7 +10,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetChangedFilesVsBaselineAsync_LibGit2SharpException_ReturnsEmptyAndLogsWarning()
         {
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ThrowInGetChangedFilesFromRepository = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
@@ -25,7 +25,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetMergeBaseCommit_ThrowsException_ReturnsNullAndLogsDebug()
         {
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ThrowFromMainBranchCandidates = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
@@ -172,7 +172,7 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.SimulateInvalidCurrentBranch = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
@@ -187,7 +187,7 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.SimulateInvalidMainBranch = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
@@ -202,7 +202,7 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ThrowFromFindMergeBase = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
@@ -220,7 +220,7 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ThrowFromDiffCompare = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
@@ -238,7 +238,7 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ThrowFromRetrieveStatus = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
@@ -303,7 +303,7 @@ namespace Codescene.VSExtension.Core.Tests
                 }
             }
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ForceBranchLookupFailure = "nonexistent-branch";
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(

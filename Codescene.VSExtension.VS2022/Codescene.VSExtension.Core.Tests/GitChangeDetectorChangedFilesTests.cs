@@ -416,6 +416,22 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_FileInExclusionSet_ExcludedFromStatusChanges()
+        {
+            var excludedPath = Path.Combine(_testRepoPath, "excluded.cs");
+            File.WriteAllText(excludedPath, "public class Excluded {}");
+            _fakeSavedFilesTracker.AddSavedFile(excludedPath);
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            var normalizedResult = result.Select(f => f.Replace('/', '\\')).ToList();
+            Assert.IsFalse(
+                normalizedResult.Any(f => f.EndsWith("excluded.cs")),
+                "File in exclusion set should be excluded from status changes");
+        }
+
+        [TestMethod]
         public async Task GetChangedFilesVsBaselineAsync_IgnoredFiles_NotIncluded()
         {
             var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
