@@ -30,6 +30,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ILogger _logger;
         private readonly IGitService _git;
         private readonly ITelemetryManager _telemetryManager;
+        private readonly ICodeHealthMonitorNotifier _notifier;
         private readonly ConcurrentDictionary<string, Task<FileReviewModel>> _pendingReviews = new ConcurrentDictionary<string, Task<FileReviewModel>>();
 
         public CachingCodeReviewer(
@@ -39,7 +40,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
             DeltaCacheService deltaCache = null,
             ILogger logger = null,
             IGitService git = null,
-            ITelemetryManager telemetryManager = null)
+            ITelemetryManager telemetryManager = null,
+            ICodeHealthMonitorNotifier notifier = null)
         {
             _innerReviewer = innerReviewer;
             _cache = cache ?? new ReviewCacheService();
@@ -48,6 +50,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _logger = logger;
             _git = git;
             _telemetryManager = telemetryManager;
+            _notifier = notifier;
         }
 
         public async Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
@@ -140,18 +143,26 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
+            _notifier?.OnDeltaStarting(path);
             try
             {
-                return await ComputeDeltaInternalAsync(review, currentCode, precomputedBaselineRawScore, cancellationToken);
+                try
+                {
+                    return await ComputeDeltaInternalAsync(review, currentCode, precomputedBaselineRawScore, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    _logger?.Error($"Could not perform delta analysis on file {path}", e);
+                    return null;
+                }
             }
-            catch (OperationCanceledException)
+            finally
             {
-                throw;
-            }
-            catch (Exception e)
-            {
-                _logger?.Error($"Could not perform delta analysis on file {path}", e);
-                return null;
+                _notifier?.OnDeltaCompleted(path);
             }
         }
 
