@@ -20,6 +20,14 @@ try {
         exit 0
     }
 
+    $commitMessages = git log --format=%B "$baseBranch..HEAD" 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        if ($commitMessages -match 'skip-pr-size-check') {
+            Write-Host "Found 'skip-pr-size-check' in commit message, skipping PR size check" -ForegroundColor Yellow
+            exit 0
+        }
+    }
+
     $diffOutput = git diff --name-status "$baseBranch...HEAD" 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Could not compare with base branch: $baseBranch" -ForegroundColor Yellow
