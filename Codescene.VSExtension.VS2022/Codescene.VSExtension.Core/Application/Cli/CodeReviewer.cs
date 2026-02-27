@@ -18,8 +18,6 @@ using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
-    [Export(typeof(ICodeReviewer))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeReviewer : ICodeReviewer
     {
         private readonly ILogger _logger;
@@ -28,7 +26,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ITelemetryManager _telemetryManager;
         private readonly IGitService _git;
 
-        [ImportingConstructor]
         public CodeReviewer(
             ILogger logger,
             IModelMapper mapper,
@@ -66,6 +63,18 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var review = await reviewTask;
             var baselineRawScore = (await baselineTask) ?? string.Empty;
             return (review, baselineRawScore);
+        }
+
+        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, CancellationToken cancellationToken = default)
+        {
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, cancellationToken);
+            if (review?.RawScore == null)
+            {
+                return (review, null);
+            }
+
+            var delta = await DeltaAsync(review, content, baselineRawScore, cancellationToken);
+            return (review, delta);
         }
 
         public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, CancellationToken cancellationToken = default)

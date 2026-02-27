@@ -1,11 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using Codescene.VSExtension.Core.Application.Git;
-using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Cli;
-using Codescene.VSExtension.Core.Interfaces.Git;
-using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cli.Delta;
 
 namespace Codescene.VSExtension.Core.Tests
 {
@@ -79,81 +74,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task HandleFileDeleteAsync_UntrackedFileInChangedList_FiresDeleteEvent()
-        {
-            var testFile = Path.Combine(_testWorkspacePath, "test.cs");
-            var changedFiles = new List<string> { "test.cs" };
-
-            var eventFired = false;
-            string? deletedPath = null;
-            _handler.FileDeletedFromGit += (sender, e) =>
-            {
-                eventFired = true;
-                deletedPath = e;
-            };
-
-            await _handler.HandleFileDeleteAsync(testFile, changedFiles);
-
-            Assert.IsTrue(eventFired);
-            Assert.AreEqual(testFile, deletedPath);
-        }
-
-        [TestMethod]
-        public async Task HandleFileDeleteAsync_UntrackedFileNotInChangedList_NoEventFired()
-        {
-            var testFile = Path.Combine(_testWorkspacePath, "test.cs");
-            var changedFiles = new List<string> { "other.cs" };
-
-            var eventFired = false;
-            _handler.FileDeletedFromGit += (sender, e) =>
-            {
-                eventFired = true;
-            };
-
-            await _handler.HandleFileDeleteAsync(testFile, changedFiles);
-
-            Assert.IsFalse(eventFired);
-        }
-
-        [TestMethod]
-        public void ShouldProcessFile_NullWorkspacePath_ReturnsTrue()
-        {
-            var handlerWithNullWorkspace = new FileChangeHandler(
-                _fakeLogger,
-                _fakeCodeReviewer,
-                _fakeSupportedFileChecker,
-                null,
-                _trackerManager,
-                new FakeGitService());
-
-            var testFile = "test.cs";
-            var changedFiles = new List<string> { "test.cs" };
-
-            var result = handlerWithNullWorkspace.ShouldProcessFile(testFile, changedFiles);
-
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod]
-        public void ShouldProcessFile_EmptyWorkspacePath_ReturnsTrue()
-        {
-            var handlerWithEmptyWorkspace = new FileChangeHandler(
-                _fakeLogger,
-                _fakeCodeReviewer,
-                _fakeSupportedFileChecker,
-                string.Empty,
-                _trackerManager,
-                new FakeGitService());
-
-            var testFile = "test.cs";
-            var changedFiles = new List<string> { "test.cs" };
-
-            var result = handlerWithEmptyWorkspace.ShouldProcessFile(testFile, changedFiles);
-
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod]
         public async Task HandleFileChangeAsync_NonExistentFile_NoReviewCalled()
         {
             var nonExistentFile = Path.Combine(_testWorkspacePath, "nonexistent.cs");
@@ -198,22 +118,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task HandleFileDeleteAsync_EventHandlerThrowsException_LogsWarning()
-        {
-            var testFile = Path.Combine(_testWorkspacePath, "test.cs");
-            var changedFiles = new List<string> { "test.cs" };
-
-            _handler.FileDeletedFromGit += (sender, e) =>
-            {
-                throw new Exception("Test exception");
-            };
-
-            await _handler.HandleFileDeleteAsync(testFile, changedFiles);
-
-            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Error firing file deleted event")));
-        }
-
-        [TestMethod]
         public async Task HandleFileChangeAsync_ValidFile_AddsToTrackerAndReviews()
         {
             var testFile = Path.Combine(_testWorkspacePath, "test.cs");
@@ -226,80 +130,6 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsTrue(_trackerManager.Contains(testFile));
             Assert.IsGreaterThanOrEqualTo(_fakeCodeReviewer.ReviewCallCount, 1);
-        }
-
-        [TestMethod]
-        public async Task HandleFileDeleteAsync_TrackedFile_RemovesFromTrackerAndFiresEvent()
-        {
-            var testFile = Path.Combine(_testWorkspacePath, "test.cs");
-            var changedFiles = new List<string> { "test.cs" };
-            _trackerManager.Add(testFile);
-
-            var eventFired = false;
-            _handler.FileDeletedFromGit += (sender, e) =>
-            {
-                eventFired = true;
-            };
-
-            await _handler.HandleFileDeleteAsync(testFile, changedFiles);
-
-            Assert.IsFalse(_trackerManager.Contains(testFile));
-            Assert.IsTrue(eventFired);
-        }
-
-        [TestMethod]
-        public async Task HandleFileDeleteAsync_Directory_RemovesAllFilesInDirectory()
-        {
-            var subdir = Path.Combine(_testWorkspacePath, "subdir");
-            var file1 = Path.Combine(subdir, "file1.cs");
-            var file2 = Path.Combine(subdir, "file2.cs");
-
-            _trackerManager.Add(file1);
-            _trackerManager.Add(file2);
-
-            var deletedFiles = new List<string>();
-            _handler.FileDeletedFromGit += (sender, e) =>
-            {
-                deletedFiles.Add(e);
-            };
-
-            var changedFiles = new List<string>();
-            await _handler.HandleFileDeleteAsync(subdir, changedFiles);
-
-            Assert.IsFalse(_trackerManager.Contains(file1));
-            Assert.IsFalse(_trackerManager.Contains(file2));
-            Assert.HasCount(2, deletedFiles);
-        }
-
-        [TestMethod]
-        public void ShouldProcessFile_IgnoredFile_ReturnsFalse()
-        {
-            var testFile = Path.Combine(_testWorkspacePath, "ignored.cs");
-            var changedFiles = new List<string> { "ignored.cs" };
-            var handlerWithIgnoringGit = new FileChangeHandler(
-                _fakeLogger,
-                _fakeCodeReviewer,
-                _fakeSupportedFileChecker,
-                _testWorkspacePath,
-                _trackerManager,
-                new FakeGitServiceIgnorePath(testFile));
-
-            var result = handlerWithIgnoringGit.ShouldProcessFile(testFile, changedFiles);
-
-            Assert.IsFalse(result);
-        }
-
-        [TestMethod]
-        public void ShouldProcessFile_UnsupportedFile_ReturnsFalse()
-        {
-            var testFile = Path.Combine(_testWorkspacePath, "test.unsupported");
-            var changedFiles = new List<string> { "test.unsupported" };
-
-            _fakeSupportedFileChecker.SetSupported(testFile, false);
-
-            var result = _handler.ShouldProcessFile(testFile, changedFiles);
-
-            Assert.IsFalse(result);
         }
 
         [TestMethod]
@@ -368,100 +198,73 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsTrue(result, "IsFileInChangedList should match when changed list contains workspace-relative path");
         }
 
-        private class FakeLogger : ILogger
+        [TestMethod]
+        public void ShouldProcessFile_NullWorkspacePath_ReturnsTrue()
         {
-            public List<string> DebugMessages = new List<string>();
-            public List<string> InfoMessages = new List<string>();
-            public List<string> WarnMessages = new List<string>();
-            public List<string> ErrorMessages = new List<string>();
+            var handlerWithNullWorkspace = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                null,
+                _trackerManager,
+                new FakeGitService());
 
-            public void Debug(string message) => DebugMessages.Add(message);
+            var testFile = "test.cs";
+            var changedFiles = new List<string> { "test.cs" };
 
-            public void Info(string message, bool statusBar = false) => InfoMessages.Add(message);
+            var result = handlerWithNullWorkspace.ShouldProcessFile(testFile, changedFiles);
 
-            public void Warn(string message, bool statusBar = false) => WarnMessages.Add(message);
-
-            public void Error(string message, Exception ex) => ErrorMessages.Add(message);
+            Assert.IsTrue(result);
         }
 
-        private class FakeCodeReviewer : ICodeReviewer
+        [TestMethod]
+        public void ShouldProcessFile_EmptyWorkspacePath_ReturnsTrue()
         {
-            public int ReviewCallCount { get; private set; }
+            var handlerWithEmptyWorkspace = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                string.Empty,
+                _trackerManager,
+                new FakeGitService());
 
-            public bool ThrowOnReview { get; set; }
+            var testFile = "test.cs";
+            var changedFiles = new List<string> { "test.cs" };
 
-            public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
-            {
-                ReviewCallCount++;
-                if (ThrowOnReview)
-                {
-                    throw new Exception("Test exception from code reviewer");
-                }
+            var result = handlerWithEmptyWorkspace.ShouldProcessFile(testFile, changedFiles);
 
-                return Task.FromResult(new FileReviewModel { FilePath = path });
-            }
-
-            public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, CancellationToken cancellationToken = default)
-            {
-                var review = await ReviewAsync(path, currentCode, false, cancellationToken);
-                var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, cancellationToken);
-                return (review, baselineRawScore ?? string.Empty);
-            }
-
-            public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, CancellationToken cancellationToken = default) =>
-                Task.FromResult("8.0");
-
-            public FileReviewModel Review(string path, string content) =>
-                ReviewAsync(path, content).GetAwaiter().GetResult();
-
-            public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, System.Threading.CancellationToken cancellationToken = default) =>
-                Task.FromResult<DeltaResponseModel>(null);
-
-            public DeltaResponseModel Delta(FileReviewModel review, string currentCode) =>
-                DeltaAsync(review, currentCode).GetAwaiter().GetResult();
+            Assert.IsTrue(result);
         }
 
-        private class FakeGitService : IGitService
+        [TestMethod]
+        public void ShouldProcessFile_IgnoredFile_ReturnsFalse()
         {
-            public string GetFileContentForCommit(string path) => string.Empty;
+            var testFile = Path.Combine(_testWorkspacePath, "ignored.cs");
+            var changedFiles = new List<string> { "ignored.cs" };
+            var handlerWithIgnoringGit = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _testWorkspacePath,
+                _trackerManager,
+                new FakeGitServiceIgnorePath(testFile));
 
-            public bool IsFileIgnored(string filePath) => false;
+            var result = handlerWithIgnoringGit.ShouldProcessFile(testFile, changedFiles);
+
+            Assert.IsFalse(result);
         }
 
-        private class FakeGitServiceIgnorePath : IGitService
+        [TestMethod]
+        public void ShouldProcessFile_UnsupportedFile_ReturnsFalse()
         {
-            private readonly string _ignoredPath;
+            var testFile = Path.Combine(_testWorkspacePath, "test.unsupported");
+            var changedFiles = new List<string> { "test.unsupported" };
 
-            public FakeGitServiceIgnorePath(string ignoredPath)
-            {
-                _ignoredPath = ignoredPath;
-            }
+            _fakeSupportedFileChecker.SetSupported(testFile, false);
 
-            public string GetFileContentForCommit(string path) => string.Empty;
+            var result = _handler.ShouldProcessFile(testFile, changedFiles);
 
-            public bool IsFileIgnored(string filePath) =>
-                string.Equals(filePath, _ignoredPath, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private class FakeSupportedFileChecker : ISupportedFileChecker
-        {
-            private readonly Dictionary<string, bool> _supported = new Dictionary<string, bool>();
-
-            public bool IsSupported(string filePath)
-            {
-                if (_supported.ContainsKey(filePath))
-                {
-                    return _supported[filePath];
-                }
-
-                var extension = Path.GetExtension(filePath)?.ToLower();
-                return extension == ".ts" || extension == ".js" || extension == ".py" || extension == ".cs";
-            }
-
-            public void SetSupported(string filePath, bool isSupported)
-            {
-                _supported[filePath] = isSupported;
-            }
+            Assert.IsFalse(result);
         }
     }
 }

@@ -276,33 +276,16 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private async Task DeltaReviewAsync(FileReviewModel currentReview, string currentContent, string precomputedBaselineRawScore = null)
         {
             var path = currentReview.FilePath;
-            var job = new Job
-            {
-                Type = JobTypes.DELTA,
-                State = StateTypes.RUNNING,
-                File = new File { FileName = path },
-            };
-
             try
             {
-                DeltaJobTracker.Add(job);
-
-                await CodeSceneToolWindow.UpdateViewAsync(); // Update loading state
-
                 var deltaResult = await _reviewer.DeltaAsync(currentReview, currentContent, precomputedBaselineRawScore);
                 await AceUtils.UpdateDeltaCacheWithRefactorableFunctionsAsync(deltaResult, path, currentContent, _logger);
-
                 var scoreChange = deltaResult?.ScoreChange.ToString(CultureInfo.InvariantCulture) ?? "none";
                 _logger.Info($"Delta analysis complete for file {path}. Code Health score change: {scoreChange}.");
             }
             catch (Exception e)
             {
                 _logger.Error($"Could not perform delta review on file {currentReview.FilePath}.", e);
-            }
-            finally
-            {
-                DeltaJobTracker.Remove(job);
-                await CodeSceneToolWindow.UpdateViewAsync();
             }
         }
     }
