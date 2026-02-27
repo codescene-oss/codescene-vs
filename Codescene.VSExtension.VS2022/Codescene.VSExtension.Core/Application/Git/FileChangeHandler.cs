@@ -144,12 +144,23 @@ namespace Codescene.VSExtension.Core.Application.Git
             return true;
         }
 
-        private static bool IsOutsideWorkspace(string relativePath)
+        private static bool IsInWorkspace(string filePath, string workspacePath)
         {
-            return
-                relativePath.StartsWith("..", StringComparison.Ordinal) ||
-                relativePath.StartsWith("..\\", StringComparison.Ordinal) ||
-                relativePath.StartsWith("../", StringComparison.Ordinal);
+            var file = new FileInfo(filePath);
+            var workspace = new DirectoryInfo(workspacePath);
+
+            DirectoryInfo current = file.Directory;
+            while (current != null)
+            {
+                if (string.Equals(current.FullName, workspace.FullName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                current = current.Parent;
+            }
+
+            return false;
         }
 
         private bool IsFileInChangedList(string filePath, List<string> changedFiles)
@@ -159,12 +170,12 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return true;
             }
 
-            var relativePath = PathUtilities.GetRelativePath(_workspacePath, filePath);
-            if (IsOutsideWorkspace(relativePath))
+            if (!IsInWorkspace(filePath, _workspacePath))
             {
                 return false;
             }
 
+            var relativePath = PathUtilities.GetRelativePath(_workspacePath, filePath);
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> FileChangeHandler: Checking if file is in changed list - relative path: '{relativePath}'");
             #endif
