@@ -145,6 +145,23 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void InitializeTracker_AddsDiscoveredFilesToTrackerAndRunsReviewForEach()
+        {
+            var path1 = CreateFile("init1.cs", "class A { }");
+            var path2 = CreateFile("init2.cs", "class B { }");
+            _fakeGitChangeLister.FilesToReturn = new HashSet<string> { path1, path2 };
+
+            _gitChangeObserverCore.Dispose();
+            _gitChangeObserverCore = CreateGitChangeObserverCore();
+
+            AssertFileInTracker(path1, true);
+            AssertFileInTracker(path2, true);
+            Assert.HasCount(2, _fakeCodeReviewer.ReviewedPaths, "Should run review for each discovered file");
+            Assert.Contains(path1, _fakeCodeReviewer.ReviewedPaths, "Should have reviewed init1.cs");
+            Assert.Contains(path2, _fakeCodeReviewer.ReviewedPaths, "Should have reviewed init2.cs");
+        }
+
+        [TestMethod]
         public void OnGitChangeListerFilesDetected_SkipsNonExistentFiles()
         {
             var nonExistentFile = Path.Combine(_testRepoPath, "nonexistent.ts");
