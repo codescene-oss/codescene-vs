@@ -377,13 +377,17 @@ namespace Codescene.VSExtension.Core.Application.Git
                 var absolutePath = Path.Combine(gitRootPath, relativePath);
                 var normalizedAbsolute = Path.GetFullPath(absolutePath);
                 var normalizedWorkspace = Path.GetFullPath(workspacePath);
+                var workspacePrefix = normalizedWorkspace.EndsWith(Path.DirectorySeparatorChar.ToString())
+                    ? normalizedWorkspace
+                    : normalizedWorkspace + Path.DirectorySeparatorChar;
 
                 if (!File.Exists(normalizedAbsolute))
                 {
                     return false;
                 }
 
-                return normalizedAbsolute.StartsWith(normalizedWorkspace, StringComparison.OrdinalIgnoreCase);
+                return normalizedAbsolute.StartsWith(workspacePrefix, StringComparison.OrdinalIgnoreCase) ||
+                       normalizedAbsolute.Equals(normalizedWorkspace, StringComparison.OrdinalIgnoreCase);
             }
             catch
             {

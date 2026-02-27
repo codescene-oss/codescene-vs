@@ -355,6 +355,19 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount, "Should not review file");
         }
 
+        [TestMethod]
+        public void ShouldProcessFile_WhenChangedListIsWorkspaceRelative_MatchesFileUnderWorkspace()
+        {
+            var fileUnderWorkspace = Path.Combine(_testWorkspacePath, "subdir", "inside.cs");
+            Directory.CreateDirectory(Path.GetDirectoryName(fileUnderWorkspace));
+            File.WriteAllText(fileUnderWorkspace, "public class Inside {}");
+            var changedFiles = new List<string> { "subdir/inside.cs" };
+
+            var result = _handler.ShouldProcessFile(fileUnderWorkspace, changedFiles);
+
+            Assert.IsTrue(result, "IsFileInChangedList should match when changed list contains workspace-relative path");
+        }
+
         private class FakeLogger : ILogger
         {
             public List<string> DebugMessages = new List<string>();

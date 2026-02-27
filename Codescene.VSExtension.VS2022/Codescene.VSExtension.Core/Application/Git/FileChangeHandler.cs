@@ -144,6 +144,14 @@ namespace Codescene.VSExtension.Core.Application.Git
             return true;
         }
 
+        private static bool IsOutsideWorkspace(string relativePath)
+        {
+            return
+                relativePath.StartsWith("..", StringComparison.Ordinal) ||
+                relativePath.StartsWith("..\\", StringComparison.Ordinal) ||
+                relativePath.StartsWith("../", StringComparison.Ordinal);
+        }
+
         private bool IsFileInChangedList(string filePath, List<string> changedFiles)
         {
             if (string.IsNullOrEmpty(_workspacePath))
@@ -152,6 +160,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             var relativePath = PathUtilities.GetRelativePath(_workspacePath, filePath);
+            if (IsOutsideWorkspace(relativePath))
+            {
+                return false;
+            }
+
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> FileChangeHandler: Checking if file is in changed list - relative path: '{relativePath}'");
             #endif

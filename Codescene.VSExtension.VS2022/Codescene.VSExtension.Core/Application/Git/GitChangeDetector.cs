@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
@@ -26,7 +27,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
         }
 
-        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string gitRootPath, string workspacePath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
         {
             return await Task.Run(() =>
             {
@@ -43,9 +44,11 @@ namespace Codescene.VSExtension.Core.Application.Git
                         return new List<string>();
                     }
 
+                    var effectiveWorkspacePath = string.IsNullOrEmpty(workspacePath) ? gitRootPath : workspacePath;
+
                     using (var repo = new Repository(repoPath))
                     {
-                        var changedFiles = GetChangedFilesFromRepository(repo, gitRootPath, savedFilesTracker, openFilesObserver);
+                        var changedFiles = GetChangedFilesFromRepository(repo, gitRootPath, effectiveWorkspacePath, savedFilesTracker, openFilesObserver);
                         #if FEATURE_INITIAL_GIT_OBSERVER
                         _logger?.Info($">>> GitChangeDetector: Found {changedFiles.Count} changed files vs baseline");
                         #endif
@@ -102,7 +105,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return candidates;
         }
 
-        protected virtual List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+        protected virtual List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, string workspacePath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
         {
             var currentBranch = repo.Head?.FriendlyName ?? "unknown";
             #if FEATURE_INITIAL_GIT_OBSERVER
@@ -116,8 +119,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             var filesToExclude = BuildExclusionSet(savedFilesTracker, openFilesObserver);
-            var committedChanges = GetCommittedChanges(repo, baseCommit, gitRootPath);
-            var statusChanges = GetStatusChanges(repo, filesToExclude, gitRootPath);
+            var committedChanges = GetCommittedChanges(repo, baseCommit, gitRootPath, workspacePath);
+            var statusChanges = GetStatusChanges(repo, filesToExclude, gitRootPath, workspacePath);
 
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeDetector: Found {committedChanges.Count} committed changes and {statusChanges.Count} status changes");
@@ -196,7 +199,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        protected virtual List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath)
+        protected virtual List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath, string workspacePath)
         {
             var changes = new List<string>();
 
@@ -211,9 +214,10 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                 foreach (var change in diff)
                 {
-                    if (ShouldIncludeCommittedChange(change.Path, gitRootPath))
+                    if (ShouldIncludeCommittedChange(change.Path, gitRootPath) &&
+                        IsFileInWorkspace(change.Path, gitRootPath, workspacePath))
                     {
-                        changes.Add(change.Path);
+                        changes.Add(ConvertGitPathToWorkspacePath(change.Path, gitRootPath, workspacePath));
                     }
                 }
 
@@ -229,7 +233,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return changes;
         }
 
-        protected virtual List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude, string gitRootPath)
+        protected virtual List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude, string gitRootPath, string workspacePath)
         {
             var changes = new List<string>();
 
@@ -239,9 +243,10 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                 foreach (var item in status)
                 {
-                    if (ShouldIncludeStatusItem(item, filesToExclude, gitRootPath))
+                    if (ShouldIncludeStatusItem(item, filesToExclude, gitRootPath) &&
+                        IsFileInWorkspace(item.FilePath, gitRootPath, workspacePath))
                     {
-                        changes.Add(item.FilePath);
+                        changes.Add(ConvertGitPathToWorkspacePath(item.FilePath, gitRootPath, workspacePath));
                     }
                 }
 
@@ -338,6 +343,36 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             return isSupported;
+        }
+
+        private bool IsFileInWorkspace(string gitRelativePath, string gitRootPath, string workspacePath)
+        {
+            try
+            {
+                var absolutePath = Path.GetFullPath(Path.Combine(gitRootPath, gitRelativePath));
+                if (!File.Exists(absolutePath))
+                {
+                    return false;
+                }
+
+                var normalizedWorkspace = Path.GetFullPath(workspacePath);
+                var workspacePrefix = normalizedWorkspace.EndsWith(Path.DirectorySeparatorChar.ToString())
+                    ? normalizedWorkspace
+                    : normalizedWorkspace + Path.DirectorySeparatorChar;
+                return absolutePath.StartsWith(workspacePrefix, StringComparison.OrdinalIgnoreCase) ||
+                       absolutePath.Equals(normalizedWorkspace, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private string ConvertGitPathToWorkspacePath(string gitRelativePath, string gitRootPath, string workspacePath)
+        {
+            var absolutePath = Path.GetFullPath(Path.Combine(gitRootPath, gitRelativePath));
+            var relativeToWorkspace = PathUtilities.GetRelativePath(Path.GetFullPath(workspacePath), absolutePath);
+            return relativeToWorkspace.Replace('\\', '/');
         }
     }
 }

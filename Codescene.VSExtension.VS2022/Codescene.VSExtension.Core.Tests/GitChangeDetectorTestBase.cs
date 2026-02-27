@@ -299,14 +299,14 @@ namespace Codescene.VSExtension.Core.Tests
                 return base.GetMergeBaseCommit(repo);
             }
 
-            protected override List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+            protected override List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, string workspacePath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
             {
                 if (ThrowInGetChangedFilesFromRepository)
                 {
                     throw new LibGit2SharpException("Simulated LibGit2Sharp exception");
                 }
 
-                return base.GetChangedFilesFromRepository(repo, gitRootPath, savedFilesTracker, openFilesObserver);
+                return base.GetChangedFilesFromRepository(repo, gitRootPath, workspacePath, savedFilesTracker, openFilesObserver);
             }
 
             protected override Commit? TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
@@ -324,24 +324,24 @@ namespace Codescene.VSExtension.Core.Tests
                 return base.TryFindMergeBase(repo, currentBranch, candidateName);
             }
 
-            protected override List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath)
+            protected override List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath, string workspacePath)
             {
                 if (ThrowFromDiffCompare)
                 {
                     throw new Exception("Simulated exception from Diff.Compare");
                 }
 
-                return base.GetCommittedChanges(repo, baseCommit, gitRootPath);
+                return base.GetCommittedChanges(repo, baseCommit, gitRootPath, workspacePath);
             }
 
-            protected override List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude, string gitRootPath)
+            protected override List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude, string gitRootPath, string workspacePath)
             {
                 if (ThrowFromRetrieveStatus)
                 {
                     throw new Exception("Simulated exception from RetrieveStatus");
                 }
 
-                return base.GetStatusChanges(repo, filesToExclude, gitRootPath);
+                return base.GetStatusChanges(repo, filesToExclude, gitRootPath, workspacePath);
             }
         }
     }
