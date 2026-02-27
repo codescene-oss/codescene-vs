@@ -20,7 +20,6 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly string _workspacePath;
         private readonly TrackerManager _trackerManager;
-        private readonly Func<string, string, FileReviewModel, string, Task> _onFileReviewedCallback;
         private readonly Action<string> _onFileDeletedCallback;
         private readonly IGitService _gitService;
 
@@ -31,7 +30,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             string workspacePath,
             TrackerManager trackerManager,
             IGitService gitService,
-            Func<string, string, FileReviewModel, string, Task> onFileReviewedCallback = null,
             Action<string> onFileDeletedCallback = null)
         {
             _logger = logger;
@@ -40,7 +38,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             _workspacePath = workspacePath;
             _trackerManager = trackerManager;
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
-            _onFileReviewedCallback = onFileReviewedCallback;
             _onFileDeletedCallback = onFileDeletedCallback;
         }
 
@@ -177,7 +174,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _logger?.Info($">>> FileChangeHandler: Starting review for file: {filePath}");
                 #endif
                 var content = File.ReadAllText(filePath);
-                var (review, baselineRawScore) = await _codeReviewer.ReviewAndBaselineAsync(filePath, content).ConfigureAwait(false);
+                var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content).ConfigureAwait(false);
 
                 if (review != null)
                 {
@@ -185,10 +182,6 @@ namespace Codescene.VSExtension.Core.Application.Git
                     #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> FileChangeHandler: Completed review for file: {filePath}");
                     #endif
-                    if (_onFileReviewedCallback != null)
-                    {
-                        await _onFileReviewedCallback(filePath, content, review, baselineRawScore);
-                    }
                 }
                 else
                 {

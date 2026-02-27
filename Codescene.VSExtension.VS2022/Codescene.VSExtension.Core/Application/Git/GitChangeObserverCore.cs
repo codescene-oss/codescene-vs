@@ -99,7 +99,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitChangeLister.Initialize(_gitRootPath, _workspacePath);
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
 
-            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager, _gitService, PerformDeltaAnalysisAsync, OnFileDeleted);
+            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager, _gitService, OnFileDeleted);
             _fileChangeHandler.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
 
             if (!string.IsNullOrEmpty(_workspacePath) && Directory.Exists(_workspacePath))
@@ -204,42 +204,6 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             _eventProcessor?.Dispose();
             _eventProcessor = null;
-        }
-
-        private async Task PerformDeltaAnalysisAsync(string filePath, string content, FileReviewModel review, string baselineRawScore = null)
-        {
-            #if FEATURE_INITIAL_GIT_OBSERVER
-            _logger?.Info($">>> GitChangeObserverCore: Starting delta analysis for '{filePath}'");
-            #endif
-            var pendingJob = new Job
-            {
-                Type = JobTypes.DELTA,
-                State = StateTypes.RUNNING,
-                File = new Models.WebComponent.Data.File { FileName = filePath },
-            };
-            try
-            {
-                DeltaJobTracker.Add(pendingJob);
-                ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
-
-                if (review?.RawScore != null)
-                {
-                    var delta = await _codeReviewer.DeltaAsync(review, content, baselineRawScore);
-                    ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
-                    #if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> GitChangeObserverCore: Delta analysis completed for '{filePath}'");
-                    #endif
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.Warn($"GitChangeObserver: Error performing delta analysis: {ex.Message}");
-            }
-            finally
-            {
-                DeltaJobTracker.Remove(pendingJob);
-                ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
-            }
         }
 
         private void OnFileDeleted(string filePath)

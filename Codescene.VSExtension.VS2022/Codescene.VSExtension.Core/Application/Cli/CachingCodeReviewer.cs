@@ -114,6 +114,18 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return (review, baselineRawScore ?? string.Empty);
         }
 
+        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, CancellationToken cancellationToken = default)
+        {
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, cancellationToken);
+            if (review?.RawScore == null)
+            {
+                return (review, null);
+            }
+
+            var delta = await DeltaAsync(review, content, baselineRawScore, cancellationToken);
+            return (review, delta);
+        }
+
         public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, CancellationToken cancellationToken = default)
         {
             var oldCode = GetBaselineContent(path, baselineContent);

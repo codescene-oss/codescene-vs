@@ -106,8 +106,18 @@ namespace Codescene.VSExtension.Core.Tests
 
     public class FakeCodeReviewer : ICodeReviewer
     {
+        public int ReviewCallCount { get; private set; }
+
+        public bool ThrowOnReview { get; set; }
+
         public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
         {
+            ReviewCallCount++;
+            if (ThrowOnReview)
+            {
+                throw new Exception("Test exception from code reviewer");
+            }
+
             return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
         }
 
@@ -116,6 +126,13 @@ namespace Codescene.VSExtension.Core.Tests
             var review = await ReviewAsync(path, currentCode, false, cancellationToken);
             var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, cancellationToken);
             return (review, baselineRawScore ?? string.Empty);
+        }
+
+        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, CancellationToken cancellationToken = default)
+        {
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, cancellationToken);
+            var delta = await DeltaAsync(review, content, baselineRawScore, cancellationToken);
+            return (review, delta);
         }
 
         public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, CancellationToken cancellationToken = default) =>
@@ -162,6 +179,31 @@ namespace Codescene.VSExtension.Core.Tests
         public bool IsFileIgnored(string filePath)
         {
             return false;
+        }
+
+        public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
+        {
+            return string.Empty;
+        }
+    }
+
+    public class FakeGitServiceIgnorePath : IGitService
+    {
+        private readonly string _ignoredPath;
+
+        public FakeGitServiceIgnorePath(string ignoredPath)
+        {
+            _ignoredPath = ignoredPath;
+        }
+
+        public string GetFileContentForCommit(string path)
+        {
+            return string.Empty;
+        }
+
+        public bool IsFileIgnored(string filePath)
+        {
+            return string.Equals(filePath, _ignoredPath, StringComparison.OrdinalIgnoreCase);
         }
 
         public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
