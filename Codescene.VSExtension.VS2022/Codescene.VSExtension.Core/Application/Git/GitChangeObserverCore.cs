@@ -138,7 +138,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
         {
-            return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _savedFilesTracker, _openFilesObserver);
+            return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _workspacePath, _savedFilesTracker, _openFilesObserver);
         }
 
         public void RemoveFromTracker(string filePath)

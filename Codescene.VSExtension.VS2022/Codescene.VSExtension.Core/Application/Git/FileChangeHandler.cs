@@ -144,11 +144,35 @@ namespace Codescene.VSExtension.Core.Application.Git
             return true;
         }
 
+        private static bool IsInWorkspace(string filePath, string workspacePath)
+        {
+            var file = new FileInfo(filePath);
+            var workspace = new DirectoryInfo(workspacePath);
+
+            DirectoryInfo current = file.Directory;
+            while (current != null)
+            {
+                if (string.Equals(current.FullName, workspace.FullName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                current = current.Parent;
+            }
+
+            return false;
+        }
+
         private bool IsFileInChangedList(string filePath, List<string> changedFiles)
         {
             if (string.IsNullOrEmpty(_workspacePath))
             {
                 return true;
+            }
+
+            if (!IsInWorkspace(filePath, _workspacePath))
+            {
+                return false;
             }
 
             var relativePath = PathUtilities.GetRelativePath(_workspacePath, filePath);
