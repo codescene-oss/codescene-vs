@@ -5,6 +5,7 @@ using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
+using Codescene.VSExtension.Core.Models.Git;
 using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -299,14 +300,14 @@ namespace Codescene.VSExtension.Core.Tests
                 return base.GetMergeBaseCommit(repo);
             }
 
-            protected override List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, string workspacePath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+            protected override List<string> GetChangedFilesFromRepository(Repository repo, ChangeDetectionContext context)
             {
                 if (ThrowInGetChangedFilesFromRepository)
                 {
                     throw new LibGit2SharpException("Simulated LibGit2Sharp exception");
                 }
 
-                return base.GetChangedFilesFromRepository(repo, gitRootPath, workspacePath, savedFilesTracker, openFilesObserver);
+                return base.GetChangedFilesFromRepository(repo, context);
             }
 
             protected override Commit? TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)

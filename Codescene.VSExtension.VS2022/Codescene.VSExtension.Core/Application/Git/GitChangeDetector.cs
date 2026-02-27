@@ -9,6 +9,7 @@ using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
+using Codescene.VSExtension.Core.Models.Git;
 using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Application.Git
@@ -48,7 +49,8 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                     using (var repo = new Repository(repoPath))
                     {
-                        var changedFiles = GetChangedFilesFromRepository(repo, gitRootPath, effectiveWorkspacePath, savedFilesTracker, openFilesObserver);
+                        var context = new ChangeDetectionContext(gitRootPath, effectiveWorkspacePath, savedFilesTracker, openFilesObserver);
+                        var changedFiles = GetChangedFilesFromRepository(repo, context);
                         #if FEATURE_INITIAL_GIT_OBSERVER
                         _logger?.Info($">>> GitChangeDetector: Found {changedFiles.Count} changed files vs baseline");
                         #endif
@@ -105,7 +107,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return candidates;
         }
 
-        protected virtual List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, string workspacePath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+        protected virtual List<string> GetChangedFilesFromRepository(Repository repo, ChangeDetectionContext context)
         {
             var currentBranch = repo.Head?.FriendlyName ?? "unknown";
             #if FEATURE_INITIAL_GIT_OBSERVER
@@ -118,9 +120,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _logger?.Debug("GitChangeObserver: No merge base commit found, using working directory changes only");
             }
 
-            var filesToExclude = BuildExclusionSet(savedFilesTracker, openFilesObserver);
-            var committedChanges = GetCommittedChanges(repo, baseCommit, gitRootPath, workspacePath);
-            var statusChanges = GetStatusChanges(repo, filesToExclude, gitRootPath, workspacePath);
+            var filesToExclude = BuildExclusionSet(context.SavedFilesTracker, context.OpenFilesObserver);
+            var committedChanges = GetCommittedChanges(repo, baseCommit, context.GitRootPath, context.WorkspacePath);
+            var statusChanges = GetStatusChanges(repo, filesToExclude, context.GitRootPath, context.WorkspacePath);
 
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeDetector: Found {committedChanges.Count} committed changes and {statusChanges.Count} status changes");
@@ -211,15 +213,8 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
 
                 var diff = repo.Diff.Compare<TreeChanges>(baseCommit.Tree, repo.Head.Tip.Tree);
-
-                foreach (var change in diff)
-                {
-                    if (ShouldIncludeCommittedChange(change.Path, gitRootPath) &&
-                        IsFileInWorkspace(change.Path, gitRootPath, workspacePath))
-                    {
-                        changes.Add(ConvertGitPathToWorkspacePath(change.Path, gitRootPath, workspacePath));
-                    }
-                }
+                var relativePaths = diff.Where(c => ShouldIncludeCommittedChange(c.Path, gitRootPath)).Select(c => c.Path).ToList();
+                AddWorkspacePathsFromRelativePaths(relativePaths, gitRootPath, workspacePath, changes);
 
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeDetector: Collected {changes.Count} committed changes");
@@ -240,15 +235,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             try
             {
                 var status = repo.RetrieveStatus();
-
-                foreach (var item in status)
-                {
-                    if (ShouldIncludeStatusItem(item, filesToExclude, gitRootPath) &&
-                        IsFileInWorkspace(item.FilePath, gitRootPath, workspacePath))
-                    {
-                        changes.Add(ConvertGitPathToWorkspacePath(item.FilePath, gitRootPath, workspacePath));
-                    }
-                }
+                var relativePaths = status.Where(item => ShouldIncludeStatusItem(item, filesToExclude, gitRootPath)).Select(item => item.FilePath).ToList();
+                AddWorkspacePathsFromRelativePaths(relativePaths, gitRootPath, workspacePath, changes);
 
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeDetector: Collected {changes.Count} status changes");
@@ -260,6 +248,17 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             return changes;
+        }
+
+        private void AddWorkspacePathsFromRelativePaths(IEnumerable<string> relativePaths, string gitRootPath, string workspacePath, List<string> output)
+        {
+            foreach (var path in relativePaths)
+            {
+                if (IsFileInWorkspace(path, gitRootPath, workspacePath))
+                {
+                    output.Add(ConvertGitPathToWorkspacePath(path, gitRootPath, workspacePath));
+                }
+            }
         }
 
         private bool ShouldIncludeCommittedChange(string relativePath, string gitRootPath)
