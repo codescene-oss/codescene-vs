@@ -1,8 +1,12 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Codescene.VSExtension.Core.Util
 {
@@ -36,6 +40,92 @@ namespace Codescene.VSExtension.Core.Util
             }
 
             return Regex.Replace(input, @"\r\n|\r|\n", Environment.NewLine);
+        }
+
+        public static string TrimForLogging(string value, int maxLength = 120)
+        {
+            if (string.IsNullOrEmpty(value) || value.Length <= maxLength)
+            {
+                return value;
+            }
+
+            return value.Substring(0, maxLength) + "...";
+        }
+
+        public static string BuildCommandForLogging(string arguments, string jsonContent, int maxValueLength = 120)
+        {
+            if (string.IsNullOrEmpty(jsonContent))
+            {
+                return TrimForLogging(arguments, maxValueLength);
+            }
+
+            var entries = ExtractLoggableJsonEntries(jsonContent, maxValueLength);
+            if (string.IsNullOrEmpty(entries))
+            {
+                return TrimForLogging(arguments, maxValueLength);
+            }
+
+            return $"{arguments} {entries}";
+        }
+
+        public static string ExtractLoggableJsonEntries(string jsonContent, int maxValueLength = 120)
+        {
+            if (string.IsNullOrEmpty(jsonContent))
+            {
+                return string.Empty;
+            }
+
+            JObject jsonObject;
+            try
+            {
+                jsonObject = JsonConvert.DeserializeObject<JObject>(jsonContent);
+            }
+            catch (JsonException)
+            {
+                var plainText = jsonContent;
+                return TrimForLogging(plainText, maxValueLength);
+            }
+
+            if (jsonObject == null)
+            {
+                return string.Empty;
+            }
+
+            return FormatJsonProperties(jsonObject, maxValueLength);
+        }
+
+        private static string FormatJsonProperties(JObject jsonObject, int maxValueLength)
+        {
+            try
+            {
+                var result = new StringBuilder();
+                foreach (var property in jsonObject.Properties())
+                {
+                    if (property.Name == "file-content")
+                    {
+                        continue;
+                    }
+
+                    var value = property.Value.Type == JTokenType.String
+                        ? property.Value.ToString()
+                        : property.Value.ToString(Formatting.None);
+
+                    var trimmedValue = TrimForLogging(value, maxValueLength);
+
+                    if (result.Length > 0)
+                    {
+                        result.Append(" ");
+                    }
+
+                    result.Append($"'{property.Name}' \"{trimmedValue}\"");
+                }
+
+                return result.ToString();
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
     }
 }

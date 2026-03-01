@@ -10,8 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Exceptions;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Models.Cli;
+using Codescene.VSExtension.Core.Util;
 using Newtonsoft.Json;
 
 [assembly: InternalsVisibleTo("Codescene.VSExtension.Core.Tests")]
@@ -23,11 +25,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
     internal class ProcessExecutor : IProcessExecutor
     {
         private readonly ICliSettingsProvider _cliSettingsProvider;
+        private readonly ILogger _logger;
 
         [ImportingConstructor]
-        public ProcessExecutor(ICliSettingsProvider cliSettingsProvider)
+        public ProcessExecutor(ICliSettingsProvider cliSettingsProvider, ILogger logger)
         {
             _cliSettingsProvider = cliSettingsProvider ?? throw new ArgumentNullException(nameof(cliSettingsProvider));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<string> ExecuteAsync(string arguments, string content = null, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
@@ -72,6 +76,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
             AttachOutputHandlers(new AttachOutputHandlersArgs(process, outputBuilder, errorBuilder, outputTcs, errorTcs));
 
             process.Exited += (_, _) => exitTcs.TrySetResult(true);
+
+            var logCommand = TextUtils.BuildCommandForLogging(arguments, content);
+            _logger.Info($"Executing CLI: {logCommand}");
 
             process.Start();
 

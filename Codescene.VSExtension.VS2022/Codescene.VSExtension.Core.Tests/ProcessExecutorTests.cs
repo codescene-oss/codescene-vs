@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using Codescene.VSExtension.Core.Application.Cli;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Moq;
 
@@ -10,6 +11,7 @@ namespace Codescene.VSExtension.Core.Tests
     public class ProcessExecutorTests
     {
         private Mock<ICliSettingsProvider> _mockCliSettingsProvider;
+        private Mock<ILogger> _mockLogger;
         private ProcessExecutor _processExecutor;
         private string _tempFilePath;
 
@@ -17,6 +19,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void Setup()
         {
             _mockCliSettingsProvider = new Mock<ICliSettingsProvider>();
+            _mockLogger = new Mock<ILogger>();
             _tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".exe");
         }
 
@@ -34,7 +37,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             // Arrange
             _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
-            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
 
             // Act & Assert
             var exception = Assert.Throws<FileNotFoundException>(() =>
@@ -51,7 +54,7 @@ namespace Codescene.VSExtension.Core.Tests
             // Arrange
             File.WriteAllText(_tempFilePath, "dummy executable content");
             _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
-            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
 
             // Act & Assert
             // The file existence check should pass (file exists), so FileNotFoundException should not be thrown
@@ -86,7 +89,7 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
-            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
 
             var exception = await Assert.ThrowsAsync<TimeoutException>(() =>
                 _processExecutor.ExecuteAsync("127.0.0.1 -n 100", null, TimeSpan.FromMilliseconds(1)));
@@ -106,7 +109,7 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
-            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
             using var cts = new CancellationTokenSource();
             cts.Cancel();
 
@@ -125,7 +128,7 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
-            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
 
             var result = await _processExecutor.ExecuteAsync("telemetry some-command", null, TimeSpan.FromMilliseconds(1));
 
