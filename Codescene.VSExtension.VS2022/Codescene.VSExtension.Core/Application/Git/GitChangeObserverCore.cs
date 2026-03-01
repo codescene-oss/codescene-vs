@@ -24,9 +24,14 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly IAsyncTaskScheduler _taskScheduler;
         private readonly IGitChangeLister _gitChangeLister;
+        private readonly IGitService _gitService;
 
         private TrackerManager _trackerManager;
         private FileSystemWatcher _fileWatcher;
+        private FileSystemEventHandler _watcherCreatedHandler;
+        private FileSystemEventHandler _watcherChangedHandler;
+        private FileSystemEventHandler _watcherDeletedHandler;
+
         private FileChangeEventProcessor _eventProcessor;
         private string _solutionPath;
         private string _workspacePath;
@@ -43,13 +48,15 @@ namespace Codescene.VSExtension.Core.Application.Git
             ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker,
             IAsyncTaskScheduler taskScheduler,
-            IGitChangeLister gitChangeLister)
+            IGitChangeLister gitChangeLister,
+            IGitService gitService)
         {
             _logger = logger;
             _codeReviewer = codeReviewer;
             _supportedFileChecker = supportedFileChecker;
             _taskScheduler = taskScheduler;
             _gitChangeLister = gitChangeLister;
+            _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             _trackerManager = new TrackerManager(_logger);
         }
 
@@ -79,7 +86,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _savedFilesTracker = savedFilesTracker;
             _openFilesObserver = openFilesObserver;
             _getChangedFilesCallback = getChangedFilesCallback ?? GetChangedFilesVsBaselineAsync;
-            _gitChangeDetector = new GitChangeDetector(_logger, _supportedFileChecker);
+            _gitChangeDetector = new GitChangeDetector(_logger, _supportedFileChecker, _gitService);
 
             _eventProcessor = new FileChangeEventProcessor(_logger, _taskScheduler, ProcessEventAsync, _getChangedFilesCallback);
 
@@ -92,7 +99,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitChangeLister.Initialize(_gitRootPath, _workspacePath);
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
 
-            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager, PerformDeltaAnalysisAsync, OnFileDeleted);
+            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager, _gitService, PerformDeltaAnalysisAsync, OnFileDeleted);
             _fileChangeHandler.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
 
             if (!string.IsNullOrEmpty(_workspacePath) && Directory.Exists(_workspacePath))
@@ -131,7 +138,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
         {
-            return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _savedFilesTracker, _openFilesObserver);
+            return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _workspacePath, _savedFilesTracker, _openFilesObserver);
         }
 
         public void RemoveFromTracker(string filePath)
@@ -166,9 +173,34 @@ namespace Codescene.VSExtension.Core.Application.Git
             #endif
             _gitChangeLister.StopPeriodicScanning();
             _gitChangeLister.FilesDetected -= OnGitChangeListerFilesDetected;
+            if (_fileWatcher != null)
+            {
+                try
+                {
+                    _fileWatcher.EnableRaisingEvents = false;
+                    if (_watcherCreatedHandler != null)
+                    {
+                        _fileWatcher.Created -= _watcherCreatedHandler;
+                    }
 
-            _fileWatcher?.Dispose();
-            _fileWatcher = null;
+                    if (_watcherChangedHandler != null)
+                    {
+                        _fileWatcher.Changed -= _watcherChangedHandler;
+                    }
+
+                    if (_watcherDeletedHandler != null)
+                    {
+                        _fileWatcher.Deleted -= _watcherDeletedHandler;
+                    }
+                }
+                catch
+                {
+                    // ignored
+                }
+
+                _fileWatcher?.Dispose();
+                _fileWatcher = null;
+            }
 
             _eventProcessor?.Dispose();
             _eventProcessor = null;
@@ -357,27 +389,31 @@ namespace Codescene.VSExtension.Core.Application.Git
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeObserverCore: Binding file watcher events");
             #endif
-            watcher.Created += (sender, e) =>
+            _watcherCreatedHandler += (sender, e) =>
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeObserverCore: File created event enqueued: '{e.FullPath}'");
                 #endif
-                _eventProcessor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, e.FullPath));
+                _eventProcessor?.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, e.FullPath));
             };
-            watcher.Changed += (sender, e) =>
+            _watcherChangedHandler += (sender, e) =>
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeObserverCore: File changed event enqueued: '{e.FullPath}'");
                 #endif
-                _eventProcessor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, e.FullPath));
+                _eventProcessor?.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, e.FullPath));
             };
-            watcher.Deleted += (sender, e) =>
+            _watcherDeletedHandler += (sender, e) =>
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeObserverCore: File deleted event enqueued: '{e.FullPath}'");
                 #endif
-                _eventProcessor.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, e.FullPath));
+                _eventProcessor?.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, e.FullPath));
             };
+
+            watcher.Created += _watcherCreatedHandler;
+            watcher.Changed += _watcherChangedHandler;
+            watcher.Deleted += _watcherDeletedHandler;
         }
 
         private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles)

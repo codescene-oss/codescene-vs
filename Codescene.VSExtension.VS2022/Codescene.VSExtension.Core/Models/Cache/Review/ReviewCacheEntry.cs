@@ -4,11 +4,12 @@ namespace Codescene.VSExtension.Core.Models.Cache.Review
 {
     public class ReviewCacheEntry
     {
-        public ReviewCacheEntry(string fileContents, string filePath, FileReviewModel response)
+        public ReviewCacheEntry(string fileContents, string filePath, FileReviewModel response, bool isBaseline = false)
         {
             FileContents = fileContents;
             FilePath = filePath;
             Response = response;
+            IsBaseline = isBaseline;
         }
 
         public string FileContents { get; }
@@ -16,5 +17,7 @@ namespace Codescene.VSExtension.Core.Models.Cache.Review
         public string FilePath { get; }
 
         public FileReviewModel Response { get; }
+
+        public bool IsBaseline { get; }
     }
 }

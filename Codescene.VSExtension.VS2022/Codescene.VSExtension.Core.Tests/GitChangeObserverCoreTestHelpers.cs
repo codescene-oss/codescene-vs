@@ -69,24 +69,38 @@ namespace Codescene.VSExtension.Core.Tests
         public readonly List<string> WarnMessages = new List<string>();
         public readonly List<(string, Exception)> ErrorMessages = new List<(string, Exception)>();
 
+        private readonly object _lock = new object();
+
         public void Debug(string message)
         {
-            DebugMessages.Add(message);
+            lock (_lock)
+            {
+                DebugMessages.Add(message);
+            }
         }
 
         public void Info(string message, bool statusBar = false)
         {
-            InfoMessages.Add(message);
+            lock (_lock)
+            {
+                InfoMessages.Add(message);
+            }
         }
 
         public void Warn(string message, bool statusBar = false)
         {
-            WarnMessages.Add(message);
+            lock (_lock)
+            {
+                WarnMessages.Add(message);
+            }
         }
 
         public void Error(string message, Exception ex)
         {
-            ErrorMessages.Add((message, ex));
+            lock (_lock)
+            {
+                ErrorMessages.Add((message, ex));
+            }
         }
     }
 
@@ -252,8 +266,9 @@ namespace Codescene.VSExtension.Core.Tests
             ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker,
             IAsyncTaskScheduler taskScheduler,
-            IGitChangeLister gitChangeLister)
-            : base(logger, codeReviewer, supportedFileChecker, taskScheduler, gitChangeLister)
+            IGitChangeLister gitChangeLister,
+            IGitService gitService)
+            : base(logger, codeReviewer, supportedFileChecker, taskScheduler, gitChangeLister, gitService)
         {
         }
 

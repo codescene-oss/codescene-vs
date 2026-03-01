@@ -16,8 +16,9 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         public GitChangeListerService(
             ISavedFilesTracker savedFilesTracker,
             ISupportedFileChecker supportedFileChecker,
-            ILogger logger)
-            : base(savedFilesTracker, supportedFileChecker, logger)
+            ILogger logger,
+            IGitService gitService)
+            : base(savedFilesTracker, supportedFileChecker, logger, gitService)
         {
         }
     }

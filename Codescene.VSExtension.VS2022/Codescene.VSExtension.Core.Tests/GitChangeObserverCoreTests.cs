@@ -127,6 +127,13 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Dispose_UnsubscribesAllWatcherHandlers_WhenStarted()
+        {
+            _gitChangeObserverCore.Start();
+            _gitChangeObserverCore.Dispose();
+        }
+
+        [TestMethod]
         public void OnGitChangeListerFilesDetected_AddsExistingFilesToTracker()
         {
             var existingFile = CreateFile("tracked.ts", "export const x = 1;");

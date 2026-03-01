@@ -21,7 +21,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void SetupLister()
         {
-            _lister = new GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger);
+            _lister = new GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
         }
 
         [TestCleanup]

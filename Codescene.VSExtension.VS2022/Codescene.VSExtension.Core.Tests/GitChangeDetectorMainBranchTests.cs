@@ -11,7 +11,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Constructor_InitializesWithLogger()
         {
-            var detector = new GitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var detector = new GitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
 
             Assert.IsNotNull(detector);
         }

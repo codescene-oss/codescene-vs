@@ -5,6 +5,7 @@ using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
+using Codescene.VSExtension.Core.Models.Git;
 using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -17,6 +18,7 @@ namespace Codescene.VSExtension.Core.Tests
         protected FakeSupportedFileChecker _fakeSupportedFileChecker;
         protected FakeSavedFilesTracker _fakeSavedFilesTracker;
         protected FakeOpenFilesObserver _fakeOpenFilesObserver;
+        protected FakeGitService _fakeGitService;
 
         [TestInitialize]
         public void Setup()
@@ -37,8 +39,9 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeSupportedFileChecker = new FakeSupportedFileChecker();
             _fakeSavedFilesTracker = new FakeSavedFilesTracker();
             _fakeOpenFilesObserver = new FakeOpenFilesObserver();
+            _fakeGitService = new FakeGitService();
 
-            _detector = new GitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            _detector = new GitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
         }
 
         [TestCleanup]
@@ -59,6 +62,18 @@ namespace Codescene.VSExtension.Core.Tests
         protected List<string> GetMainBranchCandidates(Repository repo)
         {
             return _detector.GetMainBranchCandidates(repo);
+        }
+
+        protected void CreateFile(string relativePath, string content)
+        {
+            var filePath = Path.Combine(_testRepoPath, relativePath);
+            var dir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            File.WriteAllText(filePath, content);
         }
 
         protected string CommitFile(string filename, string content, string message)
@@ -231,8 +246,8 @@ namespace Codescene.VSExtension.Core.Tests
 
         protected class TestableGitChangeDetector : GitChangeDetector
         {
-            public TestableGitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker)
-                : base(logger, supportedFileChecker)
+            public TestableGitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker, IGitService gitService)
+                : base(logger, supportedFileChecker, gitService)
             {
             }
 
@@ -285,14 +300,14 @@ namespace Codescene.VSExtension.Core.Tests
                 return base.GetMergeBaseCommit(repo);
             }
 
-            protected override List<string> GetChangedFilesFromRepository(Repository repo, string gitRootPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+            protected override List<string> GetChangedFilesFromRepository(Repository repo, ChangeDetectionContext context)
             {
                 if (ThrowInGetChangedFilesFromRepository)
                 {
                     throw new LibGit2SharpException("Simulated LibGit2Sharp exception");
                 }
 
-                return base.GetChangedFilesFromRepository(repo, gitRootPath, savedFilesTracker, openFilesObserver);
+                return base.GetChangedFilesFromRepository(repo, context);
             }
 
             protected override Commit? TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
@@ -310,24 +325,24 @@ namespace Codescene.VSExtension.Core.Tests
                 return base.TryFindMergeBase(repo, currentBranch, candidateName);
             }
 
-            protected override List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath)
+            protected override List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath, string workspacePath)
             {
                 if (ThrowFromDiffCompare)
                 {
                     throw new Exception("Simulated exception from Diff.Compare");
                 }
 
-                return base.GetCommittedChanges(repo, baseCommit, gitRootPath);
+                return base.GetCommittedChanges(repo, baseCommit, gitRootPath, workspacePath);
             }
 
-            protected override List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude, string gitRootPath)
+            protected override List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude, string gitRootPath, string workspacePath)
             {
                 if (ThrowFromRetrieveStatus)
                 {
                     throw new Exception("Simulated exception from RetrieveStatus");
                 }
 
-                return base.GetStatusChanges(repo, filesToExclude, gitRootPath);
+                return base.GetStatusChanges(repo, filesToExclude, gitRootPath, workspacePath);
             }
         }
     }

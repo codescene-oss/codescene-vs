@@ -10,11 +10,11 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetChangedFilesVsBaselineAsync_LibGit2SharpException_ReturnsEmptyAndLogsWarning()
         {
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ThrowInGetChangedFilesFromRepository = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsEmpty(result, "Should return empty list on exception");
             Assert.IsTrue(
@@ -25,11 +25,11 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetMergeBaseCommit_ThrowsException_ReturnsNullAndLogsDebug()
         {
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ThrowFromMainBranchCandidates = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsTrue(
                 _fakeLogger.DebugMessages.Any(m => m.Contains("Could not determine merge base")),
@@ -40,7 +40,7 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task GetChangedFilesVsBaselineAsync_InvalidGitRootPath_ReturnsEmptyList()
         {
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                string.Empty, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                string.Empty, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsEmpty(result, "Should return empty list for invalid git root path");
         }
@@ -49,7 +49,7 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task GetChangedFilesVsBaselineAsync_NonexistentGitRootPath_ReturnsEmptyList()
         {
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                "C:\\nonexistent\\path", _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                "C:\\nonexistent\\path", null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsEmpty(result, "Should return empty list for nonexistent git root path");
         }
@@ -110,7 +110,7 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit($"checkout {originalBranch}");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle orphaned branches gracefully");
         }
@@ -132,7 +132,7 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit($"checkout {originalBranch}");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle multiple orphaned branches gracefully");
         }
@@ -147,7 +147,7 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle complex diff scenarios gracefully");
         }
@@ -161,7 +161,7 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle many unstaged files gracefully");
         }
@@ -172,11 +172,11 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.SimulateInvalidCurrentBranch = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should return non-null result even with invalid branch");
         }
@@ -187,11 +187,11 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.SimulateInvalidMainBranch = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle invalid main branch gracefully");
         }
@@ -202,11 +202,11 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ThrowFromFindMergeBase = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle FindMergeBase exception gracefully");
             Assert.IsTrue(
@@ -220,11 +220,11 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ThrowFromDiffCompare = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle Diff.Compare exception gracefully");
             Assert.IsTrue(
@@ -238,11 +238,11 @@ namespace Codescene.VSExtension.Core.Tests
             ExecGit("checkout -b feature-test");
             CommitFile("test.cs", "public class Test {}", "Add test");
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ThrowFromRetrieveStatus = true;
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle RetrieveStatus exception gracefully");
             Assert.IsTrue(
@@ -265,7 +265,7 @@ namespace Codescene.VSExtension.Core.Tests
                 }
 
                 var result = await _detector.GetChangedFilesVsBaselineAsync(
-                    unbornRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                    unbornRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
                 Assert.IsEmpty(result, "Should return empty list for unborn HEAD");
             }
@@ -303,11 +303,11 @@ namespace Codescene.VSExtension.Core.Tests
                 }
             }
 
-            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker);
+            var testableDetector = new TestableGitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
             testableDetector.ForceBranchLookupFailure = "nonexistent-branch";
 
             var result = await testableDetector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle non-existent branch gracefully");
         }
@@ -336,7 +336,7 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle corrupted repository gracefully");
         }
@@ -351,7 +351,7 @@ namespace Codescene.VSExtension.Core.Tests
             CorruptGitObjects();
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle corrupted objects gracefully");
         }
@@ -363,7 +363,7 @@ namespace Codescene.VSExtension.Core.Tests
             CorruptGitIndex();
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsNotNull(result, "Should handle corrupted index gracefully");
         }

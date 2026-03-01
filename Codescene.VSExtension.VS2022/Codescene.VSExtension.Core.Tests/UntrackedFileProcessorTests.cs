@@ -1,6 +1,8 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.Core.Interfaces.Git;
+using Moq;
 
 namespace Codescene.VSExtension.Core.Tests
 {
@@ -8,11 +10,14 @@ namespace Codescene.VSExtension.Core.Tests
     public class UntrackedFileProcessorTests
     {
         private UntrackedFileProcessor _processor;
+        private Mock<IGitService> _mockGitService;
 
         [TestInitialize]
         public void Setup()
         {
-            _processor = new UntrackedFileProcessor();
+            _mockGitService = new Mock<IGitService>();
+            _mockGitService.Setup(x => x.IsFileIgnored(It.IsAny<string>())).Returns(false);
+            _processor = new UntrackedFileProcessor(_mockGitService.Object);
         }
 
         [TestMethod]
@@ -79,6 +84,20 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsTrue(untrackedByDirectory.ContainsKey("tests"));
             Assert.HasCount(1, untrackedByDirectory["src"]);
             Assert.HasCount(1, untrackedByDirectory["tests"]);
+        }
+
+        [TestMethod]
+        public void AddUntrackedFilesToDirectory_IgnoredFile_ShouldNotAdd()
+        {
+            var untrackedByDirectory = new Dictionary<string, List<string>>();
+            var relativePath = @"src\File1.cs";
+            var absolutePath = @"C:\project\src\File1.cs";
+
+            _mockGitService.Setup(x => x.IsFileIgnored(absolutePath)).Returns(true);
+
+            _processor.AddUntrackedFileToDirectory(relativePath, absolutePath, untrackedByDirectory);
+
+            Assert.IsEmpty(untrackedByDirectory);
         }
 
         [TestMethod]

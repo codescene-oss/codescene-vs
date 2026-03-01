@@ -30,9 +30,9 @@ namespace Codescene.VSExtension.Core.Tests
             var blockingReviewer = new BlockingCodeReviewer(aboutToStore, canProceed, _deltaCache);
 
             var observer = new GitChangeObserverCore(
-                _fakeLogger, blockingReviewer, _fakeSupportedFileChecker, _fakeTaskScheduler, _fakeGitChangeLister);
+                _fakeLogger, blockingReviewer, _fakeSupportedFileChecker, _fakeTaskScheduler, _fakeGitChangeLister, _fakeGitService);
 
-            observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+            observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, null);
 
             var testFile = CreateFile("test.cs", "public class Test {}");
             var changedFiles = await observer.GetChangedFilesVsBaselineAsync();
@@ -57,9 +57,9 @@ namespace Codescene.VSExtension.Core.Tests
             var blockingReviewer = new BlockingCodeReviewer(aboutToStore, canProceed, _deltaCache);
 
             var observer = new GitChangeObserverCore(
-                _fakeLogger, blockingReviewer, _fakeSupportedFileChecker, _fakeTaskScheduler, _fakeGitChangeLister);
+                _fakeLogger, blockingReviewer, _fakeSupportedFileChecker, _fakeTaskScheduler, _fakeGitChangeLister, _fakeGitService);
 
-            observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+            observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, null);
 
             var testFile = CreateFile("test.cs", "public class Test {}");
             var changedFiles = await observer.GetChangedFilesVsBaselineAsync();

@@ -35,7 +35,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
                 _testWorkspacePath,
-                _trackerManager);
+                _trackerManager,
+                new FakeGitService());
         }
 
         [TestCleanup]
@@ -122,7 +123,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
                 null,
-                _trackerManager);
+                _trackerManager,
+                new FakeGitService());
 
             var testFile = "test.cs";
             var changedFiles = new List<string> { "test.cs" };
@@ -140,7 +142,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
                 string.Empty,
-                _trackerManager);
+                _trackerManager,
+                new FakeGitService());
 
             var testFile = "test.cs";
             var changedFiles = new List<string> { "test.cs" };
@@ -269,6 +272,24 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void ShouldProcessFile_IgnoredFile_ReturnsFalse()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "ignored.cs");
+            var changedFiles = new List<string> { "ignored.cs" };
+            var handlerWithIgnoringGit = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _testWorkspacePath,
+                _trackerManager,
+                new FakeGitServiceIgnorePath(testFile));
+
+            var result = handlerWithIgnoringGit.ShouldProcessFile(testFile, changedFiles);
+
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
         public void ShouldProcessFile_UnsupportedFile_ReturnsFalse()
         {
             var testFile = Path.Combine(_testWorkspacePath, "test.unsupported");
@@ -334,6 +355,19 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount, "Should not review file");
         }
 
+        [TestMethod]
+        public void ShouldProcessFile_WhenChangedListIsWorkspaceRelative_MatchesFileUnderWorkspace()
+        {
+            var fileUnderWorkspace = Path.Combine(_testWorkspacePath, "subdir", "inside.cs");
+            Directory.CreateDirectory(Path.GetDirectoryName(fileUnderWorkspace));
+            File.WriteAllText(fileUnderWorkspace, "public class Inside {}");
+            var changedFiles = new List<string> { "subdir/inside.cs" };
+
+            var result = _handler.ShouldProcessFile(fileUnderWorkspace, changedFiles);
+
+            Assert.IsTrue(result, "IsFileInChangedList should match when changed list contains workspace-relative path");
+        }
+
         private class FakeLogger : ILogger
         {
             public List<string> DebugMessages = new List<string>();
@@ -392,6 +426,21 @@ namespace Codescene.VSExtension.Core.Tests
             public string GetFileContentForCommit(string path) => string.Empty;
 
             public bool IsFileIgnored(string filePath) => false;
+        }
+
+        private class FakeGitServiceIgnorePath : IGitService
+        {
+            private readonly string _ignoredPath;
+
+            public FakeGitServiceIgnorePath(string ignoredPath)
+            {
+                _ignoredPath = ignoredPath;
+            }
+
+            public string GetFileContentForCommit(string path) => string.Empty;
+
+            public bool IsFileIgnored(string filePath) =>
+                string.Equals(filePath, _ignoredPath, StringComparison.OrdinalIgnoreCase);
         }
 
         private class FakeSupportedFileChecker : ISupportedFileChecker

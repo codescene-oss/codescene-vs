@@ -36,6 +36,9 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         [Import]
         private IGitChangeLister _gitChangeLister;
 
+        [Import]
+        private IGitService _gitService;
+
         private GitChangeObserverCore _core;
         private EventHandler<string> _fileDeletedHandler;
         private EventHandler _viewUpdateHandler;
@@ -123,11 +126,12 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             }
 
             _core?.Dispose();
+            _core = null;
         }
 
         private void InitializeCore()
         {
-            _core = new GitChangeObserverCore(_logger, _codeReviewer, _supportedFileChecker, _taskScheduler, _gitChangeLister);
+            _core = new GitChangeObserverCore(_logger, _codeReviewer, _supportedFileChecker, _taskScheduler, _gitChangeLister, _gitService);
 
             _fileDeletedHandler = (sender, args) => FileDeletedFromGit?.Invoke(this, args);
             _viewUpdateHandler = OnViewUpdateRequested;
