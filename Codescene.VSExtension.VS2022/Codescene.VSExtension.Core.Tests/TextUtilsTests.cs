@@ -66,5 +66,156 @@ namespace Codescene.VSExtension.Core.Tests
             var expected = $"Line1{Environment.NewLine}Line2{Environment.NewLine}Line3{Environment.NewLine}Line4";
             Assert.AreEqual(expected, TextUtils.NormalizeLineEndings(input));
         }
+
+        [TestMethod]
+        public void TrimForLogging_NullInput_ReturnsNull()
+            => Assert.IsNull(TextUtils.TrimForLogging(null));
+
+        [TestMethod]
+        public void TrimForLogging_EmptyString_ReturnsEmptyString()
+            => Assert.AreEqual(string.Empty, TextUtils.TrimForLogging(string.Empty));
+
+        [TestMethod]
+        public void TrimForLogging_StringShorterThanMax_ReturnsUnchanged()
+            => Assert.AreEqual("short string", TextUtils.TrimForLogging("short string"));
+
+        [TestMethod]
+        public void TrimForLogging_StringExactlyAtMax_ReturnsUnchanged()
+        {
+            var input = new string('a', 120);
+            Assert.AreEqual(input, TextUtils.TrimForLogging(input));
+        }
+
+        [TestMethod]
+        public void TrimForLogging_StringLongerThanMax_TruncatesWithEllipsis()
+        {
+            var input = new string('a', 150);
+            var expected = new string('a', 120) + "...";
+            Assert.AreEqual(expected, TextUtils.TrimForLogging(input));
+        }
+
+        [TestMethod]
+        public void TrimForLogging_CustomMaxLength_UsesCustomValue()
+        {
+            var input = "This is a test string";
+            var expected = "This i...";
+            Assert.AreEqual(expected, TextUtils.TrimForLogging(input, 6));
+        }
+
+        [TestMethod]
+        public void ExtractLoggableJsonEntries_NullInput_ReturnsEmpty()
+            => Assert.AreEqual(string.Empty, TextUtils.ExtractLoggableJsonEntries(null));
+
+        [TestMethod]
+        public void ExtractLoggableJsonEntries_EmptyString_ReturnsEmpty()
+            => Assert.AreEqual(string.Empty, TextUtils.ExtractLoggableJsonEntries(string.Empty));
+
+        [TestMethod]
+        public void ExtractLoggableJsonEntries_InvalidJson_ReturnsPlainText()
+            => Assert.AreEqual("not valid json", TextUtils.ExtractLoggableJsonEntries("not valid json"));
+
+        [TestMethod]
+        public void ExtractLoggableJsonEntries_LongInvalidJson_ReturnsTrimmedPlainText()
+        {
+            var longText = new string('x', 150);
+            var result = TextUtils.ExtractLoggableJsonEntries(longText);
+
+            Assert.AreEqual(123, result.Length);
+            Assert.EndsWith("...", result);
+        }
+
+        [TestMethod]
+        public void ExtractLoggableJsonEntries_ExcludesFileContent()
+        {
+            var json = "{\"path\":\"test.cs\",\"file-content\":\"huge content here\",\"cache-path\":\"/tmp\"}";
+            var result = TextUtils.ExtractLoggableJsonEntries(json);
+
+            Assert.DoesNotContain("file-content", result);
+            Assert.DoesNotContain("huge content here", result);
+        }
+
+        [TestMethod]
+        public void ExtractLoggableJsonEntries_IncludesOtherKeys()
+        {
+            var json = "{\"path\":\"test.cs\",\"cache-path\":\"/tmp\"}";
+            var result = TextUtils.ExtractLoggableJsonEntries(json);
+
+            Assert.Contains("'path'", result);
+            Assert.Contains("\"test.cs\"", result);
+            Assert.Contains("'cache-path'", result);
+            Assert.Contains("\"/tmp\"", result);
+        }
+
+        [TestMethod]
+        public void ExtractLoggableJsonEntries_TrimsLongValues()
+        {
+            var longValue = new string('a', 150);
+            var json = $"{{\"key\":\"{longValue}\"}}";
+            var result = TextUtils.ExtractLoggableJsonEntries(json);
+
+            Assert.Contains("...", result);
+            Assert.DoesNotContain(longValue, result);
+        }
+
+        [TestMethod]
+        public void ExtractLoggableJsonEntries_HandlesNestedObjects()
+        {
+            var json = "{\"nested\":{\"inner\":\"value\"}}";
+            var result = TextUtils.ExtractLoggableJsonEntries(json);
+
+            Assert.Contains("'nested'", result);
+        }
+
+        [TestMethod]
+        public void BuildCommandForLogging_NullContent_ReturnsTrimmededArgs()
+        {
+            var args = "review --format json";
+            var result = TextUtils.BuildCommandForLogging(args, null);
+
+            Assert.AreEqual(args, result);
+        }
+
+        [TestMethod]
+        public void BuildCommandForLogging_EmptyContent_ReturnsTrimmedArgs()
+        {
+            var args = "review --format json";
+            var result = TextUtils.BuildCommandForLogging(args, string.Empty);
+
+            Assert.AreEqual(args, result);
+        }
+
+        [TestMethod]
+        public void BuildCommandForLogging_InvalidJsonContent_IncludesPlainText()
+        {
+            var args = "review --format json";
+            var result = TextUtils.BuildCommandForLogging(args, "not valid json");
+
+            Assert.AreEqual("review --format json not valid json", result);
+        }
+
+        [TestMethod]
+        public void BuildCommandForLogging_ValidContent_CombinesArgsAndEntries()
+        {
+            var args = "review";
+            var json = "{\"path\":\"test.cs\",\"cache-path\":\"/tmp\"}";
+            var result = TextUtils.BuildCommandForLogging(args, json);
+
+            Assert.StartsWith("review ", result);
+            Assert.Contains("'path'", result);
+            Assert.Contains("\"test.cs\"", result);
+            Assert.Contains("'cache-path'", result);
+            Assert.Contains("\"/tmp\"", result);
+        }
+
+        [TestMethod]
+        public void BuildCommandForLogging_ExcludesFileContent()
+        {
+            var args = "review";
+            var json = "{\"path\":\"test.cs\",\"file-content\":\"huge content\"}";
+            var result = TextUtils.BuildCommandForLogging(args, json);
+
+            Assert.DoesNotContain("file-content", result);
+            Assert.DoesNotContain("huge content", result);
+        }
     }
 }
