@@ -110,9 +110,12 @@ namespace Codescene.VSExtension.Core.Tests
 
         public bool ThrowOnReview { get; set; }
 
+        public List<string> ReviewedPaths { get; } = new List<string>();
+
         public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
         {
             ReviewCallCount++;
+            ReviewedPaths.Add(path);
             if (ThrowOnReview)
             {
                 throw new Exception("Test exception from code reviewer");
