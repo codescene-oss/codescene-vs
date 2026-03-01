@@ -156,9 +156,9 @@ namespace Codescene.VSExtension.Core.Tests
 
             AssertFileInTracker(path1, true);
             AssertFileInTracker(path2, true);
-            Assert.HasCount(2, _fakeCodeReviewer.ReviewedPaths, "Should run review for each discovered file");
-            Assert.Contains(path1, _fakeCodeReviewer.ReviewedPaths, "Should have reviewed init1.cs");
-            Assert.Contains(path2, _fakeCodeReviewer.ReviewedPaths, "Should have reviewed init2.cs");
+            Assert.HasCount(2, _innerFakeReviewer.ReviewedPaths, "Should run review for each discovered file");
+            Assert.Contains(path1, _innerFakeReviewer.ReviewedPaths, "Should have reviewed init1.cs");
+            Assert.Contains(path2, _innerFakeReviewer.ReviewedPaths, "Should have reviewed init2.cs");
         }
 
         [TestMethod]
