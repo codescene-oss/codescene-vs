@@ -13,28 +13,41 @@ namespace Codescene.VSExtension.Core.Application.Services
     public class CodeHealthMonitorNotifier : ICodeHealthMonitorNotifier
     {
         private readonly ConcurrentDictionary<string, Job> _activeJobs = new ConcurrentDictionary<string, Job>();
+        private readonly object _lock = new object();
 
         public event EventHandler ViewUpdateRequested;
 
         public void OnDeltaStarting(string filePath)
         {
-            var job = new Job
+            lock (_lock)
             {
-                Type = WebComponentConstants.JobTypes.DELTA,
-                State = WebComponentConstants.StateTypes.RUNNING,
-                File = new File { FileName = filePath },
-            };
-            _activeJobs[filePath] = job;
-            DeltaJobTracker.Add(job);
-            ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+                if (_activeJobs.TryGetValue(filePath, out var existingJob))
+                {
+                    DeltaJobTracker.Remove(existingJob);
+                }
+
+                var job = new Job
+                {
+                    Type = WebComponentConstants.JobTypes.DELTA,
+                    State = WebComponentConstants.StateTypes.RUNNING,
+                    File = new File { FileName = filePath },
+                };
+                _activeJobs[filePath] = job;
+                DeltaJobTracker.Add(job);
+                ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+            }
+
         }
 
         public void OnDeltaCompleted(string filePath)
         {
-            if (_activeJobs.TryRemove(filePath, out var job))
+            lock (_lock)
             {
-                DeltaJobTracker.Remove(job);
-                ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+                if (_activeJobs.TryRemove(filePath, out var job))
+                {
+                    DeltaJobTracker.Remove(job);
+                    ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+                }
             }
         }
     }
