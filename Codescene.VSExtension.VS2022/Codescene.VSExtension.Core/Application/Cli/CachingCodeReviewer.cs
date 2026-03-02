@@ -100,6 +100,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             else
             {
                 _logger?.Debug($"CachingCodeReviewer: ReviewAndBaselineAsync - review cache miss for '{path}', calling inner reviewer.");
+                _logger.Info($"Reviewing file {path}...", true);
                 review = await _innerReviewer.ReviewAsync(path, currentCode, isBaseline: false, cancellationToken);
 
                 if (review != null)
