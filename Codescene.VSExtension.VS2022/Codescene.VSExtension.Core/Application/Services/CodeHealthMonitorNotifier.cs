@@ -36,7 +36,6 @@ namespace Codescene.VSExtension.Core.Application.Services
                 DeltaJobTracker.Add(job);
                 ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
             }
-
         }
 
         public void OnDeltaCompleted(string filePath)
