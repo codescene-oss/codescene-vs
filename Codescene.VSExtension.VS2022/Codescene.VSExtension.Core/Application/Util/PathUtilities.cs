@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Codescene.VSExtension.Core.Application.Util
 {
-    internal static class PathUtilities
+    public static class PathUtilities
     {
         public static string GetRelativePath(string basePath, string fullPath)
         {
@@ -35,6 +35,19 @@ namespace Codescene.VSExtension.Core.Application.Util
             }
 
             return path;
+        }
+
+        public static bool IsInGitDirectory(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath))
+            {
+                return false;
+            }
+
+            var separator = Path.DirectorySeparatorChar;
+            var gitDirPattern = separator + ".git" + separator;
+
+            return filePath.IndexOf(gitDirPattern, StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 }

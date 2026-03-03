@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using LibGit2Sharp;
@@ -12,7 +14,7 @@ using LibGit2Sharp;
 namespace Codescene.VSExtension.VS2022.Application.Git;
 
 [Export(typeof(IGitService))]
-public class GitService : IGitService
+public class GitService : IGitService, IDisposable
 {
     private static readonly HashSet<string> MainBranchNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
@@ -21,6 +23,17 @@ public class GitService : IGitService
 
     [Import]
     private readonly ILogger _logger;
+
+    private readonly LibGit2SharpIgnoreChecker _ignoreChecker;
+    private readonly CachingGitIgnoreChecker _cachingIgnoreChecker;
+    private FileSystemWatcher _gitignoreWatcher;
+    private string _watchedRepoRoot;
+
+    public GitService()
+    {
+        _ignoreChecker = new LibGit2SharpIgnoreChecker();
+        _cachingIgnoreChecker = new CachingGitIgnoreChecker(_ignoreChecker);
+    }
 
     // TODO: Move to helper
     public static string GetRelativePath(string basePath, string fullPath)
@@ -129,24 +142,25 @@ public class GitService : IGitService
 
         try
         {
-            var repoPath = Repository.Discover(filePath);
-            if (string.IsNullOrEmpty(repoPath))
+            var repoRoot = _ignoreChecker.GetRepositoryRoot(filePath);
+            if (!string.IsNullOrEmpty(repoRoot))
             {
-                _logger.Warn("Repository path is null. Aborting ignore checking.");
-                return false;
+                EnsureWatcherInitialized(repoRoot);
             }
 
-            using var repo = new Repository(repoPath);
-            var repoRoot = repo.Info.WorkingDirectory;
-            var relativePath = GetRelativePath(repoRoot, filePath).Replace("\\", "/");
-
-            return repo.Ignore.IsPathIgnored(relativePath);
+            return _cachingIgnoreChecker.IsPathIgnored(filePath);
         }
         catch (Exception ex)
         {
             _logger.Error($"Could not check if file is ignored: {ex.Message}", ex);
             return false;
         }
+    }
+
+    public void Dispose()
+    {
+        _gitignoreWatcher?.Dispose();
+        _gitignoreWatcher = null;
     }
 
     // TODO: Move to helper
@@ -216,5 +230,43 @@ public class GitService : IGitService
             _logger.Debug($"Could not get branch creation from reflog: {e.Message}");
             return string.Empty;
         }
+    }
+
+    private void EnsureWatcherInitialized(string repoRoot)
+    {
+        if (_watchedRepoRoot == repoRoot && _gitignoreWatcher != null)
+        {
+            return;
+        }
+
+        _gitignoreWatcher?.Dispose();
+        _watchedRepoRoot = repoRoot;
+
+        if (string.IsNullOrEmpty(repoRoot) || !Directory.Exists(repoRoot))
+        {
+            return;
+        }
+
+        _gitignoreWatcher = new FileSystemWatcher(repoRoot)
+        {
+            Filter = ".gitignore",
+            IncludeSubdirectories = true,
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.CreationTime,
+        };
+
+        _gitignoreWatcher.Changed += OnGitignoreChanged;
+        _gitignoreWatcher.Created += OnGitignoreChanged;
+        _gitignoreWatcher.Deleted += OnGitignoreChanged;
+        _gitignoreWatcher.EnableRaisingEvents = true;
+    }
+
+    private void OnGitignoreChanged(object sender, FileSystemEventArgs e)
+    {
+        ClearCache();
+    }
+
+    private void ClearCache()
+    {
+        _cachingIgnoreChecker.ClearCache();
     }
 }

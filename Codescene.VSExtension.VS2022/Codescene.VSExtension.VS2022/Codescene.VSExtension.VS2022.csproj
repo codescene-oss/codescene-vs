@@ -77,6 +77,7 @@
     <Compile Include="Application\Git\GitChangeListerService.cs" />
     <Compile Include="Application\Git\GitService.cs" />
     <Compile Include="Application\Git\IGitChangeObserver.cs" />
+    <Compile Include="Application\Git\LibGit2SharpIgnoreChecker.cs" />
     <Compile Include="Application\Git\SavedFilesTracker.cs" />
     <Compile Include="Application\Services\AceAcknowledgementStateService.cs" />
     <Compile Include="Cache\CacheStorageService.cs" />
