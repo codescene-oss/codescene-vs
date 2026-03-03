@@ -201,22 +201,8 @@ namespace Codescene.VSExtension.VS2022.Handlers
                 }
 
                 var code = buffer.CurrentSnapshot.GetText();
-
-                var cache = new ReviewCacheService();
-                var cachedResult = cache.Get(new ReviewCacheQuery(code, path));
-                if (cachedResult != null)
-                {
-                    return;
-                }
-
-                _logger.Info($"Reviewing file {path}...", true);
-                var (result, baselineRawScore) = await RunReviewAndBaselineAsync(path, code);
-                if (result != null)
-                {
-                    cache.Put(new ReviewCacheEntry(code, path, result));
-                }
-
-                await ApplyReviewResultsAsync(result, code, baselineRawScore, buffer);
+                var (result, _) = await _reviewer.ReviewWithDeltaAsync(path, code);
+                await ApplyReviewResultsAsync(result, buffer);
             }
             catch (Exception e)
             {
@@ -224,27 +210,8 @@ namespace Codescene.VSExtension.VS2022.Handlers
             }
         }
 
-        private async Task<(FileReviewModel result, string baselineRawScore)> RunReviewAndBaselineAsync(string path, string code)
+        private async Task ApplyReviewResultsAsync(FileReviewModel result, ITextBuffer buffer)
         {
-            var (result, baselineRawScore) = await _reviewer.ReviewAndBaselineAsync(path, code).ConfigureAwait(false);
-            return (result, baselineRawScore ?? string.Empty);
-        }
-
-        private async Task ApplyReviewResultsAsync(FileReviewModel result, string code, string baselineRawScore, ITextBuffer buffer)
-        {
-            var path = result?.FilePath ?? string.Empty;
-            if (result?.RawScore != null)
-            {
-                _logger.Info($"File {path} reviewed successfully.");
-                await AceUtils.CheckContainsRefactorableFunctionsAsync(result, code);
-                await DeltaReviewAsync(result, code, baselineRawScore);
-            }
-            else
-            {
-                _logger.Warn($"Review of file {path} returned no results.");
-                await CodeSceneToolWindow.UpdateViewAsync();
-            }
-
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             _errorListWindowHandler.Handle(result);
             _marginSettings.NotifyScoreUpdated();
@@ -266,43 +233,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
             {
                 _logger.Warn("Could not get the file path. Aborting review...");
                 return string.Empty;
-            }
-        }
-
-        /// <summary>
-        /// Triggers delta analysis based on review of the most current content in a file.
-        /// Updates or opens the Code Health Monitor tool window.
-        /// </summary>
-        private async Task DeltaReviewAsync(FileReviewModel currentReview, string currentContent, string precomputedBaselineRawScore = null)
-        {
-            var path = currentReview.FilePath;
-            var job = new Job
-            {
-                Type = JobTypes.DELTA,
-                State = StateTypes.RUNNING,
-                File = new File { FileName = path },
-            };
-
-            try
-            {
-                DeltaJobTracker.Add(job);
-
-                await CodeSceneToolWindow.UpdateViewAsync(); // Update loading state
-
-                var deltaResult = await _reviewer.DeltaAsync(currentReview, currentContent, precomputedBaselineRawScore);
-                await AceUtils.UpdateDeltaCacheWithRefactorableFunctionsAsync(deltaResult, path, currentContent, _logger);
-
-                var scoreChange = deltaResult?.ScoreChange.ToString(CultureInfo.InvariantCulture) ?? "none";
-                _logger.Info($"Delta analysis complete for file {path}. Code Health score change: {scoreChange}.");
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Could not perform delta review on file {currentReview.FilePath}.", e);
-            }
-            finally
-            {
-                DeltaJobTracker.Remove(job);
-                await CodeSceneToolWindow.UpdateViewAsync();
             }
         }
     }

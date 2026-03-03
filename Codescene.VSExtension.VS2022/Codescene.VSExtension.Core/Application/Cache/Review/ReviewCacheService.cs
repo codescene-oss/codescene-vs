@@ -55,7 +55,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         private string GetCacheKey(string filePath, bool isBaseline)
         {
-            return filePath + "|baseline=" + isBaseline;
+            return filePath.ToLowerInvariant() + "|baseline=" + isBaseline;
         }
     }
 }

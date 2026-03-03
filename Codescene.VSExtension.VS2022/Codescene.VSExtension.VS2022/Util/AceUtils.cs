@@ -1,11 +1,9 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
-using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
@@ -18,18 +16,6 @@ namespace Codescene.VSExtension.VS2022.Util
 {
     public static class AceUtils
     {
-        /// <summary>
-        /// Checks if a file contains refactorable functions.
-        /// </summary>
-        public static async Task<IList<FnToRefactorModel>> CheckContainsRefactorableFunctionsAsync(FileReviewModel result, string code)
-        {
-            var aceRefactorService = await VS.GetMefServiceAsync<IAceRefactorService>();
-            return await aceRefactorService.CheckContainsRefactorableFunctionsAsync(result, code);
-        }
-
-        /// <summary>
-        /// Finds the refactorable function matching a code smell.
-        /// </summary>
         public static FnToRefactorModel GetRefactorableFunction(CodeSmellModel codeSmell, IList<FnToRefactorModel> refactorableFunctions)
         {
             return refactorableFunctions.FirstOrDefault(function =>
@@ -91,91 +77,6 @@ namespace Codescene.VSExtension.VS2022.Util
 
             var refactorableFunctions = await aceManager.GetRefactorableFunctionsFromCodeSmellsAsync(model.Path, fileContent, new List<CliCodeSmellModel> { codeSmell }, preflight);
             return refactorableFunctions?.FirstOrDefault();
-        }
-
-        public static async Task UpdateDeltaCacheWithRefactorableFunctionsAsync(DeltaResponseModel delta, string path, string code, ILogger logger)
-        {
-            var aceManager = await VS.GetMefServiceAsync<IAceManager>();
-            var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
-            var fileName = Path.GetFileName(path);
-            var preflight = await preflightManager.GetPreflightResponseAsync();
-
-            logger.Info($"Checking if refactorable functions from delta available for file {path}");
-            if (ShouldSkipUpdate(path, fileName, delta, logger))
-            {
-                return;
-            }
-
-            var refactorableFunctions = await aceManager.GetRefactorableFunctionsFromDeltaAsync(fileName, code, delta, preflight);
-            if (refactorableFunctions == null || !refactorableFunctions.Any())
-            {
-                logger.Debug("No refactorable functions found. Skipping update of delta cache.");
-                return;
-            }
-
-            logger.Debug($"Updating delta cache with refactorable functions for {path}. Found {refactorableFunctions.Count} refactorable functions.");
-            UpdateFindings(delta, refactorableFunctions);
-        }
-
-        public static bool ShouldSkipUpdate(string path, string fileName, DeltaResponseModel delta, ILogger logger)
-        {
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                logger.Warn($"Invalid file name for path: {path}");
-                return true;
-            }
-
-            if (delta == null)
-            {
-                logger.Debug("Delta response null. Skipping update of delta cache.");
-                return true;
-            }
-
-            return false;
-        }
-
-        public static void UpdateFindings(DeltaResponseModel delta, IList<FnToRefactorModel> refactorableFunctions)
-        {
-            if (delta?.FunctionLevelFindings == null)
-            {
-                return;
-            }
-
-            foreach (var finding in delta.FunctionLevelFindings)
-            {
-                var functionName = finding.Function?.Name;
-                if (string.IsNullOrEmpty(functionName))
-                {
-                    continue;
-                }
-
-                UpdateFindingIfNotUpdated(finding, functionName, refactorableFunctions);
-            }
-        }
-
-        public static void UpdateFindingIfNotUpdated(FunctionFindingModel finding, string functionName, IList<FnToRefactorModel> refactorableFunctions)
-        {
-            if (finding.RefactorableFn == null)
-            {
-                var match = refactorableFunctions.FirstOrDefault(fn => fn.Name == functionName && CheckRange(finding, fn));
-                if (match != null)
-                {
-                    finding.RefactorableFn = match;
-                }
-            }
-        }
-
-        public static bool CheckRange(FunctionFindingModel finding, FnToRefactorModel refFunction)
-        {
-            var findingRange = finding.Function?.Range;
-            var refactorRange = refFunction?.Range;
-
-            if (findingRange == null || refactorRange == null)
-            {
-                return false;
-            }
-
-            return refactorRange.StartLine <= findingRange.StartLine && findingRange.StartLine <= refactorRange.EndLine;
         }
 
         private static async Task<string> GetFileContentAsync(GetRefactorableFunctionsModel model)

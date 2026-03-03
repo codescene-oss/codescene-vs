@@ -99,7 +99,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitChangeLister.Initialize(_gitRootPath, _workspacePath);
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
 
-            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager, _gitService, PerformDeltaAnalysisAsync, OnFileDeleted);
+            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager, _gitService, OnFileDeleted);
             _fileChangeHandler.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
 
             if (!string.IsNullOrEmpty(_workspacePath) && Directory.Exists(_workspacePath))
@@ -206,42 +206,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             _eventProcessor = null;
         }
 
-        private async Task PerformDeltaAnalysisAsync(string filePath, string content, FileReviewModel review, string baselineRawScore = null)
-        {
-            #if FEATURE_INITIAL_GIT_OBSERVER
-            _logger?.Info($">>> GitChangeObserverCore: Starting delta analysis for '{filePath}'");
-            #endif
-            var pendingJob = new Job
-            {
-                Type = JobTypes.DELTA,
-                State = StateTypes.RUNNING,
-                File = new Models.WebComponent.Data.File { FileName = filePath },
-            };
-            try
-            {
-                DeltaJobTracker.Add(pendingJob);
-                ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
-
-                if (review?.RawScore != null)
-                {
-                    var delta = await _codeReviewer.DeltaAsync(review, content, baselineRawScore);
-                    ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
-                    #if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> GitChangeObserverCore: Delta analysis completed for '{filePath}'");
-                    #endif
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.Warn($"GitChangeObserver: Error performing delta analysis: {ex.Message}");
-            }
-            finally
-            {
-                DeltaJobTracker.Remove(pendingJob);
-                ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
         private void OnFileDeleted(string filePath)
         {
             #if FEATURE_INITIAL_GIT_OBSERVER
@@ -264,26 +228,10 @@ namespace Codescene.VSExtension.Core.Application.Git
                     _logger?.Info($">>> GitChangeObserverCore: GitChangeLister detected {absolutePaths.Count} files");
                     #endif
 
-                    var changedFiles = await _getChangedFilesCallback();
-                    var alreadyTrackedCount = 0;
-                    var newFilesCount = 0;
-
-                    foreach (var absolutePath in absolutePaths)
-                    {
-                        if (File.Exists(absolutePath) && !_trackerManager.Contains(absolutePath))
-                        {
-                            _trackerManager.Add(absolutePath);
-                            await _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles);
-                            newFilesCount++;
-                        }
-                        else
-                        {
-                            alreadyTrackedCount++;
-                        }
-                    }
+                    await ProcessFilesAsync(absolutePaths);
 
                     #if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> GitChangeObserverCore: Processed detected files - {newFilesCount} new, {alreadyTrackedCount} already tracked");
+                    _logger?.Info($">>> GitChangeObserverCore: Processed detected files");
                     #endif
                 }
                 catch (Exception ex)
@@ -345,18 +293,10 @@ namespace Codescene.VSExtension.Core.Application.Git
                 try
                 {
                     var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
-                    var addedCount = 0;
-                    foreach (var absolutePath in absolutePaths)
-                    {
-                        if (File.Exists(absolutePath))
-                        {
-                            _trackerManager.Add(absolutePath);
-                            addedCount++;
-                        }
-                    }
+                    await ProcessFilesAsync(absolutePaths);
 
 #if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> GitChangeObserverCore: Initialized tracker with {addedCount} files");
+                    _logger?.Info($">>> GitChangeObserverCore: Initialized tracker");
 #endif
                 }
                 catch (Exception ex)
@@ -364,6 +304,18 @@ namespace Codescene.VSExtension.Core.Application.Git
                     _logger?.Warn($"GitChangeObserver: Error initializing tracker: {ex.Message}");
                 }
             });
+        }
+
+        private async Task ProcessFilesAsync(IEnumerable<string> absolutePaths)
+        {
+            var changedFiles = await _getChangedFilesCallback();
+            foreach (var absolutePath in absolutePaths)
+            {
+                if (File.Exists(absolutePath))
+                {
+                    await _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles);
+                }
+            }
         }
 
         private FileSystemWatcher CreateWatcher(string path)

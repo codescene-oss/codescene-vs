@@ -11,7 +11,8 @@ namespace Codescene.VSExtension.Core.Tests
         protected string _testRepoPath;
         protected GitChangeObserverCore _gitChangeObserverCore;
         protected FakeLogger _fakeLogger;
-        protected FakeCodeReviewer _fakeCodeReviewer;
+        protected Core.Interfaces.Cli.ICodeReviewer _fakeCodeReviewer;
+        protected FakeCodeReviewer _innerFakeReviewer;
         protected FakeSupportedFileChecker _fakeSupportedFileChecker;
         protected FakeAsyncTaskScheduler _fakeTaskScheduler;
         protected FakeSavedFilesTracker _fakeSavedFilesTracker;
@@ -54,13 +55,24 @@ namespace Codescene.VSExtension.Core.Tests
             CommitFile("README.md", "# Test Repository", "Initial commit");
 
             _fakeLogger = new FakeLogger();
-            _fakeCodeReviewer = new FakeCodeReviewer();
             _fakeSupportedFileChecker = new FakeSupportedFileChecker();
             _fakeTaskScheduler = new FakeAsyncTaskScheduler();
             _fakeSavedFilesTracker = new FakeSavedFilesTracker();
             _fakeOpenFilesObserver = new FakeOpenFilesObserver();
             _fakeGitChangeLister = new FakeGitChangeLister();
             _fakeGitService = new FakeGitService();
+
+            _innerFakeReviewer = new FakeCodeReviewer();
+            var notifier = new Core.Application.Services.CodeHealthMonitorNotifier();
+            _fakeCodeReviewer = new Core.Application.Cli.CachingCodeReviewer(
+                innerReviewer: _innerFakeReviewer,
+                cache: null,
+                baselineCache: null,
+                deltaCache: null,
+                logger: _fakeLogger,
+                git: _fakeGitService,
+                telemetryManager: null,
+                notifier: notifier);
 
             _gitChangeObserverCore = CreateGitChangeObserverCore();
 

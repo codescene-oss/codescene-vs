@@ -122,6 +122,13 @@ namespace Codescene.VSExtension.Core.Tests
                 return (review, baselineRawScore ?? string.Empty);
             }
 
+            public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, CancellationToken cancellationToken = default)
+            {
+                var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, cancellationToken);
+                var delta = await DeltaAsync(review, content, baselineRawScore, cancellationToken);
+                return (review, delta);
+            }
+
             public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, CancellationToken cancellationToken = default)
             {
                 return Task.FromResult("8.0");

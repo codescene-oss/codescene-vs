@@ -71,6 +71,7 @@
     <Compile Include="Application\Adapters\VsDocumentSaveEventSource.cs" />
     <Compile Include="Application\Adapters\VsOpenFilesObserver.cs" />
     <Compile Include="Application\Adapters\VsOpenFilesSource.cs" />
+    <Compile Include="Application\Cli\CachingCodeReviewerProvider.cs" />
     <Compile Include="Application\Git\BranchWatcherService.cs" />
     <Compile Include="Application\Git\GitChangeObserver.cs" />
     <Compile Include="Application\Git\GitChangeListerService.cs" />
