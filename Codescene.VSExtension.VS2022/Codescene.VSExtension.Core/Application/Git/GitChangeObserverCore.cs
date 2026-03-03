@@ -293,7 +293,20 @@ namespace Codescene.VSExtension.Core.Application.Git
                 try
                 {
                     var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
-                    await ProcessFilesAsync(absolutePaths);
+                    var changedFiles = await _getChangedFilesCallback();
+
+                    // Add all files to tracker unconditionally - this ensures HandleFileDelete works correctly.
+                    // Files open in the editor are excluded from changedFiles (via OpenFilesObserver), but they
+                    // still need to be tracked so that delete events are properly handled.
+                    foreach (var absolutePath in absolutePaths)
+                    {
+                        _trackerManager.Add(absolutePath);
+
+                        if (File.Exists(absolutePath) && _fileChangeHandler.ShouldProcessFile(absolutePath, changedFiles))
+                        {
+                            await _fileChangeHandler.ReviewFileAsync(absolutePath);
+                        }
+                    }
 
 #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: Initialized tracker");
