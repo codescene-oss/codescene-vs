@@ -93,5 +93,33 @@ namespace Codescene.VSExtension.Core.Tests
             AssertFileInTracker(file1, false);
             AssertFileInTracker(file2, false);
         }
+
+        [TestMethod]
+        public async Task HandleFileDelete_FiresDeleteEvent_WhenFileWasOpenInEditorDuringInit()
+        {
+            var testFile = CreateFile("open-in-editor.cs", "public class Test {}");
+
+            _fakeOpenFilesObserver.AddOpenFile(testFile);
+
+            _fakeGitChangeLister.FilesToReturn = new HashSet<string> { testFile };
+
+            _gitChangeObserverCore.Dispose();
+            _gitChangeObserverCore = CreateGitChangeObserverCore();
+            await Task.Delay(500);
+
+            AssertFileInTracker(testFile, true);
+
+            var eventRaised = false;
+            _gitChangeObserverCore.ViewUpdateRequested += (sender, e) => eventRaised = true;
+
+            File.Delete(testFile);
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            CollectionAssert.AreEqual(new List<string>(), changedFiles, "Changed list should be empty after git stash");
+
+            await _gitChangeObserverCore.HandleFileDeleteForTestingAsync(testFile, changedFiles);
+
+            Assert.IsTrue(eventRaised, "ViewUpdateRequested should be raised when deleting a file that was open in editor during init");
+            AssertFileInTracker(testFile, false);
+        }
     }
 }

@@ -133,12 +133,50 @@ namespace Codescene.VSExtension.Core.Application.Git
             if (!IsFileInChangedList(filePath, changedFiles))
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
-                _logger?.Info($">>> FileChangeHandler: File not processed - not in changed list: {filePath}");
+                _logger?.Info($">>> FileChangeHandler: File not processed - not in changed list: {filePath}. Changed list ({changedFiles?.Count ?? 0} files): {string.Join(", ", changedFiles ?? new List<string>())}");
                 #endif
                 return false;
             }
 
             return true;
+        }
+
+        public async Task ReviewFileAsync(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    #if FEATURE_INITIAL_GIT_OBSERVER
+                    _logger?.Info($">>> FileChangeHandler: File does not exist for review: {filePath}");
+                    #endif
+                    return;
+                }
+
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> FileChangeHandler: Starting review for file: {filePath}");
+                #endif
+                var content = File.ReadAllText(filePath);
+                var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content).ConfigureAwait(false);
+
+                if (review != null)
+                {
+                    _logger?.Debug($"GitChangeObserver: File reviewed: {filePath}");
+                    #if FEATURE_INITIAL_GIT_OBSERVER
+                    _logger?.Info($">>> FileChangeHandler: Completed review for file: {filePath}");
+                    #endif
+                }
+                else
+                {
+                    #if FEATURE_INITIAL_GIT_OBSERVER
+                    _logger?.Info($">>> FileChangeHandler: Review returned null for file: {filePath}");
+                    #endif
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.Warn($"GitChangeObserver: Could not load file for review {filePath}: {ex.Message}");
+            }
         }
 
         private static bool IsInWorkspace(string filePath, string workspacePath)
@@ -180,44 +218,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             var normalizedRelativePath = relativePath.Replace('\\', '/');
 
             return changedFiles.Any(cf => cf.Replace('\\', '/').Equals(normalizedRelativePath, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private async Task ReviewFileAsync(string filePath)
-        {
-            try
-            {
-                if (!File.Exists(filePath))
-                {
-                    #if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> FileChangeHandler: File does not exist for review: {filePath}");
-                    #endif
-                    return;
-                }
-
-                #if FEATURE_INITIAL_GIT_OBSERVER
-                _logger?.Info($">>> FileChangeHandler: Starting review for file: {filePath}");
-                #endif
-                var content = File.ReadAllText(filePath);
-                var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content).ConfigureAwait(false);
-
-                if (review != null)
-                {
-                    _logger?.Debug($"GitChangeObserver: File reviewed: {filePath}");
-                    #if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> FileChangeHandler: Completed review for file: {filePath}");
-                    #endif
-                }
-                else
-                {
-                    #if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> FileChangeHandler: Review returned null for file: {filePath}");
-                    #endif
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.Warn($"GitChangeObserver: Could not load file for review {filePath}: {ex.Message}");
-            }
         }
 
         private void FireFileDeletedFromGit(string filePath)
