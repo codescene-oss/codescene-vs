@@ -45,7 +45,8 @@ jobs:
     runs-on: windows-latest
     needs: fetch-docs
     env:
-      FEATURE_ACE: true  # ACE feature enabled 
+      FEATURE_INITIAL_GIT_OBSERVER: true
+      FEATURE_PERIODIC_GIT_SCAN: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
