@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-03-04
+
+### Flxed
+- Toggle on git observer feature flags
+
 ## [0.5.0] - 2026-03-03
 ### Added
 - integrate CachingCodeReviewer as single entry point for code reviews (#233)
@@ -255,4 +260,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 
