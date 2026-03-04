@@ -357,9 +357,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             };
             _watcherChangedHandler += (sender, e) =>
             {
-                #if FEATURE_INITIAL_GIT_OBSERVER
-                _logger?.Info($">>> GitChangeObserverCore: File changed event enqueued: '{e.FullPath}'");
-                #endif
                 _eventProcessor?.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, e.FullPath));
             };
             _watcherDeletedHandler += (sender, e) =>

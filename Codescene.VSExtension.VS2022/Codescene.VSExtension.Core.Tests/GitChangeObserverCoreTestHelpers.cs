@@ -188,6 +188,10 @@ namespace Codescene.VSExtension.Core.Tests
         {
             return string.Empty;
         }
+
+        public void Dispose()
+        {
+        }
     }
 
     public class FakeGitServiceIgnorePath : IGitService
@@ -212,6 +216,10 @@ namespace Codescene.VSExtension.Core.Tests
         public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
         {
             return string.Empty;
+        }
+
+        public void Dispose()
+        {
         }
     }
 

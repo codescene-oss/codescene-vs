@@ -21,5 +21,9 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
         {
             return Mock.Object.IsFileIgnored(filePath);
         }
+
+        public void Dispose()
+        {
+        }
     }
 }
