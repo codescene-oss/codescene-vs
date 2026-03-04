@@ -32,6 +32,19 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void IsPathIgnored_CachedFalseValue_ReturnsFalseFromCache()
+        {
+            _fakeChecker.SetResult("tracked.cs", false);
+
+            var firstResult = _cachingChecker.IsPathIgnored("tracked.cs");
+            var cachedResult = _cachingChecker.IsPathIgnored("tracked.cs");
+
+            Assert.IsFalse(firstResult, "First call should return false");
+            Assert.IsFalse(cachedResult, "Cached call should also return false");
+            Assert.AreEqual(1, _fakeChecker.CallCount, "Should use cache on second call");
+        }
+
+        [TestMethod]
         public void IsPathIgnored_DifferentPaths_CallsInnerForEach()
         {
             _fakeChecker.SetResult("file1.cs", false);
