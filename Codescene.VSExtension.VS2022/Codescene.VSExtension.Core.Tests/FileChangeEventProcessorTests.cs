@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Linq;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Enums.Git;
 
@@ -73,6 +74,104 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             Assert.IsTrue(logger.WarnMessages.Any(IsExpectedWarning));
+        }
+
+        [TestMethod]
+        public async Task ProcessQueuedEvents_CoalescesMultipleEventsForSamePath_LastEventWins()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processedEvents = new List<FileChangeEvent>();
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles)
+            {
+                processedEvents.Add(evt);
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+            using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
+            {
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "same.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "same.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, "same.cs"));
+                processor.Start(TimeSpan.FromMilliseconds(10));
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (processedEvents.Count == 0 && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(20);
+                }
+            }
+
+            Assert.HasCount(1, processedEvents);
+            Assert.AreEqual(FileChangeType.Delete, processedEvents[0].Type);
+            Assert.AreEqual("same.cs", processedEvents[0].FilePath);
+        }
+
+        [TestMethod]
+        public async Task ProcessQueuedEvents_CoalescesCreateAndChange_ToSingleChangeEvent()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processedEvents = new List<FileChangeEvent>();
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles)
+            {
+                processedEvents.Add(evt);
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+            using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
+            {
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "new.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "new.cs"));
+                processor.Start(TimeSpan.FromMilliseconds(10));
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (processedEvents.Count == 0 && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(20);
+                }
+            }
+
+            Assert.HasCount(1, processedEvents);
+            Assert.AreEqual(FileChangeType.Change, processedEvents[0].Type);
+            Assert.AreEqual("new.cs", processedEvents[0].FilePath);
+        }
+
+        [TestMethod]
+        public async Task ProcessQueuedEvents_DoesNotCoalesceDifferentPaths()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processedEvents = new List<FileChangeEvent>();
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles)
+            {
+                processedEvents.Add(evt);
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+            using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
+            {
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "a.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "b.cs"));
+                processor.Start(TimeSpan.FromMilliseconds(10));
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (processedEvents.Count < 2 && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(20);
+                }
+            }
+
+            Assert.HasCount(2, processedEvents);
+            var paths = processedEvents.Select(e => e.FilePath).OrderBy(p => p).ToList();
+            Assert.AreEqual("a.cs", paths[0]);
+            Assert.AreEqual("b.cs", paths[1]);
         }
     }
 }

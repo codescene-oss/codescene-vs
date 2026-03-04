@@ -109,6 +109,17 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Put_WithNullDelta_DoesNotStore()
+        {
+            var entry = new DeltaCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, delta: null);
+            _cacheService.Put(entry);
+
+            var result = _cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent));
+
+            AssertCacheMiss(result);
+        }
+
+        [TestMethod]
         public void Put_StoresEntryCorrectly()
         {
             // Arrange
