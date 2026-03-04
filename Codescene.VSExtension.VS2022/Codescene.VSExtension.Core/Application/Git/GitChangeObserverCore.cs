@@ -350,26 +350,40 @@ namespace Codescene.VSExtension.Core.Application.Git
             #endif
             _watcherCreatedHandler += (sender, e) =>
             {
-                #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeObserverCore: File created event enqueued: '{e.FullPath}'");
-                #endif
-                _eventProcessor?.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, e.FullPath));
+#endif
+                if (ShouldEnqueueEvent(e))
+                {
+                    _eventProcessor?.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, e.FullPath));
+                }
             };
             _watcherChangedHandler += (sender, e) =>
             {
-                _eventProcessor?.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, e.FullPath));
+                if (ShouldEnqueueEvent(e))
+                {
+                    _eventProcessor?.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, e.FullPath));
+                }
             };
             _watcherDeletedHandler += (sender, e) =>
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeObserverCore: File deleted event enqueued: '{e.FullPath}'");
-                #endif
-                _eventProcessor?.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, e.FullPath));
+#endif
+                if (ShouldEnqueueEvent(e))
+                {
+                    _eventProcessor?.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, e.FullPath));
+                }
             };
 
             watcher.Created += _watcherCreatedHandler;
             watcher.Changed += _watcherChangedHandler;
             watcher.Deleted += _watcherDeletedHandler;
+        }
+
+        private bool ShouldEnqueueEvent(FileSystemEventArgs e)
+        {
+            return !_gitService.IsFileIgnored(e.FullPath) && Path.HasExtension(e.FullPath);
         }
 
         private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles)

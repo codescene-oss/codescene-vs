@@ -3,8 +3,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Enums.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Util;
 
@@ -56,6 +58,42 @@ namespace Codescene.VSExtension.Core.Application.Git
             _concurrencySemaphore?.Dispose();
         }
 
+        private static List<FileChangeEvent> CoalesceByPath(List<FileChangeEvent> events)
+        {
+            var byPath = new Dictionary<string, (bool hasDelete, bool hasCreateOrChange)>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var evt in events)
+            {
+                var path = evt.FilePath;
+                if (!byPath.TryGetValue(path, out var flags))
+                {
+                    flags = (false, false);
+                }
+
+                if (evt.Type == FileChangeType.Delete)
+                {
+                    flags = (true, flags.hasCreateOrChange);
+                }
+                else
+                {
+                    flags = (flags.hasDelete, true);
+                }
+
+                byPath[path] = flags;
+            }
+
+            var result = new List<FileChangeEvent>(byPath.Count);
+            foreach (var kv in byPath)
+            {
+                var path = kv.Key;
+                var (hasDelete, hasCreateOrChange) = kv.Value;
+                var type = hasDelete && !hasCreateOrChange ? FileChangeType.Delete : FileChangeType.Change;
+                result.Add(new FileChangeEvent(type, path));
+            }
+
+            return result;
+        }
+
         private void ProcessQueuedEventsCallback(object state)
         {
             _taskScheduler.Schedule(async () =>
@@ -85,13 +123,15 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            #if FEATURE_INITIAL_GIT_OBSERVER
-            _logger?.Info($">>> GitChangeObserverCore: Processing {events.Count} queued file change events");
-            #endif
+            var coalesced = CoalesceByPath(events);
+
+#if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeObserverCore: Processing {coalesced.Count} coalesced file change events (from {events.Count} raw)");
+#endif
 
             var changedFiles = await _getChangedFilesCallback();
 
-            foreach (var evt in events)
+            foreach (var evt in coalesced)
             {
                 var capturedEvt = evt;
                 var capturedChangedFiles = changedFiles;
