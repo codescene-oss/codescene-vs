@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Enums.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Util;
 
@@ -56,6 +57,33 @@ namespace Codescene.VSExtension.Core.Application.Git
             _concurrencySemaphore?.Dispose();
         }
 
+        /// <summary>
+        /// Merges multiple events for the same path into one event per path.
+        /// It selects the last event in the queue per file.
+        ///
+        /// It will return either Delete or Change (Create is converted) per file.
+        /// </summary>
+        private static List<FileChangeEvent> CoalesceByPath(List<FileChangeEvent> events)
+        {
+            var byPath = new Dictionary<string, FileChangeType>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var evt in events)
+            {
+                var path = evt.FilePath;
+                byPath[path] = evt.Type == FileChangeType.Delete
+                    ? FileChangeType.Delete
+                    : FileChangeType.Change;
+            }
+
+            var result = new List<FileChangeEvent>(byPath.Count);
+            foreach (var kv in byPath)
+            {
+                result.Add(new FileChangeEvent(kv.Value, kv.Key));
+            }
+
+            return result;
+        }
+
         private void ProcessQueuedEventsCallback(object state)
         {
             _taskScheduler.Schedule(async () =>
@@ -85,13 +113,15 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            #if FEATURE_INITIAL_GIT_OBSERVER
-            _logger?.Info($">>> GitChangeObserverCore: Processing {events.Count} queued file change events");
-            #endif
+            var coalesced = CoalesceByPath(events);
+
+#if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeObserverCore: Processing {coalesced.Count} coalesced file change events (from {events.Count} raw)");
+#endif
 
             var changedFiles = await _getChangedFilesCallback();
 
-            foreach (var evt in events)
+            foreach (var evt in coalesced)
             {
                 var capturedEvt = evt;
                 var capturedChangedFiles = changedFiles;

@@ -77,17 +77,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Get_CacheHitWithNullDelta_ReturnsTrueAndNull()
-        {
-            PutCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, delta: null);
-
-            var result = _cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent));
-
-            Assert.IsTrue(result.Item1); // Cache hit
-            Assert.IsNull(result.Item2); // But delta was null
-        }
-
-        [TestMethod]
         public void Get_DifferentBaselineContent_ReturnsStaleEntry()
         {
             PutCacheEntry(_tempFile, "original baseline", DefaultCurrent, CreateDelta(-1.0m));
@@ -115,6 +104,17 @@ namespace Codescene.VSExtension.Core.Tests
             PutCacheEntry(_tempFile1, DefaultBaseline, DefaultCurrent, CreateDelta(-1.0m));
 
             var result = _cacheService.Get(new DeltaCacheQuery(_tempFile2, DefaultBaseline, DefaultCurrent));
+
+            AssertCacheMiss(result);
+        }
+
+        [TestMethod]
+        public void Put_WithNullDelta_DoesNotStore()
+        {
+            var entry = new DeltaCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, delta: null);
+            _cacheService.Put(entry);
+
+            var result = _cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent));
 
             AssertCacheMiss(result);
         }

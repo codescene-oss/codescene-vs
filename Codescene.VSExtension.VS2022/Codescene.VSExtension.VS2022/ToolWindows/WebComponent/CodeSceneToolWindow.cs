@@ -26,34 +26,29 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
 public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 {
+    private const int UpdateViewDebounceMs = 300;
     private static WebComponentUserControl _userControl;
+    private static IDebounceService _updateViewDebounceService;
 
     public override Type PaneType => typeof(Pane);
 
     public static async Task UpdateViewAsync()
     {
-        if (_userControl == null)
+        if (_updateViewDebounceService == null)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            await ShowAsync();
+            _updateViewDebounceService = await VS.GetMefServiceAsync<IDebounceService>();
+        }
+
+        if (_updateViewDebounceService != null)
+        {
+            _updateViewDebounceService.Debounce(
+                "CodeSceneToolWindow.UpdateView",
+                () => RunActualUpdateAsync().FireAndForget(),
+                TimeSpan.FromMilliseconds(UpdateViewDebounceMs));
             return;
         }
 
-        var deltaCache = new DeltaCacheService();
-        var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
-
-        var allDeltas = deltaCache.GetAll();
-
-        var message = new WebComponentMessage<CodeHealthMonitorComponentData>
-        {
-            MessageType = MessageTypes.UPDATERENDERER,
-            Payload = WebComponentPayload<CodeHealthMonitorComponentData>.Create(
-                ViewTypes.HOME,
-                mapper.Map(allDeltas),
-                true),
-        };
-        await VS.GetMefServiceAsync<ILogger>();
-        _userControl.UpdateViewAsync(message).FireAndForget();
+        await RunActualUpdateAsync();
     }
 
     public override async Task<FrameworkElement> CreateAsync(int toolWindowId, CancellationToken cancellationToken)
@@ -98,6 +93,32 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
     }
 
     public override string GetTitle(int toolWindowId) => Titles.CODESCENE;
+
+    private static async Task RunActualUpdateAsync()
+    {
+        if (_userControl == null)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await ShowAsync();
+            return;
+        }
+
+        var deltaCache = new DeltaCacheService();
+        var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
+
+        var allDeltas = deltaCache.GetAll();
+
+        var message = new WebComponentMessage<CodeHealthMonitorComponentData>
+        {
+            MessageType = MessageTypes.UPDATERENDERER,
+            Payload = WebComponentPayload<CodeHealthMonitorComponentData>.Create(
+                ViewTypes.HOME,
+                mapper.Map(allDeltas),
+                true),
+        };
+        await VS.GetMefServiceAsync<ILogger>();
+        _userControl.UpdateViewAsync(message).FireAndForget();
+    }
 
     [Guid("A9FF6E0A-51FE-4713-8123-6B75EFC3E2C5")]
     internal class Pane : ToolWindowPane, IVsWindowFrameNotify3

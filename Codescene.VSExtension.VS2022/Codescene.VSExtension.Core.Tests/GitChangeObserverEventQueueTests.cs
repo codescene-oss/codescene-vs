@@ -147,5 +147,44 @@ namespace Codescene.VSExtension.Core.Tests
                 trackerManager.Contains(absolutePath),
                 $"Tracker should contain the absolute path '{absolutePath}'");
         }
+
+        [TestMethod]
+        public async Task IgnoredFile_DoesNotEnqueueWatcherEvent_NotInTracker()
+        {
+            var ignoredPath = Path.Combine(_testRepoPath, "ignored.cs");
+            var gitService = new FakeGitServiceIgnorePath(ignoredPath);
+            var observer = new TestableGitChangeObserverCore(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _fakeTaskScheduler,
+                _fakeGitChangeLister,
+                gitService);
+            observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, null);
+            observer.Start();
+            await Task.Delay(1000);
+
+            CreateFile("ignored.cs", "content");
+            await Task.Delay(3000);
+
+            var inTracker = observer.GetTrackerManager().Contains(ignoredPath);
+            observer.Dispose();
+            Assert.IsFalse(inTracker, "Ignored file should not be enqueued and thus not in tracker");
+        }
+
+        [TestMethod]
+        public async Task FileWithoutExtension_DoesNotEnqueueWatcherEvent_NotInTracker()
+        {
+            _gitChangeObserverCore.Start();
+            await Task.Delay(1000);
+
+            var pathNoExt = Path.Combine(_testRepoPath, "Makefile");
+            File.WriteAllText(pathNoExt, "content");
+            await Task.Delay(3000);
+
+            Assert.IsFalse(
+                _gitChangeObserverCore.GetTrackerManager().Contains(pathNoExt),
+                "File without extension should not be enqueued and thus not in tracker");
+        }
     }
 }
