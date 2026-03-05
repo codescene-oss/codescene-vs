@@ -132,21 +132,31 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var filePath = Path.Combine(Path.GetTempPath(), $"Test_UndoChanges_ClearsCache{Guid.NewGuid()}.cs");
             var content = "public interface ISample { /* Changes */ }";
             File.WriteAllText(filePath, content);
-            var baselineContent = "public interface ISample { }";
-            var review = new FileReviewModel
+            try
             {
-                FilePath = filePath,
-                Score = 6.5f,
-                RawScore = "raw999",
-            };
-            _deltaCacheService.Put(new DeltaCacheEntry(filePath, content, baselineContent, new DeltaResponseModel()));
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+                var baselineContent = "public interface ISample { }";
+                var review = new FileReviewModel
+                {
+                    FilePath = filePath,
+                    Score = 6.5f,
+                    RawScore = "raw999",
+                };
+                _deltaCacheService.Put(new DeltaCacheEntry(filePath, content, baselineContent, new DeltaResponseModel()));
+                _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
 
-            await _cachingReviewer.DeltaAsync(review, content);
+                await _cachingReviewer.DeltaAsync(review, content);
 
-            var cachedDelta = _deltaCacheService.GetDeltaForFile(filePath);
-            Assert.IsNull(cachedDelta);
-            _mockNotifier.Verify(x => x.RequestViewUpdate(), Times.Once);
+                var cachedDelta = _deltaCacheService.GetDeltaForFile(filePath);
+                Assert.IsNull(cachedDelta);
+                _mockNotifier.Verify(x => x.RequestViewUpdate(), Times.Once);
+            }
+            finally
+            {
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+            }
         }
 
         [TestMethod]
