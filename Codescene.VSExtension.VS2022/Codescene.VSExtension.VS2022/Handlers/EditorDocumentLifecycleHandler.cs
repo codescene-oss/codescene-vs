@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Ace;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Git;
@@ -60,6 +61,9 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
         [Import]
         private readonly IGitService _gitService;
+
+        [Import]
+        private readonly IAceRefactorService _aceRefactorService;
 
         public void TextViewCreated(IWpfTextView textView)
         {
@@ -203,6 +207,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
                 var code = buffer.CurrentSnapshot.GetText();
                 var (result, _) = await _reviewer.ReviewWithDeltaAsync(path, code);
                 await ApplyReviewResultsAsync(result, buffer);
+                await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(result, code);
             }
             catch (Exception e)
             {
