@@ -16,7 +16,20 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
     /// <typeparam name="TR">The type of the result returned by the cache lookup.</typeparam>
     public abstract class CacheService<TQ, TE, TV, TR>
     {
-        protected static readonly ConcurrentDictionary<string, TV> Cache = new ConcurrentDictionary<string, TV>();
+        private static readonly ConcurrentDictionary<string, TV> SharedCache = new ConcurrentDictionary<string, TV>();
+        private readonly ConcurrentDictionary<string, TV> _cache;
+
+        protected CacheService()
+        {
+            _cache = SharedCache;
+        }
+
+        protected CacheService(ConcurrentDictionary<string, TV> store)
+        {
+            _cache = store ?? throw new ArgumentNullException(nameof(store));
+        }
+
+        protected ConcurrentDictionary<string, TV> Cache => _cache;
 
         public abstract TR Get(TQ query);
 

@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
@@ -7,6 +8,7 @@ using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
@@ -22,14 +24,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         public void Setup()
         {
             _mockInnerReviewer = new Mock<ICodeReviewer>();
-            _cacheService = new ReviewCacheService();
+            _cacheService = new ReviewCacheService(new ConcurrentDictionary<string, ReviewCacheItem>());
             _cachingReviewer = new CachingCodeReviewer(_mockInnerReviewer.Object, _cacheService, null);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            _cacheService.Clear();
         }
 
         [TestMethod]

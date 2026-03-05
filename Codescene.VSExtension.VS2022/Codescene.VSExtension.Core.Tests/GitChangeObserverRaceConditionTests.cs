@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Concurrent;
 using System.Threading;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Git;
@@ -18,8 +19,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void SetupRaceConditionTests()
         {
-            _deltaCache = new DeltaCacheService();
-            _deltaCache.Clear();
+            _deltaCache = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
         }
 
         [TestMethod]

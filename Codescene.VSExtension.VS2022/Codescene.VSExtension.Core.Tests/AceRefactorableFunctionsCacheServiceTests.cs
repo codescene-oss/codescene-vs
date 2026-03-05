@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Concurrent;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
@@ -14,14 +15,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
-            _service = new AceRefactorableFunctionsCacheService();
-            _service.Clear();
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            _service.Clear();
+            _service = new AceRefactorableFunctionsCacheService(new ConcurrentDictionary<string, AceRefactorableFunctionsItem>());
         }
 
         [TestMethod]

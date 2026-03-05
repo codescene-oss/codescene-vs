@@ -19,8 +19,6 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         [TestInitialize]
         public void Setup()
         {
-            new ReviewCacheService().Clear();
-            new BaselineReviewCacheService().Clear();
             _mockInnerReviewer = new Mock<ICodeReviewer>();
             _cachingReviewer = new CachingCodeReviewer(_mockInnerReviewer.Object);
         }
