@@ -171,10 +171,8 @@ namespace Codescene.VSExtension.Core.Application.Git
                         _logger?.Warn($"GitChangeObserver: Open document provider failed for {filePath}: {ex.Message}");
                     }
                 }
-                if (content == null)
-                {
-                    content = File.ReadAllText(filePath);
-                }
+
+                content ??= File.ReadAllText(filePath);
 
                 var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content).ConfigureAwait(false);
 
