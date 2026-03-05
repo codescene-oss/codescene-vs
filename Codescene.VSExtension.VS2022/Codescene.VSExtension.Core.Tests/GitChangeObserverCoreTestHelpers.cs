@@ -112,10 +112,13 @@ namespace Codescene.VSExtension.Core.Tests
 
         public List<string> ReviewedPaths { get; } = new List<string>();
 
+        public List<string> ReviewedContents { get; } = new List<string>();
+
         public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
         {
             ReviewCallCount++;
             ReviewedPaths.Add(path);
+            ReviewedContents.Add(content);
             if (ThrowOnReview)
             {
                 throw new Exception("Test exception from code reviewer");
@@ -260,6 +263,23 @@ namespace Codescene.VSExtension.Core.Tests
         public void AddOpenFile(string filePath)
         {
             _openFiles.Add(filePath);
+        }
+    }
+
+    public class FakeOpenDocumentContentProvider : IOpenDocumentContentProvider
+    {
+        private readonly Dictionary<string, string> _contentByPath = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        public void SetContentForPath(string filePath, string content)
+        {
+            _contentByPath[filePath] = content;
+        }
+
+        public Task<string> GetContentForReviewAsync(string filePath)
+        {
+#pragma warning disable CS8619
+            return Task.FromResult(_contentByPath.TryGetValue(filePath, out var content) ? content : null);
+#pragma warning restore CS8619
         }
     }
 

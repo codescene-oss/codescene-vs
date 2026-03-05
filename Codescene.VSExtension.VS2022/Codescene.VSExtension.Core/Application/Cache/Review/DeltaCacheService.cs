@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Codescene.VSExtension.Core.Models.Cache.Delta;
@@ -24,7 +25,9 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             var oldHash = Hash(query.BaselineContent);
             var newHash = Hash(query.CurrentContent);
 
-            if (!Cache.TryGetValue(query.FilePath, out var entry))
+            var cacheKey = GetCacheKey(query.FilePath);
+
+            if (!Cache.TryGetValue(cacheKey, out var entry))
             {
                 return (false, null);
             }
@@ -52,8 +55,8 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
             var headHash = Hash(entry.BaselineContent);
             var currentContentHash = Hash(entry.CurrentFileContent);
-
-            Cache[entry.FilePath] = new DeltaCacheItem(headHash, currentContentHash, entry.Delta);
+            var cacheKey = GetCacheKey(entry.FilePath);
+            Cache[cacheKey] = new DeltaCacheItem(entry.FilePath, headHash, currentContentHash, entry.Delta);
         }
 
         public Dictionary<string, DeltaResponseModel> GetAll()
@@ -64,7 +67,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             {
                 if (pair.Value.Delta != null)
                 {
-                    result[pair.Key] = pair.Value.Delta;
+                    result[pair.Value.FilePath] = pair.Value.Delta;
                 }
             }
 
@@ -78,12 +81,29 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 return null;
             }
 
-            if (Cache.TryGetValue(filePath, out var item))
+            var cacheKey = GetCacheKey(filePath);
+
+            if (Cache.TryGetValue(cacheKey, out var item))
             {
                 return item.Delta;
             }
 
             return null;
+        }
+
+        public override void Invalidate(string key)
+        {
+            base.Invalidate(GetCacheKey(key));
+        }
+
+        public override void UpdateKey(string oldKey, string newKey)
+        {
+            base.UpdateKey(GetCacheKey(oldKey), GetCacheKey(newKey));
+        }
+
+        private string GetCacheKey(string filePath)
+        {
+            return filePath.ToLowerInvariant();
         }
     }
 }

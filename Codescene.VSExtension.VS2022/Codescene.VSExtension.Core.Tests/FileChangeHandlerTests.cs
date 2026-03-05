@@ -133,6 +133,34 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task HandleFileChangeAsync_WhenOpenDocumentContentProviderReturnsContent_UsesProviderContentNotDisk()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "open.cs");
+            var changedFiles = new List<string> { "open.cs" };
+            File.WriteAllText(testFile, "content-from-disk");
+
+            var provider = new FakeOpenDocumentContentProvider();
+            provider.SetContentForPath(testFile, "content-from-buffer");
+            var handlerWithProvider = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _testWorkspacePath,
+                _trackerManager,
+                new FakeGitService(),
+                null,
+                provider);
+
+            await handlerWithProvider.HandleFileChangeAsync(testFile, changedFiles);
+
+            await Task.Delay(200);
+
+            Assert.AreEqual(1, _fakeCodeReviewer.ReviewCallCount);
+            Assert.HasCount(1, _fakeCodeReviewer.ReviewedContents);
+            Assert.AreEqual("content-from-buffer", _fakeCodeReviewer.ReviewedContents[0]);
+        }
+
+        [TestMethod]
         public async Task HandleFileChangeAsync_FileNotInChangedList_ReturnsEarlyWithoutProcessing()
         {
             var testFile = Path.Combine(_testWorkspacePath, "test.cs");

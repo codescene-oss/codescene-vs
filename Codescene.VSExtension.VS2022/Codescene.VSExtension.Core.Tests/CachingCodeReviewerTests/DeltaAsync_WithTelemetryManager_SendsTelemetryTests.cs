@@ -43,6 +43,9 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             _reviewCacheService = new ReviewCacheService();
             _baselineCacheService = new BaselineReviewCacheService();
             _deltaCacheService = new DeltaCacheService();
+            _reviewCacheService.Clear();
+            _baselineCacheService.Clear();
+            _deltaCacheService.Clear();
             _cachingReviewer = new CachingCodeReviewer(
                 _mockInnerReviewer.Object,
                 _reviewCacheService,
@@ -89,9 +92,11 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             };
 
             var expectedDelta = CreateDeltaResponse(0.5m);
+            var telemetrySent = new TaskCompletionSource<bool>();
 
             _mockTelemetryManager
                 .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
             _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
@@ -104,7 +109,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             var result = await _cachingReviewer.DeltaAsync(review, currentContent);
 
-            await Task.Delay(100);
+            await Task.WhenAny(telemetrySent.Task, Task.Delay(5000));
+            Assert.IsTrue(telemetrySent.Task.IsCompleted, "Telemetry should have been sent");
             _mockTelemetryManager.Verify(
                 t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
                 Times.AtLeastOnce());
@@ -130,9 +136,11 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             };
 
             var expectedDelta = CreateDeltaResponse(-1.0m);
+            var telemetrySent = new TaskCompletionSource<bool>();
 
             _mockTelemetryManager
                 .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
             _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
@@ -145,7 +153,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             var result = await _cachingReviewer.DeltaAsync(review, currentContent);
 
-            await Task.Delay(100);
+            await Task.WhenAny(telemetrySent.Task, Task.Delay(5000));
+            Assert.IsTrue(telemetrySent.Task.IsCompleted, "Telemetry should have been sent");
             _mockTelemetryManager.Verify(
                 t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
                 Times.AtLeastOnce());
@@ -211,9 +220,11 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             };
 
             var expectedDelta = CreateDeltaResponse(-0.5m);
+            var telemetrySent = new TaskCompletionSource<bool>();
 
             _mockTelemetryManager
                 .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
             _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
@@ -230,7 +241,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             var result = await _cachingReviewer.DeltaAsync(review, currentContent);
 
-            await Task.Delay(100);
+            await Task.WhenAny(telemetrySent.Task, Task.Delay(5000));
+            Assert.IsTrue(telemetrySent.Task.IsCompleted, "Telemetry should have been sent");
             _mockTelemetryManager.Verify(
                 t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
                 Times.AtLeastOnce());
@@ -263,8 +275,11 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "score2",
             };
 
+            var telemetrySent = new TaskCompletionSource<bool>();
+
             _mockTelemetryManager
                 .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
             _mockGitService.Setup(g => g.GetFileContentForCommit(filePath1)).Returns(oldContent1);
@@ -280,7 +295,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var result1 = await _cachingReviewer.DeltaAsync(review1, currentContent1);
             var result2 = await _cachingReviewer.DeltaAsync(review2, currentContent2);
 
-            await Task.Delay(100);
+            await Task.WhenAny(telemetrySent.Task, Task.Delay(5000));
+            Assert.IsTrue(telemetrySent.Task.IsCompleted, "Telemetry should have been sent");
             _mockTelemetryManager.Verify(
                 t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
                 Times.AtLeastOnce());

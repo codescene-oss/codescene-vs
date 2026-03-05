@@ -22,6 +22,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly TrackerManager _trackerManager;
         private readonly Action<string> _onFileDeletedCallback;
         private readonly IGitService _gitService;
+        private readonly IOpenDocumentContentProvider _openDocumentContentProvider;
 
         public FileChangeHandler(
             ILogger logger,
@@ -30,7 +31,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             string workspacePath,
             TrackerManager trackerManager,
             IGitService gitService,
-            Action<string> onFileDeletedCallback = null)
+            Action<string> onFileDeletedCallback = null,
+            IOpenDocumentContentProvider openDocumentContentProvider = null)
         {
             _logger = logger;
             _codeReviewer = codeReviewer;
@@ -39,6 +41,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _trackerManager = trackerManager;
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             _onFileDeletedCallback = onFileDeletedCallback;
+            _openDocumentContentProvider = openDocumentContentProvider;
         }
 
         public event EventHandler<string> FileDeletedFromGit;
@@ -156,7 +159,14 @@ namespace Codescene.VSExtension.Core.Application.Git
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> FileChangeHandler: Starting review for file: {filePath}");
                 #endif
-                var content = File.ReadAllText(filePath);
+                var content = _openDocumentContentProvider != null
+                    ? await _openDocumentContentProvider.GetContentForReviewAsync(filePath).ConfigureAwait(false)
+                    : null;
+                if (content == null)
+                {
+                    content = File.ReadAllText(filePath);
+                }
+
                 var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content).ConfigureAwait(false);
 
                 if (review != null)

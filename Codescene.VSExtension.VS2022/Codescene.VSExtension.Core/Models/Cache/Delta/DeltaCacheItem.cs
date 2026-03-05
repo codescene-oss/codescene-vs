@@ -6,12 +6,15 @@ namespace Codescene.VSExtension.Core.Models.Cache.Delta
 {
     public class DeltaCacheItem
     {
-        public DeltaCacheItem(string headHash, string currentHash, DeltaResponseModel delta)
+        public DeltaCacheItem(string filePath, string headHash, string currentHash, DeltaResponseModel delta)
         {
+            FilePath = filePath;
             HeadHash = headHash;
             CurrentHash = currentHash;
             Delta = delta;
         }
+
+        public string FilePath { get; set; }
 
         public string HeadHash { get; }
 
