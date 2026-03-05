@@ -31,6 +31,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             _mockGitService = new Mock<IGitService>();
             _reviewCacheService = new ReviewCacheService();
             _baselineCacheService = new BaselineReviewCacheService();
+            _reviewCacheService.Clear();
+            _baselineCacheService.Clear();
             _cachingReviewer = new CachingCodeReviewer(
                 _mockInnerReviewer.Object,
                 _reviewCacheService,

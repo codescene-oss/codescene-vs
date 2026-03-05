@@ -39,6 +39,9 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         [Import]
         private IGitService _gitService;
 
+        [Import(AllowDefault = true)]
+        private IOpenDocumentContentProvider _openDocumentContentProvider;
+
         private GitChangeObserverCore _core;
         private EventHandler<string> _fileDeletedHandler;
         private EventHandler _viewUpdateHandler;
@@ -79,7 +82,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                 InitializeCore();
             }
 
-            _core.Initialize(solutionPath, savedFilesTracker, openFilesObserver, async () => await GetChangedFilesVsBaselineAsync());
+            _core.Initialize(solutionPath, savedFilesTracker, openFilesObserver, async () => await GetChangedFilesVsBaselineAsync(), _openDocumentContentProvider);
         }
 
         public void Start()

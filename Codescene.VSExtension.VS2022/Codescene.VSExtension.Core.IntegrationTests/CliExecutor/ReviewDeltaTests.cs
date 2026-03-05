@@ -26,12 +26,12 @@ public class Simple
             var complexCode = @"
 public class Complex
 {
-    public int Calculate(int a, int b, int c, int d, int e)
+    public int Calculate(int a, int b, int c, int d, int e, int f, int g, int h)
     {
         if (a > 0) {
             if (b > 0) {
                 if (c > 0) {
-                    return a + b + c + d + e;
+                    return a + b + c + d + e + f + g + h;
                 }
             }
         }

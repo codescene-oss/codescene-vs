@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Models;
@@ -18,6 +19,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         [TestInitialize]
         public void Setup()
         {
+            new ReviewCacheService().Clear();
+            new BaselineReviewCacheService().Clear();
             _mockInnerReviewer = new Mock<ICodeReviewer>();
             _cachingReviewer = new CachingCodeReviewer(_mockInnerReviewer.Object);
         }

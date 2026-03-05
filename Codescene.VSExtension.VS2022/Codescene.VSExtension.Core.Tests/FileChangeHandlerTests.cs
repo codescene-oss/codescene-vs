@@ -133,6 +133,34 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task HandleFileChangeAsync_WhenOpenDocumentContentProviderReturnsContent_UsesProviderContentNotDisk()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "open.cs");
+            var changedFiles = new List<string> { "open.cs" };
+            File.WriteAllText(testFile, "content-from-disk");
+
+            var provider = new FakeOpenDocumentContentProvider();
+            provider.SetContentForPath(testFile, "content-from-buffer");
+            var handlerWithProvider = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _testWorkspacePath,
+                _trackerManager,
+                new FakeGitService(),
+                null,
+                provider);
+
+            await handlerWithProvider.HandleFileChangeAsync(testFile, changedFiles);
+
+            await Task.Delay(200);
+
+            Assert.AreEqual(1, _fakeCodeReviewer.ReviewCallCount);
+            Assert.HasCount(1, _fakeCodeReviewer.ReviewedContents);
+            Assert.AreEqual("content-from-buffer", _fakeCodeReviewer.ReviewedContents[0]);
+        }
+
+        [TestMethod]
         public async Task HandleFileChangeAsync_FileNotInChangedList_ReturnsEarlyWithoutProcessing()
         {
             var testFile = Path.Combine(_testWorkspacePath, "test.cs");
@@ -265,6 +293,34 @@ namespace Codescene.VSExtension.Core.Tests
             var result = _handler.ShouldProcessFile(testFile, changedFiles);
 
             Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_WhenOpenDocumentContentProviderThrows_FallsBackToDiskContent()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "fallback.cs");
+            var changedFiles = new List<string> { "fallback.cs" };
+            File.WriteAllText(testFile, "content-from-disk");
+
+            var provider = new FakeOpenDocumentContentProvider { ThrowOnGetContent = true };
+            var handlerWithProvider = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _testWorkspacePath,
+                _trackerManager,
+                new FakeGitService(),
+                null,
+                provider);
+
+            await handlerWithProvider.HandleFileChangeAsync(testFile, changedFiles);
+
+            await Task.Delay(200);
+
+            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Open document provider failed")));
+            Assert.AreEqual(1, _fakeCodeReviewer.ReviewCallCount);
+            Assert.HasCount(1, _fakeCodeReviewer.ReviewedContents);
+            Assert.AreEqual("content-from-disk", _fakeCodeReviewer.ReviewedContents[0]);
         }
     }
 }
