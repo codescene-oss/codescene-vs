@@ -270,6 +270,8 @@ namespace Codescene.VSExtension.Core.Tests
     {
         private readonly Dictionary<string, string> _contentByPath = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        public bool ThrowOnGetContent { get; set; }
+
         public void SetContentForPath(string filePath, string content)
         {
             _contentByPath[filePath] = content;
@@ -277,6 +279,11 @@ namespace Codescene.VSExtension.Core.Tests
 
         public Task<string> GetContentForReviewAsync(string filePath)
         {
+            if (ThrowOnGetContent)
+            {
+                throw new Exception("Simulated provider failure");
+            }
+
 #pragma warning disable CS8619
             return Task.FromResult(_contentByPath.TryGetValue(filePath, out var content) ? content : null);
 #pragma warning restore CS8619
