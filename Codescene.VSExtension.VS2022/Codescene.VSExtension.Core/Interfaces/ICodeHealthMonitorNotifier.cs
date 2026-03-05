@@ -7,5 +7,7 @@ namespace Codescene.VSExtension.Core.Interfaces
         void OnDeltaStarting(string filePath);
 
         void OnDeltaCompleted(string filePath);
+
+        void RequestViewUpdate();
     }
 }

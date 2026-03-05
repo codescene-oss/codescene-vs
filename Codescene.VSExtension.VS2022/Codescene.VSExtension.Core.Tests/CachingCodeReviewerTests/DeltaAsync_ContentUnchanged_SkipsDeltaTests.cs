@@ -11,6 +11,7 @@ using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cache.Review;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
@@ -21,6 +22,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         private Mock<ICodeReviewer> _mockInnerReviewer = null!;
         private Mock<ILogger> _mockLogger = null!;
         private Mock<IGitService> _mockGitService = null!;
+        private Mock<ICodeHealthMonitorNotifier> _mockNotifier = null!;
         private ReviewCacheService _reviewCacheService = null!;
         private BaselineReviewCacheService _baselineCacheService = null!;
         private DeltaCacheService _deltaCacheService = null!;
@@ -32,6 +34,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             _mockInnerReviewer = new Mock<ICodeReviewer>();
             _mockLogger = new Mock<ILogger>();
             _mockGitService = new Mock<IGitService>();
+            _mockNotifier = new Mock<ICodeHealthMonitorNotifier>();
             _reviewCacheService = new ReviewCacheService(new ConcurrentDictionary<string, ReviewCacheItem>());
             _baselineCacheService = new BaselineReviewCacheService(new ConcurrentDictionary<string, string>());
             _deltaCacheService = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
@@ -42,7 +45,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 _deltaCacheService,
                 _mockLogger.Object,
                 _mockGitService.Object,
-                null);
+                null,
+                _mockNotifier.Object);
         }
 
         [TestMethod]
@@ -103,7 +107,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         }
 
         [TestMethod]
-        public async Task Test_ContentUnchanged_CachesNullResult()
+        public async Task Test_ContentUnchanged_OK()
         {
             var filePath = "C:\\test\\sample.cs";
             var content = "public interface ISample { }";
@@ -120,6 +124,39 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             var cachedDelta = _deltaCacheService.GetDeltaForFile(filePath);
             Assert.IsNull(cachedDelta);
+        }
+
+        [TestMethod]
+        public async Task Test_UndoChanges_ClearsCacheAndNotifies()
+        {
+            var filePath = Path.Combine(Path.GetTempPath(), $"Test_UndoChanges_ClearsCache{Guid.NewGuid()}.cs");
+            var content = "public interface ISample { /* Changes */ }";
+            File.WriteAllText(filePath, content);
+            try
+            {
+                var baselineContent = "public interface ISample { }";
+                var review = new FileReviewModel
+                {
+                    FilePath = filePath,
+                    Score = 6.5f,
+                    RawScore = "raw999",
+                };
+                _deltaCacheService.Put(new DeltaCacheEntry(filePath, content, baselineContent, new DeltaResponseModel()));
+                _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+
+                await _cachingReviewer.DeltaAsync(review, content);
+
+                var cachedDelta = _deltaCacheService.GetDeltaForFile(filePath);
+                Assert.IsNull(cachedDelta);
+                _mockNotifier.Verify(x => x.RequestViewUpdate(), Times.Once);
+            }
+            finally
+            {
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+            }
         }
 
         [TestMethod]
