@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-03-05
+### Fixed
+- dirty document check on review, and delta cache key fix (#240)
+
+
 ## [0.5.3] - 2026-03-05
 ### Fixed
 - quick action ace refactor (#239)
@@ -272,6 +277,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 
 
 
