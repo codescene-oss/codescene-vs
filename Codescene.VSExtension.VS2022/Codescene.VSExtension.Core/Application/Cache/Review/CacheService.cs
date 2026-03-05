@@ -49,6 +49,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
         }
 
+        public virtual bool Contains(string key)
+        {
+            return Cache.ContainsKey(key);
+        }
+
         public virtual void Clear()
         {
             Cache.Clear();

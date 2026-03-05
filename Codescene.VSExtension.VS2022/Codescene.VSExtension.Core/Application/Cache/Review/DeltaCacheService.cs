@@ -112,6 +112,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             base.UpdateKey(GetCacheKey(oldKey), GetCacheKey(newKey));
         }
 
+        public override bool Contains(string key)
+        {
+            return base.Contains(GetCacheKey(key));
+        }
+
         private string GetCacheKey(string filePath)
         {
             return filePath.ToLowerInvariant();

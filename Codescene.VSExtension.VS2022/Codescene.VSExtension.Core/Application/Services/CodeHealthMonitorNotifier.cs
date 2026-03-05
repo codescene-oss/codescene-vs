@@ -49,5 +49,10 @@ namespace Codescene.VSExtension.Core.Application.Services
                 }
             }
         }
+
+        public void RequestViewUpdate()
+        {
+            ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+        }
     }
 }

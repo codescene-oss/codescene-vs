@@ -161,7 +161,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
             if (oldCode == currentCode)
             {
                 _logger?.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: content unchanged.");
-                _deltaCache.Put(new DeltaCacheEntry(path, oldCode, currentCode, null));
+
+                // If unchanged file exists in the cache, which could happen if user undos changes, clear and update views.
+                if (_deltaCache.Contains(path))
+                {
+                    _deltaCache.Invalidate(path);
+                    _notifier?.RequestViewUpdate();
+                }
+
                 return null;
             }
 
