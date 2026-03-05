@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
@@ -8,6 +9,8 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cache.Delta;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
@@ -29,9 +32,9 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             _mockInnerReviewer = new Mock<ICodeReviewer>();
             _mockLogger = new Mock<ILogger>();
             _mockGitService = new Mock<IGitService>();
-            _reviewCacheService = new ReviewCacheService();
-            _baselineCacheService = new BaselineReviewCacheService();
-            _deltaCacheService = new DeltaCacheService();
+            _reviewCacheService = new ReviewCacheService(new ConcurrentDictionary<string, ReviewCacheItem>());
+            _baselineCacheService = new BaselineReviewCacheService(new ConcurrentDictionary<string, string>());
+            _deltaCacheService = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
             _cachingReviewer = new CachingCodeReviewer(
                 _mockInnerReviewer.Object,
                 _reviewCacheService,
@@ -40,14 +43,6 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 _mockLogger.Object,
                 _mockGitService.Object,
                 null);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            _reviewCacheService.Clear();
-            _baselineCacheService.Clear();
-            _deltaCacheService.Clear();
         }
 
         [TestMethod]

@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Concurrent;
 using System.IO;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cache.Delta;
@@ -22,8 +23,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
-            _cacheService = new DeltaCacheService();
-            _cacheService.Clear(); // Ensure clean state for each test
+            _cacheService = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
 
             _tempFile = Path.GetTempFileName();
             _tempFile1 = Path.GetTempFileName();
@@ -34,8 +34,6 @@ namespace Codescene.VSExtension.Core.Tests
         [TestCleanup]
         public void Cleanup()
         {
-            _cacheService.Clear();
-
             if (File.Exists(_tempFile))
             {
                 File.Delete(_tempFile);

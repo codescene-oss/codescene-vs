@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Concurrent;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 
@@ -7,6 +8,16 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 {
     public class ReviewCacheService : CacheService<ReviewCacheQuery, ReviewCacheEntry, ReviewCacheItem, FileReviewModel>
     {
+        public ReviewCacheService()
+            : base()
+        {
+        }
+
+        public ReviewCacheService(ConcurrentDictionary<string, ReviewCacheItem> store)
+            : base(store)
+        {
+        }
+
         public override FileReviewModel Get(ReviewCacheQuery query)
         {
             string cacheKey = GetCacheKey(query.FilePath, query.IsBaseline);

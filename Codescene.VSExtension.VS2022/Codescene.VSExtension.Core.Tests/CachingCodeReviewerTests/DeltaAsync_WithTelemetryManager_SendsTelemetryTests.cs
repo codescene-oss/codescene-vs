@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -11,6 +12,8 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cache.Delta;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Moq;
 
@@ -40,12 +43,9 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             _mockLogger = new Mock<ILogger>();
             _mockGitService = new Mock<IGitService>();
             _mockTelemetryManager = new Mock<ITelemetryManager>();
-            _reviewCacheService = new ReviewCacheService();
-            _baselineCacheService = new BaselineReviewCacheService();
-            _deltaCacheService = new DeltaCacheService();
-            _reviewCacheService.Clear();
-            _baselineCacheService.Clear();
-            _deltaCacheService.Clear();
+            _reviewCacheService = new ReviewCacheService(new ConcurrentDictionary<string, ReviewCacheItem>());
+            _baselineCacheService = new BaselineReviewCacheService(new ConcurrentDictionary<string, string>());
+            _deltaCacheService = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
             _cachingReviewer = new CachingCodeReviewer(
                 _mockInnerReviewer.Object,
                 _reviewCacheService,
@@ -59,10 +59,6 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         [TestCleanup]
         public void Cleanup()
         {
-            _reviewCacheService.Clear();
-            _baselineCacheService.Clear();
-            _deltaCacheService.Clear();
-
             if (Directory.Exists(_tempDir))
             {
                 try

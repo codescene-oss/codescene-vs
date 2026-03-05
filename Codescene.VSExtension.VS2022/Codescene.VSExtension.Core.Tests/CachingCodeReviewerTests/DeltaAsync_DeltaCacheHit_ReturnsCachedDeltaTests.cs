@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             _mockInnerReviewer = new Mock<ICodeReviewer>();
             _mockLogger = new Mock<ILogger>();
             _mockGitService = new Mock<IGitService>();
-            _deltaCacheService = new DeltaCacheService();
+            _deltaCacheService = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
             _cachingReviewer = new CachingCodeReviewer(
                 _mockInnerReviewer.Object,
                 null,
@@ -48,7 +49,6 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         [TestCleanup]
         public void Cleanup()
         {
-            _deltaCacheService.Clear();
             if (File.Exists(_tempFilePath))
             {
                 File.Delete(_tempFilePath);

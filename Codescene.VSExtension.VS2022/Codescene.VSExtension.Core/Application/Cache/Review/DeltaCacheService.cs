@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using Codescene.VSExtension.Core.Models.Cache.Delta;
@@ -10,6 +11,16 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 {
     public class DeltaCacheService : CacheService<DeltaCacheQuery, DeltaCacheEntry, DeltaCacheItem, (bool, DeltaResponseModel)>
     {
+        public DeltaCacheService()
+            : base()
+        {
+        }
+
+        public DeltaCacheService(ConcurrentDictionary<string, DeltaCacheItem> store)
+            : base(store)
+        {
+        }
+
         /// <summary>
         /// Retrieves a cached delta response for the given query.
         ///

@@ -10,7 +10,18 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 {
     public class BaselineReviewCacheService
     {
-        private static readonly ConcurrentDictionary<string, string> Cache = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> SharedCache = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> _cache;
+
+        public BaselineReviewCacheService()
+        {
+            _cache = SharedCache;
+        }
+
+        public BaselineReviewCacheService(ConcurrentDictionary<string, string> store)
+        {
+            _cache = store;
+        }
 
         public (bool Found, string RawScore) Get(string filePath, string baselineContent)
         {
@@ -20,7 +31,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
 
             var key = CacheKey(filePath, baselineContent);
-            return Cache.TryGetValue(key, out var rawScore) ? (true, rawScore) : (false, null);
+            return _cache.TryGetValue(key, out var rawScore) ? (true, rawScore) : (false, null);
         }
 
         public void Put(string filePath, string baselineContent, string rawScore)
@@ -31,12 +42,12 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
 
             var key = CacheKey(filePath, baselineContent);
-            Cache[key] = rawScore ?? string.Empty;
+            _cache[key] = rawScore ?? string.Empty;
         }
 
         public void Clear()
         {
-            Cache.Clear();
+            _cache.Clear();
         }
 
         public void Invalidate(string filePath)
@@ -47,9 +58,9 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
 
             var prefix = filePath.ToLowerInvariant() + "|";
-            foreach (var key in Cache.Keys.Where(k => k.StartsWith(prefix)).ToList())
+            foreach (var key in _cache.Keys.Where(k => k.StartsWith(prefix)).ToList())
             {
-                Cache.TryRemove(key, out _);
+                _cache.TryRemove(key, out _);
             }
         }
 

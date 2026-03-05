@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Concurrent;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cache.Review;
@@ -14,14 +15,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
-            _cacheService = new ReviewCacheService();
-            _cacheService.Clear(); // Ensure clean state for each test
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            _cacheService.Clear();
+            _cacheService = new ReviewCacheService(new ConcurrentDictionary<string, ReviewCacheItem>());
         }
 
         [TestMethod]

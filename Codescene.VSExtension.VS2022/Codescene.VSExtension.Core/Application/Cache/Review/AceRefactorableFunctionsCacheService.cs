@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
@@ -12,6 +13,16 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         AceRefactorableFunctionsItem,
         IList<FnToRefactorModel>>
     {
+        public AceRefactorableFunctionsCacheService()
+            : base()
+        {
+        }
+
+        public AceRefactorableFunctionsCacheService(ConcurrentDictionary<string, AceRefactorableFunctionsItem> store)
+            : base(store)
+        {
+        }
+
         public override IList<FnToRefactorModel> Get(AceRefactorableFunctionsQuery query)
         {
             string filePath = query.FilePath;

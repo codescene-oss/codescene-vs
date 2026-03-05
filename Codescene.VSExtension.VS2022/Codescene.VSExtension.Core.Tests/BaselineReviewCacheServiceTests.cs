@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Concurrent;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -12,13 +13,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
-            _cache = new BaselineReviewCacheService();
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            _cache.Clear();
+            _cache = new BaselineReviewCacheService(new ConcurrentDictionary<string, string>());
         }
 
         [TestMethod]

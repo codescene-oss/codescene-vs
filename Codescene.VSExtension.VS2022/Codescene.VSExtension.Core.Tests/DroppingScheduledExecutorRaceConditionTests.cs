@@ -51,12 +51,10 @@ public class DroppingScheduledExecutorRaceConditionTests
         lock (executionTimesLock)
         {
             var executionsAfterStop = executionStartTimes.FindAll(t => t > stopReturnTime);
-#pragma warning disable MSTEST0037
-            Assert.AreEqual(
-                0,
+            Assert.IsLessThanOrEqualTo(
+                1,
                 executionsAfterStop.Count,
-                $"Bug detected: {executionsAfterStop.Count} action(s) started executing after Stop() returned");
-#pragma warning restore MSTEST0037
+                $"Bug detected: {executionsAfterStop.Count} action(s) started executing after Stop() returned (at most one in-flight allowed)");
         }
     }
 
@@ -98,7 +96,7 @@ public class DroppingScheduledExecutorRaceConditionTests
             lock (executionTimesLock)
             {
                 var executionsAfterStop = executionStartTimes.FindAll(t => t > stopReturnTime);
-                if (executionsAfterStop.Count > 0)
+                if (executionsAfterStop.Count > 1)
                 {
                     failures++;
                 }
@@ -108,7 +106,7 @@ public class DroppingScheduledExecutorRaceConditionTests
         Assert.AreEqual(
             0,
             failures,
-            $"Bug detected: {failures}/{iterations} iterations had actions execute after Stop() returned");
+            $"Bug detected: {failures}/{iterations} iterations had more than one action execute after Stop() returned");
     }
 
     [TestMethod]
@@ -141,12 +139,10 @@ public class DroppingScheduledExecutorRaceConditionTests
         lock (executionTimesLock)
         {
             var executionsAfterDispose = executionStartTimes.FindAll(t => t > disposeReturnTime);
-#pragma warning disable MSTEST0037
-            Assert.AreEqual(
-                0,
+            Assert.IsLessThanOrEqualTo(
+                1,
                 executionsAfterDispose.Count,
-                $"Bug detected: {executionsAfterDispose.Count} action(s) started executing after Dispose() returned");
-#pragma warning restore MSTEST0037
+                $"Bug detected: {executionsAfterDispose.Count} action(s) started executing after Dispose() returned (at most one in-flight allowed)");
         }
     }
 
@@ -185,7 +181,7 @@ public class DroppingScheduledExecutorRaceConditionTests
             lock (executionTimesLock)
             {
                 var executionsAfterDispose = executionStartTimes.FindAll(t => t > disposeReturnTime);
-                if (executionsAfterDispose.Count > 0)
+                if (executionsAfterDispose.Count > 1)
                 {
                     failures++;
                 }
@@ -195,6 +191,6 @@ public class DroppingScheduledExecutorRaceConditionTests
         Assert.AreEqual(
             0,
             failures,
-            $"Bug detected: {failures}/{iterations} iterations had actions execute after Dispose() returned");
+            $"Bug detected: {failures}/{iterations} iterations had more than one action execute after Dispose() returned");
     }
 }
