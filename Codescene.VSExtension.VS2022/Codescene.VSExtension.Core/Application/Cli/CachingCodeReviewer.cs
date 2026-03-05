@@ -244,7 +244,12 @@ namespace Codescene.VSExtension.Core.Application.Cli
             if (oldRawScore == currentRawScore)
             {
                 _logger?.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: scores identical.");
-                _deltaCache.Put(new DeltaCacheEntry(path, input.OldCode, input.CurrentCode, null));
+                if (_deltaCache.Contains(path))
+                {
+                    _deltaCache.Invalidate(path);
+                    _notifier?.RequestViewUpdate();
+                }
+
                 return null;
             }
 

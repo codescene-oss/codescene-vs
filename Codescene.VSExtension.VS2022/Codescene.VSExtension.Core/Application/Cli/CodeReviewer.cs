@@ -25,19 +25,22 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ICliExecutor _executor;
         private readonly ITelemetryManager _telemetryManager;
         private readonly IGitService _git;
+        private readonly ICodeHealthMonitorNotifier _notifier;
 
         public CodeReviewer(
             ILogger logger,
             IModelMapper mapper,
             ICliExecutor executor,
             ITelemetryManager telemetryManager,
-            IGitService git)
+            IGitService git,
+            ICodeHealthMonitorNotifier notifier = null)
         {
             _logger = logger;
             _mapper = mapper;
             _executor = executor;
             _telemetryManager = telemetryManager;
             _git = git;
+            _notifier = notifier;
         }
 
         public async Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
@@ -94,11 +97,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 var cache = new DeltaCacheService();
 
                 // Skip delta if content is identical (no changes since baseline)
-                if (oldCode == currentCode)
+                if (InvalidateCacheIfUnchanged(path, oldCode, currentCode, cache))
                 {
                     _logger.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: content unchanged since baseline.");
-                    // Cache null delta to remove file from monitor if it was previously shown
-                    cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, null));
                     return null;
                 }
 
@@ -113,11 +114,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 var oldRawScore = precomputedBaselineRawScore ?? await GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, cancellationToken);
 
                 // Skip delta if scores are identical (same code health, no meaningful change)
-                if (oldRawScore == currentRawScore)
+                if (InvalidateCacheIfUnchanged(path, oldRawScore, currentRawScore, cache))
                 {
                     _logger.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: scores are identical.");
-                    // Cache null delta to remove file from monitor if it was previously shown
-                    cache.Put(new DeltaCacheEntry(path, oldCode, currentCode, null));
                     return null;
                 }
 
@@ -141,6 +140,23 @@ namespace Codescene.VSExtension.Core.Application.Cli
         public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, CancellationToken cancellationToken = default)
         {
             return await GetOrComputeBaselineRawScoreInternalAsync(path, baselineContent, cancellationToken);
+        }
+
+        private bool InvalidateCacheIfUnchanged(string path, string old, string current, DeltaCacheService cache)
+        {
+            if (old == current)
+            {
+                // Invalidate delta cache to remove file and from monitor if it was previously shown
+                if (cache.Contains(path))
+                {
+                    cache.Invalidate(path);
+                    _notifier?.RequestViewUpdate();
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private async Task<string> GetOrComputeBaselineRawScoreInternalAsync(string path, string oldCode, CancellationToken cancellationToken)

@@ -32,10 +32,10 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
             ITelemetryManager telemetryManager,
             IGitService git)
         {
-            var baseReviewer = new CodeReviewer(logger, mapper, executor, telemetryManager, git);
             _notifier = new CodeHealthMonitorNotifier();
             _notifier.ViewUpdateRequested += OnViewUpdateRequested;
 
+            var baseReviewer = new CodeReviewer(logger, mapper, executor, telemetryManager, git, _notifier);
             _inner = new CachingCodeReviewer(
                 innerReviewer: baseReviewer,
                 logger: logger,
