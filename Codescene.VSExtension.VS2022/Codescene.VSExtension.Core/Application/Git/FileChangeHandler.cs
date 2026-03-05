@@ -159,9 +159,18 @@ namespace Codescene.VSExtension.Core.Application.Git
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> FileChangeHandler: Starting review for file: {filePath}");
                 #endif
-                var content = _openDocumentContentProvider != null
-                    ? await _openDocumentContentProvider.GetContentForReviewAsync(filePath).ConfigureAwait(false)
-                    : null;
+                string content = null;
+                if (_openDocumentContentProvider != null)
+                {
+                    try
+                    {
+                        content = await _openDocumentContentProvider.GetContentForReviewAsync(filePath).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.Warn($"GitChangeObserver: Open document provider failed for {filePath}: {ex.Message}");
+                    }
+                }
                 if (content == null)
                 {
                     content = File.ReadAllText(filePath);
