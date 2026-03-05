@@ -26,7 +26,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         protected CacheService(ConcurrentDictionary<string, TV> store)
         {
-            _cache = store;
+            _cache = store ?? throw new ArgumentNullException(nameof(store));
         }
 
         protected ConcurrentDictionary<string, TV> Cache => _cache;
