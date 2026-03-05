@@ -69,11 +69,19 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
 
     private string FormatMessage(CodeSmellModel codeSmell, bool includeDetails = true)
     {
-        var title = $"{Titles.CODESCENE} - {codeSmell.Category}";
+        var title = $"{(!string.IsNullOrEmpty(codeSmell.FunctionName) ? codeSmell.FunctionName + " - " : string.Empty)}{codeSmell.Category}";
 
-        if (includeDetails && !string.IsNullOrEmpty(codeSmell.Details))
+        if (includeDetails)
         {
-            title += $" ({codeSmell.Details})";
+            if (!string.IsNullOrEmpty(codeSmell.Details))
+            {
+                title += $" ({codeSmell.Details})";
+            }
+
+            if (codeSmell.FunctionRange?.StartLine != null && codeSmell.FunctionRange?.StartColumn != null)
+            {
+                title += $" [Ln {codeSmell.FunctionRange.StartLine}, Col {codeSmell.FunctionRange.StartColumn}]";
+            }
         }
 
         return title;
@@ -94,7 +102,6 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
             SubcategoryIndex = 2,
             HelpKeyword = FormatMessage(issue, false),
         };
-
         errorTask.Navigate += (sender, _) => { OpenDocumentWithIssue(sender, issue.Path); };
         ErrorListProvider?.Tasks?.Add(errorTask);
     }
