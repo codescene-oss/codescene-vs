@@ -35,6 +35,8 @@ namespace Codescene.VSExtension.VS2022;
 [ProvideToolWindow(typeof(CodeSceneToolWindow.Pane), Style = VsDockStyle.Tabbed, Window = WindowGuids.SolutionExplorer)]
 public sealed class VS2022Package : ToolkitPackage
 {
+    private SolutionEventsHandler _solutionEventsHandler;
+
     public static VS2022Package Instance { get; private set; }
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -87,6 +89,17 @@ public sealed class VS2022Package : ToolkitPackage
             SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR).FireAndForget();
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
         }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        if (disposing)
+        {
+            _solutionEventsHandler?.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 
     private async Task InitializeCacheStorageServiceAsync()
@@ -148,7 +161,8 @@ public sealed class VS2022Package : ToolkitPackage
 
     private async Task InitializeSolutionEventsHandlerAsync()
     {
-        await new SolutionEventsHandler().InitializeAsync(this);
+        _solutionEventsHandler = new SolutionEventsHandler();
+        await _solutionEventsHandler.InitializeAsync(this);
     }
 
     private async Task HideOpenedWindowsAsync()
