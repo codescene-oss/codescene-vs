@@ -41,6 +41,10 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 solution.AdviseSolutionEvents(this, out _cookie);
                 _solution = solution;
             }
+
+            VS.Events.SolutionEvents.OnAfterCloseFolder += SolutionEvents_OnAfterCloseFolder;
+            VS.Events.SolutionEvents.OnBeforeCloseFolder += SolutionEvents_OnBeforeCloseFolder;
+            VS.Events.SolutionEvents.OnAfterOpenFolder += SolutionEvents_OnAfterOpenFolder;
         }
 
 #if FEATURE_INITIAL_GIT_OBSERVER
@@ -137,12 +141,19 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     public void Dispose()
     {
         ThreadHelper.ThrowIfNotOnUIThread();
-        var canDispose = ThreadHelper.CheckAccess() && _solution != null && _cookie != 0;
+        var canDispose = ThreadHelper.CheckAccess();
 
         if (canDispose)
         {
-            _solution.UnadviseSolutionEvents(_cookie);
-            _cookie = 0;
+            if (_solution != null && _cookie != 0)
+            {
+                _solution.UnadviseSolutionEvents(_cookie);
+                _cookie = 0;
+            }
+
+            VS.Events.SolutionEvents.OnAfterCloseFolder -= SolutionEvents_OnAfterCloseFolder;
+            VS.Events.SolutionEvents.OnBeforeCloseFolder -= SolutionEvents_OnBeforeCloseFolder;
+            VS.Events.SolutionEvents.OnAfterOpenFolder -= SolutionEvents_OnAfterOpenFolder;
         }
     }
 
@@ -153,6 +164,24 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             var logger = await VS.GetMefServiceAsync<ILogger>();
             await logAction(logger);
         });
+    }
+
+    private void SolutionEvents_OnAfterOpenFolder(string obj)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        OnAfterOpenSolution(null, 0);
+    }
+
+    private void SolutionEvents_OnAfterCloseFolder(string obj)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        OnAfterCloseSolution(null);
+    }
+
+    private void SolutionEvents_OnBeforeCloseFolder(string obj)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        OnBeforeCloseSolution(null);
     }
 
     private async Task WaitForSolutionAndInitializeAsync()
