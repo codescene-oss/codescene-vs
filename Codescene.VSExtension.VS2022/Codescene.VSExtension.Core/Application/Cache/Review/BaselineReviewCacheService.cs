@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -61,6 +63,45 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             foreach (var key in _cache.Keys.Where(k => k.StartsWith(prefix)).ToList())
             {
                 _cache.TryRemove(key, out _);
+            }
+        }
+
+        public void RemoveEntriesOutsideRoot(string gitRootPath)
+        {
+            if (string.IsNullOrEmpty(gitRootPath))
+            {
+                return;
+            }
+
+            var rootPrefix = Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var keysToRemove = new List<string>();
+
+            foreach (var key in _cache.Keys)
+            {
+                var sep = key.IndexOf('|');
+                if (sep < 0)
+                {
+                    continue;
+                }
+
+                var pathFromKey = key.Substring(0, sep);
+                try
+                {
+                    var fullPath = Path.GetFullPath(pathFromKey);
+                    if (fullPath.Length > 0 && !fullPath.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        keysToRemove.Add(key);
+                    }
+                }
+                catch
+                {
+                    keysToRemove.Add(key);
+                }
+            }
+
+            foreach (var k in keysToRemove)
+            {
+                _cache.TryRemove(k, out _);
             }
         }
 

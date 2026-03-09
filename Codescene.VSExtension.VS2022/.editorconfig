@@ -29,6 +29,8 @@ dotnet_diagnostic.IDE0028.severity = none
 dotnet_diagnostic.IDE0090.severity = none
 # CS1591: Missing XML comment for publicly visible type or member
 dotnet_diagnostic.CS1591.severity = none
+# VSSDK007: Intentional fire-and-forget via FileAndForget on JoinableTask
+dotnet_diagnostic.VSSDK007.severity = none
 
 [{*Tests.cs,*TestBase.cs,*TestHelpers.cs,Test*.cs}]
 # CS8618: Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.

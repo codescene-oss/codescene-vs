@@ -17,6 +17,8 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         void Start();
 
+        void CancelAndReset();
+
         Task<List<string>> GetChangedFilesVsBaselineAsync();
 
         void RemoveFromTracker(string filePath);

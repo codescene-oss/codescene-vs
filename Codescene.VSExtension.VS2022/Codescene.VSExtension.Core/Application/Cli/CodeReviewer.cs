@@ -15,6 +15,7 @@ using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Util;
+using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
@@ -94,41 +95,17 @@ namespace Codescene.VSExtension.Core.Application.Cli
             try
             {
                 var oldCode = _git.GetFileContentForCommit(path);
-                var cache = new DeltaCacheService();
-
-                // Skip delta if content is identical (no changes since baseline)
-                if (InvalidateCacheIfUnchanged(path, oldCode, currentCode, cache))
-                {
-                    _logger.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: content unchanged since baseline.");
-                    return null;
-                }
-
-                var entry = cache.Get(new DeltaCacheQuery(path, oldCode, currentCode));
-
-                // If cache hit
-                if (entry.Item1)
-                {
-                    return entry.Item2;
-                }
-
                 var oldRawScore = precomputedBaselineRawScore ?? await GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, cancellationToken);
-
-                // Skip delta if scores are identical (same code health, no meaningful change)
-                if (InvalidateCacheIfUnchanged(path, oldRawScore, currentRawScore, cache))
-                {
-                    _logger.Debug($"Delta analysis skipped for {Path.GetFileName(path)}: scores are identical.");
-                    return null;
-                }
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var delta = await _executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = oldRawScore, NewScore = currentRawScore, FilePath = path, FileContent = currentCode }, cancellationToken);
 
-                var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(cache.GetAll());
-                var cacheEntry = new DeltaCacheEntry(path, oldCode, currentCode, delta);
-                cache.Put(cacheEntry);
-
-                DeltaTelemetryHelper.HandleDeltaTelemetryEvent(cacheSnapshot, cache.GetAll(), cacheEntry, _telemetryManager);
-
+                cancellationToken.ThrowIfCancellationRequested();
                 return delta;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception e)
             {

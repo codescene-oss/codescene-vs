@@ -163,8 +163,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
         }
 
-        public async Task<PreFlightResponseModel> PreflightAsync(bool force = true)
+        public async Task<PreFlightResponseModel> PreflightAsync(bool force = true, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var arguments = _cliServices.CommandProvider.GetPreflightSupportInformationCommand(force: force);
             if (string.IsNullOrEmpty(arguments))
             {
@@ -174,13 +175,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var taskResult = await ExecuteWithTimingAndLoggingAsync<PreFlightResponseModel>(
                 "ACE preflight",
-                () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, null, Codescene.VSExtension.Core.Consts.Constants.Timeout.TELEMETRYTIMEOUT),
+                () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, null, Codescene.VSExtension.Core.Consts.Constants.Timeout.TELEMETRYTIMEOUT, cancellationToken),
                 "Preflight failed.");
             return taskResult.Result;
         }
 
-        public async Task<RefactorResponseModel> PostRefactoringAsync(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null)
+        public async Task<RefactorResponseModel> PostRefactoringAsync(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var effectiveToken = string.IsNullOrEmpty(token) ? _settingsProvider.AuthToken : token;
             if (string.IsNullOrEmpty(effectiveToken))
             {
@@ -196,7 +198,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync<RefactorResponseModel>(
                 "ACE refactoring",
-                () => _cliServices.ProcessExecutor.ExecuteAsync(arguments),
+                () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, null, null, cancellationToken),
                 "Refactoring failed.");
 
             if (result != null && fnToRefactor != null)
@@ -217,46 +219,52 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return result;
         }
 
-        public async Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
+        public async Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight, CancellationToken cancellationToken = default)
         {
             return await ExecuteFnsToRefactorAsync(
                 isValid: codeSmells != null && codeSmells.Count > 0,
                 skipMessage: "Skipping refactoring functions from code smells. Code smells list was null or empty.",
                 getPayload: cachePath => _cliServices.CommandProvider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codeSmells, preflight),
-                operationLabel: "ACE refactoring functions from code smells check");
+                operationLabel: "ACE refactoring functions from code smells check",
+                cancellationToken: cancellationToken);
         }
 
-        public async Task<IList<FnToRefactorModel>> FnsToRefactorFromDeltaAsync(string fileName, string fileContent, DeltaResponseModel deltaResult, PreFlightResponseModel preflight)
+        public async Task<IList<FnToRefactorModel>> FnsToRefactorFromDeltaAsync(string fileName, string fileContent, DeltaResponseModel deltaResult, PreFlightResponseModel preflight, CancellationToken cancellationToken = default)
         {
             return await ExecuteFnsToRefactorAsync(
                 isValid: deltaResult != null,
                 skipMessage: "Skipping refactoring functions from delta. Delta result was null.",
                 getPayload: cachePath => _cliServices.CommandProvider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, preflight),
-                operationLabel: "ACE refactoring functions from delta check");
+                operationLabel: "ACE refactoring functions from delta check",
+                cancellationToken: cancellationToken);
         }
 
-        public async Task<string> GetDeviceIdAsync()
+        public async Task<string> GetDeviceIdAsync(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return await ExecuteSimpleCommandAsync(
                 _cliServices.CommandProvider.DeviceIdCommand,
-                "Could not get device ID");
+                "Could not get device ID",
+                cancellationToken);
         }
 
-        public async Task<string> GetFileVersionAsync()
+        public async Task<string> GetFileVersionAsync(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return await ExecuteSimpleCommandAsync(
                 _cliServices.CommandProvider.VersionCommand,
-                "Could not get CLI version");
+                "Could not get CLI version",
+                cancellationToken);
         }
 
         private static string GetReviewCancellationKey(string filename, bool isBaseline) =>
           string.IsNullOrEmpty(filename) ? string.Empty : filename + (isBaseline ? ":baseline" : ":current");
 
-        private async Task<string> ExecuteSimpleCommandAsync(string command, string errorMessage)
+        private async Task<string> ExecuteSimpleCommandAsync(string command, string errorMessage, CancellationToken cancellationToken = default)
         {
             try
             {
-                var result = await _cliServices.ProcessExecutor.ExecuteAsync(command);
+                var result = await _cliServices.ProcessExecutor.ExecuteAsync(command, null, null, cancellationToken);
                 return result?.Trim().TrimEnd('\r', '\n');
             }
             catch (Exception e)
@@ -298,7 +306,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
     bool isValid,
     string skipMessage,
     Func<string, string> getPayload,
-    string operationLabel)
+    string operationLabel,
+    CancellationToken cancellationToken = default)
         {
             if (!isValid)
             {
@@ -309,10 +318,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var cachePath = _cliServices.CacheStorage.GetSolutionReviewCacheLocation();
             var payloadContent = getPayload(cachePath);
 
-            return await ExecuteFnsToRefactorCommandAsync(payloadContent, operationLabel, operationLabel + " failed.");
+            return await ExecuteFnsToRefactorCommandAsync(payloadContent, operationLabel, operationLabel + " failed.", cancellationToken);
         }
 
-        private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorCommandAsync(string payloadContent, string operationLabel, string errorMessage)
+        private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorCommandAsync(string payloadContent, string operationLabel, string errorMessage, CancellationToken cancellationToken = default)
         {
             _cliServices.CacheStorage.RemoveOldReviewCacheEntries();
 
@@ -326,7 +335,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var (result, _) = await ExecuteWithTimingAndLoggingAsync<IList<FnToRefactorModel>>(
                 operationLabel,
-                () => _cliServices.ProcessExecutor.ExecuteAsync(command, payloadContent),
+                () => _cliServices.ProcessExecutor.ExecuteAsync(command, payloadContent, null, cancellationToken),
                 errorMessage);
             return result;
         }

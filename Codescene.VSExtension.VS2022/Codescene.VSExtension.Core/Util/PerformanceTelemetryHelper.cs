@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
@@ -20,10 +21,12 @@ namespace Codescene.VSExtension.Core.Util
         /// <param name="telemetryManager">The telemetry manager to send the event.</param>
         /// <param name="logger">Logger for error handling.</param>
         /// <param name="data">The performance telemetry data.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public static async Task SendPerformanceTelemetryAsync(
             ITelemetryManager telemetryManager,
             ILogger logger,
-            PerformanceTelemetryData data)
+            PerformanceTelemetryData data,
+            CancellationToken cancellationToken = default)
         {
             if (telemetryManager == null || data == null)
             {
@@ -41,7 +44,7 @@ namespace Codescene.VSExtension.Core.Util
                     { "loc", data.Loc },
                 };
 
-                await telemetryManager.SendTelemetryAsync(Constants.Telemetry.ANALYSISPERFORMANCE, additionalData);
+                await telemetryManager.SendTelemetryAsync(Constants.Telemetry.ANALYSISPERFORMANCE, additionalData, cancellationToken);
             }
             catch (Exception e)
             {

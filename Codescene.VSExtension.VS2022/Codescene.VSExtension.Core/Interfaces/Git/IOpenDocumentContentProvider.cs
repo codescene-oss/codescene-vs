@@ -1,11 +1,12 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Interfaces.Git
 {
     public interface IOpenDocumentContentProvider
     {
-        Task<string> GetContentForReviewAsync(string filePath);
+        Task<string> GetContentForReviewAsync(string filePath, CancellationToken cancellationToken = default);
     }
 }

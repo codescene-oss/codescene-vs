@@ -46,7 +46,8 @@ namespace Codescene.VSExtension.Core.Tests
             _mockTelemetryManager.Verify(
                 t => t.SendTelemetryAsync(
                     Constants.Telemetry.ANALYSISPERFORMANCE,
-                    It.IsAny<Dictionary<string, object>>()),
+                    It.IsAny<Dictionary<string, object>>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -65,8 +66,8 @@ namespace Codescene.VSExtension.Core.Tests
 
             Dictionary<string, object> capturedData = null;
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, d) => capturedData = d);
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
+                .Callback<string, Dictionary<string, object>, CancellationToken>((_, d, __) => capturedData = d);
 
             // Act
             await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(
@@ -97,8 +98,8 @@ namespace Codescene.VSExtension.Core.Tests
 
             Dictionary<string, object> capturedData = null;
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, d) => capturedData = d);
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
+                .Callback<string, Dictionary<string, object>, CancellationToken>((_, d, __) => capturedData = d);
 
             // Act
             await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(
@@ -139,7 +140,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert - should not send telemetry
             _mockTelemetryManager.Verify(
-                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
+                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 
@@ -154,7 +155,7 @@ namespace Codescene.VSExtension.Core.Tests
             };
 
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
                 .Throws(new Exception("Telemetry error"));
 
             // Act & Assert - should not throw

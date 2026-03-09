@@ -19,6 +19,7 @@ using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using static Codescene.VSExtension.Core.Consts.Constants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
@@ -82,13 +83,14 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
         var mapper = await VS.GetMefServiceAsync<AceComponentMapper>();
         var data = mapper.MapAsStale(AceManager.LastRefactoring);
 
-        _ctrl.UpdateViewAsync(new WebComponentMessage<AceComponentData>
+        var scheduler = await VS.GetMefServiceAsync<IAsyncTaskScheduler>();
+        scheduler.Schedule(ct => _ctrl.UpdateViewAsync(new WebComponentMessage<AceComponentData>
         {
             MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
             Payload = WebComponentPayload<AceComponentData>.Create(
                 WebComponentConstants.ViewTypes.ACE,
                 data),
-        }).FireAndForget();
+        }));
     }
 
     /// <summary>
@@ -137,7 +139,13 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
 
     private static void SendTelemetry(RefactorResponseModel responseModel)
     {
-        Task.Run(async () =>
+        var package = VS2022Package.Instance;
+        if (package == null)
+        {
+            return;
+        }
+
+        package.JoinableTaskFactory.RunAsync(async () =>
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
             var additionalData = new Dictionary<string, object>
@@ -146,8 +154,8 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
                     { "isCached", responseModel.Metadata.Cached },
                 };
 
-            await telemetryManager.SendTelemetryAsync(Telemetry.ACEREFACTORPRESENTED, additionalData);
-        }).FireAndForget();
+            await telemetryManager.SendTelemetryAsync(Telemetry.ACEREFACTORPRESENTED, additionalData, cancellationToken: package.PackageDisposalToken);
+        }).FileAndForget("AceToolWindow/SendTelemetry");
     }
 
     [Guid("60f71481-a161-4512-bb43-162b852a86d1")]

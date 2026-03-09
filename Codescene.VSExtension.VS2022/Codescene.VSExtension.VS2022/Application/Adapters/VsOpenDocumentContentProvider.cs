@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Microsoft.VisualStudio;
@@ -16,7 +17,7 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class VsOpenDocumentContentProvider : IOpenDocumentContentProvider
     {
-        public async Task<string> GetContentForReviewAsync(string filePath)
+        public async Task<string> GetContentForReviewAsync(string filePath, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(filePath))
             {

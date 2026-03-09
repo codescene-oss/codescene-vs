@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.Threading;
 using CodeSceneConstants = Codescene.VSExtension.Core.Consts.Constants;
 
 namespace Codescene.VSExtension.VS2022.TermsAndPolicies;
@@ -138,7 +139,13 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
 
     private void SendTelemetry(string eventName, string selection = "")
     {
-        Task.Run(async () =>
+        var package = VS2022Package.Instance;
+        if (package == null)
+        {
+            return;
+        }
+
+        package.JoinableTaskFactory.RunAsync(async () =>
         {
             Dictionary<string, object> additionalData = null;
             if (!string.IsNullOrEmpty(selection))
@@ -147,8 +154,8 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
             }
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            await telemetryManager.SendTelemetryAsync(eventName, additionalData);
-        }).FireAndForget();
+            await telemetryManager.SendTelemetryAsync(eventName, additionalData, cancellationToken: package.PackageDisposalToken);
+        }).FileAndForget("TermsAndPoliciesService/SendTelemetry");
     }
 
     private bool GetAcceptedTerms()

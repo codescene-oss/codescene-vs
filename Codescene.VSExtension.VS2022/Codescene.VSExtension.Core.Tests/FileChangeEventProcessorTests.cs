@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Linq;
+using System.Threading;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Enums.Git;
 
@@ -18,7 +19,7 @@ namespace Codescene.VSExtension.Core.Tests
             FileChangeEvent capturedEvt = null;
             List<string> capturedChangedFiles = null;
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
             {
                 processEventInvoked = true;
                 capturedEvt = evt;
@@ -31,7 +32,7 @@ namespace Codescene.VSExtension.Core.Tests
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "test.cs"));
-                processor.Start(TimeSpan.FromMilliseconds(10));
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
                 var deadline = DateTime.UtcNow.AddSeconds(5);
                 while (!processEventInvoked && DateTime.UtcNow < deadline)
                 {
@@ -57,7 +58,7 @@ namespace Codescene.VSExtension.Core.Tests
             bool IsExpectedWarning(string m) =>
                 m.Contains("Error processing file change event") && m.Contains("simulated error");
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles) =>
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct) =>
                 throw new InvalidOperationException("simulated error");
 
             Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
@@ -65,7 +66,7 @@ namespace Codescene.VSExtension.Core.Tests
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "test.cs"));
-                processor.Start(TimeSpan.FromMilliseconds(10));
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
                 var deadline = DateTime.UtcNow.AddSeconds(5);
                 while (DateTime.UtcNow < deadline && !logger.WarnMessages.Any(IsExpectedWarning))
                 {
@@ -83,7 +84,7 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
@@ -96,7 +97,7 @@ namespace Codescene.VSExtension.Core.Tests
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "same.cs"));
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "same.cs"));
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, "same.cs"));
-                processor.Start(TimeSpan.FromMilliseconds(10));
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
                 var deadline = DateTime.UtcNow.AddSeconds(5);
                 while (processedEvents.Count == 0 && DateTime.UtcNow < deadline)
                 {
@@ -116,7 +117,7 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
@@ -128,7 +129,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "new.cs"));
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "new.cs"));
-                processor.Start(TimeSpan.FromMilliseconds(10));
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
                 var deadline = DateTime.UtcNow.AddSeconds(5);
                 while (processedEvents.Count == 0 && DateTime.UtcNow < deadline)
                 {
@@ -148,7 +149,7 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
@@ -160,7 +161,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "a.cs"));
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "b.cs"));
-                processor.Start(TimeSpan.FromMilliseconds(10));
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
                 var deadline = DateTime.UtcNow.AddSeconds(5);
                 while (processedEvents.Count < 2 && DateTime.UtcNow < deadline)
                 {

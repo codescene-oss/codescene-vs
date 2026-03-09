@@ -1,6 +1,9 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 
@@ -61,6 +64,46 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             {
                 Cache[GetCacheKey(newKey, true)] = entryTrue;
                 base.Invalidate(GetCacheKey(oldKey, true));
+            }
+        }
+
+        public void RemoveEntriesOutsideRoot(string gitRootPath)
+        {
+            if (string.IsNullOrEmpty(gitRootPath))
+            {
+                return;
+            }
+
+            var rootPrefix = Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var keysToRemove = new List<string>();
+            var baselineSuffix = "|baseline=";
+
+            foreach (var key in Cache.Keys)
+            {
+                var sep = key.IndexOf(baselineSuffix, StringComparison.Ordinal);
+                if (sep < 0)
+                {
+                    continue;
+                }
+
+                var pathFromKey = key.Substring(0, sep);
+                try
+                {
+                    var fullPath = Path.GetFullPath(pathFromKey);
+                    if (fullPath.Length > 0 && !fullPath.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
+                    {
+                        keysToRemove.Add(key);
+                    }
+                }
+                catch
+                {
+                    keysToRemove.Add(key);
+                }
+            }
+
+            foreach (var k in keysToRemove)
+            {
+                Cache.TryRemove(k, out _);
             }
         }
 

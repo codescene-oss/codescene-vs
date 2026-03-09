@@ -19,6 +19,7 @@ using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
@@ -363,10 +364,16 @@ internal class WebComponentMessageHandler
 
     private void SendTelemetry(string eventName, Dictionary<string, object> additionalData = null)
     {
-        Task.Run(async () =>
+        var package = VS2022Package.Instance;
+        if (package == null)
+        {
+            return;
+        }
+
+        package.JoinableTaskFactory.RunAsync(async () =>
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            await telemetryManager.SendTelemetryAsync(eventName, additionalData);
-        }).FireAndForget();
+            await telemetryManager.SendTelemetryAsync(eventName, additionalData, cancellationToken: package.PackageDisposalToken);
+        }).FileAndForget("WebComponentMessageHandler/HandleMessage");
     }
 }

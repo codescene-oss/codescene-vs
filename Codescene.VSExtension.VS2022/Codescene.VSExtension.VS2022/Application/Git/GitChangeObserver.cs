@@ -14,6 +14,7 @@ using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace Codescene.VSExtension.VS2022.Application.Git
 {
@@ -90,6 +91,11 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             _core?.Start();
         }
 
+        public void CancelAndReset()
+        {
+            _core?.CancelAndReset();
+        }
+
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
         {
             return await _core.GetChangedFilesVsBaselineAsync();
@@ -146,10 +152,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
         private void OnViewUpdateRequested(object sender, EventArgs e)
         {
             ViewUpdateRequested?.Invoke(this, e);
-            Task.Run(async () =>
-            {
-                await CodeSceneToolWindow.UpdateViewAsync();
-            }).FireAndForget();
+            _taskScheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
         }
     }
 }

@@ -16,6 +16,7 @@ using Codescene.VSExtension.Core.Models.WebComponent.Payload;
 using Codescene.VSExtension.VS2022.Application.Services;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
@@ -73,7 +74,13 @@ public class ShowDocumentationHandler
 
     private void SendTelemetry(string entryPoint, string category)
     {
-        Task.Run(async () =>
+        var package = VS2022Package.Instance;
+        if (package == null)
+        {
+            return;
+        }
+
+        package.JoinableTaskFactory.RunAsync(async () =>
         {
             var additionalData = new Dictionary<string, object>
             {
@@ -82,7 +89,7 @@ public class ShowDocumentationHandler
             };
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            await telemetryManager.SendTelemetryAsync(Constants.Telemetry.OPENDOCSPANEL, additionalData);
-        }).FireAndForget();
+            await telemetryManager.SendTelemetryAsync(Constants.Telemetry.OPENDOCSPANEL, additionalData, cancellationToken: package.PackageDisposalToken);
+        }).FileAndForget("ShowDocumentationHandler/ShowDocs");
     }
 }

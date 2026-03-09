@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
@@ -28,9 +29,10 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
         }
 
-        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string gitRootPath, string workspacePath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string gitRootPath, string workspacePath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, CancellationToken cancellationToken = default)
         {
-            return await Task.Run(() =>
+            return await Task.Run(
+                () =>
             {
                 try
                 {
@@ -62,7 +64,8 @@ namespace Codescene.VSExtension.Core.Application.Git
                     _logger?.Warn($"GitChangeObserver: Error getting changed files: {ex.Message}");
                     return new List<string>();
                 }
-            });
+            },
+                cancellationToken);
         }
 
         public virtual List<string> GetMainBranchCandidates(Repository repo)

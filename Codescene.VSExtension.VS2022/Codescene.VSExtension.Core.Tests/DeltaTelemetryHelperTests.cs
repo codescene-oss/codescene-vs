@@ -54,7 +54,7 @@ namespace Codescene.VSExtension.Core.Tests
             await Task.Delay(200);
 
             _mockTelemetryManager.Verify(
-                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
+                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()),
                 Times.Never);
         }
 
@@ -100,8 +100,8 @@ namespace Codescene.VSExtension.Core.Tests
             var callReceived = new ManualResetEventSlim(false);
             Dictionary<string, object>? capturedData = null;
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, data) =>
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
+                .Callback<string, Dictionary<string, object>, CancellationToken>((_, data, __) =>
                 {
                     capturedData = data;
                     callReceived.Set();
@@ -191,7 +191,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var callReceived = new ManualResetEventSlim(false);
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetryAsync(expectedEvent, It.IsAny<Dictionary<string, object>>()))
+                .Setup(t => t.SendTelemetryAsync(expectedEvent, It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
                 .Callback(() => callReceived.Set());
 
             DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
@@ -199,7 +199,7 @@ namespace Codescene.VSExtension.Core.Tests
             var signaled = await Task.Run(() => callReceived.Wait(AsyncTimeoutMs));
             Assert.IsTrue(signaled, $"Timed out waiting for SendTelemetry({expectedEvent}) to be called");
 
-            _mockTelemetryManager.Verify(t => t.SendTelemetryAsync(expectedEvent, It.IsAny<Dictionary<string, object>>()), Times.Once);
+            _mockTelemetryManager.Verify(t => t.SendTelemetryAsync(expectedEvent, It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         private (Dictionary<string, DeltaResponseModel> previous, Dictionary<string, DeltaResponseModel> current) CreateSnapshots(string[] previousFiles, string[] currentFiles)
@@ -229,8 +229,8 @@ namespace Codescene.VSExtension.Core.Tests
             var callReceived = new ManualResetEventSlim(false);
             Dictionary<string, object>? capturedData = null;
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
-                .Callback<string, Dictionary<string, object>>((_, data) =>
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
+                .Callback<string, Dictionary<string, object>, CancellationToken>((_, data, __) =>
                 {
                     capturedData = data;
                     callReceived.Set();

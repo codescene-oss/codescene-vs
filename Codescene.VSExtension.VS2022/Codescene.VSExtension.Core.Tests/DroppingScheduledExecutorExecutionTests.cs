@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Threading;
 using Codescene.VSExtension.Core.Application.Util;
 using Moq;
 
@@ -15,11 +16,12 @@ public class DroppingScheduledExecutorExecutionTests : DroppingScheduledExecutor
         var interval = TimeSpan.FromMilliseconds(100);
 
         _executor = new DroppingScheduledExecutor(
-            async () =>
+            async ct =>
             {
                 await Task.CompletedTask;
                 actionExecutedSignal.TrySetResult(true);
             },
+            CancellationToken.None,
             interval,
             _mockLogger.Object);
 
@@ -39,11 +41,12 @@ public class DroppingScheduledExecutorExecutionTests : DroppingScheduledExecutor
         var interval = TimeSpan.FromMilliseconds(100);
 
         _executor = new DroppingScheduledExecutor(
-            async () =>
+            async ct =>
             {
                 await Task.CompletedTask;
                 executionCount++;
             },
+            CancellationToken.None,
             interval,
             _mockLogger.Object);
 
@@ -66,7 +69,7 @@ public class DroppingScheduledExecutorExecutionTests : DroppingScheduledExecutor
         var interval = TimeSpan.FromMilliseconds(50);
 
         _executor = new DroppingScheduledExecutor(
-            async () =>
+            async ct =>
             {
                 executionCount++;
                 if (executionCount == 1)
@@ -75,6 +78,7 @@ public class DroppingScheduledExecutorExecutionTests : DroppingScheduledExecutor
                     await firstExecutionCanComplete.Task;
                 }
             },
+            CancellationToken.None,
             interval,
             _mockLogger.Object);
 
@@ -99,12 +103,13 @@ public class DroppingScheduledExecutorExecutionTests : DroppingScheduledExecutor
         var interval = TimeSpan.FromMilliseconds(100);
 
         _executor = new DroppingScheduledExecutor(
-            async () =>
+            async ct =>
             {
                 await Task.CompletedTask;
                 actionExecutedSignal.TrySetResult(true);
                 throw testException;
             },
+            CancellationToken.None,
             interval,
             _mockLogger.Object);
 
@@ -133,7 +138,7 @@ public class DroppingScheduledExecutorExecutionTests : DroppingScheduledExecutor
         var interval = TimeSpan.FromMilliseconds(100);
 
         _executor = new DroppingScheduledExecutor(
-            async () =>
+            async ct =>
             {
                 await Task.CompletedTask;
                 executionCount++;
@@ -146,6 +151,7 @@ public class DroppingScheduledExecutorExecutionTests : DroppingScheduledExecutor
                     secondExecutionSignal.TrySetResult(true);
                 }
             },
+            CancellationToken.None,
             interval,
             _mockLogger.Object);
 

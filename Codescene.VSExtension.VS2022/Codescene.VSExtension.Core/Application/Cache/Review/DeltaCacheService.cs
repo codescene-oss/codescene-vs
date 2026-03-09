@@ -117,6 +117,31 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             return base.Contains(GetCacheKey(key));
         }
 
+        public void RemoveEntriesOutsideRoot(string gitRootPath)
+        {
+            if (string.IsNullOrEmpty(gitRootPath))
+            {
+                return;
+            }
+
+            var rootPrefix = Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var keysToRemove = new List<string>();
+
+            foreach (var pair in Cache)
+            {
+                var fullPath = Path.GetFullPath(pair.Value.FilePath ?? string.Empty);
+                if (fullPath.Length > 0 && !fullPath.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    keysToRemove.Add(pair.Key);
+                }
+            }
+
+            foreach (var key in keysToRemove)
+            {
+                Cache.TryRemove(key, out _);
+            }
+        }
+
         private string GetCacheKey(string filePath)
         {
             return filePath.ToLowerInvariant();

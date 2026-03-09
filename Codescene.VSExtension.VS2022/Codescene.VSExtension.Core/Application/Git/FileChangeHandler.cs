@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
@@ -46,7 +47,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public event EventHandler<string> FileDeletedFromGit;
 
-        public async Task HandleFileChangeAsync(string filePath, List<string> changedFiles)
+        public async Task HandleFileChangeAsync(string filePath, List<string> changedFiles, CancellationToken cancellationToken = default)
         {
             var isDirectory = !Path.HasExtension(filePath);
             if (isDirectory)
@@ -73,12 +74,13 @@ namespace Codescene.VSExtension.Core.Application.Git
             #endif
             _trackerManager.Add(filePath);
 
-            await ReviewFileAsync(filePath);
+            await ReviewFileAsync(filePath, cancellationToken);
         }
 
-        public async Task HandleFileDeleteAsync(string filePath, List<string> changedFiles)
+        public async Task HandleFileDeleteAsync(string filePath, List<string> changedFiles, CancellationToken cancellationToken = default)
         {
-            await Task.Run(() =>
+            await Task.Run(
+                () =>
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> FileChangeHandler: Processing file delete: {filePath}");
@@ -115,7 +117,8 @@ namespace Codescene.VSExtension.Core.Application.Git
                         FireFileDeletedFromGit(fileToDelete);
                     }
                 }
-            });
+            },
+                cancellationToken);
         }
 
         public bool ShouldProcessFile(string filePath, List<string> changedFiles)
@@ -144,10 +147,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             return true;
         }
 
-        public async Task ReviewFileAsync(string filePath)
+        public async Task ReviewFileAsync(string filePath, CancellationToken cancellationToken = default)
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!File.Exists(filePath))
                 {
                     #if FEATURE_INITIAL_GIT_OBSERVER
@@ -164,7 +168,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 {
                     try
                     {
-                        content = await _openDocumentContentProvider.GetContentForReviewAsync(filePath).ConfigureAwait(false);
+                        content = await _openDocumentContentProvider.GetContentForReviewAsync(filePath, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
@@ -174,7 +178,8 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                 content ??= File.ReadAllText(filePath);
 
-                var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content, cancellationToken).ConfigureAwait(false);
 
                 if (review != null)
                 {
@@ -189,6 +194,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                     _logger?.Info($">>> FileChangeHandler: Review returned null for file: {filePath}");
                     #endif
                 }
+            }
+            catch (OperationCanceledException)
+            {
             }
             catch (Exception ex)
             {

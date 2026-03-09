@@ -18,6 +18,7 @@ using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -341,7 +342,13 @@ public partial class WebComponentUserControl : UserControl
 
     private void SendTelemetry(string uri)
     {
-        Task.Run(async () =>
+        var package = VS2022Package.Instance;
+        if (package == null)
+        {
+            return;
+        }
+
+        package.JoinableTaskFactory.RunAsync(async () =>
         {
             var additionalData = new Dictionary<string, object>
             {
@@ -349,7 +356,7 @@ public partial class WebComponentUserControl : UserControl
             };
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            await telemetryManager.SendTelemetryAsync(Constants.Telemetry.OPENLINK, additionalData);
-        }).FireAndForget();
+            await telemetryManager.SendTelemetryAsync(Constants.Telemetry.OPENLINK, additionalData, cancellationToken: package.PackageDisposalToken);
+        }).FileAndForget("WebComponentUserControl/SendTelemetry");
     }
 }

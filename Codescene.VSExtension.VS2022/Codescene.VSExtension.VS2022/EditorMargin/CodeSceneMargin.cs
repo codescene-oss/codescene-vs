@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using WpfPath = System.Windows.Shapes.Path;
 
 namespace Codescene.VSExtension.VS2022.EditorMargin;
@@ -58,7 +59,8 @@ public class CodeSceneMargin : IWpfTextViewMargin
         _settings.ScoreUpdated += UpdateUiAsync;
         VSColorTheme.ThemeChanged += OnThemeChanged;
 
-        UpdateUiAsync().FireAndForget();
+        var package = VS2022Package.Instance;
+        package?.JoinableTaskFactory.RunAsync(() => UpdateUiAsync()).FileAndForget("CodeSceneMargin/UpdateUi");
     }
 
     public FrameworkElement VisualElement => _rootPanel;

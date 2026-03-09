@@ -18,6 +18,7 @@ using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Util;
+using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
@@ -265,6 +266,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var path = review.FilePath;
             _logger?.Debug($"CachingCodeReviewer: Delta cache miss for '{path}', calling inner reviewer.");
             var delta = await _innerReviewer.DeltaAsync(review, parameters.CurrentCode, parameters.OldRawScore, cancellationToken);
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(_deltaCache.GetAll());
             var cacheEntry = new DeltaCacheEntry(path, parameters.OldCode, parameters.CurrentCode, delta);

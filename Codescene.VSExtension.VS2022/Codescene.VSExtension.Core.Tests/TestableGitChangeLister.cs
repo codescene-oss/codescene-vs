@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
@@ -25,8 +26,8 @@ namespace Codescene.VSExtension.Core.Tests
 
         public async Task InvokePeriodicScanAsync()
         {
-            var method = typeof(GitChangeLister).GetMethod("PeriodicScanAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var task = (Task)method.Invoke(this, null);
+            var method = typeof(GitChangeLister).GetMethod("PeriodicScanAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, null, new[] { typeof(CancellationToken) }, null);
+            var task = (Task)method.Invoke(this, new object[] { CancellationToken.None });
             await task;
         }
 
@@ -35,14 +36,14 @@ namespace Codescene.VSExtension.Core.Tests
             return ConvertAndFilterPaths(relativePaths, gitRootPath);
         }
 
-        public override async Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath)
+        public override async Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
         {
             if (ThrowInGetAllChangedFilesAsync)
             {
                 throw new Exception("Simulated exception in CollectFilesFromRepoStateAsync");
             }
 
-            return await base.GetAllChangedFilesAsync(gitRootPath, workspacePath);
+            return await base.GetAllChangedFilesAsync(gitRootPath, workspacePath, cancellationToken);
         }
     }
 }

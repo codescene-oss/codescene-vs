@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
@@ -16,6 +17,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using CodeSceneConstants = Codescene.VSExtension.Core.Consts.Constants;
 using Task = System.Threading.Tasks.Task;
 
@@ -36,8 +38,11 @@ namespace Codescene.VSExtension.VS2022;
 public sealed class VS2022Package : ToolkitPackage
 {
     private SolutionEventsHandler _solutionEventsHandler;
+    private IAsyncTaskScheduler _scheduler;
 
     public static VS2022Package Instance { get; private set; }
+
+    public CancellationToken PackageDisposalToken => DisposalToken;
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
@@ -77,16 +82,18 @@ public sealed class VS2022Package : ToolkitPackage
             // Initialize ACE state change handler
             await InitializeAceStateChangeHandlerAsync();
 
-            // Initialize ACE at startup
-            RunPreflightAsync().FireAndForget();
+            _scheduler = await VS.GetMefServiceAsync<IAsyncTaskScheduler>();
 
-            SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSION).FireAndForget();
+            // Initialize ACE at startup
+            JoinableTaskFactory.RunAsync(() => RunPreflightAsync(DisposalToken)).FileAndForget("VS2022Package/RunPreflight");
+
+            JoinableTaskFactory.RunAsync(() => SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSION, DisposalToken)).FileAndForget("VS2022Package/SendTelemetry");
         }
         catch (Exception e)
         {
             // Note: we may not be able to report every failure via telemetry
             // (e.g. if the extension hasn't fully loaded or the CLI hasn't been downloaded yet).
-            SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR).FireAndForget();
+            JoinableTaskFactory.RunAsync(() => SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR, DisposalToken)).FileAndForget("VS2022Package/SendTelemetry");
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
         }
     }
@@ -97,6 +104,7 @@ public sealed class VS2022Package : ToolkitPackage
         if (disposing)
         {
             _solutionEventsHandler?.Dispose();
+            (_scheduler as IDisposable)?.Dispose();
         }
 
         base.Dispose(disposing);
@@ -115,21 +123,21 @@ public sealed class VS2022Package : ToolkitPackage
         await GetServiceAsync<AceStateChangeHandler>();
     }
 
-    private async Task SendTelemetryAsync(string eventName)
+    private async Task SendTelemetryAsync(string eventName, CancellationToken cancellationToken = default)
     {
         var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
         if (telemetryManager != null)
         {
-            await telemetryManager.SendTelemetryAsync(eventName);
+            await telemetryManager.SendTelemetryAsync(eventName, cancellationToken: cancellationToken);
         }
     }
 
-    private async Task RunPreflightAsync()
+    private async Task RunPreflightAsync(CancellationToken cancellationToken = default)
     {
         var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
         if (preflightManager != null)
         {
-            await preflightManager.RunPreflightAsync(true);
+            await preflightManager.RunPreflightAsync(true, cancellationToken);
         }
     }
 

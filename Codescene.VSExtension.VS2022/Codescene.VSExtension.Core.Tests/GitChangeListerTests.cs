@@ -242,10 +242,10 @@ namespace Codescene.VSExtension.Core.Tests
         public void StartPeriodicScanning_WhenAlreadyStarted_LogsWarningAndReturns()
         {
             _lister.Initialize(_testRepoPath, _testRepoPath);
-            _lister.StartPeriodicScanning();
+            _lister.StartPeriodicScanning(CancellationToken.None);
 
             _fakeLogger.WarnMessages.Clear();
-            _lister.StartPeriodicScanning();
+            _lister.StartPeriodicScanning(CancellationToken.None);
 
             Assert.HasCount(1, _fakeLogger.WarnMessages, "Should log warning when already started");
             Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("already started")), "Warning should mention already started");
@@ -302,11 +302,11 @@ namespace Codescene.VSExtension.Core.Tests
         public void Dispose_StopsPeriodicScanning()
         {
             _lister.Initialize(_testRepoPath, _testRepoPath);
-            _lister.StartPeriodicScanning();
+            _lister.StartPeriodicScanning(CancellationToken.None);
 
             _lister.Dispose();
 
-            _lister.StartPeriodicScanning();
+            _lister.StartPeriodicScanning(CancellationToken.None);
         }
     }
 }
