@@ -64,10 +64,20 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 return;
             }
 
-            var prefix = filePath.ToLowerInvariant() + "|";
-            foreach (var key in _cache.Keys.Where(k => k.StartsWith(prefix)).ToList())
+            var pathToMatch = filePath.ToLowerInvariant();
+            foreach (var key in _cache.Keys.ToList())
             {
-                _cache.TryRemove(key, out _);
+                var sep = key.IndexOf('|');
+                if (sep < 0)
+                {
+                    continue;
+                }
+
+                var pathFromKey = key.Substring(0, sep);
+                if (pathFromKey.Equals(pathToMatch, StringComparison.Ordinal))
+                {
+                    _cache.TryRemove(key, out _);
+                }
             }
         }
 

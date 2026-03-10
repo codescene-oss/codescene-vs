@@ -98,7 +98,7 @@ namespace Codescene.VSExtension.Core.Tests
             CommitFile("modified-state.cs", "original", "Add file");
             File.WriteAllText(modifiedFile, "modified");
 
-            var result = await _lister.CollectFilesFromRepoStateAsync(_testRepoPath, _testRepoPath);
+            var result = await _lister.CollectFilesFromRepoStateAsync(_testRepoPath, new[] { _testRepoPath });
 
             Assert.HasCount(1, result, "Should detect one modified file");
             Assert.Contains(modifiedFile, result, "Should contain the modified file");
@@ -111,7 +111,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             try
             {
-                testableInstance.Initialize(_testRepoPath, _testRepoPath);
+                testableInstance.Initialize(_testRepoPath, new[] { _testRepoPath });
 
                 var newFile = Path.Combine(_testRepoPath, "periodic.cs");
                 File.WriteAllText(newFile, "content");
@@ -137,7 +137,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             try
             {
-                testableInstance.Initialize(_testRepoPath, _testRepoPath);
+                testableInstance.Initialize(_testRepoPath, new[] { _testRepoPath });
 
                 var eventFired = false;
                 testableInstance.FilesDetected += (sender, files) => eventFired = true;
@@ -159,7 +159,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             try
             {
-                testableInstance.Initialize(_testRepoPath, _testRepoPath);
+                testableInstance.Initialize(_testRepoPath, new[] { _testRepoPath });
                 testableInstance.ThrowInGetAllChangedFilesAsync = true;
 
                 await testableInstance.InvokePeriodicScanAsync();

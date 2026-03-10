@@ -11,6 +11,7 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
@@ -19,20 +20,22 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ILogger _logger;
         private readonly ICodeReviewer _codeReviewer;
         private readonly ISupportedFileChecker _supportedFileChecker;
-        private readonly string _workspacePath;
         private readonly TrackerManager _trackerManager;
+        private readonly string _gitRootPath;
         private readonly Action<string> _onFileDeletedCallback;
         private readonly IGitService _gitService;
         private readonly IOpenDocumentContentProvider _openDocumentContentProvider;
         private readonly Func<string> _getActiveDocumentPath;
+        private IReadOnlyCollection<string> _workspacePaths;
 
         public FileChangeHandler(
             ILogger logger,
             ICodeReviewer codeReviewer,
             ISupportedFileChecker supportedFileChecker,
-            string workspacePath,
+            IReadOnlyCollection<string> workspacePaths,
             TrackerManager trackerManager,
             IGitService gitService,
+            string gitRootPath = null,
             Action<string> onFileDeletedCallback = null,
             IOpenDocumentContentProvider openDocumentContentProvider = null,
             Func<string> getActiveDocumentPath = null)
@@ -40,15 +43,21 @@ namespace Codescene.VSExtension.Core.Application.Git
             _logger = logger;
             _codeReviewer = codeReviewer;
             _supportedFileChecker = supportedFileChecker;
-            _workspacePath = workspacePath;
+            _workspacePaths = workspacePaths ?? Array.Empty<string>();
             _trackerManager = trackerManager;
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
+            _gitRootPath = gitRootPath;
             _onFileDeletedCallback = onFileDeletedCallback;
             _openDocumentContentProvider = openDocumentContentProvider;
             _getActiveDocumentPath = getActiveDocumentPath;
         }
 
         public event EventHandler<string> FileDeletedFromGit;
+
+        public void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
+        {
+            _workspacePaths = workspacePaths ?? Array.Empty<string>();
+        }
 
         public async Task HandleFileChangeAsync(string filePath, List<string> changedFiles, CancellationToken cancellationToken = default)
         {
@@ -213,45 +222,33 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        private static bool IsInWorkspace(string filePath, string workspacePath)
-        {
-            var file = new FileInfo(filePath);
-            var workspace = new DirectoryInfo(workspacePath);
-
-            DirectoryInfo current = file.Directory;
-            while (current != null)
-            {
-                if (string.Equals(current.FullName, workspace.FullName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-
-                current = current.Parent;
-            }
-
-            return false;
-        }
-
         private bool IsFileInChangedList(string filePath, List<string> changedFiles)
         {
-            if (string.IsNullOrEmpty(_workspacePath))
+            if (_workspacePaths == null || _workspacePaths.Count == 0)
             {
                 return true;
             }
 
-            if (!IsInWorkspace(filePath, _workspacePath))
+            if (!IsInAnyWorkspace(filePath))
             {
                 return false;
             }
 
-            var relativePath = PathUtilities.GetRelativePath(_workspacePath, filePath);
+            var pathToMatch = string.IsNullOrEmpty(_gitRootPath)
+                ? filePath
+                : PathUtilities.GetRelativePath(_gitRootPath, filePath);
+            var normalizedPathToMatch = pathToMatch.Replace('\\', '/');
+
             #if FEATURE_INITIAL_GIT_OBSERVER
-            _logger?.Info($">>> FileChangeHandler: Checking if file is in changed list - relative path: '{relativePath}'");
+            _logger?.Info($">>> FileChangeHandler: Checking if file is in changed list - path: '{normalizedPathToMatch}'");
             #endif
 
-            var normalizedRelativePath = relativePath.Replace('\\', '/');
+            return changedFiles.Any(cf => cf.Replace('\\', '/').Equals(normalizedPathToMatch, StringComparison.OrdinalIgnoreCase));
+        }
 
-            return changedFiles.Any(cf => cf.Replace('\\', '/').Equals(normalizedRelativePath, StringComparison.OrdinalIgnoreCase));
+        private bool IsInAnyWorkspace(string filePath)
+        {
+            return GitPathHelper.IsPathUnderAnyRoot(filePath, _workspacePaths);
         }
 
         private void FireFileDeletedFromGit(string filePath)

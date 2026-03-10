@@ -200,6 +200,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             _cache.Invalidate("path/file.cs");
 
+            RulesGeneration.Reset();
             var (found1, _) = _cache.Get("path/file.cs", "content1");
             var (found2, _) = _cache.Get("path/file.cs", "content2");
             var (found3, raw3) = _cache.Get("other/file.cs", "content3");
@@ -214,9 +215,11 @@ namespace Codescene.VSExtension.Core.Tests
         {
             _cache.Put("file.cs", "content", "score");
             _cache.RemoveEntriesOutsideRoot(null);
+            RulesGeneration.Reset();
             var (found, _) = _cache.Get("file.cs", "content");
             Assert.IsTrue(found);
             _cache.RemoveEntriesOutsideRoot(string.Empty);
+            RulesGeneration.Reset();
             var (found2, _) = _cache.Get("file.cs", "content");
             Assert.IsTrue(found2);
         }

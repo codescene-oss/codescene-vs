@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Generic;
 using System.Threading;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
@@ -349,7 +350,11 @@ namespace Codescene.VSExtension.Core.Tests
             return Task.FromResult(new HashSet<string>());
         }
 
-        public void Initialize(string gitRootPath, string workspacePath)
+        public void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths)
+        {
+        }
+
+        public void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
         {
         }
 
@@ -361,7 +366,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
         }
 
-        public Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
+        public Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default)
         {
             if (ThrowOnCollectFiles)
             {

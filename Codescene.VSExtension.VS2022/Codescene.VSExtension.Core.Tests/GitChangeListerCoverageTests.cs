@@ -87,7 +87,7 @@ namespace Codescene.VSExtension.Core.Tests
             CommitFile("modified.cs", "original content", "Add file");
             File.WriteAllText(modifiedFile, "modified content");
 
-            var result = await _lister.CollectFilesFromRepoStateAsync(_testRepoPath, _testRepoPath);
+            var result = await _lister.CollectFilesFromRepoStateAsync(_testRepoPath, new[] { _testRepoPath });
 
             Assert.HasCount(1, result, "Should return one modified file");
             Assert.Contains(modifiedFile, result, "Should contain the modified file");
@@ -98,7 +98,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var testableLister = new TestableGitChangeLister(
                 _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
-            testableLister.Initialize(_testRepoPath, _testRepoPath);
+            testableLister.Initialize(_testRepoPath, new[] { _testRepoPath });
 
             var modifiedFile = Path.Combine(_testRepoPath, "periodic.cs");
             File.WriteAllText(modifiedFile, "new content");
@@ -127,7 +127,7 @@ namespace Codescene.VSExtension.Core.Tests
                 var committedFile = Path.Combine(_testRepoPath, "committed-feature.cs");
                 CommitFile("committed-feature.cs", "feature content", "Add feature file");
 
-                testableLister.Initialize(_testRepoPath, _testRepoPath);
+                testableLister.Initialize(_testRepoPath, new[] { _testRepoPath });
 
                 HashSet<string> detectedFiles = null;
                 testableLister.FilesDetected += (sender, files) => detectedFiles = files;
@@ -148,7 +148,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var testableLister = new TestableGitChangeLister(
                 _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
-            testableLister.Initialize(_testRepoPath, _testRepoPath);
+            testableLister.Initialize(_testRepoPath, new[] { _testRepoPath });
 
             bool eventFired = false;
             testableLister.FilesDetected += (sender, files) => eventFired = true;
@@ -165,7 +165,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var testableLister = new TestableGitChangeLister(
                 _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
-            testableLister.Initialize(_testRepoPath, _testRepoPath);
+            testableLister.Initialize(_testRepoPath, new[] { _testRepoPath });
             testableLister.ThrowInGetAllChangedFilesAsync = true;
 
             _fakeLogger.WarnMessages.Clear();

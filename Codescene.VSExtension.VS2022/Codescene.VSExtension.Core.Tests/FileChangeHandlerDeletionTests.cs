@@ -29,9 +29,10 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeLogger,
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
-                _testWorkspacePath,
+                new[] { _testWorkspacePath },
                 _trackerManager,
-                new FakeGitService());
+                new FakeGitService(),
+                _testWorkspacePath);
         }
 
         [TestCleanup]
