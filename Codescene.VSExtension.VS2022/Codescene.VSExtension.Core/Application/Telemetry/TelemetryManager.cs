@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
@@ -47,7 +48,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
         /// a CLI command, using a defined timeout. If telemetry is disabled or an error occurs,
         /// the method logs the issue and returns silently.
         /// </remarks>
-        public async Task SendTelemetryAsync(string eventName, Dictionary<string, object> additionalEventData = null)
+        public async Task SendTelemetryAsync(string eventName, Dictionary<string, object> additionalEventData = null, CancellationToken cancellationToken = default)
         {
             if (!TelemetryUtils.IsTelemetryEnabled(_logger))
             {
@@ -58,11 +59,11 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
             {
                 string eventJson = TelemetryUtils.GetTelemetryEventJson(
                     eventName,
-                    await _deviceIdStore.GetDeviceIdAsync(),
+                    await _deviceIdStore.GetDeviceIdAsync(cancellationToken),
                     _extensionMetadataProvider.GetVersion(),
                     additionalEventData);
                 var arguments = _cliCommandProvider.SendTelemetryCommand(eventJson);
-                await _executor.ExecuteAsync(arguments, null, Constants.Timeout.TELEMETRYTIMEOUT);
+                await _executor.ExecuteAsync(arguments, null, Constants.Timeout.TELEMETRYTIMEOUT, cancellationToken);
             }
             catch (Exception e)
             {
@@ -70,7 +71,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
             }
         }
 
-        public async Task SendErrorTelemetryAsync(Exception ex, string context, Dictionary<string, object> extraData = null)
+        public async Task SendErrorTelemetryAsync(Exception ex, string context, Dictionary<string, object> extraData = null, CancellationToken cancellationToken = default)
         {
             if (!TelemetryUtils.IsTelemetryEnabled(_logger))
             {
@@ -94,7 +95,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
                     }
                 }
 
-                await SendTelemetryAsync(Constants.Telemetry.UNHANDLEDERROR, errorData);
+                await SendTelemetryAsync(Constants.Telemetry.UNHANDLEDERROR, errorData, cancellationToken);
                 ErrorTelemetryUtils.IncrementErrorCount();
             }
             catch (Exception e)

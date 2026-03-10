@@ -10,7 +10,8 @@ namespace Codescene.VSExtension.Core.Application.Util
     public class DroppingScheduledExecutor : IDisposable
     {
         private readonly object _lock = new object();
-        private readonly Func<Task> _action;
+        private readonly Func<CancellationToken, Task> _action;
+        private readonly CancellationToken _cancellationToken;
         private readonly TimeSpan _interval;
         private readonly ILogger _logger;
 
@@ -19,9 +20,10 @@ namespace Codescene.VSExtension.Core.Application.Util
         private bool _stopped;
         private bool _disposed;
 
-        public DroppingScheduledExecutor(Func<Task> action, TimeSpan interval, ILogger logger)
+        public DroppingScheduledExecutor(Func<CancellationToken, Task> action, CancellationToken cancellationToken, TimeSpan interval, ILogger logger)
         {
             _action = action ?? throw new ArgumentNullException(nameof(action));
+            _cancellationToken = cancellationToken;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _interval = interval;
         }
@@ -74,7 +76,7 @@ namespace Codescene.VSExtension.Core.Application.Util
             }
         }
 
-        private async void OnTimerCallback(object state)
+        private void OnTimerCallback(object state)
         {
             bool shouldExecute;
             lock (_lock)
@@ -95,10 +97,25 @@ namespace Codescene.VSExtension.Core.Application.Util
                 return;
             }
 
+            if (_cancellationToken.IsCancellationRequested)
+            {
+                lock (_lock)
+                {
+                    _isRunning = false;
+                }
+
+                return;
+            }
+
+            _ = ExecuteActionAsync();
+        }
+
+        private async Task ExecuteActionAsync()
+        {
             try
             {
                 _logger.Debug("DroppingScheduledExecutor: executing scheduled action");
-                await _action();
+                await _action(_cancellationToken);
             }
             catch (Exception ex)
             {

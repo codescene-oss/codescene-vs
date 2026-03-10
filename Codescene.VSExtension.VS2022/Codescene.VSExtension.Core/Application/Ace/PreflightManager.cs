@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Enums;
 using Codescene.VSExtension.Core.Interfaces;
@@ -34,14 +35,15 @@ namespace Codescene.VSExtension.Core.Application.Ace
             _settingsProvider = settingsProvider;
         }
 
-        public async Task<PreFlightResponseModel> RunPreflightAsync(bool force = false)
+        public async Task<PreFlightResponseModel> RunPreflightAsync(bool force = false, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             _logger.Debug($"Running preflight with force: {force}");
             var hasToken = !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
             _aceStateService.SetState(AceState.Loading);
             try
             {
-                var response = await _executor.PreflightAsync(force);
+                var response = await _executor.PreflightAsync(force, cancellationToken);
 
                 if (response != null)
                 {
@@ -93,11 +95,11 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         public bool IsSupportedLanguage(string extension) => _preflightResponse?.FileTypes.Contains(extension.Replace(".", string.Empty).ToLower()) ?? false;
 
-        public async Task<PreFlightResponseModel> GetPreflightResponseAsync()
+        public async Task<PreFlightResponseModel> GetPreflightResponseAsync(CancellationToken cancellationToken = default)
         {
             if (_preflightResponse == null)
             {
-                return await RunPreflightAsync(true);
+                return await RunPreflightAsync(true, cancellationToken);
             }
 
             return _preflightResponse;

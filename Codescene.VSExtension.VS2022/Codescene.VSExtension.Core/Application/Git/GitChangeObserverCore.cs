@@ -6,14 +6,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Enums.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
-using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Util;
 using LibGit2Sharp;
-using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
@@ -36,6 +35,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private string _solutionPath;
         private string _workspacePath;
         private string _gitRootPath;
+        private CancellationTokenSource _cts;
 
         private ISavedFilesTracker _savedFilesTracker;
         private IOpenFilesObserver _openFilesObserver;
@@ -89,6 +89,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitChangeDetector = new GitChangeDetector(_logger, _supportedFileChecker, _gitService);
 
             _eventProcessor = new FileChangeEventProcessor(_logger, _taskScheduler, ProcessEventAsync, _getChangedFilesCallback);
+            _cts = new CancellationTokenSource();
 
             InitializeGitPaths();
 
@@ -104,7 +105,10 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             if (!string.IsNullOrEmpty(_workspacePath) && Directory.Exists(_workspacePath))
             {
-                _fileWatcher = CreateWatcher(_workspacePath);
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> GitChangeObserverCore: Creating file watcher for path '{_workspacePath}'");
+                #endif
+                _fileWatcher = GitPathDiscovery.CreateWatcher(_workspacePath);
             }
 
             InitializeTracker();
@@ -126,10 +130,10 @@ namespace Codescene.VSExtension.Core.Application.Git
             BindWatcherEvents(_fileWatcher);
             _fileWatcher.EnableRaisingEvents = true;
 
-            _eventProcessor.Start(TimeSpan.FromSeconds(1));
+            _eventProcessor.Start(TimeSpan.FromSeconds(1), _cts.Token);
 
 #if FEATURE_PERIODIC_GIT_SCAN
-            _gitChangeLister.StartPeriodicScanning();
+            _gitChangeLister.StartPeriodicScanning(_cts.Token);
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeObserverCore: Started file watcher and timer with 1 second interval");
             #endif
@@ -171,8 +175,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeObserverCore: Disposing and cleaning up resources");
             #endif
-            _gitChangeLister.StopPeriodicScanning();
             _gitChangeLister.FilesDetected -= OnGitChangeListerFilesDetected;
+            _gitChangeLister.StopPeriodicScanning();
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
             if (_fileWatcher != null)
             {
                 try
@@ -206,33 +213,61 @@ namespace Codescene.VSExtension.Core.Application.Git
             _eventProcessor = null;
         }
 
+        public void CancelAndReset()
+        {
+            _gitChangeLister.FilesDetected -= OnGitChangeListerFilesDetected;
+            _gitChangeLister.StopPeriodicScanning();
+            _eventProcessor?.DrainAndStop();
+
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = new CancellationTokenSource();
+
+            _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
+            _eventProcessor?.Start(TimeSpan.FromSeconds(1), _cts.Token);
+            #if FEATURE_PERIODIC_GIT_SCAN
+            _gitChangeLister.StartPeriodicScanning(_cts.Token);
+            #endif
+        }
+
         private void OnFileDeleted(string filePath)
         {
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeObserverCore: Invalidating delta cache for deleted file '{filePath}'");
             #endif
-            var deltaCache = new Core.Application.Cache.Review.DeltaCacheService();
-            deltaCache.Invalidate(filePath);
-            var baselineCache = new Core.Application.Cache.Review.BaselineReviewCacheService();
-            baselineCache.Invalidate(filePath);
+            ReviewCacheCleanup.InvalidateFile(filePath);
             ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
         }
 
         private void OnGitChangeListerFilesDetected(object sender, HashSet<string> absolutePaths)
         {
+            var cts = _cts;
+            if (cts == null)
+            {
+                return;
+            }
+
+            var token = cts.Token;
             _taskScheduler.Schedule(async () =>
             {
                 try
                 {
+                    if (token.IsCancellationRequested)
+                    {
+                        return;
+                    }
                     #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: GitChangeLister detected {absolutePaths.Count} files");
                     #endif
 
-                    await ProcessFilesAsync(absolutePaths);
+                    await ProcessFilesAsync(absolutePaths, token);
 
                     #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: Processed detected files");
                     #endif
+                }
+                catch (OperationCanceledException)
+                {
                 }
                 catch (Exception ex)
                 {
@@ -245,53 +280,32 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             try
             {
-                if (Directory.Exists(_solutionPath))
-                {
-                    _workspacePath = _solutionPath;
-                }
-                else
-                {
-                    _workspacePath = Path.GetDirectoryName(_solutionPath);
-                }
-
-                var repoPath = Repository.Discover(_solutionPath);
-                if (!string.IsNullOrEmpty(repoPath))
-                {
-                    using (var repo = new Repository(repoPath))
-                    {
-                        _gitRootPath = repo.Info.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar);
-                        #if FEATURE_INITIAL_GIT_OBSERVER
-                        _logger?.Info($">>> GitChangeObserverCore: Git repository discovered successfully at '{_gitRootPath}'");
-                        #endif
-                    }
-                }
-                else
-                {
-                    _gitRootPath = _workspacePath;
-                }
+                (_workspacePath, _gitRootPath) = GitPathDiscovery.Discover(_solutionPath);
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> GitChangeObserverCore: Git repository discovered successfully at '{_gitRootPath}'");
+                #endif
             }
             catch (Exception ex)
             {
                 _logger?.Warn($"GitChangeObserver: Could not discover git repository: {ex.Message}");
-                if (Directory.Exists(_solutionPath))
-                {
-                    _workspacePath = _solutionPath;
-                }
-                else
-                {
-                    _workspacePath = Path.GetDirectoryName(_solutionPath);
-                }
-
-                _gitRootPath = _workspacePath;
+                _gitRootPath = _workspacePath = Directory.Exists(_solutionPath) ? _solutionPath : Path.GetDirectoryName(_solutionPath);
             }
         }
 
         private void InitializeTracker()
         {
+            var cts = _cts;
+            if (cts == null)
+            {
+                return;
+            }
+
+            var token = cts.Token;
             _taskScheduler.Schedule(async () =>
             {
                 try
                 {
+                    token.ThrowIfCancellationRequested();
                     var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
                     var changedFiles = await _getChangedFilesCallback();
 
@@ -300,17 +314,21 @@ namespace Codescene.VSExtension.Core.Application.Git
                     // still need to be tracked so that delete events are properly handled.
                     foreach (var absolutePath in absolutePaths)
                     {
+                        token.ThrowIfCancellationRequested();
                         _trackerManager.Add(absolutePath);
 
                         if (File.Exists(absolutePath) && _fileChangeHandler.ShouldProcessFile(absolutePath, changedFiles))
                         {
-                            await _fileChangeHandler.ReviewFileAsync(absolutePath);
+                            await _fileChangeHandler.ReviewFileAsync(absolutePath, token);
                         }
                     }
 
 #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: Initialized tracker");
 #endif
+                }
+                catch (OperationCanceledException)
+                {
                 }
                 catch (Exception ex)
                 {
@@ -319,28 +337,24 @@ namespace Codescene.VSExtension.Core.Application.Git
             });
         }
 
-        private async Task ProcessFilesAsync(IEnumerable<string> absolutePaths)
+        private async Task ProcessFilesAsync(IEnumerable<string> absolutePaths, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var changedFiles = await _getChangedFilesCallback();
             foreach (var absolutePath in absolutePaths)
             {
-                if (File.Exists(absolutePath))
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    await _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles);
+                    return;
                 }
-            }
-        }
 
-        private FileSystemWatcher CreateWatcher(string path)
-        {
-            #if FEATURE_INITIAL_GIT_OBSERVER
-            _logger?.Info($">>> GitChangeObserverCore: Creating file watcher for path '{path}'");
-            #endif
-            return new FileSystemWatcher(path)
-            {
-                IncludeSubdirectories = true,
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
-            };
+                if (!File.Exists(absolutePath))
+                {
+                    continue;
+                }
+
+                await _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles, cancellationToken);
+            }
         }
 
         private void BindWatcherEvents(FileSystemWatcher watcher)
@@ -386,15 +400,15 @@ namespace Codescene.VSExtension.Core.Application.Git
             return !_gitService.IsFileIgnored(e.FullPath) && Path.HasExtension(e.FullPath);
         }
 
-        private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles)
+        private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles, CancellationToken cancellationToken)
         {
             if (evt.Type == FileChangeType.Delete)
             {
-                await _fileChangeHandler.HandleFileDeleteAsync(evt.FilePath, changedFiles);
+                await _fileChangeHandler.HandleFileDeleteAsync(evt.FilePath, changedFiles, cancellationToken);
             }
             else
             {
-                await _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles);
+                await _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles, cancellationToken);
             }
         }
     }

@@ -118,6 +118,57 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Put_WhenFileDoesNotExist_DoesNotStore()
+        {
+            var nonexistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".cs");
+            var entry = new DeltaCacheEntry(nonexistentPath, DefaultBaseline, DefaultCurrent, CreateDelta(1.0m));
+            _cacheService.Put(entry);
+            var result = _cacheService.Get(new DeltaCacheQuery(nonexistentPath, DefaultBaseline, DefaultCurrent));
+            AssertCacheMiss(result);
+        }
+
+        [TestMethod]
+        public void RemoveEntriesOutsideRoot_NullOrEmptyRoot_DoesNothing()
+        {
+            PutCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, CreateDelta(1.0m));
+            _cacheService.RemoveEntriesOutsideRoot(null);
+            _cacheService.RemoveEntriesOutsideRoot(string.Empty);
+            Assert.IsTrue(_cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent)).Item1);
+        }
+
+        [TestMethod]
+        public void RemoveEntriesOutsideRoot_RemovesEntriesOutsideRoot()
+        {
+            var root = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "delta-cache-root"));
+            var insidePath = Path.Combine(root, "sub", "file.cs");
+            var outsidePath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "other", "file.cs"));
+            Directory.CreateDirectory(Path.GetDirectoryName(insidePath));
+            Directory.CreateDirectory(Path.GetDirectoryName(outsidePath));
+            File.WriteAllText(insidePath, "x");
+            File.WriteAllText(outsidePath, "y");
+            try
+            {
+                _cacheService.Put(new DeltaCacheEntry(insidePath, "b1", "c1", CreateDelta(1.0m)));
+                _cacheService.Put(new DeltaCacheEntry(outsidePath, "b2", "c2", CreateDelta(2.0m)));
+                _cacheService.RemoveEntriesOutsideRoot(root);
+                Assert.IsTrue(_cacheService.Get(new DeltaCacheQuery(insidePath, "b1", "c1")).Item1);
+                Assert.IsFalse(_cacheService.Get(new DeltaCacheQuery(outsidePath, "b2", "c2")).Item1);
+            }
+            finally
+            {
+                if (File.Exists(insidePath))
+                {
+                    File.Delete(insidePath);
+                }
+
+                if (File.Exists(outsidePath))
+                {
+                    File.Delete(outsidePath);
+                }
+            }
+        }
+
+        [TestMethod]
         public void Put_StoresEntryCorrectly()
         {
             // Arrange

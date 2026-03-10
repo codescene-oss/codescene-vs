@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Git;
@@ -84,6 +85,40 @@ namespace Codescene.VSExtension.Core.Tests
             observer.Dispose();
         }
 
+        [TestMethod]
+        public async Task CancelAndReset_WhileReviewInFlight_PreventsCachePut()
+        {
+            var aboutToStore = new ManualResetEventSlim(false);
+            var canProceed = new ManualResetEventSlim(false);
+            var deltaCache = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
+            var blockingReviewer = new CancellationAwareBlockingCodeReviewer(aboutToStore, canProceed, deltaCache);
+            var backgroundScheduler = new BackgroundAsyncTaskScheduler();
+
+            var observer = new GitChangeObserverCore(
+                _fakeLogger, blockingReviewer, _fakeSupportedFileChecker, backgroundScheduler, _fakeGitChangeLister, _fakeGitService);
+
+            observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, null);
+            observer.Start();
+
+            var testFile = CreateFile("test.cs", "public class Test {}");
+            _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { testFile });
+
+            var waitResult = aboutToStore.Wait(5000);
+            Assert.IsTrue(waitResult, "Review should reach the point before Put() within timeout");
+
+            observer.CancelAndReset();
+
+            canProceed.Set();
+            await Task.Delay(200);
+
+            var filesInCache = deltaCache.GetAll();
+            Assert.IsFalse(
+                filesInCache.ContainsKey(testFile),
+                "Cancelled in-flight review should NOT populate the cache");
+
+            observer.Dispose();
+        }
+
         private class BlockingCodeReviewer : ICodeReviewer
         {
             private readonly ManualResetEventSlim _aboutToStore;
@@ -107,6 +142,59 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 _aboutToStore.Set();
                 _canProceed.Wait();
+
+                var delta = new DeltaResponseModel { ScoreChange = -0.5m };
+                var entry = new DeltaCacheEntry(review.FilePath, string.Empty, currentCode, delta);
+                _cache.Put(entry);
+
+                return Task.FromResult(delta);
+            }
+
+            public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, CancellationToken cancellationToken = default)
+            {
+                var review = await ReviewAsync(path, currentCode, false, cancellationToken);
+                var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, cancellationToken);
+                return (review, baselineRawScore ?? string.Empty);
+            }
+
+            public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, CancellationToken cancellationToken = default)
+            {
+                var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, cancellationToken);
+                var delta = await DeltaAsync(review, content, baselineRawScore, cancellationToken);
+                return (review, delta);
+            }
+
+            public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult("8.0");
+            }
+        }
+
+        private class CancellationAwareBlockingCodeReviewer : ICodeReviewer
+        {
+            private readonly ManualResetEventSlim _aboutToStore;
+            private readonly ManualResetEventSlim _canProceed;
+            private readonly DeltaCacheService _cache;
+
+            public CancellationAwareBlockingCodeReviewer(
+                ManualResetEventSlim aboutToStore, ManualResetEventSlim canProceed, DeltaCacheService cache)
+            {
+                _aboutToStore = aboutToStore;
+                _canProceed = canProceed;
+                _cache = cache;
+            }
+
+            public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
+            }
+
+            public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, CancellationToken cancellationToken = default)
+            {
+                _aboutToStore.Set();
+                _canProceed.Wait();
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var delta = new DeltaResponseModel { ScoreChange = -0.5m };
                 var entry = new DeltaCacheEntry(review.FilePath, string.Empty, currentCode, delta);

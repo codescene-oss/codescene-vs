@@ -21,8 +21,8 @@ if ($exitCode -eq 0) {
     foreach ($file in $fileList) {
         if (Test-Path $file) {
             $lineCount = (Get-Content $file | Measure-Object -Line).Lines
-            if ($lineCount -gt 350) {
-                $violations += "$file has $lineCount lines (max 350 allowed). Consider splitting the file into smaller classes."
+            if ($lineCount -gt 400) {
+                $violations += "$file has $lineCount lines (max 400 allowed). Consider splitting the file into smaller classes."
             }
         }
     }

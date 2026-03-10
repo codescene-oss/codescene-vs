@@ -4,7 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Shell;
+using Codescene.VSExtension.Core.Interfaces;
 
 namespace Codescene.VSExtension.VS2022.EditorMargin;
 
@@ -12,16 +12,19 @@ namespace Codescene.VSExtension.VS2022.EditorMargin;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class CodeSceneMarginSettingsManager
 {
+    [Import]
+    private IAsyncTaskScheduler _scheduler;
+
     public event Func<Task> ScoreUpdated;
 
     public void NotifyScoreUpdated()
     {
-        InvokeAllSubscribersAsync().FireAndForget();
+        _scheduler.Schedule(ct => InvokeAllSubscribersAsync());
     }
 
     public void HideMargin()
     {
-        InvokeAllSubscribersAsync().FireAndForget();
+        _scheduler.Schedule(ct => InvokeAllSubscribersAsync());
     }
 
     private async Task InvokeAllSubscribersAsync()

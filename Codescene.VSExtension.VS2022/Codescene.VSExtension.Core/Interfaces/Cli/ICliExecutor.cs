@@ -15,16 +15,16 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
 
         Task<CliReviewModel> ReviewContentAsync(string filename, string content, bool isBaseLine = false, CancellationToken cancellationToken = default);
 
-        Task<string> GetFileVersionAsync();
+        Task<string> GetFileVersionAsync(CancellationToken cancellationToken = default);
 
-        Task<string> GetDeviceIdAsync();
+        Task<string> GetDeviceIdAsync(CancellationToken cancellationToken = default);
 
-        Task<PreFlightResponseModel> PreflightAsync(bool force = true);
+        Task<PreFlightResponseModel> PreflightAsync(bool force = true, CancellationToken cancellationToken = default);
 
-        Task<RefactorResponseModel> PostRefactoringAsync(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null);
+        Task<RefactorResponseModel> PostRefactoringAsync(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null, CancellationToken cancellationToken = default);
 
-        Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight);
+        Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight, CancellationToken cancellationToken = default);
 
-        Task<IList<FnToRefactorModel>> FnsToRefactorFromDeltaAsync(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight);
+        Task<IList<FnToRefactorModel>> FnsToRefactorFromDeltaAsync(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight, CancellationToken cancellationToken = default);
     }
 }

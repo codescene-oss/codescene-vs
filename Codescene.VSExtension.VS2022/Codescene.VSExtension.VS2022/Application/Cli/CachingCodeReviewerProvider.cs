@@ -13,7 +13,8 @@ using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
-using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace Codescene.VSExtension.VS2022.Application.Cli
 {
@@ -23,6 +24,7 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
     {
         private readonly CachingCodeReviewer _inner;
         private readonly CodeHealthMonitorNotifier _notifier;
+        private readonly IAsyncTaskScheduler _scheduler;
 
         [ImportingConstructor]
         public CachingCodeReviewerProvider(
@@ -30,8 +32,10 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
             IModelMapper mapper,
             ICliExecutor executor,
             ITelemetryManager telemetryManager,
-            IGitService git)
+            IGitService git,
+            IAsyncTaskScheduler scheduler)
         {
+            _scheduler = scheduler;
             _notifier = new CodeHealthMonitorNotifier();
             _notifier.ViewUpdateRequested += OnViewUpdateRequested;
 
@@ -71,10 +75,7 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
 
         private void OnViewUpdateRequested(object sender, EventArgs e)
         {
-            _ = Task.Run(async () =>
-            {
-                await CodeSceneToolWindow.UpdateViewAsync();
-            });
+            _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
         }
     }
 }

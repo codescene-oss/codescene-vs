@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace Codescene.VSExtension.VS2022.Options;
 
@@ -63,7 +64,8 @@ public class General : BaseOptionModel<General>
 
     private void OnSettingsSaved(General obj)
     {
-        VS.StatusBar.ShowMessageAsync("Options Saved").FireAndForget();
+        var package = VS2022Package.Instance;
+        package?.JoinableTaskFactory.RunAsync(() => VS.StatusBar.ShowMessageAsync("Options Saved")).FileAndForget("General/OptionsSaved");
 
         // Fire general settings saved event
         SettingsSaved?.Invoke(this, EventArgs.Empty);

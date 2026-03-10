@@ -1,5 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.IO;
+using System.Reflection;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Models;
 using LibGit2Sharp;
@@ -131,6 +133,99 @@ namespace Codescene.VSExtension.Core.Tests
         {
             _gitChangeObserverCore.Start();
             _gitChangeObserverCore.Dispose();
+        }
+
+        [TestMethod]
+        public void FilesDetected_AfterDispose_DoesNotThrow()
+        {
+            _gitChangeObserverCore.Dispose();
+            var files = new HashSet<string> { Path.Combine(_testRepoPath, "any.cs") };
+            _fakeGitChangeLister.SimulateFilesDetected(files);
+        }
+
+        [TestMethod]
+        public void OnGitChangeListerFilesDetected_WhenDisposed_ReturnsWithoutThrowing()
+        {
+            _gitChangeObserverCore.Dispose();
+            var method = typeof(GitChangeObserverCore).GetMethod("OnGitChangeListerFilesDetected", BindingFlags.NonPublic | BindingFlags.Instance);
+            method.Invoke(_gitChangeObserverCore, new object[] { this, new HashSet<string>() });
+        }
+
+        [TestMethod]
+        public void OnGitChangeListerFilesDetected_WhenTokenCancelled_DoesNotProcessFiles()
+        {
+            _gitChangeObserverCore.Start();
+            var ctsField = typeof(GitChangeObserverCore).GetField("_cts", BindingFlags.NonPublic | BindingFlags.Instance);
+            var cts = (CancellationTokenSource)ctsField?.GetValue(_gitChangeObserverCore);
+            cts?.Cancel();
+            var filePath = Path.Combine(_testRepoPath, "cancelled.ts");
+            _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { filePath });
+            AssertFileInTracker(filePath, false);
+        }
+
+        [TestMethod]
+        public void Initialize_WithNullSolutionPath_DoesNotCreateWatcher()
+        {
+            _gitChangeObserverCore.Dispose();
+            _gitChangeObserverCore = new GitChangeObserverCore(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _fakeTaskScheduler,
+                _fakeGitChangeLister,
+                _fakeGitService);
+            _gitChangeObserverCore.Initialize(null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, null);
+            Assert.IsNull(_gitChangeObserverCore.FileWatcher);
+        }
+
+        [TestMethod]
+        public void InitializeTracker_WhenCollectFilesThrows_LogsWarning()
+        {
+            _fakeGitChangeLister.ThrowOnCollectFiles = true;
+            _fakeLogger.WarnMessages.Clear();
+            _gitChangeObserverCore.Dispose();
+            _gitChangeObserverCore = CreateGitChangeObserverCore();
+            Assert.IsTrue(
+                _fakeLogger.WarnMessages.Exists(m => m.Contains("Error initializing tracker")),
+                "Should log when CollectFilesFromRepoStateAsync throws");
+        }
+
+        [TestMethod]
+        public void OnGitChangeListerFilesDetected_WhenGetChangedFilesThrows_LogsWarning()
+        {
+            _gitChangeObserverCore.Dispose();
+            _gitChangeObserverCore = new GitChangeObserverCore(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _fakeTaskScheduler,
+                _fakeGitChangeLister,
+                _fakeGitService);
+            _gitChangeObserverCore.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, getChangedFilesCallback: () => Task.FromException<List<string>>(new InvalidOperationException("simulated")));
+            _fakeLogger.WarnMessages.Clear();
+            _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { Path.Combine(_testRepoPath, "x.cs") });
+            Assert.IsTrue(
+                _fakeLogger.WarnMessages.Exists(m => m.Contains("Error processing detected files")),
+                "Should log when getChangedFiles callback throws");
+        }
+
+        [TestMethod]
+        public void ShouldEnqueueEvent_WithExtensionAndNotIgnored_ReturnsTrue()
+        {
+            var method = typeof(GitChangeObserverCore).GetMethod("ShouldEnqueueEvent", BindingFlags.NonPublic | BindingFlags.Instance);
+            var args = new FileSystemEventArgs(WatcherChangeTypes.Created, _testRepoPath, "file.cs");
+            var result = method.Invoke(_gitChangeObserverCore, new object[] { args });
+            Assert.IsTrue((bool)result);
+        }
+
+        [TestMethod]
+        public void CancelAndReset_ReconnectsEventProcessor()
+        {
+            _gitChangeObserverCore.Start();
+            _gitChangeObserverCore.CancelAndReset();
+            var existingFile = CreateFile("after-reset.ts", "x");
+            _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { existingFile });
+            AssertFileInTracker(existingFile, true);
         }
 
         [TestMethod]

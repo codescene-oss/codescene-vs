@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Diagnostics;
+using System.Threading;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Moq;
@@ -25,7 +26,7 @@ public class DroppingScheduledExecutorRaceConditionTests
         var executionStartTimes = new List<long>();
         var executionTimesLock = new object();
 
-        Func<Task> action = async () =>
+        Func<CancellationToken, Task> action = async ct =>
         {
             var startTime = Stopwatch.GetTimestamp();
             lock (executionTimesLock)
@@ -36,7 +37,7 @@ public class DroppingScheduledExecutorRaceConditionTests
             await Task.Delay(5);
         };
 
-        using (var executor = new DroppingScheduledExecutor(action, TimeSpan.FromMilliseconds(10), _mockLogger.Object))
+        using (var executor = new DroppingScheduledExecutor(action, CancellationToken.None, TimeSpan.FromMilliseconds(10), _mockLogger.Object))
         {
             executor.Start();
 
@@ -70,7 +71,7 @@ public class DroppingScheduledExecutorRaceConditionTests
             var executionStartTimes = new List<long>();
             var executionTimesLock = new object();
 
-            Func<Task> action = async () =>
+            Func<CancellationToken, Task> action = async ct =>
             {
                 var startTime = Stopwatch.GetTimestamp();
                 lock (executionTimesLock)
@@ -81,7 +82,7 @@ public class DroppingScheduledExecutorRaceConditionTests
                 await Task.Delay(5);
             };
 
-            using (var executor = new DroppingScheduledExecutor(action, TimeSpan.FromMilliseconds(5), _mockLogger.Object))
+            using (var executor = new DroppingScheduledExecutor(action, CancellationToken.None, TimeSpan.FromMilliseconds(5), _mockLogger.Object))
             {
                 executor.Start();
 
@@ -115,7 +116,7 @@ public class DroppingScheduledExecutorRaceConditionTests
         var executionStartTimes = new List<long>();
         var executionTimesLock = new object();
 
-        Func<Task> action = async () =>
+        Func<CancellationToken, Task> action = async ct =>
         {
             var startTime = Stopwatch.GetTimestamp();
             lock (executionTimesLock)
@@ -126,7 +127,7 @@ public class DroppingScheduledExecutorRaceConditionTests
             await Task.Delay(5);
         };
 
-        var executor = new DroppingScheduledExecutor(action, TimeSpan.FromMilliseconds(10), _mockLogger.Object);
+        var executor = new DroppingScheduledExecutor(action, CancellationToken.None, TimeSpan.FromMilliseconds(10), _mockLogger.Object);
         executor.Start();
 
         await Task.Delay(50);
@@ -157,7 +158,7 @@ public class DroppingScheduledExecutorRaceConditionTests
             var executionStartTimes = new List<long>();
             var executionTimesLock = new object();
 
-            Func<Task> action = async () =>
+            Func<CancellationToken, Task> action = async ct =>
             {
                 var startTime = Stopwatch.GetTimestamp();
                 lock (executionTimesLock)
@@ -168,7 +169,7 @@ public class DroppingScheduledExecutorRaceConditionTests
                 await Task.Delay(5);
             };
 
-            var executor = new DroppingScheduledExecutor(action, TimeSpan.FromMilliseconds(5), _mockLogger.Object);
+            var executor = new DroppingScheduledExecutor(action, CancellationToken.None, TimeSpan.FromMilliseconds(5), _mockLogger.Object);
             executor.Start();
 
             await Task.Delay(30);

@@ -206,19 +206,36 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task DeltaAsync_WhenExceptionThrown_LogsErrorAndReturnsNull()
         {
-            // Arrange
             var review = new FileReviewModel { FilePath = "test.cs", RawScore = "raw" };
             var expectedException = new Exception("Git error");
 
             _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
                 .Throws(expectedException);
 
-            // Act
             var result = await _codeReviewer.DeltaAsync(review, "current code");
 
-            // Assert
             Assert.IsNull(result);
             _mockLogger.Verify(l => l.Error(It.Is<string>(s => s.Contains("test.cs")), expectedException), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task DeltaAsync_WhenReviewDeltaAsyncThrows_LogsErrorAndReturnsNull()
+        {
+            var review = new FileReviewModel { FilePath = "test.cs", RawScore = "raw" };
+            var expectedException = new InvalidOperationException("delta failed");
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>())).Returns("old");
+            _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CliReviewModel { RawScore = "old-raw" });
+            _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
+                .Returns(new FileReviewModel { RawScore = "old-raw" });
+            _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(expectedException);
+
+            var result = await _codeReviewer.DeltaAsync(review, "current code");
+
+            Assert.IsNull(result);
+            _mockLogger.Verify(l => l.Error(It.Is<string>(s => s.Contains("delta analysis")), expectedException), Times.Once);
         }
 
         [TestMethod]
@@ -244,34 +261,31 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task DeltaAsync_IdenticalContent_ReturnsNullAndSkipsDeltaAnalysis()
+        public async Task DeltaAsync_IdenticalContent_StillCallsDeltaAnalysis()
         {
-            // Arrange
             var currentCode = "public class Test { }";
             var review = new FileReviewModel { FilePath = "test.cs", RawScore = "raw-score" };
+            var expectedDelta = new DeltaResponseModel { ScoreChange = 0m };
 
-            // Git returns the same content as current (no changes since baseline)
             _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
                 .Returns(currentCode);
+            _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedDelta);
 
-            // Act
             var result = await _codeReviewer.DeltaAsync(review, currentCode);
 
-            // Assert
-            Assert.IsNull(result);
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("content unchanged since baseline"))), Times.Once);
-
-            _mockExecutor.Verify(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+            Assert.IsNotNull(result);
+            _mockExecutor.Verify(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
-        public async Task DeltaAsync_IdenticalScores_ReturnsNullAndSkipsDeltaAnalysis()
+        public async Task DeltaAsync_IdenticalScores_StillCallsDeltaAnalysis()
         {
-            // Arrange
             var oldCode = "public class Test { int x = 1; }";
             var currentCode = "public class Test { int y = 1; }";
             var identicalRawScore = "identical-raw-score";
             var review = new FileReviewModel { FilePath = "test.cs", RawScore = identicalRawScore };
+            var expectedDelta = new DeltaResponseModel { ScoreChange = 0m };
 
             _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
                 .Returns(oldCode);
@@ -279,15 +293,13 @@ namespace Codescene.VSExtension.Core.Tests
                 .ReturnsAsync(new CliReviewModel { RawScore = identicalRawScore });
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
                 .Returns(new FileReviewModel { RawScore = identicalRawScore });
+            _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedDelta);
 
-            // Act
             var result = await _codeReviewer.DeltaAsync(review, currentCode);
 
-            // Assert
-            Assert.IsNull(result);
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("scores are identical"))), Times.Once);
-
-            _mockExecutor.Verify(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+            Assert.IsNotNull(result);
+            _mockExecutor.Verify(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]

@@ -4,10 +4,13 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace Codescene.VSExtension.VS2022.Cache
 {
@@ -17,10 +20,13 @@ namespace Codescene.VSExtension.VS2022.Cache
     {
         private const string REVIEWRESULTSFOLDER = ".review-results";
 
+        [Import]
+        private IAsyncTaskScheduler _scheduler;
+
         private string _cachePath;
         private bool _initialized;
 
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
             if (_initialized)
             {
@@ -31,11 +37,10 @@ namespace Codescene.VSExtension.VS2022.Cache
 
             await UpdateCachePathAsync();
 
-            // Subscribe to solution/folder events
-            VS.Events.SolutionEvents.OnAfterOpenSolution += _ => UpdateCachePathAsync().FireAndForget();
-            VS.Events.SolutionEvents.OnAfterCloseSolution += () => _ = UpdateCachePathAsync();
-            VS.Events.SolutionEvents.OnAfterOpenFolder += _ => UpdateCachePathAsync().FireAndForget();
-            VS.Events.SolutionEvents.OnAfterCloseFolder += _ => UpdateCachePathAsync().FireAndForget();
+            VS.Events.SolutionEvents.OnAfterOpenSolution += _ => _scheduler.Schedule(ct => UpdateCachePathAsync());
+            VS.Events.SolutionEvents.OnAfterCloseSolution += () => _scheduler.Schedule(ct => UpdateCachePathAsync());
+            VS.Events.SolutionEvents.OnAfterOpenFolder += _ => _scheduler.Schedule(ct => UpdateCachePathAsync());
+            VS.Events.SolutionEvents.OnAfterCloseFolder += _ => _scheduler.Schedule(ct => UpdateCachePathAsync());
         }
 
         public string GetSolutionReviewCacheLocation()

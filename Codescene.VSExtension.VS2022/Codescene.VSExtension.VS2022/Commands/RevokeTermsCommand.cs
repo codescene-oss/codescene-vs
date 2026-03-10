@@ -9,6 +9,7 @@ using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.Threading;
 
 namespace Codescene.VSExtension.VS2022.Commands;
 
@@ -41,10 +42,16 @@ internal sealed class RevokeTermsCommand : BaseCommand<RevokeTermsCommand>
 
     private void SendTelemetry()
     {
-        Task.Run(async () =>
+        var package = VS2022Package.Instance;
+        if (package == null)
+        {
+            return;
+        }
+
+        package.JoinableTaskFactory.RunAsync(async () =>
         {
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-            await telemetryManager.SendTelemetryAsync(Constants.Telemetry.REVOKETERMS);
-        }).FireAndForget();
+            await telemetryManager.SendTelemetryAsync(Constants.Telemetry.REVOKETERMS, cancellationToken: package.PackageDisposalToken);
+        }).FileAndForget("RevokeTermsCommand/Execute");
     }
 }

@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
@@ -10,6 +11,7 @@ using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.VS2022.Options;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using static Codescene.VSExtension.Core.Consts.Constants;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorHandling;
@@ -42,44 +44,45 @@ public class Logger : ILogger
     private static readonly object FileLock = new object();
 
     private readonly OutputPaneManager _outputPaneManager;
+    private readonly IAsyncTaskScheduler _scheduler;
 
     [ImportingConstructor]
-    internal Logger(OutputPaneManager outputPaneManager)
+    internal Logger(OutputPaneManager outputPaneManager, IAsyncTaskScheduler scheduler)
     {
         _outputPaneManager = outputPaneManager ?? throw new ArgumentNullException(nameof(outputPaneManager));
+        _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
         Directory.CreateDirectory(Path.GetDirectoryName(LogFilePath));
     }
 
     public void Error(string message, Exception ex)
     {
         var fullMessage = $"{message}: {ex.Message}";
-        WriteLogAsync(fullMessage, ERROR).FireAndForget();
-
-        SendErrorTelemetryAsync(ex, message).FireAndForget();
+        _scheduler.Schedule(ct => WriteLogAsync(fullMessage, ERROR));
+        _scheduler.Schedule(ct => SendErrorTelemetryAsync(ex, message, ct));
 
         if (ex.Message.ToLowerInvariant().Contains("timeout"))
         {
-            SendTimeoutTelemetryAsync().FireAndForget();
+            _scheduler.Schedule(ct => SendTimeoutTelemetryAsync(ct));
         }
     }
 
     public void Info(string message, bool statusBar = false)
     {
-        WriteLogAsync(message, INFORMATION).FireAndForget();
+        _scheduler.Schedule(ct => WriteLogAsync(message, INFORMATION));
         Console.WriteLine(message);
         if (statusBar)
         {
-            SendToStatusBarAsync(message).FireAndForget();
+            _scheduler.Schedule(ct => SendToStatusBarAsync(message));
         }
     }
 
     public void Warn(string message, bool statusBar = false)
     {
-        WriteLogAsync(message, WARNING).FireAndForget();
+        _scheduler.Schedule(ct => WriteLogAsync(message, WARNING));
         Console.WriteLine(message);
         if (statusBar)
         {
-            SendToStatusBarAsync(message).FireAndForget();
+            _scheduler.Schedule(ct => SendToStatusBarAsync(message));
         }
     }
 
@@ -89,7 +92,7 @@ public class Logger : ILogger
 
         if (General.Instance.ShowDebugLogs)
         {
-            WriteLogAsync(message, DEBUG).FireAndForget();
+            _scheduler.Schedule(ct => WriteLogAsync(message, DEBUG));
         }
     }
 
@@ -111,21 +114,21 @@ public class Logger : ILogger
         _outputPaneManager.Pane?.OutputStringThreadSafe($"{message}{Environment.NewLine}");
     }
 
-    private async Task SendErrorTelemetryAsync(Exception ex, string context)
+    private async Task SendErrorTelemetryAsync(Exception ex, string context, CancellationToken cancellationToken = default)
     {
         var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
         if (telemetryManager != null)
         {
-            telemetryManager.SendErrorTelemetryAsync(ex, context).FireAndForget();
+            await telemetryManager.SendErrorTelemetryAsync(ex, context, cancellationToken: cancellationToken);
         }
     }
 
-    private async Task SendTimeoutTelemetryAsync()
+    private async Task SendTimeoutTelemetryAsync(CancellationToken cancellationToken = default)
     {
         var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
         if (telemetryManager != null)
         {
-            await telemetryManager.SendTelemetryAsync(Telemetry.REVIEWORDELTATIMEOUT);
+            await telemetryManager.SendTelemetryAsync(Telemetry.REVIEWORDELTATIMEOUT, cancellationToken: cancellationToken);
         }
     }
 

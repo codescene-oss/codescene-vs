@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
@@ -11,12 +12,12 @@ namespace Codescene.VSExtension.Core.Interfaces.Ace
 {
     public interface IAceManager
     {
-        Task<CachedRefactoringActionModel> RefactorAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false);
+        Task<CachedRefactoringActionModel> RefactorAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false, CancellationToken cancellationToken = default);
 
         CachedRefactoringActionModel GetCachedRefactoredCode();
 
-        Task<IList<FnToRefactorModel>> GetRefactorableFunctionsFromDeltaAsync(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight);
+        Task<IList<FnToRefactorModel>> GetRefactorableFunctionsFromDeltaAsync(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight, CancellationToken cancellationToken = default);
 
-        Task<IList<FnToRefactorModel>> GetRefactorableFunctionsFromCodeSmellsAsync(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight);
+        Task<IList<FnToRefactorModel>> GetRefactorableFunctionsFromCodeSmellsAsync(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight, CancellationToken cancellationToken = default);
     }
 }

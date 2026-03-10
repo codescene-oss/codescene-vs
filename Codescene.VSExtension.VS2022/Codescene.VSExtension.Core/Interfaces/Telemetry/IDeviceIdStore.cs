@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Interfaces.Telemetry
@@ -13,6 +14,6 @@ namespace Codescene.VSExtension.Core.Interfaces.Telemetry
     /// </remarks>
     public interface IDeviceIdStore
     {
-        Task<string> GetDeviceIdAsync();
+        Task<string> GetDeviceIdAsync(CancellationToken cancellationToken = default);
     }
 }

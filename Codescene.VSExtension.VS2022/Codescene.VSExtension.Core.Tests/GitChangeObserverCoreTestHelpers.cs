@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Threading;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -59,6 +60,34 @@ namespace Codescene.VSExtension.Core.Tests
         public void Schedule(Func<Task> asyncWork)
         {
             asyncWork().GetAwaiter().GetResult();
+        }
+
+        public void Schedule(Func<CancellationToken, Task> asyncWork)
+        {
+            asyncWork(CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        public void Schedule(Func<CancellationToken, Task> asyncWork, CancellationToken cancellationToken)
+        {
+            asyncWork(cancellationToken).GetAwaiter().GetResult();
+        }
+    }
+
+    public class BackgroundAsyncTaskScheduler : IAsyncTaskScheduler
+    {
+        public void Schedule(Func<Task> asyncWork)
+        {
+            Task.Run(asyncWork);
+        }
+
+        public void Schedule(Func<CancellationToken, Task> asyncWork)
+        {
+            Task.Run(() => asyncWork(CancellationToken.None));
+        }
+
+        public void Schedule(Func<CancellationToken, Task> asyncWork, CancellationToken cancellationToken)
+        {
+            Task.Run(() => asyncWork(cancellationToken));
         }
     }
 
@@ -277,7 +306,7 @@ namespace Codescene.VSExtension.Core.Tests
             _contentByPath[filePath] = content;
         }
 
-        public Task<string> GetContentForReviewAsync(string filePath)
+        public Task<string> GetContentForReviewAsync(string filePath, CancellationToken cancellationToken = default)
         {
             if (ThrowOnGetContent)
             {
@@ -298,12 +327,12 @@ namespace Codescene.VSExtension.Core.Tests
 
         public HashSet<string> FilesToReturn { get; set; } = new HashSet<string>();
 
-        public Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath)
+        public Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(new HashSet<string>());
         }
 
-        public Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, string workspacePath)
+        public Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(new HashSet<string>());
         }
@@ -312,7 +341,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
         }
 
-        public void StartPeriodicScanning()
+        public void StartPeriodicScanning(CancellationToken cancellationToken)
         {
         }
 
@@ -320,7 +349,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
         }
 
-        public Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath)
+        public Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
         {
             if (ThrowOnCollectFiles)
             {

@@ -13,6 +13,7 @@ using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Codescene.VSExtension.VS2022.Handlers
 {
@@ -27,13 +28,15 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private readonly IAceStateService _aceStateService;
         private readonly ILogger _logger;
         private readonly IPreflightManager _preflightManager;
+        private readonly IAsyncTaskScheduler _scheduler;
 
         [ImportingConstructor]
-        public AceStateChangeHandler(IAceStateService aceStateService, ILogger logger, IPreflightManager preflightManager)
+        public AceStateChangeHandler(IAceStateService aceStateService, ILogger logger, IPreflightManager preflightManager, IAsyncTaskScheduler scheduler)
         {
             _aceStateService = aceStateService;
             _logger = logger;
             _preflightManager = preflightManager;
+            _scheduler = scheduler;
 
             // Subscribe to state changes
             _aceStateService.StateChanged += OnStateChanged;
@@ -54,7 +57,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
             var hasAuthToken = !string.IsNullOrWhiteSpace(settings.AuthToken);
             _preflightManager.SetHasAceToken(hasAuthToken);
-            RefreshWindowsAsync().FireAndForget();
+            _scheduler.Schedule(ct => RefreshWindowsAsync());
         }
 
         private void OnStateChanged(object sender, AceStateChangedEventArgs e)
@@ -82,8 +85,8 @@ namespace Codescene.VSExtension.VS2022.Handlers
                     break;
             }
 
-            RefreshWindowsAsync().FireAndForget();
-        }
+            _scheduler.Schedule(ct => RefreshWindowsAsync());
+    }
 
         /// <summary>
         /// Called when ACE becomes enabled.

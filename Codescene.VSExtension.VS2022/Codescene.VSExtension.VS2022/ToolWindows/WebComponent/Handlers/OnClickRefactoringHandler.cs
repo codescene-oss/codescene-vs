@@ -15,6 +15,7 @@ using Codescene.VSExtension.Core.Models.WebComponent.Payload;
 using Codescene.VSExtension.VS2022.Application.Services;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
@@ -31,6 +32,9 @@ public class OnClickRefactoringHandler
 
     [Import]
     private readonly IAceManager _aceManager;
+
+    [Import]
+    private readonly IAsyncTaskScheduler _scheduler;
 
     private CancellationTokenSource _cancellationTokenSource;
 
@@ -68,10 +72,10 @@ public class OnClickRefactoringHandler
 
         await AceToolWindow.ShowAsync();
 
-        _cancellationTokenSource = new CancellationTokenSource();
+        var packageToken = VS2022Package.Instance?.PackageDisposalToken ?? CancellationToken.None;
+        _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(packageToken);
 
-        // Run on background thread:
-        Task.Run(() => DoRefactorAndUpdateViewAsync(Path, RefactorableFunction, entryPoint, _cancellationTokenSource.Token), _cancellationTokenSource.Token).FireAndForget();
+        _scheduler.Schedule(ct => DoRefactorAndUpdateViewAsync(Path, RefactorableFunction, entryPoint, _cancellationTokenSource.Token));
     }
 
     public void HandleCancel()
@@ -110,7 +114,7 @@ public class OnClickRefactoringHandler
                 return;
             }
 
-            var refactored = await _aceManager.RefactorAsync(path: path, refactorableFunction: refactorableFunction, entryPoint);
+            var refactored = await _aceManager.RefactorAsync(path: path, refactorableFunction: refactorableFunction, entryPoint, cancellationToken: cancellationToken);
             AceComponentData data;
             if (refactored != null)
             {

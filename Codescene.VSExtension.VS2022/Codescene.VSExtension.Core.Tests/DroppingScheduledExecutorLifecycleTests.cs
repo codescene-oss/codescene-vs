@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Threading;
 using Codescene.VSExtension.Core.Application.Util;
 using Moq;
 
@@ -12,20 +13,20 @@ public class DroppingScheduledExecutorLifecycleTests : DroppingScheduledExecutor
     public void Constructor_NullAction_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new DroppingScheduledExecutor(null, TimeSpan.FromMilliseconds(100), _mockLogger.Object));
+            new DroppingScheduledExecutor(null, CancellationToken.None, TimeSpan.FromMilliseconds(100), _mockLogger.Object));
     }
 
     [TestMethod]
     public void Constructor_NullLogger_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new DroppingScheduledExecutor(() => Task.CompletedTask, TimeSpan.FromMilliseconds(100), null));
+            new DroppingScheduledExecutor(ct => Task.CompletedTask, CancellationToken.None, TimeSpan.FromMilliseconds(100), null));
     }
 
     [TestMethod]
     public void Start_WhenDisposed_DoesNothing()
     {
-        _executor = new DroppingScheduledExecutor(() => Task.CompletedTask, TimeSpan.FromMilliseconds(100), _mockLogger.Object);
+        _executor = new DroppingScheduledExecutor(ct => Task.CompletedTask, CancellationToken.None, TimeSpan.FromMilliseconds(100), _mockLogger.Object);
 
         _executor.Dispose();
 
@@ -35,7 +36,7 @@ public class DroppingScheduledExecutorLifecycleTests : DroppingScheduledExecutor
     [TestMethod]
     public void Start_WhenAlreadyStarted_LogsWarningAndReturns()
     {
-        _executor = new DroppingScheduledExecutor(() => Task.CompletedTask, TimeSpan.FromMilliseconds(100), _mockLogger.Object);
+        _executor = new DroppingScheduledExecutor(ct => Task.CompletedTask, CancellationToken.None, TimeSpan.FromMilliseconds(100), _mockLogger.Object);
 
         _executor.Start();
         _executor.Start();
@@ -46,7 +47,7 @@ public class DroppingScheduledExecutorLifecycleTests : DroppingScheduledExecutor
     [TestMethod]
     public void Stop_WhenNotStarted_DoesNotThrow()
     {
-        _executor = new DroppingScheduledExecutor(() => Task.CompletedTask, TimeSpan.FromMilliseconds(100), _mockLogger.Object);
+        _executor = new DroppingScheduledExecutor(ct => Task.CompletedTask, CancellationToken.None, TimeSpan.FromMilliseconds(100), _mockLogger.Object);
 
         _executor.Stop();
     }
@@ -54,7 +55,7 @@ public class DroppingScheduledExecutorLifecycleTests : DroppingScheduledExecutor
     [TestMethod]
     public void Dispose_StopsTimer()
     {
-        _executor = new DroppingScheduledExecutor(() => Task.CompletedTask, TimeSpan.FromMilliseconds(100), _mockLogger.Object);
+        _executor = new DroppingScheduledExecutor(ct => Task.CompletedTask, CancellationToken.None, TimeSpan.FromMilliseconds(100), _mockLogger.Object);
 
         _executor.Start();
         _executor.Dispose();
@@ -65,7 +66,7 @@ public class DroppingScheduledExecutorLifecycleTests : DroppingScheduledExecutor
     [TestMethod]
     public void Dispose_MultipleCalls_DoesNotThrow()
     {
-        _executor = new DroppingScheduledExecutor(() => Task.CompletedTask, TimeSpan.FromMilliseconds(100), _mockLogger.Object);
+        _executor = new DroppingScheduledExecutor(ct => Task.CompletedTask, CancellationToken.None, TimeSpan.FromMilliseconds(100), _mockLogger.Object);
 
         _executor.Dispose();
         _executor.Dispose();

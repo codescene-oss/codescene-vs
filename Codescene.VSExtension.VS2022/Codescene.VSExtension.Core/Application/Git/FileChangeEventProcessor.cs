@@ -16,15 +16,16 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ConcurrentQueue<FileChangeEvent> _eventQueue = new ConcurrentQueue<FileChangeEvent>();
         private readonly SemaphoreSlim _concurrencySemaphore;
         private readonly ILogger _logger;
-        private readonly Func<FileChangeEvent, List<string>, Task> _processEventCallback;
+        private readonly Func<FileChangeEvent, List<string>, CancellationToken, Task> _processEventCallback;
         private readonly Func<Task<List<string>>> _getChangedFilesCallback;
         private readonly IAsyncTaskScheduler _taskScheduler;
         private Timer _scheduledTimer;
+        private CancellationToken _cancellationToken;
 
         public FileChangeEventProcessor(
             ILogger logger,
             IAsyncTaskScheduler taskScheduler,
-            Func<FileChangeEvent, List<string>, Task> processEventCallback,
+            Func<FileChangeEvent, List<string>, CancellationToken, Task> processEventCallback,
             Func<Task<List<string>>> getChangedFilesCallback)
         {
             _logger = logger;
@@ -45,9 +46,19 @@ namespace Codescene.VSExtension.Core.Application.Git
             _eventQueue.Enqueue(evt);
         }
 
-        public void Start(TimeSpan interval)
+        public void Start(TimeSpan interval, CancellationToken cancellationToken)
         {
+            _cancellationToken = cancellationToken;
             _scheduledTimer = new Timer(ProcessQueuedEventsCallback, null, interval, interval);
+        }
+
+        public void DrainAndStop()
+        {
+            _scheduledTimer?.Dispose();
+            _scheduledTimer = null;
+            while (_eventQueue.TryDequeue(out _))
+            {
+            }
         }
 
         public void Dispose()
@@ -101,12 +112,12 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private async Task ProcessQueuedEventsAsync()
         {
-            var events = new List<FileChangeEvent>();
-
-            while (_eventQueue.TryDequeue(out var evt))
+            if (_cancellationToken.IsCancellationRequested)
             {
-                events.Add(evt);
+                return;
             }
+
+            var events = DrainQueue();
 
             if (events.Count == 0)
             {
@@ -119,28 +130,65 @@ namespace Codescene.VSExtension.Core.Application.Git
             _logger?.Info($">>> GitChangeObserverCore: Processing {coalesced.Count} coalesced file change events (from {events.Count} raw)");
 #endif
 
+            if (_cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             var changedFiles = await _getChangedFilesCallback();
 
+            if (_cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            ScheduleCoalescedEvents(coalesced, changedFiles);
+        }
+
+        private List<FileChangeEvent> DrainQueue()
+        {
+            var events = new List<FileChangeEvent>();
+            while (_eventQueue.TryDequeue(out var evt))
+            {
+                events.Add(evt);
+            }
+
+            return events;
+        }
+
+        private void ScheduleCoalescedEvents(List<FileChangeEvent> coalesced, List<string> changedFiles)
+        {
+            var token = _cancellationToken;
             foreach (var evt in coalesced)
             {
                 var capturedEvt = evt;
                 var capturedChangedFiles = changedFiles;
-                _taskScheduler.Schedule(async () =>
-                {
-                    await _concurrencySemaphore.WaitAsync();
-                    try
-                    {
-                        await _processEventCallback(capturedEvt, capturedChangedFiles);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger?.Warn($"GitChangeObserver: Error processing file change event: {ex.Message}");
-                    }
-                    finally
-                    {
-                        _concurrencySemaphore.Release();
-                    }
-                });
+                _taskScheduler.Schedule(() => ProcessOneEventAsync(capturedEvt, capturedChangedFiles, token));
+            }
+        }
+
+        private async Task ProcessOneEventAsync(FileChangeEvent evt, List<string> changedFiles, CancellationToken token)
+        {
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            await _concurrencySemaphore.WaitAsync(token);
+            try
+            {
+                await _processEventCallback(evt, changedFiles, token);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger?.Warn($"GitChangeObserver: Error processing file change event: {ex.Message}");
+            }
+            finally
+            {
+                _concurrencySemaphore.Release();
             }
         }
     }

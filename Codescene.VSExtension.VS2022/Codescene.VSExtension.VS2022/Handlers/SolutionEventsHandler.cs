@@ -11,6 +11,7 @@ using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Codescene.VSExtension.VS2022.Handlers;
 
@@ -24,12 +25,15 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     private IVsSolution _solution;
     private BranchWatcherService _branchWatcher;
     private IGitChangeObserver _gitChangeObserver;
+    private IAsyncTaskScheduler _scheduler;
 
     /// <summary>
     /// Subscribes to solution events using the Visual Studio shell service.
     /// </summary>
     public async Task InitializeAsync(IServiceProvider serviceProvider)
     {
+        _scheduler = await VS.GetMefServiceAsync<IAsyncTaskScheduler>();
+
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var isUiThread = ThreadHelper.CheckAccess();
 
@@ -48,10 +52,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         }
 
 #if FEATURE_INITIAL_GIT_OBSERVER
-        Task.Run(async () =>
-        {
-            await WaitForSolutionAndInitializeAsync();
-        }).FireAndForget();
+        _scheduler.Schedule(ct => WaitForSolutionAndInitializeAsync());
 #endif
     }
 
@@ -66,15 +67,15 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             cache.Clear();
             new BaselineReviewCacheService().Clear();
 
-            CodeSceneToolWindow.UpdateViewAsync().FireAndForget();
-            AceToolWindow.CloseAsync().FireAndForget();
-            CodeSmellDocumentationWindow.HideAsync().FireAndForget();
+            _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
+            _scheduler.Schedule(ct => AceToolWindow.CloseAsync());
+            _scheduler.Schedule(ct => CodeSmellDocumentationWindow.HideAsync());
 
-            Task.Run(async () =>
+            _scheduler.Schedule(async ct =>
             {
                 var savedFilesTracker = await VS.GetMefServiceAsync<ISavedFilesTracker>();
                 savedFilesTracker?.ClearSavedFiles();
-            }).FireAndForget();
+            });
 
             Log(logger =>
             {
@@ -96,7 +97,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
     public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
     {
-        _ = Task.Run(async () =>
+        _scheduler.Schedule(async ct =>
         {
             var solution = await VS.Solutions.GetCurrentSolutionAsync();
             var solutionPath = solution?.FullPath;
@@ -105,8 +106,13 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 return;
             }
 
+            new DeltaCacheService().Clear();
+            new BaselineReviewCacheService().Clear();
+            new ReviewCacheService().Clear();
+
             _branchWatcher = new BranchWatcherService();
-            _branchWatcher.StartWatching(solutionPath, (newBranch) => OnBranchChangedAsync(newBranch).FireAndForget());
+            _branchWatcher.StartWatching(solutionPath, (newBranch) =>
+                _scheduler.Schedule(ct2 => OnBranchChangedAsync(newBranch)));
 
             await InitializeGitChangeObserverAsync(solutionPath);
         });
@@ -118,6 +124,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     {
         _branchWatcher?.Dispose();
         _branchWatcher = null;
+        _gitChangeObserver?.CancelAndReset();
         _gitChangeObserver?.Dispose();
         _gitChangeObserver = null;
         return VSConstants.S_OK;
@@ -157,9 +164,9 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         }
     }
 
-    private static void Log(Func<ILogger, Task> logAction)
+    private void Log(Func<ILogger, Task> logAction)
     {
-        _ = Task.Run(async () =>
+        _scheduler.Schedule(async ct =>
         {
             var logger = await VS.GetMefServiceAsync<ILogger>();
             await logAction(logger);
@@ -273,12 +280,14 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 return Task.CompletedTask;
             });
 
+            _gitChangeObserver?.CancelAndReset();
+
             var cache = new DeltaCacheService();
             cache.Clear();
             new BaselineReviewCacheService().Clear();
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            CodeSceneToolWindow.UpdateViewAsync().FireAndForget();
+            _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
         }
         catch (Exception ex)
         {

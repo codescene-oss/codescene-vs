@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Interfaces.Cli
@@ -13,7 +14,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
         /// Initializes the cache storage, validates and creates necessary directories.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        Task InitializeAsync();
+        Task InitializeAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns the folder to store the review cache that should be scoped to the current solution.

@@ -91,7 +91,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var telemetrySent = new TaskCompletionSource<bool>();
 
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
                 .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
@@ -108,7 +108,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             await Task.WhenAny(telemetrySent.Task, Task.Delay(5000));
             Assert.IsTrue(telemetrySent.Task.IsCompleted, "Telemetry should have been sent");
             _mockTelemetryManager.Verify(
-                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
+                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()),
                 Times.AtLeastOnce());
 
             Assert.IsNotNull(result);
@@ -135,7 +135,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var telemetrySent = new TaskCompletionSource<bool>();
 
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
                 .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
@@ -152,7 +152,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             await Task.WhenAny(telemetrySent.Task, Task.Delay(5000));
             Assert.IsTrue(telemetrySent.Task.IsCompleted, "Telemetry should have been sent");
             _mockTelemetryManager.Verify(
-                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
+                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()),
                 Times.AtLeastOnce());
 
             Assert.IsNotNull(result);
@@ -219,7 +219,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var telemetrySent = new TaskCompletionSource<bool>();
 
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
                 .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
@@ -240,7 +240,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             await Task.WhenAny(telemetrySent.Task, Task.Delay(5000));
             Assert.IsTrue(telemetrySent.Task.IsCompleted, "Telemetry should have been sent");
             _mockTelemetryManager.Verify(
-                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
+                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()),
                 Times.AtLeastOnce());
 
             Assert.IsNotNull(result);
@@ -274,7 +274,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var telemetrySent = new TaskCompletionSource<bool>();
 
             _mockTelemetryManager
-                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
                 .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
@@ -294,7 +294,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             await Task.WhenAny(telemetrySent.Task, Task.Delay(5000));
             Assert.IsTrue(telemetrySent.Task.IsCompleted, "Telemetry should have been sent");
             _mockTelemetryManager.Verify(
-                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
+                t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()),
                 Times.AtLeastOnce());
 
             Assert.IsNotNull(result1);

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Enums;
@@ -40,17 +41,17 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         public static CachedRefactoringActionModel LastRefactoring { get; set; }
 
-        public async Task<IList<FnToRefactorModel>> GetRefactorableFunctionsFromCodeSmellsAsync(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight)
+        public async Task<IList<FnToRefactorModel>> GetRefactorableFunctionsFromCodeSmellsAsync(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight, CancellationToken cancellationToken = default)
         {
-            return await _executor.FnsToRefactorFromCodeSmellsAsync(fileName, fileContent, codeSmells, preflight);
+            return await _executor.FnsToRefactorFromCodeSmellsAsync(fileName, fileContent, codeSmells, preflight, cancellationToken);
         }
 
-        public async Task<IList<FnToRefactorModel>> GetRefactorableFunctionsFromDeltaAsync(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight)
+        public async Task<IList<FnToRefactorModel>> GetRefactorableFunctionsFromDeltaAsync(string fileName, string fileContent, DeltaResponseModel deltaResponse, PreFlightResponseModel preflight, CancellationToken cancellationToken = default)
         {
-            return await _executor.FnsToRefactorFromDeltaAsync(fileName, fileContent, deltaResponse, preflight);
+            return await _executor.FnsToRefactorFromDeltaAsync(fileName, fileContent, deltaResponse, preflight, cancellationToken);
         }
 
-        public async Task<CachedRefactoringActionModel> RefactorAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false)
+        public async Task<CachedRefactoringActionModel> RefactorAsync(string path, FnToRefactorModel refactorableFunction, string entryPoint, bool invalidateCache = false, CancellationToken cancellationToken = default)
         {
             _logger.Info($"Starting refactoring of function: {refactorableFunction.Name} in file: {path}");
 
@@ -67,7 +68,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
             try
             {
-                var refactoredFunction = await _executor.PostRefactoringAsync(fnToRefactor: refactorableFunction);
+                var refactoredFunction = await _executor.PostRefactoringAsync(fnToRefactor: refactorableFunction, cancellationToken: cancellationToken);
 
                 if (refactoredFunction != null)
                 {

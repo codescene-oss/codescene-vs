@@ -25,6 +25,7 @@ using Codescene.VSExtension.VS2022.Util;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 
@@ -65,6 +66,9 @@ namespace Codescene.VSExtension.VS2022.Handlers
         [Import]
         private readonly IAceRefactorService _aceRefactorService;
 
+        [Import]
+        private readonly IAsyncTaskScheduler _scheduler;
+
         public void TextViewCreated(IWpfTextView textView)
         {
             var buffer = textView.TextBuffer;
@@ -88,22 +92,22 @@ namespace Codescene.VSExtension.VS2022.Handlers
             _logger.Debug($"File opened: {filePath}. ");
             buffer.CurrentSnapshot.GetText();
 
-            // Run on background thread:
-            Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget();
+            _scheduler.Schedule(ct => ReviewContentAsync(filePath, buffer));
 
-            // Triggered when the file content changes (typing, etc.)
             buffer.Changed += (_, _) =>
             {
-                // Check ACE staleness - guard first to avoid unnecessary snapshot access
                 if (ShouldCheckAceStaleStatus(filePath))
                 {
-                    // Run the expensive text operations off the UI thread
-                    Task.Run(() => CheckAndUpdateAceStaleStatus(filePath, buffer)).FireAndForget();
+                    _scheduler.Schedule(async ct =>
+                    {
+                        await Task.Yield();
+                        CheckAndUpdateAceStaleStatus(filePath, buffer);
+                    });
                 }
 
                 _debounceService.Debounce(
                     filePath,
-                    () => Task.Run(() => ReviewContentAsync(filePath, buffer)).FireAndForget(),
+                    () => _scheduler.Schedule(ct => ReviewContentAsync(filePath, buffer)),
                     TimeSpan.FromSeconds(1));
             };
 
@@ -171,7 +175,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
             if (result.IsStale)
             {
-                AceToolWindow.MarkAsStaleAsync().FireAndForget();
+                _scheduler.Schedule(ct => AceToolWindow.MarkAsStaleAsync());
             }
             else if (result.RangeUpdated && result.UpdatedRange != null)
             {

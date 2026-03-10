@@ -19,6 +19,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using static Codescene.VSExtension.Core.Consts.Constants;
 using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 
@@ -29,21 +30,20 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
     private const int UpdateViewDebounceMs = 300;
     private static WebComponentUserControl _userControl;
     private static IDebounceService _updateViewDebounceService;
+    private static IAsyncTaskScheduler _scheduler;
 
     public override Type PaneType => typeof(Pane);
 
     public static async Task UpdateViewAsync()
     {
-        if (_updateViewDebounceService == null)
-        {
-            _updateViewDebounceService = await VS.GetMefServiceAsync<IDebounceService>();
-        }
+        _updateViewDebounceService ??= await VS.GetMefServiceAsync<IDebounceService>();
+        _scheduler ??= await VS.GetMefServiceAsync<IAsyncTaskScheduler>();
 
-        if (_updateViewDebounceService != null)
+        if (_updateViewDebounceService != null && _scheduler != null)
         {
             _updateViewDebounceService.Debounce(
                 "CodeSceneToolWindow.UpdateView",
-                () => RunActualUpdateAsync().FireAndForget(),
+                () => _scheduler.Schedule(ct => RunActualUpdateAsync()),
                 TimeSpan.FromMilliseconds(UpdateViewDebounceMs));
             return;
         }
@@ -117,7 +117,8 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 true),
         };
         await VS.GetMefServiceAsync<ILogger>();
-        _userControl.UpdateViewAsync(message).FireAndForget();
+        _scheduler ??= await VS.GetMefServiceAsync<IAsyncTaskScheduler>();
+        _scheduler.Schedule(ct => _userControl.UpdateViewAsync(message));
     }
 
     [Guid("A9FF6E0A-51FE-4713-8123-6B75EFC3E2C5")]
@@ -150,15 +151,18 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 return VSConstants.S_OK;
             }
 
-            Task.Run(async () =>
+            if (_scheduler != null)
             {
-                _debounceService ??= await VS.GetMefServiceAsync<IDebounceService>();
+                _scheduler.Schedule(async ct =>
+                {
+                    _debounceService ??= await VS.GetMefServiceAsync<IDebounceService>();
 
-                _debounceService?.Debounce(
-                    nameof(CodeSceneToolWindow),
-                    () => { SendTelemetry(true); },
-                    TimeSpan.FromSeconds(5));
-            }).FireAndForget();
+                    _debounceService?.Debounce(
+                        nameof(CodeSceneToolWindow),
+                        () => { SendTelemetry(true); },
+                        TimeSpan.FromSeconds(5));
+                });
+            }
 
             return VSConstants.S_OK;
         }
@@ -171,7 +175,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
         private void SendTelemetry(bool visible)
         {
-            Task.Run(async () =>
+            _scheduler?.Schedule(async ct =>
             {
                 var additionalData = new Dictionary<string, object>
                 {
@@ -179,8 +183,8 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 };
 
                 var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-                await telemetryManager.SendTelemetryAsync(Telemetry.MONITORVISIBILITY, additionalData);
-            }).FireAndForget();
+                await telemetryManager.SendTelemetryAsync(Telemetry.MONITORVISIBILITY, additionalData, cancellationToken: ct);
+            });
         }
     }
 }

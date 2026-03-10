@@ -17,6 +17,7 @@ using Codescene.VSExtension.VS2022.Application.Services;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
@@ -38,7 +39,13 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
 
     public static void UpdateView(WebComponentMessage<CodeSmellDocumentationComponentData> message)
     {
-        _userControl.UpdateViewAsync(message).FireAndForget();
+        var package = VS2022Package.Instance;
+        if (package == null)
+        {
+            return;
+        }
+
+        package.JoinableTaskFactory.RunAsync(() => _userControl.UpdateViewAsync(message)).FileAndForget("CodeSmellDocumentationWindow/UpdateView");
     }
 
     public static async Task RefreshViewAsync()

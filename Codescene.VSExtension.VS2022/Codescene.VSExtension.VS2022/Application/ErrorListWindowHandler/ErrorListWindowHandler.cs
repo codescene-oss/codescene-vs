@@ -11,6 +11,7 @@ using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using static Codescene.VSExtension.Core.Consts.Constants;
 
 namespace Codescene.VSExtension.VS2022.Application.ErrorListWindowHandler;
@@ -108,7 +109,13 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
 
     private void OpenDocumentWithIssue(object sender, string path)
     {
-        Task.Run(async () =>
+        var package = VS2022Package.Instance;
+        if (package == null)
+        {
+            return;
+        }
+
+        package.JoinableTaskFactory.RunAsync(async () =>
         {
             var logger = await VS.GetMefServiceAsync<ILogger>();
 
@@ -137,7 +144,7 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
             {
                 logger.Error($"Unable to open document '{path}'", ex);
             }
-        }).FireAndForget();
+        }).FileAndForget("ErrorListWindowHandler/Handle");
     }
 
     private void Delete(string path)
