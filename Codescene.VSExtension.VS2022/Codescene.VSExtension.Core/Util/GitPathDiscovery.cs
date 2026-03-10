@@ -20,7 +20,20 @@ namespace Codescene.VSExtension.Core.Util
             {
                 using (var repo = new Repository(repoPath))
                 {
-                    gitRootPath = repo.Info.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar);
+                    var workingDirectory = repo.Info.WorkingDirectory;
+                    if (string.IsNullOrEmpty(workingDirectory))
+                    {
+                        gitRootPath = workingDirectory;
+                    }
+                    else
+                    {
+                        var root = Path.GetPathRoot(workingDirectory);
+                        var normalizedWorking = workingDirectory.TrimEnd(Path.DirectorySeparatorChar);
+                        var normalizedRoot = root?.TrimEnd(Path.DirectorySeparatorChar) ?? string.Empty;
+                        gitRootPath = string.Equals(normalizedWorking, normalizedRoot, StringComparison.OrdinalIgnoreCase)
+                            ? workingDirectory
+                            : workingDirectory.TrimEnd(Path.DirectorySeparatorChar);
+                    }
                 }
             }
 
