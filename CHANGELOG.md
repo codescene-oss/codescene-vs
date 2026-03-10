@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.9] - 2026-03-10
+### Added
+- solution workspace support (#250)
+
+
 ## [0.5.8] - 2026-03-10
 ### Fixed
 - exclude active document from gitchangeobserver (#249)
@@ -299,6 +304,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 
 
 
