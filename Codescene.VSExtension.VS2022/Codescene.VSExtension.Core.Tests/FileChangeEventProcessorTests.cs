@@ -70,11 +70,11 @@ namespace Codescene.VSExtension.Core.Tests
                 var deadline = DateTime.UtcNow.AddSeconds(5);
                 while (DateTime.UtcNow < deadline && !logger.WarnMessages.Any(IsExpectedWarning))
                 {
-                    await Task.Delay(20);
+                    await Task.Delay(50);
                 }
             }
 
-            Assert.IsTrue(logger.WarnMessages.Any(IsExpectedWarning));
+            Assert.IsTrue(logger.WarnMessages.Any(IsExpectedWarning), "Expected Warn for callback throw (ProcessOneEventAsync catch)");
         }
 
         [TestMethod]
@@ -197,7 +197,7 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "test.cs"));
                     processor.Start(TimeSpan.FromMilliseconds(10), cts.Token);
-                    await Task.Delay(50);
+                    await Task.Delay(350);
                 }
             }
 
@@ -222,7 +222,7 @@ namespace Codescene.VSExtension.Core.Tests
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
                 processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
-                await Task.Delay(50);
+                await Task.Delay(350);
             }
 
             Assert.IsFalse(processEventInvoked);
