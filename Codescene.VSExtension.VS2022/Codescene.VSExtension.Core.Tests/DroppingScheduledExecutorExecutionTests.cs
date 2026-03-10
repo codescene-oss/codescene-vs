@@ -163,4 +163,30 @@ public class DroppingScheduledExecutorExecutionTests : DroppingScheduledExecutor
         Assert.AreNotEqual(timeoutTask, completedTask, "Second execution did not complete within timeout");
         Assert.IsGreaterThanOrEqualTo(executionCount, 2, "Executor should continue after exception");
     }
+
+    [TestMethod]
+    public async Task OnTimerCallback_WhenTokenAlreadyCancelled_DoesNotExecuteAction()
+    {
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
+            var actionExecuted = false;
+            var interval = TimeSpan.FromMilliseconds(50);
+
+            _executor = new DroppingScheduledExecutor(
+                async ct =>
+                {
+                    await Task.CompletedTask;
+                    actionExecuted = true;
+                },
+                cts.Token,
+                interval,
+                _mockLogger.Object);
+
+            _executor.Start();
+            await Task.Delay(interval + interval);
+
+            Assert.IsFalse(actionExecuted, "Action should not run when token is already cancelled");
+        }
+    }
 }

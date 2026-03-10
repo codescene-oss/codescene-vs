@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Collections.Concurrent;
+using System.IO;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -183,6 +184,44 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsFalse(found2);
             Assert.IsTrue(found3);
             Assert.AreEqual("score3", raw3);
+        }
+
+        [TestMethod]
+        public void RemoveEntriesOutsideRoot_NullOrEmptyRoot_DoesNothing()
+        {
+            _cache.Put("file.cs", "content", "score");
+            _cache.RemoveEntriesOutsideRoot(null);
+            var (found, _) = _cache.Get("file.cs", "content");
+            Assert.IsTrue(found);
+            _cache.RemoveEntriesOutsideRoot(string.Empty);
+            var (found2, _) = _cache.Get("file.cs", "content");
+            Assert.IsTrue(found2);
+        }
+
+        [TestMethod]
+        public void RemoveEntriesOutsideRoot_RemovesEntriesOutsideRoot()
+        {
+            var root = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "baseline-cache-root"));
+            var insidePath = Path.Combine(root, "sub", "file.cs");
+            var outsidePath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "other", "file.cs"));
+            _cache.Put(insidePath, "c1", "s1");
+            _cache.Put(outsidePath, "c2", "s2");
+            _cache.RemoveEntriesOutsideRoot(root);
+            var (foundInside, _) = _cache.Get(insidePath, "c1");
+            var (foundOutside, _) = _cache.Get(outsidePath, "c2");
+            Assert.IsTrue(foundInside);
+            Assert.IsFalse(foundOutside);
+        }
+
+        [TestMethod]
+        public void RemoveEntriesOutsideRoot_WhenGetFullPathThrows_RemovesKey()
+        {
+            var store = new ConcurrentDictionary<string, string>();
+            var key = "\0|abc123";
+            store[key] = "score";
+            var service = new BaselineReviewCacheService(store);
+            service.RemoveEntriesOutsideRoot(Path.GetTempPath());
+            Assert.IsFalse(store.ContainsKey(key));
         }
     }
 }
