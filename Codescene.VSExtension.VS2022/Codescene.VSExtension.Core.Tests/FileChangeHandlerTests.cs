@@ -133,6 +133,30 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task HandleFileChangeAsync_WhenFileIsActiveDocument_SkipsReviewButAddsToTracker()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "active.cs");
+            var changedFiles = new List<string> { "active.cs" };
+            File.WriteAllText(testFile, "public class Active {}");
+
+            var handlerWithActiveDoc = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _testWorkspacePath,
+                _trackerManager,
+                new FakeGitService(),
+                null,
+                null,
+                () => testFile);
+
+            await handlerWithActiveDoc.HandleFileChangeAsync(testFile, changedFiles);
+
+            Assert.IsTrue(_trackerManager.Contains(testFile));
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount);
+        }
+
+        [TestMethod]
         public async Task HandleFileChangeAsync_WhenOpenDocumentContentProviderReturnsContent_UsesProviderContentNotDisk()
         {
             var testFile = Path.Combine(_testWorkspacePath, "open.cs");

@@ -7,5 +7,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
     public interface IOpenFilesSource
     {
         IEnumerable<string> GetOpenDocumentPaths();
+
+        string GetActiveDocumentPath();
     }
 }

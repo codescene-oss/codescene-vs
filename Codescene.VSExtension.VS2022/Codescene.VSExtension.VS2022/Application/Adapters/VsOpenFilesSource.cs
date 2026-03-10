@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Codescene.VSExtension.Core.Interfaces.Git;
+using EnvDTE80;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -14,6 +15,23 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class VsOpenFilesSource : IOpenFilesSource
     {
+        public string GetActiveDocumentPath()
+        {
+            string path = null;
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var dte = ServiceProvider.GlobalProvider.GetService(typeof(EnvDTE.DTE)) as DTE2;
+                if (dte == null || dte.ActiveDocument == null)
+                {
+                    return;
+                }
+
+                path = dte.ActiveDocument.FullName;
+            });
+            return path;
+        }
+
         public IEnumerable<string> GetOpenDocumentPaths()
         {
             var result = new List<string>();

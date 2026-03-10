@@ -100,7 +100,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitChangeLister.Initialize(_gitRootPath, _workspacePath);
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
 
-            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager, _gitService, OnFileDeleted, openDocumentContentProvider);
+            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager, _gitService, OnFileDeleted, openDocumentContentProvider, () => _openFilesObserver?.GetActiveDocumentPath());
             _fileChangeHandler.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
 
             if (!string.IsNullOrEmpty(_workspacePath) && Directory.Exists(_workspacePath))

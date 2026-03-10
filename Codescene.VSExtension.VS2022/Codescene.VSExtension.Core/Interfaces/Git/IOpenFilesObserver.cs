@@ -7,5 +7,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
     public interface IOpenFilesObserver
     {
         IEnumerable<string> GetAllVisibleFileNames();
+
+        string GetActiveDocumentPath();
     }
 }

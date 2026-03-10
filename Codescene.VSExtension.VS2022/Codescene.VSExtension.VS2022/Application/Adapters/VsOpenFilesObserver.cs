@@ -37,5 +37,10 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
         {
             return Core.GetAllVisibleFileNames();
         }
+
+        public string GetActiveDocumentPath()
+        {
+            return Core.GetActiveDocumentPath();
+        }
     }
 }
