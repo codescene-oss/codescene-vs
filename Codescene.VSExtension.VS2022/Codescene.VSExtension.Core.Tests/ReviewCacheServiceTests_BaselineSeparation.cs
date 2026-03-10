@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Collections.Concurrent;
+using System.IO;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cache.Review;
@@ -123,6 +124,51 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNotNull(newBaselineResult, "Baseline entry should be moved to new key");
             Assert.AreEqual(8.0f, newNonBaselineResult.Score);
             Assert.AreEqual(7.0f, newBaselineResult.Score);
+        }
+
+        [TestMethod]
+        public void RemoveEntriesOutsideRoot_NullOrEmptyRoot_DoesNothing()
+        {
+            _cacheService.Put(new ReviewCacheEntry("c", "any.cs", new FileReviewModel { FilePath = "any.cs" }, isBaseline: false));
+            _cacheService.RemoveEntriesOutsideRoot(null);
+            Assert.IsNotNull(_cacheService.Get(new ReviewCacheQuery("c", "any.cs", isBaseline: false)));
+            _cacheService.RemoveEntriesOutsideRoot(string.Empty);
+            Assert.IsNotNull(_cacheService.Get(new ReviewCacheQuery("c", "any.cs", isBaseline: false)));
+        }
+
+        [TestMethod]
+        public void RemoveEntriesOutsideRoot_RemovesEntriesOutsideRoot()
+        {
+            var root = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "codescene-cache-root"));
+            var insidePath = Path.Combine(root, "sub", "file.cs");
+            var outsidePath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "other", "file.cs"));
+            _cacheService.Put(new ReviewCacheEntry("a", insidePath, new FileReviewModel { FilePath = insidePath }, isBaseline: false));
+            _cacheService.Put(new ReviewCacheEntry("b", outsidePath, new FileReviewModel { FilePath = outsidePath }, isBaseline: false));
+            _cacheService.RemoveEntriesOutsideRoot(root);
+            Assert.IsNotNull(_cacheService.Get(new ReviewCacheQuery("a", insidePath, isBaseline: false)));
+            Assert.IsNull(_cacheService.Get(new ReviewCacheQuery("b", outsidePath, isBaseline: false)));
+        }
+
+        [TestMethod]
+        public void RemoveEntriesOutsideRoot_KeysWithoutBaselineSuffix_LeftUntouched()
+        {
+            var store = new ConcurrentDictionary<string, ReviewCacheItem>();
+            store["no-baseline-suffix"] = new ReviewCacheItem("hash", new FileReviewModel(), false);
+            var service = new ReviewCacheService(store);
+            service.RemoveEntriesOutsideRoot(Path.GetTempPath());
+            Assert.IsTrue(store.ContainsKey("no-baseline-suffix"));
+        }
+
+        [TestMethod]
+        public void RemoveEntriesOutsideRoot_WhenGetFullPathThrows_RemovesKey()
+        {
+            var store = new ConcurrentDictionary<string, ReviewCacheItem>();
+            var invalidPath = "\0";
+            var key = invalidPath + "|baseline=false";
+            store[key] = new ReviewCacheItem("h", new FileReviewModel(), false);
+            var service = new ReviewCacheService(store);
+            service.RemoveEntriesOutsideRoot(Path.GetTempPath());
+            Assert.IsFalse(store.ContainsKey(key));
         }
     }
 }

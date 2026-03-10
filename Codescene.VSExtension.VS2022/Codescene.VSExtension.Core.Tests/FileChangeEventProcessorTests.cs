@@ -174,5 +174,98 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual("a.cs", paths[0]);
             Assert.AreEqual("b.cs", paths[1]);
         }
+
+        [TestMethod]
+        public async Task ProcessQueuedEvents_WhenCancellationRequested_ExitsWithoutProcessing()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processEventInvoked = false;
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
+            {
+                processEventInvoked = true;
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.Cancel();
+                using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
+                {
+                    processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "test.cs"));
+                    processor.Start(TimeSpan.FromMilliseconds(10), cts.Token);
+                    await Task.Delay(50);
+                }
+            }
+
+            Assert.IsFalse(processEventInvoked);
+        }
+
+        [TestMethod]
+        public async Task ProcessQueuedEvents_WhenQueueEmpty_ExitsWithoutInvokingCallback()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processEventInvoked = false;
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
+            {
+                processEventInvoked = true;
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+            using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
+            {
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
+                await Task.Delay(50);
+            }
+
+            Assert.IsFalse(processEventInvoked);
+        }
+
+        [TestMethod]
+        public async Task ProcessOneEventAsync_WhenTokenCancelled_ExitsWithoutInvokingCallback()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var firstInvoked = false;
+            var secondInvoked = false;
+
+            using (var cts = new CancellationTokenSource())
+            {
+                Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
+                {
+                    if (evt.FilePath == "first.cs")
+                    {
+                        firstInvoked = true;
+                        cts.Cancel();
+                    }
+                    else if (evt.FilePath == "second.cs")
+                    {
+                        secondInvoked = true;
+                    }
+
+                    return Task.CompletedTask;
+                }
+
+                Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+                using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
+                {
+                    processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "first.cs"));
+                    processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "second.cs"));
+                    processor.Start(TimeSpan.FromMilliseconds(10), cts.Token);
+                    await Task.Delay(100);
+                }
+            }
+
+            Assert.IsTrue(firstInvoked);
+            Assert.IsFalse(secondInvoked);
+        }
     }
 }

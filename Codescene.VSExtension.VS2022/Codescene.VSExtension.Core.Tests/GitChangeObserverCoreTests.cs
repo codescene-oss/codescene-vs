@@ -134,6 +134,24 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void FilesDetected_AfterDispose_DoesNotThrow()
+        {
+            _gitChangeObserverCore.Dispose();
+            var files = new HashSet<string> { Path.Combine(_testRepoPath, "any.cs") };
+            _fakeGitChangeLister.SimulateFilesDetected(files);
+        }
+
+        [TestMethod]
+        public void CancelAndReset_ReconnectsEventProcessor()
+        {
+            _gitChangeObserverCore.Start();
+            _gitChangeObserverCore.CancelAndReset();
+            var existingFile = CreateFile("after-reset.ts", "x");
+            _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { existingFile });
+            AssertFileInTracker(existingFile, true);
+        }
+
+        [TestMethod]
         public void OnGitChangeListerFilesDetected_AddsExistingFilesToTracker()
         {
             var existingFile = CreateFile("tracked.ts", "export const x = 1;");
