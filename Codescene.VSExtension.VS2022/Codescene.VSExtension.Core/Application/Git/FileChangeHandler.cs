@@ -243,6 +243,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             _logger?.Info($">>> FileChangeHandler: Checking if file is in changed list - path: '{normalizedPathToMatch}'");
             #endif
 
+            if (changedFiles == null)
+            {
+                return true;
+            }
+
             return changedFiles.Any(cf => cf.Replace('\\', '/').Equals(normalizedPathToMatch, StringComparison.OrdinalIgnoreCase));
         }
 

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -56,9 +57,22 @@ public static class SolutionProjectDiscovery
             return;
         }
 
-        var solutionDir = Directory.Exists(solutionPath)
-            ? Path.GetFullPath(solutionPath)
-            : Path.GetFullPath(Path.GetDirectoryName(solutionPath));
+        string solutionDir;
+        if (Directory.Exists(solutionPath))
+        {
+            solutionDir = Path.GetFullPath(solutionPath);
+        }
+        else
+        {
+            var dirName = Path.GetDirectoryName(solutionPath);
+            if (string.IsNullOrEmpty(dirName))
+            {
+                return;
+            }
+
+            solutionDir = Path.GetFullPath(dirName);
+        }
+
         if (string.IsNullOrEmpty(solutionDir))
         {
             return;
@@ -90,37 +104,15 @@ public static class SolutionProjectDiscovery
 
     private static HashSet<string> DeduplicatePaths(HashSet<string> paths)
     {
-        var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var path in paths)
-        {
-            var normalized = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-            var isChildOfAny = false;
-            foreach (var other in paths)
-            {
-                if (string.Equals(normalized, other.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                var otherNorm = other.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-                if (!otherNorm.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                {
-                    otherNorm += Path.DirectorySeparatorChar;
-                }
-
-                if (normalized.StartsWith(otherNorm, StringComparison.OrdinalIgnoreCase))
-                {
-                    isChildOfAny = true;
-                    break;
-                }
-            }
-
-            if (!isChildOfAny)
-            {
-                result.Add(normalized);
-            }
-        }
-
-        return result;
+        var normalizedList = paths
+            .Select(p => p.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar))
+            .Select(p => p.EndsWith(Path.DirectorySeparatorChar.ToString()) ? p : p + Path.DirectorySeparatorChar)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var filtered = normalizedList
+            .Where(p => !normalizedList.Any(o => !string.Equals(p, o, StringComparison.OrdinalIgnoreCase) && p.StartsWith(o, StringComparison.OrdinalIgnoreCase)))
+            .Select(p => p.TrimEnd(Path.DirectorySeparatorChar))
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+        return new HashSet<string>(filtered, StringComparer.OrdinalIgnoreCase);
     }
 }

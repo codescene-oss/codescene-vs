@@ -40,7 +40,21 @@ namespace Codescene.VSExtension.Core.Util
                 return true;
             }
 
-            var normalizedFull = Path.GetFullPath(fullPath);
+            if (string.IsNullOrEmpty(fullPath))
+            {
+                return false;
+            }
+
+            string normalizedFull;
+            try
+            {
+                normalizedFull = Path.GetFullPath(fullPath);
+            }
+            catch
+            {
+                return false;
+            }
+
             foreach (var root in roots)
             {
                 if (string.IsNullOrEmpty(root))
@@ -48,15 +62,25 @@ namespace Codescene.VSExtension.Core.Util
                     continue;
                 }
 
-                var normalizedRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar);
+                var normalizedRoot = GetNormalizedRoot(root);
                 var prefix = normalizedRoot + Path.DirectorySeparatorChar;
-                if (normalizedFull.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) || normalizedFull.Equals(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+                if (IsPathUnderRoot(normalizedFull, prefix, normalizedRoot))
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        private static string GetNormalizedRoot(string root)
+        {
+            return Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar);
+        }
+
+        private static bool IsPathUnderRoot(string fullPath, string prefix, string normalizedRoot)
+        {
+            return fullPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) || fullPath.Equals(normalizedRoot, StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsFileInWorkspace(string relativePath, string gitRootPath, IReadOnlyCollection<string> workspacePaths)

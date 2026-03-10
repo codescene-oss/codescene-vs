@@ -241,7 +241,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private async Task<HashSet<string>> ExecuteGitOperationAsync(
             string gitRootPath,
-            IReadOnlyCollection<string> workspacePaths,
+            IReadOnlyCollection<string> workspacePathsUnused,
             string operationName,
             CancellationToken cancellationToken,
             Func<Repository, HashSet<string>> operation)

@@ -196,6 +196,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             _cache.Put("path/file.cs", "content1", "score1");
             _cache.Put("path/file.cs", "content2", "score2");
+            _cache.Put("path/file.csx", "contentX", "scoreX");
             _cache.Put("other/file.cs", "content3", "score3");
 
             _cache.Invalidate("path/file.cs");
@@ -203,9 +204,12 @@ namespace Codescene.VSExtension.Core.Tests
             RulesGeneration.Reset();
             var (found1, _) = _cache.Get("path/file.cs", "content1");
             var (found2, _) = _cache.Get("path/file.cs", "content2");
+            var (foundX, rawX) = _cache.Get("path/file.csx", "contentX");
             var (found3, raw3) = _cache.Get("other/file.cs", "content3");
             Assert.IsFalse(found1);
             Assert.IsFalse(found2);
+            Assert.IsTrue(foundX);
+            Assert.AreEqual("scoreX", rawX);
             Assert.IsTrue(found3);
             Assert.AreEqual("score3", raw3);
         }

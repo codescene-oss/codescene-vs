@@ -153,14 +153,10 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public void UpdateWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
         {
-            if (workspacePaths == null || workspacePaths.Count == 0)
-            {
-                return;
-            }
-
-            _workspacePaths = workspacePaths;
-            _fileChangeHandler?.SetWorkspacePaths(workspacePaths);
-            _gitChangeLister?.SetWorkspacePaths(workspacePaths);
+            var newPaths = workspacePaths ?? Array.Empty<string>();
+            _workspacePaths = newPaths;
+            _fileChangeHandler?.SetWorkspacePaths(newPaths);
+            _gitChangeLister?.SetWorkspacePaths(newPaths);
         }
 
         public void RemoveFromTracker(string filePath)
@@ -326,7 +322,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 try
                 {
                     token.ThrowIfCancellationRequested();
-                    var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePaths);
+                    var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePaths, token);
                     var changedFiles = await _getChangedFilesCallback();
 
                     // Add all files to tracker unconditionally - this ensures HandleFileDelete works correctly.
