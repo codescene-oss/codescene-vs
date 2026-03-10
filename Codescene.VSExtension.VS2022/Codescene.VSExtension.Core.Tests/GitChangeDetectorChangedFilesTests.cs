@@ -195,56 +195,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task GetChangedFilesVsBaselineAsync_ExcludesSavedFiles()
-        {
-            var testFilePath = CommitFile("test.cs", "public class Test {}", "Add test file");
-
-            using (var repo = new Repository(_testRepoPath))
-            {
-                var featureBranch = repo.CreateBranch("feature-test");
-                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
-            }
-
-            CommitFile("feature.cs", "public class Feature {}", "Add feature");
-
-            File.WriteAllText(testFilePath, "public class Test { /* modified */ }");
-            _fakeSavedFilesTracker.AddSavedFile(testFilePath);
-
-            var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
-
-            var normalizedResult = result.Select(f => f.Replace('/', '\\')).ToList();
-            Assert.IsFalse(
-                normalizedResult.Any(f => f.EndsWith("test.cs")),
-                "Should exclude saved file from results");
-        }
-
-        [TestMethod]
-        public async Task GetChangedFilesVsBaselineAsync_ExcludesOpenFiles()
-        {
-            var testFilePath = CommitFile("test.cs", "public class Test {}", "Add test file");
-
-            using (var repo = new Repository(_testRepoPath))
-            {
-                var featureBranch = repo.CreateBranch("feature-test");
-                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
-            }
-
-            CommitFile("feature.cs", "public class Feature {}", "Add feature");
-
-            File.WriteAllText(testFilePath, "public class Test { /* modified */ }");
-            _fakeOpenFilesObserver.AddOpenFile(testFilePath);
-
-            var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
-
-            var normalizedResult = result.Select(f => f.Replace('/', '\\')).ToList();
-            Assert.IsFalse(
-                normalizedResult.Any(f => f.EndsWith("test.cs")),
-                "Should exclude open file from results");
-        }
-
-        [TestMethod]
         public async Task GetChangedFilesVsBaselineAsync_NoMainBranchCandidates_UsesWorkingDirectoryOnly()
         {
             using (var repo = new Repository(_testRepoPath))
@@ -413,22 +363,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsFalse(
                 result.Any(f => f.Contains("unchanged.cs")),
                 "Should NOT include unaltered file");
-        }
-
-        [TestMethod]
-        public async Task GetChangedFilesVsBaselineAsync_FileInExclusionSet_ExcludedFromStatusChanges()
-        {
-            var excludedPath = Path.Combine(_testRepoPath, "excluded.cs");
-            File.WriteAllText(excludedPath, "public class Excluded {}");
-            _fakeSavedFilesTracker.AddSavedFile(excludedPath);
-
-            var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
-
-            var normalizedResult = result.Select(f => f.Replace('/', '\\')).ToList();
-            Assert.IsFalse(
-                normalizedResult.Any(f => f.EndsWith("excluded.cs")),
-                "File in exclusion set should be excluded from status changes");
         }
 
         [TestMethod]

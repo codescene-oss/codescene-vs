@@ -24,6 +24,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly Action<string> _onFileDeletedCallback;
         private readonly IGitService _gitService;
         private readonly IOpenDocumentContentProvider _openDocumentContentProvider;
+        private readonly Func<string> _getActiveDocumentPath;
 
         public FileChangeHandler(
             ILogger logger,
@@ -33,7 +34,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             TrackerManager trackerManager,
             IGitService gitService,
             Action<string> onFileDeletedCallback = null,
-            IOpenDocumentContentProvider openDocumentContentProvider = null)
+            IOpenDocumentContentProvider openDocumentContentProvider = null,
+            Func<string> getActiveDocumentPath = null)
         {
             _logger = logger;
             _codeReviewer = codeReviewer;
@@ -43,6 +45,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             _onFileDeletedCallback = onFileDeletedCallback;
             _openDocumentContentProvider = openDocumentContentProvider;
+            _getActiveDocumentPath = getActiveDocumentPath;
         }
 
         public event EventHandler<string> FileDeletedFromGit;
@@ -73,6 +76,12 @@ namespace Codescene.VSExtension.Core.Application.Git
             _logger?.Info($">>> FileChangeHandler: Processing file change: {filePath}");
             #endif
             _trackerManager.Add(filePath);
+
+            var activePath = _getActiveDocumentPath?.Invoke();
+            if (!string.IsNullOrEmpty(activePath) && string.Equals(activePath, filePath, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
 
             await ReviewFileAsync(filePath, cancellationToken);
         }

@@ -91,6 +91,36 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void GetActiveDocumentPath_ReturnsPathWhenSourceHasActive()
+        {
+            _fakeSource.ActiveDocumentPath = @"C:\repo\active.cs";
+
+            var result = _observer.GetActiveDocumentPath();
+
+            Assert.AreEqual(@"C:\repo\active.cs", result);
+        }
+
+        [TestMethod]
+        public void GetActiveDocumentPath_ReturnsNullWhenSourceReturnsNull()
+        {
+            _fakeSource.ActiveDocumentPath = null;
+
+            var result = _observer.GetActiveDocumentPath();
+
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public void GetActiveDocumentPath_ReturnsNullWhenPathNotRooted()
+        {
+            _fakeSource.ActiveDocumentPath = "relative.cs";
+
+            var result = _observer.GetActiveDocumentPath();
+
+            Assert.IsNull(result);
+        }
+
+        [TestMethod]
         public void Constructor_ThrowsOnNullSource()
         {
             Assert.Throws<ArgumentNullException>(() => new OpenFilesObserverCore(null!, _fakeLogger));
@@ -111,6 +141,8 @@ namespace Codescene.VSExtension.Core.Tests
 
         public bool ReturnNull { get; set; }
 
+        public string ActiveDocumentPath { get; set; }
+
         public void AddPath(string? path)
         {
             _paths.Add(path);
@@ -129,6 +161,11 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             return _paths.Where(p => p != null) !;
+        }
+
+        public string GetActiveDocumentPath()
+        {
+            return ActiveDocumentPath;
         }
     }
 }

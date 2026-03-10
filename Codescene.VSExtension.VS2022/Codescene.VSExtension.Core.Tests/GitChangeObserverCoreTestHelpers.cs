@@ -284,14 +284,26 @@ namespace Codescene.VSExtension.Core.Tests
     {
         private readonly HashSet<string> _openFiles = new HashSet<string>();
 
+        public string ActiveDocumentPath { get; private set; }
+
         public IEnumerable<string> GetAllVisibleFileNames()
         {
             return _openFiles;
         }
 
+        public string GetActiveDocumentPath()
+        {
+            return ActiveDocumentPath;
+        }
+
         public void AddOpenFile(string filePath)
         {
             _openFiles.Add(filePath);
+        }
+
+        public void SetActiveDocument(string filePath)
+        {
+            ActiveDocumentPath = filePath;
         }
     }
 

@@ -42,5 +42,24 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return Enumerable.Empty<string>();
             }
         }
+
+        public string GetActiveDocumentPath()
+        {
+            try
+            {
+                var path = _source.GetActiveDocumentPath();
+                if (string.IsNullOrEmpty(path) || !Path.IsPathRooted(path))
+                {
+                    return null;
+                }
+
+                return path;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("OpenFilesObserverCore: Exception getting active document path", ex);
+                return null;
+            }
+        }
     }
 }

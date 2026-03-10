@@ -280,7 +280,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             var exclusionSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             AddFilesToExclusionSet(exclusionSet, savedFilesTracker?.GetSavedFiles());
-            AddFilesToExclusionSet(exclusionSet, openFilesObserver?.GetAllVisibleFileNames());
 
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeDetector: Built exclusion set with {exclusionSet.Count} files");
