@@ -44,7 +44,8 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
 
             var contentsMatch = entry.HeadHash == oldHash && entry.CurrentHash == newHash;
-            var isCacheHitOrNotStale = contentsMatch;
+            var generationMatch = entry.RulesGeneration == RulesGeneration.Current;
+            var isCacheHitOrNotStale = contentsMatch && generationMatch;
 
             return (isCacheHitOrNotStale, entry.Delta);
         }
@@ -57,8 +58,6 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         /// </summary>
         public override void Put(DeltaCacheEntry entry)
         {
-            // Race condition fix: if file is deleted during review, Invalidate() is called but
-            // Put() may execute after invalidation. Prevent storing results for deleted files.
             if (!File.Exists(entry.FilePath))
             {
                 return;
@@ -67,7 +66,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             var headHash = Hash(entry.BaselineContent);
             var currentContentHash = Hash(entry.CurrentFileContent);
             var cacheKey = GetCacheKey(entry.FilePath);
-            Cache[cacheKey] = new DeltaCacheItem(entry.FilePath, headHash, currentContentHash, entry.Delta);
+            Cache[cacheKey] = new DeltaCacheItem(entry.FilePath, headHash, currentContentHash, entry.Delta, RulesGeneration.Current);
         }
 
         public Dictionary<string, DeltaResponseModel> GetAll()

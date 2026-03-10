@@ -12,15 +12,15 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 {
     public class BaselineReviewCacheService
     {
-        private static readonly ConcurrentDictionary<string, string> SharedCache = new ConcurrentDictionary<string, string>();
-        private readonly ConcurrentDictionary<string, string> _cache;
+        private static readonly ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> SharedCache = new ConcurrentDictionary<string, (string, long)>();
+        private readonly ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> _cache;
 
         public BaselineReviewCacheService()
         {
             _cache = SharedCache;
         }
 
-        public BaselineReviewCacheService(ConcurrentDictionary<string, string> store)
+        public BaselineReviewCacheService(ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> store)
         {
             _cache = store;
         }
@@ -33,7 +33,12 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
 
             var key = CacheKey(filePath, baselineContent);
-            return _cache.TryGetValue(key, out var rawScore) ? (true, rawScore) : (false, null);
+            if (!_cache.TryGetValue(key, out var entry) || entry.RulesGeneration != RulesGeneration.Current)
+            {
+                return (false, null);
+            }
+
+            return (true, entry.RawScore);
         }
 
         public void Put(string filePath, string baselineContent, string rawScore)
@@ -44,7 +49,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
 
             var key = CacheKey(filePath, baselineContent);
-            _cache[key] = rawScore ?? string.Empty;
+            _cache[key] = (rawScore ?? string.Empty, RulesGeneration.Current);
         }
 
         public void Clear()

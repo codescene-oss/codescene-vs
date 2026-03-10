@@ -42,6 +42,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private GitChangeDetector _gitChangeDetector;
         private FileChangeHandler _fileChangeHandler;
         private Func<Task<List<string>>> _getChangedFilesCallback;
+        private CodeHealthRulesWatcher _rulesWatcher;
 
         public GitChangeObserverCore(
             ILogger logger,
@@ -110,6 +111,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 #endif
                 _fileWatcher = GitPathDiscovery.CreateWatcher(_workspacePath);
             }
+
+            _rulesWatcher = new CodeHealthRulesWatcher(_gitRootPath, _logger);
+            _rulesWatcher.RulesFileChanged += (sender, args) => ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
 
             InitializeTracker();
         }
@@ -208,6 +212,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _fileWatcher?.Dispose();
                 _fileWatcher = null;
             }
+
+            _rulesWatcher?.Dispose();
+            _rulesWatcher = null;
 
             _eventProcessor?.Dispose();
             _eventProcessor = null;
