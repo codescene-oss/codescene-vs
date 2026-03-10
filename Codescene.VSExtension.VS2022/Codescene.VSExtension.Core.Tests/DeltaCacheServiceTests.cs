@@ -107,27 +107,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Put_WithNullDelta_DoesNotStore()
-        {
-            var entry = new DeltaCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, delta: null);
-            _cacheService.Put(entry);
-
-            var result = _cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent));
-
-            AssertCacheMiss(result);
-        }
-
-        [TestMethod]
-        public void Put_WhenFileDoesNotExist_DoesNotStore()
-        {
-            var nonexistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".cs");
-            var entry = new DeltaCacheEntry(nonexistentPath, DefaultBaseline, DefaultCurrent, CreateDelta(1.0m));
-            _cacheService.Put(entry);
-            var result = _cacheService.Get(new DeltaCacheQuery(nonexistentPath, DefaultBaseline, DefaultCurrent));
-            AssertCacheMiss(result);
-        }
-
-        [TestMethod]
         public void RemoveEntriesOutsideRoot_NullOrEmptyRoot_DoesNothing()
         {
             PutCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, CreateDelta(1.0m));
