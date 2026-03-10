@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         {
             // Race condition fix: if file is deleted during review, Invalidate() is called but
             // Put() may execute after invalidation. Prevent storing results for deleted files.
-            if (!File.Exists(entry.FilePath) || entry.Delta == null)
+            if (!File.Exists(entry.FilePath))
             {
                 return;
             }
