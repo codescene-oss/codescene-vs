@@ -14,57 +14,14 @@ public static class SolutionProjectDiscovery
     public static HashSet<string> GetProjectDirectories(IVsSolution solution, string solutionPath)
     {
         var directories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        if (!string.IsNullOrEmpty(solutionPath))
-        {
-            var solutionDir = Directory.Exists(solutionPath)
-                ? Path.GetFullPath(solutionPath)
-                : Path.GetFullPath(Path.GetDirectoryName(solutionPath));
-            if (!string.IsNullOrEmpty(solutionDir))
-            {
-                directories.Add(solutionDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-            }
-        }
-
+        TryAddSolutionDirectory(directories, solutionPath);
         if (solution == null)
         {
-            return directories;
+            return DeduplicatePaths(directories);
         }
 
         ThreadHelper.ThrowIfNotOnUIThread();
-
-        var guid = Guid.Empty;
-        var hr = solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref guid, out var enumHierarchies);
-        if (hr != VSConstants.S_OK || enumHierarchies == null)
-        {
-            return directories;
-        }
-
-        var hierarchy = new IVsHierarchy[1];
-        while (enumHierarchies.Next(1, hierarchy, out var fetched) == VSConstants.S_OK && fetched == 1)
-        {
-            var proj = hierarchy[0];
-            if (proj == null)
-            {
-                continue;
-            }
-
-            hr = proj.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectDir, out var value);
-            if (hr != VSConstants.S_OK || value == null)
-            {
-                continue;
-            }
-
-            var dir = value as string;
-            if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
-            {
-                continue;
-            }
-
-            var fullDir = Path.GetFullPath(dir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            directories.Add(fullDir);
-        }
-
+        AddProjectDirectoriesFromSolution(solution, directories);
         return DeduplicatePaths(directories);
     }
 
@@ -90,6 +47,45 @@ public static class SolutionProjectDiscovery
         }
 
         return Path.GetFullPath(dir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+    }
+
+    private static void TryAddSolutionDirectory(HashSet<string> directories, string solutionPath)
+    {
+        if (string.IsNullOrEmpty(solutionPath))
+        {
+            return;
+        }
+
+        var solutionDir = Directory.Exists(solutionPath)
+            ? Path.GetFullPath(solutionPath)
+            : Path.GetFullPath(Path.GetDirectoryName(solutionPath));
+        if (string.IsNullOrEmpty(solutionDir))
+        {
+            return;
+        }
+
+        directories.Add(solutionDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+    }
+
+    private static void AddProjectDirectoriesFromSolution(IVsSolution solution, HashSet<string> directories)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        var guid = Guid.Empty;
+        var hr = solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref guid, out var enumHierarchies);
+        if (hr != VSConstants.S_OK || enumHierarchies == null)
+        {
+            return;
+        }
+
+        var hierarchy = new IVsHierarchy[1];
+        while (enumHierarchies.Next(1, hierarchy, out var fetched) == VSConstants.S_OK && fetched == 1)
+        {
+            var dir = GetProjectDirectory(hierarchy[0]);
+            if (dir != null)
+            {
+                directories.Add(dir);
+            }
+        }
     }
 
     private static HashSet<string> DeduplicatePaths(HashSet<string> paths)
