@@ -73,16 +73,6 @@ namespace Codescene.VSExtension.Core.Util
             return false;
         }
 
-        private static string GetNormalizedRoot(string root)
-        {
-            return Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar);
-        }
-
-        private static bool IsPathUnderRoot(string fullPath, string prefix, string normalizedRoot)
-        {
-            return fullPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) || fullPath.Equals(normalizedRoot, StringComparison.OrdinalIgnoreCase);
-        }
-
         public static bool IsFileInWorkspace(string relativePath, string gitRootPath, IReadOnlyCollection<string> workspacePaths)
         {
             if (workspacePaths == null || workspacePaths.Count == 0)
@@ -111,6 +101,16 @@ namespace Codescene.VSExtension.Core.Util
             {
                 return Path.Combine(basePath, relativePath);
             }
+        }
+
+        private static string GetNormalizedRoot(string root)
+        {
+            return Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar);
+        }
+
+        private static bool IsPathUnderRoot(string fullPath, string prefix, string normalizedRoot)
+        {
+            return fullPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) || fullPath.Equals(normalizedRoot, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

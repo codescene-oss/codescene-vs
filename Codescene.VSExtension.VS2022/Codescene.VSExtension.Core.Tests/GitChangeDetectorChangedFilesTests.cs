@@ -1,5 +1,8 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Generic;
+using System.Reflection;
+using Codescene.VSExtension.Core.Application.Git;
 using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -7,6 +10,22 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class GitChangeDetectorChangedFilesTests : GitChangeDetectorTestBase
     {
+        [TestMethod]
+        public void IsFileInAnyWorkspace_NullOrEmptyWorkspacePaths_ReturnsTrue()
+        {
+            var method = typeof(GitChangeDetector).GetMethod(
+                "IsFileInAnyWorkspace",
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                new[] { typeof(string), typeof(string), typeof(IReadOnlyCollection<string>) },
+                null);
+            Assert.IsNotNull(method);
+            var resultNull = method.Invoke(_detector, new object[] { "file.cs", _testRepoPath, null });
+            Assert.IsTrue((bool)resultNull);
+            var resultEmpty = method.Invoke(_detector, new object[] { "file.cs", _testRepoPath, Array.Empty<string>() });
+            Assert.IsTrue((bool)resultEmpty);
+        }
+
         [TestMethod]
         public async Task GetChangedFilesVsBaselineAsync_FindsMergeBaseWithMainBranch()
         {

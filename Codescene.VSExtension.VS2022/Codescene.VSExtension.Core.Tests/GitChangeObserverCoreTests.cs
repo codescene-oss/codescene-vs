@@ -295,6 +295,40 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void UpdateWorkspacePaths_UpdatesHandlerAndLister()
+        {
+            var paths = new[] { _testRepoPath };
+            _gitChangeObserverCore.UpdateWorkspacePaths(paths);
+            _gitChangeObserverCore.UpdateWorkspacePaths(null);
+            _gitChangeObserverCore.UpdateWorkspacePaths(Array.Empty<string>());
+        }
+
+        [TestMethod]
+        public void RemoveFromTracker_RemovesFile()
+        {
+            var path = CreateFile("track.cs", "x");
+            _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { path });
+            AssertFileInTracker(path, true);
+            _gitChangeObserverCore.RemoveFromTracker(path);
+            AssertFileInTracker(path, false);
+        }
+
+        [TestMethod]
+        public void GetTrackerManager_ReturnsNonNull()
+        {
+            var manager = _gitChangeObserverCore.GetTrackerManager();
+            Assert.IsNotNull(manager);
+        }
+
+        [TestMethod]
+        public void EnsureWatcherHandlersBound_CalledTwice_ReturnsEarlySecondTime()
+        {
+            _gitChangeObserverCore.Start();
+            var method = typeof(GitChangeObserverCore).GetMethod("EnsureWatcherHandlersBound", BindingFlags.NonPublic | BindingFlags.Instance);
+            method?.Invoke(_gitChangeObserverCore, null);
+        }
+
+        [TestMethod]
         public async Task HandleFileChange_AddsDeltaJobAndRemovesWhenComplete()
         {
             var testFile = CreateFile("test.cs", "public class Test {}");

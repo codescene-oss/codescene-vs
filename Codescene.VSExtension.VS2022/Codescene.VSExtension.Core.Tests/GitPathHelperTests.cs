@@ -75,5 +75,35 @@ namespace Codescene.VSExtension.Core.Tests
             var result = GitPathHelper.ConvertToAbsolutePath("sub\\file.cs", _tempDir);
             Assert.AreEqual(Path.GetFullPath(Path.Combine(_tempDir, "sub", "file.cs")), result);
         }
+
+        [TestMethod]
+        public void IsPathUnderAnyRoot_NullRoots_ReturnsTrue()
+        {
+            var result = GitPathHelper.IsPathUnderAnyRoot(Path.Combine(_workspaceDir, "file.cs"), null);
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public void IsPathUnderAnyRoot_EmptyRoots_ReturnsTrue()
+        {
+            var result = GitPathHelper.IsPathUnderAnyRoot(Path.Combine(_workspaceDir, "file.cs"), Array.Empty<string>());
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public void IsPathUnderAnyRoot_InvalidFullPath_ReturnsFalse()
+        {
+            var result = GitPathHelper.IsPathUnderAnyRoot("\0invalid", new[] { _workspaceDir });
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public void IsPathUnderAnyRoot_EmptyRootInCollection_SkipsAndChecksOthers()
+        {
+            var filePath = Path.Combine(_workspaceDir, "a.cs");
+            File.WriteAllText(filePath, "x");
+            var result = GitPathHelper.IsPathUnderAnyRoot(filePath, new[] { string.Empty, _workspaceDir });
+            Assert.IsTrue(result);
+        }
     }
 }

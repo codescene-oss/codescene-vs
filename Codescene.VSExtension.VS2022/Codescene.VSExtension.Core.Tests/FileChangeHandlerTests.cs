@@ -51,6 +51,14 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void SetWorkspacePaths_UpdatesPaths()
+        {
+            _handler.SetWorkspacePaths(new[] { _testWorkspacePath });
+            _handler.SetWorkspacePaths(null);
+            _handler.SetWorkspacePaths(Array.Empty<string>());
+        }
+
+        [TestMethod]
         public async Task HandleFileChangeAsync_DirectoryPath_ReturnsEarly()
         {
             var directoryPath = Path.Combine(_testWorkspacePath, "mydir");

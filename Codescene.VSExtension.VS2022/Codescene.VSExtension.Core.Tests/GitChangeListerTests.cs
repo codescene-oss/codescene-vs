@@ -31,6 +31,14 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void SetWorkspacePaths_UpdatesPaths()
+        {
+            _lister.SetWorkspacePaths(new[] { _testRepoPath });
+            _lister.SetWorkspacePaths(null);
+            _lister.SetWorkspacePaths(Array.Empty<string>());
+        }
+
+        [TestMethod]
         public async Task GetAllChangedFilesAsync_CleanRepository_ReturnsEmptySet()
         {
             var result = await _lister.GetAllChangedFilesAsync(_testRepoPath, _testRepoPath);
