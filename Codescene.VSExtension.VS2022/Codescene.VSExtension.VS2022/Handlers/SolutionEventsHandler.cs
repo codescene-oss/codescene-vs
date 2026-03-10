@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
@@ -130,12 +131,19 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         return VSConstants.S_OK;
     }
 
-    // The remaining event methods are currently unused, but required by the IVsSolutionEvents interface.
-    public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) => VSConstants.S_OK;
+    public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+    {
+        _scheduler.Schedule(ct => RefreshWorkspacePathsAsync());
+        return VSConstants.S_OK;
+    }
 
     public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel) => VSConstants.S_OK;
 
-    public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) => VSConstants.S_OK;
+    public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+    {
+        _scheduler.Schedule(ct => RefreshWorkspacePathsAsync());
+        return VSConstants.S_OK;
+    }
 
     public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy) => VSConstants.S_OK;
 
@@ -251,7 +259,14 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 return;
             }
 
-            _gitChangeObserver.Initialize(solutionPath, savedFilesTracker, openFilesObserver);
+            IReadOnlyCollection<string> workspacePaths = null;
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            if (_solution != null)
+            {
+                workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
+            }
+
+            _gitChangeObserver.Initialize(solutionPath, savedFilesTracker, openFilesObserver, workspacePaths);
             _gitChangeObserver.Start();
 
             Log(logger =>
@@ -267,6 +282,33 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 logger.Error("Failed to initialize GitChangeObserver.", ex);
                 return Task.CompletedTask;
             });
+        }
+    }
+
+    private async Task RefreshWorkspacePathsAsync()
+    {
+        if (_gitChangeObserver == null)
+        {
+            return;
+        }
+
+        var solution = await VS.Solutions.GetCurrentSolutionAsync();
+        var solutionPath = solution?.FullPath;
+        if (string.IsNullOrEmpty(solutionPath))
+        {
+            return;
+        }
+
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        if (_solution == null)
+        {
+            return;
+        }
+
+        var workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
+        if (workspacePaths != null && workspacePaths.Count > 0)
+        {
+            _gitChangeObserver.UpdateWorkspacePaths(workspacePaths);
         }
     }
 

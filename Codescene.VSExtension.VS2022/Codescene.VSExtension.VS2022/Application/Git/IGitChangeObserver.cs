@@ -13,7 +13,9 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         event EventHandler ViewUpdateRequested;
 
-        void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver);
+        void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, IReadOnlyCollection<string> workspacePaths = null);
+
+        void UpdateWorkspacePaths(IReadOnlyCollection<string> workspacePaths);
 
         void Start();
 

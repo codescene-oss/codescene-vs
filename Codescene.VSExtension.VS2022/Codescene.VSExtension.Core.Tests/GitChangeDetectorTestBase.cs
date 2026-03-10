@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
@@ -337,24 +338,24 @@ namespace Codescene.VSExtension.Core.Tests
                 return base.TryFindMergeBase(repo, currentBranch, candidateName);
             }
 
-            protected override List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath, string workspacePath)
+            protected override List<string> GetCommittedChanges(Repository repo, Commit baseCommit, string gitRootPath, IReadOnlyCollection<string> workspacePaths)
             {
                 if (ThrowFromDiffCompare)
                 {
                     throw new Exception("Simulated exception from Diff.Compare");
                 }
 
-                return base.GetCommittedChanges(repo, baseCommit, gitRootPath, workspacePath);
+                return base.GetCommittedChanges(repo, baseCommit, gitRootPath, workspacePaths);
             }
 
-            protected override List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude, string gitRootPath, string workspacePath)
+            protected override List<string> GetStatusChanges(Repository repo, HashSet<string> filesToExclude, string gitRootPath, IReadOnlyCollection<string> workspacePaths)
             {
                 if (ThrowFromRetrieveStatus)
                 {
                     throw new Exception("Simulated exception from RetrieveStatus");
                 }
 
-                return base.GetStatusChanges(repo, filesToExclude, gitRootPath, workspacePath);
+                return base.GetStatusChanges(repo, filesToExclude, gitRootPath, workspacePaths);
             }
         }
     }

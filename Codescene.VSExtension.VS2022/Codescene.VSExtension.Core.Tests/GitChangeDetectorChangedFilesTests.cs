@@ -1,5 +1,8 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Generic;
+using System.Reflection;
+using Codescene.VSExtension.Core.Application.Git;
 using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -7,6 +10,22 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class GitChangeDetectorChangedFilesTests : GitChangeDetectorTestBase
     {
+        [TestMethod]
+        public void IsFileInAnyWorkspace_NullOrEmptyWorkspacePaths_ReturnsTrue()
+        {
+            var method = typeof(GitChangeDetector).GetMethod(
+                "IsFileInAnyWorkspace",
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                new[] { typeof(string), typeof(string), typeof(IReadOnlyCollection<string>) },
+                null);
+            Assert.IsNotNull(method);
+            var resultNull = method.Invoke(_detector, new object[] { "file.cs", _testRepoPath, null });
+            Assert.IsTrue((bool)resultNull);
+            var resultEmpty = method.Invoke(_detector, new object[] { "file.cs", _testRepoPath, Array.Empty<string>() });
+            Assert.IsTrue((bool)resultEmpty);
+        }
+
         [TestMethod]
         public async Task GetChangedFilesVsBaselineAsync_FindsMergeBaseWithMainBranch()
         {
@@ -396,7 +415,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task GetChangedFilesVsBaselineAsync_WhenWorkspaceIsSubfolder_ReturnsOnlyWorkspaceFilesAsWorkspaceRelativePaths()
+        public async Task GetChangedFilesVsBaselineAsync_WhenWorkspaceIsSubfolder_ReturnsOnlyWorkspaceFilesAsGitRelativePaths()
         {
             var workspaceSubdir = Path.Combine(_testRepoPath, "workspace-subdir");
             Directory.CreateDirectory(workspaceSubdir);
@@ -416,17 +435,14 @@ namespace Codescene.VSExtension.Core.Tests
             File.WriteAllText(Path.Combine(_testRepoPath, "outside.cs"), "public class OutsideModified {}");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, workspaceSubdir, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, new[] { workspaceSubdir }, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
 
             Assert.IsTrue(
-                result.Any(f => f.Replace('\\', '/').Equals("inside.cs")),
-                "Should include file inside workspace with workspace-relative path 'inside.cs'");
+                result.Any(f => f.Replace('\\', '/').Equals("workspace-subdir/inside.cs")),
+                "Should include file inside workspace with git-relative path");
             Assert.IsFalse(
                 result.Any(f => f.Contains("outside")),
                 "Should not include file outside workspace");
-            Assert.IsFalse(
-                result.Any(f => f.Replace('\\', '/').Contains("workspace-subdir/")),
-                "Paths should be workspace-relative, not git-root-relative");
         }
     }
 }

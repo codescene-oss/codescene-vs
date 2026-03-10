@@ -26,7 +26,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly MergeBaseFinder _mergeBaseFinder;
 
         private string _gitRootPath;
-        private string _workspacePath;
+        private IReadOnlyCollection<string> _workspacePaths;
         private DroppingScheduledExecutor _scheduledExecutor;
         private bool _disposed = false;
 
@@ -48,11 +48,16 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public virtual async Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
         {
+            return await GetAllChangedFilesAsync(gitRootPath, string.IsNullOrEmpty(workspacePath) ? null : new[] { workspacePath }, cancellationToken);
+        }
+
+        public virtual async Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default)
+        {
             cancellationToken.ThrowIfCancellationRequested();
-            var result = await ExecuteGitOperationAsync(gitRootPath, workspacePath, "getting all changed files", cancellationToken, repo =>
+            var result = await ExecuteGitOperationAsync(gitRootPath, workspacePaths, "getting all changed files", cancellationToken, repo =>
             {
-                var statusFiles = CollectFilesFromRepoState(repo, gitRootPath, workspacePath);
-                var diffFiles = CollectFilesFromGitDiff(repo, gitRootPath, workspacePath);
+                var statusFiles = CollectFilesFromRepoState(repo, gitRootPath, workspacePaths);
+                var diffFiles = CollectFilesFromGitDiff(repo, gitRootPath, workspacePaths);
                 var allFiles = new HashSet<string>(statusFiles);
                 allFiles.UnionWith(diffFiles);
                 return allFiles;
@@ -66,16 +71,26 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public virtual Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
         {
-            return ExecuteAndLogAsync(gitRootPath, workspacePath, "getting changed files vs merge base", "GetChangedFilesVsMergeBaseAsync found", GetChangedFilesVsMergeBase, cancellationToken);
+            return GetChangedFilesVsMergeBaseAsync(gitRootPath, string.IsNullOrEmpty(workspacePath) ? null : new[] { workspacePath }, cancellationToken);
         }
 
-        public void Initialize(string gitRootPath, string workspacePath)
+        public virtual Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default)
+        {
+            return ExecuteAndLogAsync(gitRootPath, workspacePaths, "getting changed files vs merge base", "GetChangedFilesVsMergeBaseAsync found", GetChangedFilesVsMergeBase, cancellationToken);
+        }
+
+        public void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths)
         {
             _gitRootPath = gitRootPath;
-            _workspacePath = workspacePath;
+            _workspacePaths = workspacePaths ?? Array.Empty<string>();
             #if FEATURE_INITIAL_GIT_OBSERVER
-            _logger?.Info($">>> GitChangeLister: Initialized with gitRoot='{gitRootPath}', workspace='{workspacePath}'");
+            _logger?.Info($">>> GitChangeLister: Initialized with gitRoot='{gitRootPath}', workspacePaths count={_workspacePaths.Count}");
             #endif
+        }
+
+        public void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
+        {
+            _workspacePaths = workspacePaths ?? Array.Empty<string>();
         }
 
         public void StartPeriodicScanning(CancellationToken cancellationToken)
@@ -112,9 +127,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             #endif
         }
 
-        public virtual Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
+        public virtual Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default)
         {
-            return ExecuteAndLogAsync(gitRootPath, workspacePath, "collecting files from repo state", "CollectFilesFromRepoStateAsync collected", CollectFilesFromRepoState, cancellationToken);
+            return ExecuteAndLogAsync(gitRootPath, workspacePaths, "collecting files from repo state", "CollectFilesFromRepoStateAsync collected", CollectFilesFromRepoState, cancellationToken);
         }
 
         public void Dispose()
@@ -133,7 +148,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _disposed = true;
         }
 
-        protected virtual HashSet<string> CollectFilesFromRepoState(Repository repo, string gitRootPath, string workspacePath)
+        protected virtual HashSet<string> CollectFilesFromRepoState(Repository repo, string gitRootPath, IReadOnlyCollection<string> workspacePaths)
         {
             var changedFiles = new HashSet<string>();
 
@@ -152,7 +167,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                     var absolutePath = GitPathHelper.ConvertToAbsolutePath(item.FilePath, gitRootPath);
 
-                    if (!GitPathHelper.IsFileInWorkspace(item.FilePath, gitRootPath, workspacePath) || !ShouldReviewFile(absolutePath))
+                    if (!GitPathHelper.IsFileInWorkspace(item.FilePath, gitRootPath, workspacePaths) || !ShouldReviewFile(absolutePath))
                     {
                         continue;
                     }
@@ -186,11 +201,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             return changedFiles;
         }
 
-        protected virtual HashSet<string> CollectFilesFromGitDiff(Repository repo, string gitRootPath, string workspacePath)
+        protected virtual HashSet<string> CollectFilesFromGitDiff(Repository repo, string gitRootPath, IReadOnlyCollection<string> workspacePaths)
         {
             try
             {
-                var relativePaths = GetChangedFilesVsMergeBase(repo, gitRootPath, workspacePath);
+                var relativePaths = GetChangedFilesVsMergeBase(repo, gitRootPath, workspacePaths);
                 var result = ConvertAndFilterPaths(relativePaths, gitRootPath);
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeLister: CollectFilesFromGitDiff collected {result.Count} files from git diff");
@@ -226,7 +241,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private async Task<HashSet<string>> ExecuteGitOperationAsync(
             string gitRootPath,
-            string workspacePath,
+            IReadOnlyCollection<string> workspacePathsUnused,
             string operationName,
             CancellationToken cancellationToken,
             Func<Repository, HashSet<string>> operation)
@@ -272,13 +287,13 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private async Task<HashSet<string>> ExecuteAndLogAsync(
             string gitRootPath,
-            string workspacePath,
+            IReadOnlyCollection<string> workspacePaths,
             string operationName,
             string logLabel,
-            Func<Repository, string, string, HashSet<string>> repoOperation,
+            Func<Repository, string, IReadOnlyCollection<string>, HashSet<string>> repoOperation,
             CancellationToken cancellationToken = default)
         {
-            var result = await ExecuteGitOperationAsync(gitRootPath, workspacePath, operationName, cancellationToken, repo => repoOperation(repo, gitRootPath, workspacePath));
+            var result = await ExecuteGitOperationAsync(gitRootPath, workspacePaths, operationName, cancellationToken, repo => repoOperation(repo, gitRootPath, workspacePaths));
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeLister: {logLabel} {result.Count} files");
             #endif
@@ -292,7 +307,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 cancellationToken.ThrowIfCancellationRequested();
                 ReviewCacheCleanup.CleanupCachesOutsideRoot(_gitRootPath);
 
-                var files = await GetAllChangedFilesAsync(_gitRootPath, _workspacePath, cancellationToken);
+                var files = await GetAllChangedFilesAsync(_gitRootPath, _workspacePaths, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 if (files == null || files.Count == 0)
                 {
@@ -326,7 +341,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return isValid;
         }
 
-        private HashSet<string> GetChangedFilesVsMergeBase(Repository repo, string gitRootPath, string workspacePath)
+        private HashSet<string> GetChangedFilesVsMergeBase(Repository repo, string gitRootPath, IReadOnlyCollection<string> workspacePaths)
         {
             var currentBranch = repo.Head?.FriendlyName ?? "unknown";
             #if FEATURE_INITIAL_GIT_OBSERVER
@@ -349,14 +364,14 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return new HashSet<string>();
             }
 
-            return GetCommittedChanges(repo, mergeBase, gitRootPath, workspacePath);
+            return GetCommittedChanges(repo, mergeBase, gitRootPath, workspacePaths);
         }
 
         private HashSet<string> GetCommittedChanges(
             Repository repo,
             Commit mergeBase,
             string gitRootPath,
-            string workspacePath)
+            IReadOnlyCollection<string> workspacePaths)
         {
             var diff = repo.Diff.Compare<TreeChanges>(mergeBase.Tree, repo.Head.Tip.Tree);
             var changedFiles = new HashSet<string>();
@@ -370,7 +385,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                     continue;
                 }
 
-                if (GitPathHelper.IsFileInWorkspace(relativePath, gitRootPath, workspacePath))
+                if (GitPathHelper.IsFileInWorkspace(relativePath, gitRootPath, workspacePaths))
                 {
                     changedFiles.Add(relativePath);
                 }

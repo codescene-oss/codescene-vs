@@ -76,14 +76,19 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         public Timer ScheduledTimer => _core?.ScheduledTimer;
 
-        public void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver)
+        public void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, IReadOnlyCollection<string> workspacePaths = null)
         {
             if (_core == null)
             {
                 InitializeCore();
             }
 
-            _core.Initialize(solutionPath, savedFilesTracker, openFilesObserver, async () => await GetChangedFilesVsBaselineAsync(), _openDocumentContentProvider);
+            _core.Initialize(solutionPath, savedFilesTracker, openFilesObserver, async () => await GetChangedFilesVsBaselineAsync(), _openDocumentContentProvider, workspacePaths);
+        }
+
+        public void UpdateWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
+        {
+            _core?.UpdateWorkspacePaths(workspacePaths);
         }
 
         public void Start()

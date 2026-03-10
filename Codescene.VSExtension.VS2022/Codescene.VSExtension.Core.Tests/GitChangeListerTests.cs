@@ -31,6 +31,14 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void SetWorkspacePaths_UpdatesPaths()
+        {
+            _lister.SetWorkspacePaths(new[] { _testRepoPath });
+            _lister.SetWorkspacePaths(null);
+            _lister.SetWorkspacePaths(Array.Empty<string>());
+        }
+
+        [TestMethod]
         public async Task GetAllChangedFilesAsync_CleanRepository_ReturnsEmptySet()
         {
             var result = await _lister.GetAllChangedFilesAsync(_testRepoPath, _testRepoPath);
@@ -241,7 +249,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void StartPeriodicScanning_WhenAlreadyStarted_LogsWarningAndReturns()
         {
-            _lister.Initialize(_testRepoPath, _testRepoPath);
+            _lister.Initialize(_testRepoPath, new[] { _testRepoPath });
             _lister.StartPeriodicScanning(CancellationToken.None);
 
             _fakeLogger.WarnMessages.Clear();
@@ -281,7 +289,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Initialize_SetsGitRootAndWorkspacePath()
         {
-            _lister.Initialize(_testRepoPath, _testRepoPath);
+            _lister.Initialize(_testRepoPath, new[] { _testRepoPath });
 
             var fileInRepo = Path.Combine(_testRepoPath, "initialized.cs");
             File.WriteAllText(fileInRepo, "content");
@@ -301,7 +309,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Dispose_StopsPeriodicScanning()
         {
-            _lister.Initialize(_testRepoPath, _testRepoPath);
+            _lister.Initialize(_testRepoPath, new[] { _testRepoPath });
             _lister.StartPeriodicScanning(CancellationToken.None);
 
             _lister.Dispose();

@@ -29,9 +29,10 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeLogger,
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
-                _testWorkspacePath,
+                new[] { _testWorkspacePath },
                 _trackerManager,
-                new FakeGitService());
+                new FakeGitService(),
+                _testWorkspacePath);
         }
 
         [TestCleanup]
@@ -47,6 +48,14 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                 }
             }
+        }
+
+        [TestMethod]
+        public void SetWorkspacePaths_UpdatesPaths()
+        {
+            _handler.SetWorkspacePaths(new[] { _testWorkspacePath });
+            _handler.SetWorkspacePaths(null);
+            _handler.SetWorkspacePaths(Array.Empty<string>());
         }
 
         [TestMethod]
@@ -143,9 +152,10 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeLogger,
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
-                _testWorkspacePath,
+                new[] { _testWorkspacePath },
                 _trackerManager,
                 new FakeGitService(),
+                _testWorkspacePath,
                 null,
                 null,
                 () => testFile);
@@ -169,9 +179,10 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeLogger,
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
-                _testWorkspacePath,
+                new[] { _testWorkspacePath },
                 _trackerManager,
                 new FakeGitService(),
+                _testWorkspacePath,
                 null,
                 provider);
 
@@ -238,7 +249,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void ShouldProcessFile_WhenChangedListIsWorkspaceRelative_MatchesFileUnderWorkspace()
+        public void ShouldProcessFile_WhenChangedListIsGitRelative_MatchesFileUnderWorkspace()
         {
             var fileUnderWorkspace = Path.Combine(_testWorkspacePath, "subdir", "inside.cs");
             Directory.CreateDirectory(Path.GetDirectoryName(fileUnderWorkspace));
@@ -247,7 +258,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = _handler.ShouldProcessFile(fileUnderWorkspace, changedFiles);
 
-            Assert.IsTrue(result, "IsFileInChangedList should match when changed list contains workspace-relative path");
+            Assert.IsTrue(result, "IsFileInChangedList should match when changed list contains git-relative path");
         }
 
         [TestMethod]
@@ -270,13 +281,13 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void ShouldProcessFile_EmptyWorkspacePath_ReturnsTrue()
+        public void ShouldProcessFile_EmptyWorkspacePaths_ReturnsTrue()
         {
             var handlerWithEmptyWorkspace = new FileChangeHandler(
                 _fakeLogger,
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
-                string.Empty,
+                Array.Empty<string>(),
                 _trackerManager,
                 new FakeGitService());
 
@@ -297,7 +308,7 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeLogger,
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
-                _testWorkspacePath,
+                new[] { _testWorkspacePath },
                 _trackerManager,
                 new FakeGitServiceIgnorePath(testFile));
 
@@ -331,9 +342,10 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeLogger,
                 _fakeCodeReviewer,
                 _fakeSupportedFileChecker,
-                _testWorkspacePath,
+                new[] { _testWorkspacePath },
                 _trackerManager,
                 new FakeGitService(),
+                _testWorkspacePath,
                 null,
                 provider);
 

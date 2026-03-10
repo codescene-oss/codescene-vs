@@ -35,6 +35,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private string _solutionPath;
         private string _workspacePath;
         private string _gitRootPath;
+        private IReadOnlyCollection<string> _workspacePaths;
         private CancellationTokenSource _cts;
 
         private ISavedFilesTracker _savedFilesTracker;
@@ -71,7 +72,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public Timer ScheduledTimer => _eventProcessor?.ScheduledTimer;
 
-        public void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, Func<Task<List<string>>> getChangedFilesCallback = null, IOpenDocumentContentProvider openDocumentContentProvider = null)
+        public void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, Func<Task<List<string>>> getChangedFilesCallback = null, IOpenDocumentContentProvider openDocumentContentProvider = null, IReadOnlyCollection<string> watchPaths = null)
         {
             if (savedFilesTracker == null)
             {
@@ -98,18 +99,19 @@ namespace Codescene.VSExtension.Core.Application.Git
             _logger?.Info($">>> GitChangeObserverCore: Initialized with solution='{_solutionPath}', gitRoot='{_gitRootPath}', workspace='{_workspacePath}'");
             #endif
 
-            _gitChangeLister.Initialize(_gitRootPath, _workspacePath);
+            _workspacePaths = watchPaths != null && watchPaths.Count > 0 ? watchPaths : new[] { _workspacePath };
+            _gitChangeLister.Initialize(_gitRootPath, _workspacePaths);
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
 
-            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePath, _trackerManager, _gitService, OnFileDeleted, openDocumentContentProvider, () => _openFilesObserver?.GetActiveDocumentPath());
+            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePaths, _trackerManager, _gitService, _gitRootPath, OnFileDeleted, openDocumentContentProvider, () => _openFilesObserver?.GetActiveDocumentPath());
             _fileChangeHandler.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
 
-            if (!string.IsNullOrEmpty(_workspacePath) && Directory.Exists(_workspacePath))
+            if (!string.IsNullOrEmpty(_gitRootPath) && Directory.Exists(_gitRootPath))
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
-                _logger?.Info($">>> GitChangeObserverCore: Creating file watcher for path '{_workspacePath}'");
+                _logger?.Info($">>> GitChangeObserverCore: Creating file watcher for git root '{_gitRootPath}'");
                 #endif
-                _fileWatcher = GitPathDiscovery.CreateWatcher(_workspacePath);
+                _fileWatcher = GitPathDiscovery.CreateWatcher(_gitRootPath);
             }
 
             _rulesWatcher = new CodeHealthRulesWatcher(_gitRootPath, _logger);
@@ -146,7 +148,15 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
         {
-            return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _workspacePath, _savedFilesTracker, _openFilesObserver);
+            return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _workspacePaths, _savedFilesTracker, _openFilesObserver);
+        }
+
+        public void UpdateWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
+        {
+            var newPaths = workspacePaths ?? Array.Empty<string>();
+            _workspacePaths = newPaths;
+            _fileChangeHandler?.SetWorkspacePaths(newPaths);
+            _gitChangeLister?.SetWorkspacePaths(newPaths);
         }
 
         public void RemoveFromTracker(string filePath)
@@ -206,7 +216,6 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
                 catch
                 {
-                    // ignored
                 }
 
                 _fileWatcher?.Dispose();
@@ -313,7 +322,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 try
                 {
                     token.ThrowIfCancellationRequested();
-                    var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePath);
+                    var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePaths, token);
                     var changedFiles = await _getChangedFilesCallback();
 
                     // Add all files to tracker unconditionally - this ensures HandleFileDelete works correctly.
@@ -364,8 +373,13 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        private void BindWatcherEvents(FileSystemWatcher watcher)
+        private void EnsureWatcherHandlersBound()
         {
+            if (_watcherCreatedHandler != null)
+            {
+                return;
+            }
+
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeObserverCore: Binding file watcher events");
             #endif
@@ -396,7 +410,11 @@ namespace Codescene.VSExtension.Core.Application.Git
                     _eventProcessor?.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, e.FullPath));
                 }
             };
+        }
 
+        private void BindWatcherEvents(FileSystemWatcher watcher)
+        {
+            EnsureWatcherHandlersBound();
             watcher.Created += _watcherCreatedHandler;
             watcher.Changed += _watcherChangedHandler;
             watcher.Deleted += _watcherDeletedHandler;
@@ -404,7 +422,12 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private bool ShouldEnqueueEvent(FileSystemEventArgs e)
         {
-            return !_gitService.IsFileIgnored(e.FullPath) && Path.HasExtension(e.FullPath);
+            if (_gitService.IsFileIgnored(e.FullPath) || !Path.HasExtension(e.FullPath))
+            {
+                return false;
+            }
+
+            return GitPathHelper.IsPathUnderAnyRoot(e.FullPath, _workspacePaths);
         }
 
         private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles, CancellationToken cancellationToken)

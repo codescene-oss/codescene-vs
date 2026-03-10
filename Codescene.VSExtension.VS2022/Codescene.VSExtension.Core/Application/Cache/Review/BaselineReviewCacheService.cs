@@ -64,10 +64,18 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 return;
             }
 
-            var prefix = filePath.ToLowerInvariant() + "|";
-            foreach (var key in _cache.Keys.Where(k => k.StartsWith(prefix)).ToList())
+            var pathToMatch = filePath.ToLowerInvariant();
+            foreach (var key in _cache.Keys.ToList())
             {
-                _cache.TryRemove(key, out _);
+                if (!TryParseCacheKey(key, out var pathFromKey, out _))
+                {
+                    continue;
+                }
+
+                if (pathFromKey.Equals(pathToMatch, StringComparison.Ordinal))
+                {
+                    _cache.TryRemove(key, out _);
+                }
             }
         }
 
@@ -83,13 +91,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
             foreach (var key in _cache.Keys)
             {
-                var sep = key.IndexOf('|');
-                if (sep < 0)
+                if (!TryParseCacheKey(key, out var pathFromKey, out _))
                 {
                     continue;
                 }
 
-                var pathFromKey = key.Substring(0, sep);
                 try
                 {
                     var fullPath = Path.GetFullPath(pathFromKey);
@@ -108,6 +114,21 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             {
                 _cache.TryRemove(k, out _);
             }
+        }
+
+        private static bool TryParseCacheKey(string key, out string path, out string hash)
+        {
+            path = null;
+            hash = null;
+            var sep = key.IndexOf('|');
+            if (sep < 0)
+            {
+                return false;
+            }
+
+            path = key.Substring(0, sep);
+            hash = key.Substring(sep + 1);
+            return true;
         }
 
         private static string CacheKey(string filePath, string baselineContent)

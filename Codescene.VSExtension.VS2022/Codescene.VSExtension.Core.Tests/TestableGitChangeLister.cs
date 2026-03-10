@@ -45,5 +45,15 @@ namespace Codescene.VSExtension.Core.Tests
 
             return await base.GetAllChangedFilesAsync(gitRootPath, workspacePath, cancellationToken);
         }
+
+        public override async Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default)
+        {
+            if (ThrowInGetAllChangedFilesAsync)
+            {
+                throw new Exception("Simulated exception in CollectFilesFromRepoStateAsync");
+            }
+
+            return await base.GetAllChangedFilesAsync(gitRootPath, workspacePaths, cancellationToken);
+        }
     }
 }

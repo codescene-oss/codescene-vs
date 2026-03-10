@@ -15,12 +15,14 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
 
         Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default);
 
-        void Initialize(string gitRootPath, string workspacePath);
+        void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths);
+
+        void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths);
 
         void StartPeriodicScanning(CancellationToken cancellationToken);
 
         void StopPeriodicScanning();
 
-        Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default);
+        Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default);
     }
 }
