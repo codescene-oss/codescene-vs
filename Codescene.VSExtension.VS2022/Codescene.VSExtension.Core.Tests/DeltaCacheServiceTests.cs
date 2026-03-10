@@ -75,6 +75,26 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Get_AfterRulesGenerationIncrement_ReturnsMiss()
+        {
+            var delta = CreateDelta(-0.5m);
+            PutCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, delta);
+            Assert.IsTrue(_cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent)).Item1);
+
+            RulesGeneration.Increment();
+
+            try
+            {
+                var result = _cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent));
+                Assert.IsFalse(result.Item1, "Cache should miss after rules generation increment");
+            }
+            finally
+            {
+                RulesGeneration.Reset();
+            }
+        }
+
+        [TestMethod]
         public void Get_DifferentBaselineContent_ReturnsStaleEntry()
         {
             PutCacheEntry(_tempFile, "original baseline", DefaultCurrent, CreateDelta(-1.0m));
@@ -103,6 +123,16 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = _cacheService.Get(new DeltaCacheQuery(_tempFile2, DefaultBaseline, DefaultCurrent));
 
+            AssertCacheMiss(result);
+        }
+
+        [TestMethod]
+        public void Put_WhenFileDoesNotExist_DoesNotStore()
+        {
+            var nonexistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".cs");
+            var entry = new DeltaCacheEntry(nonexistentPath, DefaultBaseline, DefaultCurrent, CreateDelta(1.0m));
+            _cacheService.Put(entry);
+            var result = _cacheService.Get(new DeltaCacheQuery(nonexistentPath, DefaultBaseline, DefaultCurrent));
             AssertCacheMiss(result);
         }
 

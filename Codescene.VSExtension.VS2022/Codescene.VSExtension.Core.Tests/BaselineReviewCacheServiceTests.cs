@@ -14,7 +14,8 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
-            _cache = new BaselineReviewCacheService(new ConcurrentDictionary<string, string>());
+            RulesGeneration.Reset();
+            _cache = new BaselineReviewCacheService(new ConcurrentDictionary<string, (string RawScore, long RulesGeneration)>());
         }
 
         [TestMethod]
@@ -56,12 +57,34 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Get_WhenCached_ReturnsScore()
         {
+            RulesGeneration.Reset();
             _cache.Put("file.cs", "content", "raw-score");
+            RulesGeneration.Reset();
 
             var (found, rawScore) = _cache.Get("file.cs", "content");
 
             Assert.IsTrue(found);
             Assert.AreEqual("raw-score", rawScore);
+        }
+
+        [TestMethod]
+        public void Get_AfterRulesGenerationIncrement_ReturnsNotFound()
+        {
+            _cache.Put("file.cs", "content", "raw-score");
+            Assert.IsTrue(_cache.Get("file.cs", "content").Found);
+
+            RulesGeneration.Increment();
+
+            try
+            {
+                var (found, rawScore) = _cache.Get("file.cs", "content");
+                Assert.IsFalse(found);
+                Assert.IsNull(rawScore);
+            }
+            finally
+            {
+                RulesGeneration.Reset();
+            }
         }
 
         [TestMethod]
@@ -216,9 +239,9 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void RemoveEntriesOutsideRoot_WhenGetFullPathThrows_RemovesKey()
         {
-            var store = new ConcurrentDictionary<string, string>();
+            var store = new ConcurrentDictionary<string, (string RawScore, long RulesGeneration)>();
             var key = "\0|abc123";
-            store[key] = "score";
+            store[key] = ("score", 0);
             var service = new BaselineReviewCacheService(store);
             service.RemoveEntriesOutsideRoot(Path.GetTempPath());
             Assert.IsFalse(store.ContainsKey(key));

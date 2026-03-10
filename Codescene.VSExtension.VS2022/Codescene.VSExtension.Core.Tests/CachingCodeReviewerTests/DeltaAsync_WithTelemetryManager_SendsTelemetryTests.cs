@@ -44,7 +44,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             _mockGitService = new Mock<IGitService>();
             _mockTelemetryManager = new Mock<ITelemetryManager>();
             _reviewCacheService = new ReviewCacheService(new ConcurrentDictionary<string, ReviewCacheItem>());
-            _baselineCacheService = new BaselineReviewCacheService(new ConcurrentDictionary<string, string>());
+            _baselineCacheService = new BaselineReviewCacheService(new ConcurrentDictionary<string, (string RawScore, long RulesGeneration)>());
             _deltaCacheService = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
             _cachingReviewer = new CachingCodeReviewer(
                 _mockInnerReviewer.Object,

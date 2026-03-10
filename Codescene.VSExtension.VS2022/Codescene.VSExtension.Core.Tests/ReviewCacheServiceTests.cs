@@ -201,5 +201,27 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(2.0f, result2.Score);
             Assert.AreEqual(3.0f, result3.Score);
         }
+
+        [TestMethod]
+        public void Get_AfterRulesGenerationIncrement_ReturnsNull()
+        {
+            var filePath = "test.cs";
+            var fileContents = "public class Test { }";
+            var response = new FileReviewModel { FilePath = filePath, Score = 8.5f };
+            _cacheService.Put(new ReviewCacheEntry(fileContents, filePath, response));
+            Assert.IsNotNull(_cacheService.Get(new ReviewCacheQuery(fileContents, filePath)));
+
+            RulesGeneration.Increment();
+
+            try
+            {
+                var result = _cacheService.Get(new ReviewCacheQuery(fileContents, filePath));
+                Assert.IsNull(result, "Cache should miss after rules generation increment");
+            }
+            finally
+            {
+                RulesGeneration.Reset();
+            }
+        }
     }
 }

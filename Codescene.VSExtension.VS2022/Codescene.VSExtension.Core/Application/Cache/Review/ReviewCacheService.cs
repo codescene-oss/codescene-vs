@@ -29,7 +29,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
             if (Cache.TryGetValue(cacheKey, out var cachedItem))
             {
-                bool cacheHit = cachedItem.FileContentsHash == contentHash && cachedItem.IsBaseline == query.IsBaseline;
+                bool cacheHit = cachedItem.FileContentsHash == contentHash && cachedItem.IsBaseline == query.IsBaseline && cachedItem.RulesGeneration == RulesGeneration.Current;
                 return cacheHit ? cachedItem.Response : null;
             }
 
@@ -42,7 +42,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             string fileContents = entry.FileContents;
             string contentHash = Hash(fileContents);
 
-            var cacheItem = new ReviewCacheItem(contentHash, entry.Response, entry.IsBaseline);
+            var cacheItem = new ReviewCacheItem(contentHash, entry.Response, entry.IsBaseline, RulesGeneration.Current);
             Cache[cacheKey] = cacheItem;
         }
 
