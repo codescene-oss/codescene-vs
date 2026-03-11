@@ -256,6 +256,57 @@ namespace Codescene.VSExtension.Core.Tests
         }
     }
 
+    public class FakeGitServiceWithGitignoreSupport : IGitService
+    {
+        private readonly string _repoPath;
+
+        public FakeGitServiceWithGitignoreSupport(string repoPath)
+        {
+            _repoPath = repoPath;
+        }
+
+        public string GetFileContentForCommit(string path)
+        {
+            return string.Empty;
+        }
+
+        public bool IsFileIgnored(string filePath)
+        {
+            try
+            {
+                using (var repo = new LibGit2Sharp.Repository(_repoPath))
+                {
+                    var relativePath = filePath;
+                    if (Path.IsPathRooted(filePath))
+                    {
+                        var repoPathNormalized = _repoPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        if (filePath.StartsWith(repoPathNormalized, StringComparison.OrdinalIgnoreCase))
+                        {
+                            relativePath = filePath.Substring(repoPathNormalized.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        }
+                    }
+
+                    relativePath = relativePath.Replace('\\', '/');
+
+                    return repo.Ignore.IsPathIgnored(relativePath);
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
+        {
+            return string.Empty;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
     public class FakeSavedFilesTracker : ISavedFilesTracker
     {
         private readonly HashSet<string> _savedFiles = new HashSet<string>();

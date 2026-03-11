@@ -64,6 +64,14 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
+        public List<string> GetAllTrackedFiles()
+        {
+            lock (_lock)
+            {
+                return _tracker.ToList();
+            }
+        }
+
         public void RemoveAll(List<string> filesToRemove)
         {
             lock (_lock)

@@ -18,7 +18,7 @@ namespace Codescene.VSExtension.Core.Tests
         protected FakeSavedFilesTracker _fakeSavedFilesTracker;
         protected FakeOpenFilesObserver _fakeOpenFilesObserver;
         protected FakeGitChangeLister _fakeGitChangeLister;
-        protected FakeGitService _fakeGitService;
+        protected Core.Interfaces.Git.IGitService _fakeGitService;
 
         [TestInitialize]
         public void Setup()
