@@ -44,6 +44,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private FileChangeHandler _fileChangeHandler;
         private Func<Task<List<string>>> _getChangedFilesCallback;
         private CodeHealthRulesWatcher _rulesWatcher;
+        private GitIgnoreWatcher _gitIgnoreWatcher;
 
         public GitChangeObserverCore(
             ILogger logger,
@@ -116,6 +117,9 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             _rulesWatcher = new CodeHealthRulesWatcher(_gitRootPath, _logger);
             _rulesWatcher.RulesFileChanged += (sender, args) => ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+
+            _gitIgnoreWatcher = new GitIgnoreWatcher(_gitRootPath, _logger);
+            _gitIgnoreWatcher.GitIgnoreChanged += OnGitIgnoreChanged;
 
             InitializeTracker();
         }
@@ -225,6 +229,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             _rulesWatcher?.Dispose();
             _rulesWatcher = null;
 
+            _gitIgnoreWatcher?.Dispose();
+            _gitIgnoreWatcher = null;
+
             _eventProcessor?.Dispose();
             _eventProcessor = null;
         }
@@ -235,11 +242,21 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitChangeLister.StopPeriodicScanning();
             _eventProcessor?.DrainAndStop();
 
+            if (_gitIgnoreWatcher != null)
+            {
+                _gitIgnoreWatcher.GitIgnoreChanged -= OnGitIgnoreChanged;
+            }
+
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
 
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
+            if (_gitIgnoreWatcher != null)
+            {
+                _gitIgnoreWatcher.GitIgnoreChanged += OnGitIgnoreChanged;
+            }
+
             _eventProcessor?.Start(TimeSpan.FromSeconds(1), _cts.Token);
             #if FEATURE_PERIODIC_GIT_SCAN
             _gitChangeLister.StartPeriodicScanning(_cts.Token);
@@ -253,6 +270,31 @@ namespace Codescene.VSExtension.Core.Application.Git
             #endif
             ReviewCacheCleanup.InvalidateFile(filePath);
             ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnGitIgnoreChanged(object sender, EventArgs e)
+        {
+            _taskScheduler.Schedule(async () =>
+            {
+                try
+                {
+                    var trackedFiles = _trackerManager.GetAllTrackedFiles();
+                    foreach (var filePath in trackedFiles)
+                    {
+                        if (_gitService.IsFileIgnored(filePath))
+                        {
+                            _trackerManager.Remove(filePath);
+                            ReviewCacheCleanup.InvalidateFile(filePath);
+                        }
+                    }
+
+                    ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.Warn($"GitChangeObserver: Error handling .gitignore change: {ex.Message}");
+                }
+            });
         }
 
         private void OnGitChangeListerFilesDetected(object sender, HashSet<string> absolutePaths)
