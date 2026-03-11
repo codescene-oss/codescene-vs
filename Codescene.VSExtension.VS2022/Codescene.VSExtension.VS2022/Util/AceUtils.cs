@@ -43,7 +43,7 @@ namespace Codescene.VSExtension.VS2022.Util
             if (cache.TryGetValue(model.Path, out var delta) && delta != null)
             {
                 var refactorableFunctions = await aceManager.GetRefactorableFunctionsFromDeltaAsync(model.Path, fileContent, delta, preflight);
-                return refactorableFunctions?.FirstOrDefault();
+                return refactorableFunctions?.FirstOrDefault(x => x.Name == model.FunctionName);
             }
 
             return null;
