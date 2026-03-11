@@ -75,19 +75,22 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var lazyTask = _pendingReviews.GetOrAdd(pendingKey, _ =>
                 new Lazy<Task<FileReviewModel>>(() =>
-                    ReviewInternalAsync(path, content, isBaseline, CancellationToken.None)));
+                    ReviewInternalAsync(path, content, isBaseline, cancellationToken)));
 
             var pendingTask = lazyTask.Value;
 
             try
             {
-                var result = await pendingTask.ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
+                var result = await pendingTask.ConfigureAwait(false);
                 return result;
             }
             finally
             {
-                _pendingReviews.TryRemove(pendingKey, out _);
+                if (_pendingReviews.TryGetValue(pendingKey, out var current) && current == lazyTask)
+                {
+                    _pendingReviews.TryRemove(pendingKey, out _);
+                }
             }
         }
 

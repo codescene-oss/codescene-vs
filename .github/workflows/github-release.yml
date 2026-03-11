@@ -44,9 +44,9 @@ jobs:
     name: Build and Test VSIX
     runs-on: windows-latest
     needs: fetch-docs
-    env:
-      FEATURE_INITIAL_GIT_OBSERVER: true
-      FEATURE_PERIODIC_GIT_SCAN: true
+    # env:
+      # Feature flags here. Example:
+      # FEATURE_INITIAL_GIT_OBSERVER: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

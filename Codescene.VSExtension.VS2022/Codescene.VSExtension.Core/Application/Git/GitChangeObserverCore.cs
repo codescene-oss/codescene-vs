@@ -256,9 +256,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             _eventProcessor?.Start(TimeSpan.FromSeconds(1), _cts.Token);
-            #if FEATURE_PERIODIC_GIT_SCAN
             _gitChangeLister.StartPeriodicScanning(_cts.Token);
-            #endif
 
             InitializeTracker();
         }
@@ -273,6 +271,11 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
                 catch
                 {
+                }
+
+                if (_initializationComplete.Task.IsCanceled)
+                {
+                    return;
                 }
             }
 
@@ -295,12 +298,10 @@ namespace Codescene.VSExtension.Core.Application.Git
             _fileWatcher.EnableRaisingEvents = true;
             _eventProcessor.Start(TimeSpan.FromSeconds(1), _cts.Token);
 
-#if FEATURE_PERIODIC_GIT_SCAN
             _gitChangeLister.StartPeriodicScanning(_cts.Token);
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeObserverCore: Started file watcher and timer with 1 second interval");
             #endif
-#endif
         }
 
         private void OnFileDeleted(string filePath)
@@ -398,7 +399,8 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            _initializationComplete = new TaskCompletionSource<bool>();
+            var initTcs = new TaskCompletionSource<bool>();
+            _initializationComplete = initTcs;
             var token = cts.Token;
             _taskScheduler.Schedule(async () =>
             {
@@ -420,16 +422,16 @@ namespace Codescene.VSExtension.Core.Application.Git
 #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: Initialized tracker");
 #endif
-                    _initializationComplete?.TrySetResult(true);
+                    initTcs.TrySetResult(true);
                 }
                 catch (OperationCanceledException)
                 {
-                    _initializationComplete?.TrySetCanceled();
+                    initTcs.TrySetCanceled();
                 }
                 catch (Exception ex)
                 {
                     _logger?.Warn($"GitChangeObserver: Error initializing tracker: {ex.Message}");
-                    _initializationComplete?.TrySetException(ex);
+                    initTcs.TrySetException(ex);
                 }
             });
         }
