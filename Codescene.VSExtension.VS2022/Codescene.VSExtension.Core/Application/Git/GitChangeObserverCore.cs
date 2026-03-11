@@ -142,12 +142,10 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             _eventProcessor.Start(TimeSpan.FromSeconds(1), _cts.Token);
 
-#if FEATURE_PERIODIC_GIT_SCAN
             _gitChangeLister.StartPeriodicScanning(_cts.Token);
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeObserverCore: Started file watcher and timer with 1 second interval");
             #endif
-#endif
         }
 
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
@@ -260,9 +258,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             _eventProcessor?.Start(TimeSpan.FromSeconds(1), _cts.Token);
-            #if FEATURE_PERIODIC_GIT_SCAN
             _gitChangeLister.StartPeriodicScanning(_cts.Token);
-            #endif
 
             InitializeTracker();
         }
