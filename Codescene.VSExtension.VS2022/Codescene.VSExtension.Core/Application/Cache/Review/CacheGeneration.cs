@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Codescene.VSExtension.Core.Application.Cache.Review
 {
-    public static class RulesGeneration
+    public static class CacheGeneration
     {
         private static long _current;
 

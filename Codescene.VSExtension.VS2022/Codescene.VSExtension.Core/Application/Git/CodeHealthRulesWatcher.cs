@@ -80,7 +80,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private void OnRulesFileEvent(object sender, FileSystemEventArgs e)
         {
-            RulesGeneration.Increment();
+            CacheGeneration.Increment();
             try
             {
                 RulesFileChanged?.Invoke(this, EventArgs.Empty);

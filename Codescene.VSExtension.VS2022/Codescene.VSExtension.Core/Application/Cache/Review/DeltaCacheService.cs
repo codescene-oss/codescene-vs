@@ -16,8 +16,8 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         {
         }
 
-        public DeltaCacheService(ConcurrentDictionary<string, DeltaCacheItem> store)
-            : base(store)
+        public DeltaCacheService(ConcurrentDictionary<string, DeltaCacheItem> store, long testGenerationOverride = 0)
+            : base(store, testGenerationOverride)
         {
         }
 
@@ -44,7 +44,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
 
             var contentsMatch = entry.HeadHash == oldHash && entry.CurrentHash == newHash;
-            var generationMatch = entry.RulesGeneration == RulesGeneration.Current;
+            var generationMatch = entry.CacheGeneration == CacheGeneration.Current;
             var isCacheHitOrNotStale = contentsMatch && generationMatch;
 
             return (isCacheHitOrNotStale, entry.Delta);
@@ -58,6 +58,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         /// </summary>
         public override void Put(DeltaCacheEntry entry)
         {
+            if (!IsCurrentGeneration())
+            {
+                return;
+            }
+
             if (!File.Exists(entry.FilePath))
             {
                 return;
@@ -66,7 +71,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             var headHash = Hash(entry.BaselineContent);
             var currentContentHash = Hash(entry.CurrentFileContent);
             var cacheKey = GetCacheKey(entry.FilePath);
-            Cache[cacheKey] = new DeltaCacheItem(entry.FilePath, headHash, currentContentHash, entry.Delta, RulesGeneration.Current);
+            Cache[cacheKey] = new DeltaCacheItem(entry.FilePath, headHash, currentContentHash, entry.Delta, CacheGeneration.Current);
         }
 
         public Dictionary<string, DeltaResponseModel> GetAll()

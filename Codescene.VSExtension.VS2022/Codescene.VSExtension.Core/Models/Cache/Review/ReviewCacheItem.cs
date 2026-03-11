@@ -9,7 +9,7 @@ namespace Codescene.VSExtension.Core.Models.Cache.Review
             FileContentsHash = fileContentsHash;
             Response = response;
             IsBaseline = isBaseline;
-            RulesGeneration = rulesGeneration;
+            CacheGeneration = rulesGeneration;
         }
 
         public string FileContentsHash { get; }
@@ -18,6 +18,6 @@ namespace Codescene.VSExtension.Core.Models.Cache.Review
 
         public bool IsBaseline { get; }
 
-        public long RulesGeneration { get; }
+        public long CacheGeneration { get; }
     }
 }

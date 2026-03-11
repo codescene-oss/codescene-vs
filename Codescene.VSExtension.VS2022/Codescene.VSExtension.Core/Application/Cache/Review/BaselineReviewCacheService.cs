@@ -12,17 +12,22 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 {
     public class BaselineReviewCacheService
     {
-        private static readonly ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> SharedCache = new ConcurrentDictionary<string, (string, long)>();
-        private readonly ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> _cache;
+        private static readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> SharedCache = new ConcurrentDictionary<string, (string, long)>();
+        private readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> _cache;
+        private readonly long _capturedGeneration;
+        private readonly long? _generationOverride;
 
         public BaselineReviewCacheService()
         {
             _cache = SharedCache;
+            _capturedGeneration = CacheGeneration.Current;
         }
 
-        public BaselineReviewCacheService(ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> store)
+        public BaselineReviewCacheService(ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> store, long? testGenerationOverride = null)
         {
             _cache = store;
+            _generationOverride = testGenerationOverride;
+            _capturedGeneration = testGenerationOverride ?? CacheGeneration.Current;
         }
 
         public (bool Found, string RawScore) Get(string filePath, string baselineContent)
@@ -33,7 +38,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
 
             var key = CacheKey(filePath, baselineContent);
-            if (!_cache.TryGetValue(key, out var entry) || entry.RulesGeneration != RulesGeneration.Current)
+            if (!_cache.TryGetValue(key, out var entry) || entry.CacheGeneration != CacheGeneration.Current)
             {
                 return (false, null);
             }
@@ -43,17 +48,23 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public void Put(string filePath, string baselineContent, string rawScore)
         {
+            if (!_generationOverride.HasValue && CacheGeneration.Current != _capturedGeneration)
+            {
+                return;
+            }
+
             if (string.IsNullOrEmpty(filePath) || string.IsNullOrEmpty(baselineContent))
             {
                 return;
             }
 
             var key = CacheKey(filePath, baselineContent);
-            _cache[key] = (rawScore ?? string.Empty, RulesGeneration.Current);
+            _cache[key] = (rawScore ?? string.Empty, CacheGeneration.Current);
         }
 
         public void Clear()
         {
+            CacheGeneration.Increment();
             _cache.Clear();
         }
 

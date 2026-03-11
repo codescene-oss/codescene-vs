@@ -16,8 +16,8 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         {
         }
 
-        public ReviewCacheService(ConcurrentDictionary<string, ReviewCacheItem> store)
-            : base(store)
+        public ReviewCacheService(ConcurrentDictionary<string, ReviewCacheItem> store, long testGenerationOverride = 0)
+            : base(store, testGenerationOverride)
         {
         }
 
@@ -29,7 +29,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
             if (Cache.TryGetValue(cacheKey, out var cachedItem))
             {
-                bool cacheHit = cachedItem.FileContentsHash == contentHash && cachedItem.IsBaseline == query.IsBaseline && cachedItem.RulesGeneration == RulesGeneration.Current;
+                bool cacheHit = cachedItem.FileContentsHash == contentHash && cachedItem.IsBaseline == query.IsBaseline && cachedItem.CacheGeneration == CacheGeneration.Current;
                 return cacheHit ? cachedItem.Response : null;
             }
 
@@ -38,11 +38,16 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public override void Put(ReviewCacheEntry entry)
         {
+            if (!IsCurrentGeneration())
+            {
+                return;
+            }
+
             string cacheKey = GetCacheKey(entry.FilePath, entry.IsBaseline);
             string fileContents = entry.FileContents;
             string contentHash = Hash(fileContents);
 
-            var cacheItem = new ReviewCacheItem(contentHash, entry.Response, entry.IsBaseline, RulesGeneration.Current);
+            var cacheItem = new ReviewCacheItem(contentHash, entry.Response, entry.IsBaseline, CacheGeneration.Current);
             Cache[cacheKey] = cacheItem;
         }
 

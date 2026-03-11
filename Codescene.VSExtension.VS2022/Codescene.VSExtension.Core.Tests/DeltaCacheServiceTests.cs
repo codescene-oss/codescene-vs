@@ -23,7 +23,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
-            _cacheService = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
+            _cacheService = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>(), testGenerationOverride: 0);
 
             _tempFile = Path.GetTempFileName();
             _tempFile1 = Path.GetTempFileName();
@@ -75,22 +75,26 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Get_AfterRulesGenerationIncrement_ReturnsMiss()
+        public void Get_AfterCacheGenerationIncrement_ReturnsMiss()
         {
-            var delta = CreateDelta(-0.5m);
-            PutCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, delta);
-            Assert.IsTrue(_cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent)).Item1);
+            CacheGeneration.Reset();
+            var testCache = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
 
-            RulesGeneration.Increment();
+            var delta = CreateDelta(-0.5m);
+            var entry = new DeltaCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, delta);
+            testCache.Put(entry);
+            Assert.IsTrue(testCache.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent)).Item1);
+
+            CacheGeneration.Increment();
 
             try
             {
-                var result = _cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent));
-                Assert.IsFalse(result.Item1, "Cache should miss after rules generation increment");
+                var result = testCache.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent));
+                Assert.IsFalse(result.Item1, "Cache should miss after cache generation increment");
             }
             finally
             {
-                RulesGeneration.Reset();
+                CacheGeneration.Reset();
             }
         }
 

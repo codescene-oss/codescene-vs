@@ -22,7 +22,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         {
             _mockInnerReviewer = new Mock<ICodeReviewer>();
             _mockLogger = new Mock<ILogger>();
-            _cacheService = new ReviewCacheService(new ConcurrentDictionary<string, ReviewCacheItem>());
+            _cacheService = new ReviewCacheService(new ConcurrentDictionary<string, ReviewCacheItem>(), testGenerationOverride: 0);
             _cachingReviewer = new CachingCodeReviewer(_mockInnerReviewer.Object, _cacheService, null, null, _mockLogger.Object, null, null);
 
             Setup();

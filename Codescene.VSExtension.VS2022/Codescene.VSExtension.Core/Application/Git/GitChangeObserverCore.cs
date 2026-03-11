@@ -251,6 +251,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
 
+            _trackerManager.Clear();
+
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
             if (_gitIgnoreWatcher != null)
             {
@@ -261,6 +263,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             #if FEATURE_PERIODIC_GIT_SCAN
             _gitChangeLister.StartPeriodicScanning(_cts.Token);
             #endif
+
+            InitializeTracker();
         }
 
         private void OnFileDeleted(string filePath)
