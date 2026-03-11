@@ -14,8 +14,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
-            CacheGeneration.Reset();
-            _cache = new BaselineReviewCacheService(new ConcurrentDictionary<string, (string RawScore, long CacheGeneration)>());
+            _cache = new BaselineReviewCacheService(new ConcurrentDictionary<string, (string RawScore, long CacheGeneration)>(), testGenerationOverride: 0);
         }
 
         [TestMethod]
@@ -57,9 +56,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Get_WhenCached_ReturnsScore()
         {
-            CacheGeneration.Reset();
             _cache.Put("file.cs", "content", "raw-score");
-            CacheGeneration.Reset();
 
             var (found, rawScore) = _cache.Get("file.cs", "content");
 
@@ -70,14 +67,17 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Get_AfterCacheGenerationIncrement_ReturnsNotFound()
         {
-            _cache.Put("file.cs", "content", "raw-score");
-            Assert.IsTrue(_cache.Get("file.cs", "content").Found);
+            CacheGeneration.Reset();
+            var testCache = new BaselineReviewCacheService(new ConcurrentDictionary<string, (string RawScore, long CacheGeneration)>());
+
+            testCache.Put("file.cs", "content", "raw-score");
+            Assert.IsTrue(testCache.Get("file.cs", "content").Found);
 
             CacheGeneration.Increment();
 
             try
             {
-                var (found, rawScore) = _cache.Get("file.cs", "content");
+                var (found, rawScore) = testCache.Get("file.cs", "content");
                 Assert.IsFalse(found);
                 Assert.IsNull(rawScore);
             }
@@ -201,7 +201,6 @@ namespace Codescene.VSExtension.Core.Tests
 
             _cache.Invalidate("path/file.cs");
 
-            CacheGeneration.Reset();
             var (found1, _) = _cache.Get("path/file.cs", "content1");
             var (found2, _) = _cache.Get("path/file.cs", "content2");
             var (foundX, rawX) = _cache.Get("path/file.csx", "contentX");
@@ -219,11 +218,9 @@ namespace Codescene.VSExtension.Core.Tests
         {
             _cache.Put("file.cs", "content", "score");
             _cache.RemoveEntriesOutsideRoot(null);
-            CacheGeneration.Reset();
             var (found, _) = _cache.Get("file.cs", "content");
             Assert.IsTrue(found);
             _cache.RemoveEntriesOutsideRoot(string.Empty);
-            CacheGeneration.Reset();
             var (found2, _) = _cache.Get("file.cs", "content");
             Assert.IsTrue(found2);
         }

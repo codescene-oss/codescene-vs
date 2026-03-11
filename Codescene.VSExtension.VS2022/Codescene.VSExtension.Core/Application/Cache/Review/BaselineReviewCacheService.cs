@@ -15,6 +15,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         private static readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> SharedCache = new ConcurrentDictionary<string, (string, long)>();
         private readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> _cache;
         private readonly long _capturedGeneration;
+        private readonly long? _generationOverride;
 
         public BaselineReviewCacheService()
         {
@@ -22,10 +23,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             _capturedGeneration = CacheGeneration.Current;
         }
 
-        public BaselineReviewCacheService(ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> store)
+        public BaselineReviewCacheService(ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> store, long? testGenerationOverride = null)
         {
             _cache = store;
-            _capturedGeneration = CacheGeneration.Current;
+            _generationOverride = testGenerationOverride;
+            _capturedGeneration = testGenerationOverride ?? CacheGeneration.Current;
         }
 
         public (bool Found, string RawScore) Get(string filePath, string baselineContent)
@@ -46,7 +48,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public void Put(string filePath, string baselineContent, string rawScore)
         {
-            if (CacheGeneration.Current != _capturedGeneration)
+            if (!_generationOverride.HasValue && CacheGeneration.Current != _capturedGeneration)
             {
                 return;
             }

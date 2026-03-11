@@ -19,6 +19,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         private static readonly ConcurrentDictionary<string, TV> SharedCache = new ConcurrentDictionary<string, TV>();
         private readonly ConcurrentDictionary<string, TV> _cache;
         private readonly long _capturedGeneration;
+        private readonly long? _generationOverride;
 
         protected CacheService()
         {
@@ -26,10 +27,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             _capturedGeneration = CacheGeneration.Current;
         }
 
-        protected CacheService(ConcurrentDictionary<string, TV> store)
+        protected CacheService(ConcurrentDictionary<string, TV> store, long? testGenerationOverride = null)
         {
             _cache = store ?? throw new ArgumentNullException(nameof(store));
-            _capturedGeneration = CacheGeneration.Current;
+            _generationOverride = testGenerationOverride;
+            _capturedGeneration = testGenerationOverride ?? CacheGeneration.Current;
         }
 
         protected ConcurrentDictionary<string, TV> Cache => _cache;
@@ -65,6 +67,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         protected bool IsCurrentGeneration()
         {
+            if (_generationOverride.HasValue)
+            {
+                return true;
+            }
+
             return CacheGeneration.Current == _capturedGeneration;
         }
 

@@ -16,8 +16,8 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         {
         }
 
-        public DeltaCacheService(ConcurrentDictionary<string, DeltaCacheItem> store)
-            : base(store)
+        public DeltaCacheService(ConcurrentDictionary<string, DeltaCacheItem> store, long testGenerationOverride = 0)
+            : base(store, testGenerationOverride)
         {
         }
 

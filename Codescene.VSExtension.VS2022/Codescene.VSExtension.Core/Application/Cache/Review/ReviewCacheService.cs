@@ -16,8 +16,8 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         {
         }
 
-        public ReviewCacheService(ConcurrentDictionary<string, ReviewCacheItem> store)
-            : base(store)
+        public ReviewCacheService(ConcurrentDictionary<string, ReviewCacheItem> store, long testGenerationOverride = 0)
+            : base(store, testGenerationOverride)
         {
         }
 
