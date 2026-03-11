@@ -265,6 +265,7 @@ internal class WebComponentMessageHandler
         {
             Path = payload.FileName,
             Category = category,
+            FunctionName = payload.Fn?.Name,
             FunctionRange = payload.Fn?.Range,
         });
 
@@ -272,8 +273,8 @@ internal class WebComponentMessageHandler
         new ShowDocumentationModel(
             payload.FileName,
             payload.DocType,
-            fn?.Name,
-            AceComponentMapper.MapRange(fn?.Range)),
+            payload.Fn?.Name,
+            payload.Fn?.Range),
         fn,
         DocsEntryPoint.CodeHealthMonitor);
     }
