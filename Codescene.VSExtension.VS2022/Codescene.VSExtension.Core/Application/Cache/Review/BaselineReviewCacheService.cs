@@ -14,15 +14,18 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
     {
         private static readonly ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> SharedCache = new ConcurrentDictionary<string, (string, long)>();
         private readonly ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> _cache;
+        private readonly long _capturedGeneration;
 
         public BaselineReviewCacheService()
         {
             _cache = SharedCache;
+            _capturedGeneration = RulesGeneration.Current;
         }
 
         public BaselineReviewCacheService(ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> store)
         {
             _cache = store;
+            _capturedGeneration = RulesGeneration.Current;
         }
 
         public (bool Found, string RawScore) Get(string filePath, string baselineContent)
@@ -43,6 +46,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public void Put(string filePath, string baselineContent, string rawScore)
         {
+            if (RulesGeneration.Current != _capturedGeneration)
+            {
+                return;
+            }
+
             if (string.IsNullOrEmpty(filePath) || string.IsNullOrEmpty(baselineContent))
             {
                 return;
@@ -54,6 +62,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public void Clear()
         {
+            RulesGeneration.Increment();
             _cache.Clear();
         }
 

@@ -58,6 +58,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         /// </summary>
         public override void Put(DeltaCacheEntry entry)
         {
+            if (!IsCurrentGeneration())
+            {
+                return;
+            }
+
             if (!File.Exists(entry.FilePath))
             {
                 return;

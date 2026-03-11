@@ -38,6 +38,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public override void Put(ReviewCacheEntry entry)
         {
+            if (!IsCurrentGeneration())
+            {
+                return;
+            }
+
             string cacheKey = GetCacheKey(entry.FilePath, entry.IsBaseline);
             string fileContents = entry.FileContents;
             string contentHash = Hash(fileContents);

@@ -18,15 +18,18 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
     {
         private static readonly ConcurrentDictionary<string, TV> SharedCache = new ConcurrentDictionary<string, TV>();
         private readonly ConcurrentDictionary<string, TV> _cache;
+        private readonly long _capturedGeneration;
 
         protected CacheService()
         {
             _cache = SharedCache;
+            _capturedGeneration = RulesGeneration.Current;
         }
 
         protected CacheService(ConcurrentDictionary<string, TV> store)
         {
             _cache = store ?? throw new ArgumentNullException(nameof(store));
+            _capturedGeneration = RulesGeneration.Current;
         }
 
         protected ConcurrentDictionary<string, TV> Cache => _cache;
@@ -56,7 +59,13 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public virtual void Clear()
         {
+            RulesGeneration.Increment();
             Cache.Clear();
+        }
+
+        protected bool IsCurrentGeneration()
+        {
+            return RulesGeneration.Current == _capturedGeneration;
         }
 
         protected string Hash(string content)
