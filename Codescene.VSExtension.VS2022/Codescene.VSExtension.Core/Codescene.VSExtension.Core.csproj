@@ -34,10 +34,10 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<EnablePeriodicGitScan Condition="'$(FEATURE_PERIODIC_GIT_SCAN)' == 'true' Or '$([System.Environment]::GetEnvironmentVariable(`USERNAME`))' == 'vvcod'">true</EnablePeriodicGitScan>
-		<EnablePeriodicGitScan Condition="'$(FEATURE_PERIODIC_GIT_SCAN)' != 'true' And '$([System.Environment]::GetEnvironmentVariable(`USERNAME`))' != 'vvcod'">false</EnablePeriodicGitScan>
-		<EnableInitialGitObserver Condition="'$(FEATURE_INITIAL_GIT_OBSERVER)' == 'true' Or '$([System.Environment]::GetEnvironmentVariable(`USERNAME`))' == 'vvcod'">true</EnableInitialGitObserver>
-		<EnableInitialGitObserver Condition="'$(FEATURE_INITIAL_GIT_OBSERVER)' != 'true' And '$([System.Environment]::GetEnvironmentVariable(`USERNAME`))' != 'vvcod'">false</EnableInitialGitObserver>
+		<EnablePeriodicGitScan Condition="'$(FEATURE_PERIODIC_GIT_SCAN)' == 'true'">true</EnablePeriodicGitScan>
+		<EnablePeriodicGitScan Condition="'$(FEATURE_PERIODIC_GIT_SCAN)' != 'true'">false</EnablePeriodicGitScan>
+		<EnableInitialGitObserver Condition="'$(FEATURE_INITIAL_GIT_OBSERVER)' == 'true'">true</EnableInitialGitObserver>
+		<EnableInitialGitObserver Condition="'$(FEATURE_INITIAL_GIT_OBSERVER)' != 'true'">false</EnableInitialGitObserver>
 	</PropertyGroup>
 	<PropertyGroup>
 		<DefineConstants Condition="'$(EnablePeriodicGitScan)' == 'true'">$(DefineConstants);FEATURE_PERIODIC_GIT_SCAN</DefineConstants>
