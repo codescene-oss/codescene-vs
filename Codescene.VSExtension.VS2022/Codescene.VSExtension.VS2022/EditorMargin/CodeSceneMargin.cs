@@ -92,7 +92,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
     private static string GetReviewScore(string code, string path)
     {
         var item = new ReviewCacheService().Get(new ReviewCacheQuery(code, path));
-        return item != null ? $"{item.Score}/10" : null;
+        return item != null && item.Score != 0 ? $"{item.Score}/10" : null;
     }
 
     private static bool TryGetFilePath(ITextBuffer buffer, out string path)
