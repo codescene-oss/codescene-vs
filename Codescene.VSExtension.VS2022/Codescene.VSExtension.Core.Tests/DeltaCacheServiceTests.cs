@@ -23,6 +23,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
+            CacheGeneration.Reset();
             _cacheService = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
 
             _tempFile = Path.GetTempFileName();
@@ -75,22 +76,22 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Get_AfterRulesGenerationIncrement_ReturnsMiss()
+        public void Get_AfterCacheGenerationIncrement_ReturnsMiss()
         {
             var delta = CreateDelta(-0.5m);
             PutCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, delta);
             Assert.IsTrue(_cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent)).Item1);
 
-            RulesGeneration.Increment();
+            CacheGeneration.Increment();
 
             try
             {
                 var result = _cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent));
-                Assert.IsFalse(result.Item1, "Cache should miss after rules generation increment");
+                Assert.IsFalse(result.Item1, "Cache should miss after cache generation increment");
             }
             finally
             {
-                RulesGeneration.Reset();
+                CacheGeneration.Reset();
             }
         }
 

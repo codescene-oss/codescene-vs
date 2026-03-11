@@ -12,7 +12,7 @@ namespace Codescene.VSExtension.Core.Models.Cache.Delta
             HeadHash = headHash;
             CurrentHash = currentHash;
             Delta = delta;
-            RulesGeneration = rulesGeneration;
+            CacheGeneration = rulesGeneration;
         }
 
         public string FilePath { get; set; }
@@ -23,6 +23,6 @@ namespace Codescene.VSExtension.Core.Models.Cache.Delta
 
         public DeltaResponseModel Delta { get; }
 
-        public long RulesGeneration { get; }
+        public long CacheGeneration { get; }
     }
 }

@@ -20,6 +20,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void SetupRaceConditionTests()
         {
+            CacheGeneration.Reset();
             _deltaCache = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
         }
 

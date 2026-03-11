@@ -12,20 +12,20 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 {
     public class BaselineReviewCacheService
     {
-        private static readonly ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> SharedCache = new ConcurrentDictionary<string, (string, long)>();
-        private readonly ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> _cache;
+        private static readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> SharedCache = new ConcurrentDictionary<string, (string, long)>();
+        private readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> _cache;
         private readonly long _capturedGeneration;
 
         public BaselineReviewCacheService()
         {
             _cache = SharedCache;
-            _capturedGeneration = RulesGeneration.Current;
+            _capturedGeneration = CacheGeneration.Current;
         }
 
-        public BaselineReviewCacheService(ConcurrentDictionary<string, (string RawScore, long RulesGeneration)> store)
+        public BaselineReviewCacheService(ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> store)
         {
             _cache = store;
-            _capturedGeneration = RulesGeneration.Current;
+            _capturedGeneration = CacheGeneration.Current;
         }
 
         public (bool Found, string RawScore) Get(string filePath, string baselineContent)
@@ -36,7 +36,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
 
             var key = CacheKey(filePath, baselineContent);
-            if (!_cache.TryGetValue(key, out var entry) || entry.RulesGeneration != RulesGeneration.Current)
+            if (!_cache.TryGetValue(key, out var entry) || entry.CacheGeneration != CacheGeneration.Current)
             {
                 return (false, null);
             }
@@ -46,7 +46,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public void Put(string filePath, string baselineContent, string rawScore)
         {
-            if (RulesGeneration.Current != _capturedGeneration)
+            if (CacheGeneration.Current != _capturedGeneration)
             {
                 return;
             }
@@ -57,12 +57,12 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
 
             var key = CacheKey(filePath, baselineContent);
-            _cache[key] = (rawScore ?? string.Empty, RulesGeneration.Current);
+            _cache[key] = (rawScore ?? string.Empty, CacheGeneration.Current);
         }
 
         public void Clear()
         {
-            RulesGeneration.Increment();
+            CacheGeneration.Increment();
             _cache.Clear();
         }
 

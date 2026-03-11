@@ -20,6 +20,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         [TestInitialize]
         public void BaseSetup()
         {
+            CacheGeneration.Reset();
             _mockInnerReviewer = new Mock<ICodeReviewer>();
             _mockLogger = new Mock<ILogger>();
             _cacheService = new ReviewCacheService(new ConcurrentDictionary<string, ReviewCacheItem>());

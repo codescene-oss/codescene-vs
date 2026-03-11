@@ -14,8 +14,8 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
-            RulesGeneration.Reset();
-            _cache = new BaselineReviewCacheService(new ConcurrentDictionary<string, (string RawScore, long RulesGeneration)>());
+            CacheGeneration.Reset();
+            _cache = new BaselineReviewCacheService(new ConcurrentDictionary<string, (string RawScore, long CacheGeneration)>());
         }
 
         [TestMethod]
@@ -57,9 +57,9 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void Get_WhenCached_ReturnsScore()
         {
-            RulesGeneration.Reset();
+            CacheGeneration.Reset();
             _cache.Put("file.cs", "content", "raw-score");
-            RulesGeneration.Reset();
+            CacheGeneration.Reset();
 
             var (found, rawScore) = _cache.Get("file.cs", "content");
 
@@ -68,12 +68,12 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Get_AfterRulesGenerationIncrement_ReturnsNotFound()
+        public void Get_AfterCacheGenerationIncrement_ReturnsNotFound()
         {
             _cache.Put("file.cs", "content", "raw-score");
             Assert.IsTrue(_cache.Get("file.cs", "content").Found);
 
-            RulesGeneration.Increment();
+            CacheGeneration.Increment();
 
             try
             {
@@ -83,7 +83,7 @@ namespace Codescene.VSExtension.Core.Tests
             }
             finally
             {
-                RulesGeneration.Reset();
+                CacheGeneration.Reset();
             }
         }
 
@@ -201,7 +201,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             _cache.Invalidate("path/file.cs");
 
-            RulesGeneration.Reset();
+            CacheGeneration.Reset();
             var (found1, _) = _cache.Get("path/file.cs", "content1");
             var (found2, _) = _cache.Get("path/file.cs", "content2");
             var (foundX, rawX) = _cache.Get("path/file.csx", "contentX");
@@ -219,11 +219,11 @@ namespace Codescene.VSExtension.Core.Tests
         {
             _cache.Put("file.cs", "content", "score");
             _cache.RemoveEntriesOutsideRoot(null);
-            RulesGeneration.Reset();
+            CacheGeneration.Reset();
             var (found, _) = _cache.Get("file.cs", "content");
             Assert.IsTrue(found);
             _cache.RemoveEntriesOutsideRoot(string.Empty);
-            RulesGeneration.Reset();
+            CacheGeneration.Reset();
             var (found2, _) = _cache.Get("file.cs", "content");
             Assert.IsTrue(found2);
         }
@@ -246,7 +246,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void RemoveEntriesOutsideRoot_WhenGetFullPathThrows_RemovesKey()
         {
-            var store = new ConcurrentDictionary<string, (string RawScore, long RulesGeneration)>();
+            var store = new ConcurrentDictionary<string, (string RawScore, long CacheGeneration)>();
             var key = "\0|abc123";
             store[key] = ("score", 0);
             var service = new BaselineReviewCacheService(store);

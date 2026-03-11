@@ -67,6 +67,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             var cache = new DeltaCacheService();
             cache.Clear();
             new BaselineReviewCacheService().Clear();
+            new ReviewCacheService().Clear();
 
             _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
             _scheduler.Schedule(ct => AceToolWindow.CloseAsync());

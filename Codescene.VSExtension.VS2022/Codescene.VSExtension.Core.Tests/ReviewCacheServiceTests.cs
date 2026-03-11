@@ -15,6 +15,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
+            CacheGeneration.Reset();
             _cacheService = new ReviewCacheService(new ConcurrentDictionary<string, ReviewCacheItem>());
         }
 
@@ -203,7 +204,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Get_AfterRulesGenerationIncrement_ReturnsNull()
+        public void Get_AfterCacheGenerationIncrement_ReturnsNull()
         {
             var filePath = "test.cs";
             var fileContents = "public class Test { }";
@@ -211,16 +212,16 @@ namespace Codescene.VSExtension.Core.Tests
             _cacheService.Put(new ReviewCacheEntry(fileContents, filePath, response));
             Assert.IsNotNull(_cacheService.Get(new ReviewCacheQuery(fileContents, filePath)));
 
-            RulesGeneration.Increment();
+            CacheGeneration.Increment();
 
             try
             {
                 var result = _cacheService.Get(new ReviewCacheQuery(fileContents, filePath));
-                Assert.IsNull(result, "Cache should miss after rules generation increment");
+                Assert.IsNull(result, "Cache should miss after cache generation increment");
             }
             finally
             {
-                RulesGeneration.Reset();
+                CacheGeneration.Reset();
             }
         }
     }
