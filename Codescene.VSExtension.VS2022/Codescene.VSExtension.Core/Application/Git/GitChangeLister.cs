@@ -18,6 +18,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 {
     public class GitChangeLister : IGitChangeLister, IDisposable
     {
+        private readonly int _pollingInterval = 30; // Default value, calculated based on core count.
         private readonly ISavedFilesTracker _savedFilesTracker;
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly ILogger _logger;
@@ -34,7 +35,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             ISavedFilesTracker savedFilesTracker,
             ISupportedFileChecker supportedFileChecker,
             ILogger logger,
-            IGitService gitService)
+            IGitService gitService,
+            int? pollingInterval = null)
         {
             _savedFilesTracker = savedFilesTracker ?? throw new ArgumentNullException(nameof(savedFilesTracker));
             _supportedFileChecker = supportedFileChecker ?? throw new ArgumentNullException(nameof(supportedFileChecker));
@@ -42,6 +44,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             _untrackedFileProcessor = new UntrackedFileProcessor(_gitService, logger);
             _mergeBaseFinder = new MergeBaseFinder(logger);
+            _pollingInterval = pollingInterval ?? CalculatePollingInterval();
         }
 
         public event EventHandler<HashSet<string>> FilesDetected;
@@ -109,7 +112,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _scheduledExecutor = new DroppingScheduledExecutor(
                 PeriodicScanAsync,
                 cancellationToken,
-                TimeSpan.FromSeconds(9),
+                TimeSpan.FromSeconds(_pollingInterval),
                 _logger);
 
             _scheduledExecutor.Start();
@@ -237,6 +240,25 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Dynamically set polling interval based on performance of the machine.
+        /// </summary>
+        private static int CalculatePollingInterval()
+        {
+            var coreCount = Environment.ProcessorCount;
+            if (coreCount >= 6)
+            {
+                return 18;
+            }
+
+            if (coreCount >= 3)
+            {
+                return 32;
+            }
+
+            return 64;
         }
 
         private async Task<HashSet<string>> ExecuteGitOperationAsync(
