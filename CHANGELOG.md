@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-03-11
+### Added
+- .gitignore change tracker (#253)
+### Fixed
+- branch switch cache invalidation (#254)
+- margin text for unreviewable file (#252)
+- wrong code smell docs open (#251)
+
+
 ## [0.5.9] - 2026-03-10
 ### Added
 - solution workspace support (#250)
@@ -304,6 +313,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 
 
 
