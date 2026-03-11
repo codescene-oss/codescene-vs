@@ -85,5 +85,17 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
             }
         }
+
+        public void Clear()
+        {
+            lock (_lock)
+            {
+                var count = _tracker.Count;
+                _tracker.Clear();
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> TrackerManager: Cleared all tracked files (was tracking {count} files)");
+                #endif
+            }
+        }
     }
 }
