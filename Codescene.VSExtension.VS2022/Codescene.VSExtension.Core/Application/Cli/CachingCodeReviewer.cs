@@ -32,7 +32,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly IGitService _git;
         private readonly ITelemetryManager _telemetryManager;
         private readonly ICodeHealthMonitorNotifier _notifier;
-        private readonly ConcurrentDictionary<string, Task<FileReviewModel>> _pendingReviews = new ConcurrentDictionary<string, Task<FileReviewModel>>();
+        private readonly ConcurrentDictionary<string, Lazy<Task<FileReviewModel>>> _pendingReviews = new ConcurrentDictionary<string, Lazy<Task<FileReviewModel>>>();
 
         public CachingCodeReviewer(
             ICodeReviewer innerReviewer,
@@ -73,44 +73,31 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var pendingKey = GetPendingKey(content, path, isBaseline);
 
-            var pendingTask = _pendingReviews.GetOrAdd(pendingKey, _ =>
-                ReviewInternalAsync(path, content, isBaseline, cancellationToken));
+            var lazyTask = _pendingReviews.GetOrAdd(pendingKey, _ =>
+                new Lazy<Task<FileReviewModel>>(() =>
+                    ReviewInternalAsync(path, content, isBaseline, cancellationToken)));
+
+            var pendingTask = lazyTask.Value;
 
             try
             {
-                return await pendingTask;
+                cancellationToken.ThrowIfCancellationRequested();
+                var result = await pendingTask.ConfigureAwait(false);
+                return result;
             }
             finally
             {
-                _pendingReviews.TryRemove(pendingKey, out _);
+                if (_pendingReviews.TryGetValue(pendingKey, out var current) && current == lazyTask)
+                {
+                    _pendingReviews.TryRemove(pendingKey, out _);
+                }
             }
         }
 
         public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, CancellationToken cancellationToken = default)
         {
-            var normalizedPath = path.ToLowerInvariant();
-            var reviewQuery = new ReviewCacheQuery(currentCode, normalizedPath, isBaseline: false);
-            var cachedReview = _cache.Get(reviewQuery);
-
-            FileReviewModel review;
-            if (cachedReview != null)
-            {
-                _logger?.Debug($"CachingCodeReviewer: ReviewAndBaselineAsync - review cache hit for '{path}'.");
-                review = cachedReview;
-            }
-            else
-            {
-                _logger?.Debug($"CachingCodeReviewer: ReviewAndBaselineAsync - review cache miss for '{path}', calling inner reviewer.");
-                _logger.Info($"Reviewing file {path}...", true);
-                review = await _innerReviewer.ReviewAsync(path, currentCode, isBaseline: false, cancellationToken);
-
-                if (review != null)
-                {
-                    var entry = new ReviewCacheEntry(currentCode, normalizedPath, review, isBaseline: false);
-                    _cache.Put(entry);
-                }
-            }
-
+            _logger?.Info($"Reviewing file {path}...", true);
+            var review = await this.ReviewAsync(path, currentCode, isBaseline: false, cancellationToken);
             var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, null, cancellationToken);
 
             return (review, baselineRawScore ?? string.Empty);
@@ -222,8 +209,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private async Task<string> ComputeAndCacheBaselineAsync(string path, string oldCode, CancellationToken cancellationToken)
         {
-            _logger?.Debug($"CachingCodeReviewer: Baseline cache miss for '{path}', calling inner reviewer.");
-            var oldCodeReview = await _innerReviewer.ReviewAsync(path, oldCode, isBaseline: true, cancellationToken);
+            _logger?.Debug($"CachingCodeReviewer: Baseline cache miss for '{path}', calling reviewer.");
+            var oldCodeReview = await this.ReviewAsync(path, oldCode, isBaseline: true, cancellationToken);
             var oldRawScore = oldCodeReview?.RawScore ?? string.Empty;
 
             if (oldCodeReview?.RawScore != null)
