@@ -14,10 +14,8 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             didCleanup |= deltaCache.CleanupOldGenerations();
 
             didCleanup |= reviewCache.RemoveEntriesOutsideRoot(gitRootPath);
-            didCleanup |= reviewCache.CleanupOldGenerations();
 
             didCleanup |= baselineCache.RemoveEntriesOutsideRoot(gitRootPath);
-            didCleanup |= baselineCache.CleanupOldGenerations();
             return didCleanup;
         }
 

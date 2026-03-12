@@ -17,8 +17,8 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         {
         }
 
-        public ReviewCacheService(ConcurrentDictionary<string, ReviewCacheItem> store, long testGenerationOverride = 0)
-            : base(store, testGenerationOverride)
+        public ReviewCacheService(ConcurrentDictionary<string, ReviewCacheItem> store)
+            : base(store)
         {
         }
 
@@ -30,7 +30,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
             if (Cache.TryGetValue(cacheKey, out var cachedItem))
             {
-                bool cacheHit = cachedItem.FileContentsHash == contentHash && cachedItem.IsBaseline == query.IsBaseline && cachedItem.CacheGeneration == CacheGeneration.Current;
+                bool cacheHit = cachedItem.FileContentsHash == contentHash && cachedItem.IsBaseline == query.IsBaseline;
                 return cacheHit ? cachedItem.Response : null;
             }
 
@@ -39,16 +39,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public override void Put(ReviewCacheEntry entry, long? operationGeneration = null)
         {
-            if (!IsStillCurrentGeneration(operationGeneration))
-            {
-                return;
-            }
-
             string cacheKey = GetCacheKey(entry.FilePath, entry.IsBaseline);
             string fileContents = entry.FileContents;
             string contentHash = Hash(fileContents);
 
-            var cacheItem = new ReviewCacheItem(contentHash, entry.Response, entry.IsBaseline, CacheGeneration.Current);
+            var cacheItem = new ReviewCacheItem(contentHash, entry.Response, entry.IsBaseline);
             Cache[cacheKey] = cacheItem;
         }
 
@@ -86,20 +81,6 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             if (keysToRemove.Any())
             {
                 RemoveKeys(keysToRemove);
-                return true;
-            }
-
-            return false;
-        }
-
-        public bool CleanupOldGenerations()
-        {
-            var cacheGeneration = CacheGeneration.Current;
-            var entriesToClean = GetEntriesToClean(cacheGeneration);
-
-            if (entriesToClean.Any())
-            {
-                RemoveEntries(entriesToClean);
                 return true;
             }
 
@@ -152,29 +133,6 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             foreach (var k in keysToRemove)
             {
                 Cache.TryRemove(k, out _);
-            }
-        }
-
-        private List<string> GetEntriesToClean(long cacheGeneration)
-        {
-            var entriesToClean = new List<string>();
-
-            foreach (var pair in Cache)
-            {
-                if (pair.Value.CacheGeneration != cacheGeneration)
-                {
-                    entriesToClean.Add(pair.Key);
-                }
-            }
-
-            return entriesToClean;
-        }
-
-        private void RemoveEntries(List<string> entriesToClean)
-        {
-            foreach (var entry in entriesToClean)
-            {
-                Cache.TryRemove(entry, out _);
             }
         }
 

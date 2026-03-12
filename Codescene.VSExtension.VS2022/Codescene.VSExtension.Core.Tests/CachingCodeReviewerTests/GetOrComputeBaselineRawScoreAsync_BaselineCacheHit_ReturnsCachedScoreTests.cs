@@ -24,7 +24,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         {
             _mockInnerReviewer = new Mock<ICodeReviewer>();
             _mockLogger = new Mock<ILogger>();
-            _baselineCacheService = new BaselineReviewCacheService(new ConcurrentDictionary<string, (string RawScore, long CacheGeneration)>());
+            _baselineCacheService = new BaselineReviewCacheService(new ConcurrentDictionary<string, string>());
             _cachingReviewer = new CachingCodeReviewer(
                 _mockInnerReviewer.Object,
                 null,

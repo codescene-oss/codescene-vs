@@ -23,7 +23,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
-            _cacheService = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>(), testGenerationOverride: 0);
+            _cacheService = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
 
             _tempFile = Path.GetTempFileName();
             _tempFile1 = Path.GetTempFileName();

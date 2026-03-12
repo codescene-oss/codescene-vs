@@ -17,8 +17,8 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         {
         }
 
-        public DeltaCacheService(ConcurrentDictionary<string, DeltaCacheItem> store, long testGenerationOverride = 0)
-            : base(store, testGenerationOverride)
+        public DeltaCacheService(ConcurrentDictionary<string, DeltaCacheItem> store)
+            : base(store)
         {
         }
 
@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         /// </summary>
         public override void Put(DeltaCacheEntry entry, long? operationGeneration = null)
         {
-            if (!IsStillCurrentGeneration(operationGeneration))
+            if (operationGeneration != null && CacheGeneration.Current != operationGeneration)
             {
                 return;
             }
