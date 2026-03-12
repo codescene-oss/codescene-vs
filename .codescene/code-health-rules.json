@@ -41,6 +41,10 @@
                 {
                     "name": "String Heavy Function Arguments",
                     "weight": 0.0
+                },
+                {
+                    "name": "Missing Arguments Abstractions",
+                    "weight": 0.0
                 }
             ],
             "thresholds": [

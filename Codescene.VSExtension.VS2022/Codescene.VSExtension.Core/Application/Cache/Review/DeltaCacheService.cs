@@ -130,7 +130,39 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 return false;
             }
 
-            var rootPrefix = Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var rootPrefix = GetRootPrefix(gitRootPath);
+            var keysToRemove = GetKeysToRemove(rootPrefix);
+
+            if (keysToRemove.Any())
+            {
+                RemoveKeys(keysToRemove);
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool CleanupOldGenerations()
+        {
+            var cacheGeneration = CacheGeneration.Current;
+            var entriesToClean = GetEntriesToClean(cacheGeneration);
+
+            if (entriesToClean.Any())
+            {
+                RemoveEntries(entriesToClean);
+                return true;
+            }
+
+            return false;
+        }
+
+        private string GetRootPrefix(string gitRootPath)
+        {
+            return Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        }
+
+        private List<string> GetKeysToRemove(string rootPrefix)
+        {
             var keysToRemove = new List<string>();
 
             foreach (var pair in Cache)
@@ -142,22 +174,19 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 }
             }
 
-            if (keysToRemove.Any())
-            {
-                foreach (var key in keysToRemove)
-                {
-                    Cache.TryRemove(key, out _);
-                }
-
-                return true;
-            }
-
-            return false;
+            return keysToRemove;
         }
 
-        public bool CleanupOldGenerations()
+        private void RemoveKeys(List<string> keysToRemove)
         {
-            var cacheGeneration = CacheGeneration.Current;
+            foreach (var key in keysToRemove)
+            {
+                Cache.TryRemove(key, out _);
+            }
+        }
+
+        private List<string> GetEntriesToClean(long cacheGeneration)
+        {
             var entriesToClean = new List<string>();
 
             foreach (var pair in Cache)
@@ -168,17 +197,15 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 }
             }
 
-            if (entriesToClean.Any())
+            return entriesToClean;
+        }
+
+        private void RemoveEntries(List<string> entriesToClean)
+        {
+            foreach (var entry in entriesToClean)
             {
-                foreach (var entry in entriesToClean)
-                {
-                    Cache.TryRemove(entry, out _);
-                }
-
-                return true;
+                Cache.TryRemove(entry, out _);
             }
-
-            return false;
         }
 
         private string GetCacheKey(string filePath)

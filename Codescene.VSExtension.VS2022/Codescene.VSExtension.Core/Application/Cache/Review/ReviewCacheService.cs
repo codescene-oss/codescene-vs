@@ -80,7 +80,39 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 return false;
             }
 
-            var rootPrefix = Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var rootPrefix = GetRootPrefix(gitRootPath);
+            var keysToRemove = GetKeysToRemove(rootPrefix);
+
+            if (keysToRemove.Any())
+            {
+                RemoveKeys(keysToRemove);
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool CleanupOldGenerations()
+        {
+            var cacheGeneration = CacheGeneration.Current;
+            var entriesToClean = GetEntriesToClean(cacheGeneration);
+
+            if (entriesToClean.Any())
+            {
+                RemoveEntries(entriesToClean);
+                return true;
+            }
+
+            return false;
+        }
+
+        private string GetRootPrefix(string gitRootPath)
+        {
+            return Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        }
+
+        private List<string> GetKeysToRemove(string rootPrefix)
+        {
             var keysToRemove = new List<string>();
             var baselineSuffix = "|baseline=";
 
@@ -93,36 +125,38 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 }
 
                 var pathFromKey = key.Substring(0, sep);
-                try
-                {
-                    var fullPath = Path.GetFullPath(pathFromKey);
-                    if (fullPath.Length > 0 && !fullPath.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
-                    {
-                        keysToRemove.Add(key);
-                    }
-                }
-                catch
+                if (ShouldRemoveKey(pathFromKey, rootPrefix))
                 {
                     keysToRemove.Add(key);
                 }
             }
 
-            if (keysToRemove.Any())
-            {
-                foreach (var k in keysToRemove)
-                {
-                    Cache.TryRemove(k, out _);
-                }
-
-                return true;
-            }
-
-            return false;
+            return keysToRemove;
         }
 
-        public bool CleanupOldGenerations()
+        private bool ShouldRemoveKey(string pathFromKey, string rootPrefix)
         {
-            var cacheGeneration = CacheGeneration.Current;
+            try
+            {
+                var fullPath = Path.GetFullPath(pathFromKey);
+                return fullPath.Length > 0 && !fullPath.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        private void RemoveKeys(List<string> keysToRemove)
+        {
+            foreach (var k in keysToRemove)
+            {
+                Cache.TryRemove(k, out _);
+            }
+        }
+
+        private List<string> GetEntriesToClean(long cacheGeneration)
+        {
             var entriesToClean = new List<string>();
 
             foreach (var pair in Cache)
@@ -133,17 +167,15 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 }
             }
 
-            if (entriesToClean.Any())
+            return entriesToClean;
+        }
+
+        private void RemoveEntries(List<string> entriesToClean)
+        {
+            foreach (var entry in entriesToClean)
             {
-                foreach (var entry in entriesToClean)
-                {
-                    Cache.TryRemove(entry, out _);
-                }
-
-                return true;
+                Cache.TryRemove(entry, out _);
             }
-
-            return false;
         }
 
         private string GetCacheKey(string filePath, bool isBaseline)
