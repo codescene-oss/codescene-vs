@@ -39,7 +39,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var result = await _cachingReviewer.ReviewAsync(path, content);
 
             Assert.IsNull(result);
-            _mockInnerReviewer.Verify(r => r.ReviewAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockInnerReviewer.Verify(r => r.ReviewAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

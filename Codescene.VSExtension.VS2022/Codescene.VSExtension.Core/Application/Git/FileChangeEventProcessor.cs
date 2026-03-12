@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Enums.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Util;
@@ -16,7 +17,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ConcurrentQueue<FileChangeEvent> _eventQueue = new ConcurrentQueue<FileChangeEvent>();
         private readonly SemaphoreSlim _concurrencySemaphore;
         private readonly ILogger _logger;
-        private readonly Func<FileChangeEvent, List<string>, CancellationToken, Task> _processEventCallback;
+        private readonly Func<FileChangeEvent, List<string>, long?, CancellationToken, Task> _processEventCallback;
         private readonly Func<Task<List<string>>> _getChangedFilesCallback;
         private readonly IAsyncTaskScheduler _taskScheduler;
         private Timer _scheduledTimer;
@@ -25,7 +26,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         public FileChangeEventProcessor(
             ILogger logger,
             IAsyncTaskScheduler taskScheduler,
-            Func<FileChangeEvent, List<string>, CancellationToken, Task> processEventCallback,
+            Func<FileChangeEvent, List<string>, long?, CancellationToken, Task> processEventCallback,
             Func<Task<List<string>>> getChangedFilesCallback)
         {
             _logger = logger;
@@ -117,6 +118,8 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
+            var operationGeneration = CacheGeneration.Current;
+
             var events = DrainQueue();
 
             if (events.Count == 0)
@@ -142,7 +145,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            ScheduleCoalescedEvents(coalesced, changedFiles);
+            ScheduleCoalescedEvents(coalesced, changedFiles, operationGeneration);
         }
 
         private List<FileChangeEvent> DrainQueue()
@@ -156,18 +159,18 @@ namespace Codescene.VSExtension.Core.Application.Git
             return events;
         }
 
-        private void ScheduleCoalescedEvents(List<FileChangeEvent> coalesced, List<string> changedFiles)
+        private void ScheduleCoalescedEvents(List<FileChangeEvent> coalesced, List<string> changedFiles, long? operationGeneration)
         {
             var token = _cancellationToken;
             foreach (var evt in coalesced)
             {
                 var capturedEvt = evt;
                 var capturedChangedFiles = changedFiles;
-                _taskScheduler.Schedule(() => ProcessOneEventAsync(capturedEvt, capturedChangedFiles, token));
+                _taskScheduler.Schedule(() => ProcessOneEventAsync(capturedEvt, capturedChangedFiles, operationGeneration, token));
             }
         }
 
-        private async Task ProcessOneEventAsync(FileChangeEvent evt, List<string> changedFiles, CancellationToken token)
+        private async Task ProcessOneEventAsync(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken token)
         {
             if (token.IsCancellationRequested)
             {
@@ -177,7 +180,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             await _concurrencySemaphore.WaitAsync(token);
             try
             {
-                await _processEventCallback(evt, changedFiles, token);
+                await _processEventCallback(evt, changedFiles, operationGeneration, token);
             }
             catch (OperationCanceledException)
             {

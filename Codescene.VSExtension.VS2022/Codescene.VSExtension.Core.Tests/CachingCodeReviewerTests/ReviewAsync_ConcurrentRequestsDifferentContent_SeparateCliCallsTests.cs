@@ -43,10 +43,10 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var tcs2 = new TaskCompletionSource<FileReviewModel>();
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, content1, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, content1, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .Returns(tcs1.Task);
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, content2, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, content2, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .Returns(tcs2.Task);
 
             var task1 = _cachingReviewer.ReviewAsync(path, content1);
@@ -60,10 +60,10 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             Assert.AreEqual(8.0f, results[0].Score);
             Assert.AreEqual(7.5f, results[1].Score);
             _mockInnerReviewer.Verify(
-                r => r.ReviewAsync(path, content1, false, It.IsAny<CancellationToken>()),
+                r => r.ReviewAsync(path, content1, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
                 Times.Once);
             _mockInnerReviewer.Verify(
-                r => r.ReviewAsync(path, content2, false, It.IsAny<CancellationToken>()),
+                r => r.ReviewAsync(path, content2, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
                 Times.Once);
         }
     }

@@ -40,7 +40,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             var tcs = new TaskCompletionSource<FileReviewModel>();
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .Returns(tcs.Task);
 
             var task1 = _cachingReviewer.ReviewAsync(path, content);
@@ -57,7 +57,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 "All results should be identical");
 
             _mockInnerReviewer.Verify(
-                r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()),
+                r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
                 Times.Once,
                 "Concurrent requests with same content should coalesce into ONE CLI call");
         }

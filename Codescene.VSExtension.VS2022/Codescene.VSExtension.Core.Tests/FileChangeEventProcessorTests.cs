@@ -19,7 +19,7 @@ namespace Codescene.VSExtension.Core.Tests
             FileChangeEvent capturedEvt = null;
             List<string> capturedChangedFiles = null;
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
             {
                 processEventInvoked = true;
                 capturedEvt = evt;
@@ -58,7 +58,7 @@ namespace Codescene.VSExtension.Core.Tests
             bool IsExpectedWarning(string m) =>
                 m.Contains("Error processing file change event") && m.Contains("simulated error");
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct) =>
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct) =>
                 throw new InvalidOperationException("simulated error");
 
             Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
@@ -84,7 +84,7 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
@@ -117,7 +117,7 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
@@ -149,7 +149,7 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
@@ -182,7 +182,7 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processEventInvoked = false;
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
             {
                 processEventInvoked = true;
                 return Task.CompletedTask;
@@ -211,7 +211,7 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processEventInvoked = false;
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
             {
                 processEventInvoked = true;
                 return Task.CompletedTask;
@@ -238,7 +238,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             using (var cts = new CancellationTokenSource())
             {
-                Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, CancellationToken ct)
+                Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
                 {
                     if (evt.FilePath == "first.cs")
                     {

@@ -39,7 +39,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var result = new FileReviewModel { FilePath = pathUpperCase, Score = 8.5f };
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(It.IsAny<string>(), content, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(It.IsAny<string>(), content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
             // First request with uppercase path
@@ -55,7 +55,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             // This assertion will FAIL if case sensitivity causes cache miss
             _mockInnerReviewer.Verify(
-                r => r.ReviewAsync(It.IsAny<string>(), content, false, It.IsAny<CancellationToken>()),
+                r => r.ReviewAsync(It.IsAny<string>(), content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
                 Times.Once,
                 "Same content with different path casing should use cached result, not call inner reviewer twice");
         }

@@ -40,8 +40,13 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             return new List<FnToRefactorModel>();
         }
 
-        public override void Put(AceRefactorableFunctionsEntry entry)
+        public override void Put(AceRefactorableFunctionsEntry entry, long? operationGeneration = null)
         {
+            if (!IsStillCurrentGeneration(operationGeneration))
+            {
+                return;
+            }
+
             string filePath = entry.FilePath;
             string fileContents = entry.FileContents;
             string contentHash = Hash(fileContents);

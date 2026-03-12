@@ -14,20 +14,17 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
     {
         private static readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> SharedCache = new ConcurrentDictionary<string, (string, long)>();
         private readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> _cache;
-        private readonly long _capturedGeneration;
         private readonly long? _generationOverride;
 
         public BaselineReviewCacheService()
         {
             _cache = SharedCache;
-            _capturedGeneration = CacheGeneration.Current;
         }
 
         public BaselineReviewCacheService(ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> store, long? testGenerationOverride = null)
         {
             _cache = store;
             _generationOverride = testGenerationOverride;
-            _capturedGeneration = testGenerationOverride ?? CacheGeneration.Current;
         }
 
         public (bool Found, string RawScore) Get(string filePath, string baselineContent)
@@ -46,9 +43,9 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             return (true, entry.RawScore);
         }
 
-        public void Put(string filePath, string baselineContent, string rawScore)
+        public void Put(string filePath, string baselineContent, string rawScore, long? operationGeneration = null)
         {
-            if (!_generationOverride.HasValue && CacheGeneration.Current != _capturedGeneration)
+            if (IsWrongGeneration(operationGeneration))
             {
                 return;
             }
@@ -64,7 +61,6 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public void Clear()
         {
-            CacheGeneration.Increment();
             _cache.Clear();
         }
 
@@ -90,41 +86,36 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
         }
 
-        public void RemoveEntriesOutsideRoot(string gitRootPath)
+        public bool RemoveEntriesOutsideRoot(string gitRootPath)
         {
             if (string.IsNullOrEmpty(gitRootPath))
             {
-                return;
+                return false;
             }
 
-            var rootPrefix = Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            var keysToRemove = new List<string>();
+            var rootPrefix = GetRootPrefix(gitRootPath);
+            var keysToRemove = GetKeysToRemove(rootPrefix);
 
-            foreach (var key in _cache.Keys)
+            if (keysToRemove.Any())
             {
-                if (!TryParseCacheKey(key, out var pathFromKey, out _))
-                {
-                    continue;
-                }
-
-                try
-                {
-                    var fullPath = Path.GetFullPath(pathFromKey);
-                    if (fullPath.Length > 0 && !fullPath.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase))
-                    {
-                        keysToRemove.Add(key);
-                    }
-                }
-                catch
-                {
-                    keysToRemove.Add(key);
-                }
+                RemoveKeys(keysToRemove);
+                return true;
             }
 
-            foreach (var k in keysToRemove)
+            return false;
+        }
+
+        public bool CleanupOldGenerations()
+        {
+            var entriesToClean = GetEntriesToClean();
+
+            if (entriesToClean.Any())
             {
-                _cache.TryRemove(k, out _);
+                RemoveEntries(entriesToClean);
+                return true;
             }
+
+            return false;
         }
 
         private static bool TryParseCacheKey(string key, out string path, out string hash)
@@ -154,6 +145,81 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             var bytes = Encoding.UTF8.GetBytes(content);
             var hashBytes = sha.ComputeHash(bytes);
             return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
+        }
+
+        private List<string> GetEntriesToClean()
+        {
+            var cacheGeneration = CacheGeneration.Current;
+            var entriesToClean = new List<string>();
+
+            foreach (var pair in _cache)
+            {
+                if (pair.Value.CacheGeneration != cacheGeneration)
+                {
+                    entriesToClean.Add(pair.Key);
+                }
+            }
+
+            return entriesToClean;
+        }
+
+        private void RemoveEntries(List<string> entriesToClean)
+        {
+            foreach (var entry in entriesToClean)
+            {
+                _cache.TryRemove(entry, out _);
+            }
+        }
+
+        private bool IsWrongGeneration(long? operationGeneration)
+        {
+            return !_generationOverride.HasValue && operationGeneration != null && CacheGeneration.Current != operationGeneration;
+        }
+
+        private string GetRootPrefix(string gitRootPath)
+        {
+            return Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        }
+
+        private List<string> GetKeysToRemove(string rootPrefix)
+        {
+            var keysToRemove = new List<string>();
+
+            foreach (var key in _cache.Keys)
+            {
+                if (!TryParseCacheKey(key, out var pathFromKey, out _))
+                {
+                    continue;
+                }
+
+                if (ShouldRemoveKey(pathFromKey, rootPrefix))
+                {
+                    keysToRemove.Add(key);
+                }
+            }
+
+            return keysToRemove;
+        }
+
+        private bool ShouldRemoveKey(string pathFromKey, string rootPrefix)
+        {
+            try
+            {
+                var fullPath = Path.GetFullPath(pathFromKey);
+                return fullPath.Length > 0 && !fullPath.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        private void RemoveKeys(List<string> keysToRemove)
+        {
+            foreach (var k in keysToRemove)
+            {
+                _cache.TryRemove(k, out _);
+            }
         }
     }
 }

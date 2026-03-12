@@ -46,7 +46,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             };
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResult);
 
             var result = await _cachingReviewer.ReviewAsync(path, content);
@@ -54,7 +54,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             Assert.IsNotNull(result);
             Assert.AreEqual(expectedResult.Score, result.Score);
             Assert.AreEqual(expectedResult.FilePath, result.FilePath);
-            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

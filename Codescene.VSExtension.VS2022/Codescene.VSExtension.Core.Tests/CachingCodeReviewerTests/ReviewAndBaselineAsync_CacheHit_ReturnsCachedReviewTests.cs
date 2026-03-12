@@ -66,7 +66,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             Assert.AreEqual(cachedReview.Score, result.review.Score);
             Assert.AreEqual(cachedReview.RawScore, result.review.RawScore);
             Assert.AreEqual(cachedBaselineRawScore, result.baselineRawScore);
-            _mockInnerReviewer.Verify(r => r.ReviewAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockInnerReviewer.Verify(r => r.ReviewAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

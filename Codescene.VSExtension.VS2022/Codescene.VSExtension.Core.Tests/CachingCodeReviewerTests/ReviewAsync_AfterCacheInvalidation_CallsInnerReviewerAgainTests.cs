@@ -39,7 +39,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var newResult = new FileReviewModel { FilePath = path, Score = 9.0f };
 
             _mockInnerReviewer
-                .SetupSequence(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()))
+                .SetupSequence(r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(originalResult)
                 .ReturnsAsync(newResult);
 
@@ -52,7 +52,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             Assert.AreEqual(9.0f, secondResult.Score, "Should get fresh result after invalidation");
             _mockInnerReviewer.Verify(
-                r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()),
+                r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
                 Times.Exactly(2),
                 "Inner reviewer should be called twice - once before and once after invalidation");
         }

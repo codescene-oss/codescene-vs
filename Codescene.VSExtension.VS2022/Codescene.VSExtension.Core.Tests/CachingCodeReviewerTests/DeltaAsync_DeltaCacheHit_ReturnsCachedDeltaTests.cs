@@ -82,7 +82,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             Assert.AreEqual(cachedDelta.NewScore, result.NewScore);
             Assert.AreEqual(cachedDelta.OldScore, result.OldScore);
             Assert.AreEqual(cachedDelta.ScoreChange, result.ScoreChange);
-            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

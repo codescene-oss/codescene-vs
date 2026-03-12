@@ -68,6 +68,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             cache.Clear();
             new BaselineReviewCacheService().Clear();
             new ReviewCacheService().Clear();
+            CacheGeneration.Increment();
 
             _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
             _scheduler.Schedule(ct => AceToolWindow.CloseAsync());
@@ -329,6 +330,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             cache.Clear();
             new BaselineReviewCacheService().Clear();
             new ReviewCacheService().Clear();
+            CacheGeneration.Increment();
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());

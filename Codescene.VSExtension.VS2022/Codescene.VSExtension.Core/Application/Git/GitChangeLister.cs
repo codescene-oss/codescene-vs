@@ -71,9 +71,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return allFiles;
             });
             cancellationToken.ThrowIfCancellationRequested();
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeLister: GetAllChangedFilesAsync found {result.Count} files");
-            #endif
+#endif
             return result;
         }
 
@@ -91,9 +91,9 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             _gitRootPath = gitRootPath;
             _workspacePaths = workspacePaths ?? Array.Empty<string>();
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeLister: Initialized with gitRoot='{gitRootPath}', workspacePaths count={_workspacePaths.Count}");
-            #endif
+#endif
         }
 
         public void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
@@ -121,18 +121,18 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _logger);
 
             _scheduledExecutor.Start();
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeLister: Started periodic scanning with {_pollingInterval} second interval");
-            #endif
+#endif
         }
 
         public void StopPeriodicScanning()
         {
             _scheduledExecutor?.Stop();
             _scheduledExecutor = null;
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeLister: Stopped periodic scanning");
-            #endif
+#endif
         }
 
         public virtual Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default)
@@ -147,9 +147,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeLister: Disposing and cleaning up resources");
-            #endif
+#endif
             StopPeriodicScanning();
             _scheduledExecutor?.Dispose();
             _scheduledExecutor = null;
@@ -197,9 +197,9 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                 _untrackedFileProcessor.ProcessUntrackedDirectories(untrackedByDirectory, savedFiles, changedFiles);
                 changedFiles.RemoveWhere(path => _gitService.IsFileIgnored(path));
-                #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeLister: CollectFilesFromRepoState collected {changedFiles.Count} files from repo state");
-                #endif
+#endif
             }
             catch (Exception ex)
             {
@@ -215,9 +215,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 var relativePaths = GetChangedFilesVsMergeBase(repo, gitRootPath, workspacePaths);
                 var result = ConvertAndFilterPaths(relativePaths, gitRootPath);
-                #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeLister: CollectFilesFromGitDiff collected {result.Count} files from git diff");
-                #endif
+#endif
                 return result;
             }
             catch (Exception ex)
@@ -273,9 +273,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             CancellationToken cancellationToken,
             Func<Repository, HashSet<string>> operation)
         {
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeLister: Starting operation '{operationName}'");
-            #endif
+#endif
             return await Task.Run(
             () =>
             {
@@ -321,9 +321,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             CancellationToken cancellationToken = default)
         {
             var result = await ExecuteGitOperationAsync(gitRootPath, workspacePaths, operationName, cancellationToken, repo => repoOperation(repo, gitRootPath, workspacePaths));
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeLister: {logLabel} {result.Count} files");
-            #endif
+#endif
             return result;
         }
 
@@ -332,18 +332,23 @@ namespace Codescene.VSExtension.Core.Application.Git
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                ReviewCacheCleanup.CleanupCachesOutsideRoot(_gitRootPath);
-
+                var didCleanup = ReviewCacheCleanup.CleanupCaches(_gitRootPath);
                 var files = await GetAllChangedFilesAsync(_gitRootPath, _workspacePaths, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
+                if (didCleanup)
+                {
+                    files ??= new HashSet<string>();
+                    files.Add("~~cleanup~~");
+                }
+
                 if (files == null || files.Count == 0)
                 {
                     return;
                 }
 
-                #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeLister: Periodic scan detected {files.Count} files");
-                #endif
+#endif
                 FilesDetected?.Invoke(this, files);
             }
             catch (OperationCanceledException)
@@ -360,9 +365,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             var isValid = !string.IsNullOrEmpty(gitRootPath) && Directory.Exists(gitRootPath);
             if (!isValid)
             {
-                #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeLister: Invalid git root path '{gitRootPath}'");
-                #endif
+#endif
             }
 
             return isValid;
@@ -371,9 +376,9 @@ namespace Codescene.VSExtension.Core.Application.Git
         private HashSet<string> GetChangedFilesVsMergeBase(Repository repo, string gitRootPath, IReadOnlyCollection<string> workspacePaths)
         {
             var currentBranch = repo.Head?.FriendlyName ?? "unknown";
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeLister: Getting changed files vs merge base on branch '{currentBranch}'");
-            #endif
+#endif
 
             var mergeBase = _mergeBaseFinder.GetMergeBaseCommit(repo);
             if (mergeBase == null)
@@ -418,9 +423,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
             }
 
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeLister: GetCommittedChanges found {changedFiles.Count} committed changes");
-            #endif
+#endif
             return changedFiles;
         }
 
