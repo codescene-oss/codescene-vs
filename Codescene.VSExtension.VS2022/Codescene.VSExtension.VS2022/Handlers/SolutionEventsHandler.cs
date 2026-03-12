@@ -68,6 +68,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             cache.Clear();
             new BaselineReviewCacheService().Clear();
             new ReviewCacheService().Clear();
+            new AceRefactorableFunctionsCacheService().Clear();
             CacheGeneration.Increment();
 
             _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
@@ -112,6 +113,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             new DeltaCacheService().Clear();
             new BaselineReviewCacheService().Clear();
             new ReviewCacheService().Clear();
+            new AceRefactorableFunctionsCacheService().Clear();
 
             _branchWatcher = new BranchWatcherService();
             _branchWatcher.StartWatching(solutionPath, (newBranch) =>
@@ -328,8 +330,9 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
             var cache = new DeltaCacheService();
             cache.Clear();
-            new BaselineReviewCacheService().Clear();
-            new ReviewCacheService().Clear();
+            //new BaselineReviewCacheService().Clear();
+            //new ReviewCacheService().Clear();
+            //new AceRefactorableFunctionsCacheService().Clear();
             CacheGeneration.Increment();
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();

@@ -14,7 +14,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
-            _cache = new BaselineReviewCacheService(new ConcurrentDictionary<string, (string RawScore, long CacheGeneration)>(), testGenerationOverride: 0);
+            _cache = new BaselineReviewCacheService(new ConcurrentDictionary<string, string>());
         }
 
         [TestMethod]
@@ -62,29 +62,6 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsTrue(found);
             Assert.AreEqual("raw-score", rawScore);
-        }
-
-        [TestMethod]
-        public void Get_AfterCacheGenerationIncrement_ReturnsNotFound()
-        {
-            CacheGeneration.Reset();
-            var testCache = new BaselineReviewCacheService(new ConcurrentDictionary<string, (string RawScore, long CacheGeneration)>());
-
-            testCache.Put("file.cs", "content", "raw-score");
-            Assert.IsTrue(testCache.Get("file.cs", "content").Found);
-
-            CacheGeneration.Increment();
-
-            try
-            {
-                var (found, rawScore) = testCache.Get("file.cs", "content");
-                Assert.IsFalse(found);
-                Assert.IsNull(rawScore);
-            }
-            finally
-            {
-                CacheGeneration.Reset();
-            }
         }
 
         [TestMethod]
@@ -243,9 +220,9 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void RemoveEntriesOutsideRoot_WhenGetFullPathThrows_RemovesKey()
         {
-            var store = new ConcurrentDictionary<string, (string RawScore, long CacheGeneration)>();
+            var store = new ConcurrentDictionary<string, string>();
             var key = "\0|abc123";
-            store[key] = ("score", 0);
+            store[key] = "score";
             var service = new BaselineReviewCacheService(store);
             service.RemoveEntriesOutsideRoot(Path.GetTempPath());
             Assert.IsFalse(store.ContainsKey(key));

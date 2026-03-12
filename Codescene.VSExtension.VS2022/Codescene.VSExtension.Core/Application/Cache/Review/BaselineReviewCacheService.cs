@@ -12,19 +12,17 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 {
     public class BaselineReviewCacheService
     {
-        private static readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> SharedCache = new ConcurrentDictionary<string, (string, long)>();
-        private readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> _cache;
-        private readonly long? _generationOverride;
+        private static readonly ConcurrentDictionary<string, string> SharedCache = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> _cache;
 
         public BaselineReviewCacheService()
         {
             _cache = SharedCache;
         }
 
-        public BaselineReviewCacheService(ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> store, long? testGenerationOverride = null)
+        public BaselineReviewCacheService(ConcurrentDictionary<string, string> store)
         {
             _cache = store;
-            _generationOverride = testGenerationOverride;
         }
 
         public (bool Found, string RawScore) Get(string filePath, string baselineContent)
@@ -35,28 +33,23 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
 
             var key = CacheKey(filePath, baselineContent);
-            if (!_cache.TryGetValue(key, out var entry) || entry.CacheGeneration != CacheGeneration.Current)
+            if (!_cache.TryGetValue(key, out var entry))
             {
                 return (false, null);
             }
 
-            return (true, entry.RawScore);
+            return (true, entry);
         }
 
         public void Put(string filePath, string baselineContent, string rawScore, long? operationGeneration = null)
         {
-            if (IsWrongGeneration(operationGeneration))
-            {
-                return;
-            }
-
             if (string.IsNullOrEmpty(filePath) || string.IsNullOrEmpty(baselineContent))
             {
                 return;
             }
 
             var key = CacheKey(filePath, baselineContent);
-            _cache[key] = (rawScore ?? string.Empty, CacheGeneration.Current);
+            _cache[key] = rawScore ?? string.Empty;
         }
 
         public void Clear()
@@ -105,19 +98,6 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             return false;
         }
 
-        public bool CleanupOldGenerations()
-        {
-            var entriesToClean = GetEntriesToClean();
-
-            if (entriesToClean.Any())
-            {
-                RemoveEntries(entriesToClean);
-                return true;
-            }
-
-            return false;
-        }
-
         private static bool TryParseCacheKey(string key, out string path, out string hash)
         {
             path = null;
@@ -145,35 +125,6 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             var bytes = Encoding.UTF8.GetBytes(content);
             var hashBytes = sha.ComputeHash(bytes);
             return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
-        }
-
-        private List<string> GetEntriesToClean()
-        {
-            var cacheGeneration = CacheGeneration.Current;
-            var entriesToClean = new List<string>();
-
-            foreach (var pair in _cache)
-            {
-                if (pair.Value.CacheGeneration != cacheGeneration)
-                {
-                    entriesToClean.Add(pair.Key);
-                }
-            }
-
-            return entriesToClean;
-        }
-
-        private void RemoveEntries(List<string> entriesToClean)
-        {
-            foreach (var entry in entriesToClean)
-            {
-                _cache.TryRemove(entry, out _);
-            }
-        }
-
-        private bool IsWrongGeneration(long? operationGeneration)
-        {
-            return !_generationOverride.HasValue && operationGeneration != null && CacheGeneration.Current != operationGeneration;
         }
 
         private string GetRootPrefix(string gitRootPath)
