@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-03-12
+### Fixed
+- refactorable functions delta (#259)
+
+
 ## [0.6.3] - 2026-03-12
 ### Fixed
 - isolate cache generation (#258)
@@ -327,6 +332,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 
 
 
