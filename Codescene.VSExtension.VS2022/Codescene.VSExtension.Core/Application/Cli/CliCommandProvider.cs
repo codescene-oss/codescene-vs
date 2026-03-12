@@ -15,7 +15,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CliCommandProvider : ICliCommandProvider
     {
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore };
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Include };
 
         private readonly ICliObjectScoreCreator _creator;
 

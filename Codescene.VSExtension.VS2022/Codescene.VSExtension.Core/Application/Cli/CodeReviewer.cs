@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
@@ -27,6 +29,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ITelemetryManager _telemetryManager;
         private readonly IGitService _git;
         private readonly ICodeHealthMonitorNotifier _notifier;
+        private readonly IPreflightManager _preflightManager;
 
         public CodeReviewer(
             ILogger logger,
@@ -34,7 +37,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
             ICliExecutor executor,
             ITelemetryManager telemetryManager,
             IGitService git,
-            ICodeHealthMonitorNotifier notifier = null)
+            ICodeHealthMonitorNotifier notifier = null,
+            IPreflightManager preflightManager = null)
         {
             _logger = logger;
             _mapper = mapper;
@@ -42,6 +46,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _telemetryManager = telemetryManager;
             _git = git;
             _notifier = notifier;
+            _preflightManager = preflightManager;
         }
 
         public async Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)
@@ -99,8 +104,26 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var delta = await _executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = oldRawScore, NewScore = currentRawScore, FilePath = path, FileContent = currentCode }, cancellationToken);
-
                 cancellationToken.ThrowIfCancellationRequested();
+                if (_preflightManager == null)
+                {
+                    return delta;
+                }
+
+                var preflight = await _preflightManager.GetPreflightResponseAsync(cancellationToken);
+                var refactorableFunctions = await _executor.FnsToRefactorFromDeltaAsync(path, currentCode, delta, preflight, cancellationToken);
+                if (refactorableFunctions.Any())
+                {
+                    foreach (var refactorableFunction in refactorableFunctions)
+                    {
+                        var function = delta.FunctionLevelFindings.FirstOrDefault(x => x.Function.Name == refactorableFunction.Name);
+                        if (function != null)
+                        {
+                            function.RefactorableFn = refactorableFunction;
+                        }
+                    }
+                }
+
                 return delta;
             }
             catch (OperationCanceledException)

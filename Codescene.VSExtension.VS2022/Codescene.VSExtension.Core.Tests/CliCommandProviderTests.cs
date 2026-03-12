@@ -50,7 +50,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var content = _commandProvider.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, TestCachePath, codeSmells);
 
-            Assert.AreEqual($"{{\"code-smells\":[{{\"category\":\"{codeSmells.First().Category}\"}}],\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"cache-path\":\"{TestCachePath}\"}}", content);
+            Assert.AreEqual($"{{\"code-smells\":[{{\"category\":\"{codeSmells.First().Category}\",\"details\":null,\"highlight-range\":null}}],\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"preflight\":null,\"cache-path\":\"{TestCachePath}\"}}", content);
         }
 
         [TestMethod]
@@ -61,7 +61,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var content = _commandProvider.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, TestCachePath, codeSmells, preflight);
 
-            Assert.AreEqual($"{{\"code-smells\":[{{\"category\":\"{codeSmells.First().Category}\"}}],\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"preflight\":{{\"file-types\":[\"{preflight.FileTypes.First()}\"]}},\"cache-path\":\"{TestCachePath}\"}}", content);
+            Assert.AreEqual($"{{\"code-smells\":[{{\"category\":\"{codeSmells.First().Category}\",\"details\":null,\"highlight-range\":null}}],\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"preflight\":{{\"version\":0.0,\"file-types\":[\"{preflight.FileTypes.First()}\"],\"language-common\":null,\"language-specific\":null}},\"cache-path\":\"{TestCachePath}\"}}", content);
         }
 
         [TestMethod]
@@ -73,7 +73,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var expectedNewScore = deltaResult.NewScore.ToString("0.0", CultureInfo.InvariantCulture);
             var expectedOldScore = deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture);
-            Assert.AreEqual($"{{\"delta-result\":{{\"new-score\":{expectedNewScore},\"old-score\":{expectedOldScore}}},\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"cache-path\":\"{TestCachePath}\"}}", content);
+            Assert.AreEqual($"{{\"delta-result\":{{\"file-level-findings\":null,\"function-level-findings\":null,\"new-score\":{expectedNewScore},\"old-score\":{expectedOldScore},\"score-change\":0.0}},\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"preflight\":null,\"cache-path\":\"{TestCachePath}\"}}", content);
         }
 
         [TestMethod]
@@ -86,7 +86,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var expectedNewScore = deltaResult.NewScore.ToString("0.0", CultureInfo.InvariantCulture);
             var expectedOldScore = deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture);
-            Assert.AreEqual($"{{\"delta-result\":{{\"new-score\":{expectedNewScore},\"old-score\":{expectedOldScore}}},\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"preflight\":{{\"file-types\":[\"{preflight.FileTypes.First()}\"]}},\"cache-path\":\"{TestCachePath}\"}}", content);
+            Assert.AreEqual($"{{\"delta-result\":{{\"file-level-findings\":null,\"function-level-findings\":null,\"new-score\":{expectedNewScore},\"old-score\":{expectedOldScore},\"score-change\":0.0}},\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"preflight\":{{\"version\":0.0,\"file-types\":[\"{preflight.FileTypes.First()}\"],\"language-common\":null,\"language-specific\":null}},\"cache-path\":\"{TestCachePath}\"}}", content);
         }
 
         [TestMethod]
@@ -241,7 +241,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var payload = _commandProvider.GetReviewFileContentPayload(TestFileName, TestFileContent, cachePath);
 
-            Assert.AreEqual($"{{\"path\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", payload);
+            Assert.AreEqual($"{{\"path\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"cache-path\":null}}", payload);
         }
 
         [TestMethod]
@@ -254,8 +254,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var content = _commandProvider.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, cachePath, codeSmells);
 
-            Assert.AreEqual($"{{\"code-smells\":[{{\"category\":\"{codeSmells.First().Category}\"}}],\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", content);
-            Assert.DoesNotContain("cache-path", content);
+            Assert.AreEqual($"{{\"code-smells\":[{{\"category\":\"{codeSmells.First().Category}\",\"details\":null,\"highlight-range\":null}}],\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"preflight\":null,\"cache-path\":null}}", content);
         }
 
         [TestMethod]
@@ -270,8 +269,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var expectedNewScore = deltaResult.NewScore.ToString("0.0", CultureInfo.InvariantCulture);
             var expectedOldScore = deltaResult.OldScore.ToString("0.0", CultureInfo.InvariantCulture);
-            Assert.AreEqual($"{{\"delta-result\":{{\"new-score\":{expectedNewScore},\"old-score\":{expectedOldScore}}},\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\"}}", content);
-            Assert.DoesNotContain("cache-path", content);
+            Assert.AreEqual($"{{\"delta-result\":{{\"file-level-findings\":null,\"function-level-findings\":null,\"new-score\":{expectedNewScore},\"old-score\":{expectedOldScore},\"score-change\":0.0}},\"file-name\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"preflight\":null,\"cache-path\":null}}", content);
         }
 
         private static List<CliCodeSmellModel> CreateTestCodeSmells()

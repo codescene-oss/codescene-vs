@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Application.Services;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
@@ -25,6 +26,7 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
         private readonly CachingCodeReviewer _inner;
         private readonly CodeHealthMonitorNotifier _notifier;
         private readonly IAsyncTaskScheduler _scheduler;
+        private readonly IPreflightManager _preflightManager;
 
         [ImportingConstructor]
         public CachingCodeReviewerProvider(
@@ -33,13 +35,15 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
             ICliExecutor executor,
             ITelemetryManager telemetryManager,
             IGitService git,
-            IAsyncTaskScheduler scheduler)
+            IAsyncTaskScheduler scheduler,
+            IPreflightManager preflightManager)
         {
             _scheduler = scheduler;
+            _preflightManager = preflightManager;
             _notifier = new CodeHealthMonitorNotifier();
             _notifier.ViewUpdateRequested += OnViewUpdateRequested;
 
-            var baseReviewer = new CodeReviewer(logger, mapper, executor, telemetryManager, git, _notifier);
+            var baseReviewer = new CodeReviewer(logger, mapper, executor, telemetryManager, git, _notifier, _preflightManager);
             _inner = new CachingCodeReviewer(
                 innerReviewer: baseReviewer,
                 logger: logger,
