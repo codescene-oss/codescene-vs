@@ -101,6 +101,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 It.IsAny<FileReviewModel>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<long?>(),
                 It.IsAny<CancellationToken>())).ReturnsAsync(expectedDelta);
 
             var result = await _cachingReviewer.DeltaAsync(review, currentContent);
@@ -145,6 +146,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 It.IsAny<FileReviewModel>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<long?>(),
                 It.IsAny<CancellationToken>())).ReturnsAsync(expectedDelta);
 
             var result = await _cachingReviewer.DeltaAsync(review, currentContent);
@@ -192,6 +194,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 It.IsAny<FileReviewModel>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<long?>(),
                 It.IsAny<CancellationToken>())).ReturnsAsync(expectedDelta);
 
             var result = await cachingReviewerWithoutTelemetry.DeltaAsync(review, currentContent);
@@ -228,11 +231,13 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<bool>(),
+                It.IsAny<long?>(),
                 It.IsAny<CancellationToken>())).ReturnsAsync(new FileReviewModel { RawScore = oldRawScore });
             _mockInnerReviewer.Setup(r => r.DeltaAsync(
                 It.IsAny<FileReviewModel>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<long?>(),
                 It.IsAny<CancellationToken>())).ReturnsAsync(expectedDelta);
 
             var result = await _cachingReviewer.DeltaAsync(review, currentContent);
@@ -286,6 +291,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 It.IsAny<FileReviewModel>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
+                It.IsAny<long?>(),
                 It.IsAny<CancellationToken>())).ReturnsAsync(CreateDeltaResponse(0.5m));
 
             var result1 = await _cachingReviewer.DeltaAsync(review1, currentContent1);

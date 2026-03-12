@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -59,7 +60,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _workspacePaths = workspacePaths ?? Array.Empty<string>();
         }
 
-        public async Task HandleFileChangeAsync(string filePath, List<string> changedFiles, CancellationToken cancellationToken = default)
+        public async Task HandleFileChangeAsync(string filePath, List<string> changedFiles, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             var isDirectory = !Path.HasExtension(filePath);
             if (isDirectory)
@@ -92,7 +93,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            await ReviewFileAsync(filePath, cancellationToken);
+            await ReviewFileAsync(filePath, operationGeneration, cancellationToken);
         }
 
         public async Task HandleFileDeleteAsync(string filePath, List<string> changedFiles, CancellationToken cancellationToken = default)
@@ -165,7 +166,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return true;
         }
 
-        public async Task ReviewFileAsync(string filePath, CancellationToken cancellationToken = default)
+        public async Task ReviewFileAsync(string filePath, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -197,7 +198,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 content ??= File.ReadAllText(filePath);
 
                 cancellationToken.ThrowIfCancellationRequested();
-                var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content, cancellationToken).ConfigureAwait(false);
+                var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content, operationGeneration, cancellationToken).ConfigureAwait(false);
 
                 if (review != null)
                 {

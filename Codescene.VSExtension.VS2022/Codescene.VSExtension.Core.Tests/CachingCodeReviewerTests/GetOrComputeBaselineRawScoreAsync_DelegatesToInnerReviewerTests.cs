@@ -39,13 +39,13 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var baselineReview = new FileReviewModel { FilePath = path, RawScore = expectedScore };
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, baselineContent, true, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, baselineContent, true, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(baselineReview);
 
             var result = await _cachingReviewer.GetOrComputeBaselineRawScoreAsync(path, baselineContent);
 
             Assert.AreEqual(expectedScore, result);
-            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, baselineContent, true, It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, baselineContent, true, It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

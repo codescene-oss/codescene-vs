@@ -41,10 +41,10 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var modifiedResult = new FileReviewModel { FilePath = path, Score = 7.5f };
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, originalContent, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, originalContent, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(originalResult);
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, modifiedContent, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, modifiedContent, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(modifiedResult);
 
             var firstResult = await _cachingReviewer.ReviewAsync(path, originalContent);
@@ -52,8 +52,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             Assert.AreEqual(8.0f, firstResult.Score);
             Assert.AreEqual(7.5f, secondResult.Score);
-            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, originalContent, false, It.IsAny<CancellationToken>()), Times.Once);
-            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, modifiedContent, false, It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, originalContent, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, modifiedContent, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

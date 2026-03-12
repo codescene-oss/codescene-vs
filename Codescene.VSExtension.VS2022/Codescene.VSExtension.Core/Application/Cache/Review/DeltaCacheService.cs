@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 
@@ -56,9 +57,9 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         /// The key is the file path, and the cache stores hashes of both the
         /// head and current content. These hashes are later used to check staleness.
         /// </summary>
-        public override void Put(DeltaCacheEntry entry)
+        public override void Put(DeltaCacheEntry entry, long? operationGeneration = null)
         {
-            if (!IsCurrentGeneration())
+            if (!IsStillCurrentGeneration(operationGeneration))
             {
                 return;
             }
@@ -76,11 +77,12 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public Dictionary<string, DeltaResponseModel> GetAll()
         {
+            var cacheGeneration = CacheGeneration.Current;
             var result = new Dictionary<string, DeltaResponseModel>();
 
             foreach (var pair in Cache)
             {
-                if (pair.Value.Delta != null)
+                if (pair.Value.Delta != null && pair.Value.CacheGeneration == cacheGeneration)
                 {
                     result[pair.Value.FilePath] = pair.Value.Delta;
                 }
@@ -121,11 +123,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             return base.Contains(GetCacheKey(key));
         }
 
-        public void RemoveEntriesOutsideRoot(string gitRootPath)
+        public bool RemoveEntriesOutsideRoot(string gitRootPath)
         {
             if (string.IsNullOrEmpty(gitRootPath))
             {
-                return;
+                return false;
             }
 
             var rootPrefix = Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
@@ -140,10 +142,43 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 }
             }
 
-            foreach (var key in keysToRemove)
+            if (keysToRemove.Any())
             {
-                Cache.TryRemove(key, out _);
+                foreach (var key in keysToRemove)
+                {
+                    Cache.TryRemove(key, out _);
+                }
+
+                return true;
             }
+
+            return false;
+        }
+
+        public bool CleanupOldGenerations()
+        {
+            var cacheGeneration = CacheGeneration.Current;
+            var entriesToClean = new List<string>();
+
+            foreach (var pair in Cache)
+            {
+                if (pair.Value.CacheGeneration != cacheGeneration)
+                {
+                    entriesToClean.Add(pair.Key);
+                }
+            }
+
+            if (entriesToClean.Any())
+            {
+                foreach (var entry in entriesToClean)
+                {
+                    Cache.TryRemove(entry, out _);
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private string GetCacheKey(string filePath)

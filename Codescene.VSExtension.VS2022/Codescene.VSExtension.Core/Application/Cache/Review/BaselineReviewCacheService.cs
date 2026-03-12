@@ -14,20 +14,17 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
     {
         private static readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> SharedCache = new ConcurrentDictionary<string, (string, long)>();
         private readonly ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> _cache;
-        private readonly long _capturedGeneration;
         private readonly long? _generationOverride;
 
         public BaselineReviewCacheService()
         {
             _cache = SharedCache;
-            _capturedGeneration = CacheGeneration.Current;
         }
 
         public BaselineReviewCacheService(ConcurrentDictionary<string, (string RawScore, long CacheGeneration)> store, long? testGenerationOverride = null)
         {
             _cache = store;
             _generationOverride = testGenerationOverride;
-            _capturedGeneration = testGenerationOverride ?? CacheGeneration.Current;
         }
 
         public (bool Found, string RawScore) Get(string filePath, string baselineContent)
@@ -46,9 +43,9 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             return (true, entry.RawScore);
         }
 
-        public void Put(string filePath, string baselineContent, string rawScore)
+        public void Put(string filePath, string baselineContent, string rawScore, long? operationGeneration = null)
         {
-            if (!_generationOverride.HasValue && CacheGeneration.Current != _capturedGeneration)
+            if (!_generationOverride.HasValue && operationGeneration != null && CacheGeneration.Current != operationGeneration)
             {
                 return;
             }
@@ -64,7 +61,6 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 
         public void Clear()
         {
-            CacheGeneration.Increment();
             _cache.Clear();
         }
 
@@ -90,11 +86,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
         }
 
-        public void RemoveEntriesOutsideRoot(string gitRootPath)
+        public bool RemoveEntriesOutsideRoot(string gitRootPath)
         {
             if (string.IsNullOrEmpty(gitRootPath))
             {
-                return;
+                return false;
             }
 
             var rootPrefix = Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
@@ -121,10 +117,43 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 }
             }
 
-            foreach (var k in keysToRemove)
+            if (keysToRemove.Any())
             {
-                _cache.TryRemove(k, out _);
+                foreach (var k in keysToRemove)
+                {
+                    _cache.TryRemove(k, out _);
+                }
+
+                return true;
             }
+
+            return false;
+        }
+
+        public bool CleanupOldGenerations()
+        {
+            var cacheGeneration = CacheGeneration.Current;
+            var entriesToClean = new List<string>();
+
+            foreach (var pair in _cache)
+            {
+                if (pair.Value.CacheGeneration != cacheGeneration)
+                {
+                    entriesToClean.Add(pair.Key);
+                }
+            }
+
+            if (entriesToClean.Any())
+            {
+                foreach (var entry in entriesToClean)
+                {
+                    _cache.TryRemove(entry, out _);
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private static bool TryParseCacheKey(string key, out string path, out string hash)

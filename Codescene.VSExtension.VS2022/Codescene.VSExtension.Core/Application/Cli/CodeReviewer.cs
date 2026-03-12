@@ -44,7 +44,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _notifier = notifier;
         }
 
-        public async Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
+        public async Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             var fileName = Path.GetFileName(path);
 
@@ -58,30 +58,30 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return _mapper.Map(path, review);
         }
 
-        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             var oldCode = _git.GetFileContentForCommit(path) ?? string.Empty;
-            var reviewTask = ReviewAsync(path, currentCode, false, cancellationToken);
-            var baselineTask = GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, cancellationToken);
+            var reviewTask = ReviewAsync(path, currentCode, false, operationGeneration, cancellationToken);
+            var baselineTask = GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, operationGeneration, cancellationToken);
             await Task.WhenAll(reviewTask, baselineTask).ConfigureAwait(false);
             var review = await reviewTask;
             var baselineRawScore = (await baselineTask) ?? string.Empty;
             return (review, baselineRawScore);
         }
 
-        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
-            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, cancellationToken);
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
             if (review?.RawScore == null)
             {
                 return (review, null);
             }
 
-            var delta = await DeltaAsync(review, content, baselineRawScore, cancellationToken);
+            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
             return (review, delta);
         }
 
-        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, CancellationToken cancellationToken = default)
+        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             var path = review.FilePath;
             var currentRawScore = review.RawScore ?? string.Empty;
@@ -95,7 +95,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             try
             {
                 var oldCode = _git.GetFileContentForCommit(path);
-                var oldRawScore = precomputedBaselineRawScore ?? await GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, cancellationToken);
+                var oldRawScore = precomputedBaselineRawScore ?? await GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, operationGeneration, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var delta = await _executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = oldRawScore, NewScore = currentRawScore, FilePath = path, FileContent = currentCode }, cancellationToken);
@@ -114,9 +114,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
         }
 
-        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, CancellationToken cancellationToken = default)
+        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
-            return await GetOrComputeBaselineRawScoreInternalAsync(path, baselineContent, cancellationToken);
+            return await GetOrComputeBaselineRawScoreInternalAsync(path, baselineContent, operationGeneration, cancellationToken);
         }
 
         private bool InvalidateCacheIfUnchanged(string path, string old, string current, DeltaCacheService cache)
@@ -136,7 +136,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return false;
         }
 
-        private async Task<string> GetOrComputeBaselineRawScoreInternalAsync(string path, string oldCode, CancellationToken cancellationToken)
+        private async Task<string> GetOrComputeBaselineRawScoreInternalAsync(string path, string oldCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             var baselineCache = new BaselineReviewCacheService();
             var baselineEntry = baselineCache.Get(path, oldCode);
@@ -145,11 +145,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return baselineEntry.RawScore ?? string.Empty;
             }
 
-            var oldCodeReview = await ReviewAsync(path, oldCode, isBaseline: true, cancellationToken);
+            var oldCodeReview = await ReviewAsync(path, oldCode, isBaseline: true, operationGeneration, cancellationToken);
             var oldRawScore = oldCodeReview?.RawScore ?? string.Empty;
             if (oldCodeReview?.RawScore != null)
             {
-                baselineCache.Put(path, oldCode, oldCodeReview.RawScore);
+                baselineCache.Put(path, oldCode, oldCodeReview.RawScore, operationGeneration);
             }
 
             return oldRawScore;

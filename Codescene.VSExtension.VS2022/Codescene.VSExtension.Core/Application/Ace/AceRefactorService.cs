@@ -43,6 +43,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         public async Task<IList<FnToRefactorModel>> CheckContainsRefactorableFunctionsAsync(FileReviewModel result, string code, CancellationToken cancellationToken = default)
         {
+            var operationGeneration = CacheGeneration.Current;
             await _preflightManager.GetPreflightResponseAsync(cancellationToken);
 
             var path = result.FilePath;
@@ -84,7 +85,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                     _logger.Info($"Found {refactorableFunctions.Count} refactorable function(s) in path {path}", true);
                     var cacheEntry = new AceRefactorableFunctionsEntry(path, code, refactorableFunctions);
                     _logger.Debug($"Caching refactorable functions for path: {path}.");
-                    _cache.Put(cacheEntry);
+                    _cache.Put(cacheEntry, operationGeneration);
                     return refactorableFunctions;
                 }
                 else

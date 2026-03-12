@@ -54,7 +54,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _notifier = notifier;
         }
 
-        public async Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
+        public async Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(content) || string.IsNullOrWhiteSpace(path))
             {
@@ -75,47 +75,44 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var lazyTask = _pendingReviews.GetOrAdd(pendingKey, _ =>
                 new Lazy<Task<FileReviewModel>>(() =>
-                    ReviewInternalAsync(path, content, isBaseline, cancellationToken)));
+                    ReviewInternalAsync(path, content, isBaseline, operationGeneration, CancellationToken.None)));
 
             var pendingTask = lazyTask.Value;
 
             try
             {
-                cancellationToken.ThrowIfCancellationRequested();
                 var result = await pendingTask.ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
                 return result;
             }
             finally
             {
-                if (_pendingReviews.TryGetValue(pendingKey, out var current) && current == lazyTask)
-                {
-                    _pendingReviews.TryRemove(pendingKey, out _);
-                }
+                _pendingReviews.TryRemove(pendingKey, out _);
             }
         }
 
-        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             _logger?.Info($"Reviewing file {path}...", true);
-            var review = await this.ReviewAsync(path, currentCode, isBaseline: false, cancellationToken);
-            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, null, cancellationToken);
+            var review = await this.ReviewAsync(path, currentCode, isBaseline: false, operationGeneration, cancellationToken);
+            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, null, operationGeneration, cancellationToken);
 
             return (review, baselineRawScore ?? string.Empty);
         }
 
-        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
-            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, cancellationToken);
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
             if (review?.RawScore == null)
             {
                 return (review, null);
             }
 
-            var delta = await DeltaAsync(review, content, baselineRawScore, cancellationToken);
+            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
             return (review, delta);
         }
 
-        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, CancellationToken cancellationToken = default)
+        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             var oldCode = GetBaselineContent(path, baselineContent);
 
@@ -131,10 +128,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return baselineEntry.RawScore ?? string.Empty;
             }
 
-            return await ComputeAndCacheBaselineAsync(path, oldCode, cancellationToken);
+            return await ComputeAndCacheBaselineAsync(path, oldCode, operationGeneration, cancellationToken);
         }
 
-        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, CancellationToken cancellationToken = default)
+        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             var path = review.FilePath;
 
@@ -174,7 +171,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 try
                 {
                     var computationParams = new DeltaComputationInput(currentCode, oldCode, precomputedBaselineRawScore);
-                    return await ComputeDeltaInternalAsync(review, computationParams, cancellationToken);
+                    return await ComputeDeltaInternalAsync(review, computationParams, operationGeneration, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -207,27 +204,27 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return string.Empty;
         }
 
-        private async Task<string> ComputeAndCacheBaselineAsync(string path, string oldCode, CancellationToken cancellationToken)
+        private async Task<string> ComputeAndCacheBaselineAsync(string path, string oldCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             _logger?.Debug($"CachingCodeReviewer: Baseline cache miss for '{path}', calling reviewer.");
-            var oldCodeReview = await this.ReviewAsync(path, oldCode, isBaseline: true, cancellationToken);
+            var oldCodeReview = await this.ReviewAsync(path, oldCode, isBaseline: true, operationGeneration, cancellationToken);
             var oldRawScore = oldCodeReview?.RawScore ?? string.Empty;
 
             if (oldCodeReview?.RawScore != null)
             {
-                _baselineCache.Put(path, oldCode, oldCodeReview.RawScore);
+                _baselineCache.Put(path, oldCode, oldCodeReview.RawScore, operationGeneration);
             }
 
             return oldRawScore;
         }
 
-        private async Task<DeltaResponseModel> ComputeDeltaInternalAsync(FileReviewModel review, DeltaComputationInput input, CancellationToken cancellationToken)
+        private async Task<DeltaResponseModel> ComputeDeltaInternalAsync(FileReviewModel review, DeltaComputationInput input, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             var path = review.FilePath;
             var currentRawScore = review.RawScore ?? string.Empty;
 
             var oldRawScore = input.PrecomputedBaselineRawScore
-                ?? await GetOrComputeBaselineRawScoreAsync(path, input.OldCode, cancellationToken);
+                ?? await GetOrComputeBaselineRawScoreAsync(path, input.OldCode, operationGeneration, cancellationToken);
 
             if (oldRawScore == currentRawScore)
             {
@@ -245,20 +242,19 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 currentCode: input.CurrentCode,
                 oldCode: input.OldCode,
                 oldRawScore: oldRawScore);
-            return await ComputeAndCacheDeltaAsync(review, parameters, cancellationToken);
+            return await ComputeAndCacheDeltaAsync(review, parameters, operationGeneration, cancellationToken);
         }
 
-        private async Task<DeltaResponseModel> ComputeAndCacheDeltaAsync(FileReviewModel review, DeltaComputationParameters parameters, CancellationToken cancellationToken)
+        private async Task<DeltaResponseModel> ComputeAndCacheDeltaAsync(FileReviewModel review, DeltaComputationParameters parameters, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             var path = review.FilePath;
             _logger?.Debug($"CachingCodeReviewer: Delta cache miss for '{path}', calling inner reviewer.");
-            var delta = await _innerReviewer.DeltaAsync(review, parameters.CurrentCode, parameters.OldRawScore, cancellationToken);
-
+            var delta = await _innerReviewer.DeltaAsync(review, parameters.CurrentCode, parameters.OldRawScore, operationGeneration, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
             var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(_deltaCache.GetAll());
             var cacheEntry = new DeltaCacheEntry(path, parameters.OldCode, parameters.CurrentCode, delta);
-            _deltaCache.Put(cacheEntry);
+            _deltaCache.Put(cacheEntry, operationGeneration);
 
             if (_telemetryManager != null)
             {
@@ -269,15 +265,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return delta;
         }
 
-        private async Task<FileReviewModel> ReviewInternalAsync(string path, string content, bool isBaseline, CancellationToken cancellationToken)
+        private async Task<FileReviewModel> ReviewInternalAsync(string path, string content, bool isBaseline, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             _logger?.Debug($"CachingCodeReviewer: Cache miss for '{path}', calling inner reviewer.");
-            var result = await _innerReviewer.ReviewAsync(path, content, isBaseline, cancellationToken);
-
+            var result = await _innerReviewer.ReviewAsync(path, content, isBaseline, operationGeneration, cancellationToken);
             if (result != null)
             {
                 var entry = new ReviewCacheEntry(content, path.ToLowerInvariant(), result, isBaseline);
-                _cache.Put(entry);
+                _cache.Put(entry, operationGeneration);
                 _logger?.Debug($"CachingCodeReviewer: Cached result for '{path}'.");
             }
 

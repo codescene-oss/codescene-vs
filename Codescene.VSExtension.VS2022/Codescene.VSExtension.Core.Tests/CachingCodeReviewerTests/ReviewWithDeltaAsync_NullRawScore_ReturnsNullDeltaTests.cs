@@ -55,7 +55,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             };
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(reviewWithNullRawScore);
 
             var (review, delta) = await _cachingReviewer.ReviewWithDeltaAsync(path, content);
@@ -64,7 +64,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             Assert.AreEqual(path, review.FilePath);
             Assert.IsNull(review.RawScore);
             Assert.IsNull(delta);
-            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

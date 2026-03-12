@@ -57,7 +57,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             Assert.IsNull(result);
             _mockLogger.Verify(l => l.Warn("Could not review file, missing file path."), Times.Once);
-            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             Assert.IsNull(result);
             _mockLogger.Verify(l => l.Warn("Could not review file, missing file path."), Times.Once);
-            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [TestMethod]
@@ -93,7 +93,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             Assert.IsNull(result);
             _mockLogger.Verify(l => l.Warn("Could not review file, missing file path."), Times.Once);
-            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

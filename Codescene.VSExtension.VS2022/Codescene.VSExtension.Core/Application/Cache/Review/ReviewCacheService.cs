@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 
@@ -36,9 +37,9 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             return null;
         }
 
-        public override void Put(ReviewCacheEntry entry)
+        public override void Put(ReviewCacheEntry entry, long? operationGeneration = null)
         {
-            if (!IsCurrentGeneration())
+            if (!IsStillCurrentGeneration(operationGeneration))
             {
                 return;
             }
@@ -72,11 +73,11 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             }
         }
 
-        public void RemoveEntriesOutsideRoot(string gitRootPath)
+        public bool RemoveEntriesOutsideRoot(string gitRootPath)
         {
             if (string.IsNullOrEmpty(gitRootPath))
             {
-                return;
+                return false;
             }
 
             var rootPrefix = Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
@@ -106,10 +107,43 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
                 }
             }
 
-            foreach (var k in keysToRemove)
+            if (keysToRemove.Any())
             {
-                Cache.TryRemove(k, out _);
+                foreach (var k in keysToRemove)
+                {
+                    Cache.TryRemove(k, out _);
+                }
+
+                return true;
             }
+
+            return false;
+        }
+
+        public bool CleanupOldGenerations()
+        {
+            var cacheGeneration = CacheGeneration.Current;
+            var entriesToClean = new List<string>();
+
+            foreach (var pair in Cache)
+            {
+                if (pair.Value.CacheGeneration != cacheGeneration)
+                {
+                    entriesToClean.Add(pair.Key);
+                }
+            }
+
+            if (entriesToClean.Any())
+            {
+                foreach (var entry in entriesToClean)
+                {
+                    Cache.TryRemove(entry, out _);
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private string GetCacheKey(string filePath, bool isBaseline)

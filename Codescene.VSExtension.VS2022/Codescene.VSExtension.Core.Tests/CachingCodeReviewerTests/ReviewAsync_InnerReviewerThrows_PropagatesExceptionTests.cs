@@ -37,7 +37,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var content = "public class InnerReviewerThrowsPropagatesException { }";
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new InvalidOperationException("CLI process failed"));
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>

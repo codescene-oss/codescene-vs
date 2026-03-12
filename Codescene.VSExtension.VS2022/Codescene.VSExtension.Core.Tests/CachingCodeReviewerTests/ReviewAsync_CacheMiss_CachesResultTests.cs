@@ -42,7 +42,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             };
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedResult);
 
             await _cachingReviewer.ReviewAsync(path, content);

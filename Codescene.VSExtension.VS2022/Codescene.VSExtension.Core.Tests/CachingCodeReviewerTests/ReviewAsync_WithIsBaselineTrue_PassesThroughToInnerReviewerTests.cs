@@ -38,13 +38,13 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var result = new FileReviewModel { FilePath = path, Score = 8.0f };
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, content, true, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, content, true, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
             var reviewResult = await _cachingReviewer.ReviewAsync(path, content, isBaseline: true);
 
             Assert.IsNotNull(reviewResult);
-            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, content, true, It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, content, true, It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

@@ -36,7 +36,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var result = new FileReviewModel { FilePath = path, Score = 8.5f };
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
             var reviewResult = await _cachingReviewer.ReviewAsync(path, content);

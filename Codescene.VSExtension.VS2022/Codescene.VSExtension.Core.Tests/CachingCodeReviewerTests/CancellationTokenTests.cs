@@ -45,13 +45,13 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var specificToken = cts.Token;
 
             _mockInnerReviewer
-                .Setup(r => r.DeltaAsync(review, currentCode, precomputedScore, specificToken))
+                .Setup(r => r.DeltaAsync(review, currentCode, precomputedScore, null, specificToken))
                 .ReturnsAsync(expectedDelta);
 
-            await _cachingReviewer.DeltaAsync(review, currentCode, precomputedScore, specificToken);
+            await _cachingReviewer.DeltaAsync(review, currentCode, precomputedScore, null, specificToken);
 
             _mockInnerReviewer.Verify(
-                r => r.DeltaAsync(review, currentCode, precomputedScore, specificToken),
+                r => r.DeltaAsync(review, currentCode, precomputedScore, null, specificToken),
                 Times.Once,
                 "Must pass the exact CancellationToken to inner reviewer");
         }

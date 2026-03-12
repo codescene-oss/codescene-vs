@@ -37,7 +37,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var content = "public class InnerReviewerReturnsNullDoesNotCache { }";
 
             _mockInnerReviewer
-                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()))
+                .Setup(r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((FileReviewModel?)null);
 
             var result = await _cachingReviewer.ReviewAsync(path, content);
@@ -45,7 +45,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             Assert.IsNull(result);
             var cachedResult = _cacheService.Get(new Models.Cache.Review.ReviewCacheQuery(content, path));
             Assert.IsNull(cachedResult);
-            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, content, false, It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerReviewer.Verify(r => r.ReviewAsync(path, content, false, It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

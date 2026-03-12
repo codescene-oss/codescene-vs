@@ -4,11 +4,21 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
 {
     public static class ReviewCacheCleanup
     {
-        public static void CleanupCachesOutsideRoot(string gitRootPath)
+        public static bool CleanupCaches(string gitRootPath)
         {
-            new DeltaCacheService().RemoveEntriesOutsideRoot(gitRootPath);
-            new ReviewCacheService().RemoveEntriesOutsideRoot(gitRootPath);
-            new BaselineReviewCacheService().RemoveEntriesOutsideRoot(gitRootPath);
+            var deltaCache = new DeltaCacheService();
+            var reviewCache = new ReviewCacheService();
+            var baselineCache = new BaselineReviewCacheService();
+            var didCleanup = false;
+            didCleanup |= deltaCache.RemoveEntriesOutsideRoot(gitRootPath);
+            didCleanup |= deltaCache.CleanupOldGenerations();
+
+            didCleanup |= reviewCache.RemoveEntriesOutsideRoot(gitRootPath);
+            didCleanup |= reviewCache.CleanupOldGenerations();
+
+            didCleanup |= baselineCache.RemoveEntriesOutsideRoot(gitRootPath);
+            didCleanup |= baselineCache.CleanupOldGenerations();
+            return didCleanup;
         }
 
         public static void InvalidateFile(string filePath)

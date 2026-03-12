@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
@@ -97,9 +98,9 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             InitializeGitPaths();
 
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeObserverCore: Initialized with solution='{_solutionPath}', gitRoot='{_gitRootPath}', workspace='{_workspacePath}'");
-            #endif
+#endif
 
             _workspacePaths = watchPaths != null && watchPaths.Count > 0 ? watchPaths : new[] { _workspacePath };
             _gitChangeLister.Initialize(_gitRootPath, _workspacePaths);
@@ -110,9 +111,9 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             if (!string.IsNullOrEmpty(_gitRootPath) && Directory.Exists(_gitRootPath))
             {
-                #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeObserverCore: Creating file watcher for git root '{_gitRootPath}'");
-                #endif
+#endif
                 _fileWatcher = GitPathDiscovery.CreateWatcher(_gitRootPath);
             }
 
@@ -181,9 +182,9 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public void Dispose()
         {
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeObserverCore: Disposing and cleaning up resources");
-            #endif
+#endif
             _gitChangeLister.FilesDetected -= OnGitChangeListerFilesDetected;
             _gitChangeLister.StopPeriodicScanning();
             _cts?.Cancel();
@@ -299,16 +300,16 @@ namespace Codescene.VSExtension.Core.Application.Git
             _eventProcessor.Start(TimeSpan.FromSeconds(1), _cts.Token);
 
             _gitChangeLister.StartPeriodicScanning(_cts.Token);
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeObserverCore: Started file watcher and timer with 1 second interval");
-            #endif
+#endif
         }
 
         private void OnFileDeleted(string filePath)
         {
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeObserverCore: Invalidating delta cache for deleted file '{filePath}'");
-            #endif
+#endif
             ReviewCacheCleanup.InvalidateFile(filePath);
             ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
         }
@@ -355,15 +356,15 @@ namespace Codescene.VSExtension.Core.Application.Git
                     {
                         return;
                     }
-                    #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: GitChangeLister detected {absolutePaths.Count} files");
-                    #endif
+#endif
 
                     await ProcessFilesAsync(absolutePaths, token);
 
-                    #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: Processed detected files");
-                    #endif
+#endif
                 }
                 catch (OperationCanceledException)
                 {
@@ -380,9 +381,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             try
             {
                 (_workspacePath, _gitRootPath) = GitPathDiscovery.Discover(_solutionPath);
-                #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeObserverCore: Git repository discovered successfully at '{_gitRootPath}'");
-                #endif
+#endif
             }
             catch (Exception ex)
             {
@@ -438,7 +439,14 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private async Task ProcessFilesAsync(IEnumerable<string> absolutePaths, CancellationToken cancellationToken)
         {
+            if (absolutePaths.Contains("~~cleanup~~"))
+            {
+                absolutePaths = absolutePaths.Where(x => x != "~~cleanup~~").ToList();
+                ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
+            var operationGeneration = CacheGeneration.Current;
             var changedFiles = await _getChangedFilesCallback();
             foreach (var absolutePath in absolutePaths)
             {
@@ -452,7 +460,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                     continue;
                 }
 
-                await _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles, cancellationToken);
+                await _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles, operationGeneration, cancellationToken);
             }
         }
 
@@ -463,9 +471,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info(">>> GitChangeObserverCore: Binding file watcher events");
-            #endif
+#endif
             _watcherCreatedHandler += (sender, e) =>
             {
 #if FEATURE_INITIAL_GIT_OBSERVER
@@ -485,7 +493,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             };
             _watcherDeletedHandler += (sender, e) =>
             {
-                #if FEATURE_INITIAL_GIT_OBSERVER
+#if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeObserverCore: File deleted event enqueued: '{e.FullPath}'");
 #endif
                 if (ShouldEnqueueEvent(e))
@@ -513,7 +521,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return GitPathHelper.IsPathUnderAnyRoot(e.FullPath, _workspacePaths);
         }
 
-        private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles, CancellationToken cancellationToken)
+        private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             if (evt.Type == FileChangeType.Delete)
             {
@@ -521,7 +529,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             else
             {
-                await _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles, cancellationToken);
+                await _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles, operationGeneration, cancellationToken);
             }
         }
     }
