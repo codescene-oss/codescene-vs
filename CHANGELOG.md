@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.6] - 2026-03-13
+### Fixed
+- clear code smell warnings on solution/folder switch (#261)
+
+
 ## [0.6.5] - 2026-03-13
 ### Fixed
 - increase document debounce, lower polling (#260)
@@ -337,6 +342,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 
 
 
