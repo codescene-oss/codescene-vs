@@ -59,6 +59,12 @@ internal class ErrorListWindowHandler : IErrorListWindowHandler
         Add(issues);
     }
 
+    public void ClearAll()
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        ErrorListProvider?.Tasks?.Clear();
+    }
+
     private void Add(IEnumerable<CodeSmellModel> issues)
     {
         ThreadHelper.ThrowIfNotOnUIThread();

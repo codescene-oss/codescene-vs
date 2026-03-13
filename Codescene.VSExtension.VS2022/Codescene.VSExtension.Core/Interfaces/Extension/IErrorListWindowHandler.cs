@@ -7,5 +7,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Extension
     public interface IErrorListWindowHandler
     {
         void Handle(FileReviewModel review);
+
+        void ClearAll();
     }
 }

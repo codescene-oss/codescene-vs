@@ -14,5 +14,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
         internal Mock<IErrorListWindowHandler> Mock = new Mock<IErrorListWindowHandler>();
 
         public void Handle(FileReviewModel review) => Mock.Object.Handle(review);
+
+        public void ClearAll() => Mock.Object.ClearAll();
     }
 }
