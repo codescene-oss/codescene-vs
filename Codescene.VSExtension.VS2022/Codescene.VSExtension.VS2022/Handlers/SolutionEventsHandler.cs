@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.VS2022.Application.Git;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
@@ -27,6 +28,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     private BranchWatcherService _branchWatcher;
     private IGitChangeObserver _gitChangeObserver;
     private IAsyncTaskScheduler _scheduler;
+    private IErrorListWindowHandler _errorListWindowHandler;
 
     /// <summary>
     /// Subscribes to solution events using the Visual Studio shell service.
@@ -34,6 +36,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     public async Task InitializeAsync(IServiceProvider serviceProvider)
     {
         _scheduler = await VS.GetMefServiceAsync<IAsyncTaskScheduler>();
+        _errorListWindowHandler = await VS.GetMefServiceAsync<IErrorListWindowHandler>();
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var isUiThread = ThreadHelper.CheckAccess();
@@ -77,6 +80,12 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
             _scheduler.Schedule(async ct =>
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                _errorListWindowHandler?.ClearAll();
+            });
+
+            _scheduler.Schedule(async ct =>
+            {
                 var savedFilesTracker = await VS.GetMefServiceAsync<ISavedFilesTracker>();
                 savedFilesTracker?.ClearSavedFiles();
             });
@@ -114,6 +123,9 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             new BaselineReviewCacheService().Clear();
             new ReviewCacheService().Clear();
             new AceRefactorableFunctionsCacheService().Clear();
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            _errorListWindowHandler?.ClearAll();
 
             _branchWatcher = new BranchWatcherService();
             _branchWatcher.StartWatching(solutionPath, (newBranch) =>
