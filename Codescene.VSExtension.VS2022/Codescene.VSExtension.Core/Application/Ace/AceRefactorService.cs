@@ -80,7 +80,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
             {
                 var refactorableFunctions = await _aceManager.GetRefactorableFunctionsFromCodeSmellsAsync(fileName, code, cliCodeSmellModelList, preflight, cancellationToken);
 
-                if (refactorableFunctions.Any())
+                if (refactorableFunctions != null && refactorableFunctions.Any())
                 {
                     _logger.Info($"Found {refactorableFunctions.Count} refactorable function(s) in path {path}", true);
                     var cacheEntry = new AceRefactorableFunctionsEntry(path, code, refactorableFunctions);

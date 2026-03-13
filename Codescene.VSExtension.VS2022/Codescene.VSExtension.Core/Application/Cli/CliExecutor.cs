@@ -358,6 +358,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 _logger.Error(errorMessage, e);
                 throw;
             }
+            catch (OperationCanceledException)
+            {
+                return (default, 0);
+            }
             catch (Exception e)
             {
                 _logger.Error(errorMessage, e);

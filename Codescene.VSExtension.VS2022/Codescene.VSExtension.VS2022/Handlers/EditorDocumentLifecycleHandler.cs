@@ -108,7 +108,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
                 _debounceService.Debounce(
                     filePath,
                     () => _scheduler.Schedule(ct => ReviewContentAsync(filePath, buffer)),
-                    TimeSpan.FromSeconds(1));
+                    TimeSpan.FromSeconds(5));
             };
 
             textView.Closed += (_, _) =>

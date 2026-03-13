@@ -18,7 +18,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 {
     public class GitChangeLister : IGitChangeLister, IDisposable
     {
-        private readonly int _pollingInterval = 30; // Default value, calculated based on core count.
+        private readonly int _pollingInterval = 9; // Default value, calculated based on core count.
         private readonly ISavedFilesTracker _savedFilesTracker;
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly ILogger _logger;
@@ -255,15 +255,15 @@ namespace Codescene.VSExtension.Core.Application.Git
             var coreCount = Environment.ProcessorCount;
             if (coreCount >= 6)
             {
-                return 18;
+                return 9;
             }
 
             if (coreCount >= 3)
             {
-                return 32;
+                return 18;
             }
 
-            return 64;
+            return 32;
         }
 
         private async Task<HashSet<string>> ExecuteGitOperationAsync(
