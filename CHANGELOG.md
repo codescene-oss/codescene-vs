@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.7] - 2026-03-14
+### Fixed
+- improved text contrast in Code Health Monitor
+
 ## [0.6.6] - 2026-03-13
 ### Fixed
 - clear code smell warnings on solution/folder switch (#261)
@@ -342,6 +346,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 
 
 
