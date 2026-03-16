@@ -24,8 +24,8 @@ jobs:
         with:
           regex: true
           file: '.*\.vsix'
-          version: 'latest'
-          target: './'
+          version: "latest"
+          target: "./"
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Output file-name for use in next job
@@ -44,7 +44,7 @@ jobs:
             throw "publishManifest.json not found in Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022!"
           }
           Write-Host "Found publishManifest.json"
-      
+
       - name: Copy README.md for Marketplace
         shell: pwsh
         run: |
@@ -93,7 +93,8 @@ jobs:
 
           # Prepare assetFiles array
           $assetFiles = @($files | ForEach-Object {
-            @{ pathOnDisk = "screenshots\$($_.Name)"; targetPath = "screenshots/$($_.Name)" }
+            $screenshotPath = Join-Path $manifestDir "screenshots\$($_.Name)"
+            @{ pathOnDisk = $screenshotPath; targetPath = "screenshots/$($_.Name)" }
           })
 
           # Add property if missing, otherwise overwrite
