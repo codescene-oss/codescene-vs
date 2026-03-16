@@ -83,27 +83,27 @@ jobs:
           if (-not $manifest) { throw "publishManifest.json not found in downloaded artifacts!" }
 
           $manifestDir = Split-Path $manifest -Parent
-          $gif = Join-Path $manifestDir "screenshots\vs-preview.gif"
-          if (-not (Test-Path $gif)) { throw "GIF missing next to manifest: $gif" }
+          $screenshotsDir = Join-Path $manifestDir "screenshots"
+          if (-not (Test-Path $screenshotsDir)) { throw "screenshots folder not found: $screenshotsDir" }
 
-          $json = Get-Content $manifest -Raw | ConvertFrom-Json
 
           # Prepare assetFiles array
-          $assetFiles = @(
-            @{ pathOnDisk = $gif; targetPath = "screenshots/vs-preview.gif" }
-          )
+          $assetFiles = @(Get-ChildItem -Path $screenshotsDir -File | ForEach-Object {
+            @{ pathOnDisk = $_.FullName; targetPath = "screenshots/$($_.Name)" }
+          })
+          if ($assetFiles.Count -eq 0) { throw "No files in screenshots folder: $screenshotsDir" }
 
           # Add property if missing, otherwise overwrite
+          $json = Get-Content $manifest -Raw | ConvertFrom-Json
           if (-not $json.PSObject.Properties["assetFiles"]) {
-              $json | Add-Member -MemberType NoteProperty -Name "assetFiles" -Value $assetFiles
+            $json | Add-Member -MemberType NoteProperty -Name "assetFiles" -Value $assetFiles
           } else {
-              $json.assetFiles = $assetFiles
+            $json.assetFiles = $assetFiles
           }
 
           # Save updated JSON
           $json | ConvertTo-Json -Depth 10 | Set-Content $manifest -Encoding UTF8
-
-          Write-Host "Updated assetFiles in $manifest with: $gif -> screenshots/vs-preview.gif"
+          Write-Host "Updated assetFiles in $manifest with $($assetFiles.Count) screenshot(s)"
 
       - name: Debug downloaded files
         shell: pwsh
