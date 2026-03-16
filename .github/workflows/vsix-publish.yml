@@ -48,8 +48,11 @@ jobs:
       - name: Copy README.md for Marketplace
         shell: pwsh
         run: |
-          Copy-Item "README.md" "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/overview.md" -Force
-          Copy-Item "screenshots" "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/screenshots" -Recurse -Force
+          $baseUrl = "https://raw.githubusercontent.com/codescene-oss/codescene-vs/main"
+          $content = Get-Content "README.md" -Raw
+          $content = $content -replace 'src="screenshots/', "src=`"$baseUrl/screenshots/"
+          $content = $content -replace '\]\(screenshots/', "]($baseUrl/screenshots/"
+          Set-Content "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/overview.md" $content -Encoding UTF8
 
       - name: Upload VSIX + publishManifest artifacts
         uses: actions/upload-artifact@v4
@@ -59,7 +62,6 @@ jobs:
             *.vsix
             Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.json
             Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/overview.md
-            Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/screenshots/**
 
   # ------------------------
   # Job 2: Publish VSIX
@@ -75,40 +77,6 @@ jobs:
         with:
           name: vsix-package
           path: .
-
-      - name: Inject assetFiles for overview images
-        shell: pwsh
-        run: |
-          $manifest = (Get-ChildItem -Recurse -Filter publishManifest.json | Select-Object -First 1).FullName
-          if (-not $manifest) { throw "publishManifest.json not found in downloaded artifacts!" }
-
-          $manifestDir = Split-Path $manifest -Parent
-          $screenshotsDir = Join-Path $manifestDir "screenshots"
-          if (-not (Test-Path $screenshotsDir)) { throw "screenshots directory missing next to manifest: $screenshotsDir" }
-
-          $files = Get-ChildItem $screenshotsDir -File
-          if ($files.Count -eq 0) { throw "No screenshot files found in $screenshotsDir" }
-
-          $json = Get-Content $manifest -Raw | ConvertFrom-Json
-
-          # Prepare assetFiles array
-          $assetFiles = @($files | ForEach-Object {
-            $screenshotPath = Join-Path $manifestDir "screenshots\$($_.Name)"
-            @{ pathOnDisk = $screenshotPath; targetPath = "screenshots/$($_.Name)" }
-          })
-
-          # Add property if missing, otherwise overwrite
-          if (-not $json.PSObject.Properties["assetFiles"]) {
-              $json | Add-Member -MemberType NoteProperty -Name "assetFiles" -Value $assetFiles
-          } else {
-              $json.assetFiles = $assetFiles
-          }
-
-          # Save updated JSON
-          $json | ConvertTo-Json -Depth 10 | Set-Content $manifest -Encoding UTF8
-
-          Write-Host "Updated manifest with $($assetFiles.Count) asset file(s):"
-          $json | ConvertTo-Json -Depth 10 | Write-Host
 
       - name: Debug downloaded files
         shell: pwsh
