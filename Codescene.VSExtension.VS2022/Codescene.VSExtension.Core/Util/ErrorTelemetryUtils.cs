@@ -37,6 +37,11 @@ namespace Codescene.VSExtension.Core.Util
                 return false;
             }
 
+            if (ex is OperationCanceledException)
+            {
+                return false;
+            }
+
             if (IsTelemetryRelatedError(ex))
             {
                 return false;
