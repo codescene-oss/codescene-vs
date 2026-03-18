@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -37,6 +38,7 @@ namespace Codescene.VSExtension.VS2022;
 [ProvideToolWindow(typeof(CodeSceneToolWindow.Pane), Style = VsDockStyle.Tabbed, Window = WindowGuids.SolutionExplorer)]
 public sealed class VS2022Package : ToolkitPackage
 {
+    private ILogger _logger;
     private SolutionEventsHandler _solutionEventsHandler;
     private IAsyncTaskScheduler _scheduler;
 
@@ -55,6 +57,8 @@ public sealed class VS2022Package : ToolkitPackage
 
             // Logging
             await InitializeLoggerPaneAsync();
+            _logger = await GetServiceAsync<ILogger>();
+            SubscribeToGlobalExceptionHandlers();
 
             // Tool windows
             this.RegisterToolWindows();
@@ -103,6 +107,7 @@ public sealed class VS2022Package : ToolkitPackage
         ThreadHelper.ThrowIfNotOnUIThread();
         if (disposing)
         {
+            UnsubscribeFromGlobalExceptionHandlers();
             _solutionEventsHandler?.Dispose();
             (_scheduler as IDisposable)?.Dispose();
         }
@@ -192,6 +197,64 @@ public sealed class VS2022Package : ToolkitPackage
     {
         var logPane = await GetServiceAsync<OutputPaneManager>();
         await logPane.InitializeAsync();
+    }
+
+    private void SubscribeToGlobalExceptionHandlers()
+    {
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+
+        if (System.Windows.Application.Current != null)
+        {
+            System.Windows.Application.Current.DispatcherUnhandledException += OnDispatcherUnhandledException;
+        }
+    }
+
+    private void UnsubscribeFromGlobalExceptionHandlers()
+    {
+        AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
+        TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
+
+        if (System.Windows.Application.Current != null)
+        {
+            System.Windows.Application.Current.DispatcherUnhandledException -= OnDispatcherUnhandledException;
+        }
+    }
+
+    private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception exception)
+        {
+            var isFromThisExtension = exception.StackTrace?.Contains("Codescene.VSExtension") == true;
+            if (!isFromThisExtension)
+            {
+                return;
+            }
+
+            _logger?.Error("Unhandled exception", exception);
+        }
+    }
+
+    private void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+    {
+        var isFromThisExtension = e.Exception?.StackTrace?.Contains("Codescene.VSExtension") == true;
+
+        if (isFromThisExtension)
+        {
+            _logger?.Error("Unobserved task exception", e.Exception);
+            e.SetObserved();
+        }
+    }
+
+    private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        var isFromThisExtension = e.Exception.StackTrace?.Contains("Codescene.VSExtension") == true;
+
+        if (isFromThisExtension)
+        {
+            _logger?.Error("Unhandled UI exception", e.Exception);
+            e.Handled = true;
+        }
     }
 
     private async Task CheckCliFileAsync()

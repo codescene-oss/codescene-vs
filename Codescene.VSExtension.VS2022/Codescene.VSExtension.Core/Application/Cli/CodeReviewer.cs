@@ -112,15 +112,17 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
                 var preflight = await _preflightManager.GetPreflightResponseAsync(cancellationToken);
                 var refactorableFunctions = await _executor.FnsToRefactorFromDeltaAsync(path, currentCode, delta, preflight, cancellationToken);
-                if (refactorableFunctions.Any())
+                if (refactorableFunctions == null || !refactorableFunctions.Any())
                 {
-                    foreach (var refactorableFunction in refactorableFunctions)
+                    return delta;
+                }
+
+                foreach (var refactorableFunction in refactorableFunctions)
+                {
+                    var function = delta?.FunctionLevelFindings?.FirstOrDefault(x => x.Function.Name == refactorableFunction.Name);
+                    if (function != null)
                     {
-                        var function = delta.FunctionLevelFindings.FirstOrDefault(x => x.Function.Name == refactorableFunction.Name);
-                        if (function != null)
-                        {
-                            function.RefactorableFn = refactorableFunction;
-                        }
+                        function.RefactorableFn = refactorableFunction;
                     }
                 }
 

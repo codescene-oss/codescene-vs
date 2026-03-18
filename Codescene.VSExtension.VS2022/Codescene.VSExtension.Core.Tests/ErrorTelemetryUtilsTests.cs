@@ -100,6 +100,13 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void ShouldSendError_OperationCanceledException_ReturnsFalse()
+        {
+            var ex = new OperationCanceledException();
+            Assert.IsFalse(ErrorTelemetryUtils.ShouldSendError(ex));
+        }
+
+        [TestMethod]
         public void SerializeException_BasicException_ReturnsCorrectFormat()
         {
             var ex = new InvalidOperationException("Test message");
