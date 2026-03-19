@@ -93,7 +93,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
-            _logger?.Info($"Reviewing file {path}...", true);
             var review = await this.ReviewAsync(path, currentCode, isBaseline: false, operationGeneration, cancellationToken);
             var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, null, operationGeneration, cancellationToken);
 

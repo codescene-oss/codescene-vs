@@ -170,7 +170,7 @@ internal class WebComponentMessageHandler
             return;
         }
 
-        logger.Info($"Copied refactored code from function '{payload.Fn.Name}'.");
+        logger.Info($"Copied refactored code from function '{payload.Fn.Name}'.", true);
         Clipboard.SetText(TextUtils.NormalizeLineEndings(payload.Code));
     }
 

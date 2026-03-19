@@ -59,6 +59,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
+            _logger?.Info($"Reviewing file {path}...", true);
+
             var review = await _executor.ReviewContentAsync(fileName, content, isBaseline, cancellationToken);
             return _mapper.Map(path, review);
         }
