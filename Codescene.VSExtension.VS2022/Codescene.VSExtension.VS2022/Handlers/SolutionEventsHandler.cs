@@ -23,12 +23,14 @@ namespace Codescene.VSExtension.VS2022.Handlers;
 /// </summary>
 public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 {
+    private readonly object _initGate = new object();
     private uint _cookie;
     private IVsSolution _solution;
     private BranchWatcherService _branchWatcher;
     private IGitChangeObserver _gitChangeObserver;
     private IAsyncTaskScheduler _scheduler;
     private IErrorListWindowHandler _errorListWindowHandler;
+    private Task _solutionInitializationTask;
 
     /// <summary>
     /// Subscribes to solution events using the Visual Studio shell service.
@@ -55,9 +57,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             VS.Events.SolutionEvents.OnAfterOpenFolder += SolutionEvents_OnAfterOpenFolder;
         }
 
-#if FEATURE_INITIAL_GIT_OBSERVER
-        _scheduler.Schedule(ct => WaitForSolutionAndInitializeAsync());
-#endif
+        _scheduler.Schedule(ct => EnsureSolutionInitializationAsync());
     }
 
     /// <summary>
@@ -110,35 +110,17 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
     public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
     {
-        _scheduler.Schedule(async ct =>
-        {
-            var solution = await VS.Solutions.GetCurrentSolutionAsync();
-            var solutionPath = solution?.FullPath;
-            if (string.IsNullOrEmpty(solutionPath))
-            {
-                return;
-            }
-
-            new DeltaCacheService().Clear();
-            new BaselineReviewCacheService().Clear();
-            new ReviewCacheService().Clear();
-            new AceRefactorableFunctionsCacheService().Clear();
-
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            _errorListWindowHandler?.ClearAll();
-
-            _branchWatcher = new BranchWatcherService();
-            _branchWatcher.StartWatching(solutionPath, (newBranch) =>
-                _scheduler.Schedule(ct2 => OnBranchChangedAsync(newBranch)));
-
-            await InitializeGitChangeObserverAsync(solutionPath);
-        });
-
+        _scheduler.Schedule(ct => EnsureSolutionInitializationAsync());
         return VSConstants.S_OK;
     }
 
     public int OnBeforeCloseSolution(object pUnkReserved)
     {
+        lock (_initGate)
+        {
+            _solutionInitializationTask = null;
+        }
+
         _branchWatcher?.Dispose();
         _branchWatcher = null;
         _gitChangeObserver?.CancelAndReset();
@@ -215,36 +197,47 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         OnBeforeCloseSolution(null);
     }
 
-    private async Task WaitForSolutionAndInitializeAsync()
+    private async Task EnsureSolutionInitializationAsync()
     {
-        const int maxWaitTimeMs = 12000;
-        const int pollIntervalMs = 250;
-        var elapsedMs = 0;
-
-        string solutionPath = null;
-
-        while (string.IsNullOrEmpty(solutionPath) && elapsedMs < maxWaitTimeMs)
+        var solution = await VS.Solutions.GetCurrentSolutionAsync();
+        var solutionPath = solution?.FullPath;
+        if (string.IsNullOrEmpty(solutionPath))
         {
-            var solution = await VS.Solutions.GetCurrentSolutionAsync();
-            solutionPath = solution?.FullPath;
+            return;
+        }
 
-            if (string.IsNullOrEmpty(solutionPath))
+        Task task;
+        lock (_initGate)
+        {
+            if (_solutionInitializationTask != null)
             {
-                await Task.Delay(pollIntervalMs);
-                elapsedMs += pollIntervalMs;
+                task = _solutionInitializationTask;
+            }
+            else
+            {
+                _solutionInitializationTask = RunSolutionInitializationAsync(solutionPath);
+                task = _solutionInitializationTask;
             }
         }
 
-        Log(logger =>
-        {
-            logger.Info($">>> SolutionEventsHandler: Solution/folder check completed - path = '{solutionPath}' (waited {elapsedMs}ms)");
-            return Task.CompletedTask;
-        });
+        await task;
+    }
 
-        if (!string.IsNullOrEmpty(solutionPath))
-        {
-            await InitializeGitChangeObserverAsync(solutionPath);
-        }
+    private async Task RunSolutionInitializationAsync(string solutionPath)
+    {
+        new DeltaCacheService().Clear();
+        new BaselineReviewCacheService().Clear();
+        new ReviewCacheService().Clear();
+        new AceRefactorableFunctionsCacheService().Clear();
+
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        _errorListWindowHandler?.ClearAll();
+
+        _branchWatcher = new BranchWatcherService();
+        _branchWatcher.StartWatching(solutionPath, (newBranch) =>
+            _scheduler.Schedule(ct2 => OnBranchChangedAsync(newBranch)));
+
+        await InitializeGitChangeObserverAsync(solutionPath);
     }
 
     private async Task InitializeGitChangeObserverAsync(string solutionPath)
