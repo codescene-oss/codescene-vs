@@ -105,5 +105,76 @@ namespace Codescene.VSExtension.Core.Tests
             var result = GitPathHelper.IsPathUnderAnyRoot(filePath, new[] { string.Empty, _workspaceDir });
             Assert.IsTrue(result);
         }
+
+        [TestMethod]
+        public void IsPathUnderAnyRoot_NullFullPath_ReturnsFalse()
+        {
+            var result = GitPathHelper.IsPathUnderAnyRoot(null, new[] { _workspaceDir });
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public void IsPathUnderAnyRoot_EmptyFullPath_ReturnsFalse()
+        {
+            var result = GitPathHelper.IsPathUnderAnyRoot(string.Empty, new[] { _workspaceDir });
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public void IsFileInWorkspace_CollectionOverload_NullWorkspacePaths_ReturnsTrue()
+        {
+            var result = GitPathHelper.IsFileInWorkspace("file.cs", _tempDir, (IReadOnlyCollection<string>)null);
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public void IsFileInWorkspace_CollectionOverload_EmptyWorkspacePaths_ReturnsTrue()
+        {
+            var result = GitPathHelper.IsFileInWorkspace("file.cs", _tempDir, Array.Empty<string>());
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public void IsFileInWorkspace_CollectionOverload_FileInOneWorkspace_ReturnsTrue()
+        {
+            var filePath = Path.Combine(_workspaceDir, "found.cs");
+            File.WriteAllText(filePath, "x");
+            var otherDir = Path.Combine(_tempDir, "other");
+            Directory.CreateDirectory(otherDir);
+            var relativePath = "workspace" + Path.DirectorySeparatorChar + "found.cs";
+            var result = GitPathHelper.IsFileInWorkspace(relativePath, _tempDir, new[] { otherDir, _workspaceDir });
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public void IsFileInWorkspace_CollectionOverload_FileInNoWorkspace_ReturnsFalse()
+        {
+            var otherDir1 = Path.Combine(_tempDir, "other1");
+            var otherDir2 = Path.Combine(_tempDir, "other2");
+            Directory.CreateDirectory(otherDir1);
+            Directory.CreateDirectory(otherDir2);
+            var result = GitPathHelper.IsFileInWorkspace("nonexistent.cs", _tempDir, new[] { otherDir1, otherDir2 });
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public void ConvertToAbsolutePath_InvalidPath_FallsBackToPathCombine()
+        {
+            var invalidRelative = "file*.cs";
+            var result = GitPathHelper.ConvertToAbsolutePath(invalidRelative, _tempDir);
+            Assert.AreEqual(Path.Combine(_tempDir, invalidRelative), result);
+        }
+
+        [TestMethod]
+        public void IsFileInWorkspace_FileExistsOutsideWorkspace_ReturnsFalse()
+        {
+            var outsideDir = Path.Combine(_tempDir, "outside");
+            Directory.CreateDirectory(outsideDir);
+            var filePath = Path.Combine(outsideDir, "file.cs");
+            File.WriteAllText(filePath, "x");
+            var relativePath = "outside" + Path.DirectorySeparatorChar + "file.cs";
+            var result = GitPathHelper.IsFileInWorkspace(relativePath, _tempDir, _workspaceDir);
+            Assert.IsFalse(result);
+        }
     }
 }

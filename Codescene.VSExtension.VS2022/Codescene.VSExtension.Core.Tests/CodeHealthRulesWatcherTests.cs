@@ -111,5 +111,31 @@ namespace Codescene.VSExtension.Core.Tests
             watcher.Dispose();
             watcher.Dispose();
         }
+
+        [TestMethod]
+        public async System.Threading.Tasks.Task RulesFileChanged_ThrowingHandler_LogsWarningAndDoesNotCrash()
+        {
+            using (var watcher = new CodeHealthRulesWatcher(_gitRootPath, _logger))
+            {
+                watcher.RulesFileChanged += (sender, args) => throw new System.InvalidOperationException("handler error");
+
+                File.WriteAllText(_rulesFilePath, "{}");
+
+                var deadline = System.DateTime.UtcNow.AddMilliseconds(3000);
+                while (System.DateTime.UtcNow < deadline)
+                {
+                    if (_logger.WarnMessages.Any(m => m.Contains("Error in RulesFileChanged handler")))
+                    {
+                        break;
+                    }
+
+                    await System.Threading.Tasks.Task.Delay(100);
+                }
+
+                Assert.IsTrue(
+                    _logger.WarnMessages.Any(m => m.Contains("Error in RulesFileChanged handler")),
+                    "Warning should be logged when handler throws");
+            }
+        }
     }
 }

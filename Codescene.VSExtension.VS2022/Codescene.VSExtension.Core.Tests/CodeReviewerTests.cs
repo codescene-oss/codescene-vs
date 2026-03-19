@@ -2,11 +2,13 @@
 
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Moq;
 
@@ -418,6 +420,142 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(string.Empty, result);
             Assert.AreEqual(string.Empty, secondResult);
             _mockExecutor.Verify(x => x.ReviewContentAsync(It.IsAny<string>(), baselineContent, true, It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [TestMethod]
+        public async Task ReviewWithDeltaAsync_WhenReviewHasNullRawScore_ReturnsNullDelta()
+        {
+            var path = "test.cs";
+            var content = "public class Test { }";
+            var review = new FileReviewModel { FilePath = path, RawScore = null };
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns("old code");
+            _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", content, false, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CliReviewModel { RawScore = null });
+            _mockMapper.Setup(x => x.Map(path, It.IsAny<CliReviewModel>())).Returns(review);
+
+            var (actualReview, delta) = await _codeReviewer.ReviewWithDeltaAsync(path, content);
+
+            Assert.IsNotNull(actualReview);
+            Assert.IsNull(delta);
+            _mockExecutor.Verify(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task DeltaAsync_WithPreflightManager_CallsPreflightAndRefactorableFunctions()
+        {
+            var mockPreflight = new Mock<IPreflightManager>();
+            var preflightResponse = new PreFlightResponseModel();
+            var path = "test.cs";
+            var currentCode = "public class Test { void Foo() {} }";
+            var review = new FileReviewModel { FilePath = path, RawScore = "raw" };
+            var delta = new DeltaResponseModel
+            {
+                ScoreChange = -1m,
+                FunctionLevelFindings = new[]
+                {
+                    new FunctionFindingModel { Function = new FunctionInfoModel { Name = "Foo" } },
+                },
+            };
+            var refactorable = new FnToRefactorModel { Name = "Foo", Body = "void Foo() {}" };
+
+            var reviewer = new CodeReviewer(
+                _mockLogger.Object,
+                _mockMapper.Object,
+                _mockExecutor.Object,
+                _mockTelemetryManager.Object,
+                _mockGitService.Object,
+                null,
+                mockPreflight.Object);
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns("old");
+            _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), "old", true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CliReviewModel { RawScore = "old-raw" });
+            _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
+                .Returns(new FileReviewModel { RawScore = "old-raw" });
+            _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(delta);
+            mockPreflight.Setup(x => x.GetPreflightResponseAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(preflightResponse);
+            _mockExecutor.Setup(x => x.FnsToRefactorFromDeltaAsync(path, currentCode, delta, preflightResponse, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<FnToRefactorModel> { refactorable });
+
+            var result = await reviewer.DeltaAsync(review, currentCode);
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Foo", result.FunctionLevelFindings[0].RefactorableFn.Name);
+            mockPreflight.Verify(x => x.GetPreflightResponseAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task DeltaAsync_WithPreflightManager_NullRefactorables_ReturnsDeltaUnchanged()
+        {
+            var mockPreflight = new Mock<IPreflightManager>();
+            var path = "test.cs";
+            var currentCode = "code";
+            var review = new FileReviewModel { FilePath = path, RawScore = "raw" };
+            var delta = new DeltaResponseModel { ScoreChange = -1m };
+
+            var reviewer = new CodeReviewer(
+                _mockLogger.Object,
+                _mockMapper.Object,
+                _mockExecutor.Object,
+                _mockTelemetryManager.Object,
+                _mockGitService.Object,
+                null,
+                mockPreflight.Object);
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns("old");
+            _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(delta);
+            mockPreflight.Setup(x => x.GetPreflightResponseAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PreFlightResponseModel());
+            _mockExecutor.Setup(x => x.FnsToRefactorFromDeltaAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IList<FnToRefactorModel>)null);
+
+            var result = await reviewer.DeltaAsync(review, currentCode);
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(-1m, result.ScoreChange);
+        }
+
+        [TestMethod]
+        public async Task DeltaAsync_WithPreflightManager_NonMatchingRefactorables_DoesNotAssign()
+        {
+            var mockPreflight = new Mock<IPreflightManager>();
+            var path = "test.cs";
+            var currentCode = "code";
+            var review = new FileReviewModel { FilePath = path, RawScore = "raw" };
+            var delta = new DeltaResponseModel
+            {
+                ScoreChange = -1m,
+                FunctionLevelFindings = new[]
+                {
+                    new FunctionFindingModel { Function = new FunctionInfoModel { Name = "Bar" } },
+                },
+            };
+
+            var reviewer = new CodeReviewer(
+                _mockLogger.Object,
+                _mockMapper.Object,
+                _mockExecutor.Object,
+                _mockTelemetryManager.Object,
+                _mockGitService.Object,
+                null,
+                mockPreflight.Object);
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns("old");
+            _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(delta);
+            mockPreflight.Setup(x => x.GetPreflightResponseAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PreFlightResponseModel());
+            _mockExecutor.Setup(x => x.FnsToRefactorFromDeltaAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<FnToRefactorModel> { new FnToRefactorModel { Name = "Unrelated" } });
+
+            var result = await reviewer.DeltaAsync(review, currentCode);
+
+            Assert.IsNotNull(result);
+            Assert.IsNull(result.FunctionLevelFindings[0].RefactorableFn);
         }
     }
 }
