@@ -332,6 +332,71 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Put_WithStaleOperationGeneration_DoesNotStore()
+        {
+            CacheGeneration.Reset();
+            var testCache = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
+            try
+            {
+                CacheGeneration.Increment();
+                var staleGeneration = CacheGeneration.Current - 1;
+                var entry = new DeltaCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, CreateDelta(1.0m));
+                testCache.Put(entry, staleGeneration);
+
+                var result = testCache.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent));
+                AssertCacheMiss(result);
+            }
+            finally
+            {
+                CacheGeneration.Reset();
+            }
+        }
+
+        [TestMethod]
+        public void CleanupOldGenerations_WithOldEntries_RemovesThemAndReturnsTrue()
+        {
+            CacheGeneration.Reset();
+            var testCache = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
+            try
+            {
+                testCache.Put(new DeltaCacheEntry(_tempFile1, "b1", "c1", CreateDelta(1.0m)));
+                testCache.Put(new DeltaCacheEntry(_tempFile2, "b2", "c2", CreateDelta(2.0m)));
+                CacheGeneration.Increment();
+                testCache.Put(new DeltaCacheEntry(_tempFile3, "b3", "c3", CreateDelta(3.0m)));
+
+                var removed = testCache.CleanupOldGenerations();
+
+                Assert.IsTrue(removed);
+                AssertCacheMiss(testCache.Get(new DeltaCacheQuery(_tempFile1, "b1", "c1")));
+                AssertCacheMiss(testCache.Get(new DeltaCacheQuery(_tempFile2, "b2", "c2")));
+                AssertCacheHit(testCache.Get(new DeltaCacheQuery(_tempFile3, "b3", "c3")), 3.0m);
+            }
+            finally
+            {
+                CacheGeneration.Reset();
+            }
+        }
+
+        [TestMethod]
+        public void CleanupOldGenerations_WithNoOldEntries_ReturnsFalse()
+        {
+            CacheGeneration.Reset();
+            var testCache = new DeltaCacheService(new ConcurrentDictionary<string, DeltaCacheItem>());
+            try
+            {
+                testCache.Put(new DeltaCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, CreateDelta(1.0m)));
+
+                var removed = testCache.CleanupOldGenerations();
+
+                Assert.IsFalse(removed);
+            }
+            finally
+            {
+                CacheGeneration.Reset();
+            }
+        }
+
+        [TestMethod]
         public void UpdateKey_MovesEntryToNewKey()
         {
             // Arrange

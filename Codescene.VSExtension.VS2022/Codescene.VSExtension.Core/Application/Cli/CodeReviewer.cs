@@ -146,23 +146,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return await GetOrComputeBaselineRawScoreInternalAsync(path, baselineContent, operationGeneration, cancellationToken);
         }
 
-        private bool InvalidateCacheIfUnchanged(string path, string old, string current, DeltaCacheService cache)
-        {
-            if (old == current)
-            {
-                // Invalidate delta cache to remove file and from monitor if it was previously shown
-                if (cache.Contains(path))
-                {
-                    cache.Invalidate(path);
-                    _notifier?.RequestViewUpdate();
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
         private async Task<string> GetOrComputeBaselineRawScoreInternalAsync(string path, string oldCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             var baselineCache = new BaselineReviewCacheService();
