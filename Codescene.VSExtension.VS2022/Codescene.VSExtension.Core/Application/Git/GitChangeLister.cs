@@ -331,6 +331,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             try
             {
+                _logger?.Info("Starting scheduled git change review");
                 cancellationToken.ThrowIfCancellationRequested();
                 var didCleanup = ReviewCacheCleanup.CleanupCaches(_gitRootPath);
                 var files = await GetAllChangedFilesAsync(_gitRootPath, _workspacePaths, cancellationToken);
