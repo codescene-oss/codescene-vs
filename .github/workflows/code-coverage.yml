@@ -1,8 +1,8 @@
 name: Code Coverage (generate data and trigger analysis)
 
 on: 
-  schedule:
-    - cron: "0 4 * * 1-5"
+  #schedule:
+  #  - cron: "0 4 * * 1-5"
   workflow_dispatch:
 
 permissions:
