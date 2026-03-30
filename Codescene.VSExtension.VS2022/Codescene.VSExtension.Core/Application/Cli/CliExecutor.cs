@@ -355,7 +355,16 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
             catch (DevtoolsException e)
             {
-                _logger.Error(errorMessage, e);
+                if (DevtoolsExceptionWarnLogging.ShouldLogAsWarning(e))
+                {
+                    var trace = string.IsNullOrEmpty(e.TraceId) ? "n/a" : e.TraceId;
+                    _logger.Warn($"{errorMessage}: {e.Message} (status {e.Status}, trace {trace})");
+                }
+                else
+                {
+                    _logger.Error(errorMessage, e);
+                }
+
                 throw;
             }
             catch (OperationCanceledException)
