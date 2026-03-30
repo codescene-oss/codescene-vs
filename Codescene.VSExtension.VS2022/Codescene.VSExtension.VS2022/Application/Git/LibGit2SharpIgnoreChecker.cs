@@ -12,31 +12,87 @@ public class LibGit2SharpIgnoreChecker : IGitIgnoreChecker
 {
     public bool IsPathIgnored(string filePath)
     {
-        var repoPath = Repository.Discover(filePath);
+        var repoPath = TryDiscoverRepositoryPath(filePath);
         if (string.IsNullOrEmpty(repoPath))
         {
             return false;
         }
 
-        using (var repo = new Repository(repoPath))
+        try
         {
-            var repoRoot = repo.Info.WorkingDirectory;
-            var relativePath = PathUtilities.GetRelativePath(repoRoot, filePath).Replace("\\", "/");
-            return repo.Ignore.IsPathIgnored(relativePath);
+            using (var repo = new Repository(repoPath))
+            {
+                var repoRoot = repo.Info.WorkingDirectory;
+                var relativePath = PathUtilities.GetRelativePath(repoRoot, filePath).Replace("\\", "/");
+                return repo.Ignore.IsPathIgnored(relativePath);
+            }
+        }
+        catch (LibGit2SharpException)
+        {
+            return false;
         }
     }
 
     public string GetRepositoryRoot(string filePath)
     {
-        var repoPath = Repository.Discover(filePath);
+        var repoPath = TryDiscoverRepositoryPath(filePath);
         if (string.IsNullOrEmpty(repoPath))
         {
             return null;
         }
 
-        using (var repo = new Repository(repoPath))
+        try
         {
-            return repo.Info.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar);
+            using (var repo = new Repository(repoPath))
+            {
+                return repo.Info.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar);
+            }
+        }
+        catch (LibGit2SharpException)
+        {
+            return null;
+        }
+    }
+
+    private static string TryDiscoverRepositoryPath(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return null;
+        }
+
+        var pathForDiscover = filePath;
+        if (Path.IsPathRooted(filePath))
+        {
+            try
+            {
+                pathForDiscover = Path.GetFullPath(filePath);
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
+            catch (NotSupportedException)
+            {
+                return null;
+            }
+            catch (PathTooLongException)
+            {
+                return null;
+            }
+            catch (IOException)
+            {
+                pathForDiscover = filePath;
+            }
+        }
+
+        try
+        {
+            return Repository.Discover(pathForDiscover);
+        }
+        catch (LibGit2SharpException)
+        {
+            return null;
         }
     }
 }
