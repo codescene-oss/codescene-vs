@@ -26,13 +26,15 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         internal static string FormatWarningMessage(Exception ex, string operationContext)
         {
+            var ctx = (operationContext ?? string.Empty).TrimEnd('.', ' ');
+
             if (ex is DevtoolsException e)
             {
                 var trace = string.IsNullOrEmpty(e.TraceId) ? "n/a" : e.TraceId;
-                return $"{operationContext}: {e.Message} (status {e.Status}, trace {trace})";
+                return $"{ctx}: {e.Message} (status {e.Status}, trace {trace})";
             }
 
-            return $"{operationContext}: {ex.Message}";
+            return $"{ctx}: {ex.Message}";
         }
 
         private static bool IsMissingAuthToken(Exception ex) => ex is MissingAuthTokenException;

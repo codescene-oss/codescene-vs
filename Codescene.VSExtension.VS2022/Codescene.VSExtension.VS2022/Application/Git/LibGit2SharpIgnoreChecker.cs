@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using Codescene.VSExtension.Core.Application.Util;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using LibGit2Sharp;
 
@@ -10,6 +11,13 @@ namespace Codescene.VSExtension.VS2022.Application.Git;
 
 public class LibGit2SharpIgnoreChecker : IGitIgnoreChecker
 {
+    private readonly ILogger _logger;
+
+    public LibGit2SharpIgnoreChecker(ILogger logger)
+    {
+        _logger = logger;
+    }
+
     public bool IsPathIgnored(string filePath)
     {
         var repoPath = TryDiscoverRepositoryPath(filePath);
@@ -58,8 +66,10 @@ public class LibGit2SharpIgnoreChecker : IGitIgnoreChecker
                 return repo.Info.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar);
             }
         }
-        catch (LibGit2SharpException)
+        catch (LibGit2SharpException ex)
         {
+            _logger.Warn(
+                $"LibGit2SharpException in GetRepositoryRoot (GitService.IsFileIgnored may skip EnsureWatcherInitialized). File: {filePath}, message: {ex.Message}");
             return null;
         }
     }

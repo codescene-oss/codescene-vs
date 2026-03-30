@@ -103,11 +103,21 @@ public partial class WebComponentUserControl : UserControl
             var core = TryGetCoreWebView2();
             if (core == null)
             {
-                _logger.Warn("WebView2 is unavailable; view update was skipped.");
+                _pendingMessage = messageString;
+                _logger.Debug("WebView2 is unavailable; view update queued for retry.");
+                SchedulePendingMessageRetry();
                 return;
             }
 
-            core.PostWebMessageAsJson(messageString);
+            try
+            {
+                core.PostWebMessageAsJson(messageString);
+            }
+            catch (Exception sendEx)
+            {
+                _pendingMessage = messageString;
+                _logger.Warn($"WebView2 PostWebMessageAsJson failed; update queued for retry. {sendEx.Message}");
+            }
         }
         catch (Exception e)
         {
@@ -128,25 +138,9 @@ public partial class WebComponentUserControl : UserControl
         if (_pendingMessage != null)
         {
             _logger.Debug("Webview initialized, sending pending message.");
-            try
-            {
-                var core = TryGetCoreWebView2();
-                if (core != null)
-                {
-                    core.PostWebMessageAsJson(_pendingMessage);
-                }
-                else
-                {
-                    _logger.Warn("WebView2 is unavailable; pending message was not sent.");
-                }
-
-                _pendingMessage = null;
-            }
-            catch (Exception e)
-            {
-                _logger.Error("Could not send pending message after initialization.", e);
-            }
         }
+
+        TryFlushPendingWebMessage();
     }
 
     /// <summary>
@@ -173,6 +167,45 @@ public partial class WebComponentUserControl : UserControl
         {
             return null;
         }
+    }
+
+    private void TryFlushPendingWebMessage()
+    {
+        if (string.IsNullOrEmpty(_pendingMessage))
+        {
+            return;
+        }
+
+        var core = TryGetCoreWebView2();
+        if (core == null)
+        {
+            return;
+        }
+
+        try
+        {
+            core.PostWebMessageAsJson(_pendingMessage);
+            _pendingMessage = null;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warn($"WebView2 pending message send failed; will retry. {ex.Message}");
+        }
+    }
+
+    private void SchedulePendingMessageRetry()
+    {
+        if (string.IsNullOrEmpty(_pendingMessage))
+        {
+            return;
+        }
+
+        ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+        {
+            await Task.Yield();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            TryFlushPendingWebMessage();
+        }).FileAndForget("WebComponentUserControl/SchedulePendingMessageRetry");
     }
 
     private void Initialize<T>(T payload, string view)
@@ -288,6 +321,7 @@ public partial class WebComponentUserControl : UserControl
         webView.NavigationCompleted += (_, _) =>
         {
             loadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
+            TryFlushPendingWebMessage();
         };
 
         webView.CoreWebView2.WebMessageReceived += (sender, e) =>

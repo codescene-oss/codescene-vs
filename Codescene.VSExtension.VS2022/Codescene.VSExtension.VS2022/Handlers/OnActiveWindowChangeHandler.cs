@@ -49,6 +49,7 @@ public class OnActiveWindowChangeHandler
             var doc = focused.Document;
             if (doc == null)
             {
+                _marginSettings.HideMargin();
                 return;
             }
 
@@ -59,6 +60,7 @@ public class OnActiveWindowChangeHandler
             }
             catch (Exception ex) when (ex is COMException or FileNotFoundException)
             {
+                _marginSettings.HideMargin();
                 return;
             }
 

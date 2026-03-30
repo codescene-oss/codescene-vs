@@ -43,7 +43,7 @@ namespace Codescene.VSExtension.Core.Util
                 return false;
             }
 
-            if (IgnoreExceptionTypes.Contains(ex.GetType()))
+            if (IgnoreExceptionTypes.Any(t => t.IsAssignableFrom(ex.GetType())))
             {
                 return false;
             }

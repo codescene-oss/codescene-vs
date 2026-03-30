@@ -53,6 +53,21 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         public FnToRefactorModel GetRefactorableFunction(CodeSmellModel codeSmell, IList<FnToRefactorModel> refactorableFunctions)
         {
+            if (codeSmell == null)
+            {
+                throw new ArgumentNullException(nameof(codeSmell));
+            }
+
+            if (refactorableFunctions == null)
+            {
+                throw new ArgumentNullException(nameof(refactorableFunctions));
+            }
+
+            if (codeSmell.Range == null)
+            {
+                throw new ArgumentException("Range must not be null.", nameof(codeSmell));
+            }
+
             return refactorableFunctions.FirstOrDefault(function =>
                 function.RefactoringTargets.Any(target =>
                     target.Category == codeSmell.Category &&
