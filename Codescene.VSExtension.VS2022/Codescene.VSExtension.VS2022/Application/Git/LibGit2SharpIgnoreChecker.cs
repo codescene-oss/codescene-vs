@@ -23,7 +23,17 @@ public class LibGit2SharpIgnoreChecker : IGitIgnoreChecker
             using (var repo = new Repository(repoPath))
             {
                 var repoRoot = repo.Info.WorkingDirectory;
-                var relativePath = PathUtilities.GetRelativePath(repoRoot, filePath).Replace("\\", "/");
+                if (string.IsNullOrEmpty(repoRoot))
+                {
+                    return false;
+                }
+
+                var relativePath = PathUtilities.GetRelativePath(repoRoot, filePath).Replace("\\", "/").Trim();
+                if (string.IsNullOrEmpty(relativePath))
+                {
+                    relativePath = ".";
+                }
+
                 return repo.Ignore.IsPathIgnored(relativePath);
             }
         }
