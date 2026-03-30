@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Runtime.InteropServices;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.VS2022.EditorMargin;
@@ -50,10 +51,28 @@ public class OnActiveWindowChangeHandler
                 return;
             }
 
-            var path = doc.FullName;
+            string path;
+            try
+            {
+                path = doc.FullName;
+            }
+            catch (COMException)
+            {
+                return;
+            }
+
             var isSupportedFile = _supportedFileChecker.IsSupported(path);
 
-            if (isSupportedFile && doc.Object("TextDocument") is TextDocument)
+            var isTextDocument = false;
+            try
+            {
+                isTextDocument = doc.Object("TextDocument") is TextDocument;
+            }
+            catch (COMException)
+            {
+            }
+
+            if (isSupportedFile && isTextDocument)
             {
                 _marginSettings.NotifyScoreUpdated();
                 return;
