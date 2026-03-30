@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Runtime.InteropServices;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -56,7 +57,7 @@ public class OnActiveWindowChangeHandler
             {
                 path = doc.FullName;
             }
-            catch (COMException)
+            catch (Exception ex) when (ex is COMException or FileNotFoundException)
             {
                 return;
             }
@@ -68,7 +69,7 @@ public class OnActiveWindowChangeHandler
             {
                 isTextDocument = doc.Object("TextDocument") is TextDocument;
             }
-            catch (COMException)
+            catch (Exception ex) when (ex is COMException or FileNotFoundException)
             {
             }
 
