@@ -100,7 +100,14 @@ public partial class WebComponentUserControl : UserControl
                 return;
             }
 
-            webView.CoreWebView2?.PostWebMessageAsJson(messageString);
+            var core = TryGetCoreWebView2();
+            if (core == null)
+            {
+                _logger.Warn("WebView2 is unavailable; view update was skipped.");
+                return;
+            }
+
+            core.PostWebMessageAsJson(messageString);
         }
         catch (Exception e)
         {
@@ -123,7 +130,16 @@ public partial class WebComponentUserControl : UserControl
             _logger.Debug("Webview initialized, sending pending message.");
             try
             {
-                webView.CoreWebView2?.PostWebMessageAsJson(_pendingMessage);
+                var core = TryGetCoreWebView2();
+                if (core != null)
+                {
+                    core.PostWebMessageAsJson(_pendingMessage);
+                }
+                else
+                {
+                    _logger.Warn("WebView2 is unavailable; pending message was not sent.");
+                }
+
                 _pendingMessage = null;
             }
             catch (Exception e)
@@ -146,6 +162,18 @@ public partial class WebComponentUserControl : UserControl
     // Use process ID and view type to make host unique per VS instance and view type
     // This prevents conflicts when multiple instances are open
     private static string GetHost(string view) => $"myapp-{System.Diagnostics.Process.GetCurrentProcess().Id}-{view}.local";
+
+    private CoreWebView2 TryGetCoreWebView2()
+    {
+        try
+        {
+            return webView.CoreWebView2;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
 
     private void Initialize<T>(T payload, string view)
     {
@@ -171,12 +199,13 @@ public partial class WebComponentUserControl : UserControl
     /// </summary>
     private async Task ApplyThemeToWebViewAsync()
     {
-        if (webView.CoreWebView2 == null)
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        var core = TryGetCoreWebView2();
+        if (core == null)
         {
             return;
         }
-
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         var css = GenerateCssVariablesFromTheme().Replace("`", "\\`");
 
@@ -193,7 +222,7 @@ public partial class WebComponentUserControl : UserControl
         }})();
         ";
 
-        await webView.CoreWebView2.ExecuteScriptAsync(script);
+        await core.ExecuteScriptAsync(script);
     }
 
     /// <summary>
