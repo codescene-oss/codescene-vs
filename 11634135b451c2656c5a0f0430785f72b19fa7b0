@@ -1,0 +1,31 @@
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.csproj
+  8036e11459e8614c 127
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/Tagger/AceRefactorSuggestedActionsNotifier.cs
+  8036e11459e8614c 1-94
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/Tagger/AceRefactorSuggestedActionsSourceProvider.cs
+  8036e11459e8614c 20-22,30
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/Handlers/EditorDocumentLifecycleHandler.cs
+  8036e11459e8614c 72-74,218
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/Tagger/AceRefactorSuggestedActionsSource.cs
+  8036e11459e8614c 25,32-33,38-39,44-48,54-56,58-62,96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "11634135b451c2656c5a0f0430785f72b19fa7b0",
+  "prompts": {
+    "8036e11459e8614c": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "84352ed0-4897-44e4-adac-77ff00b09dc7",
+        "model": "default"
+      },
+      "human_author": "Martin Säfsten <martin.safsten@codescene.com>",
+      "messages": [],
+      "total_additions": 123,
+      "total_deletions": 13,
+      "accepted_lines": 122,
+      "overriden_lines": 0
+    }
+  }
+}
