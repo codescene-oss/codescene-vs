@@ -186,7 +186,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var effectiveToken = string.IsNullOrEmpty(token) ? _settingsProvider.AuthToken : token;
             if (string.IsNullOrEmpty(effectiveToken))
             {
-                throw new MissingAuthTokenException("Authentication token is missing. Please set it in the extension settings.");
+                var missingTokenEx = new MissingAuthTokenException("Authentication token is missing. Please set it in the extension settings.");
+                if (CliExceptionWarnLogging.ShouldLogAsWarning(missingTokenEx))
+                {
+                    _logger.Warn(CliExceptionWarnLogging.FormatWarningMessage(missingTokenEx, "Refactoring failed."));
+                }
+
+                throw missingTokenEx;
             }
 
             var arguments = _cliServices.CommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: effectiveToken);
@@ -355,10 +361,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
             catch (DevtoolsException e)
             {
-                if (DevtoolsExceptionWarnLogging.ShouldLogAsWarning(e))
+                if (CliExceptionWarnLogging.ShouldLogAsWarning(e))
                 {
-                    var trace = string.IsNullOrEmpty(e.TraceId) ? "n/a" : e.TraceId;
-                    _logger.Warn($"{errorMessage}: {e.Message} (status {e.Status}, trace {trace})");
+                    _logger.Warn(CliExceptionWarnLogging.FormatWarningMessage(e, errorMessage));
                 }
                 else
                 {

@@ -6,14 +6,15 @@ using Codescene.VSExtension.Core.Exceptions;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
-    internal static class DevtoolsExceptionWarnLogging
+    internal static class CliExceptionWarnLogging
     {
-        private static readonly Func<DevtoolsException, bool>[] WarnPredicates =
+        private static readonly Func<Exception, bool>[] WarnPredicates =
         {
-            IsRefactoringCreditsExhausted,
+            IsMissingAuthToken,
+            IsDevtoolsRefactoringCreditsExhausted,
         };
 
-        internal static bool ShouldLogAsWarning(DevtoolsException ex)
+        internal static bool ShouldLogAsWarning(Exception ex)
         {
             if (ex == null)
             {
@@ -22,6 +23,22 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             return WarnPredicates.Any(p => p(ex));
         }
+
+        internal static string FormatWarningMessage(Exception ex, string operationContext)
+        {
+            if (ex is DevtoolsException e)
+            {
+                var trace = string.IsNullOrEmpty(e.TraceId) ? "n/a" : e.TraceId;
+                return $"{operationContext}: {e.Message} (status {e.Status}, trace {trace})";
+            }
+
+            return $"{operationContext}: {ex.Message}";
+        }
+
+        private static bool IsMissingAuthToken(Exception ex) => ex is MissingAuthTokenException;
+
+        private static bool IsDevtoolsRefactoringCreditsExhausted(Exception ex) =>
+            ex is DevtoolsException d && IsRefactoringCreditsExhausted(d);
 
         private static bool IsRefactoringCreditsExhausted(DevtoolsException ex)
         {
