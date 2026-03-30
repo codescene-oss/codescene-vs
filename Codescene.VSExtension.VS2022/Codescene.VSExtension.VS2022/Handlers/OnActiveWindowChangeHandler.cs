@@ -45,13 +45,16 @@ public class OnActiveWindowChangeHandler
         if (focused?.Kind == DocumentKind)
         {
             var doc = focused.Document;
-            var path = focused.Document.FullName;
-            var isSupportedFile = _supportedFileChecker.IsSupported(path);
-
-            if (isSupportedFile && doc.Object("TextDocument") is TextDocument)
+            if (doc != null)
             {
-                _marginSettings.NotifyScoreUpdated();
-                return;
+                var path = doc.FullName;
+                var isSupportedFile = _supportedFileChecker.IsSupported(path);
+
+                if (isSupportedFile && doc.Object("TextDocument") is TextDocument)
+                {
+                    _marginSettings.NotifyScoreUpdated();
+                    return;
+                }
             }
         }
 
