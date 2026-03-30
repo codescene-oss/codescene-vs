@@ -43,6 +43,35 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
         public async Task<IList<FnToRefactorModel>> CheckContainsRefactorableFunctionsAsync(FileReviewModel result, string code, CancellationToken cancellationToken = default)
         {
+            if (result == null)
+            {
+                return new List<FnToRefactorModel>();
+            }
+
+            return await CheckContainsRefactorableFunctionsForReviewAsync(result, code, cancellationToken);
+        }
+
+        public FnToRefactorModel GetRefactorableFunction(CodeSmellModel codeSmell, IList<FnToRefactorModel> refactorableFunctions)
+        {
+            return refactorableFunctions.FirstOrDefault(function =>
+                function.RefactoringTargets.Any(target =>
+                    target.Category == codeSmell.Category &&
+                    target.Line == codeSmell.Range.StartLine));
+        }
+
+        public bool ShouldCheckRefactorableFunctions(string extension)
+        {
+            if (_preflightManager.IsSupportedLanguage(extension))
+            {
+                return true;
+            }
+
+            _logger.Debug($"Auto refactor is not supported for language: {extension}");
+            return false;
+        }
+
+        private async Task<IList<FnToRefactorModel>> CheckContainsRefactorableFunctionsForReviewAsync(FileReviewModel result, string code, CancellationToken cancellationToken)
+        {
             var operationGeneration = CacheGeneration.Current;
             await _preflightManager.GetPreflightResponseAsync(cancellationToken);
 
@@ -65,7 +94,7 @@ namespace Codescene.VSExtension.Core.Application.Ace
                 return new List<FnToRefactorModel>();
             }
 
-            var codeSmellModelList = result.FunctionLevel.Concat(result.FileLevel);
+            var codeSmellModelList = (result.FunctionLevel ?? Enumerable.Empty<CodeSmellModel>()).Concat(result.FileLevel ?? Enumerable.Empty<CodeSmellModel>());
             var cliCodeSmellModelList = new List<CliCodeSmellModel>();
 
             foreach (var codeSmellModel in codeSmellModelList)
@@ -76,48 +105,44 @@ namespace Codescene.VSExtension.Core.Application.Ace
 
             var preflight = await _preflightManager.GetPreflightResponseAsync(cancellationToken);
 
+            return await TryFetchAndCacheRefactorableFunctionsAsync(
+                (fileName, code, path),
+                cliCodeSmellModelList,
+                preflight,
+                operationGeneration,
+                cancellationToken);
+        }
+
+        private async Task<IList<FnToRefactorModel>> TryFetchAndCacheRefactorableFunctionsAsync(
+            (string FileName, string Code, string Path) file,
+            List<CliCodeSmellModel> cliCodeSmellModelList,
+            PreFlightResponseModel preflight,
+            long operationGeneration,
+            CancellationToken cancellationToken)
+        {
             try
             {
-                var refactorableFunctions = await _aceManager.GetRefactorableFunctionsFromCodeSmellsAsync(fileName, code, cliCodeSmellModelList, preflight, cancellationToken);
+                var refactorableFunctions = await _aceManager.GetRefactorableFunctionsFromCodeSmellsAsync(file.FileName, file.Code, cliCodeSmellModelList, preflight, cancellationToken);
 
                 if (refactorableFunctions != null && refactorableFunctions.Any())
                 {
-                    _logger.Info($"Found {refactorableFunctions.Count} refactorable function(s) in path {path}", true);
-                    var cacheEntry = new AceRefactorableFunctionsEntry(path, code, refactorableFunctions);
-                    _logger.Debug($"Caching refactorable functions for path: {path}.");
+                    _logger.Info($"Found {refactorableFunctions.Count} refactorable function(s) in path {file.Path}", true);
+                    var cacheEntry = new AceRefactorableFunctionsEntry(file.Path, file.Code, refactorableFunctions);
+                    _logger.Debug($"Caching refactorable functions for path: {file.Path}.");
                     _cache.Put(cacheEntry, operationGeneration);
                     return refactorableFunctions;
                 }
                 else
                 {
-                    _logger.Warn($"No refactorable functions found for path: {path}");
+                    _logger.Warn($"No refactorable functions found for path: {file.Path}");
                     return new List<FnToRefactorModel>();
                 }
             }
             catch (Exception ex)
             {
-                _logger.Error($"Error checking refactorable functions for path: {path}", ex);
+                _logger.Error($"Error checking refactorable functions for path: {file.Path}", ex);
                 return new List<FnToRefactorModel>();
             }
-        }
-
-        public FnToRefactorModel GetRefactorableFunction(CodeSmellModel codeSmell, IList<FnToRefactorModel> refactorableFunctions)
-        {
-            return refactorableFunctions.FirstOrDefault(function =>
-                function.RefactoringTargets.Any(target =>
-                    target.Category == codeSmell.Category &&
-                    target.Line == codeSmell.Range.StartLine));
-        }
-
-        public bool ShouldCheckRefactorableFunctions(string extension)
-        {
-            if (_preflightManager.IsSupportedLanguage(extension))
-            {
-                return true;
-            }
-
-            _logger.Debug($"Auto refactor is not supported for language: {extension}");
-            return false;
         }
     }
 }
