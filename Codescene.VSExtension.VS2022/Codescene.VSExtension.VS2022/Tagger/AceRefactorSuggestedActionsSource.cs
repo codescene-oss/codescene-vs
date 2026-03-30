@@ -22,17 +22,21 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
     private readonly AceRefactorSuggestedActionsSourceProvider _provider;
     private readonly ITextView _textView;
     private readonly ITextBuffer _textBuffer;
+    private readonly IAceRefactorSuggestedActionsNotifier _notifier;
     private readonly ReviewCacheService _reviewCache = new ReviewCacheService();
     private readonly AceRefactorableFunctionsCacheService _aceRefactorableFunctionsCache = new AceRefactorableFunctionsCacheService();
 
     public AceRefactorSuggestedActionsSource(
         AceRefactorSuggestedActionsSourceProvider provider,
         ITextView textView,
-        ITextBuffer textBuffer)
+        ITextBuffer textBuffer,
+        IAceRefactorSuggestedActionsNotifier notifier)
     {
         _provider = provider;
         _textView = textView;
         _textBuffer = textBuffer;
+        _notifier = notifier;
+        _notifier?.Register(textBuffer, this);
     }
 
     public event EventHandler<EventArgs> SuggestedActionsChanged;
@@ -42,17 +46,15 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
         SnapshotSpan range,
         CancellationToken cancellationToken)
     {
-        return Task.Run(
-            () =>
-        {
-            if (!HasAuthToken())
-            {
-                return false;
-            }
+        cancellationToken.ThrowIfCancellationRequested();
 
-            var result = TryGetRefactorableFunctionInRange(range);
-            return result.HasValue;
-        }, cancellationToken);
+        if (!HasAuthToken())
+        {
+            return Task.FromResult(false);
+        }
+
+        var result = TryGetRefactorableFunctionInRange(range);
+        return Task.FromResult(result.HasValue);
     }
 
     public IEnumerable<SuggestedActionSet> GetSuggestedActions(
@@ -86,12 +88,18 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
 
     public void Dispose()
     {
+        _notifier?.Unregister(_textBuffer, this);
     }
 
     public bool TryGetTelemetryId(out Guid telemetryId)
     {
         telemetryId = Guid.Empty;
         return false;
+    }
+
+    internal void RaiseSuggestedActionsChanged()
+    {
+        SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private static bool SmellOverlapsRange(CodeSmellModel smell, int rangeStartLine, int rangeEndLine)

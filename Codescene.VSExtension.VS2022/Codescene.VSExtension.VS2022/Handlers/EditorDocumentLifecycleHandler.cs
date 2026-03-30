@@ -69,6 +69,9 @@ namespace Codescene.VSExtension.VS2022.Handlers
         [Import]
         private readonly IAsyncTaskScheduler _scheduler;
 
+        [Import]
+        private readonly IAceRefactorSuggestedActionsNotifier _aceRefactorSuggestedActionsNotifier;
+
         public void TextViewCreated(IWpfTextView textView)
         {
             var buffer = textView.TextBuffer;
@@ -212,6 +215,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
                 var (result, _) = await _reviewer.ReviewWithDeltaAsync(path, code);
                 await ApplyReviewResultsAsync(result, buffer);
                 await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(result, code);
+                _aceRefactorSuggestedActionsNotifier.NotifyAceRefactorableDataChanged(buffer);
             }
             catch (Exception e)
             {
