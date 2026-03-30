@@ -92,6 +92,27 @@ namespace Codescene.VSExtension.Core.Tests
                 _cliExecutor.ReviewContentAsync(TestFileName, TestFileContent));
             Assert.AreEqual("CLI error", exception.Message);
             _mockLogger.Verify(x => x.Error(It.Is<string>(s => s.Contains("Review of file")), It.IsAny<DevtoolsException>()), Times.Once);
+            _mockLogger.Verify(x => x.Warn(It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task ReviewContentAsync_WhenProcessExecutorThrowsRefactoringCreditsDevtoolsException_LogsWarningNotError()
+        {
+            const string creditsMessage =
+                "Your credits of refactoring functionality ran out. Buy a bigger plan.";
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFileName, TestFileContent, TestCachePath))
+                .Returns("payload");
+            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name test.cs", "payload", null, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new DevtoolsException(creditsMessage, 402, "trace-xyz"));
+
+            var exception = await Assert.ThrowsAsync<DevtoolsException>(() =>
+                _cliExecutor.ReviewContentAsync(TestFileName, TestFileContent));
+            Assert.AreEqual(creditsMessage, exception.Message);
+            _mockLogger.Verify(
+                x => x.Warn(It.Is<string>(s => s.Contains("Review of file") && s.Contains(creditsMessage) && s.Contains("402") && s.Contains("trace-xyz")), It.IsAny<bool>()),
+                Times.Once);
+            _mockLogger.Verify(x => x.Error(It.IsAny<string>(), It.IsAny<Exception>()), Times.Never);
         }
 
         [TestMethod]

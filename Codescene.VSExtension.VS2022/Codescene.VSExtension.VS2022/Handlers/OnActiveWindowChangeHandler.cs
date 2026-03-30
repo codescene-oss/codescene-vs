@@ -2,6 +2,8 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
+using System.Runtime.InteropServices;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.VS2022.EditorMargin;
@@ -45,10 +47,35 @@ public class OnActiveWindowChangeHandler
         if (focused?.Kind == DocumentKind)
         {
             var doc = focused.Document;
-            var path = focused.Document.FullName;
+            if (doc == null)
+            {
+                _marginSettings.HideMargin();
+                return;
+            }
+
+            string path;
+            try
+            {
+                path = doc.FullName;
+            }
+            catch (Exception ex) when (ex is COMException or FileNotFoundException)
+            {
+                _marginSettings.HideMargin();
+                return;
+            }
+
             var isSupportedFile = _supportedFileChecker.IsSupported(path);
 
-            if (isSupportedFile && doc.Object("TextDocument") is TextDocument)
+            var isTextDocument = false;
+            try
+            {
+                isTextDocument = doc.Object("TextDocument") is TextDocument;
+            }
+            catch (Exception ex) when (ex is COMException or FileNotFoundException)
+            {
+            }
+
+            if (isSupportedFile && isTextDocument)
             {
                 _marginSettings.NotifyScoreUpdated();
                 return;

@@ -73,6 +73,10 @@ namespace Codescene.VSExtension.Core.Tests
             var exception = await Assert.ThrowsAsync<MissingAuthTokenException>(() => _cliExecutor.PostRefactoringAsync(fnToRefactor));
 
             Assert.Contains("Authentication token is missing", exception.Message);
+            _mockLogger.Verify(
+                x => x.Warn(It.Is<string>(s => s.Contains("Refactoring failed") && s.Contains("Authentication token is missing")), It.IsAny<bool>()),
+                Times.Once);
+            _mockLogger.Verify(x => x.Error(It.IsAny<string>(), It.IsAny<Exception>()), Times.Never);
         }
 
         [TestMethod]

@@ -21,7 +21,6 @@ public class GitService : IGitService, IDisposable
         "main", "master", "develop", "trunk", "dev",
     };
 
-    [Import]
     private readonly ILogger _logger;
 
     private readonly LibGit2SharpIgnoreChecker _ignoreChecker;
@@ -29,9 +28,11 @@ public class GitService : IGitService, IDisposable
     private FileSystemWatcher _gitignoreWatcher;
     private string _watchedRepoRoot;
 
-    public GitService()
+    [ImportingConstructor]
+    public GitService(ILogger logger)
     {
-        _ignoreChecker = new LibGit2SharpIgnoreChecker();
+        _logger = logger;
+        _ignoreChecker = new LibGit2SharpIgnoreChecker(logger);
         _cachingIgnoreChecker = new CachingGitIgnoreChecker(_ignoreChecker);
     }
 

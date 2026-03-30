@@ -94,31 +94,12 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (completedTask == timeoutTask)
             {
-                try
-                {
-                    if (!process.HasExited)
-                    {
-                        process.Kill();
-                    }
-                }
-                catch
-                {
-                }
-
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    throw new OperationCanceledException(cancellationToken);
-                }
-
-                if (arguments.Contains("telemetry"))
-                {
-                    return string.Empty;
-                }
-
-                throw new TimeoutException($"Process execution exceeded the timeout of {actualTimeout.TotalMilliseconds}ms.");
+                return CompleteOnTimeoutOrThrow(process, arguments, actualTimeout, cancellationToken);
             }
 
             await mainTask.ConfigureAwait(false);
+
+            process.WaitForExit();
 
             return HandleResult(process, outputBuilder, errorBuilder);
         }
@@ -126,6 +107,59 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private static bool ShouldPrintError(int code)
         {
             return code == 10 || code == 11;
+        }
+
+        private static DevtoolsException TryDeserializeDevtoolsException(string outputText)
+        {
+            if (string.IsNullOrWhiteSpace(outputText))
+            {
+                return null;
+            }
+
+            var trimmed = outputText.TrimStart();
+            if (trimmed.Length == 0 || trimmed[0] != '{')
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonConvert.DeserializeObject<DevtoolsException>(outputText);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+
+        private static string CompleteOnTimeoutOrThrow(
+            Process process,
+            string arguments,
+            TimeSpan actualTimeout,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (!process.HasExited)
+                {
+                    process.Kill();
+                }
+            }
+            catch
+            {
+            }
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                throw new OperationCanceledException(cancellationToken);
+            }
+
+            if (arguments.Contains("telemetry"))
+            {
+                return string.Empty;
+            }
+
+            throw new TimeoutException($"Process execution exceeded the timeout of {actualTimeout.TotalMilliseconds}ms.");
         }
 
         private void AttachOutputHandlers(AttachOutputHandlersArgs handlerArguments)
@@ -167,17 +201,33 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private string HandleResult(Process process, StringBuilder output, StringBuilder error)
         {
             var code = process.ExitCode;
+            var outputText = output.ToString();
+            var errorText = error.ToString();
+
             if (code != 0)
             {
-                if (ShouldPrintError(code))
+                var devtoolsEx = TryDeserializeDevtoolsException(outputText);
+                if (devtoolsEx != null)
                 {
-                    throw JsonConvert.DeserializeObject<DevtoolsException>(output.ToString());
+                    throw devtoolsEx;
                 }
 
-                throw new Exception($"Process exited with code {process.ExitCode}. Error: {error}");
+                if (ShouldPrintError(code))
+                {
+                    throw new Exception(
+                        $"Process exited with code {code}. Could not parse CLI error output. Output: {outputText}. Error stream: {errorText}");
+                }
+
+                var detail = string.IsNullOrWhiteSpace(errorText) ? outputText : errorText;
+                if (string.IsNullOrWhiteSpace(detail))
+                {
+                    detail = "(no output)";
+                }
+
+                throw new Exception($"Process exited with code {code}. Error: {detail}");
             }
 
-            return output.ToString();
+            return outputText;
         }
     }
 }

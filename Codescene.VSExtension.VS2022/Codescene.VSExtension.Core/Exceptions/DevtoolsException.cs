@@ -1,11 +1,13 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Exceptions
 {
     public class DevtoolsException : Exception
     {
+        [JsonConstructor]
         public DevtoolsException(string message, int status, string traceId)
             : base(message)
         {

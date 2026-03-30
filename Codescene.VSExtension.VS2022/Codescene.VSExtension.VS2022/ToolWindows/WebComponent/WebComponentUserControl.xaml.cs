@@ -100,7 +100,24 @@ public partial class WebComponentUserControl : UserControl
                 return;
             }
 
-            webView.CoreWebView2?.PostWebMessageAsJson(messageString);
+            var core = TryGetCoreWebView2();
+            if (core == null)
+            {
+                _pendingMessage = messageString;
+                _logger.Debug("WebView2 is unavailable; view update queued for retry.");
+                SchedulePendingMessageRetry();
+                return;
+            }
+
+            try
+            {
+                core.PostWebMessageAsJson(messageString);
+            }
+            catch (Exception sendEx)
+            {
+                _pendingMessage = messageString;
+                _logger.Warn($"WebView2 PostWebMessageAsJson failed; update queued for retry. {sendEx.Message}");
+            }
         }
         catch (Exception e)
         {
@@ -121,16 +138,9 @@ public partial class WebComponentUserControl : UserControl
         if (_pendingMessage != null)
         {
             _logger.Debug("Webview initialized, sending pending message.");
-            try
-            {
-                webView.CoreWebView2?.PostWebMessageAsJson(_pendingMessage);
-                _pendingMessage = null;
-            }
-            catch (Exception e)
-            {
-                _logger.Error("Could not send pending message after initialization.", e);
-            }
         }
+
+        TryFlushPendingWebMessage();
     }
 
     /// <summary>
@@ -146,6 +156,57 @@ public partial class WebComponentUserControl : UserControl
     // Use process ID and view type to make host unique per VS instance and view type
     // This prevents conflicts when multiple instances are open
     private static string GetHost(string view) => $"myapp-{System.Diagnostics.Process.GetCurrentProcess().Id}-{view}.local";
+
+    private CoreWebView2 TryGetCoreWebView2()
+    {
+        try
+        {
+            return webView.CoreWebView2;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
+    private void TryFlushPendingWebMessage()
+    {
+        if (string.IsNullOrEmpty(_pendingMessage))
+        {
+            return;
+        }
+
+        var core = TryGetCoreWebView2();
+        if (core == null)
+        {
+            return;
+        }
+
+        try
+        {
+            core.PostWebMessageAsJson(_pendingMessage);
+            _pendingMessage = null;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warn($"WebView2 pending message send failed; will retry. {ex.Message}");
+        }
+    }
+
+    private void SchedulePendingMessageRetry()
+    {
+        if (string.IsNullOrEmpty(_pendingMessage))
+        {
+            return;
+        }
+
+        ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+        {
+            await Task.Yield();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            TryFlushPendingWebMessage();
+        }).FileAndForget("WebComponentUserControl/SchedulePendingMessageRetry");
+    }
 
     private void Initialize<T>(T payload, string view)
     {
@@ -171,12 +232,13 @@ public partial class WebComponentUserControl : UserControl
     /// </summary>
     private async Task ApplyThemeToWebViewAsync()
     {
-        if (webView.CoreWebView2 == null)
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        var core = TryGetCoreWebView2();
+        if (core == null)
         {
             return;
         }
-
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         var css = GenerateCssVariablesFromTheme().Replace("`", "\\`");
 
@@ -193,7 +255,7 @@ public partial class WebComponentUserControl : UserControl
         }})();
         ";
 
-        await webView.CoreWebView2.ExecuteScriptAsync(script);
+        await core.ExecuteScriptAsync(script);
     }
 
     /// <summary>
@@ -259,6 +321,7 @@ public partial class WebComponentUserControl : UserControl
         webView.NavigationCompleted += (_, _) =>
         {
             loadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
+            TryFlushPendingWebMessage();
         };
 
         webView.CoreWebView2.WebMessageReceived += (sender, e) =>

@@ -28,6 +28,12 @@ namespace Codescene.VSExtension.Core.Util
             "The remote name could not be resolved",
         };
 
+        private static readonly Type[] IgnoreExceptionTypes = new[]
+        {
+            typeof(OperationCanceledException),
+            typeof(ObjectDisposedException),
+        };
+
         private static int _sentErrorsCount;
 
         public static bool ShouldSendError(Exception ex)
@@ -37,7 +43,7 @@ namespace Codescene.VSExtension.Core.Util
                 return false;
             }
 
-            if (ex is OperationCanceledException)
+            if (IgnoreExceptionTypes.Any(t => t.IsAssignableFrom(ex.GetType())))
             {
                 return false;
             }
