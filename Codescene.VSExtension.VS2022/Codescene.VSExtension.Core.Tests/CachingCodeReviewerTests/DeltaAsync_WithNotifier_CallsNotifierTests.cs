@@ -85,6 +85,26 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         }
 
         [TestMethod]
+        public async Task RethrowsOperationCanceledExceptionAndStillCompletesNotifierLifecycle()
+        {
+            var path = "TestFile.cs";
+            var review = new FileReviewModel { FilePath = path, Score = 8.0f, RawScore = "9.5" };
+            var currentCode = "current code";
+            var oldCode = "old code";
+
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockInnerReviewer
+                .Setup(r => r.DeltaAsync(review, currentCode, It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new OperationCanceledException());
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() => _cachingReviewer.DeltaAsync(review, currentCode));
+
+            _mockNotifier.Verify(n => n.OnDeltaStarting(path), Times.Once);
+            _mockNotifier.Verify(n => n.OnDeltaCompleted(path), Times.Once);
+            _mockLogger.Verify(l => l.Error(It.IsAny<string>(), It.IsAny<Exception>()), Times.Never);
+        }
+
+        [TestMethod]
         public async Task DoesNotCallNotifierWhenFilePathIsNull()
         {
             var review = new FileReviewModel { FilePath = null, Score = 8.0f, RawScore = "9.5" };

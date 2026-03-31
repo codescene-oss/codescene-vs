@@ -35,25 +35,43 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
         }
 
         [TestMethod]
-        public async Task DeltaAsync_PassesCancellationTokenToInnerReviewer()
+        public async Task DeltaAsync_CanceledCallerDoesNotCancelSharedDeltaComputation()
         {
-            var review = new FileReviewModel { FilePath = "test.cs", Score = 8.0f };
+            var path = "test.cs";
+            var review = new FileReviewModel { FilePath = path, Score = 8.0f, RawScore = "current-raw" };
             var currentCode = "current code";
             var precomputedScore = "baseline123";
             var expectedDelta = new DeltaResponseModel();
+            var entered = new TaskCompletionSource<bool>();
+            var gate = new TaskCompletionSource<bool>();
             var cts = new CancellationTokenSource();
-            var specificToken = cts.Token;
+            var callerToken = cts.Token;
+            var capturedToken = CancellationToken.None;
 
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns("old code");
             _mockInnerReviewer
-                .Setup(r => r.DeltaAsync(review, currentCode, precomputedScore, null, specificToken))
-                .ReturnsAsync(expectedDelta);
+                .Setup(r => r.DeltaAsync(review, currentCode, precomputedScore, null, It.IsAny<CancellationToken>()))
+                .Returns<FileReviewModel, string, string, long?, CancellationToken>(async (_, _, _, _, token) =>
+                {
+                    capturedToken = token;
+                    entered.TrySetResult(true);
+                    await gate.Task;
+                    return expectedDelta;
+                });
 
-            await _cachingReviewer.DeltaAsync(review, currentCode, precomputedScore, null, specificToken);
+            var canceledCallerTask = _cachingReviewer.DeltaAsync(review, currentCode, precomputedScore, null, callerToken);
+            await entered.Task;
+            var secondCallerTask = _cachingReviewer.DeltaAsync(review, currentCode, precomputedScore);
+            cts.Cancel();
+            gate.TrySetResult(true);
 
-            _mockInnerReviewer.Verify(
-                r => r.DeltaAsync(review, currentCode, precomputedScore, null, specificToken),
-                Times.Once,
-                "Must pass the exact CancellationToken to inner reviewer");
+            await Assert.ThrowsAsync<OperationCanceledException>(() => canceledCallerTask);
+
+            var secondResult = await secondCallerTask;
+
+            Assert.AreEqual(expectedDelta, secondResult);
+            Assert.AreEqual(CancellationToken.None, capturedToken);
+            _mockInnerReviewer.Verify(r => r.DeltaAsync(review, currentCode, precomputedScore, null, It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

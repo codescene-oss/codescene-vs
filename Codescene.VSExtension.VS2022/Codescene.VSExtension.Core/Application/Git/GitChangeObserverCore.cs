@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Enums.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -17,7 +18,7 @@ using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
-    public class GitChangeObserverCore : IDisposable
+    public partial class GitChangeObserverCore : IDisposable
     {
         private readonly ILogger _logger;
         private readonly ICodeReviewer _codeReviewer;
@@ -47,6 +48,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private CodeHealthRulesWatcher _rulesWatcher;
         private GitIgnoreWatcher _gitIgnoreWatcher;
         private TaskCompletionSource<bool> _initializationComplete;
+        private PerFileRequestQueue<string> _detectedFilesQueue = new PerFileRequestQueue<string>();
 
         public GitChangeObserverCore(
             ILogger logger,
@@ -192,6 +194,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             _cts = null;
             _initializationComplete?.TrySetCanceled();
             _initializationComplete = null;
+            _detectedFilesQueue.Clear();
+
             if (_fileWatcher != null)
             {
                 try
@@ -247,6 +251,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             _initializationComplete?.TrySetCanceled();
             _initializationComplete = null;
+            _detectedFilesQueue.Clear();
 
             _trackerManager.Clear();
 
@@ -341,39 +346,39 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private void OnGitChangeListerFilesDetected(object sender, HashSet<string> absolutePaths)
         {
-            var cts = _cts;
-            if (cts == null)
+            try
             {
-                return;
-            }
-
-            var token = cts.Token;
-            _taskScheduler.Schedule(async () =>
-            {
-                try
+                var cts = _cts;
+                if (cts == null)
                 {
-                    if (token.IsCancellationRequested)
+                    return;
+                }
+
+                if (absolutePaths == null)
+                {
+                    throw new ArgumentNullException(nameof(absolutePaths));
+                }
+
+                var token = cts.Token;
+                foreach (var path in absolutePaths.Where(path => !string.IsNullOrWhiteSpace(path)))
+                {
+                    if (_detectedFilesQueue.TryStart(path, path))
                     {
-                        return;
+                        _taskScheduler.Schedule(async () => await ProcessDetectedFileQueueAsync(path, token));
                     }
-#if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> GitChangeObserverCore: GitChangeLister detected {absolutePaths.Count} files");
-#endif
-
-                    await ProcessFilesAsync(absolutePaths, token);
-
-#if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> GitChangeObserverCore: Processed detected files");
-#endif
+                    else
+                    {
+                        _detectedFilesQueue.EnqueueLatest(path, path);
+                    }
                 }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception ex)
-                {
-                    _logger?.Warn($"GitChangeObserver: Error processing detected files: {ex.Message}");
-                }
-            });
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger?.Warn($"GitChangeObserver: Error processing detected files: {ex.Message}");
+            }
         }
 
         private void InitializeGitPaths()
