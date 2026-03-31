@@ -27,7 +27,7 @@ jobs:
         with:
           name: fetched-cli
           path: |
-            cs-ide/**
+            cs-ide
 
   benchmarks:
     name: Run review benchmarks
