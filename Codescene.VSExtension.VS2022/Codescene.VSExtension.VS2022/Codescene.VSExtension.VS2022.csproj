@@ -124,6 +124,7 @@
       <DependentUpon>WebComponentUserControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tagger\AceRefactorSuggestedAction.cs" />
+    <Compile Include="Tagger\AceRefactorSuggestedActionsNotifier.cs" />
     <Compile Include="Tagger\AceRefactorSuggestedActionsSource.cs" />
     <Compile Include="Tagger\AceRefactorSuggestedActionsSourceProvider.cs" />
     <Compile Include="Tagger\ReviewResultTagger.cs" />

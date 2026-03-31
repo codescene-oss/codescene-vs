@@ -17,6 +17,9 @@ internal class AceRefactorSuggestedActionsSourceProvider : ISuggestedActionsSour
     [Import]
     internal ISettingsProvider SettingsProvider { get; set; }
 
+    [Import]
+    internal IAceRefactorSuggestedActionsNotifier SuggestedActionsNotifier { get; set; }
+
     public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
     {
         if (textBuffer == null || textView == null)
@@ -24,6 +27,6 @@ internal class AceRefactorSuggestedActionsSourceProvider : ISuggestedActionsSour
             return null;
         }
 
-        return new AceRefactorSuggestedActionsSource(this, textView, textBuffer);
+        return new AceRefactorSuggestedActionsSource(this, textView, textBuffer, SuggestedActionsNotifier);
     }
 }
