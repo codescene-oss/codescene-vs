@@ -1,0 +1,138 @@
+// Copyright (c) CodeScene. All rights reserved.
+
+using Codescene.VSExtension.Core.Application.Cli;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Moq;
+
+namespace Codescene.VSExtension.Core.Tests
+{
+    [TestClass]
+    public class ProcessExecutorTests
+    {
+        private Mock<ICliSettingsProvider> _mockCliSettingsProvider;
+        private Mock<ILogger> _mockLogger;
+        private ProcessExecutor _processExecutor;
+        private string _tempFilePath;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _mockCliSettingsProvider = new Mock<ICliSettingsProvider>();
+            _mockLogger = new Mock<ILogger>();
+            _tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".exe");
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            if (File.Exists(_tempFilePath))
+            {
+                File.Delete(_tempFilePath);
+            }
+        }
+
+        [TestMethod]
+        public void Execute_FileDoesNotExist_ThrowsFileNotFoundException()
+        {
+            // Arrange
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
+
+            // Act & Assert
+            var exception = Assert.Throws<FileNotFoundException>(() =>
+                _processExecutor.ExecuteAsync("version --sha").GetAwaiter().GetResult());
+
+            Assert.Contains("CodeScene CLI executable not found", exception.Message);
+            Assert.Contains("bundled with the extension", exception.Message);
+            Assert.AreEqual(_tempFilePath, exception.FileName);
+        }
+
+        [TestMethod]
+        public void Execute_FileExists_FileNotFoundExceptionNotThrown()
+        {
+            // Arrange
+            File.WriteAllText(_tempFilePath, "dummy executable content");
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
+
+            // Act & Assert
+            // The file existence check should pass (file exists), so FileNotFoundException should not be thrown
+            // Note: Execution will likely fail with a different exception since this is not a real executable,
+            // but the important part is that FileNotFoundException is not thrown at the file existence check stage
+            try
+            {
+                _processExecutor.ExecuteAsync("version --sha").GetAwaiter().GetResult();
+
+                // If we get here without FileNotFoundException, the file existence check passed
+            }
+            catch (FileNotFoundException ex)
+            {
+                // This should not happen if the file exists - the exception should not mention file not found
+                Assert.Fail($"FileNotFoundException should not be thrown when file exists. Message: {ex.Message}");
+            }
+            catch (Exception)
+            {
+                // Any other exception is expected (e.g., process execution failure, invalid executable format)
+                // The important thing is that FileNotFoundException was not thrown, meaning the file existence check passed
+            }
+        }
+
+        [TestMethod]
+        public async Task Execute_WhenTimeoutExceeded_ThrowsTimeoutException()
+        {
+            var pingPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "ping.exe");
+            if (!File.Exists(pingPath))
+            {
+                Assert.Inconclusive("ping.exe not found, skipping timeout test");
+                return;
+            }
+
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
+
+            var exception = await Assert.ThrowsAsync<TimeoutException>(() =>
+                _processExecutor.ExecuteAsync("127.0.0.1 -n 100", null, TimeSpan.FromMilliseconds(1)));
+
+            Assert.Contains("timeout", exception.Message);
+            Assert.Contains("1", exception.Message);
+        }
+
+        [TestMethod]
+        public async Task Execute_WhenTimeoutExceededAndCancellationRequested_ThrowsOperationCanceledException()
+        {
+            var pingPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "ping.exe");
+            if (!File.Exists(pingPath))
+            {
+                Assert.Inconclusive("ping.exe not found, skipping timeout test");
+                return;
+            }
+
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _processExecutor.ExecuteAsync("127.0.0.1 -n 100", null, TimeSpan.FromMilliseconds(50), cts.Token));
+        }
+
+        [TestMethod]
+        public async Task Execute_WhenTimeoutExceededWithTelemetryArgument_ReturnsEmptyString()
+        {
+            var pingPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "ping.exe");
+            if (!File.Exists(pingPath))
+            {
+                Assert.Inconclusive("ping.exe not found, skipping timeout test");
+                return;
+            }
+
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
+
+            var result = await _processExecutor.ExecuteAsync("telemetry some-command", null, TimeSpan.FromMilliseconds(1));
+
+            Assert.AreEqual(string.Empty, result);
+        }
+    }
+}

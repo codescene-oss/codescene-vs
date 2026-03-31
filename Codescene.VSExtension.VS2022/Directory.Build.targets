@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="ExcludeNuGetPackageFilesFromCompile" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <_CompileFromNuGetPackages Include="@(Compile)" Condition="$([System.String]::Copy('%(Identity)').Contains('.nuget'))" />
+      <Compile Remove="@(_CompileFromNuGetPackages)" />
+    </ItemGroup>
+  </Target>
+</Project>

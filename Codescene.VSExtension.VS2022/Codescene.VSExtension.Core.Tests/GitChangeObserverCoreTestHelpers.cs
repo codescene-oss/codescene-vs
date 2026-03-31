@@ -1,0 +1,462 @@
+// Copyright (c) CodeScene. All rights reserved.
+
+using System.Collections.Generic;
+using System.Threading;
+using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Git;
+using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
+
+namespace Codescene.VSExtension.Core.Tests
+{
+    public class TestFileData
+    {
+        public TestFileData(string filename, string content, string? commitMessage = null)
+        {
+            Filename = filename;
+            Content = content;
+            CommitMessage = commitMessage;
+        }
+
+        public string Filename { get; set; }
+
+        public string Content { get; set; }
+
+        public string? CommitMessage { get; set; }
+    }
+
+    public class FileAssertionHelper
+    {
+        private readonly List<string> _changedFiles;
+        private readonly TrackerManager _trackerManager;
+
+        public FileAssertionHelper(List<string> changedFiles, TrackerManager trackerManager)
+        {
+            _changedFiles = changedFiles;
+            _trackerManager = trackerManager;
+        }
+
+        public void AssertInChangedList(TestFileData fileData, bool shouldExist = true)
+        {
+            AssertInChangedList(fileData.Filename, shouldExist);
+        }
+
+        public void AssertInChangedList(string filename, bool shouldExist = true)
+        {
+            var exists = _changedFiles.Any(f => f.EndsWith(filename, StringComparison.OrdinalIgnoreCase));
+            Assert.AreEqual(shouldExist, exists, shouldExist ? $"Should include {filename}" : $"Should not include {filename}");
+        }
+
+        public void AssertInTracker(string filePath, bool shouldExist = true)
+        {
+            var exists = _trackerManager.Contains(filePath);
+            Assert.AreEqual(shouldExist, exists, shouldExist ? "File should be in tracker" : "File should not be in tracker");
+        }
+    }
+
+    public class FakeAsyncTaskScheduler : IAsyncTaskScheduler
+    {
+        public void Schedule(Func<Task> asyncWork)
+        {
+            asyncWork().GetAwaiter().GetResult();
+        }
+
+        public void Schedule(Func<CancellationToken, Task> asyncWork)
+        {
+            asyncWork(CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        public void Schedule(Func<CancellationToken, Task> asyncWork, CancellationToken cancellationToken)
+        {
+            asyncWork(cancellationToken).GetAwaiter().GetResult();
+        }
+    }
+
+    public class BackgroundAsyncTaskScheduler : IAsyncTaskScheduler
+    {
+        public void Schedule(Func<Task> asyncWork)
+        {
+            Task.Run(asyncWork);
+        }
+
+        public void Schedule(Func<CancellationToken, Task> asyncWork)
+        {
+            Task.Run(() => asyncWork(CancellationToken.None));
+        }
+
+        public void Schedule(Func<CancellationToken, Task> asyncWork, CancellationToken cancellationToken)
+        {
+            Task.Run(() => asyncWork(cancellationToken));
+        }
+    }
+
+    public class FakeLogger : ILogger
+    {
+        public readonly List<string> DebugMessages = new List<string>();
+        public readonly List<string> InfoMessages = new List<string>();
+        public readonly List<string> WarnMessages = new List<string>();
+        public readonly List<(string, Exception)> ErrorMessages = new List<(string, Exception)>();
+
+        private readonly object _lock = new object();
+
+        public void Debug(string message)
+        {
+            lock (_lock)
+            {
+                DebugMessages.Add(message);
+            }
+        }
+
+        public void Info(string message, bool statusBar = false)
+        {
+            lock (_lock)
+            {
+                InfoMessages.Add(message);
+            }
+        }
+
+        public void Warn(string message, bool statusBar = false)
+        {
+            lock (_lock)
+            {
+                WarnMessages.Add(message);
+            }
+        }
+
+        public void Error(string message, Exception ex)
+        {
+            lock (_lock)
+            {
+                ErrorMessages.Add((message, ex));
+            }
+        }
+    }
+
+    public class FakeCodeReviewer : ICodeReviewer
+    {
+        public int ReviewCallCount { get; private set; }
+
+        public bool ThrowOnReview { get; set; }
+
+        public List<string> ReviewedPaths { get; } = new List<string>();
+
+        public List<string> ReviewedContents { get; } = new List<string>();
+
+        public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        {
+            ReviewCallCount++;
+            ReviewedPaths.Add(path);
+            ReviewedContents.Add(content);
+            if (ThrowOnReview)
+            {
+                throw new Exception("Test exception from code reviewer");
+            }
+
+            return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
+        }
+
+        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        {
+            var review = await ReviewAsync(path, currentCode, false, operationGeneration, cancellationToken);
+            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken);
+            return (review, baselineRawScore ?? string.Empty);
+        }
+
+        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        {
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
+            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
+            return (review, delta);
+        }
+
+        public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default) =>
+            Task.FromResult("8.0");
+
+        public FileReviewModel Review(string path, string content) =>
+            ReviewAsync(path, content).GetAwaiter().GetResult();
+
+        public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default) =>
+            Task.FromResult<DeltaResponseModel>(null);
+
+        public DeltaResponseModel Delta(FileReviewModel review, string currentCode) =>
+            DeltaAsync(review, currentCode).GetAwaiter().GetResult();
+    }
+
+    public class FakeSupportedFileChecker : ISupportedFileChecker
+    {
+        private readonly Dictionary<string, bool> _supported = new Dictionary<string, bool>();
+
+        public bool IsSupported(string filePath)
+        {
+            if (_supported.ContainsKey(filePath))
+            {
+                return _supported[filePath];
+            }
+
+            var extension = Path.GetExtension(filePath)?.ToLower();
+            return extension == ".ts" || extension == ".js" || extension == ".py" || extension == ".cs";
+        }
+
+        public void SetSupported(string filePath, bool isSupported)
+        {
+            _supported[filePath] = isSupported;
+        }
+    }
+
+    public class FakeGitService : IGitService
+    {
+        public string GetFileContentForCommit(string path)
+        {
+            return string.Empty;
+        }
+
+        public bool IsFileIgnored(string filePath)
+        {
+            return false;
+        }
+
+        public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
+        {
+            return string.Empty;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    public class FakeGitServiceIgnorePath : IGitService
+    {
+        private readonly string _ignoredPath;
+
+        public FakeGitServiceIgnorePath(string ignoredPath)
+        {
+            _ignoredPath = ignoredPath;
+        }
+
+        public string GetFileContentForCommit(string path)
+        {
+            return string.Empty;
+        }
+
+        public bool IsFileIgnored(string filePath)
+        {
+            return string.Equals(filePath, _ignoredPath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
+        {
+            return string.Empty;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    public class FakeGitServiceWithGitignoreSupport : IGitService
+    {
+        private readonly string _repoPath;
+
+        public FakeGitServiceWithGitignoreSupport(string repoPath)
+        {
+            _repoPath = repoPath;
+        }
+
+        public string GetFileContentForCommit(string path)
+        {
+            return string.Empty;
+        }
+
+        public bool IsFileIgnored(string filePath)
+        {
+            try
+            {
+                using (var repo = new LibGit2Sharp.Repository(_repoPath))
+                {
+                    var relativePath = filePath;
+                    if (Path.IsPathRooted(filePath))
+                    {
+                        var repoPathNormalized = _repoPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        if (filePath.StartsWith(repoPathNormalized, StringComparison.OrdinalIgnoreCase))
+                        {
+                            relativePath = filePath.Substring(repoPathNormalized.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        }
+                    }
+
+                    relativePath = relativePath.Replace('\\', '/');
+
+                    return repo.Ignore.IsPathIgnored(relativePath);
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
+        {
+            return string.Empty;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    public class FakeSavedFilesTracker : ISavedFilesTracker
+    {
+        private readonly HashSet<string> _savedFiles = new HashSet<string>();
+
+        public IEnumerable<string> GetSavedFiles()
+        {
+            return _savedFiles;
+        }
+
+        public void ClearSavedFiles()
+        {
+            _savedFiles.Clear();
+        }
+
+        public void RemoveFromTracker(string filePath)
+        {
+            _savedFiles.Remove(filePath);
+        }
+
+        public void AddSavedFile(string filePath)
+        {
+            _savedFiles.Add(filePath);
+        }
+    }
+
+    public class FakeOpenFilesObserver : IOpenFilesObserver
+    {
+        private readonly HashSet<string> _openFiles = new HashSet<string>();
+
+        public string ActiveDocumentPath { get; private set; }
+
+        public IEnumerable<string> GetAllVisibleFileNames()
+        {
+            return _openFiles;
+        }
+
+        public string GetActiveDocumentPath()
+        {
+            return ActiveDocumentPath;
+        }
+
+        public void AddOpenFile(string filePath)
+        {
+            _openFiles.Add(filePath);
+        }
+
+        public void SetActiveDocument(string filePath)
+        {
+            ActiveDocumentPath = filePath;
+        }
+    }
+
+    public class FakeOpenDocumentContentProvider : IOpenDocumentContentProvider
+    {
+        private readonly Dictionary<string, string> _contentByPath = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        public bool ThrowOnGetContent { get; set; }
+
+        public void SetContentForPath(string filePath, string content)
+        {
+            _contentByPath[filePath] = content;
+        }
+
+        public Task<string> GetContentForReviewAsync(string filePath, CancellationToken cancellationToken = default)
+        {
+            if (ThrowOnGetContent)
+            {
+                throw new Exception("Simulated provider failure");
+            }
+
+#pragma warning disable CS8619
+            return Task.FromResult(_contentByPath.TryGetValue(filePath, out var content) ? content : null);
+#pragma warning restore CS8619
+        }
+    }
+
+    public class FakeGitChangeLister : IGitChangeLister
+    {
+        public event EventHandler<HashSet<string>> FilesDetected;
+
+        public bool ThrowOnCollectFiles { get; set; }
+
+        public HashSet<string> FilesToReturn { get; set; } = new HashSet<string>();
+
+        public Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new HashSet<string>());
+        }
+
+        public Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new HashSet<string>());
+        }
+
+        public void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths)
+        {
+        }
+
+        public void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
+        {
+        }
+
+        public void StartPeriodicScanning(CancellationToken cancellationToken)
+        {
+        }
+
+        public void StopPeriodicScanning()
+        {
+        }
+
+        public Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default)
+        {
+            if (ThrowOnCollectFiles)
+            {
+                throw new Exception("Simulated error in CollectFilesFromRepoStateAsync");
+            }
+
+            return Task.FromResult(FilesToReturn);
+        }
+
+        public void SimulateFilesDetected(HashSet<string> files)
+        {
+            FilesDetected?.Invoke(this, files);
+        }
+    }
+
+    internal class TestableGitChangeObserverCore : GitChangeObserverCore
+    {
+        public TestableGitChangeObserverCore(
+            ILogger logger,
+            ICodeReviewer codeReviewer,
+            ISupportedFileChecker supportedFileChecker,
+            IAsyncTaskScheduler taskScheduler,
+            IGitChangeLister gitChangeLister,
+            IGitService gitService)
+            : base(logger, codeReviewer, supportedFileChecker, taskScheduler, gitChangeLister, gitService)
+        {
+        }
+
+        public int GetChangedFilesCallCount { get; private set; }
+
+        public void ResetCallCount()
+        {
+            GetChangedFilesCallCount = 0;
+        }
+
+        public override async Task<List<string>> GetChangedFilesVsBaselineAsync()
+        {
+            GetChangedFilesCallCount++;
+            return await base.GetChangedFilesVsBaselineAsync();
+        }
+    }
+}

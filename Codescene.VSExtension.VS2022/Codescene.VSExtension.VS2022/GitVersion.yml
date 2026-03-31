@@ -1,0 +1,11 @@
+mode: ContinuousDelivery
+branches:
+  main:
+    regex: main
+    increment: patch
+  feature:
+    regex: feature(s)?[/-]
+    increment: minor
+  hotfix:
+    regex: hotfix(s)?[/-]
+    increment: patch

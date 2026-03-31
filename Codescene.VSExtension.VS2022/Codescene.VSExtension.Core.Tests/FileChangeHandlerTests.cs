@@ -1,0 +1,362 @@
+// Copyright (c) CodeScene. All rights reserved.
+
+using Codescene.VSExtension.Core.Application.Git;
+
+namespace Codescene.VSExtension.Core.Tests
+{
+    [TestClass]
+    public class FileChangeHandlerTests
+    {
+        private string _testWorkspacePath;
+        private FileChangeHandler _handler;
+        private FakeLogger _fakeLogger;
+        private FakeCodeReviewer _fakeCodeReviewer;
+        private FakeSupportedFileChecker _fakeSupportedFileChecker;
+        private TrackerManager _trackerManager;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _testWorkspacePath = Path.Combine(Path.GetTempPath(), $"test-workspace-{Guid.NewGuid()}");
+            Directory.CreateDirectory(_testWorkspacePath);
+
+            _fakeLogger = new FakeLogger();
+            _fakeCodeReviewer = new FakeCodeReviewer();
+            _fakeSupportedFileChecker = new FakeSupportedFileChecker();
+            _trackerManager = new TrackerManager();
+
+            _handler = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                new[] { _testWorkspacePath },
+                _trackerManager,
+                new FakeGitService(),
+                _testWorkspacePath);
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            if (Directory.Exists(_testWorkspacePath))
+            {
+                try
+                {
+                    Directory.Delete(_testWorkspacePath, true);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        [TestMethod]
+        public void SetWorkspacePaths_UpdatesPaths()
+        {
+            _handler.SetWorkspacePaths(new[] { _testWorkspacePath });
+            _handler.SetWorkspacePaths(null);
+            _handler.SetWorkspacePaths(Array.Empty<string>());
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_DirectoryPath_ReturnsEarly()
+        {
+            var directoryPath = Path.Combine(_testWorkspacePath, "mydir");
+            var changedFiles = new List<string> { "mydir" };
+
+            await _handler.HandleFileChangeAsync(directoryPath, changedFiles);
+
+            Assert.IsFalse(_trackerManager.Contains(directoryPath));
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount);
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_DirectoryPathWithSeparator_ReturnsEarly()
+        {
+            var directoryPath = Path.Combine(_testWorkspacePath, "mydir") + Path.DirectorySeparatorChar;
+            var changedFiles = new List<string> { "mydir/" };
+
+            await _handler.HandleFileChangeAsync(directoryPath, changedFiles);
+
+            Assert.IsFalse(_trackerManager.Contains(directoryPath));
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount);
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_NonExistentFile_NoReviewCalled()
+        {
+            var nonExistentFile = Path.Combine(_testWorkspacePath, "nonexistent.cs");
+            var changedFiles = new List<string> { "nonexistent.cs" };
+
+            await _handler.HandleFileChangeAsync(nonExistentFile, changedFiles);
+
+            Assert.IsTrue(_trackerManager.Contains(nonExistentFile));
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount);
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_FileReadThrowsException_LogsWarning()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "test.cs");
+            var changedFiles = new List<string> { "test.cs" };
+            File.WriteAllText(testFile, "public class Test {}");
+
+            await _handler.HandleFileChangeAsync(testFile, changedFiles);
+
+            await Task.Delay(100);
+            File.Delete(testFile);
+            await Task.Delay(100);
+
+            Assert.IsTrue(_fakeLogger.WarnMessages.Count > 0 || _fakeCodeReviewer.ReviewCallCount == 1);
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_CodeReviewerThrowsException_LogsWarning()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "test.cs");
+            var changedFiles = new List<string> { "test.cs" };
+            File.WriteAllText(testFile, "public class Test {}");
+
+            _fakeCodeReviewer.ThrowOnReview = true;
+
+            await _handler.HandleFileChangeAsync(testFile, changedFiles);
+
+            await Task.Delay(200);
+
+            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Could not load file for review")));
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_ValidFile_AddsToTrackerAndReviews()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "test.cs");
+            var changedFiles = new List<string> { "test.cs" };
+            File.WriteAllText(testFile, "public class Test {}");
+
+            await _handler.HandleFileChangeAsync(testFile, changedFiles);
+
+            await Task.Delay(200);
+
+            Assert.IsTrue(_trackerManager.Contains(testFile));
+            Assert.IsGreaterThanOrEqualTo(_fakeCodeReviewer.ReviewCallCount, 1);
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_WhenFileIsActiveDocument_SkipsReviewButAddsToTracker()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "active.cs");
+            var changedFiles = new List<string> { "active.cs" };
+            File.WriteAllText(testFile, "public class Active {}");
+
+            var handlerWithActiveDoc = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                new[] { _testWorkspacePath },
+                _trackerManager,
+                new FakeGitService(),
+                _testWorkspacePath,
+                null,
+                null,
+                () => testFile);
+
+            await handlerWithActiveDoc.HandleFileChangeAsync(testFile, changedFiles);
+
+            Assert.IsTrue(_trackerManager.Contains(testFile));
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount);
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_WhenOpenDocumentContentProviderReturnsContent_UsesProviderContentNotDisk()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "open.cs");
+            var changedFiles = new List<string> { "open.cs" };
+            File.WriteAllText(testFile, "content-from-disk");
+
+            var provider = new FakeOpenDocumentContentProvider();
+            provider.SetContentForPath(testFile, "content-from-buffer");
+            var handlerWithProvider = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                new[] { _testWorkspacePath },
+                _trackerManager,
+                new FakeGitService(),
+                _testWorkspacePath,
+                null,
+                provider);
+
+            await handlerWithProvider.HandleFileChangeAsync(testFile, changedFiles);
+
+            await Task.Delay(200);
+
+            Assert.AreEqual(1, _fakeCodeReviewer.ReviewCallCount);
+            Assert.HasCount(1, _fakeCodeReviewer.ReviewedContents);
+            Assert.AreEqual("content-from-buffer", _fakeCodeReviewer.ReviewedContents[0]);
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_FileNotInChangedList_ReturnsEarlyWithoutProcessing()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "test.cs");
+            File.WriteAllText(testFile, "public class Test {}");
+            var changedFiles = new List<string> { "other.cs" };
+
+            await _handler.HandleFileChangeAsync(testFile, changedFiles);
+
+            Assert.IsFalse(_trackerManager.Contains(testFile), "Should not add file to tracker");
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount, "Should not review file");
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_RevertedTrackedFile_RemovesFromTrackerAndFiresFileDeletedFromGit()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "test.cs");
+            File.WriteAllText(testFile, "public class Test {}");
+            _trackerManager.Add(testFile);
+
+            var eventFired = false;
+            string? deletedPath = null;
+            _handler.FileDeletedFromGit += (sender, e) =>
+            {
+                eventFired = true;
+                deletedPath = e;
+            };
+
+            var changedFiles = new List<string> { "other.cs" };
+
+            await _handler.HandleFileChangeAsync(testFile, changedFiles);
+
+            Assert.IsFalse(_trackerManager.Contains(testFile));
+            Assert.IsTrue(eventFired);
+            Assert.AreEqual(testFile, deletedPath);
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount);
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_UnsupportedFileType_ReturnsEarlyWithoutProcessing()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "test.txt");
+            File.WriteAllText(testFile, "text content");
+            var changedFiles = new List<string> { "test.txt" };
+
+            _fakeSupportedFileChecker.SetSupported(testFile, false);
+
+            await _handler.HandleFileChangeAsync(testFile, changedFiles);
+
+            Assert.IsFalse(_trackerManager.Contains(testFile), "Should not add file to tracker");
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount, "Should not review file");
+        }
+
+        [TestMethod]
+        public void ShouldProcessFile_WhenChangedListIsGitRelative_MatchesFileUnderWorkspace()
+        {
+            var fileUnderWorkspace = Path.Combine(_testWorkspacePath, "subdir", "inside.cs");
+            Directory.CreateDirectory(Path.GetDirectoryName(fileUnderWorkspace));
+            File.WriteAllText(fileUnderWorkspace, "public class Inside {}");
+            var changedFiles = new List<string> { "subdir/inside.cs" };
+
+            var result = _handler.ShouldProcessFile(fileUnderWorkspace, changedFiles);
+
+            Assert.IsTrue(result, "IsFileInChangedList should match when changed list contains git-relative path");
+        }
+
+        [TestMethod]
+        public void ShouldProcessFile_NullWorkspacePath_ReturnsTrue()
+        {
+            var handlerWithNullWorkspace = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                null,
+                _trackerManager,
+                new FakeGitService());
+
+            var testFile = "test.cs";
+            var changedFiles = new List<string> { "test.cs" };
+
+            var result = handlerWithNullWorkspace.ShouldProcessFile(testFile, changedFiles);
+
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public void ShouldProcessFile_EmptyWorkspacePaths_ReturnsTrue()
+        {
+            var handlerWithEmptyWorkspace = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                Array.Empty<string>(),
+                _trackerManager,
+                new FakeGitService());
+
+            var testFile = "test.cs";
+            var changedFiles = new List<string> { "test.cs" };
+
+            var result = handlerWithEmptyWorkspace.ShouldProcessFile(testFile, changedFiles);
+
+            Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public void ShouldProcessFile_IgnoredFile_ReturnsFalse()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "ignored.cs");
+            var changedFiles = new List<string> { "ignored.cs" };
+            var handlerWithIgnoringGit = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                new[] { _testWorkspacePath },
+                _trackerManager,
+                new FakeGitServiceIgnorePath(testFile));
+
+            var result = handlerWithIgnoringGit.ShouldProcessFile(testFile, changedFiles);
+
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public void ShouldProcessFile_UnsupportedFile_ReturnsFalse()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "test.unsupported");
+            var changedFiles = new List<string> { "test.unsupported" };
+
+            _fakeSupportedFileChecker.SetSupported(testFile, false);
+
+            var result = _handler.ShouldProcessFile(testFile, changedFiles);
+
+            Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_WhenOpenDocumentContentProviderThrows_FallsBackToDiskContent()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "fallback.cs");
+            var changedFiles = new List<string> { "fallback.cs" };
+            File.WriteAllText(testFile, "content-from-disk");
+
+            var provider = new FakeOpenDocumentContentProvider { ThrowOnGetContent = true };
+            var handlerWithProvider = new FileChangeHandler(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                new[] { _testWorkspacePath },
+                _trackerManager,
+                new FakeGitService(),
+                _testWorkspacePath,
+                null,
+                provider);
+
+            await handlerWithProvider.HandleFileChangeAsync(testFile, changedFiles);
+
+            await Task.Delay(200);
+
+            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Open document provider failed")));
+            Assert.AreEqual(1, _fakeCodeReviewer.ReviewCallCount);
+            Assert.HasCount(1, _fakeCodeReviewer.ReviewedContents);
+            Assert.AreEqual("content-from-disk", _fakeCodeReviewer.ReviewedContents[0]);
+        }
+    }
+}

@@ -1,0 +1,58 @@
+// Copyright (c) CodeScene. All rights reserved.
+
+using System;
+using System.Collections.Concurrent;
+using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using Codescene.VSExtension.Core.Util;
+
+namespace Codescene.VSExtension.Core.Application.Services
+{
+    public class CodeHealthMonitorNotifier : ICodeHealthMonitorNotifier
+    {
+        private readonly ConcurrentDictionary<string, Job> _activeJobs = new ConcurrentDictionary<string, Job>();
+        private readonly object _lock = new object();
+
+        public event EventHandler ViewUpdateRequested;
+
+        public void OnDeltaStarting(string filePath)
+        {
+            lock (_lock)
+            {
+                if (_activeJobs.TryGetValue(filePath, out var existingJob))
+                {
+                    DeltaJobTracker.Remove(existingJob);
+                }
+
+                var job = new Job
+                {
+                    Type = WebComponentConstants.JobTypes.DELTA,
+                    State = WebComponentConstants.StateTypes.RUNNING,
+                    File = new File { FileName = filePath },
+                };
+                _activeJobs[filePath] = job;
+                DeltaJobTracker.Add(job);
+                ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public void OnDeltaCompleted(string filePath)
+        {
+            lock (_lock)
+            {
+                if (_activeJobs.TryRemove(filePath, out var job))
+                {
+                    DeltaJobTracker.Remove(job);
+                    ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        public void RequestViewUpdate()
+        {
+            ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+        }
+    }
+}

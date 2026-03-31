@@ -1,0 +1,425 @@
+// Copyright (c) CodeScene. All rights reserved.
+
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Windows.Controls;
+using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
+using Codescene.VSExtension.Core.Models.WebComponent.Payload;
+using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
+using Codescene.VSExtension.VS2022.Util;
+using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
+using Microsoft.Web.WebView2.Core;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
+namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
+
+/// <summary>
+/// Interaction logic for WebComponentUserControl.xaml.
+/// </summary>
+public partial class WebComponentUserControl : UserControl
+{
+    private const string FOLDERLOCATION = @"ToolWindows\WebComponent";
+    private const string STYLEELEMENTID = "cs-theme-vars";
+    private static readonly string[] AllowedDomains =
+    {
+        "https://refactoring.com",
+        "https://en.wikipedia.org",
+        "https://codescene.io",
+        "https://codescene.com",
+        "https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/",
+        "https://supporthub.codescene.com",
+        "https://forms.clickup.com",
+        "https://helpcenter.codescene.com",
+    };
+
+    private readonly ILogger _logger;
+
+    private string _host;
+    private bool _initialized;
+    private string _pendingMessage;
+
+    public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
+    {
+        _logger = logger;
+        InitializeComponent();
+        Initialize(payload, payload.View);
+    }
+
+    public WebComponentUserControl(WebComponentPayload<CodeSmellDocumentationComponentData> payload, ILogger logger)
+    {
+        _logger = logger;
+        InitializeComponent();
+        Initialize(payload, payload.View);
+    }
+
+    public WebComponentUserControl(WebComponentPayload<CodeHealthMonitorComponentData> payload, ILogger logger)
+    {
+        _logger = logger;
+        InitializeComponent();
+        Initialize(payload, payload.View);
+    }
+
+    public WebComponentUserControl(WebComponentPayload<AceAcknowledgeComponentData> payload, ILogger logger)
+    {
+        _logger = logger;
+        InitializeComponent();
+        Initialize(payload, payload.View);
+    }
+
+    public Func<Task> CloseRequested { get; set; }
+
+    public async Task UpdateViewAsync<T>(T message)
+    {
+        try
+        {
+            var settings = new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
+                Formatting = Formatting.None,
+            };
+            var messageString = JsonConvert.SerializeObject(message, settings);
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            if (!_initialized)
+            {
+                _pendingMessage = messageString;
+                _logger.Debug("Webview not initialized, queuing message.");
+                return;
+            }
+
+            var core = TryGetCoreWebView2();
+            if (core == null)
+            {
+                _pendingMessage = messageString;
+                _logger.Debug("WebView2 is unavailable; view update queued for retry.");
+                SchedulePendingMessageRetry();
+                return;
+            }
+
+            try
+            {
+                core.PostWebMessageAsJson(messageString);
+            }
+            catch (Exception sendEx)
+            {
+                _pendingMessage = messageString;
+                _logger.Warn($"WebView2 PostWebMessageAsJson failed; update queued for retry. {sendEx.Message}");
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.Error("Could not update webview.", e);
+        }
+    }
+
+    /// <summary>
+    /// Marks the webview as initialized and processes any pending message.
+    /// Called when CWF sends an 'init' message.
+    /// </summary>
+    public async Task MarkAsInitializedAsync()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        _initialized = true;
+
+        if (_pendingMessage != null)
+        {
+            _logger.Debug("Webview initialized, sending pending message.");
+        }
+
+        TryFlushPendingWebMessage();
+    }
+
+    /// <summary>
+    /// Gets a CSS string defining theme variables based on the current Visual Studio color theme.
+    /// These variables are used for styling elements inside the WebView to match the IDE appearance.
+    /// </summary>
+    private static string GenerateCssVariablesFromTheme()
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        return StyleHelper.GenerateCssVariablesFromTheme();
+    }
+
+    // Use process ID and view type to make host unique per VS instance and view type
+    // This prevents conflicts when multiple instances are open
+    private static string GetHost(string view) => $"myapp-{System.Diagnostics.Process.GetCurrentProcess().Id}-{view}.local";
+
+    private CoreWebView2 TryGetCoreWebView2()
+    {
+        try
+        {
+            return webView.CoreWebView2;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
+    private void TryFlushPendingWebMessage()
+    {
+        if (string.IsNullOrEmpty(_pendingMessage))
+        {
+            return;
+        }
+
+        var core = TryGetCoreWebView2();
+        if (core == null)
+        {
+            return;
+        }
+
+        try
+        {
+            core.PostWebMessageAsJson(_pendingMessage);
+            _pendingMessage = null;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warn($"WebView2 pending message send failed; will retry. {ex.Message}");
+        }
+    }
+
+    private void SchedulePendingMessageRetry()
+    {
+        if (string.IsNullOrEmpty(_pendingMessage))
+        {
+            return;
+        }
+
+        ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+        {
+            await Task.Yield();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            TryFlushPendingWebMessage();
+        }).FileAndForget("WebComponentUserControl/SchedulePendingMessageRetry");
+    }
+
+    private void Initialize<T>(T payload, string view)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        OnThemeChanged(null);
+        _ = InitializeWebView2Async(payload, view);
+        VSColorTheme.ThemeChanged += OnThemeChanged;
+    }
+
+    private void OnThemeChanged(ThemeChangedEventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var vsColor = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
+        webView.DefaultBackgroundColor = Color.FromArgb(vsColor.A, vsColor.R, vsColor.G, vsColor.B);
+
+        _ = ApplyThemeToWebViewAsync();
+    }
+
+    /// <summary>
+    /// Applies the current Visual Studio theme as CSS variables into the WebView DOM.
+    /// Replaces any previously injected style element with the same ID.
+    /// </summary>
+    private async Task ApplyThemeToWebViewAsync()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        var core = TryGetCoreWebView2();
+        if (core == null)
+        {
+            return;
+        }
+
+        var css = GenerateCssVariablesFromTheme().Replace("`", "\\`");
+
+        var script = $@"
+        (function() {{
+            const existing = document.getElementById('{STYLEELEMENTID}');
+            if (existing) {{
+                existing.remove();
+            }}
+            const style = document.createElement('style');
+            style.id = '{STYLEELEMENTID}';
+            style.textContent = `{css}`;
+            document.head.appendChild(style);
+        }})();
+        ";
+
+        await core.ExecuteScriptAsync(script);
+    }
+
+    /// <summary>
+    /// Generates an initialization script for setting context and injecting theme CSS into the WebView DOM.
+    /// </summary>
+    private async Task<string> GenerateInitialScriptAsync<T>(T payload)
+    {
+        const string template = $@"
+        function setContext() {{
+            window.ideContext = %ideContext%;
+            const css = `%cssVars%`;
+            function injectStyle() {{
+                const style = document.createElement('style');
+                style.id = '{STYLEELEMENTID}';
+                style.textContent = css;
+                document.head.appendChild(style);
+            }}
+            if (document.head) {{
+                injectStyle();
+            }} else {{
+                document.addEventListener('DOMContentLoaded', injectStyle);
+            }}
+        }}
+        setContext();
+        ";
+
+        var settings = new JsonSerializerSettings
+        {
+            ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
+            Formatting = Formatting.None,
+        };
+
+        var ideContext = JsonConvert.SerializeObject(payload, settings);
+
+        if (!ThreadHelper.CheckAccess())
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        }
+
+        var cssVars = GenerateCssVariablesFromTheme();
+
+        var script = template
+           .Replace("%ideContext%", ideContext)
+           .Replace("%cssVars%", cssVars.Replace("`", "\\`"));
+
+        return script;
+    }
+
+    private async Task<CoreWebView2Environment> CreatePerWindowEnvAsync(string view)
+    {
+        var cachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MyExtensionName", $"WebView2Cache_{view}");
+        return await CoreWebView2Environment.CreateAsync(userDataFolder: cachePath);
+    }
+
+    private async Task InitializeWebView2Async<T>(T payload, string view)
+    {
+        var env = await CreatePerWindowEnvAsync(view);
+
+        await webView.EnsureCoreWebView2Async(env);
+
+        webView.CoreWebView2.NavigationStarting += HandleNavigationStarting;
+
+        webView.NavigationCompleted += (_, _) =>
+        {
+            loadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
+            TryFlushPendingWebMessage();
+        };
+
+        webView.CoreWebView2.WebMessageReceived += (sender, e) =>
+        {
+            _ = OnWebMessageReceivedAsync(e);
+        };
+
+        var exePath = Assembly.GetExecutingAssembly().Location;
+        var exeFolder = Path.GetDirectoryName(exePath);
+        var localFolder = Path.Combine(exeFolder, FOLDERLOCATION);
+
+        _host = GetHost(view);
+        webView.CoreWebView2.SetVirtualHostNameToFolderMapping(_host, localFolder, CoreWebView2HostResourceAccessKind.Allow);
+
+        // Generate and inject the initialization script BEFORE navigation
+        // This ensures window.ideContext is set before React components initialize and check for it
+        // AddScriptToExecuteOnDocumentCreatedAsync runs the script before any page scripts execute
+        var initialScript = await GenerateInitialScriptAsync(payload);
+        await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(initialScript);
+
+        webView.Source = new Uri($"https://{_host}/index.html");
+    }
+
+    /// <summary>
+    /// This method enforces navigation rules for URLs:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>Allows navigation within the embedded WebView for the local app domain (e.g., https://myapp.local/index.html).</description>
+    ///   </item>
+    ///   <item>
+    ///     <description>Opens allowed external domains in the user's default external browser.</description>
+    ///   </item>
+    ///   <item>
+    ///     <description>Blocks and cancels any navigation attempts to disallowed external domains to prevent unwanted or potentially unsafe content.</description>
+    ///   </item>
+    /// </list>
+    /// </summary>
+    private void HandleNavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs args)
+    {
+        var uri = args.Uri;
+
+        // Allow navigation to our local app host
+        if (!string.IsNullOrEmpty(_host) && uri.Equals($"https://{_host}/index.html", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var isExternalNavigationAllowed = AllowedDomains.Any(domain => uri.StartsWith(domain, StringComparison.OrdinalIgnoreCase));
+        if (isExternalNavigationAllowed)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = uri,
+                    UseShellExecute = true,
+                });
+
+                args.Cancel = true;
+
+                _logger.Info($"Opened link '{uri}' in external browser.", true);
+                SendTelemetry(uri);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Could not open external link: {uri}", ex);
+            }
+        }
+        else
+        {
+            args.Cancel = true;
+            _logger.Info($"Blocked navigation to disallowed link '{uri}'.");
+        }
+    }
+
+    private async Task OnWebMessageReceivedAsync(CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        var handler = new WebComponentMessageHandler(this);
+        await handler.HandleAsync(e.WebMessageAsJson);
+    }
+
+    private void SendTelemetry(string uri)
+    {
+        var package = VS2022Package.Instance;
+        if (package == null)
+        {
+            return;
+        }
+
+        package.JoinableTaskFactory.RunAsync(async () =>
+        {
+            var additionalData = new Dictionary<string, object>
+            {
+                { "url", uri },
+            };
+
+            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+            await telemetryManager.SendTelemetryAsync(Constants.Telemetry.OPENLINK, additionalData, cancellationToken: package.PackageDisposalToken);
+        }).FileAndForget("WebComponentUserControl/SendTelemetry");
+    }
+}

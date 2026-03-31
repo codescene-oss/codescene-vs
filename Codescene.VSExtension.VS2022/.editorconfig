@@ -1,0 +1,47 @@
+
+root = true
+
+# All files
+[*]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+[*.cs]
+# SA0001: XML documentation comments must begin with standard text
+dotnet_diagnostic.SA0001.severity = none
+# SA1005: Single line comment should begin with a space (disabled to allow aligned table-style comments)
+dotnet_diagnostic.SA1005.severity = none
+# SA1101PrefixLocalCallsWithThis
+dotnet_diagnostic.SA1101.severity = none
+# SA1309FieldNamesMustNotBeginWithUnderscore
+dotnet_diagnostic.SA1309.severity = none
+# SA1515: Single-line comment should be preceded by blank line (disabled to allow header comments directly before DataRow)
+dotnet_diagnostic.SA1515.severity = none
+# CS0649: Field is never assigned to, and will always have its default value
+dotnet_diagnostic.CS0649.severity = none
+# CS0067: Event is never used
+dotnet_diagnostic.CS0067.severity = none
+# CVST005: Command has not been initialized
+dotnet_diagnostic.CVST005.severity = none
+# IDE0028: Simplify collection initialization
+dotnet_diagnostic.IDE0028.severity = none
+# IDE0090: Use 'new(...)'
+dotnet_diagnostic.IDE0090.severity = none
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none
+# VSSDK007: Intentional fire-and-forget via FileAndForget on JoinableTask
+dotnet_diagnostic.VSSDK007.severity = none
+
+[{*Tests.cs,*TestBase.cs,*TestHelpers.cs,Test*.cs}]
+# CS8618: Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+dotnet_diagnostic.CS8618.severity = none
+# SA1401: Fields should be private
+dotnet_diagnostic.SA1401.severity = none
+# SA1402: File may only contain a single type
+dotnet_diagnostic.SA1402.severity = none
+# SA1649: File name should match first type name
+dotnet_diagnostic.SA1649.severity = none
+# CS8625: Cannot convert null literal to non-nullable reference type.
+dotnet_diagnostic.CS8625.severity = none
+# CS8600: Converting null literal or possible null value to non-nullable type.
+dotnet_diagnostic.CS8600.severity = none

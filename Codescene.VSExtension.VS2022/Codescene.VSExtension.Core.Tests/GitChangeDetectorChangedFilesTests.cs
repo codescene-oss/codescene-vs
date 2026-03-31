@@ -1,0 +1,448 @@
+// Copyright (c) CodeScene. All rights reserved.
+
+using System.Collections.Generic;
+using System.Reflection;
+using Codescene.VSExtension.Core.Application.Git;
+using LibGit2Sharp;
+
+namespace Codescene.VSExtension.Core.Tests
+{
+    [TestClass]
+    public class GitChangeDetectorChangedFilesTests : GitChangeDetectorTestBase
+    {
+        [TestMethod]
+        public void IsFileInAnyWorkspace_NullOrEmptyWorkspacePaths_ReturnsTrue()
+        {
+            var method = typeof(GitChangeDetector).GetMethod(
+                "IsFileInAnyWorkspace",
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                new[] { typeof(string), typeof(string), typeof(IReadOnlyCollection<string>) },
+                null);
+            Assert.IsNotNull(method);
+            var resultNull = method.Invoke(_detector, new object[] { "file.cs", _testRepoPath, null });
+            Assert.IsTrue((bool)resultNull);
+            var resultEmpty = method.Invoke(_detector, new object[] { "file.cs", _testRepoPath, Array.Empty<string>() });
+            Assert.IsTrue((bool)resultEmpty);
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_FindsMergeBaseWithMainBranch()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-test");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+
+            CommitFile("feature.cs", "public class Feature {}", "Add feature");
+
+            var changedFiles = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsTrue(
+                changedFiles.Any(f => f.EndsWith("feature.cs")),
+                "Should detect feature.cs as changed vs main branch");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_IteratesToSecondCandidate()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var developBranch = repo.CreateBranch("develop");
+                LibGit2Sharp.Commands.Checkout(repo, developBranch);
+            }
+
+            try
+            {
+                ExecGit($"branch -D master");
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                ExecGit($"branch -D main");
+            }
+            catch
+            {
+            }
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-test");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+
+            CommitFile("feature.cs", "public class Feature {}", "Add feature");
+
+            var changedFiles = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsTrue(
+                changedFiles.Any(f => f.EndsWith("feature.cs")),
+                "Should find merge base with 'develop' branch when main/master not available");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_HandlesDetachedHead()
+        {
+            string commitSha;
+            using (var repo = new Repository(_testRepoPath))
+            {
+                commitSha = repo.Head.Tip.Sha;
+            }
+
+            ExecGit($"checkout {commitSha}");
+
+            var filePath = Path.Combine(_testRepoPath, "detached.cs");
+            File.WriteAllText(filePath, "public class Detached {}");
+
+            var changedFiles = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(
+                changedFiles,
+                "Should return results even in detached HEAD state");
+            Assert.IsTrue(
+                changedFiles.Any(f => f.EndsWith("detached.cs")),
+                "Should detect new file in detached HEAD state");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_NullGitRootPath_ReturnsEmptyList()
+        {
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                null, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result);
+            Assert.IsEmpty(result);
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_EmptyGitRootPath_ReturnsEmptyList()
+        {
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                string.Empty, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result);
+            Assert.IsEmpty(result);
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_NonExistentDirectory_ReturnsEmptyList()
+        {
+            var nonExistentPath = Path.Combine(Path.GetTempPath(), $"nonexistent-{Guid.NewGuid()}");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                nonExistentPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result);
+            Assert.IsEmpty(result);
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_NoGitRepository_ReturnsEmptyList()
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), $"no-git-{Guid.NewGuid()}");
+            Directory.CreateDirectory(tempDir);
+
+            try
+            {
+                var result = await _detector.GetChangedFilesVsBaselineAsync(
+                    tempDir, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+                Assert.IsNotNull(result);
+                Assert.IsEmpty(result);
+            }
+            finally
+            {
+                try
+                {
+                    Directory.Delete(tempDir, true);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_CorruptedRepository_ReturnsEmptyListAndLogsWarning()
+        {
+            var gitObjectsPath = Path.Combine(_testRepoPath, ".git", "objects");
+            if (Directory.Exists(gitObjectsPath))
+            {
+                try
+                {
+                    Directory.Delete(gitObjectsPath, true);
+                }
+                catch
+                {
+                }
+            }
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result);
+            Assert.IsEmpty(result);
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_NullSavedFilesTracker_HandledGracefully()
+        {
+            CommitFile("test.cs", "public class Test {}", "Add test file");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, null, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result);
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_NullOpenFilesObserver_HandledGracefully()
+        {
+            CommitFile("test.cs", "public class Test {}", "Add test file");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, null);
+
+            Assert.IsNotNull(result);
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_NoMainBranchCandidates_UsesWorkingDirectoryOnly()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var currentBranch = repo.Head.FriendlyName;
+                var featureBranch = repo.CreateBranch("feature-xyz");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+
+            try
+            {
+                ExecGit("branch -D master");
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                ExecGit("branch -D main");
+            }
+            catch
+            {
+            }
+
+            var testFilePath = Path.Combine(_testRepoPath, "newfile.cs");
+            File.WriteAllText(testFilePath, "public class NewFile {}");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result);
+            Assert.IsTrue(
+                result.Any(f => f.EndsWith("newfile.cs")),
+                "Should detect working directory changes when no main branch candidates exist");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_UnsupportedFiles_NotIncluded()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-test");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+
+            CommitFile("test.txt", "text file content", "Add text file");
+            CommitFile("test.cs", "public class Test {}", "Add cs file");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsTrue(
+                result.Any(f => f.EndsWith("test.cs")),
+                "Should include supported .cs file");
+            Assert.IsFalse(
+                result.Any(f => f.EndsWith("test.txt")),
+                "Should exclude unsupported .txt file");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_MultipleChangedFiles_ReturnsAll()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-test");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+
+            CommitFile("file1.cs", "public class File1 {}", "Add file1");
+            CommitFile("file2.js", "function test() {}", "Add file2");
+            CommitFile("file3.py", "def test():\n    pass", "Add file3");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsTrue(result.Any(f => f.EndsWith("file1.cs")));
+            Assert.IsTrue(result.Any(f => f.EndsWith("file2.js")));
+            Assert.IsTrue(result.Any(f => f.EndsWith("file3.py")));
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_OnMainBranch_ReturnsOnlyWorkingDirectoryChanges()
+        {
+            var testFilePath = Path.Combine(_testRepoPath, "newfile.cs");
+            File.WriteAllText(testFilePath, "public class NewFile {}");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotNull(result);
+            Assert.IsTrue(
+                result.Any(f => f.EndsWith("newfile.cs")),
+                "Should detect working directory changes when on main branch");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_DeduplicatesChangedFiles()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-test");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+
+            var testFilePath = CommitFile("test.cs", "public class Test {}", "Add test file");
+
+            File.WriteAllText(testFilePath, "public class Test { /* modified */ }");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            var testFileCount = result.Count(f => f.EndsWith("test.cs"));
+            Assert.AreEqual(1, testFileCount, "Should deduplicate files that appear in both committed and status changes");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_MainBranchCandidateDoesNotExist_ReturnsWorkingDirChanges()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-branch");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+
+            try
+            {
+                ExecGit("branch -D master");
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                ExecGit("branch -D main");
+            }
+            catch
+            {
+            }
+
+            var newFile = Path.Combine(_testRepoPath, "test.cs");
+            File.WriteAllText(newFile, "public class Test {}");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsNotEmpty(result, "Should detect working directory changes");
+            Assert.IsTrue(result.Any(f => f.Contains("test.cs")), "Should include new file");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_UnalteredFiles_NotIncluded()
+        {
+            CommitFile("unchanged.cs", "public class Unchanged {}", "Add unchanged file");
+
+            var modifiedFile = Path.Combine(_testRepoPath, "modified.cs");
+            File.WriteAllText(modifiedFile, "public class Modified {}");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsTrue(
+                result.Any(f => f.Contains("modified.cs")),
+                "Should include modified file");
+            Assert.IsFalse(
+                result.Any(f => f.Contains("unchanged.cs")),
+                "Should NOT include unaltered file");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_IgnoredFiles_NotIncluded()
+        {
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            File.WriteAllText(gitignorePath, "*.log\n");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                LibGit2Sharp.Commands.Stage(repo, ".gitignore");
+                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
+                repo.Commit("Add gitignore", signature, signature);
+            }
+
+            var ignoredFile = Path.Combine(_testRepoPath, "test.log");
+            File.WriteAllText(ignoredFile, "log content");
+
+            var normalFile = Path.Combine(_testRepoPath, "test.cs");
+            File.WriteAllText(normalFile, "public class Test {}");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsTrue(
+                result.Any(f => f.Contains("test.cs")),
+                "Should include non-ignored file");
+            Assert.IsFalse(
+                result.Any(f => f.Contains("test.log")),
+                "Should NOT include ignored file");
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_WhenWorkspaceIsSubfolder_ReturnsOnlyWorkspaceFilesAsGitRelativePaths()
+        {
+            var workspaceSubdir = Path.Combine(_testRepoPath, "workspace-subdir");
+            Directory.CreateDirectory(workspaceSubdir);
+
+            CreateFile("workspace-subdir/inside.cs", "public class Inside {}");
+            CreateFile("outside.cs", "public class Outside {}");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                LibGit2Sharp.Commands.Stage(repo, "workspace-subdir/inside.cs");
+                LibGit2Sharp.Commands.Stage(repo, "outside.cs");
+                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
+                repo.Commit("Add files", signature, signature);
+            }
+
+            File.WriteAllText(Path.Combine(workspaceSubdir, "inside.cs"), "public class InsideModified {}");
+            File.WriteAllText(Path.Combine(_testRepoPath, "outside.cs"), "public class OutsideModified {}");
+
+            var result = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, new[] { workspaceSubdir }, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            Assert.IsTrue(
+                result.Any(f => f.Replace('\\', '/').Equals("workspace-subdir/inside.cs")),
+                "Should include file inside workspace with git-relative path");
+            Assert.IsFalse(
+                result.Any(f => f.Contains("outside")),
+                "Should not include file outside workspace");
+        }
+    }
+}

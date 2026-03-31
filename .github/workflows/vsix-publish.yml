@@ -1,0 +1,110 @@
+name: Publish latest VSIX release (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_vs_marketplace:
+        type: boolean
+        default: true
+        description: Publish to Visual Studio Marketplace
+
+jobs:
+  # ------------------------
+  # Job 1: Prepare VSIX + PublishManifest
+  # ------------------------
+  prepare:
+    name: Prepare VSIX package
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get latest release
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          regex: true
+          file: '.*\.vsix'
+          version: "latest"
+          target: "./"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Output file-name for use in next job
+        id: latest-release
+        shell: pwsh
+        run: |
+          $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
+          if (-not $file) { throw "No VSIX file found!" }
+          echo "file-name=$file" >> $env:GITHUB_OUTPUT
+          Write-Host "Prepared VSIX: $file"
+
+      - name: Ensure publishManifest.json exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.json")) {
+            throw "publishManifest.json not found in Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022!"
+          }
+          Write-Host "Found publishManifest.json"
+
+      - name: Copy README.md for Marketplace
+        shell: pwsh
+        run: |
+          $baseUrl = "https://raw.githubusercontent.com/codescene-oss/codescene-vs/main"
+          $content = Get-Content "README.md" -Raw
+          $content = $content -replace 'src="screenshots/', "src=`"$baseUrl/screenshots/"
+          $content = $content -replace '\]\(screenshots/', "]($baseUrl/screenshots/"
+          Set-Content "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/overview.md" $content -Encoding UTF8
+
+      - name: Upload VSIX + publishManifest artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-package
+          path: |
+            *.vsix
+            Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/publishManifest.json
+            Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/overview.md
+
+  # ------------------------
+  # Job 2: Publish VSIX
+  # ------------------------
+  publish:
+    name: Publish VSIX Extension
+    runs-on: windows-latest
+    needs: prepare
+    if: ${{ github.event.inputs.publish_vs_marketplace == 'true' }}
+    steps:
+      - name: Download VSIX artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vsix-package
+          path: .
+
+      - name: Debug downloaded files
+        shell: pwsh
+        run: |
+          Write-Host "Files downloaded from prepare job:"
+          Get-ChildItem -Recurse
+
+      - name: Find VsixPublisher.exe
+        id: find-vsixpub
+        shell: pwsh
+        run: |
+          $vsix = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\2022" -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue | 
+                  Select-Object -First 1 -ExpandProperty FullName
+          if (-not $vsix) { throw "VsixPublisher.exe not found on runner." }
+          echo "path=$vsix" >> $env:GITHUB_OUTPUT
+          Write-Host "Found VsixPublisher at: $vsix"
+
+      - name: Publish to Visual Studio Marketplace
+        shell: pwsh
+        run: |
+          $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
+          $manifest = (Get-ChildItem -Recurse -Filter publishManifest.json | Select-Object -First 1).FullName
+
+          if (-not $manifest) { throw "publishManifest.json not found in downloaded artifacts!" }
+
+          Write-Host "Publishing VSIX: $file with manifest: $manifest"
+
+          & "${{ steps.find-vsixpub.outputs.path }}" publish `
+            -payload "$file" `
+            -publishManifest "$manifest" `
+            -personalAccessToken "${{ secrets.VISUAL_STUDIO_MARKETPLACE_PUBLISHING_TOKEN }}"

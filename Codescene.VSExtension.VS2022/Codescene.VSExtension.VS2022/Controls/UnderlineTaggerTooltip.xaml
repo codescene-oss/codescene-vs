@@ -1,0 +1,47 @@
+﻿<UserControl x:Class="Codescene.VSExtension.VS2022.Controls.UnderlineTaggerTooltip"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Codescene.VSExtension.VS2022.Controls"
+             mc:Ignorable="d">
+    <Grid HorizontalAlignment="Stretch">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" x:Name="ThemedTextBlock">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock>
+                    <Run Text="{Binding Category}" />
+                    <Run Text=" " />
+                </TextBlock>
+
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Details}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Details}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock Text="(" />
+                    <TextBlock Text="{Binding Details}" />
+                    <TextBlock Text=") " />
+                </StackPanel>
+
+                <TextBlock>
+                    <Run Text="CodeScene" FontWeight="Bold" />
+                    <Run Text=" (" FontWeight="Normal" />
+                </TextBlock>
+                <TextBlock>
+                    <Hyperlink x:Name="hyperlinkContrast" Command="{Binding YourCommand}" CommandParameter="{Binding CommandParameter}">
+                        <Run Text="{Binding Category}" />
+                    </Hyperlink>
+                </TextBlock>
+                <TextBlock Text=")" FontWeight="Normal"/>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,57 @@
+// Copyright (c) CodeScene. All rights reserved.
+
+using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Consts;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.Threading;
+
+namespace Codescene.VSExtension.VS2022.Commands;
+
+// [Command(PackageGuids.CodeSceneCmdSetString, PackageIds.RevokeTerms)]
+internal sealed class RevokeTermsCommand : BaseCommand<RevokeTermsCommand>
+{
+    protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        var package = VS2022Package.Instance;
+        var settingsManager = new ShellSettingsManager(package);
+        var store = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+
+        if (!store.CollectionExists(Constants.Titles.SETTINGSCOLLECTION))
+        {
+            store.CreateCollection(Constants.Titles.SETTINGSCOLLECTION);
+        }
+
+        store.SetBoolean(Constants.Titles.SETTINGSCOLLECTION, Constants.Titles.ACCEPTEDTERMSPROPERTY, false);
+
+        var logger = await VS.GetMefServiceAsync<ILogger>();
+        logger.Info("Terms & Policies revoked. Existing analysis results will be cleared upon file update or reopening. You will be prompted to accept CodeScene's Terms & Policies the next time the extension loads.", true);
+
+        var cache = new ReviewCacheService();
+        cache.Clear();
+
+        SendTelemetry();
+    }
+
+    private void SendTelemetry()
+    {
+        var package = VS2022Package.Instance;
+        if (package == null)
+        {
+            return;
+        }
+
+        package.JoinableTaskFactory.RunAsync(async () =>
+        {
+            var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+            await telemetryManager.SendTelemetryAsync(Constants.Telemetry.REVOKETERMS, cancellationToken: package.PackageDisposalToken);
+        }).FileAndForget("RevokeTermsCommand/Execute");
+    }
+}
