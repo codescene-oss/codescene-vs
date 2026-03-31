@@ -1,0 +1,23 @@
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/Handlers/OnActiveWindowChangeHandler.cs
+  e6d4b4bc575fe560 48,50-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "7f87e53d9aabd78c01aed31b9b6d3b9a5e66cbdf",
+  "prompts": {
+    "e6d4b4bc575fe560": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "27ad3b07-136a-4708-8c4d-726cb998b728",
+        "model": "default"
+      },
+      "human_author": "Martin Säfsten <martin.safsten@codescene.com>",
+      "messages": [],
+      "total_additions": 9,
+      "total_deletions": 6,
+      "accepted_lines": 9,
+      "overriden_lines": 0
+    }
+  }
+}
