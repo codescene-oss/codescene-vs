@@ -27,7 +27,7 @@ jobs:
         with:
           name: fetched-cli
           path: |
-            cs-ide
+            cs-ide/**
 
   benchmarks:
     name: Run review benchmarks
@@ -42,6 +42,24 @@ jobs:
         with:
           name: fetched-cli
           path: .
+
+      - name: Normalize CLI asset layout
+        shell: pwsh
+        run: |
+          if (-not (Test-Path .\cs-ide\cs-ide.exe)) {
+            New-Item -ItemType Directory -Force -Path .\cs-ide | Out-Null
+
+            if (Test-Path .\cs-ide.exe) {
+              Move-Item .\cs-ide.exe .\cs-ide\cs-ide.exe -Force
+            } else {
+              $cliExe = Get-ChildItem -Path . -Recurse -Filter cs-ide.exe | Select-Object -First 1
+              if (-not $cliExe) {
+                throw "cs-ide.exe was not found after downloading the artifact."
+              }
+
+              Copy-Item $cliExe.FullName .\cs-ide\cs-ide.exe -Force
+            }
+          }
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
