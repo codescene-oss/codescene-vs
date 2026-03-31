@@ -6,7 +6,7 @@ include .github/sha.mk
 # Lazy-once cache key - computed on first use, then cached for rest of Make invocation
 CACHE_KEY = $(eval CACHE_KEY := $$(call get_cache_key))$(CACHE_KEY)
 
-.PHONY: test test1 test-mine coverage-mine copy-assets restore format format-all format-check class-size-mine no-regions-mine test-cache test-sha install-cli delta pr-size clean prebuild quit-vs
+.PHONY: test test1 test-mine coverage-mine copy-assets restore format format-all format-check class-size-mine no-regions-mine test-cache test-sha install-cli delta pr-size clean prebuild quit-vs benchmark
 
 # You might need something like:
 # export PATH="$PATH:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/Extensions/TestPlatform"
@@ -102,3 +102,7 @@ pr-size:
 
 clean:
 	@pwsh.exe -Command "Get-ChildItem \"$$env:LOCALAPPDATA\Microsoft\VisualStudio\" -Filter '*Exp' -Directory | ForEach-Object { Remove-Item \"$$_.FullName\" -Recurse -Force -ErrorAction SilentlyContinue }"
+
+benchmark: restore cs-ide.zip
+	@cd Codescene.VSExtension.VS2022 && dotnet.exe build .\Codescene.VSExtension.Core.Benchmarks\Codescene.VSExtension.Core.Benchmarks.csproj -c Release > benchmark-build.log 2>&1 && del benchmark-build.log || (type benchmark-build.log && del benchmark-build.log && exit /b 1)
+	@cd Codescene.VSExtension.VS2022 && dotnet.exe run --project .\Codescene.VSExtension.Core.Benchmarks\Codescene.VSExtension.Core.Benchmarks.csproj -c Release -- $(BENCH_ARGS) > benchmark.log 2>&1 && del benchmark.log || (type benchmark.log && del benchmark.log && exit /b 1)
