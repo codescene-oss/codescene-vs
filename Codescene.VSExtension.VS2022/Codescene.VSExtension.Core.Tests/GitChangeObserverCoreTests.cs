@@ -2,6 +2,7 @@
 
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Models;
 using LibGit2Sharp;
@@ -275,6 +276,34 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsTrue(
                 _fakeLogger.WarnMessages.Exists(msg => msg.Contains("Error processing detected files")),
                 "Warning should mention error processing detected files");
+        }
+
+        [TestMethod]
+        public async Task ProcessDetectedFileQueueAsync_WhenCancelledDuringProcessing_CompletesSilently()
+        {
+            _gitChangeObserverCore.Dispose();
+            _gitChangeObserverCore = new GitChangeObserverCore(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                _fakeTaskScheduler,
+                _fakeGitChangeLister,
+                _fakeGitService);
+            _gitChangeObserverCore.Initialize(
+                _testRepoPath,
+                _fakeSavedFilesTracker,
+                _fakeOpenFilesObserver,
+                getChangedFilesCallback: () => Task.FromCanceled<List<string>>(new CancellationToken(canceled: true)));
+            _fakeLogger.WarnMessages.Clear();
+
+            var method = typeof(GitChangeObserverCore).GetMethod("ProcessDetectedFileQueueAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+            var task = (Task)method.Invoke(_gitChangeObserverCore, new object[] { Path.Combine(_testRepoPath, "cancelled.ts"), CancellationToken.None });
+
+            await task;
+
+            Assert.IsFalse(
+                _fakeLogger.WarnMessages.Exists(msg => msg.Contains("Error processing detected files")),
+                "Cancellation should be swallowed without warning logs");
         }
 
         [TestMethod]

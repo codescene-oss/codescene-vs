@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System;
 using Codescene.VSExtension.Core.Application.Util;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -59,6 +60,72 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsFalse(hasNext);
             Assert.IsNull(nextRequest);
             Assert.IsTrue(queue.TryStart("file.cs", "third"));
+        }
+
+        [TestMethod]
+        public void EnqueueLatest_NewFile_CreatesPendingRequest()
+        {
+            var queue = new PerFileRequestQueue<string>();
+
+            queue.EnqueueLatest("file.cs", "pending");
+
+            var hasNext = queue.CompleteAndGetNext("file.cs", out var nextRequest);
+
+            Assert.IsTrue(hasNext);
+            Assert.AreEqual("pending", nextRequest);
+        }
+
+        [TestMethod]
+        public void TryStart_WithPendingRequest_ReusesExistingState()
+        {
+            var queue = new PerFileRequestQueue<string>();
+            queue.EnqueueLatest("file.cs", "pending");
+
+            var started = queue.TryStart("file.cs", "ignored");
+
+            Assert.IsFalse(started);
+            Assert.IsFalse(queue.CompleteAndGetNext("file.cs", out var nextRequest));
+            Assert.IsNull(nextRequest);
+            Assert.IsTrue(queue.TryStart("file.cs", "next"));
+        }
+
+        [DataRow("")]
+        [DataRow(" ")]
+        [DataRow(null)]
+        [TestMethod]
+        public void TryStart_WithInvalidFileKey_ThrowsArgumentException(string fileKey)
+        {
+            var queue = new PerFileRequestQueue<string>();
+
+            var exception = Assert.Throws<ArgumentException>(() => queue.TryStart(fileKey, "request"));
+
+            Assert.AreEqual("fileKey", exception.ParamName);
+        }
+
+        [DataRow("")]
+        [DataRow(" ")]
+        [DataRow(null)]
+        [TestMethod]
+        public void EnqueueLatest_WithInvalidFileKey_ThrowsArgumentException(string fileKey)
+        {
+            var queue = new PerFileRequestQueue<string>();
+
+            var exception = Assert.Throws<ArgumentException>(() => queue.EnqueueLatest(fileKey, "request"));
+
+            Assert.AreEqual("fileKey", exception.ParamName);
+        }
+
+        [DataRow("")]
+        [DataRow(" ")]
+        [DataRow(null)]
+        [TestMethod]
+        public void CompleteAndGetNext_WithInvalidFileKey_ThrowsArgumentException(string fileKey)
+        {
+            var queue = new PerFileRequestQueue<string>();
+
+            var exception = Assert.Throws<ArgumentException>(() => queue.CompleteAndGetNext(fileKey, out _));
+
+            Assert.AreEqual("fileKey", exception.ParamName);
         }
     }
 }
