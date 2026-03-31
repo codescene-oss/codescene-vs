@@ -4,19 +4,43 @@ on:
   push:
     branches:
       - main
-  pull_request:
 
 permissions:
   contents: write
   deployments: write
 
 jobs:
-  benchmarks:
-    name: Run review benchmarks
+  fetch-cli:
+    name: Fetch CLI Asset
     runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Get latest Codescene CLI version
+        shell: pwsh
+        run: powershell.exe -File .github/cli.ps1
+
+      - name: Upload fetched CLI asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: fetched-cli
+          path: |
+            cs-ide/**
+
+  benchmarks:
+    name: Run review benchmarks
+    runs-on: windows-latest
+    needs: fetch-cli
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download fetched CLI asset
+        uses: actions/download-artifact@v4
+        with:
+          name: fetched-cli
+          path: .
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -26,9 +50,15 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      - name: Restore benchmark project
+        run: dotnet restore Codescene.VSExtension.VS2022/Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj
+
+      - name: Build benchmark project
+        run: dotnet build Codescene.VSExtension.VS2022/Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj -c Release --no-restore
+
       - name: Run CliExecutor benchmarks
-        shell: cmd
-        run: make benchmark BENCH_ARGS="--filter *CliExecutorBenchmarks* --exporters json"
+        shell: pwsh
+        run: dotnet run --project Codescene.VSExtension.VS2022/Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj -c Release --no-build -- --filter "*CliExecutorBenchmarks*" --exporters json
 
       - name: Store CliExecutor benchmark result
         uses: benchmark-action/github-action-benchmark@v1
@@ -40,8 +70,8 @@ jobs:
           auto-push: true
 
       - name: Run CodeReviewer benchmarks
-        shell: cmd
-        run: make benchmark BENCH_ARGS="--filter *CodeReviewerBenchmarks* --exporters json"
+        shell: pwsh
+        run: dotnet run --project Codescene.VSExtension.VS2022/Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj -c Release --no-build -- --filter "*CodeReviewerBenchmarks*" --exporters json
 
       - name: Store CodeReviewer benchmark result
         uses: benchmark-action/github-action-benchmark@v1
@@ -53,8 +83,8 @@ jobs:
           auto-push: true
 
       - name: Run CachingCodeReviewer benchmarks
-        shell: cmd
-        run: make benchmark BENCH_ARGS="--filter *CachingCodeReviewerBenchmarks* --exporters json"
+        shell: pwsh
+        run: dotnet run --project Codescene.VSExtension.VS2022/Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj -c Release --no-build -- --filter "*CachingCodeReviewerBenchmarks*" --exporters json
 
       - name: Store CachingCodeReviewer benchmark result
         uses: benchmark-action/github-action-benchmark@v1
