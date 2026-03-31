@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
+using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Enums.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -47,7 +48,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private CodeHealthRulesWatcher _rulesWatcher;
         private GitIgnoreWatcher _gitIgnoreWatcher;
         private TaskCompletionSource<bool> _initializationComplete;
-        private Codescene.VSExtension.Core.Application.Util.PerFileRequestQueue<string> _detectedFilesQueue = new Codescene.VSExtension.Core.Application.Util.PerFileRequestQueue<string>();
+        private PerFileRequestQueue<string> _detectedFilesQueue = new PerFileRequestQueue<string>();
 
         public GitChangeObserverCore(
             ILogger logger,

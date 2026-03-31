@@ -165,10 +165,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return cacheEntry.Item2;
             }
 
-            var pendingKey = GetPendingDeltaKey(path, oldCode, currentCode);
+            var pendingKey = GetPendingDeltaKey(path, oldCode, currentCode, precomputedBaselineRawScore);
             var lazyTask = _pendingDeltas.GetOrAdd(pendingKey, _ =>
                 new Lazy<Task<DeltaResponseModel>>(() =>
-                    ComputeDeltaWithLifecycleAsync(review, currentCode, oldCode, precomputedBaselineRawScore, operationGeneration, cancellationToken)));
+                    ComputeDeltaWithLifecycleAsync(review, currentCode, oldCode, precomputedBaselineRawScore, operationGeneration, CancellationToken.None)));
             var pendingTask = lazyTask.Value;
             try
             {
@@ -316,13 +316,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
         }
 
-        private string GetPendingDeltaKey(string path, string oldCode, string currentCode)
+        private string GetPendingDeltaKey(string path, string oldCode, string currentCode, string precomputedBaselineRawScore)
         {
             using (var sha = SHA256.Create())
             {
                 var oldHash = ComputeHash(sha, oldCode ?? string.Empty);
                 var currentHash = ComputeHash(sha, currentCode ?? string.Empty);
-                return path.ToLowerInvariant() + "|delta|" + oldHash + "|" + currentHash;
+                var baselineHash = ComputeHash(sha, precomputedBaselineRawScore ?? string.Empty);
+                return path.ToLowerInvariant() + "|delta|" + oldHash + "|" + currentHash + "|" + baselineHash;
             }
         }
 

@@ -43,6 +43,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var oldCode = "old code";
             var precomputedBaselineRawScore = "old-raw";
             var expectedDelta = new DeltaResponseModel();
+            var entered = new TaskCompletionSource<bool>();
             var gate = new TaskCompletionSource<bool>();
 
             _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
@@ -50,6 +51,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 .Setup(r => r.DeltaAsync(review, currentCode, precomputedBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .Returns(async () =>
                 {
+                    entered.TrySetResult(true);
                     await gate.Task;
                     return expectedDelta;
                 });
@@ -57,7 +59,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var first = _cachingReviewer.DeltaAsync(review, currentCode, precomputedBaselineRawScore);
             var second = _cachingReviewer.DeltaAsync(review, currentCode, precomputedBaselineRawScore);
 
-            await Task.Delay(100);
+            await entered.Task;
             _mockInnerReviewer.Verify(
                 r => r.DeltaAsync(review, currentCode, precomputedBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
                 Times.Once);
@@ -71,6 +73,53 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             _mockInnerReviewer.Verify(
                 r => r.DeltaAsync(review, currentCode, precomputedBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+        [TestMethod]
+        public async Task DeltaAsync_ConcurrentRequestsWithDifferentBaselineScores_CallInnerReviewerTwice()
+        {
+            var path = "coalesce.cs";
+            var review = new FileReviewModel { FilePath = path, RawScore = "new-raw", Score = 7.5f };
+            var currentCode = "new code";
+            var oldCode = "old code";
+            var firstBaselineRawScore = "old-raw-1";
+            var secondBaselineRawScore = "old-raw-2";
+            var firstEntered = new TaskCompletionSource<bool>();
+            var secondEntered = new TaskCompletionSource<bool>();
+            var gate = new TaskCompletionSource<bool>();
+
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockInnerReviewer
+                .Setup(r => r.DeltaAsync(review, currentCode, firstBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+                .Returns(async () =>
+                {
+                    firstEntered.TrySetResult(true);
+                    await gate.Task;
+                    return new DeltaResponseModel();
+                });
+            _mockInnerReviewer
+                .Setup(r => r.DeltaAsync(review, currentCode, secondBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+                .Returns(async () =>
+                {
+                    secondEntered.TrySetResult(true);
+                    await gate.Task;
+                    return new DeltaResponseModel();
+                });
+
+            var first = _cachingReviewer.DeltaAsync(review, currentCode, firstBaselineRawScore);
+            var second = _cachingReviewer.DeltaAsync(review, currentCode, secondBaselineRawScore);
+
+            await Task.WhenAll(firstEntered.Task, secondEntered.Task);
+
+            _mockInnerReviewer.Verify(
+                r => r.DeltaAsync(review, currentCode, firstBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+            _mockInnerReviewer.Verify(
+                r => r.DeltaAsync(review, currentCode, secondBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            gate.TrySetResult(true);
+            await Task.WhenAll(first, second);
         }
     }
 }

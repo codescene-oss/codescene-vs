@@ -290,6 +290,43 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task FnsToRefactorFromDelta_CanceledCallerDoesNotCancelSharedRequest()
+        {
+            var deltaResult = new DeltaResponseModel { NewScore = 8.0m, OldScore = 7.0m };
+            var functions = new List<FnToRefactorModel> { new FnToRefactorModel { Name = "Function1", Body = "code" } };
+            var jsonResponse = JsonConvert.SerializeObject(functions);
+            var entered = new TaskCompletionSource<bool>();
+            var completion = new TaskCompletionSource<string>();
+            var capturedToken = CancellationToken.None;
+
+            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, TestCachePath, deltaResult, null)).Returns("payload");
+            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
+            _mockProcessExecutor.Setup(x => x.ExecuteAsync("refactor", "payload", null, It.IsAny<CancellationToken>()))
+                .Returns<string, string, TimeSpan?, CancellationToken>((_, _, _, token) =>
+                {
+                    capturedToken = token;
+                    entered.TrySetResult(true);
+                    return completion.Task;
+                });
+
+            var cts = new CancellationTokenSource();
+            var canceledCallerTask = _cliExecutor.FnsToRefactorFromDeltaAsync(TestFileName, TestFileContent, deltaResult, null, cts.Token);
+            await entered.Task;
+
+            var secondCallerTask = _cliExecutor.FnsToRefactorFromDeltaAsync(TestFileName, TestFileContent, deltaResult, null);
+            cts.Cancel();
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() => canceledCallerTask);
+
+            completion.TrySetResult(jsonResponse);
+            var secondResult = await secondCallerTask;
+
+            Assert.HasCount(1, secondResult);
+            Assert.AreEqual(CancellationToken.None, capturedToken);
+            _mockProcessExecutor.Verify(x => x.ExecuteAsync("refactor", "payload", null, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
         public async Task GetDeviceId_WithValidResponse_ReturnsDeviceId()
         {
             var expectedDeviceId = "device-id-123";

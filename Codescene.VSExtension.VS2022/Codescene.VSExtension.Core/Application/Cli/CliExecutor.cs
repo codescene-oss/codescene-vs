@@ -354,17 +354,21 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var pendingKey = GetPendingRefactorRequestKey(operationLabel, payloadContent);
             var lazyTask = _pendingRefactorRequests.GetOrAdd(
                 pendingKey,
-                _ => new Lazy<Task<IList<FnToRefactorModel>>>(() =>
-                    ExecuteFnsToRefactorCommandAsync(payloadContent, operationLabel, operationLabel + " failed.", cancellationToken)));
+                __ => new Lazy<Task<IList<FnToRefactorModel>>>(() =>
+                    ExecuteFnsToRefactorCommandAsync(payloadContent, operationLabel, operationLabel + " failed.", CancellationToken.None)));
             var pendingTask = lazyTask.Value;
-            try
-            {
-                return await pendingTask;
-            }
-            finally
-            {
-                _pendingRefactorRequests.TryRemove(pendingKey, out _);
-            }
+            _ = pendingTask.ContinueWith(
+                __ =>
+                {
+                    if (_pendingRefactorRequests.TryGetValue(pendingKey, out var currentLazyTask) && ReferenceEquals(currentLazyTask, lazyTask))
+                    {
+                        _pendingRefactorRequests.TryRemove(pendingKey, out _);
+                    }
+                },
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+            return await AwaitWithCancellationAsync(pendingTask, cancellationToken);
         }
 
         private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorCommandAsync(string payloadContent, string operationLabel, string errorMessage, CancellationToken cancellationToken = default)
@@ -405,6 +409,26 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 channel.Release();
             }
+        }
+
+        private async Task<T> AwaitWithCancellationAsync<T>(Task<T> task, CancellationToken cancellationToken)
+        {
+            if (!cancellationToken.CanBeCanceled || task.IsCompleted)
+            {
+                return await task;
+            }
+
+            var cancellationTaskSource = new TaskCompletionSource<bool>();
+            using (cancellationToken.Register(() => cancellationTaskSource.TrySetResult(true)))
+            {
+                var completedTask = await Task.WhenAny(task, cancellationTaskSource.Task);
+                if (completedTask != task)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+            }
+
+            return await task;
         }
 
         private async Task<(T Result, long ElapsedMs)> ExecuteWithTimingAndLoggingAsync<T>(string label, Func<Task<string>> execute, string errorMessage)

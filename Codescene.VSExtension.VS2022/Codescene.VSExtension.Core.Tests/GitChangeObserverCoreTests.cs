@@ -307,6 +307,49 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task OnGitChangeListerFilesDetected_WhenProcessingFailsForFile_SubsequentDetectionRestartsWorker()
+        {
+            var existingFile = CreateFile("retry.ts", "export const x = 1;");
+            var getChangedFilesCallCount = 0;
+
+            _gitChangeObserverCore.Dispose();
+            _gitChangeObserverCore = new GitChangeObserverCore(
+                _fakeLogger,
+                _fakeCodeReviewer,
+                _fakeSupportedFileChecker,
+                new BackgroundAsyncTaskScheduler(),
+                _fakeGitChangeLister,
+                _fakeGitService);
+            _gitChangeObserverCore.Initialize(
+                _testRepoPath,
+                _fakeSavedFilesTracker,
+                _fakeOpenFilesObserver,
+                getChangedFilesCallback: () =>
+                {
+                    if (Interlocked.Increment(ref getChangedFilesCallCount) == 1)
+                    {
+                        return Task.FromException<List<string>>(new InvalidOperationException("simulated"));
+                    }
+
+                    return Task.FromResult(new List<string> { existingFile });
+                });
+            _fakeLogger.WarnMessages.Clear();
+
+            _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { existingFile });
+            var firstAttemptStarted = await WaitForConditionAsync(
+                () => getChangedFilesCallCount >= 1,
+                2000);
+            Assert.IsTrue(firstAttemptStarted, "First processing attempt should start for the detected file.");
+
+            _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { existingFile });
+            var retryProcessed = await WaitForConditionAsync(
+                () => getChangedFilesCallCount >= 2,
+                5000);
+
+            Assert.IsTrue(retryProcessed, "A later detection for the same file should start a new worker after a failure.");
+        }
+
+        [TestMethod]
         public void UpdateWorkspacePaths_UpdatesHandlerAndLister()
         {
             var paths = new[] { _testRepoPath };

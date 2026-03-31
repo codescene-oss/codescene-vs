@@ -12,16 +12,16 @@ namespace Codescene.VSExtension.Core.Application.Git
     {
         private async Task ProcessDetectedFileQueueAsync(string filePath, CancellationToken token)
         {
-            try
+            var currentRequest = filePath;
+            while (true)
             {
-                var currentRequest = filePath;
-                while (true)
+                if (token.IsCancellationRequested)
                 {
-                    if (token.IsCancellationRequested)
-                    {
-                        return;
-                    }
+                    return;
+                }
 
+                try
+                {
 #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: GitChangeLister detected 1 file");
 #endif
@@ -29,19 +29,20 @@ namespace Codescene.VSExtension.Core.Application.Git
 #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: Processed detected files");
 #endif
-
-                    if (!_detectedFilesQueue.CompleteAndGetNext(filePath, out currentRequest))
-                    {
-                        return;
-                    }
                 }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex)
-            {
-                _logger?.Warn($"GitChangeObserver: Error processing detected files: {ex.Message}");
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    _logger?.Warn($"GitChangeObserver: Error processing detected files: {ex.Message}");
+                }
+
+                if (!_detectedFilesQueue.CompleteAndGetNext(filePath, out currentRequest))
+                {
+                    return;
+                }
             }
         }
     }

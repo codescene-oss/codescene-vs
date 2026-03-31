@@ -24,7 +24,7 @@ namespace Codescene.VSExtension.Core.Application.Util
                     if (!state.IsRunning)
                     {
                         state.IsRunning = true;
-                        state.HasPending = false;
+                        return true;
                     }
 
                     return false;

@@ -76,17 +76,16 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void TryStart_WithPendingRequest_ReusesExistingState()
+        public void TryStart_WithPendingRequest_StartsWorkerAndPreservesPendingRequest()
         {
             var queue = new PerFileRequestQueue<string>();
             queue.EnqueueLatest("file.cs", "pending");
 
             var started = queue.TryStart("file.cs", "ignored");
 
-            Assert.IsFalse(started);
-            Assert.IsFalse(queue.CompleteAndGetNext("file.cs", out var nextRequest));
-            Assert.IsNull(nextRequest);
-            Assert.IsTrue(queue.TryStart("file.cs", "next"));
+            Assert.IsTrue(started);
+            Assert.IsTrue(queue.CompleteAndGetNext("file.cs", out var nextRequest));
+            Assert.AreEqual("pending", nextRequest);
         }
 
         [DataRow("")]

@@ -261,6 +261,8 @@ namespace Codescene.VSExtension.Core.Tests
             private readonly ManualResetEventSlim _reviewStarted;
             private readonly ManualResetEventSlim _unblockReview;
             private int _activeCount;
+            private int _startedCount;
+            private int _maxParallelism;
 
             public ParallelBlockingCodeReviewer(ManualResetEventSlim reviewStarted, ManualResetEventSlim unblockReview)
             {
@@ -268,9 +270,9 @@ namespace Codescene.VSExtension.Core.Tests
                 _unblockReview = unblockReview;
             }
 
-            public int StartedCount { get; private set; }
+            public int StartedCount => _startedCount;
 
-            public int MaxParallelism { get; private set; }
+            public int MaxParallelism => _maxParallelism;
 
             public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)
             {
@@ -279,11 +281,18 @@ namespace Codescene.VSExtension.Core.Tests
 
             public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
             {
-                StartedCount++;
+                Interlocked.Increment(ref _startedCount);
                 var currentActive = Interlocked.Increment(ref _activeCount);
-                if (currentActive > MaxParallelism)
+                var recordedMaxParallelism = _maxParallelism;
+                while (currentActive > recordedMaxParallelism)
                 {
-                    MaxParallelism = currentActive;
+                    var originalMaxParallelism = Interlocked.CompareExchange(ref _maxParallelism, currentActive, recordedMaxParallelism);
+                    if (originalMaxParallelism == recordedMaxParallelism)
+                    {
+                        break;
+                    }
+
+                    recordedMaxParallelism = originalMaxParallelism;
                 }
 
                 _reviewStarted.Set();
