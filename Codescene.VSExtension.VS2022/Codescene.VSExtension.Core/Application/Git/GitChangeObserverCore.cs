@@ -17,7 +17,7 @@ using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
-    public class GitChangeObserverCore : IDisposable
+    public partial class GitChangeObserverCore : IDisposable
     {
         private readonly ILogger _logger;
         private readonly ICodeReviewer _codeReviewer;
@@ -47,6 +47,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private CodeHealthRulesWatcher _rulesWatcher;
         private GitIgnoreWatcher _gitIgnoreWatcher;
         private TaskCompletionSource<bool> _initializationComplete;
+        private Codescene.VSExtension.Core.Application.Util.PerFileRequestQueue<string> _detectedFilesQueue = new Codescene.VSExtension.Core.Application.Util.PerFileRequestQueue<string>();
 
         public GitChangeObserverCore(
             ILogger logger,
@@ -192,6 +193,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             _cts = null;
             _initializationComplete?.TrySetCanceled();
             _initializationComplete = null;
+            _detectedFilesQueue.Clear();
+
             if (_fileWatcher != null)
             {
                 try
@@ -247,6 +250,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             _initializationComplete?.TrySetCanceled();
             _initializationComplete = null;
+            _detectedFilesQueue.Clear();
 
             _trackerManager.Clear();
 
@@ -348,32 +352,17 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             var token = cts.Token;
-            _taskScheduler.Schedule(async () =>
+            foreach (var path in absolutePaths.Where(path => !string.IsNullOrWhiteSpace(path)))
             {
-                try
+                if (_detectedFilesQueue.TryStart(path, path))
                 {
-                    if (token.IsCancellationRequested)
-                    {
-                        return;
-                    }
-#if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> GitChangeObserverCore: GitChangeLister detected {absolutePaths.Count} files");
-#endif
-
-                    await ProcessFilesAsync(absolutePaths, token);
-
-#if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> GitChangeObserverCore: Processed detected files");
-#endif
+                    _taskScheduler.Schedule(async () => await ProcessDetectedFileQueueAsync(path, token));
                 }
-                catch (OperationCanceledException)
+                else
                 {
+                    _detectedFilesQueue.EnqueueLatest(path, path);
                 }
-                catch (Exception ex)
-                {
-                    _logger?.Warn($"GitChangeObserver: Error processing detected files: {ex.Message}");
-                }
-            });
+            }
         }
 
         private void InitializeGitPaths()

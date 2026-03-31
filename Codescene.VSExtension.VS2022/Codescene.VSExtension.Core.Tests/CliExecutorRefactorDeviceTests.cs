@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Threading;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
@@ -252,6 +253,40 @@ namespace Codescene.VSExtension.Core.Tests
             await _cliExecutor.FnsToRefactorFromDeltaAsync(TestFileName, TestFileContent, deltaResult, null);
 
             _mockCacheStorage.Verify(x => x.RemoveOldReviewCacheEntries(), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task FnsToRefactorFromDelta_ConcurrentIdenticalRequests_CallsProcessExecutorOnce()
+        {
+            var deltaResult = new DeltaResponseModel { NewScore = 8.0m, OldScore = 7.0m };
+            var functions = new List<FnToRefactorModel> { new FnToRefactorModel { Name = "Function1", Body = "code" } };
+            var jsonResponse = JsonConvert.SerializeObject(functions);
+            var completion = new TaskCompletionSource<bool>();
+            var callCount = 0;
+
+            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, TestCachePath, deltaResult, null)).Returns("payload");
+            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
+            _mockProcessExecutor.Setup(x => x.ExecuteAsync("refactor", "payload", null, It.IsAny<CancellationToken>()))
+                .Returns<string, string, TimeSpan?, CancellationToken>(async (_, _, _, _) =>
+                {
+                    Interlocked.Increment(ref callCount);
+                    await completion.Task;
+                    return jsonResponse;
+                });
+
+            var firstTask = _cliExecutor.FnsToRefactorFromDeltaAsync(TestFileName, TestFileContent, deltaResult, null);
+            var secondTask = _cliExecutor.FnsToRefactorFromDeltaAsync(TestFileName, TestFileContent, deltaResult, null);
+            await Task.Delay(100);
+
+            Assert.AreEqual(1, callCount, "Identical refactorability requests should share one in-flight command.");
+
+            completion.TrySetResult(true);
+            var firstResult = await firstTask;
+            var secondResult = await secondTask;
+
+            Assert.HasCount(1, firstResult);
+            Assert.HasCount(1, secondResult);
+            Assert.AreEqual(1, callCount);
         }
 
         [TestMethod]

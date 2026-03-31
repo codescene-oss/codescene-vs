@@ -119,6 +119,39 @@ namespace Codescene.VSExtension.Core.Tests
             observer.Dispose();
         }
 
+        [TestMethod]
+        public async Task FilesDetected_WhileReviewInFlight_DoesNotRunParallelReviewForSameFile()
+        {
+            var reviewStarted = new ManualResetEventSlim(false);
+            var unblockReview = new ManualResetEventSlim(false);
+            var countingReviewer = new ParallelBlockingCodeReviewer(reviewStarted, unblockReview);
+            var backgroundScheduler = new BackgroundAsyncTaskScheduler();
+
+            var observer = new GitChangeObserverCore(
+                _fakeLogger, countingReviewer, _fakeSupportedFileChecker, backgroundScheduler, _fakeGitChangeLister, _fakeGitService);
+
+            observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, null);
+            observer.Start();
+
+            var testFile = CreateFile("same-file.cs", "public class SameFile {}");
+            var detected = new HashSet<string> { testFile };
+            _fakeGitChangeLister.SimulateFilesDetected(detected);
+
+            var waitResult = reviewStarted.Wait(5000);
+            Assert.IsTrue(waitResult, "Review should start.");
+
+            _fakeGitChangeLister.SimulateFilesDetected(detected);
+            await Task.Delay(200);
+
+            Assert.AreEqual(1, countingReviewer.StartedCount, "Second scan should not start parallel work for same file while first run is active.");
+            Assert.AreEqual(1, countingReviewer.MaxParallelism, "Only one in-flight review should be active for the file.");
+
+            unblockReview.Set();
+            await Task.Delay(300);
+
+            observer.Dispose();
+        }
+
         private class BlockingCodeReviewer : ICodeReviewer
         {
             private readonly ManualResetEventSlim _aboutToStore;
@@ -201,6 +234,63 @@ namespace Codescene.VSExtension.Core.Tests
                 _cache.Put(entry);
 
                 return Task.FromResult(delta);
+            }
+
+            public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            {
+                var review = await ReviewAsync(path, currentCode, false, operationGeneration, cancellationToken);
+                var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken);
+                return (review, baselineRawScore ?? string.Empty);
+            }
+
+            public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            {
+                var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
+                var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
+                return (review, delta);
+            }
+
+            public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult("8.0");
+            }
+        }
+
+        private class ParallelBlockingCodeReviewer : ICodeReviewer
+        {
+            private readonly ManualResetEventSlim _reviewStarted;
+            private readonly ManualResetEventSlim _unblockReview;
+            private int _activeCount;
+
+            public ParallelBlockingCodeReviewer(ManualResetEventSlim reviewStarted, ManualResetEventSlim unblockReview)
+            {
+                _reviewStarted = reviewStarted;
+                _unblockReview = unblockReview;
+            }
+
+            public int StartedCount { get; private set; }
+
+            public int MaxParallelism { get; private set; }
+
+            public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
+            }
+
+            public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            {
+                StartedCount++;
+                var currentActive = Interlocked.Increment(ref _activeCount);
+                if (currentActive > MaxParallelism)
+                {
+                    MaxParallelism = currentActive;
+                }
+
+                _reviewStarted.Set();
+                _unblockReview.Wait();
+
+                Interlocked.Decrement(ref _activeCount);
+                return Task.FromResult<DeltaResponseModel>(null);
             }
 
             public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)

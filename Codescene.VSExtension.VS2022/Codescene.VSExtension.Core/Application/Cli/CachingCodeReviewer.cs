@@ -33,6 +33,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ITelemetryManager _telemetryManager;
         private readonly ICodeHealthMonitorNotifier _notifier;
         private readonly ConcurrentDictionary<string, Lazy<Task<FileReviewModel>>> _pendingReviews = new ConcurrentDictionary<string, Lazy<Task<FileReviewModel>>>();
+        private readonly ConcurrentDictionary<string, Lazy<Task<DeltaResponseModel>>> _pendingDeltas = new ConcurrentDictionary<string, Lazy<Task<DeltaResponseModel>>>();
 
         public CachingCodeReviewer(
             ICodeReviewer innerReviewer,
@@ -164,27 +165,20 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return cacheEntry.Item2;
             }
 
-            _notifier?.OnDeltaStarting(path);
+            var pendingKey = GetPendingDeltaKey(path, oldCode, currentCode);
+            var lazyTask = _pendingDeltas.GetOrAdd(pendingKey, _ =>
+                new Lazy<Task<DeltaResponseModel>>(() =>
+                    ComputeDeltaWithLifecycleAsync(review, currentCode, oldCode, precomputedBaselineRawScore, operationGeneration, cancellationToken)));
+            var pendingTask = lazyTask.Value;
             try
             {
-                try
-                {
-                    var computationParams = new DeltaComputationInput(currentCode, oldCode, precomputedBaselineRawScore);
-                    return await ComputeDeltaInternalAsync(review, computationParams, operationGeneration, cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (Exception e)
-                {
-                    _logger?.Error($"Could not perform delta analysis on file {path}", e);
-                    return null;
-                }
+                var delta = await pendingTask.ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                return delta;
             }
             finally
             {
-                _notifier?.OnDeltaCompleted(path);
+                _pendingDeltas.TryRemove(pendingKey, out _);
             }
         }
 
@@ -264,6 +258,39 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return delta;
         }
 
+        private async Task<DeltaResponseModel> ComputeDeltaWithLifecycleAsync(
+            FileReviewModel review,
+            string currentCode,
+            string oldCode,
+            string precomputedBaselineRawScore,
+            long? operationGeneration = null,
+            CancellationToken cancellationToken = default)
+        {
+            var path = review.FilePath;
+            _notifier?.OnDeltaStarting(path);
+            try
+            {
+                try
+                {
+                    var computationParams = new DeltaComputationInput(currentCode, oldCode, precomputedBaselineRawScore);
+                    return await ComputeDeltaInternalAsync(review, computationParams, operationGeneration, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    _logger?.Error($"Could not perform delta analysis on file {path}", e);
+                    return null;
+                }
+            }
+            finally
+            {
+                _notifier?.OnDeltaCompleted(path);
+            }
+        }
+
         private async Task<FileReviewModel> ReviewInternalAsync(string path, string content, bool isBaseline, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
             _logger?.Debug($"CachingCodeReviewer: Cache miss for '{path}', calling inner reviewer.");
@@ -287,6 +314,23 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 var hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
                 return path.ToLowerInvariant() + "|" + hash + "|baseline=" + isBaseline;
             }
+        }
+
+        private string GetPendingDeltaKey(string path, string oldCode, string currentCode)
+        {
+            using (var sha = SHA256.Create())
+            {
+                var oldHash = ComputeHash(sha, oldCode ?? string.Empty);
+                var currentHash = ComputeHash(sha, currentCode ?? string.Empty);
+                return path.ToLowerInvariant() + "|delta|" + oldHash + "|" + currentHash;
+            }
+        }
+
+        private string ComputeHash(HashAlgorithm algorithm, string content)
+        {
+            var bytes = Encoding.UTF8.GetBytes(content);
+            var hashBytes = algorithm.ComputeHash(bytes);
+            return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
         }
 
         private class DeltaComputationInput

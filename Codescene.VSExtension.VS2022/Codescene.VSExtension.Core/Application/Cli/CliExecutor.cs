@@ -5,6 +5,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Exceptions;
@@ -31,6 +33,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ISettingsProvider _settingsProvider;
         private readonly Lazy<ITelemetryManager> _telemetryManagerLazy;
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _inFlightReviewCancellation = new ConcurrentDictionary<string, CancellationTokenSource>();
+        private readonly ConcurrentDictionary<string, Lazy<Task<IList<FnToRefactorModel>>>> _pendingRefactorRequests = new ConcurrentDictionary<string, Lazy<Task<IList<FnToRefactorModel>>>>();
+        private readonly SemaphoreSlim _cliCommandChannel;
         private readonly SemaphoreSlim _deltaChannel = new SemaphoreSlim(1, 1);
 
         [ImportingConstructor]
@@ -39,11 +43,23 @@ namespace Codescene.VSExtension.Core.Application.Cli
             ICliServices cliServices,
             ISettingsProvider settingsProvider,
             [Import(AllowDefault = true)] Lazy<ITelemetryManager> telemetryManagerLazy = null)
+            : this(logger, cliServices, settingsProvider, telemetryManagerLazy, 1)
+        {
+        }
+
+        internal CliExecutor(
+            ILogger logger,
+            ICliServices cliServices,
+            ISettingsProvider settingsProvider,
+            Lazy<ITelemetryManager> telemetryManagerLazy,
+            int cliCommandConcurrencyLimit)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cliServices = cliServices ?? throw new ArgumentNullException(nameof(cliServices));
             _settingsProvider = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
             _telemetryManagerLazy = telemetryManagerLazy;
+            var effectiveLimit = Math.Max(1, cliCommandConcurrencyLimit);
+            _cliCommandChannel = new SemaphoreSlim(effectiveLimit, effectiveLimit);
         }
 
         /// <summary>
@@ -79,10 +95,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 var command = _cliServices.CommandProvider.ReviewFileContentCommand;
                 var payload = _cliServices.CommandProvider.GetReviewFileContentPayload(filename, content, _cliServices.CacheStorage.GetSolutionReviewCacheLocation());
 
-                var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync<CliReviewModel>(
-                    "CLI file review",
-                    () => _cliServices.ProcessExecutor.ExecuteAsync(command, payload, null, cts.Token),
-                    $"Review of file {filename} failed");
+                var (result, elapsedMs) = await ExecuteOnChannelAsync(
+                    _cliCommandChannel,
+                    cts.Token,
+                    () => ExecuteWithTimingAndLoggingAsync<CliReviewModel>(
+                        "CLI file review",
+                        () => _cliServices.ProcessExecutor.ExecuteAsync(command, payload, null, cts.Token),
+                        $"Review of file {filename} failed"));
 
                 if (result != null)
                 {
@@ -202,10 +221,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync<RefactorResponseModel>(
-                "ACE refactoring",
-                () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, null, null, cancellationToken),
-                "Refactoring failed.");
+            var (result, elapsedMs) = await ExecuteOnChannelAsync(
+                _cliCommandChannel,
+                cancellationToken,
+                () => ExecuteWithTimingAndLoggingAsync<RefactorResponseModel>(
+                    "ACE refactoring",
+                    () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, null, null, cancellationToken),
+                    "Refactoring failed."));
 
             if (result != null && fnToRefactor != null)
             {
@@ -323,27 +345,66 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var cachePath = _cliServices.CacheStorage.GetSolutionReviewCacheLocation();
             var payloadContent = getPayload(cachePath);
-
-            return await ExecuteFnsToRefactorCommandAsync(payloadContent, operationLabel, operationLabel + " failed.", cancellationToken);
-        }
-
-        private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorCommandAsync(string payloadContent, string operationLabel, string errorMessage, CancellationToken cancellationToken = default)
-        {
-            _cliServices.CacheStorage.RemoveOldReviewCacheEntries();
-
             if (string.IsNullOrEmpty(payloadContent))
             {
                 _logger.Warn("Skipping refactoring functions check. Payload content was not defined.");
                 return null;
             }
 
+            var pendingKey = GetPendingRefactorRequestKey(operationLabel, payloadContent);
+            var lazyTask = _pendingRefactorRequests.GetOrAdd(
+                pendingKey,
+                _ => new Lazy<Task<IList<FnToRefactorModel>>>(() =>
+                    ExecuteFnsToRefactorCommandAsync(payloadContent, operationLabel, operationLabel + " failed.", cancellationToken)));
+            var pendingTask = lazyTask.Value;
+            try
+            {
+                return await pendingTask;
+            }
+            finally
+            {
+                _pendingRefactorRequests.TryRemove(pendingKey, out _);
+            }
+        }
+
+        private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorCommandAsync(string payloadContent, string operationLabel, string errorMessage, CancellationToken cancellationToken = default)
+        {
+            _cliServices.CacheStorage.RemoveOldReviewCacheEntries();
+
             var command = _cliServices.CommandProvider.RefactorCommand;
 
-            var (result, _) = await ExecuteWithTimingAndLoggingAsync<IList<FnToRefactorModel>>(
-                operationLabel,
-                () => _cliServices.ProcessExecutor.ExecuteAsync(command, payloadContent, null, cancellationToken),
-                errorMessage);
+            var (result, _) = await ExecuteOnChannelAsync(
+                _cliCommandChannel,
+                cancellationToken,
+                () => ExecuteWithTimingAndLoggingAsync<IList<FnToRefactorModel>>(
+                    operationLabel,
+                    () => _cliServices.ProcessExecutor.ExecuteAsync(command, payloadContent, null, cancellationToken),
+                    errorMessage));
             return result;
+        }
+
+        private string GetPendingRefactorRequestKey(string operationLabel, string payloadContent)
+        {
+            using (var sha = SHA256.Create())
+            {
+                var bytes = Encoding.UTF8.GetBytes(payloadContent ?? string.Empty);
+                var hashBytes = sha.ComputeHash(bytes);
+                var hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
+                return operationLabel + "|" + hash;
+            }
+        }
+
+        private async Task<T> ExecuteOnChannelAsync<T>(SemaphoreSlim channel, CancellationToken cancellationToken, Func<Task<T>> operation)
+        {
+            await channel.WaitAsync(cancellationToken);
+            try
+            {
+                return await operation();
+            }
+            finally
+            {
+                channel.Release();
+            }
         }
 
         private async Task<(T Result, long ElapsedMs)> ExecuteWithTimingAndLoggingAsync<T>(string label, Func<Task<string>> execute, string errorMessage)

@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Threading;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
@@ -346,6 +347,43 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsNull(firstResult);
             Assert.IsNotNull(secondResult);
+        }
+
+        [TestMethod]
+        public async Task ReviewContentAsync_ConcurrentDifferentFiles_UsesBoundedConcurrency()
+        {
+            var firstFile = "first.cs";
+            var secondFile = "second.cs";
+            var completion = new TaskCompletionSource<bool>();
+            var startedSignal = new TaskCompletionSource<bool>();
+            var callCount = 0;
+
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(It.IsAny<string>(), It.IsAny<string>(), TestCachePath))
+                .Returns((string filename, string _, string _) => "payload-" + filename);
+            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name", It.IsAny<string>(), null, It.IsAny<CancellationToken>()))
+                .Returns<string, string, TimeSpan?, CancellationToken>(async (_, payload, _, _) =>
+                {
+                    Interlocked.Increment(ref callCount);
+                    startedSignal.TrySetResult(true);
+                    await completion.Task;
+                    return JsonConvert.SerializeObject(new CliReviewModel { Score = 7.5f, RawScore = payload });
+                });
+
+            var firstTask = _cliExecutor.ReviewContentAsync(firstFile, TestFileContent);
+            await startedSignal.Task;
+            var secondTask = _cliExecutor.ReviewContentAsync(secondFile, TestFileContent);
+            await Task.Delay(100);
+
+            Assert.AreEqual(1, callCount, "Second review should wait for the shared CLI channel.");
+
+            completion.TrySetResult(true);
+            var firstResult = await firstTask;
+            var secondResult = await secondTask;
+
+            Assert.IsNotNull(firstResult);
+            Assert.IsNotNull(secondResult);
+            Assert.AreEqual(2, callCount);
         }
     }
 }
