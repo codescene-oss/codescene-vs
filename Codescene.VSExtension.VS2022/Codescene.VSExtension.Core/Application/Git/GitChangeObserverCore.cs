@@ -345,23 +345,38 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private void OnGitChangeListerFilesDetected(object sender, HashSet<string> absolutePaths)
         {
-            var cts = _cts;
-            if (cts == null)
+            try
             {
-                return;
-            }
+                var cts = _cts;
+                if (cts == null)
+                {
+                    return;
+                }
 
-            var token = cts.Token;
-            foreach (var path in absolutePaths.Where(path => !string.IsNullOrWhiteSpace(path)))
+                if (absolutePaths == null)
+                {
+                    throw new ArgumentNullException(nameof(absolutePaths));
+                }
+
+                var token = cts.Token;
+                foreach (var path in absolutePaths.Where(path => !string.IsNullOrWhiteSpace(path)))
+                {
+                    if (_detectedFilesQueue.TryStart(path, path))
+                    {
+                        _taskScheduler.Schedule(async () => await ProcessDetectedFileQueueAsync(path, token));
+                    }
+                    else
+                    {
+                        _detectedFilesQueue.EnqueueLatest(path, path);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
             {
-                if (_detectedFilesQueue.TryStart(path, path))
-                {
-                    _taskScheduler.Schedule(async () => await ProcessDetectedFileQueueAsync(path, token));
-                }
-                else
-                {
-                    _detectedFilesQueue.EnqueueLatest(path, path);
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.Warn($"GitChangeObserver: Error processing detected files: {ex.Message}");
             }
         }
 
