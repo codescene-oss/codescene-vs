@@ -77,7 +77,8 @@ jobs:
 
       - name: Run CliExecutor benchmarks
         shell: pwsh
-        run: dotnet run --project Codescene.VSExtension.VS2022/Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj -c Release --no-build -- --filter "*CliExecutorBenchmarks*" --exporters json
+        working-directory: Codescene.VSExtension.VS2022
+        run: dotnet run --project Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj -c Release --no-build -- --filter "*CliExecutorBenchmarks*" --exporters json
 
       - name: Store CliExecutor benchmark result
         uses: benchmark-action/github-action-benchmark@v1
@@ -90,7 +91,8 @@ jobs:
 
       - name: Run CodeReviewer benchmarks
         shell: pwsh
-        run: dotnet run --project Codescene.VSExtension.VS2022/Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj -c Release --no-build -- --filter "*CodeReviewerBenchmarks*" --exporters json
+        working-directory: Codescene.VSExtension.VS2022
+        run: dotnet run --project Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj -c Release --no-build -- --filter "*CodeReviewerBenchmarks*" --exporters json
 
       - name: Store CodeReviewer benchmark result
         uses: benchmark-action/github-action-benchmark@v1
@@ -103,7 +105,8 @@ jobs:
 
       - name: Run CachingCodeReviewer benchmarks
         shell: pwsh
-        run: dotnet run --project Codescene.VSExtension.VS2022/Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj -c Release --no-build -- --filter "*CachingCodeReviewerBenchmarks*" --exporters json
+        working-directory: Codescene.VSExtension.VS2022
+        run: dotnet run --project Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj -c Release --no-build -- --filter "*CachingCodeReviewerBenchmarks*" --exporters json
 
       - name: Store CachingCodeReviewer benchmark result
         uses: benchmark-action/github-action-benchmark@v1
