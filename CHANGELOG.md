@@ -1,3 +1,12 @@
+## [0.7.1] - 2026-04-01
+### Fixed
+- duplicated cli commands on same file (#270)
+- editor suggestion bugfix (#269)
+- Exception cleanup (#267)
+- observer start on solution/project open (#264)
+- cleanup status bar messages and logging (#265)
+- improved exception management and logging (#263)
+
 # CodeScene Visual Studio Extension Changelog
 
 All notable changes to this project will be documented in this file.
@@ -192,6 +201,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 
 
 
