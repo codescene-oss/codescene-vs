@@ -87,6 +87,9 @@ jobs:
           output-file-path: Codescene.VSExtension.VS2022/BenchmarkDotNet.Artifacts/results/Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks-report-full-compressed.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-comment-cc-users: '@martinsafsten-codescene'
 
       - name: Run CodeReviewer benchmarks
         shell: pwsh
@@ -101,6 +104,9 @@ jobs:
           output-file-path: Codescene.VSExtension.VS2022/BenchmarkDotNet.Artifacts/results/Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks-report-full-compressed.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-comment-cc-users: '@martinsafsten-codescene'
 
       - name: Run CachingCodeReviewer benchmarks
         shell: pwsh
@@ -115,3 +121,6 @@ jobs:
           output-file-path: Codescene.VSExtension.VS2022/BenchmarkDotNet.Artifacts/results/Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks-report-full-compressed.json
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-comment-cc-users: '@martinsafsten-codescene'
