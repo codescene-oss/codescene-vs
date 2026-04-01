@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775048176226,
+  "lastUpdate": 1775049084396,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -164,6 +164,48 @@ window.BENCHMARK_DATA = {
             "value": 61152039.99999999,
             "unit": "ns",
             "range": "± 744407.9562699648"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "176943df2f9449c6d1b7f25bf4ab2919ec88faf1",
+          "message": "Update CHANGELOG.md\n\nRemoved duplicate header and adjusted formatting.",
+          "timestamp": "2026-04-01T15:04:38+02:00",
+          "tree_id": "ef67bbd9422162d8f98e9e57a9b243628bd6101a",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/176943df2f9449c6d1b7f25bf4ab2919ec88faf1"
+        },
+        "date": 1775049081636,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 149521215.87301588,
+            "unit": "ns",
+            "range": "± 6564251.176966069"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 148292806.6037736,
+            "unit": "ns",
+            "range": "± 6148172.355748432"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 61283378.625,
+            "unit": "ns",
+            "range": "± 3717524.892821538"
           }
         ]
       }
