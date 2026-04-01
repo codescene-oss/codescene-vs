@@ -333,13 +333,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
             _gitChangeObserver?.CancelAndReset();
 
-            var cache = new DeltaCacheService();
-            cache.Clear();
-            //new BaselineReviewCacheService().Clear();
-            //new ReviewCacheService().Clear();
-            //new AceRefactorableFunctionsCacheService().Clear();
-            CacheGeneration.Increment();
-
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
         }
