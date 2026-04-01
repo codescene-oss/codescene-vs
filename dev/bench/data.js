@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774974594199,
+  "lastUpdate": 1775029645981,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -80,6 +80,48 @@ window.BENCHMARK_DATA = {
             "value": 57482012.698412694,
             "unit": "ns",
             "range": "± 185681.0663014717"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a75630a362370d91945c8cf0ba983c39c75483bd",
+          "message": "chore: add alerting options to benchmark workflows",
+          "timestamp": "2026-04-01T09:42:24+02:00",
+          "tree_id": "8759ffac82074d2803ed390860db1fca51f55c4b",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/a75630a362370d91945c8cf0ba983c39c75483bd"
+        },
+        "date": 1775029642603,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 143344644.5,
+            "unit": "ns",
+            "range": "± 11135917.54730774"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 123809094.28571428,
+            "unit": "ns",
+            "range": "± 293913.86832812836"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 59286389.23076923,
+            "unit": "ns",
+            "range": "± 670214.1830348158"
           }
         ]
       }
