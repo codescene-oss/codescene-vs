@@ -143,12 +143,20 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsInstanceOfType(jobs, typeof(IReadOnlyCollection<Job>));
         }
 
+        [TestMethod]
+        public void Clear_WithRunningJobs_RemovesAllJobs()
+        {
+            DeltaJobTracker.Add(CreateJob("file1.cs"));
+            DeltaJobTracker.Add(CreateJob("file2.cs"));
+
+            DeltaJobTracker.Clear();
+
+            Assert.IsEmpty(DeltaJobTracker.RunningJobs);
+        }
+
         private static void ClearAllJobs()
         {
-            foreach (var job in DeltaJobTracker.RunningJobs.ToList())
-            {
-                DeltaJobTracker.Remove(job);
-            }
+            DeltaJobTracker.Clear();
         }
 
         private static Job CreateJob(string fileName = "test.cs", string type = "deltaAnalysis") =>

@@ -49,6 +49,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private GitIgnoreWatcher _gitIgnoreWatcher;
         private TaskCompletionSource<bool> _initializationComplete;
         private PerFileRequestQueue<string> _detectedFilesQueue = new PerFileRequestQueue<string>();
+        private ConcurrentDictionary<string, SemaphoreSlim> _perFileProcessingLocks = new ConcurrentDictionary<string, SemaphoreSlim>(StringComparer.OrdinalIgnoreCase);
 
         public GitChangeObserverCore(
             ILogger logger,
@@ -236,6 +237,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public void CancelAndReset()
         {
+            ResetCacheGenerationAndDeltaState();
             _gitChangeLister.FilesDetected -= OnGitChangeListerFilesDetected;
             _gitChangeLister.StopPeriodicScanning();
             _eventProcessor?.DrainAndStop();
@@ -253,8 +255,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _initializationComplete = null;
             _detectedFilesQueue.Clear();
 
-            _trackerManager.Clear();
-
+            ClearTrackerAndJobs();
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
             if (_gitIgnoreWatcher != null)
             {
@@ -265,6 +266,18 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitChangeLister.StartPeriodicScanning(_cts.Token);
 
             InitializeTracker();
+        }
+
+        private static void ResetCacheGenerationAndDeltaState()
+        {
+            CacheGeneration.Increment();
+            new DeltaCacheService().Clear();
+        }
+
+        private void ClearTrackerAndJobs()
+        {
+            _trackerManager.Clear();
+            DeltaJobTracker.Clear();
         }
 
         private async Task StartWatcherAfterInitializationAsync(CancellationToken cancellationToken)
@@ -453,6 +466,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             cancellationToken.ThrowIfCancellationRequested();
             var operationGeneration = CacheGeneration.Current;
             var changedFiles = await _getChangedFilesCallback();
+            await RemoveMissingTrackedFilesAsync(changedFiles, cancellationToken);
             foreach (var absolutePath in absolutePaths)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -465,7 +479,43 @@ namespace Codescene.VSExtension.Core.Application.Git
                     continue;
                 }
 
-                await _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles, operationGeneration, cancellationToken);
+                await ExecutePerFileAsync(
+                    absolutePath,
+                    cancellationToken,
+                    () => _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles, operationGeneration, cancellationToken));
+            }
+        }
+
+        private async Task RemoveMissingTrackedFilesAsync(List<string> changedFiles, CancellationToken cancellationToken)
+        {
+            var trackedFiles = _trackerManager.GetAllTrackedFiles();
+            foreach (var trackedFile in trackedFiles)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if (File.Exists(trackedFile))
+                {
+                    continue;
+                }
+
+                await _fileChangeHandler.HandleFileDeleteAsync(trackedFile, changedFiles, cancellationToken);
+            }
+        }
+
+        private async Task ExecutePerFileAsync(string filePath, CancellationToken cancellationToken, Func<Task> action)
+        {
+            var fileLock = _perFileProcessingLocks.GetOrAdd(filePath, _ => new SemaphoreSlim(1, 1));
+            await fileLock.WaitAsync(cancellationToken);
+            try
+            {
+                await action();
+            }
+            finally
+            {
+                fileLock.Release();
             }
         }
 
@@ -531,11 +581,13 @@ namespace Codescene.VSExtension.Core.Application.Git
             if (evt.Type == FileChangeType.Delete)
             {
                 await _fileChangeHandler.HandleFileDeleteAsync(evt.FilePath, changedFiles, cancellationToken);
+                return;
             }
-            else
-            {
-                await _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles, operationGeneration, cancellationToken);
-            }
+
+            await ExecutePerFileAsync(
+                evt.FilePath,
+                cancellationToken,
+                () => _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles, operationGeneration, cancellationToken));
         }
     }
 }
