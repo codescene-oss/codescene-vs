@@ -65,19 +65,25 @@ public class FileWatcherSubcutaneousTests : SubcutaneousGitTestBase
         const string relativePath = "src/DeleteDuringReview.cs";
         var absolutePath = AbsolutePath(relativePath);
         var block = CodeReviewer.BlockNextReview(absolutePath);
+        try
+        {
+            await WriteWorkingFileAsync(relativePath, "public class DeleteDuringReview { public int Value => 1; }");
+            await WaitForConditionAsync(() => block.Entered.IsCompleted, "The blocked review never started.");
 
-        await WriteWorkingFileAsync(relativePath, "public class DeleteDuringReview { public int Value => 1; }");
-        await WaitForConditionAsync(() => block.Entered.IsCompleted, "The blocked review never started.");
+            DeleteWorkingFile(relativePath);
 
-        DeleteWorkingFile(relativePath);
+            block.Release();
+            await TaskScheduler.WaitForIdleAsync(10000);
+            await WaitForNotTrackedAsync(relativePath);
+            await WaitForNoDeltaAsync(relativePath);
+            SnapshotState("post-delete-during-review", relativePath);
 
-        block.Release();
-        await TaskScheduler.WaitForIdleAsync(10000);
-        await WaitForNotTrackedAsync(relativePath);
-        await WaitForNoDeltaAsync(relativePath);
-        SnapshotState("post-delete-during-review", relativePath);
-
-        Assert.IsGreaterThanOrEqualTo(Journal.Count("observer.file-deleted", absolutePath), 1, Journal.Dump());
+            Assert.IsGreaterThanOrEqualTo(Journal.Count("observer.file-deleted", absolutePath), 1, Journal.Dump());
+        }
+        finally
+        {
+            block.Release();
+        }
     }
 }
 
@@ -155,25 +161,31 @@ public class GitCommandSubcutaneousTests : SubcutaneousGitTestBase
         CheckoutBranch("feature", create: true);
 
         var block = CliExecutor.BlockNextDelta(absolutePath);
+        try
+        {
+            await StartObserverAsync();
+            await WriteWorkingFileAsync(relativePath, changedContent);
+            await WaitForTrackedAsync(relativePath);
+            await WaitForConditionAsync(() => block.Entered.IsCompleted, "The blocked delta review never started.");
+            await WaitForConditionAsync(() => HasRunningDeltaJob(relativePath), "Expected a running delta job before the branch reset.");
 
-        await StartObserverAsync();
-        await WriteWorkingFileAsync(relativePath, changedContent);
-        await WaitForTrackedAsync(relativePath);
-        await WaitForConditionAsync(() => block.Entered.IsCompleted, "The blocked delta review never started.");
-        await WaitForConditionAsync(() => HasRunningDeltaJob(relativePath), "Expected a running delta job before the branch reset.");
+            CheckoutBranch("main");
+            Observer.CancelAndReset();
 
-        CheckoutBranch("main");
-        Observer.CancelAndReset();
+            await WaitForConditionAsync(
+                () => RunningDeltaJobCount() == 0,
+                $"Expected branch reset to clear all running delta jobs, but found {RunningDeltaJobCount()}.");
+            SnapshotState("post-branch-switch-reset", relativePath);
 
-        await WaitForConditionAsync(
-            () => RunningDeltaJobCount() == 0,
-            $"Expected branch reset to clear all running delta jobs, but found {RunningDeltaJobCount()}.");
-        SnapshotState("post-branch-switch-reset", relativePath);
+            block.Release();
+            await TaskScheduler.WaitForIdleAsync(10000);
 
-        block.Release();
-        await TaskScheduler.WaitForIdleAsync(10000);
-
-        Assert.AreEqual(0, RunningDeltaJobCount(), Journal.Dump());
+            Assert.AreEqual(0, RunningDeltaJobCount(), Journal.Dump());
+        }
+        finally
+        {
+            block.Release();
+        }
     }
 
     [TestMethod]
@@ -248,33 +260,41 @@ public class GitCommandSubcutaneousTests : SubcutaneousGitTestBase
         CheckoutBranch("main");
 
         var absoluteBranchAPath = AbsolutePath(branchAPath);
+        var absoluteBranchBPath = AbsolutePath(branchBPath);
         var block = CliExecutor.BlockNextDelta(absoluteBranchAPath);
+        try
+        {
+            await StartObserverAsync();
 
-        await StartObserverAsync();
+            CheckoutBranch("branch-a");
+            await WaitForConditionAsync(() => block.Entered.IsCompleted, "The branch a delta review never started.");
+            await WaitForConditionAsync(() => HasRunningDeltaJob(branchAPath), "Expected a running delta job for branch a.");
 
-        CheckoutBranch("branch-a");
-        await WaitForConditionAsync(() => block.Entered.IsCompleted, "The branch a delta review never started.");
-        await WaitForConditionAsync(() => HasRunningDeltaJob(branchAPath), "Expected a running delta job for branch a.");
+            CheckoutBranch("branch-b");
+            Observer.CancelAndReset();
 
-        CheckoutBranch("branch-b");
-        Observer.CancelAndReset();
+            await WaitForTrackedAsync(branchBPath);
+            await WaitForReviewCountAsync(branchBPath, 1);
+            SnapshotState("branch-b-visible", branchAPath, branchBPath);
 
-        await WaitForTrackedAsync(branchBPath);
-        await WaitForReviewCountAsync(branchBPath, 1);
-        SnapshotState("branch-b-visible", branchAPath, branchBPath);
+            block.Release();
+            await TaskScheduler.WaitForIdleAsync(10000);
+            await WaitForConditionAsync(
+                () => !HasDelta(branchAPath),
+                "Expected stale branch a delta to stay out of the cache after switching to branch b.");
+            SnapshotState("post-branch-switch-cache-race", branchAPath, branchBPath);
 
-        block.Release();
-        await TaskScheduler.WaitForIdleAsync(10000);
-        await WaitForConditionAsync(
-            () => !HasDelta(branchAPath),
-            "Expected stale branch a delta to stay out of the cache after switching to branch b.");
-        SnapshotState("post-branch-switch-cache-race", branchAPath, branchBPath);
-
-        Assert.IsFalse(HasDelta(branchAPath), Journal.Dump());
-        Assert.IsFalse(DeltaCachePaths().Contains(absoluteBranchAPath, StringComparer.OrdinalIgnoreCase), Journal.Dump());
-        Assert.IsTrue(
-            DeltaCachePaths().All(path => string.Equals(path, AbsolutePath(branchBPath), StringComparison.OrdinalIgnoreCase)),
-            Journal.Dump());
+            Assert.IsTrue(
+                DeltaCachePaths().Any(p => string.Equals(p, absoluteBranchBPath, StringComparison.OrdinalIgnoreCase)),
+                Journal.Dump());
+            Assert.IsTrue(
+                DeltaCachePaths().All(path => string.Equals(path, absoluteBranchBPath, StringComparison.OrdinalIgnoreCase)),
+                Journal.Dump());
+        }
+        finally
+        {
+            block.Release();
+        }
     }
 
     [TestMethod]
@@ -411,10 +431,15 @@ public class GitCommandSubcutaneousTests : SubcutaneousGitTestBase
         await WaitForTrackedAsync(relativePath);
         await WaitForReviewCountAsync(relativePath, 1);
 
+        var baselineParallel = MaxParallelReviews(relativePath);
+
         RebaseOnto("main");
+        var journalCountAfterRebaseGit = Journal.Snapshot().Count;
 
         await WaitForTrackedAsync(relativePath);
-        await WaitForConditionAsync(() => MaxParallelReviews(relativePath) <= 1, "Rebase should not run parallel reviews for the same file.");
+        await WaitForConditionAsync(
+            () => Journal.Snapshot().Count > journalCountAfterRebaseGit || MaxParallelReviews(relativePath) != baselineParallel,
+            "Expected observer journal activity after rebase was processed.");
         SnapshotState("post-rebase", relativePath);
 
         Assert.AreEqual(1, MaxParallelReviews(relativePath), Journal.Dump());
@@ -438,17 +463,23 @@ public class PollingRaceSubcutaneousTests : SubcutaneousGitTestBase
         CommitAll("Change repeated polling file");
 
         var block = CodeReviewer.BlockNextReview(absolutePath);
+        try
+        {
+            await StartObserverAsync();
+            await WaitForConditionAsync(() => block.Entered.IsCompleted, "The periodic scan never reached the blocked review.");
+            await Task.Delay(1500);
+            SnapshotState("while-review-blocked", relativePath);
 
-        await StartObserverAsync();
-        await WaitForConditionAsync(() => block.Entered.IsCompleted, "The periodic scan never reached the blocked review.");
-        await Task.Delay(1500);
-        SnapshotState("while-review-blocked", relativePath);
+            Assert.AreEqual(1, ReviewCount(relativePath), Journal.Dump());
+            Assert.AreEqual(1, MaxParallelReviews(relativePath), Journal.Dump());
 
-        Assert.AreEqual(1, ReviewCount(relativePath), Journal.Dump());
-        Assert.AreEqual(1, MaxParallelReviews(relativePath), Journal.Dump());
-
-        block.Release();
-        await WaitForReviewCountAsync(relativePath, 1);
+            block.Release();
+            await WaitForReviewCountAsync(relativePath, 1);
+        }
+        finally
+        {
+            block.Release();
+        }
     }
 
     [TestMethod]

@@ -37,15 +37,20 @@ namespace Codescene.VSExtension.Core.Tests
                 _mockMetadataProvider.Object);
 
             ErrorTelemetryUtils.ResetErrorCount();
+#if DEBUG
             TelemetryUtils.TelemetryEnabledOverrideForTests = true;
+#endif
         }
 
         [TestCleanup]
         public void TearDown()
         {
+#if DEBUG
             TelemetryUtils.TelemetryEnabledOverrideForTests = null;
+#endif
         }
 
+#if DEBUG
         [TestMethod]
         public async Task SendTelemetry_WhenExceptionThrown_LogsDebugAndDoesNotRethrow()
         {
@@ -63,6 +68,8 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert
             _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Unable to send telemetry"))), Times.Once);
         }
+
+#endif
 
         [TestMethod]
         public async Task SendTelemetryAsync_WithAdditionalData_DoesNotThrow()
@@ -124,6 +131,7 @@ namespace Codescene.VSExtension.Core.Tests
             // Note: This verification depends on TelemetryUtils.IsTelemetryEnabled() returning true
         }
 
+#if DEBUG
         [TestMethod]
         public async Task SendErrorTelemetry_WhenExceptionThrown_LogsDebugAndDoesNotRethrow()
         {
@@ -141,6 +149,8 @@ namespace Codescene.VSExtension.Core.Tests
             // Assert - SendErrorTelemetry calls SendTelemetry which has its own exception handling
             _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Unable to send telemetry"))), Times.Once);
         }
+
+#endif
 
         [TestMethod]
         public async Task SendErrorTelemetry_WithExtraData_DoesNotThrow()
