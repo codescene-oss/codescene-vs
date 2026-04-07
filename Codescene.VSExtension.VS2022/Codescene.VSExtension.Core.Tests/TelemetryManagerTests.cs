@@ -37,6 +37,13 @@ namespace Codescene.VSExtension.Core.Tests
                 _mockMetadataProvider.Object);
 
             ErrorTelemetryUtils.ResetErrorCount();
+            TelemetryUtils.TelemetryEnabledOverrideForTests = true;
+        }
+
+        [TestCleanup]
+        public void TearDown()
+        {
+            TelemetryUtils.TelemetryEnabledOverrideForTests = null;
         }
 
         [TestMethod]

@@ -375,8 +375,9 @@ public class GitCommandSubcutaneousTests : SubcutaneousGitTestBase
         StashPush("stash conflicting change");
 
         await WriteWorkingFileAsync(relativePath, "public class StashConflict { public int Value => 3; }");
-        CommitAll("Commit conflicting change");
+        await WaitForTrackedAsync(relativePath);
         await WaitForReviewCountAsync(relativePath, 2);
+        CommitAll("Commit conflicting change");
 
         var result = StashPopAllowFailure();
 
