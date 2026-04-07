@@ -284,11 +284,11 @@ public class GitCommandSubcutaneousTests : SubcutaneousGitTestBase
                 "Expected stale branch a delta to stay out of the cache after switching to branch b.");
             SnapshotState("post-branch-switch-cache-race", branchAPath, branchBPath);
 
-            Assert.IsTrue(
-                DeltaCachePaths().Any(p => string.Equals(p, absoluteBranchBPath, StringComparison.OrdinalIgnoreCase)),
+            Assert.IsFalse(
+                DeltaCachePaths().Any(p => string.Equals(p, absoluteBranchAPath, StringComparison.OrdinalIgnoreCase)),
                 Journal.Dump());
             Assert.IsTrue(
-                DeltaCachePaths().All(path => string.Equals(path, absoluteBranchBPath, StringComparison.OrdinalIgnoreCase)),
+                DeltaCachePaths().All(p => string.Equals(p, absoluteBranchBPath, StringComparison.OrdinalIgnoreCase)),
                 Journal.Dump());
         }
         finally

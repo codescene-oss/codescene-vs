@@ -89,7 +89,8 @@ public abstract class SubcutaneousGitTestBase
             innerReviewer,
             logger: Logger,
             git: GitService,
-            notifier: notifier);
+            notifier: notifier,
+            deltaCache: DeltaCache);
 
         CodeReviewer = new RecordingCodeReviewer(cachingReviewer, Journal);
         GitChangeLister = new RecordingGitChangeLister(
@@ -259,7 +260,8 @@ public abstract class SubcutaneousGitTestBase
 
     protected bool HasDelta(string relativePath)
     {
-        return DeltaCache.GetAll().ContainsKey(AbsolutePath(relativePath));
+        var abs = AbsolutePath(relativePath);
+        return DeltaCache.GetAll().Keys.Any(k => string.Equals(k, abs, StringComparison.OrdinalIgnoreCase));
     }
 
     protected int ReviewCount(string relativePath)
@@ -324,7 +326,7 @@ public abstract class SubcutaneousGitTestBase
             Journal.Record(
                 "state.snapshot",
                 absolutePath,
-                $"{label};tracked={Observer.GetTrackerManager().Contains(absolutePath)};delta={DeltaCache.GetAll().ContainsKey(absolutePath)};reviewCount={CodeReviewer.GetReviewWithDeltaCallCount(absolutePath)}");
+                $"{label};tracked={Observer.GetTrackerManager().Contains(absolutePath)};delta={HasDelta(relativePath)};reviewCount={CodeReviewer.GetReviewWithDeltaCallCount(absolutePath)}");
         }
     }
 
