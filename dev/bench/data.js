@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775630385030,
+  "lastUpdate": 1775630526347,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -844,6 +844,54 @@ window.BENCHMARK_DATA = {
             "value": 21939.1328125,
             "unit": "ns",
             "range": "± 579.6902886013379"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c1891d0948f466277e6e6ef347eb3cf83ec2ae28",
+          "message": "chore: subcutaneous test suite (#272)",
+          "timestamp": "2026-04-08T08:30:20+02:00",
+          "tree_id": "c90fa73936d9e10717b35f85196c455a7ecc8d7d",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/c1891d0948f466277e6e6ef347eb3cf83ec2ae28"
+        },
+        "date": 1775630525136,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 168300993.81443298,
+            "unit": "ns",
+            "range": "± 9704965.159588596"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5423.177446637835,
+            "unit": "ns",
+            "range": "± 49.72112546463635"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 533359326.6666667,
+            "unit": "ns",
+            "range": "± 7463316.057267484"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 19021.900431315105,
+            "unit": "ns",
+            "range": "± 225.2723674851837"
           }
         ]
       }
