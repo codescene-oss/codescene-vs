@@ -12,6 +12,16 @@ namespace Codescene.VSExtension.Core.Util
 {
     public static class TelemetryUtils
     {
+#if DEBUG
+        private static bool? _telemetryEnabledOverrideForTests;
+
+        internal static bool? TelemetryEnabledOverrideForTests
+        {
+            get => _telemetryEnabledOverrideForTests;
+            set => _telemetryEnabledOverrideForTests = value;
+        }
+#endif
+
         public static string GetTelemetryEventJson(string eventName, string deviceId, string version, Dictionary<string, object> additionalEventData = null)
         {
             var telemetryEvent = new TelemetryEvent
@@ -47,6 +57,13 @@ namespace Codescene.VSExtension.Core.Util
         /// <returns>True if telemetry is enabled (opted in); otherwise, false.</returns>
         public static bool IsTelemetryEnabled(ILogger logger = null)
         {
+#if DEBUG
+            if (_telemetryEnabledOverrideForTests.HasValue)
+            {
+                return _telemetryEnabledOverrideForTests.Value;
+            }
+#endif
+
             try
             {
                 const string keyPath = @"SOFTWARE\Wow6432Node\Microsoft\VSCommon\17.0\SQM";

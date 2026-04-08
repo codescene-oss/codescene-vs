@@ -53,5 +53,17 @@ namespace Codescene.VSExtension.Core.Util
                 }
             }
         }
+
+        public static void Clear()
+        {
+            lock (Running)
+            {
+                foreach (var job in Running.ToList())
+                {
+                    Running.Remove(job);
+                    JobFinished?.Invoke(job);
+                }
+            }
+        }
     }
 }
