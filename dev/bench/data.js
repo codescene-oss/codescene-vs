@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775049486315,
+  "lastUpdate": 1775630130315,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -206,6 +206,48 @@ window.BENCHMARK_DATA = {
             "value": 61283378.625,
             "unit": "ns",
             "range": "± 3717524.892821538"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c1891d0948f466277e6e6ef347eb3cf83ec2ae28",
+          "message": "chore: subcutaneous test suite (#272)",
+          "timestamp": "2026-04-08T08:30:20+02:00",
+          "tree_id": "c90fa73936d9e10717b35f85196c455a7ecc8d7d",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/c1891d0948f466277e6e6ef347eb3cf83ec2ae28"
+        },
+        "date": 1775630127099,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 149919865.41666666,
+            "unit": "ns",
+            "range": "± 6687808.2951115575"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 134069668.33333333,
+            "unit": "ns",
+            "range": "± 2465311.212650492"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 62383623.333333336,
+            "unit": "ns",
+            "range": "± 1150659.000204443"
           }
         ]
       }
