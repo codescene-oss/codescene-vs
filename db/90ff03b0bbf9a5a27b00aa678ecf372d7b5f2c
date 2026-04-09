@@ -1,0 +1,924 @@
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/TestAssets/MinimalScenario/CodeScene.E2E.Sample.sln
+  b1a39be3f0e1209b 1-18
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/SmokeTests.cs
+  b1a39be3f0e1209b 1,3,5,7-12,14,16-21,23-28,30-36,38-41,43-44,46-52,54-61,63-70,72-77
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/TestAssets/MinimalScenario/CodeScene.E2E.Sample/CodeScene.E2E.Sample.csproj
+  b1a39be3f0e1209b 1,3-9,11
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/RunningObjectTableHelper.cs
+  b1a39be3f0e1209b 1,3-7,9,11-22,24-25,27-28,30-34,36-39,41-46,48-53,55-61,63-66,68-75,77-78,80-86,88-89,91-93
+.github/e2e.ps1
+  b1a39be3f0e1209b 1,3-4,6-8,10,16
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/TestAssets/MinimalScenario/CodeScene.E2E.Sample/SampleCode.cs
+  b1a39be3f0e1209b 1,3-6
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/Codescene.VSExtension.VS2022.E2ETests.csproj
+  b1a39be3f0e1209b 8,19-22,29-32
+Makefile
+  b1a39be3f0e1209b 9,72-73
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/ExperimentalInstanceDeploy.cs
+  5f3b974d04c00222 9
+  8c1d62201e27bfd9 58-60,118-124
+  b1a39be3f0e1209b 1,3-8,11,13-24,26-37,39-43,45-47,50-57,62-67,69-70,81-90,92-102,104-116,125-138,140-150,152-156,158-162,164-165,167-183,185-191,193-194,196-200,202-211,213-218,220-224,226-229
+  0837bbd05e53a5ef 48-49
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/VisualStudioTestHost.cs
+  b1a39be3f0e1209b 1,3-16,18,20-27,29-47,49,51,53,55,57,59-60,62-65,68-74,76-78,81,83-86,88-97,99-113,115-118,120-130,132-136,138-144,146-151,153-156,158-164,166-170,172-177,179-184,186-195,197-200,202-215,217-236,238-244,246-252,254-257,259-264,266-275,277-282,284-285,287-295,297-300,302-303,305-306,308-314,316-317,319-326,328-331,333-334,336-355,357-360,362-374,376-377,379-387,389-390,392-393,395-404,406-407,409-410,412-418,420-425,427-429,431-433,435-436,438-443,445-448,515-522,524-535,537-546,548-556,558-563,565-567
+  8c1d62201e27bfd9 79
+  5f3b974d04c00222 434,450-456,458-473,475-485,487-495,497-503,505-510,512-513
+.github/workflows/e2e.yml
+  b1a39be3f0e1209b 1,3-4,6-15,17-21,23-25,27-33,35-47,49-53,55-56,58-59,61-63,65-66,68-69,71-75,77-83,85-92
+E2E-TESTING.md
+  b1a39be3f0e1209b 1,3,5,7,23,77-78
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/MSTestSettings.cs
+  b1a39be3f0e1209b 1,3
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/E2EWorkspace.cs
+  b1a39be3f0e1209b 1,3-5,7,9-12,14-19,21,23,25-31,33-37,39-40,42-47,49,51-52,54-59,61,63-73,75-80,82-83,85-91,93-101,103-105,107-114,116-127,129-132,134-141
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/TestProcessRunner.cs
+  b1a39be3f0e1209b 1,3-4,6,8-17,19-21,23-31,33-36,38-40
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/E2ETestEnvironment.cs
+  b1a39be3f0e1209b 1,3-5,7,9-11,13-17,20-21,24-28,30-34,36-44,46-47,49-50,52,54,56-65,67-68,72,74-77,79-82,84-87,89-90,92-98,100-104,106-107,109-117,119-125,127-130,132-136,138-140
+  bd81e3d07bee6e32 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.6",
+  "base_commit_sha": "db90ff03b0bbf9a5a27b00aa678ecf372d7b5f2c",
+  "prompts": {
+    "0837bbd05e53a5ef": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1fba4dd3-1816-457b-b1a3-77a77197c502",
+        "model": "default"
+      },
+      "human_author": "Martin Säfsten",
+      "messages": [
+        {
+          "type": "user",
+          "text": "something is wrong with the e2e visual studio host setup. When it launches the experimental instance of VS, it seems to have installed the extension, but it is disabled. I cant use vsixinstaller.exe because of a bug with silent installer",
+          "timestamp": "2026-04-02T14:11:41.231Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Tracing how the E2E host deploys the extension to the experimental instance and why it might be disabled.",
+          "timestamp": "2026-04-02T14:11:50.800Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Searching how VS registers manually extracted extensions and whether hive resolution can mismatch `devenv`.",
+          "timestamp": "2026-04-02T14:12:23.229Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio experimental instance extension manually copied Extensions folder disabled extension manager",
+            "toolCallId": "tool_9ea00318-2482-4c2d-80ed-c389966846b"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio 17 ExtensionManagerService enabledextensions.json user extensions",
+            "toolCallId": "tool_7dc1a604-c0d9-4675-aa25-bb2adff15ad"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "VisualStudio ExtensionManager EnabledExtensions registry value format",
+            "toolCallId": "tool_ad130234-c4a2-4854-a38f-8fee8195980"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "devenv /setup /rootSuffix Exp extension install",
+            "toolCallId": "tool_0c235ddf-bee7-432f-bc12-c05ef726658"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "\"EnabledExtensions\" registry extension id version string",
+            "toolCallId": "tool_3762a58e-18dd-46a5-b2d3-c3ac619f701"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "site:github.com VisualStudio ExtensionManager EnabledExtensions SetValue",
+            "toolCallId": "tool_29654f75-fbb0-457e-8851-a85a7eeebc7"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio \"DisabledUserExtensions\" OR \"UserExtensionsDisabled\" registry",
+            "toolCallId": "tool_9ce4bee1-cc16-4d86-a3c0-b7d78a28d26"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio 2022 privateregistry.bin ExtensionManager extension enabled",
+            "toolCallId": "tool_a71a9e06-0951-4567-86fe-8a80572dd21"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio extension E2E test deploy vsix experimental instance MSBuild",
+            "toolCallId": "tool_433166c2-dc53-40dd-98b8-c23bb59053f"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "vswhere instanceId 17.0 LocalAppData VisualStudio folder name",
+            "toolCallId": "tool_54a084bd-19fb-4736-ad85-964a6ed7b5d"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Checking experimental hive path construction and whether `17.0_*` + `Exp` is correct:",
+          "timestamp": "2026-04-02T14:16:06.666Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "\"ExtensionManager\" \"EnabledExtensions\" REG_SZ extension path visual studio",
+            "toolCallId": "tool_7a0e4dfa-449c-4bb9-9f12-cfe5bb5adf8"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Identifying the issue: manually extracting a VSIX registers files but doesn't complete Extension Manager registration, so the extension appears installed but disabled. We'll register the extension in `ExtensionManager\\EnabledExtensions` (and related keys), and resolve the experimental hive from the same `devenv.exe` via `vswhere` so we don't deploy to a different `17.0_*` instance than the one being launched.",
+          "timestamp": "2026-04-02T14:17:36.935Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Implementing hive resolution via `vswhere` and registering the extension in Extension Manager registry keys so it’s enabled.",
+          "timestamp": "2026-04-02T14:17:44.297Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Fixing registry key construction: registry paths must use backslashes, not `Path.Combine` on logical paths.",
+          "timestamp": "2026-04-02T14:18:20.993Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "*.json",
+            "targetDirectory": "C:\\Users\\marti\\.cursor\\projects\\c-Git-codescene-vs\\mcps\\user-codescene\\tools"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Here is what was going wrong and what we changed.\n\n### Cause\n1. **Manual VSIX extract** only drops files under `Extensions\\...`. It does **not** do what VSIXInstaller does for **Extension Manager** (enabled state, types, etc.), so the package can show up as installed but **disabled**—the same behavior people see when they only copy folders into the experimental hive.\n2. **Wrong experimental hive** was possible: the code picked the **most recently touched** `%LocalAppData%\\Microsoft\\VisualStudio\\17.0_*` folder. That can differ from the instance started by the `devenv.exe` you actually run (multiple VS 2022 installs), so files and registry could target one hive while VS opened another.\n\n### Fix (in repo)\n1. **Resolve the Exp hive from `devenv.exe`** using `%ProgramFiles(x86)%\\Microsoft Visual Studio\\Installer\\vswhere.exe` with `-path` set to that install’s root (two levels above `Common7\\IDE`). Fall back to the old “newest `17.0_*`” behavior if `vswhere` is missing or fails.\n2. **Register Extension Manager user state** under  \n   `HKCU\\Software\\Microsoft\\VisualStudio\\<17.0_…Exp>\\ExtensionManager\\`:\n   - `EnabledExtensions`: values for `{IdentityId}` and `{IdentityId},{Version}` → full install path  \n   - `ExtensionTypes`: `{IdentityId}` → `Microsoft.VisualStudio.VsPackage`  \n   - `DisabledExtensions`: remove those value names if present  \n3. **`SuppressCopilotFreePromoNotification`** now takes `devenvPath` so it uses the **same** hive as deploy.\n4. **`TestProcessRunner.TryRunProcessCaptureStdout`** for `vswhere` output.\n\nRelevant code:\n\n```45:120:c:\\Git\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.VS2022.E2ETests\\ExperimentalInstanceDeploy.cs\n    internal static void DeployVsixToExperimentalInstance(string vsixPath, string devenvPath)\n    {\n        var (publisher, identityId, version) = ReadVsixIdentity(vsixPath);\n        var hiveRoot = ResolveExperimentalHiveRoot(devenvPath);\n        var extensionRoot = Path.GetFullPath(Path.Combine(\n            hiveRoot,\n            \"Extensions\",\n            SanitizePathSegment(publisher),\n            SanitizePathSegment(identityId),\n            SanitizePathSegment(version)));\n        Directory.CreateDirectory(extensionRoot);\n        ExtractVsix(vsixPath, extensionRoot);\n        TouchExtensionsConfigurationChanged(hiveRoot);\n        RegisterExtensionManagerUserState(hiveRoot, identityId, version, extensionRoot);\n        // ... devenv /updateconfiguration ...\n    }\n```\n\n`dotnet build` for the E2E project succeeds. `make iter` still fails on an existing CodeScene delta for `TryDismissCopilotPopupUnderMainWindow` in `VisualStudioTestHost.cs` (unchanged by this work).\n\nIf anything is still disabled on your machine, check whether that VS build stores Extension Manager only in **privateregistry.bin** (then HKCU might be ignored for some keys). In that case, say what VS version you use and we can adjust (e.g. also register **MEF** in `ExtensionTypes` if needed).",
+          "timestamp": "2026-04-02T14:20:02.319Z"
+        },
+        {
+          "type": "user",
+          "text": "the codescene extension is still disabled",
+          "timestamp": "2026-04-02T14:25:48.745Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Investigating how Visual Studio 2022 stores extension enablement — our HKCU registry writes may be ignored in favor of privateregistry.bin or a different format.",
+          "timestamp": "2026-04-02T14:26:00.195Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio 2022 privateregistry.bin ExtensionManager enable extension programmatically",
+            "toolCallId": "tool_6cd4a4c6-7a6f-4f3c-841f-b0430ccd2d8"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "**/*.cs",
+            "targetDirectory": "c:\\Git\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.VS2022.E2ETests"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio extension \"user.json\" OR \"extensions.json\" LocalAppData disabled enabled",
+            "toolCallId": "tool_9b5ef089-b521-4102-8364-d8435021bda"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio privateregistry.bin ExtensionManager EnabledExtensions load hive",
+            "toolCallId": "tool_a11dc9e2-7af5-414f-8111-2e4fa328d83"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "ExternalSettingsManager CreateForApplication NuGet package Visual Studio",
+            "toolCallId": "tool_7577661e-1253-47ad-a5ed-c8063c5290f"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "NuGet Microsoft.VisualStudio.Settings 17.0 package",
+            "toolCallId": "tool_0b7bf064-f7d6-4dda-9e17-58bf0d76c10"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Writing Extension Manager state to the real `privateregistry.bin` via `ExternalSettingsManager.CreateForApplication(devenvPath, \"Exp\")` — `Registry.CurrentUser` doesn't affect VS 2017+ user settings.",
+          "timestamp": "2026-04-02T14:28:50.553Z"
+        }
+      ],
+      "total_additions": 164,
+      "total_deletions": 23,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    },
+    "5f3b974d04c00222": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "6b5b424b-01a6-4024-9c0b-0c830f7d70a9",
+        "model": "default"
+      },
+      "human_author": "Martin Säfsten",
+      "messages": [
+        {
+          "type": "user",
+          "text": "I got this suggestion for suppressing the co-pilot popup at launch when running the e2e tests:\n\nprivate static void DisableCopilotNotification(string vsHiveId)\n{\n    // e.g. hiveId = \"17.0_abc123Exp\"\n    var keyPath = $@\"Software\\Microsoft\\VisualStudio\\{vsHiveId}\\Notifications\";\n    using var key = Registry.CurrentUser.OpenSubKey(keyPath, writable: true);\n    // Set the relevant Copilot notification as dismissed\n    key?.SetValue(\"CopilotFreePromo\", 1, RegistryValueKind.DWord);\n}",
+          "timestamp": "2026-04-02T13:46:51.906Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Exploring the E2E test host to find where we launch Visual Studio and obtain the hive ID so we can integrate the Copilot notification suppression.",
+          "timestamp": "2026-04-02T13:47:18.114Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Integrating the registry approach: the experimental hive folder name (e.g. `17.0_<hash>Exp`) matches the Visual Studio registry subkey. Using `CreateSubKey` so we create `Notifications` if it's missing — `OpenSubKey(..., writable: true)` returns null when the key doesn't exist.",
+          "timestamp": "2026-04-02T13:47:54.624Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "*.json",
+            "targetDirectory": "c:\\Users\\marti\\.cursor\\projects\\c-Git-codescene-vs\\mcps\\user-codescene\\tools"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Here’s what was wired in and how it relates to the snippet you got.\n\n**What changed**\n\n- `ExperimentalInstanceDeploy.SuppressCopilotFreePromoNotification()` derives the hive id the same way as the experimental instance folder: `Path.GetFileName(ResolveExperimentalHiveRoot())` → e.g. `17.0_<hash>Exp`, which matches `HKCU\\Software\\Microsoft\\VisualStudio\\<that>\\Notifications`.\n- It uses `Registry.CurrentUser.CreateSubKey(..., writable: true)` instead of `OpenSubKey`, so the `Notifications` key is created when missing. With only `OpenSubKey`, you get `null` and never set the value.\n- `VisualStudioTestHost.Start` calls it right after `DeployVsixToExperimentalInstance` and before launching devenv, so the flag is in place before first shell startup.\n\n**Snippet vs. implementation**\n\n| Original suggestion | Adjustment |\n|---------------------|------------|\n| `OpenSubKey(..., true)` | `CreateSubKey` so missing `Notifications` is not a no-op |\n| Pass `vsHiveId` manually | Reuse `ResolveExperimentalHiveRoot()` so it stays aligned with `17.0_*` + `Exp` |\n\nThe existing `DismissKnownBlockingDialogs` / “Maybe later” automation stays as a fallback if the value name or location changes in a future VS build.\n\n`make iter` finished with exit code 0 on your machine; it logged MSTest adapter discovery warnings (Swedish binding error) for test DLLs—that’s separate from this edit. CodeScene `code_health_review` on `ExperimentalInstanceDeploy.cs` reported score 10.0 with no findings.",
+          "timestamp": "2026-04-02T13:49:11.848Z"
+        },
+        {
+          "type": "user",
+          "text": "didnt work. Try this:\n\nprivate static void DismissCopilotPopupIfPresent(Application app)\n{\n    var window = app.GetMainWindow(Automation, TimeSpan.FromSeconds(10));\n\n    // Try to find and click \"Maybe later\" or the X button\n    var maybeLayer = window.FindFirstDescendant(\n        cf => cf.ByName(\"Maybe later\")\n    )?.AsButton();\n\n    maybeLayer?.Invoke();\n}",
+          "timestamp": "2026-04-02T14:06:44.883Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Reviewing the host code to integrate main-window–scoped dismissal alongside the existing desktop search.",
+          "timestamp": "2026-04-02T14:07:05.166Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Implementing main-window–scoped dismissal: the Copilot promo may be under the VS main window rather than a top-level desktop window, so desktop `FindFirstDescendant` can miss it.",
+          "timestamp": "2026-04-02T14:07:23.941Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Adding main-window–scoped dismissal first: the promo is often a descendant of the main VS window, not the desktop root.",
+          "timestamp": "2026-04-02T14:07:34.494Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Here’s what changed.\n\n**`TryDismissCopilotPopupUnderMainWindow`** (used first in the dismiss loop):\n\n- Resolves the real VS window with `_application.GetMainWindow(_automation, TimeSpan.FromSeconds(10))` instead of searching from the desktop.\n- Looks for **Maybe later** under that window, then uses `AsButton().Invoke()` like your snippet, with the same **Invoke pattern** and **Click** fallbacks as the old desktop path (for when the control isn’t a proper button in UIA).\n- If that doesn’t fire, walks **descendant** `Window` nodes under the main window whose name contains **Copilot** and tries the same **Close** handling as before (your “X” case). The previous code only checked **direct** desktop children, so nested Copilot chrome could be skipped.\n\n**Order in `DismissKnownBlockingDialogs`:** main window → desktop “Maybe later” → desktop Copilot top-level windows.\n\nThe E2E project builds cleanly. If the promo still shows, the next things to check are the **exact** automation name (e.g. localized string) and whether it lives in a **different process** (webview), which UIA under the main window still wouldn’t see.",
+          "timestamp": "2026-04-02T14:08:03.421Z"
+        }
+      ],
+      "total_additions": 71,
+      "total_deletions": 1,
+      "accepted_lines": 60,
+      "overriden_lines": 0
+    },
+    "8c1d62201e27bfd9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c5dd64d4-a7f4-41b0-aa47-bc8b07ba3656",
+        "model": "default"
+      },
+      "human_author": "Martin Säfsten",
+      "messages": [
+        {
+          "type": "user",
+          "text": "Context: Installed VS2022 extension shows as disabled after manual VSIX extraction\n\nAfter manually extracting a .vsix into the experimental instance's Extensions folder, the extension appears installed but disabled. This is because VS tracks enabled state in the registry — it is not set automatically when bypassing VSIXInstaller.\n\nFix: Write to the registry after extraction\n\nAdd a DWORD value of 1 to:\n\n\n\tHKCU\\Software\\Microsoft\\VisualStudio\\<instanceId>\\ExtensionManager\\EnabledExtensions\n\nWhere the value name is the extension's Id attribute from extension.vsixmanifest (under Metadata > Identity).\n\nImplementation notes (C#):\n\n\n- Use Registry.CurrentUser.CreateSubKey(keyPath) and key.SetValue(extensionId, 1, RegistryValueKind.DWord)\n\n- The extension ID can be parsed from the VSIX at install time using ZipFile + XDocument, reading //Metadata/Identity/@Id with namespace http://schemas.microsoft.com/developer/vsx-schema/2011\n\n- The experimental instance ID (e.g. 17.0_abc123Exp) can be discovered by scanning %LocalAppData%\\Microsoft\\VisualStudio\\ for a directory ending in Exp\n\n- This registry write must happen before launching VS / running devenv /updateconfiguration",
+          "timestamp": "2026-04-02T14:30:04.469Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Exploring the E2E deployment code to locate VSIX extraction and where we should register the extension as enabled.",
+          "timestamp": "2026-04-02T14:30:13.229Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Adding a registry write after extraction and before `devenv /updateconfiguration`, reusing the hive ID pattern from `SuppressCopilotFreePromoNotification`.",
+          "timestamp": "2026-04-02T14:30:33.893Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "*.json",
+            "targetDirectory": "C:\\Users\\marti\\.cursor\\projects\\c-Git-codescene-vs\\mcps\\user-codescene\\tools"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Fixing a build error in `VisualStudioTestHost.cs` (unrelated to our change).",
+          "timestamp": "2026-04-02T14:31:28.899Z"
+        },
+        {
+          "type": "assistant",
+          "text": "### Change\n\nIn `DeployVsixToExperimentalInstance`, after extracting the VSIX and touching `extensions.configurationchanged`, the test host now sets the extension as enabled in the registry **before** `devenv /updateconfiguration`:\n\n```57:66:c:\\Git\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.VS2022.E2ETests\\ExperimentalInstanceDeploy.cs\n        ExtractVsix(vsixPath, extensionRoot);\n        TouchExtensionsConfigurationChanged(hiveRoot);\n        var vsInstanceId = Path.GetFileName(\n            hiveRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));\n        WriteExtensionEnabledInRegistry(vsInstanceId, identityId);\n\n        var updateExit = TestProcessRunner.RunExternalProcess(\n            devenvPath,\n            $\"/rootSuffix {E2ETestEnvironment.RootSuffix} /updateconfiguration\",\n```\n\n`identityId` is already the manifest `Metadata/Identity/@Id` from `ReadVsixIdentity`. `vsInstanceId` matches the experimental hive folder name (e.g. `17.0_…Exp`), same idea as `SuppressCopilotFreePromoNotification`.\n\nNew helper:\n\n```csharp\nprivate static void WriteExtensionEnabledInRegistry(string vsInstanceId, string extensionId)\n{\n    var keyPath = $@\"Software\\Microsoft\\VisualStudio\\{vsInstanceId}\\ExtensionManager\\EnabledExtensions\";\n    using var key = Registry.CurrentUser.CreateSubKey(keyPath);\n    key?.SetValue(extensionId, 1, RegistryValueKind.DWord);\n}\n```\n\n### Other fix\n\n`SuppressCopilotFreePromoNotification` was called with `devenvPath` but takes no parameters; that call was corrected so the E2E project builds.\n\n### Validation\n\n- **CodeScene** `code_health_review` on `ExperimentalInstanceDeploy.cs`: score **10.0**, no findings.\n- **`make iter`**: build succeeded; the run then failed on the **delta** Code Health step for existing complexity in `TryDismissCopilotPopupUnderMainWindow` in `VisualStudioTestHost.cs`, not for the new registry code.",
+          "timestamp": "2026-04-02T14:32:06.612Z"
+        }
+      ],
+      "total_additions": 11,
+      "total_deletions": 1,
+      "accepted_lines": 11,
+      "overriden_lines": 0
+    },
+    "b1a39be3f0e1209b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "985e4c89-e0a8-4fe8-8907-979dc63022f7",
+        "model": "default"
+      },
+      "human_author": "Martin Säfsten",
+      "messages": [
+        {
+          "type": "user",
+          "text": "Write a plan to introduce e2e tests for this VS Extension, compatible with running on github actions",
+          "timestamp": "2026-04-01T15:53:48.660Z"
+        },
+        {
+          "type": "assistant",
+          "text": "I’m gathering the current extension/test setup first so I can produce a concrete e2e plan that fits this repo and GitHub Actions.",
+          "timestamp": "2026-04-01T15:53:57.880Z"
+        },
+        {
+          "type": "assistant",
+          "text": "I found that this is a Visual Studio 2022 VSSDK extension, and the main planning fork is whether you want true IDE UI automation or a lighter extension-hosted scenario suite.",
+          "timestamp": "2026-04-01T15:54:48.931Z"
+        },
+        {
+          "type": "assistant",
+          "text": "I have enough to target a true Visual Studio UI automation plan on a self-hosted Windows runner; I’m reading a few concrete files now so the plan can reference the exact build and packaging flow already used here.",
+          "timestamp": "2026-04-01T15:55:27.346Z"
+        },
+        {
+          "type": "assistant",
+          "text": "I’ve confirmed the current build/package flow; one last pass is to check whether the repo already has any Visual Studio experimental-instance or UI-test plumbing I should build the plan around.",
+          "timestamp": "2026-04-01T15:55:34.255Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {}
+        },
+        {
+          "type": "assistant",
+          "text": "The repository scan call failed on path handling, so I’m retrying with workspace-relative searches to see if any existing VS UI-test harness is already present.",
+          "timestamp": "2026-04-01T15:55:42.413Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "*.csproj"
+          }
+        },
+        {
+          "type": "user",
+          "text": "Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.\n\nTo-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.",
+          "timestamp": "2026-04-01T16:00:06.005Z"
+        },
+        {
+          "type": "assistant",
+          "text": "I’m starting with the harness shape: I’ll inspect the existing solution, test projects, and command surfaces so I can add the new e2e project cleanly and wire it into the current build/test flow.",
+          "timestamp": "2026-04-01T16:00:14.342Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "todo_write",
+          "input": {}
+        },
+        {
+          "type": "assistant",
+          "text": "I’ve confirmed the solution and extension command surface; next I’m checking local conventions and CI/test scripts so the new e2e project and workflow match the repo’s existing patterns instead of inventing a separate style.",
+          "timestamp": "2026-04-01T16:01:05.008Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "Directory*.*props"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "Directory*.*targets"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "I’m at the implementation design point now: I’m checking how the extension titles/commands are exposed so the e2e tests can use stable identifiers instead of brittle localized menu clicks wherever possible.",
+          "timestamp": "2026-04-01T16:01:59.071Z"
+        },
+        {
+          "type": "assistant",
+          "text": "I’ve got a workable design: use the built VSIX plus a small `FlaUI` harness, and invoke the extension’s commands through the running DTE instance so the assertions stay UI-level but the triggers are stable.",
+          "timestamp": "2026-04-01T16:02:30.158Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "docs/**"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": ".github/**/*.ps1"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "I’m about to scaffold the new test project so the dependency versions come from `dotnet` rather than being guessed, then I’ll trim the generated files down to this repo’s conventions and wire the project into the solution.",
+          "timestamp": "2026-04-01T16:03:31.075Z"
+        },
+        {
+          "type": "assistant",
+          "text": "I found an existing `Codescene.VSExtension.Core.SubcutaneousTests` project in the solution folder that wasn’t in the earlier solution file, so I’m reading it before editing anything else in case it already contains partial e2e scaffolding I should extend instead of duplicating.",
+          "timestamp": "2026-04-01T16:03:42.571Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "**/*",
+            "targetDirectory": "C:\\Git\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.Core.SubcutaneousTests"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "I confirmed there’s already a separate subcutaneous test project on disk, but it doesn’t look wired for VS UI automation. I’m reading its project file next to decide whether to extend it or keep the new e2e lane separate.",
+          "timestamp": "2026-04-01T16:03:50.842Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "**/Codescene.VSExtension.Core.SubcutaneousTests.csproj"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "**/Codescene.VSExtension.Core.SubcutaneousTests/*.cs"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "*.csproj",
+            "targetDirectory": "C:\\Git\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.Core.SubcutaneousTests"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "*.cs",
+            "targetDirectory": "C:\\Git\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.Core.SubcutaneousTests"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "I’m creating the new e2e project now and letting `dotnet` resolve the test dependency versions, then I’ll replace the default sample test with the actual Visual Studio harness.",
+          "timestamp": "2026-04-01T16:04:20.212Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "**/*",
+            "targetDirectory": "C:\\Git\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.VS2022.E2ETests"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "I’m moving from scaffolding to code edits now: the next changes add the harness helpers, smoke tests, and repo wiring so the new project can build and be invoked from CI and `make`.",
+          "timestamp": "2026-04-01T16:06:52.005Z"
+        },
+        {
+          "type": "assistant",
+          "text": "The harness files are in place; I’m compiling just the new e2e project now so I can fix any API mismatches before wiring the workflow and docs around it.",
+          "timestamp": "2026-04-01T16:10:01.464Z"
+        },
+        {
+          "type": "assistant",
+          "text": "The first build exposed a few style and framework issues, mostly file headers and one `Range` usage that `net48` doesn’t support directly; I’m fixing those now before the next compile.",
+          "timestamp": "2026-04-01T16:10:17.602Z"
+        },
+        {
+          "type": "assistant",
+          "text": "The core test project builds now. I’m wiring the repo-facing pieces next: a `make` target, a small PowerShell runner, and a dedicated self-hosted Actions workflow with artifact publishing.",
+          "timestamp": "2026-04-01T16:11:01.866Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "todo_write",
+          "input": {}
+        },
+        {
+          "type": "assistant",
+          "text": "I’ve finished the code and workflow wiring. I’m doing the repo-level verification pass now: first the normal Release build path, then a lightweight test run to confirm the new assembly is discoverable without assuming the full self-hosted UI runner is available here.",
+          "timestamp": "2026-04-01T16:12:03.002Z"
+        },
+        {
+          "type": "assistant",
+          "text": "The repo build is green, and the new test assembly loads cleanly with the expected skips outside the dedicated runner. I’m running the CodeScene validation pass now on the new test code and overall change set, per the repo rules.",
+          "timestamp": "2026-04-01T16:13:15.775Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Added a full first-pass e2e lane for the VSIX.\n\nThe main pieces are a new MSTest UI automation project at `Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests`, a self-hosted Actions workflow at `.github/workflows/e2e.yml`, a runner script at `.github/e2e.ps1`, a new `make e2e` target in `Makefile`, and rollout/runner guidance in `E2E-TESTING.md`.\n\nThe new test project includes the harness for:\n- locating `devenv.exe` and `VSIXInstaller.exe`\n- resetting the experimental hive\n- installing the built VSIX into `/RootSuffix Exp`\n- launching Visual Studio and attaching via DTE/UIA\n- capturing screenshots and checking `ActivityLog.xml`\n\nIt also implements the 3 smoke scenarios from the plan:\n- package loads without CodeScene-related activity-log errors\n- `CodeScene` options page opens and shows `Show Debug Logs` / `Auth Token`\n- `Code Health Monitor` opens in the VS shell\n\nVerification:\n- `make build` passed\n- `dotnet test \"Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022.E2ETests/Codescene.VSExtension.VS2022.E2ETests.csproj\" -c Release --no-build --logger trx` passed assembly discovery and skipped the 3 e2e tests as designed when `CODESCENE_E2E` is not enabled\n- `ReadLints` reported no issues on changed files\n- CodeScene MCP validation passed: `VisualStudioTestHost.cs` scored `10.0`, `SmokeTests.cs` scored `10`, and the overall change set passed\n\nNatural next step: trigger `.github/workflows/e2e.yml` on the self-hosted Windows runner to exercise the real Visual Studio UI flow end to end.",
+          "timestamp": "2026-04-01T16:13:46.126Z"
+        },
+        {
+          "type": "user",
+          "text": "so @.github/workflows/e2e.yml expects a self-hosted windows runner. how do I set that up?",
+          "timestamp": "2026-04-02T06:32:40.435Z"
+        },
+        {
+          "type": "assistant",
+          "text": "`@.github/workflows/e2e.yml` is set up for a Windows machine that GitHub can dispatch jobs to, but because these tests drive a real Visual Studio UI, the runner needs an interactive desktop session, not just a background service.\n\n## Recommended Setup\n\n1. Prepare a dedicated Windows 11 VM or physical machine.\n2. Install:\n- Visual Studio 2022 `17.12+`\n- WebView2 Runtime\n- Git\n- .NET SDK\n- Anything your normal build already needs for `make build`\n\nFor Visual Studio, make sure `devenv.exe` and `VSIXInstaller.exe` are present. Installing the `Visual Studio extension development` workload is the safest choice.\n\n3. Add the GitHub Actions runner:\n- Go to your repo: `Settings -> Actions -> Runners -> New self-hosted runner`\n- Choose `Windows` / `x64`\n- Download and extract the runner\n- Run `config.cmd`\n\nExample:\n\n```powershell\n.\\config.cmd --url https://github.com/<org>/<repo> --token <registration-token>\n```\n\n4. Keep the default labels.\nThat workflow uses:\n\n```yaml\nruns-on:\n  - self-hosted\n  - windows\n  - x64\n```\n\nThose labels are normally added automatically.\n\n## Important: Run It Interactively\n\nFor UI automation, do **not** rely on the runner as a Windows service.\n\nInstead, run the runner in a logged-in desktop session:\n\n```powershell\n.\\run.cmd\n```\n\nBest options:\n- dedicated user account, always logged in\n- start runner at logon via Task Scheduler\n- disable sleep/screensaver/auto-lock\n\nIf the desktop is locked, many UI automation tests will fail.\n\n## Recommended Machine Settings\n\n- Power mode: never sleep\n- Disable automatic reboots during working hours\n- Keep one logged-in desktop session alive\n- Avoid using the machine for anything else during e2e runs\n\nIf you connect over RDP, disconnect carefully. Some UI automation stacks break when the session gets minimized/locked. A common workaround is using `tscon` to hand the session back to the console instead of just closing RDP.\n\n## Repo Secrets\n\nThis workflow also expects:\n\n- `CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN`\n\nAdd that under:\n\n- `Settings -> Secrets and variables -> Actions`\n\n## Smoke Check\n\nOnce the runner is online:\n\n1. Confirm it appears under repo runners as `Idle`\n2. Trigger `.github/workflows/e2e.yml` with `workflow_dispatch`\n3. Verify these steps succeed:\n- asset fetch\n- `copy-assets.ps1`\n- solution build\n- `.github/e2e.ps1`\n- artifact upload\n\n## Practical Recommendation\n\nUse a dedicated VM just for this workflow. It makes flaky UI issues much easier to control and debug.\n\nIf you want, I can give you:\n1. a concrete Task Scheduler setup so the runner starts at login, or\n2. a checklist of exact Visual Studio components to install for this repo.",
+          "timestamp": "2026-04-02T06:33:07.046Z"
+        },
+        {
+          "type": "user",
+          "text": "I did some minor tweaks to it, and the vsix installation and devenv start is working. \n\nWhen VisualStudioTestHost.Start() starts the devenv instance, its showing the VS2022 splash dialog, as it should. See image. To make it start the main window on startup, we need to give it a solution file as argument. I want setting up a temp folder, with a git repo, and some code, to be a part of the test suite, so we can easily create specific scenarios",
+          "timestamp": "2026-04-02T09:08:12.779Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Inspecting how we launch devenv and the E2E project layout so we can add a test workspace (temp + git + sample solution) and pass it on startup.",
+          "timestamp": "2026-04-02T09:08:56.063Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Adding a version-controlled `TestAssets` template, copying it to a temp directory with an initialized git repo, and launching `devenv` with that solution path. Fixing the VSIX install assertion (it currently compares the wrong way).",
+          "timestamp": "2026-04-02T09:09:19.637Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Implementing the test asset template, `E2EWorkspace` (copy + git init), and wiring `VisualStudioTestHost` to launch `devenv` with the solution.",
+          "timestamp": "2026-04-02T09:09:28.724Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Excluding `TestAssets` from compilation (SDK projects glob all `.cs` files) and copying assets to the output.",
+          "timestamp": "2026-04-02T09:09:43.804Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Updating `VisualStudioTestHost` to create the workspace, pass the solution to `devenv`, and dispose the workspace after VS exits.",
+          "timestamp": "2026-04-02T09:10:30.645Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Fixing workspace ownership: `using var workspace` disposes it before the host returns. Transferring ownership to the host and disposing it in `VisualStudioTestHost.Dispose`.",
+          "timestamp": "2026-04-02T09:11:02.765Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Adding a `scenarioName` parameter to `VisualStudioTestHost.Start` so we can add scenarios without changing the host again.",
+          "timestamp": "2026-04-02T09:12:30.972Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Here is what was implemented:\n\n### Behavior\n- **`E2EWorkspace`** (`E2EWorkspace.cs`) copies a scenario from `TestAssets/<ScenarioName>/` into `%TEMP%\\CodesceneE2E\\<ScenarioName>\\<guid>\\`, runs **`git init`**, sets `user.email` / `user.name`, then **`git add -A`** and **`git commit`**.\n- **`VisualStudioTestHost.Start(scenarioName)`** (default `\"MinimalScenario\"`) creates that workspace and starts:\n\n  `devenv.exe \"<solution>.sln\" /RootSuffix Exp /Log \"<ActivityLog.xml>\"`\n\n  so VS opens the normal shell with the solution loaded instead of the start dialog.\n- The host **owns** the workspace: it is deleted in **`VisualStudioTestHost.Dispose`** after VS exits. If startup fails after the workspace is created, it is still disposed in **`catch`** blocks.\n- **`WorkspaceRoot`** and **`OpenedSolutionPath`** are exposed on the host for future tests.\n- **`InstallExtension`** now uses **`Assert.AreEqual(0, exitCode, ...)`** (the previous comparison was wrong).\n\n### Scenario content (first template)\n- `TestAssets/MinimalScenario/CodeScene.E2E.Sample.sln` + small `net48` class library with `SampleCode.cs`.\n\n### Project wiring\n- **`Compile Remove=\"TestAssets\\**\\*\"`** so template `.cs` files are **not** compiled into the test assembly.\n- **`Content`** with **`CopyToOutputDirectory`** so templates are next to the test DLL at runtime.\n\n### Docs\n- **`E2E-TESTING.md`** updated: Git on `PATH`, how to add scenarios, and `VisualStudioTestHost.Start(\"YourScenario\")`.\n\n### Adding more scenarios\n1. Add `TestAssets/YourScenario/Your.sln` (and projects) under the E2ETests project.\n2. In a test class, call **`VisualStudioTestHost.Start(\"YourScenario\")`** (or add a dedicated `[TestClass]` with its own `[ClassInitialize]` if you need a different workspace per suite).",
+          "timestamp": "2026-04-02T09:13:11.064Z"
+        },
+        {
+          "type": "user",
+          "text": "So an issue. I am getting a github co-pilot splash screen when VS is starting. Can we avoid that programatically?",
+          "timestamp": "2026-04-02T12:09:59.583Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Searching for ways to suppress or skip the GitHub Copilot onboarding dialog in Visual Studio (registry, settings, or automation).",
+          "timestamp": "2026-04-02T12:10:33.070Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio GitHub Copilot disable welcome splash screen registry suppress onboarding",
+            "toolCallId": "tool_a657424e-70cb-4327-aac1-3573ebc3333"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio disable GitHub Copilot extension experimental instance registry",
+            "toolCallId": "tool_ce11a88d-0c7b-4347-92ee-c707a5ef5e1"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "GitHub Copilot Visual Studio \"Maybe later\" onboarding registry key dismissed",
+            "toolCallId": "tool_7cb458f1-6708-49db-9e19-995bb85cbeb"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Adding harness logic to dismiss the Copilot onboarding modal (click \"Maybe later\" or close the window) and documenting the machine-level Group Policy option. Fixing the incorrect `Assert.IsLessThanOrEqualTo(0, exitCode)` for `devenv /updateconfiguration`.",
+          "timestamp": "2026-04-02T12:11:31.683Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Here’s a concise answer and what was added in code.\n\n### Can you avoid it programmatically?\n\n**There’s no supported `devenv` switch** that turns off that Copilot onboarding screen. Practical options:\n\n1. **Machine policy (most reliable)**  \n   Use the Visual Studio **Administrative Templates (ADMX)** and disable Copilot under **Computer Configuration → Administrative Templates → Visual Studio → Copilot Settings** (including **Copilot Free** from 17.13+). That stops the modal without touching your tests.  \n   [Admin controls for GitHub Copilot in Visual Studio](https://learn.microsoft.com/en-us/visualstudio/ide/visual-studio-github-copilot-admin?view=visualstudio)\n\n2. **Runner hygiene**  \n   Uninstall or disable the GitHub Copilot extension on the **e2e-only** VM so it never loads in `/RootSuffix Exp`.\n\n3. **UI automation in the harness (what we implemented)**  \n   After VS starts, the host now runs **`DismissKnownBlockingDialogs()`** (from `WaitForShellStabilization`): it looks for **“Maybe later”** (invoke pattern or click) and, if needed, a top-level window whose name contains **“Copilot”** and tries the **Close** button.  \n   - Opt out with: **`CODESCENE_E2E_SKIP_COPILOT_DISMISS=1`**  \n   - It stops polling after a short stretch with no dialog so normal runs don’t wait 45 seconds when Copilot isn’t there.\n\nAlso fixed **`devenv /updateconfiguration`** success check to **`Assert.AreEqual(0, exitCode, ...)`** (the previous `IsLessThanOrEqualTo(0, exitCode)` was wrong).\n\n**Docs:** [E2E-TESTING.md](E2E-TESTING.md) now describes Copilot, the env var, and Group Policy.\n\nIf “Maybe later” is not exposed as a single UIA element on your build (e.g. only a text run), say what Inspect/Accessibility shows and we can narrow the condition (e.g. parent hyperlink / automation id).",
+          "timestamp": "2026-04-02T12:13:12.558Z"
+        },
+        {
+          "type": "user",
+          "text": "I think there is a deeper issue. with or without the copilot dialog, the test fails with this error:\n\n  Message: \nClass Initialization method Codescene.VSExtension.VS2022.E2ETests.SmokeTests.ClassInitialize threw exception. System.InvalidOperationException: No process is associated with this object..\n\n  Stack Trace: \nProcess.EnsureState(State state)\nProcess.EnsureState(State state)\nProcess.get_Id()\nVisualStudioTestHost.Start(String scenarioName) line 114\nSmokeTests.ClassInitialize(TestContext testContext) line 20",
+          "timestamp": "2026-04-02T12:53:29.785Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Inspecting `VisualStudioTestHost.Start` around the failing line and how the process is created and used.",
+          "timestamp": "2026-04-02T12:53:46.304Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Checking how FlaUI exposes the process ID: the launcher `devenv` process often exits after spawning the real IDE, which invalidates the `Process` object before we read `process.Id`.",
+          "timestamp": "2026-04-02T12:54:15.043Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "**/Application.cs",
+            "targetDirectory": "C:\\Users\\marti\\.nuget\\packages\\flaui.core"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {}
+        },
+        {
+          "type": "assistant",
+          "text": "Identifying the issue: `devenv` often launches the IDE in another process; the original `Process` exits while the UI lives in a child. Accessing `process.Id` after exit throws \"No process is associated with this object.\" Fixing by reading the real PID from the main window (UI Automation `ProcessId`), opening a fresh `Process` with `GetProcessById`, and re-attaching FlaUI's `Application`. Improving `WaitForMainWindow` to fall back to finding a top-level window whose title contains \"Visual Studio\" and \"experimental\".",
+          "timestamp": "2026-04-02T12:55:21.376Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Implementing resolution of the real VS process from the main window's UIA `ProcessId` and re-attaching before calling `WaitForDte`. Adding a fallback window finder for the experimental instance.",
+          "timestamp": "2026-04-02T12:55:47.169Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Here’s what was going wrong and what we changed.\n\n### Cause\n`devenv` often **starts another process** (or the first process **exits** after the UI is up). The `Process` you get from `Process.Start` is then **no longer valid**: calling **`process.Id`** throws **`InvalidOperationException: No process is associated with this object`**.\n\nSo the failure was not really about Copilot; it was using the **launcher** `Process` for **`WaitForDte(process.Id, ...)`** after that handle was already gone.\n\n### Fix\n1. **Wait for the real main window** (same as before, plus a small fallback).\n2. Read the **UI Automation `ProcessId`** on that window via **`ReadProcessIdFromWindow(mainWindow)`** — that is the **OS pid of the process that owns the window**.\n3. Open a fresh handle with **`Process.GetProcessById(visualStudioProcessId)`**.\n4. **Dispose** the starter `Process` / `Application` (this only releases handles; it does not shut down VS).\n5. **`Application.Attach(process)`** on the resolved process and call **`WaitForDte(visualStudioProcessId, ...)`** (no use of the dead launcher’s `Id`).\n\n### Extra robustness\nIf **`GetMainWindow`** never sees a window for the starter pid (child-process case), we **fall back** to a top-level window whose title contains **`Microsoft Visual Studio`** and **`experimental`**.\n\nYou should be able to re-run the smoke class init without the `Process.Id` error. If anything still fails, the next place to look is **`WaitForDte`** timing out (ROT / DTE registration), which would be a different message.",
+          "timestamp": "2026-04-02T12:56:48.575Z"
+        },
+        {
+          "type": "user",
+          "text": "it now starts VS, but the Codescene extension is disabled?",
+          "timestamp": "2026-04-02T12:59:19.274Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Tracing how we deploy the VSIX into the experimental hive and what Visual Studio requires for the extension to load enabled.",
+          "timestamp": "2026-04-02T12:59:30.865Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio devenv /Setup /updateconfiguration extension experimental instance deploy VSIX manually",
+            "toolCallId": "tool_cb481a79-de15-49b2-8c29-e824ef1443c"
+          }
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "Visual Studio experimental instance extensions.configurationchanged LocalAppData pkgdef merge",
+            "toolCallId": "tool_18bdf0c5-9a9b-41f1-841e-87704e937ff"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Manual VSIX extraction copies files but often doesn't complete pkgdef merging and extension registration; `/updateconfiguration` alone can leave the extension listed but disabled. Adding VSIXInstaller as the primary install path and, for the extract fallback, touching `extensions.configurationchanged` and running `devenv /RootSuffix Exp /setup` to merge pkgdefs.",
+          "timestamp": "2026-04-02T13:01:26.640Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Here’s what was going wrong and what we changed.\n\n### Why it looked “disabled”\nUnzipping the `.vsix` into `%LocalAppData%\\...\\17.0_*Exp\\Extensions\\...` only drops files on disk. The VSPackage is still registered through **`.pkgdef` → experimental hive (`…Exp_Config`)**.  \n\n**`devenv /updateconfiguration` alone often does not finish that merge** for a freshly reset hive, so Extension Manager can show the extension as **installed but disabled** (or it never loads correctly).\n\n### What we changed\n1. **Prefer `VSIXInstaller.exe`** when it exists next to `devenv` (or when `VSIXINSTALLER_EXE` points at it):  \n   `VSIXInstaller.exe /quiet /rootSuffix:Exp \"<vsix>\"`  \n   then `devenv /RootSuffix Exp /updateconfiguration`.  \n   That matches a normal install and registers the extension properly.\n\n2. **If the installer isn’t available**, keep the unzip approach but then:  \n   - create/update **`Extensions\\extensions.configurationchanged`** under the **experimental** hive (same idea as the installer),  \n   - run **`/updateconfiguration`**, then  \n   - run **`devenv /RootSuffix Exp /setup`** so **`.pkgdef` is merged** (this can take a while; timeout is **15 minutes** via `SetupTimeout`).\n\n`[E2E-TESTING.md](E2E-TESTING.md)` is updated so it no longer says we avoid `VSIXInstaller`.\n\n### What you should do\n- On the runner, **use the VSIXInstaller path** if you can (typical install: `...\\Common7\\IDE\\VSIXInstaller.exe`).  \n- If you stay on the **fallback** path, expect a **longer first run** because of **`/setup`**.\n\nIf it’s still disabled after this, check **Help → About → copy info** and the **Activity Log** for load errors (missing WebView2, MEF, binding, etc.)—that’s a different class of problem than registration.",
+          "timestamp": "2026-04-02T13:03:36.140Z"
+        },
+        {
+          "type": "user",
+          "text": "So the problem with vsix installer is that there is a bug with the /quiet parameter that makes it unusable. Thats why I had the manual unzip approach",
+          "timestamp": "2026-04-02T13:07:48.425Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Dropping the VSIXInstaller path and documenting that we use manual extract + `/setup` because `/quiet` is broken.",
+          "timestamp": "2026-04-02T13:07:59.301Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Here’s what changed:\n\n### Code\n- **`DeployVsixToExperimentalInstance`** no longer tries `VSIXInstaller` at all. It always uses **manual unzip → `extensions.configurationchanged` → `/updateconfiguration` → `/setup`** (the path that actually works without `/quiet`).\n- **`TryFindVsixInstallerPath`** was removed from `E2ETestEnvironment` since nothing calls it anymore.\n\n### Docs\n- **`E2E-TESTING.md`** now states explicitly that **`VSIXInstaller.exe /quiet` is not used** because it’s unreliable in your scenario (and mentions the non-seekable stream class of failure), and it documents only the unzip + `/setup` flow.\n\nSo the story stays: **unzip is intentional**; **`devenv /RootSuffix Exp /setup`** is what makes the experimental instance pick up **`.pkgdef`** so the extension isn’t stuck disabled.",
+          "timestamp": "2026-04-02T13:08:36.418Z"
+        },
+        {
+          "type": "user",
+          "text": "Message: \nClass Initialization method Codescene.VSExtension.VS2022.E2ETests.SmokeTests.ClassInitialize threw exception. System.InvalidOperationException: Process 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\Common7\\IDE\\devenv.exe /rootSuffix Exp /setup' failed with exit code 1..\n\n  Stack Trace: \nVisualStudioTestHost.RunExternalProcess(String fileName, String arguments, Boolean allowFailure, Nullable`1 timeout) line 527\nVisualStudioTestHost.DeployVsixToExperimentalInstance(String vsixPath, String devenvPath) line 330\nVisualStudioTestHost.Start(String scenarioName) line 143\nSmokeTests.ClassInitialize(TestContext testContext) line 20",
+          "timestamp": "2026-04-02T13:10:28.055Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Investigating alternatives to `devenv /setup` that don't require elevation; `/setup` often triggers UAC when it touches the installation under Program Files.",
+          "timestamp": "2026-04-02T13:10:50.343Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "web_search",
+          "input": {
+            "searchTerm": "devenv rootSuffix Exp clearcache updateconfiguration pkgdef without admin elevation",
+            "toolCallId": "tool_c644ba2b-e34e-459d-88fd-2783d3accd9"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Removing `/setup` (admin-only per Microsoft docs) and clearing the experimental hive's `ComponentModelCache` after `/updateconfiguration` so the next IDE start rebuilds MEF without elevation.",
+          "timestamp": "2026-04-02T13:11:44.670Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Removing `/setup` (requires elevation) and clearing `ComponentModelCache` after `/updateconfiguration` so the next IDE start rebuilds MEF without admin rights.",
+          "timestamp": "2026-04-02T13:11:56.114Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "*.json",
+            "targetDirectory": "C:\\Users\\marti\\.cursor\\projects\\c-Git-codescene-vs\\mcps\\user-codescene\\tools"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Splitting the test host: the class-size check limits files to 500 lines. Adding `TestProcessRunner.cs` and `ExperimentalInstanceDeploy.cs`, then trimming `VisualStudioTestHost.cs`.",
+          "timestamp": "2026-04-02T13:14:11.622Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Fixing Code Health regressions reported by `make delta`: reducing `Start` length and lowering complexity in `TryCloseCopilotWindowChrome`.",
+          "timestamp": "2026-04-02T13:15:38.305Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Reordering members to satisfy StyleCop (SA1202, SA1204).",
+          "timestamp": "2026-04-02T13:16:40.197Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Moving `LaunchAndAttachExperimentalVisualStudio` after all public members and placing static Copilot helpers before instance methods.",
+          "timestamp": "2026-04-02T13:16:50.853Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Here is what was wrong and what we changed.\n\n**Cause:** `devenv /RootSuffix Exp /setup` must run **elevated** ([Microsoft Learn – `/Setup`](https://learn.microsoft.com/en-us/visualstudio/ide/reference/devenv-command-line-switches?view=vs-2022)). A normal test/CI account gets exit code 1 and the Swedish “privilegiehöjning” / UAC message.\n\n**Change:**\n- **Stopped calling `/setup`.** After manual VSIX layout we still touch `extensions.configurationchanged`, run **`/updateconfiguration`**, then remove the experimental hive’s **`ComponentModelCache`** when it exists so the next IDE start can rebuild MEF state without admin.\n- **`SetupTimeout`** was removed from `E2ETestEnvironment.cs`.\n- **`E2E-TESTING.md`** now documents that `/setup` is admin-only and is intentionally not used.\n\n**Refactor (for repo checks):** `VisualStudioTestHost.cs` was over the 500-line limit, so deploy/hive logic lives in **`ExperimentalInstanceDeploy.cs`**, process helpers in **`TestProcessRunner.cs`**, with small **`Start` / Copilot** tweaks so `make iter` (class size, StyleCop, delta) stays green.\n\n`make iter` completes successfully. Re-run your smoke tests without elevation; if the extension still shows as disabled, say so and we can tighten the non-admin path (e.g. extra cache paths or a one-time elevated runner note).",
+          "timestamp": "2026-04-02T13:18:04.823Z"
+        }
+      ],
+      "total_additions": 1858,
+      "total_deletions": 541,
+      "accepted_lines": 1166,
+      "overriden_lines": 31
+    },
+    "bd81e3d07bee6e32": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "09bda66e-d7d2-4139-a1a6-5f482877f6b3",
+        "model": "default"
+      },
+      "human_author": "Martin Säfsten",
+      "messages": [
+        {
+          "type": "user",
+          "text": "Context: Installing a VS2022 extension silently for E2E/integration tests (FlaUI, .NET)\n\nThe goal is to install a Visual Studio 2022 extension (.vsix) into the experimental instance (/rootSuffix:Exp) without any UI dialogs, as part of automated integration test setup.\n\nWhat doesn't work:\n\nVSIXInstaller.exe /quiet /rootSuffix:Exp fails with System.InvalidOperationException: The given stream must have the ability to seek — this is a known bug in VSIXInstaller's silent mode.\n\nWhat works — direct deployment:\n\n\n1. Extract the .vsix (it's a zip) into:\n\n%LocalAppData%\\Microsoft\\VisualStudio\\17.0_<hash>Exp\\Extensions\\<Publisher>\\<Name>\\<Version>\\\n\n2. Refresh the experimental hive by running:\n\ndevenv.exe /rootSuffix Exp /updateconfiguration\n\nNotes:\n\n\n- The folder path suffix is Exp appended to the VS instance ID (e.g. 17.0_abc123Exp), not a separate folder\n\n- The extension.vsixmanifest must be present in the extracted output\n\n- devenv /updateconfiguration is slow — account for this in test setup\n\n- The VS instance hash in the path can be found via the VS Setup Configuration API or by inspecting %LocalAppData%\\Microsoft\\VisualStudio\\",
+          "timestamp": "2026-04-02T11:54:25.119Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Checking how the E2E tests handle the extension and VS setup so we can align with your notes.",
+          "timestamp": "2026-04-02T11:54:37.596Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Reading the full E2E host and manifest to implement manual VSIX deployment.",
+          "timestamp": "2026-04-02T11:54:44.616Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Implementing manual VSIX deployment: `ResetExperimentalHive` already removes Exp hives, so we'll remove the redundant `VSIXInstaller` uninstall/install calls, extract the VSIX with `ZipFile`, parse `extension.vsixmanifest`, and run `devenv /updateconfiguration` with an extended timeout.",
+          "timestamp": "2026-04-02T11:55:37.808Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "*.json",
+            "targetDirectory": "C:\\Users\\marti\\.cursor\\projects\\c-Git-codescene-vs\\mcps\\user-codescene\\tools"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Implementing manual deployment and removing the VSIXInstaller dependency.",
+          "timestamp": "2026-04-02T11:55:58.795Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Using the VSIX `Identity` `Id` for the middle path segment — that's the unique package id and matches `ExtensionId` / typical VSIXInstaller layout.",
+          "timestamp": "2026-04-02T11:58:43.636Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Simplifying validation to satisfy the Code Health gate:",
+          "timestamp": "2026-04-02T11:59:30.611Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Your notes match what we wired into the E2E harness: **`VSIXInstaller` is no longer used** (avoids the silent-mode seek-stream bug). After `ResetExperimentalHive()`, the flow is:\n\n1. **Resolve experimental hive** — `%LocalAppData%\\Microsoft\\VisualStudio\\17.0_<id>Exp`, where `<id>` comes from the newest `17.0_*` directory that does **not** end in `Exp` (same pattern you described).\n2. **Deploy** — unzip the `.vsix` under `Extensions\\<Publisher>\\<Identity Id>\\<Version>\\` (from `extension.vsixmanifest`), with path sanitization and zip-slip checks.\n3. **Refresh** — `devenv /rootSuffix Exp /updateconfiguration` with **`UpdateConfigurationTimeout` = 10 minutes** in `E2ETestEnvironment`.\n\nCore code: ```279:395:c:\\Git\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.VS2022.E2ETests\\VisualStudioTestHost.cs```  \n\nRemoved: `FindVsixInstallerPath`, `ExtensionId` (path comes from the manifest now).\n\n**Caveat:** With several VS 2022 installs, “newest” `17.0_*` hive may not match `DEVENV_EXE`; then you’d want instance discovery via the setup API or `vswhere` + matching hive.\n\n**Docs:** `E2E-TESTING.md` still mentions `VSIXINSTALLER_EXE`; update that when you touch the doc.\n\n`make iter` completes successfully (build + delta checks). VSTest in that environment still reports an MSTest adapter load issue; that’s separate from this change.",
+          "timestamp": "2026-04-02T12:01:44.558Z"
+        },
+        {
+          "type": "user",
+          "text": "update the docs",
+          "timestamp": "2026-04-02T12:04:40.262Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Updating `E2E-TESTING.md` to document manual VSIX deployment and remove obsolete `VSIXInstaller` references.",
+          "timestamp": "2026-04-02T12:04:54.663Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Summary of edits to [E2E-TESTING.md](https://github.com/codescene/codescene-vs/blob/chore/e2e-tests/E2E-TESTING.md):\n\n- **Requirements:** Dropped “VSIX tooling”; added that VS must be opened once so a `17.0_*` hive exists, and clarified `DEVENV_EXE` when several VS installs are present.\n- **Optional overrides:** Removed `VSIXINSTALLER_EXE`; expanded the `DEVENV_EXE` note.\n- **Local execution:** Wording now says “deploys” instead of implying `VSIXInstaller`.\n- **New section “VSIX deployment (experimental instance)”:** Documents the silent `VSIXInstaller` failure, the extract path layout (`Publisher` / `Identity` id / `Version`), `devenv /updateconfiguration`, the 10-minute budget, and multi-instance / `DEVENV_EXE` behavior.\n- **Promotion criteria:** Aligned with extract + `updateconfiguration`.",
+          "timestamp": "2026-04-02T12:05:16.282Z"
+        }
+      ],
+      "total_additions": 149,
+      "total_deletions": 70,
+      "accepted_lines": 1,
+      "overriden_lines": 3
+    }
+  }
+}
