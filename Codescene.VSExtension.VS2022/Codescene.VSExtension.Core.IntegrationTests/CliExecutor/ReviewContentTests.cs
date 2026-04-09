@@ -14,7 +14,6 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
         [TestMethod]
         public async Task ReviewContentAsync_ValidCSharpCode_ReturnsValidReview()
         {
-            // Arrange
             var filename = "Test.cs";
             var content = @"
 public class Calculator
@@ -24,21 +23,29 @@ public class Calculator
         return a + b;
     }
 }";
+            var dir = Path.Combine(Path.GetTempPath(), "codescene-cli-it", Guid.NewGuid().ToString());
+            Directory.CreateDirectory(dir);
+            var filePath = Path.GetFullPath(Path.Combine(dir, filename));
+            try
+            {
+                File.WriteAllText(filePath, content);
 
-            // Act
-            var result = await cliExecutor.ReviewContentAsync(filename, content);
+                var result = await cliExecutor.ReviewContentAsync(filePath, content);
 
-            // Assert
-            Assert.IsNotNull(result, "CLI should return a review result for valid code");
-            Assert.IsTrue(result.Score.HasValue, "Review should have a score");
-            Assert.IsTrue(result.Score >= 0 && result.Score <= 10, "Score should be between 0 and 10");
-            Assert.IsFalse(string.IsNullOrEmpty(result.RawScore), "Review should have a raw score for delta calculations");
+                Assert.IsNotNull(result, "CLI should return a review result for valid code");
+                Assert.IsTrue(result.Score.HasValue, "Review should have a score");
+                Assert.IsTrue(result.Score >= 0 && result.Score <= 10, "Score should be between 0 and 10");
+                Assert.IsFalse(string.IsNullOrEmpty(result.RawScore), "Review should have a raw score for delta calculations");
+            }
+            finally
+            {
+                TryDeleteDirectory(dir);
+            }
         }
 
         [TestMethod]
         public async Task ReviewContentAsync_ValidJavaScriptCode_ReturnsValidReview()
         {
-            // Arrange
             var filename = "test.js";
             var content = @"
 function calculateSum(numbers) {
@@ -47,19 +54,27 @@ function calculateSum(numbers) {
 
 module.exports = { calculateSum };
 ";
+            var dir = Path.Combine(Path.GetTempPath(), "codescene-cli-it", Guid.NewGuid().ToString());
+            Directory.CreateDirectory(dir);
+            var filePath = Path.GetFullPath(Path.Combine(dir, filename));
+            try
+            {
+                File.WriteAllText(filePath, content);
 
-            // Act
-            var result = await cliExecutor.ReviewContentAsync(filename, content);
+                var result = await cliExecutor.ReviewContentAsync(filePath, content);
 
-            // Assert
-            Assert.IsNotNull(result, "CLI should return a review result for valid JavaScript code");
-            Assert.IsTrue(result.Score.HasValue, "Review should have a score");
+                Assert.IsNotNull(result, "CLI should return a review result for valid JavaScript code");
+                Assert.IsTrue(result.Score.HasValue, "Review should have a score");
+            }
+            finally
+            {
+                TryDeleteDirectory(dir);
+            }
         }
 
         [TestMethod]
         public async Task ReviewContentAsync_ComplexCode_ReturnsCodeSmells()
         {
-            // Arrange - Code with intentional complexity
             var filename = "Complex.cs";
             var content = @"
 public class ComplexProcessor
@@ -84,13 +99,38 @@ public class ComplexProcessor
         }
     }
 }";
+            var dir = Path.Combine(Path.GetTempPath(), "codescene-cli-it", Guid.NewGuid().ToString());
+            Directory.CreateDirectory(dir);
+            var filePath = Path.GetFullPath(Path.Combine(dir, filename));
+            try
+            {
+                File.WriteAllText(filePath, content);
 
-            // Act
-            var result = await cliExecutor.ReviewContentAsync(filename, content);
+                var result = await cliExecutor.ReviewContentAsync(filePath, content);
 
-            // Assert
-            Assert.IsNotNull(result, "CLI should return a review result");
-            Assert.IsTrue(result.Score.HasValue, "Review should have a score");
+                Assert.IsNotNull(result, "CLI should return a review result");
+                Assert.IsTrue(result.Score.HasValue, "Review should have a score");
+            }
+            finally
+            {
+                TryDeleteDirectory(dir);
+            }
+        }
+
+        private static void TryDeleteDirectory(string dir)
+        {
+            if (!Directory.Exists(dir))
+            {
+                return;
+            }
+
+            try
+            {
+                Directory.Delete(dir, recursive: true);
+            }
+            catch
+            {
+            }
         }
     }
 }

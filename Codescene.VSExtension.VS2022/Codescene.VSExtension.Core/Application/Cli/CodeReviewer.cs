@@ -1,8 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -14,10 +12,7 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
-using Codescene.VSExtension.Core.Util;
-using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
@@ -61,7 +56,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             _logger?.Info($"Reviewing file {path}...", true);
 
-            var review = await _executor.ReviewContentAsync(fileName, content, isBaseline, cancellationToken);
+            var review = await _executor.ReviewContentAsync(path, content, isBaseline, cancellationToken);
             return _mapper.Map(path, review);
         }
 

@@ -8,6 +8,6 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
 {
     public interface IProcessExecutor
     {
-        Task<string> ExecuteAsync(string arguments, string content = null, TimeSpan? timeout = null, CancellationToken cancellationToken = default);
+        Task<string> ExecuteAsync(string arguments, string content = null, TimeSpan? timeout = null, CancellationToken cancellationToken = default, string workingDirectory = null);
     }
 }

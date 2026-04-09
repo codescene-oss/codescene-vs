@@ -14,7 +14,6 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Util;
-using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
@@ -109,7 +108,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitChangeLister.Initialize(_gitRootPath, _workspacePaths);
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
 
-            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePaths, _trackerManager, _gitService, _gitRootPath, OnFileDeleted, openDocumentContentProvider, () => _openFilesObserver?.GetActiveDocumentPath());
+            _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePaths, _trackerManager, _gitService, _gitRootPath, OnFileDeleted, openDocumentContentProvider);
             _fileChangeHandler.FileDeletedFromGit += (sender, args) => FileDeletedFromGit?.Invoke(this, args);
 
             if (!string.IsNullOrEmpty(_gitRootPath) && Directory.Exists(_gitRootPath))
@@ -121,7 +120,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             _rulesWatcher = new CodeHealthRulesWatcher(_gitRootPath, _logger);
-            _rulesWatcher.RulesFileChanged += (sender, args) => ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+            _rulesWatcher.RulesFileChanged += OnCodeHealthRulesChanged;
 
             _gitIgnoreWatcher = new GitIgnoreWatcher(_gitRootPath, _logger);
             _gitIgnoreWatcher.GitIgnoreChanged += OnGitIgnoreChanged;
@@ -332,7 +331,17 @@ namespace Codescene.VSExtension.Core.Application.Git
             ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
         }
 
+        private void OnCodeHealthRulesChanged(object sender, EventArgs e)
+        {
+            InvalidateTrackedFiles(onlyIgnored: false);
+        }
+
         private void OnGitIgnoreChanged(object sender, EventArgs e)
+        {
+            InvalidateTrackedFiles();
+        }
+
+        private void InvalidateTrackedFiles(bool onlyIgnored = true)
         {
             _taskScheduler.Schedule(async () =>
             {
@@ -341,7 +350,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                     var trackedFiles = _trackerManager.GetAllTrackedFiles();
                     foreach (var filePath in trackedFiles)
                     {
-                        if (_gitService.IsFileIgnored(filePath))
+                        if (!onlyIgnored || _gitService.IsFileIgnored(filePath))
                         {
                             _trackerManager.Remove(filePath);
                             ReviewCacheCleanup.InvalidateFile(filePath);

@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -19,6 +20,7 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Util;
+using LibGit2Sharp;
 using Newtonsoft.Json;
 using static Codescene.VSExtension.Core.Consts.Constants;
 
@@ -65,14 +67,15 @@ namespace Codescene.VSExtension.Core.Application.Cli
         /// <summary>
         /// Reviews a file's content by invoking the CLI with the appropriate arguments.
         /// </summary>
-        /// <param name="filename">The name of the file being reviewed (used for context, not passed to CLI).</param>
+        /// <param name="filePath">The path of the file being reviewed.</param>
         /// <param name="content">The content (code) of the file to be reviewed.</param>
         /// <param name="isBaseline">True when reviewing baseline (committed) content for delta; used to avoid cancelling in-flight current-content reviews.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="CliReviewModel"/> containing the review results, or null if the review fails.</returns>
-        public async Task<CliReviewModel> ReviewContentAsync(string filename, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
+        public async Task<CliReviewModel> ReviewContentAsync(string filePath, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
         {
-            var key = GetReviewCancellationKey(filename, isBaseline);
+            var fileName = Path.GetFileName(filePath);
+            var key = GetReviewCancellationKey(fileName, isBaseline);
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             var oldCts = _inFlightReviewCancellation.AddOrUpdate(key, cts, (_, existing) =>
@@ -93,27 +96,28 @@ namespace Codescene.VSExtension.Core.Application.Cli
             try
             {
                 var command = _cliServices.CommandProvider.ReviewFileContentCommand;
-                var payload = _cliServices.CommandProvider.GetReviewFileContentPayload(filename, content, _cliServices.CacheStorage.GetSolutionReviewCacheLocation());
+                var payload = _cliServices.CommandProvider.GetReviewFileContentPayload(filePath, content, _cliServices.CacheStorage.GetSolutionReviewCacheLocation());
+                var workingDirectory = GetCliWorkingDirectoryForFile(filePath);
 
                 var (result, elapsedMs) = await ExecuteOnChannelAsync(
                     _cliCommandChannel,
                     cts.Token,
                     () => ExecuteWithTimingAndLoggingAsync<CliReviewModel>(
                         "CLI file review",
-                        () => _cliServices.ProcessExecutor.ExecuteAsync(command, payload, null, cts.Token),
-                        $"Review of file {filename} failed"));
+                        () => _cliServices.ProcessExecutor.ExecuteAsync(command, payload, null, cts.Token, workingDirectory),
+                        $"Review of file {fileName} failed"));
 
                 if (result != null)
                 {
                     _ = Task.Run(async () =>
                     {
                         var loc = PerformanceTelemetryHelper.CalculateLineCount(content);
-                        var language = PerformanceTelemetryHelper.ExtractLanguage(filename);
+                        var language = PerformanceTelemetryHelper.ExtractLanguage(fileName);
                         var telemetryData = new PerformanceTelemetryData
                         {
                             Type = Titles.REVIEW,
                             ElapsedMs = elapsedMs,
-                            FilePath = filename,
+                            FilePath = fileName,
                             Loc = loc,
                             Language = language,
                         };
@@ -151,9 +155,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
             await _deltaChannel.WaitAsync(cancellationToken);
             try
             {
+                var workingDirectory = GetCliWorkingDirectoryForFile(request.FilePath);
                 var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync<DeltaResponseModel>(
                     "CLI file delta review",
-                    () => _cliServices.ProcessExecutor.ExecuteAsync(Titles.DELTA, arguments, null, cancellationToken),
+                    () => _cliServices.ProcessExecutor.ExecuteAsync(Titles.DELTA, arguments, null, cancellationToken, workingDirectory),
                     "Delta for file failed.");
 
                 if (result != null && !string.IsNullOrEmpty(request.FilePath))
@@ -466,6 +471,64 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 _logger.Error(errorMessage, e);
                 return (default, elapsedMs);
             }
+        }
+
+        private string GetCliWorkingDirectoryForFile(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return GetCliWorkingDirectoryWithoutFilePath();
+            }
+
+            string fullPath;
+            try
+            {
+                fullPath = Path.GetFullPath(filePath);
+            }
+            catch
+            {
+                fullPath = filePath;
+            }
+
+            try
+            {
+                var discovered = Repository.Discover(fullPath);
+                if (!string.IsNullOrEmpty(discovered))
+                {
+                    using (var repo = new Repository(discovered))
+                    {
+                        var wd = repo.Info.WorkingDirectory;
+                        if (!string.IsNullOrEmpty(wd))
+                        {
+                            return wd.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Debug($"Could not resolve git working directory for CLI: {ex.Message}");
+            }
+
+            var workspace = _cliServices.CacheStorage.GetWorkspaceDirectory();
+            if (!string.IsNullOrWhiteSpace(workspace) && Directory.Exists(workspace))
+            {
+                return workspace.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            }
+
+            var dir = Path.GetDirectoryName(fullPath);
+            return string.IsNullOrEmpty(dir) ? null : dir;
+        }
+
+        private string GetCliWorkingDirectoryWithoutFilePath()
+        {
+            var workspace = _cliServices.CacheStorage.GetWorkspaceDirectory();
+            if (!string.IsNullOrWhiteSpace(workspace) && Directory.Exists(workspace))
+            {
+                return workspace.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            }
+
+            return null;
         }
     }
 }

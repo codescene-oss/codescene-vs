@@ -132,7 +132,7 @@ namespace Codescene.VSExtension.Core.Tests
             var cliReview = new CliReviewModel { Score = 8.5f, RawScore = "raw123" };
             var expectedResult = new FileReviewModel { FilePath = path, Score = 8.5f };
 
-            _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", content, It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
+            _mockExecutor.Setup(x => x.ReviewContentAsync(path, content, It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
             _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(expectedResult);
 
             // Act
@@ -142,26 +142,26 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNotNull(result);
             Assert.AreEqual(path, result.FilePath);
             Assert.AreEqual(8.5f, result.Score);
-            _mockExecutor.Verify(x => x.ReviewContentAsync("test.cs", content, It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockExecutor.Verify(x => x.ReviewContentAsync(path, content, It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
             _mockMapper.Verify(x => x.Map(path, cliReview), Times.Once);
         }
 
         [TestMethod]
-        public async Task ReviewAsync_ExtractsFileNameFromPath()
+        public async Task ReviewAsync_PassesFullPathToExecutor()
         {
             // Arrange
             var path = "C:/some/deep/path/to/MyFile.cs";
             var content = "code";
             var cliReview = new CliReviewModel();
 
-            _mockExecutor.Setup(x => x.ReviewContentAsync("MyFile.cs", content, It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
+            _mockExecutor.Setup(x => x.ReviewContentAsync(path, content, It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>())).Returns(new FileReviewModel());
 
             // Act
             await _codeReviewer.ReviewAsync(path, content);
 
             // Assert
-            _mockExecutor.Verify(x => x.ReviewContentAsync("MyFile.cs", content, It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockExecutor.Verify(x => x.ReviewContentAsync(path, content, It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]

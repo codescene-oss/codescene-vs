@@ -6,12 +6,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
-using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Application.Git
@@ -26,7 +24,6 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly Action<string> _onFileDeletedCallback;
         private readonly IGitService _gitService;
         private readonly IOpenDocumentContentProvider _openDocumentContentProvider;
-        private readonly Func<string> _getActiveDocumentPath;
         private IReadOnlyCollection<string> _workspacePaths;
 
         public FileChangeHandler(
@@ -38,8 +35,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             IGitService gitService,
             string gitRootPath = null,
             Action<string> onFileDeletedCallback = null,
-            IOpenDocumentContentProvider openDocumentContentProvider = null,
-            Func<string> getActiveDocumentPath = null)
+            IOpenDocumentContentProvider openDocumentContentProvider = null)
         {
             _logger = logger;
             _codeReviewer = codeReviewer;
@@ -50,7 +46,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitRootPath = gitRootPath;
             _onFileDeletedCallback = onFileDeletedCallback;
             _openDocumentContentProvider = openDocumentContentProvider;
-            _getActiveDocumentPath = getActiveDocumentPath;
         }
 
         public event EventHandler<string> FileDeletedFromGit;
@@ -86,12 +81,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             _logger?.Info($">>> FileChangeHandler: Processing file change: {filePath}");
             #endif
             _trackerManager.Add(filePath);
-
-            var activePath = _getActiveDocumentPath?.Invoke();
-            if (!string.IsNullOrEmpty(activePath) && string.Equals(activePath, filePath, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
 
             await ReviewFileAsync(filePath, operationGeneration, cancellationToken);
         }

@@ -13,7 +13,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
     {
         Task<DeltaResponseModel> ReviewDeltaAsync(ReviewDeltaRequest request, CancellationToken cancellationToken = default);
 
-        Task<CliReviewModel> ReviewContentAsync(string filename, string content, bool isBaseLine = false, CancellationToken cancellationToken = default);
+        Task<CliReviewModel> ReviewContentAsync(string filePath, string content, bool isBaseLine = false, CancellationToken cancellationToken = default);
 
         Task<string> GetFileVersionAsync(CancellationToken cancellationToken = default);
 

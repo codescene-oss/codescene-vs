@@ -80,6 +80,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private void OnRulesFileEvent(object sender, FileSystemEventArgs e)
         {
+            _logger.Info("Code health rules change detected.");
             CacheGeneration.Increment();
             try
             {

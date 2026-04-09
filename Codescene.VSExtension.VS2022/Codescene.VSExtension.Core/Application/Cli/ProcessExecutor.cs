@@ -34,7 +34,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<string> ExecuteAsync(string arguments, string content = null, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
+        public async Task<string> ExecuteAsync(string arguments, string content = null, TimeSpan? timeout = null, CancellationToken cancellationToken = default, string workingDirectory = null)
         {
             var cliFilePath = _cliSettingsProvider.CliFileFullPath;
 
@@ -62,6 +62,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 UseShellExecute = false,
                 CreateNoWindow = true,
             };
+
+            if (!string.IsNullOrWhiteSpace(workingDirectory) && Directory.Exists(workingDirectory))
+            {
+                processInfo.WorkingDirectory = workingDirectory;
+            }
 
             using var process = new Process();
             process.StartInfo = processInfo;

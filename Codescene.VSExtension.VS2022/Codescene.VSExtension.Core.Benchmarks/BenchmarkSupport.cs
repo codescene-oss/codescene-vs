@@ -1,12 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
@@ -42,7 +37,7 @@ internal sealed class BenchmarkEnvironment : IDisposable
         Directory.CreateDirectory(CacheDirectory);
         System.IO.File.WriteAllText(ExistingFilePath, BenchmarkInputs.CurrentCode);
 
-        _cacheStorageService = new BenchmarkCacheStorageService(CacheDirectory);
+        _cacheStorageService = new BenchmarkCacheStorageService(CacheDirectory, RootDirectory);
         _commandProvider = new CliCommandProvider(new CliObjectScoreCreator(_logger));
         _processExecutor = CreateProcessExecutor(_cliSettingsProvider, _logger);
     }
@@ -176,12 +171,15 @@ internal sealed class BenchmarkCliServices : ICliServices
 
 internal sealed class BenchmarkCacheStorageService : ICacheStorageService
 {
-    public BenchmarkCacheStorageService(string cacheDirectory)
+    public BenchmarkCacheStorageService(string cacheDirectory, string workspaceDirectory)
     {
         CacheDirectory = cacheDirectory;
+        WorkspaceDirectory = workspaceDirectory;
     }
 
     public string CacheDirectory { get; }
+
+    public string WorkspaceDirectory { get; }
 
     public Task InitializeAsync(CancellationToken cancellationToken = default)
     {
@@ -190,6 +188,8 @@ internal sealed class BenchmarkCacheStorageService : ICacheStorageService
     }
 
     public string GetSolutionReviewCacheLocation() => CacheDirectory;
+
+    public string GetWorkspaceDirectory() => WorkspaceDirectory ?? string.Empty;
 
     public void RemoveOldReviewCacheEntries(int nrOfDays = 30)
     {

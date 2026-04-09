@@ -23,6 +23,7 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
         {
             new DeltaCacheService().Invalidate(filePath);
             new BaselineReviewCacheService().Invalidate(filePath);
+            new ReviewCacheService().Invalidate(filePath);
         }
     }
 }

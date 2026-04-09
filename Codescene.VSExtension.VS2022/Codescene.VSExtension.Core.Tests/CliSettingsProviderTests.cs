@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class CliSettingsProviderTests
     {
-        private readonly string expectedVersion = "66beda3b9e26e74eacd78f68247b2591196c999d";
+        private readonly string expectedVersion = "e1a8e6c1f7533d9d44f00e1a6becb5c404ca0485";
 
         [TestMethod]
         public void RequiredDevToolVersion_ShouldReturnExpectedValue()

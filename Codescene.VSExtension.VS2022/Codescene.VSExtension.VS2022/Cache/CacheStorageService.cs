@@ -24,6 +24,7 @@ namespace Codescene.VSExtension.VS2022.Cache
         private IAsyncTaskScheduler _scheduler;
 
         private string _cachePath;
+        private string _workspaceDirectory;
         private bool _initialized;
 
         public async Task InitializeAsync(CancellationToken cancellationToken = default)
@@ -58,6 +59,11 @@ namespace Codescene.VSExtension.VS2022.Cache
             }
 
             return location;
+        }
+
+        public string GetWorkspaceDirectory()
+        {
+            return string.IsNullOrEmpty(_workspaceDirectory) ? string.Empty : _workspaceDirectory;
         }
 
         public void RemoveOldReviewCacheEntries(int nrOfDays = 30)
@@ -98,10 +104,18 @@ namespace Codescene.VSExtension.VS2022.Cache
             {
                 var hash = ComputeHash(workspaceId);
                 _cachePath = Path.Combine(basePath, "WorkspaceCache", hash);
+                _workspaceDirectory = Directory.Exists(workspaceId)
+                    ? Path.GetFullPath(workspaceId.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+                    : Path.GetFullPath(Path.GetDirectoryName(workspaceId) ?? string.Empty);
+                if (string.IsNullOrEmpty(_workspaceDirectory))
+                {
+                    _workspaceDirectory = null;
+                }
             }
             else
             {
-                _cachePath = null;  // No workspace open
+                _cachePath = null;
+                _workspaceDirectory = null;
             }
 
             if (_cachePath != null)

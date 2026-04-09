@@ -50,18 +50,18 @@ public sealed class RecordingCliExecutor : ICliExecutor
         }
     }
 
-    public async Task<CliReviewModel> ReviewContentAsync(string filename, string content, bool isBaseLine = false, CancellationToken cancellationToken = default)
+    public async Task<CliReviewModel> ReviewContentAsync(string filePath, string content, bool isBaseLine = false, CancellationToken cancellationToken = default)
     {
-        _journal.Record("cli.review.started", filename, $"baseline={isBaseLine}");
+        _journal.Record("cli.review.started", filePath, $"baseline={isBaseLine}");
         try
         {
-            var result = await _inner.ReviewContentAsync(filename, content, isBaseLine, cancellationToken);
-            _journal.Record("cli.review.completed", filename, $"result={result != null};baseline={isBaseLine}");
+            var result = await _inner.ReviewContentAsync(filePath, content, isBaseLine, cancellationToken);
+            _journal.Record("cli.review.completed", filePath, $"result={result != null};baseline={isBaseLine}");
             return result!;
         }
         catch (OperationCanceledException)
         {
-            _journal.Record("cli.review.canceled", filename, $"baseline={isBaseLine}");
+            _journal.Record("cli.review.canceled", filePath, $"baseline={isBaseLine}");
             throw;
         }
     }
