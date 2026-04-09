@@ -1,0 +1,92 @@
+name: VS Extension E2E
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fetch-docs:
+    name: Fetch Docs and Web Assets
+    runs-on:
+      - self-hosted
+      - windows
+      - x64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download latest cs-webview release (private repo)
+        shell: pwsh
+        run: powershell.exe -File .github/cwf.ps1 -Token "$env:CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN"
+        env:
+          CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
+
+      - name: Get latest Codescene CLI version
+        shell: pwsh
+        run: powershell.exe -File .github/cli.ps1
+
+      - name: Upload fetched assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: fetched-assets
+          path: |
+            cs-cwf/**
+            cs-ide/**
+
+  e2e:
+    name: Run VSIX E2E
+    runs-on:
+      - self-hosted
+      - windows
+      - x64
+    needs: fetch-docs
+    timeout-minutes: 45
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download fetched assets
+        uses: actions/download-artifact@v4
+        with:
+          name: fetched-assets
+          path: .
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup VSTest
+        uses: darenm/Setup-VSTest@v1
+
+      - name: Copy web assets into project
+        shell: pwsh
+        run: powershell.exe -File .github/copy-assets.ps1
+
+      - name: Restore NuGet packages
+        run: dotnet restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln
+
+      - name: Build solution
+        run: msbuild Codescene.VSExtension.VS2022/Codescene.VSExtension.sln /p:Configuration=Release /p:Platform="Any CPU"
+
+      - name: Run e2e tests
+        shell: pwsh
+        run: powershell.exe -File .github/e2e.ps1
+        env:
+          CODESCENE_E2E: true
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: E2E Test Results
+          path: "**/*.trx"
+          reporter: dotnet-trx
+
+      - name: Upload e2e artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-artifacts
+          path: |
+            **/*.trx
+            Codescene.VSExtension.VS2022/TestResults/E2E/**
