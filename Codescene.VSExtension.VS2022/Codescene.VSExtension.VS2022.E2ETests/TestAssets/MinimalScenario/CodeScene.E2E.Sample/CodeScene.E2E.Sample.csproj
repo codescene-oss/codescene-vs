@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>CodeScene.E2E.Sample</RootNamespace>
+    <AssemblyName>CodeScene.E2E.Sample</AssemblyName>
+  </PropertyGroup>
+
+</Project>

@@ -6,7 +6,7 @@ include .github/sha.mk
 # Lazy-once cache key - computed on first use, then cached for rest of Make invocation
 CACHE_KEY = $(eval CACHE_KEY := $$(call get_cache_key))$(CACHE_KEY)
 
-.PHONY: test test1 test-mine coverage-mine copy-assets restore format format-all format-check class-size-mine no-regions-mine test-cache test-sha install-cli delta pr-size clean prebuild quit-vs benchmark
+.PHONY: test test1 test-mine coverage-mine e2e copy-assets restore format format-all format-check class-size-mine no-regions-mine test-cache test-sha install-cli delta pr-size clean prebuild quit-vs benchmark
 
 # You might need something like:
 # export PATH="$PATH:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/Extensions/TestPlatform"
@@ -68,6 +68,9 @@ test-mine: build
 
 coverage-mine: build
 	$(call call_cached,$(CACHE_KEY),pwsh.exe -File .github/coverage-mine.ps1)
+
+e2e: quit-vs build
+	@pwsh.exe -File .github/e2e.ps1 > e2e.log 2>&1 && del e2e.log || (type e2e.log && del e2e.log && exit /b 1)
 
 # Formats just the .cs files you've worked on (per Git)
 format:
