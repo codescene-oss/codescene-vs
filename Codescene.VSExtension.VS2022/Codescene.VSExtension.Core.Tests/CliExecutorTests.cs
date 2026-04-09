@@ -477,6 +477,53 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void GetReviewCancellationPathIdentity_WhenGetFullPathThrows_ReturnsOriginalPath()
+        {
+            var method = typeof(CliExecutor).GetMethod("GetReviewCancellationPathIdentity", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(method);
+            var tooLong = new string('a', 40000);
+            var result = (string)method.Invoke(null, new object[] { tooLong });
+            Assert.AreEqual(tooLong, result);
+        }
+
+        [TestMethod]
+        public void GetCliWorkingDirectoryForFile_WhenGetFullPathThrows_UsesPathForFallback()
+        {
+            _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
+            var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(method);
+            var pathWithIllegalName = Path.Combine(Path.GetTempPath(), "bad*name.cs");
+            var wd = (string)method.Invoke(_cliExecutor, new object[] { pathWithIllegalName });
+            Assert.AreEqual(Path.GetDirectoryName(pathWithIllegalName), wd);
+        }
+
+        [TestMethod]
+        public void GetCliWorkingDirectoryForFile_BareRepository_SkipsNormalizeWhenWorkingDirectoryEmpty()
+        {
+            var bareRepoPath = Path.Combine(Path.GetTempPath(), "cli-bare-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(bareRepoPath);
+                Repository.Init(bareRepoPath, isBare: true);
+                var fileInBare = Path.Combine(bareRepoPath, "marker.cs");
+                File.WriteAllText(fileInBare, "//");
+                _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
+                var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
+                Assert.IsNotNull(method);
+                var wd = (string)method.Invoke(_cliExecutor, new object[] { fileInBare });
+                var expectedDir = Path.GetDirectoryName(Path.GetFullPath(fileInBare));
+                Assert.AreEqual(expectedDir, wd);
+            }
+            finally
+            {
+                if (Directory.Exists(bareRepoPath))
+                {
+                    Directory.Delete(bareRepoPath, true);
+                }
+            }
+        }
+
+        [TestMethod]
         public void GetCliWorkingDirectoryForFile_WhenGitResolutionFails_LogsDebugAndUsesFileDirectory()
         {
             var bad = Path.Combine(Path.GetTempPath(), "cli-badgit-" + Guid.NewGuid().ToString("N"));
