@@ -75,7 +75,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         public async Task<CliReviewModel> ReviewContentAsync(string filePath, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
         {
             var fileName = Path.GetFileName(filePath);
-            var key = GetReviewCancellationKey(fileName, isBaseline);
+            var key = GetReviewCancellationKey(GetReviewCancellationPathIdentity(filePath), isBaseline);
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             var oldCts = _inFlightReviewCancellation.AddOrUpdate(key, cts, (_, existing) =>
@@ -290,8 +290,20 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 cancellationToken);
         }
 
-        private static string GetReviewCancellationKey(string filename, bool isBaseline) =>
-          string.IsNullOrEmpty(filename) ? string.Empty : filename + (isBaseline ? ":baseline" : ":current");
+        private static string GetReviewCancellationPathIdentity(string filePath)
+        {
+            try
+            {
+                return string.IsNullOrEmpty(filePath) ? string.Empty : Path.GetFullPath(filePath);
+            }
+            catch
+            {
+                return filePath ?? string.Empty;
+            }
+        }
+
+        private static string GetReviewCancellationKey(string filePathIdentity, bool isBaseline) =>
+          string.IsNullOrEmpty(filePathIdentity) ? string.Empty : filePathIdentity + (isBaseline ? ":baseline" : ":current");
 
         private async Task<string> ExecuteSimpleCommandAsync(string command, string errorMessage, CancellationToken cancellationToken = default)
         {
@@ -500,7 +512,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                         var wd = repo.Info.WorkingDirectory;
                         if (!string.IsNullOrEmpty(wd))
                         {
-                            return wd.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                            return PathNormalization.NormalizeWorkingDirectory(wd);
                         }
                     }
                 }
@@ -513,7 +525,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var workspace = _cliServices.CacheStorage.GetWorkspaceDirectory();
             if (!string.IsNullOrWhiteSpace(workspace) && Directory.Exists(workspace))
             {
-                return workspace.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                return PathNormalization.NormalizeWorkingDirectory(workspace);
             }
 
             var dir = Path.GetDirectoryName(fullPath);
@@ -525,7 +537,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var workspace = _cliServices.CacheStorage.GetWorkspaceDirectory();
             if (!string.IsNullOrWhiteSpace(workspace) && Directory.Exists(workspace))
             {
-                return workspace.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                return PathNormalization.NormalizeWorkingDirectory(workspace);
             }
 
             return null;

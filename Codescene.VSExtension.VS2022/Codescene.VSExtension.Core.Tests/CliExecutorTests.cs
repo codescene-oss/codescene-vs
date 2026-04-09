@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Reflection;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
@@ -9,6 +10,8 @@ using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
+using Codescene.VSExtension.Core.Util;
+using LibGit2Sharp;
 using Moq;
 using Newtonsoft.Json;
 
@@ -384,6 +387,119 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNotNull(firstResult);
             Assert.IsNotNull(secondResult);
             Assert.AreEqual(2, callCount);
+        }
+
+        [TestMethod]
+        public void GetCliWorkingDirectoryForFile_NullOrWhitespace_ReturnsNullWhenNoWorkspace()
+        {
+            _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
+            var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(method);
+            var rNull = (string)method.Invoke(_cliExecutor, new object[] { null });
+            var rBlank = (string)method.Invoke(_cliExecutor, new object[] { "  \t  " });
+            Assert.IsNull(rNull);
+            Assert.IsNull(rBlank);
+        }
+
+        [TestMethod]
+        public void GetCliWorkingDirectoryForFile_NullOrWhitespace_ReturnsNormalizedWorkspaceWhenConfigured()
+        {
+            var ws = Path.Combine(Path.GetTempPath(), "cli-ws-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(ws);
+                _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(ws);
+                var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
+                var r = (string)method.Invoke(_cliExecutor, new object[] { null });
+                Assert.AreEqual(PathNormalization.NormalizeWorkingDirectory(ws), r);
+            }
+            finally
+            {
+                if (Directory.Exists(ws))
+                {
+                    Directory.Delete(ws, true);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void GetCliWorkingDirectoryForFile_FileInsideGitRepo_ReturnsNormalizedRepoRoot()
+        {
+            var repoPath = Path.Combine(Path.GetTempPath(), "cli-git-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(repoPath);
+                Repository.Init(repoPath);
+                var fileInRepo = Path.Combine(repoPath, "file.cs");
+                File.WriteAllText(fileInRepo, "//");
+                _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
+                var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
+                var wd = (string)method.Invoke(_cliExecutor, new object[] { fileInRepo });
+                Assert.AreEqual(PathNormalization.NormalizeWorkingDirectory(Path.GetFullPath(repoPath)), wd);
+            }
+            finally
+            {
+                if (Directory.Exists(repoPath))
+                {
+                    Directory.Delete(repoPath, true);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void GetCliWorkingDirectoryForFile_FileOutsideGitWithExistingWorkspace_ReturnsWorkspace()
+        {
+            var outside = Path.Combine(Path.GetTempPath(), "cli-out-" + Guid.NewGuid().ToString("N"));
+            var ws = Path.Combine(Path.GetTempPath(), "cli-ws2-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(outside);
+                Directory.CreateDirectory(ws);
+                var filePath = Path.Combine(outside, "orphan.cs");
+                File.WriteAllText(filePath, "//");
+                _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(ws);
+                var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
+                var wd = (string)method.Invoke(_cliExecutor, new object[] { filePath });
+                Assert.AreEqual(PathNormalization.NormalizeWorkingDirectory(ws), wd);
+            }
+            finally
+            {
+                if (Directory.Exists(outside))
+                {
+                    Directory.Delete(outside, true);
+                }
+
+                if (Directory.Exists(ws))
+                {
+                    Directory.Delete(ws, true);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void GetCliWorkingDirectoryForFile_WhenGitResolutionFails_LogsDebugAndUsesFileDirectory()
+        {
+            var bad = Path.Combine(Path.GetTempPath(), "cli-badgit-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(bad);
+                File.WriteAllText(Path.Combine(bad, ".git"), "invalid");
+                var fp = Path.Combine(bad, "x.cs");
+                File.WriteAllText(fp, "//");
+                _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
+                var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
+                var wd = (string)method.Invoke(_cliExecutor, new object[] { fp });
+                var expectedDir = Path.GetDirectoryName(Path.GetFullPath(fp));
+                Assert.AreEqual(expectedDir, wd);
+                _mockLogger.Verify(x => x.Debug(It.Is<string>(s => s.Contains("Could not resolve git working directory"))), Times.Once);
+            }
+            finally
+            {
+                if (Directory.Exists(bad))
+                {
+                    Directory.Delete(bad, true);
+                }
+            }
         }
     }
 }

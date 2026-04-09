@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
@@ -105,8 +106,9 @@ namespace Codescene.VSExtension.VS2022.Cache
                 var hash = ComputeHash(workspaceId);
                 _cachePath = Path.Combine(basePath, "WorkspaceCache", hash);
                 _workspaceDirectory = Directory.Exists(workspaceId)
-                    ? Path.GetFullPath(workspaceId.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
-                    : Path.GetFullPath(Path.GetDirectoryName(workspaceId) ?? string.Empty);
+                    ? Path.GetFullPath(PathNormalization.NormalizeWorkingDirectory(workspaceId))
+                    : Path.GetFullPath(
+                        PathNormalization.NormalizeWorkingDirectory(Path.GetDirectoryName(workspaceId) ?? string.Empty));
                 if (string.IsNullOrEmpty(_workspaceDirectory))
                 {
                     _workspaceDirectory = null;
