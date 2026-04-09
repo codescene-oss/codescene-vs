@@ -338,27 +338,11 @@ public static class SixParams
 
             public static bool HasSmellCategoryContaining(CliReviewModel r, string substring)
             {
-                foreach (var s in r.FileLevelCodeSmells ?? new List<CliCodeSmellModel>())
+                foreach (var s in EnumerateAllSmells(r))
                 {
-                    if (s.Category != null && s.Category.Contains(substring, StringComparison.OrdinalIgnoreCase))
+                    if (CategoryContainsSubstring(s, substring))
                     {
                         return true;
-                    }
-                }
-
-                foreach (var fn in r.FunctionLevelCodeSmells ?? new List<CliReviewFunctionModel>())
-                {
-                    if (fn.CodeSmells == null)
-                    {
-                        continue;
-                    }
-
-                    foreach (var s in fn.CodeSmells)
-                    {
-                        if (s.Category != null && s.Category.Contains(substring, StringComparison.OrdinalIgnoreCase))
-                        {
-                            return true;
-                        }
                     }
                 }
 
@@ -377,6 +361,41 @@ public static class SixParams
                     Assert.Fail(
                         $"code-health-rules-error: {r.CodeHealthRulesError.Description} remedy: {r.CodeHealthRulesError.Remedy}");
                 }
+            }
+
+            private static IEnumerable<CliCodeSmellModel> EnumerateAllSmells(CliReviewModel r)
+            {
+                if (r.FileLevelCodeSmells != null)
+                {
+                    foreach (var s in r.FileLevelCodeSmells)
+                    {
+                        yield return s;
+                    }
+                }
+
+                if (r.FunctionLevelCodeSmells == null)
+                {
+                    yield break;
+                }
+
+                foreach (var fn in r.FunctionLevelCodeSmells)
+                {
+                    if (fn.CodeSmells == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var s in fn.CodeSmells)
+                    {
+                        yield return s;
+                    }
+                }
+            }
+
+            private static bool CategoryContainsSubstring(CliCodeSmellModel smell, string substring)
+            {
+                return smell.Category != null
+                    && smell.Category.Contains(substring, StringComparison.OrdinalIgnoreCase);
             }
         }
     }
