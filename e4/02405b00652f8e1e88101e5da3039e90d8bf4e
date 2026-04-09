@@ -1,0 +1,65 @@
+Codescene.VSExtension.VS2022/Codescene.VSExtension.Core.IntegrationTests/CliExecutor/CodeHealthRulesReviewTests.cs
+  5c206f1ed122bad9 341,343,366-374,376-379,381-386,388-393,395-399
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.6",
+  "base_commit_sha": "e402405b00652f8e1e88101e5da3039e90d8bf4e",
+  "prompts": {
+    "5c206f1ed122bad9": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "02087cab-97dd-4e17-8127-e9418b0a39f2",
+        "model": "default"
+      },
+      "human_author": "Martin Säfsten",
+      "messages": [
+        {
+          "type": "user",
+          "text": "@c:\\Users\\marti\\.cursor\\projects\\c-Git-codescene-vs\\terminals\\5.txt:157-164",
+          "timestamp": "2026-04-09T14:48:41.317Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Inspecting `HasSmellCategoryContaining` to reduce cyclomatic complexity.",
+          "timestamp": "2026-04-09T14:48:49.622Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "**/GlobalUsings*.cs",
+            "targetDirectory": "c:\\Git\\codescene-vs\\Codescene.VSExtension.VS2022\\Codescene.VSExtension.Core.IntegrationTests"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Extracting smell enumeration and a category check so `HasSmellCategoryContaining` stays below the complexity threshold.",
+          "timestamp": "2026-04-09T14:49:23.367Z"
+        },
+        {
+          "type": "tool_use",
+          "name": "glob_file_search",
+          "input": {
+            "globPattern": "*.json",
+            "targetDirectory": "C:\\Users\\marti\\.cursor\\projects\\c-Git-codescene-vs\\mcps\\user-codescene\\tools"
+          }
+        },
+        {
+          "type": "assistant",
+          "text": "Reordering the `Helpers` class: StyleCop requires public members before private. Reading the full `Helpers` section.",
+          "timestamp": "2026-04-09T14:50:29.802Z"
+        },
+        {
+          "type": "assistant",
+          "text": "Replacing `Any(...)` — the analyzer may attribute the lambda's complexity to the containing method.",
+          "timestamp": "2026-04-09T14:51:50.373Z"
+        }
+      ],
+      "total_additions": 427,
+      "total_deletions": 408,
+      "accepted_lines": 247,
+      "overriden_lines": 30
+    }
+  }
+}
