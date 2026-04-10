@@ -1,7 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Collections.Concurrent;
-using System.IO;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 
 namespace Codescene.VSExtension.Core.Tests

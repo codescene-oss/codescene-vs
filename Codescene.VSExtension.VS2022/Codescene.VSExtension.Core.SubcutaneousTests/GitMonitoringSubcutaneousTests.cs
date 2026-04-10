@@ -1,7 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.Linq;
-
 namespace Codescene.VSExtension.Core.SubcutaneousTests;
 
 [TestClass]

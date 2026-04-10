@@ -1,8 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.Threading;
-using System.Threading.Tasks;
-using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Models;

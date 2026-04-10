@@ -1,8 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces.Cli;

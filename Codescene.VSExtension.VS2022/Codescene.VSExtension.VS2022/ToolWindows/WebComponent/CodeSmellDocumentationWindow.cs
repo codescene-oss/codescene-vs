@@ -17,7 +17,6 @@ using Codescene.VSExtension.VS2022.Application.Services;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 

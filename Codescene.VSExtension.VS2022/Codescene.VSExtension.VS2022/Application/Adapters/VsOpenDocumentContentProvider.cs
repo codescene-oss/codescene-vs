@@ -9,7 +9,6 @@ using Codescene.VSExtension.Core.Interfaces.Git;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Codescene.VSExtension.VS2022.Application.Adapters
 {

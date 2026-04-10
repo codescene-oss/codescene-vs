@@ -2,10 +2,8 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Globalization;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Ace;
-using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -13,21 +11,15 @@ using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cli;
-using Codescene.VSExtension.Core.Models.WebComponent.Data;
-using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using Codescene.VSExtension.VS2022.Tagger;
 using Codescene.VSExtension.VS2022.TermsAndPolicies;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
-using Codescene.VSExtension.VS2022.Util;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 
 namespace Codescene.VSExtension.VS2022.Handlers
 {
