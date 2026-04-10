@@ -147,6 +147,11 @@ public sealed class TestCacheStorageService : ICacheStorageService
         return _cacheDirectory;
     }
 
+    public string GetWorkspaceDirectory()
+    {
+        return string.Empty;
+    }
+
     public void RemoveOldReviewCacheEntries(int nrOfDays = 30)
     {
     }

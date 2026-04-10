@@ -23,6 +23,12 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
         string GetSolutionReviewCacheLocation();
 
         /// <summary>
+        /// Root directory of the open workspace (solution, project, or folder), used as CLI working directory when the reviewed file is not inside a git repository.
+        /// </summary>
+        /// <returns>Absolute directory path, or empty when no workspace is open.</returns>
+        string GetWorkspaceDirectory();
+
+        /// <summary>
         /// Removes old cache entries. Default 30 days.
         /// </summary>
         /// <param name="nrOfDays">How many days old the cache files should be before deleting.</param>

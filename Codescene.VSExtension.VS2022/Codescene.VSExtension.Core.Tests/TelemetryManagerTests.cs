@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.Core.Tests
             _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("telemetry command");
-            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Telemetry failed"));
 
             // Act - should not throw
@@ -85,7 +85,7 @@ namespace Codescene.VSExtension.Core.Tests
             _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("telemetry command");
-            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>()))
                 .ReturnsAsync("success");
 
             // Act - should not throw
@@ -103,7 +103,7 @@ namespace Codescene.VSExtension.Core.Tests
             _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("my-device-id");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("2.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("cmd");
-            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>()))
                 .ReturnsAsync("ok");
 
             // Act
@@ -121,7 +121,7 @@ namespace Codescene.VSExtension.Core.Tests
             _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("3.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("cmd");
-            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>()))
                 .ReturnsAsync("ok");
 
             // Act
@@ -140,7 +140,7 @@ namespace Codescene.VSExtension.Core.Tests
             _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("telemetry command");
-            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>()))
                 .ThrowsAsync(new Exception("Telemetry failed"));
 
             // Act - should not throw
@@ -166,7 +166,7 @@ namespace Codescene.VSExtension.Core.Tests
             _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
             _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>())).Returns("telemetry command");
-            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()))
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>()))
                 .ReturnsAsync("success");
 
             // Act - should not throw
@@ -190,7 +190,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert - executor should not be called for telemetry-related errors
             _mockExecutor.Verify(
-                x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()),
+                x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>()),
                 Times.Never);
         }
 
@@ -209,7 +209,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert - executor should not be called for network errors
             _mockExecutor.Verify(
-                x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>()),
+                x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>()),
                 Times.Never);
         }
     }

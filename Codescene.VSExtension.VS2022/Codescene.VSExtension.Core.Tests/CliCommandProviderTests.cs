@@ -14,6 +14,7 @@ namespace Codescene.VSExtension.Core.Tests
     public class CliCommandProviderTests
     {
         private const string TestFileName = "js";
+        private const string TestReviewFilePath = "/home/user/project/src/app.js";
         private const string TestFileContent = "content";
         private const string TestCachePath = "/home/user/cache";
 
@@ -38,9 +39,9 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void GetReviewFileContentPayload_ReturnsCorrectJson()
         {
-            var payload = _commandProvider.GetReviewFileContentPayload(TestFileName, TestFileContent, TestCachePath);
+            var payload = _commandProvider.GetReviewFileContentPayload(TestReviewFilePath, TestFileContent, TestCachePath);
 
-            Assert.AreEqual($"{{\"path\":\"{TestFileName}\",\"file-content\":\"{TestFileContent}\",\"cache-path\":\"{TestCachePath}\"}}", payload);
+            Assert.AreEqual($"{{\"path\":\"{TestReviewFilePath}\",\"file-content\":\"{TestFileContent}\",\"cache-path\":\"{TestCachePath}\"}}", payload);
         }
 
         [TestMethod]

@@ -16,7 +16,6 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
         [TestMethod]
         public async Task ReviewDeltaAsync_WithValidScores_ReturnsDeltaResponse()
         {
-            // Arrange
             var filename = "Test.cs";
             var simpleCode = @"
 public class Simple
@@ -39,21 +38,47 @@ public class Complex
     }
 }";
 
-            var simpleReview = await cliExecutor.ReviewContentAsync(filename, simpleCode);
-            var complexReview = await cliExecutor.ReviewContentAsync(filename, complexCode);
-
-            // Skip test if we couldn't get raw scores
-            if (string.IsNullOrEmpty(simpleReview?.RawScore) || string.IsNullOrEmpty(complexReview?.RawScore))
+            var dir = Path.Combine(Path.GetTempPath(), "codescene-cli-it", Guid.NewGuid().ToString());
+            Directory.CreateDirectory(dir);
+            var filePath = Path.GetFullPath(Path.Combine(dir, filename));
+            try
             {
-                Assert.Inconclusive("Could not obtain raw scores for delta comparison");
+                File.WriteAllText(filePath, simpleCode);
+                var simpleReview = await cliExecutor.ReviewContentAsync(filePath, simpleCode);
+
+                File.WriteAllText(filePath, complexCode);
+                var complexReview = await cliExecutor.ReviewContentAsync(filePath, complexCode);
+
+                if (string.IsNullOrEmpty(simpleReview?.RawScore) || string.IsNullOrEmpty(complexReview?.RawScore))
+                {
+                    Assert.Inconclusive("Could not obtain raw scores for delta comparison");
+                    return;
+                }
+
+                var delta = await cliExecutor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = simpleReview!.RawScore!, NewScore = complexReview!.RawScore! });
+
+                Assert.IsNotNull(delta, "CLI should return a delta response");
+            }
+            finally
+            {
+                TryDeleteDirectory(dir);
+            }
+        }
+
+        private static void TryDeleteDirectory(string dir)
+        {
+            if (!Directory.Exists(dir))
+            {
                 return;
             }
 
-            // Act
-            var delta = await cliExecutor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = simpleReview!.RawScore!, NewScore = complexReview!.RawScore! });
-
-            // Assert
-            Assert.IsNotNull(delta, "CLI should return a delta response");
+            try
+            {
+                Directory.Delete(dir, recursive: true);
+            }
+            catch
+            {
+            }
         }
     }
 }

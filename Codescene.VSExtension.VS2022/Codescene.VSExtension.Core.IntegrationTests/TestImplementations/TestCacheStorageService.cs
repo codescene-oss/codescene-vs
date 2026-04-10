@@ -1,7 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.ComponentModel.Composition;
-using System.Threading;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Moq;
 
@@ -14,6 +13,8 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
         internal Mock<ICacheStorageService> Mock = new Mock<ICacheStorageService>();
 
         public string GetSolutionReviewCacheLocation() => Mock.Object.GetSolutionReviewCacheLocation();
+
+        public string GetWorkspaceDirectory() => Mock.Object.GetWorkspaceDirectory();
 
         public Task InitializeAsync(CancellationToken cancellationToken = default) => Mock.Object.InitializeAsync(cancellationToken);
 

@@ -1,8 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
@@ -27,8 +24,8 @@ public class CliExecutorBenchmarks
         _environment = new BenchmarkEnvironment();
         _cliExecutor = _environment.CreateCliExecutor();
 
-        var baselineReview = _cliExecutor.ReviewContentAsync(BenchmarkInputs.FileName, BenchmarkInputs.BaselineCode).GetAwaiter().GetResult();
-        var currentReview = _cliExecutor.ReviewContentAsync(BenchmarkInputs.FileName, BenchmarkInputs.CurrentCode).GetAwaiter().GetResult();
+        var baselineReview = _cliExecutor.ReviewContentAsync(_environment.ExistingFilePath, BenchmarkInputs.BaselineCode).GetAwaiter().GetResult();
+        var currentReview = _cliExecutor.ReviewContentAsync(_environment.ExistingFilePath, BenchmarkInputs.CurrentCode).GetAwaiter().GetResult();
         if (string.IsNullOrWhiteSpace(baselineReview?.RawScore) || string.IsNullOrWhiteSpace(currentReview?.RawScore))
         {
             throw new InvalidOperationException("Unable to obtain review raw scores for delta benchmarks.");
@@ -64,7 +61,7 @@ public class CliExecutorBenchmarks
     [Benchmark]
     public Task<CliReviewModel> ReviewContentAsync()
     {
-        return _cliExecutor.ReviewContentAsync(BenchmarkInputs.FileName, BenchmarkInputs.CurrentCode);
+        return _cliExecutor.ReviewContentAsync(_environment.ExistingFilePath, BenchmarkInputs.CurrentCode);
     }
 
     [Benchmark]

@@ -1,12 +1,9 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.IO;
-using System.Threading;
 using BenchmarkDotNet.Attributes;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 
 namespace Codescene.VSExtension.Core.Benchmarks;
 
@@ -38,7 +35,7 @@ public class CodeReviewerBenchmarks
 
         _codeReviewerWithPreflight = _environment.CreateCodeReviewer(_gitService, new FixedPreflightManager(preflightResponse));
 
-        var currentReview = _environment.CreateCliExecutor().ReviewContentAsync(BenchmarkInputs.FileName, BenchmarkInputs.CurrentCode).GetAwaiter().GetResult();
+        var currentReview = _environment.CreateCliExecutor().ReviewContentAsync(_environment.ExistingFilePath, BenchmarkInputs.CurrentCode).GetAwaiter().GetResult();
         if (string.IsNullOrWhiteSpace(currentReview?.RawScore))
         {
             throw new InvalidOperationException("Unable to obtain a review raw score for CodeReviewer benchmarks.");

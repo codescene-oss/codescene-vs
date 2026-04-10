@@ -19,6 +19,8 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
 
             mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation())
                 .Returns(tempCacheDir);
+            mockCacheStorageService.Setup(x => x.GetWorkspaceDirectory())
+                .Returns(string.Empty);
         }
 
         public virtual void Cleanup()

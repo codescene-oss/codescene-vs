@@ -1,8 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.IO;
 using System.Reflection;
-using System.Threading;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Models;
 using LibGit2Sharp;
@@ -150,6 +148,19 @@ namespace Codescene.VSExtension.Core.Tests
             _gitChangeObserverCore.Dispose();
             var method = typeof(GitChangeObserverCore).GetMethod("OnGitChangeListerFilesDetected", BindingFlags.NonPublic | BindingFlags.Instance);
             method.Invoke(_gitChangeObserverCore, new object[] { this, new HashSet<string>() });
+        }
+
+        [TestMethod]
+        public void OnCodeHealthRulesChanged_RemovesAllTrackedFiles()
+        {
+            var existingFile = CreateFile("rules-invalidate.ts", "export const x = 1;");
+            _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { existingFile });
+            AssertFileInTracker(existingFile, true);
+
+            var method = typeof(GitChangeObserverCore).GetMethod("OnCodeHealthRulesChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+            method.Invoke(_gitChangeObserverCore, new object[] { this, EventArgs.Empty });
+
+            AssertFileInTracker(existingFile, false);
         }
 
         [TestMethod]
