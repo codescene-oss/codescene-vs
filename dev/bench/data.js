@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775630526347,
+  "lastUpdate": 1775802155504,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -248,6 +248,48 @@ window.BENCHMARK_DATA = {
             "value": 62383623.333333336,
             "unit": "ns",
             "range": "± 1150659.000204443"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e89db14a04964b33ca3b85d059d5da4de1073612",
+          "message": "chore: cleanup unused usings (#274)",
+          "timestamp": "2026-04-10T08:17:11+02:00",
+          "tree_id": "02b961fc49db37a23ec1bf0309c9128f06d7c7a8",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/e89db14a04964b33ca3b85d059d5da4de1073612"
+        },
+        "date": 1775802152952,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 105399761.96721311,
+            "unit": "ns",
+            "range": "± 4703616.673227394"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 92090645.55555557,
+            "unit": "ns",
+            "range": "± 1559415.3362498442"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 60250877.77777776,
+            "unit": "ns",
+            "range": "± 2006043.7622929784"
           }
         ]
       }
