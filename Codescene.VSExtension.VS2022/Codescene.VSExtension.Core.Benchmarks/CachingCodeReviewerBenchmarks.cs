@@ -1,7 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.IO;
-using System.Threading;
 using BenchmarkDotNet.Attributes;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Models;

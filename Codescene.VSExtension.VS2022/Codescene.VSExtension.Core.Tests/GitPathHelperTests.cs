@@ -1,6 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.IO;
 using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Tests

@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Threading;
 using WpfPath = System.Windows.Shapes.Path;
 
 namespace Codescene.VSExtension.VS2022.EditorMargin;

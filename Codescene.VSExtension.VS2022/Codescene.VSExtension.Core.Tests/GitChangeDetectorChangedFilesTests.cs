@@ -1,6 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.Collections.Generic;
 using System.Reflection;
 using Codescene.VSExtension.Core.Application.Git;
 using LibGit2Sharp;

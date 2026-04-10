@@ -1,6 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System.Threading;
 using Codescene.VSExtension.Core.Application.Util;
 using Moq;
 

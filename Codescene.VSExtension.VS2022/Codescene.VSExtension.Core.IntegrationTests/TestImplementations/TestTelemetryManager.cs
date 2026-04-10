@@ -1,7 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.ComponentModel.Composition;
-using System.Threading;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Moq;
 

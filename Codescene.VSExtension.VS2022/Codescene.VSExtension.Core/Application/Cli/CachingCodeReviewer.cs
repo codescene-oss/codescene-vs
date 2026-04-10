@@ -18,7 +18,6 @@ using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Util;
-using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
