@@ -1,5 +1,4 @@
-$files = Get-ChildItem -Recurse -Filter '*Tests.dll' -Path 'Codescene.VSExtension.VS2022' | Where-Object { $_.FullName -match 'bin\\Release' } | Select-Object -ExpandProperty FullName
-vstest.console.exe $files /logger:trx > test.log 2>&1
+dotnet test Codescene.VSExtension.VS2022/Codescene.VSExtension.sln -c Release --no-build --logger trx > test.log 2>&1
 
 if ($LASTEXITCODE -eq 0) {
     Get-Content test.log -Tail 4

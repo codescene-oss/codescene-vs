@@ -181,34 +181,75 @@ public class GitService : IGitService, IDisposable
 
     private string GetMergeBaseWithMain(Repository repository, string currentBranch)
     {
+        var mergeBases = CollectMergeBaseCandidates(repository, currentBranch);
+
+        if (mergeBases.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var closestMergeBase = GetClosestReachableMergeBase(repository, mergeBases);
+        return closestMergeBase?.Sha ?? mergeBases.Values.First().Sha;
+    }
+
+    private Dictionary<string, Commit> CollectMergeBaseCandidates(Repository repository, string currentBranch)
+    {
+        var mergeBases = new Dictionary<string, Commit>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var mainBranchName in MainBranchNames)
         {
-            var mainBranch = repository.Branches[mainBranchName]
-                          ?? repository.Branches[$"origin/{mainBranchName}"];
+            TryAddMergeBaseCandidate(repository, currentBranch, mainBranchName, mergeBases);
+        }
 
-            if (mainBranch == null)
+        return mergeBases;
+    }
+
+    private void TryAddMergeBaseCandidate(
+        Repository repository,
+        string currentBranch,
+        string mainBranchName,
+        IDictionary<string, Commit> mergeBases)
+    {
+        var mainBranch = repository.Branches[mainBranchName]
+                      ?? repository.Branches[$"origin/{mainBranchName}"];
+
+        if (mainBranch == null || string.Equals(mainBranch.FriendlyName, currentBranch, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        try
+        {
+            var mergeBase = repository.ObjectDatabase.FindMergeBase(
+                repository.Head.Tip,
+                mainBranch.Tip);
+
+            if (mergeBase != null)
             {
-                continue;
+                mergeBases[mergeBase.Sha] = mergeBase;
             }
+        }
+        catch (Exception e)
+        {
+            _logger.Debug($"Could not find merge-base with {mainBranchName}: {e.Message}");
+        }
+    }
 
-            try
+    private Commit GetClosestReachableMergeBase(Repository repository, IReadOnlyDictionary<string, Commit> mergeBases)
+    {
+        foreach (var commit in repository.Commits.QueryBy(new CommitFilter
+                 {
+                     IncludeReachableFrom = repository.Head,
+                     SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Time,
+                 }))
+        {
+            if (mergeBases.TryGetValue(commit.Sha, out var closestMergeBase))
             {
-                var mergeBase = repository.ObjectDatabase.FindMergeBase(
-                    repository.Head.Tip,
-                    mainBranch.Tip);
-
-                if (mergeBase != null)
-                {
-                    return mergeBase.Sha;
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.Debug($"Could not find merge-base with {mainBranchName}: {e.Message}");
+                return closestMergeBase;
             }
         }
 
-        return string.Empty;
+        return null;
     }
 
     private string GetBranchCreationCommitFromReflog(Repository repository)
