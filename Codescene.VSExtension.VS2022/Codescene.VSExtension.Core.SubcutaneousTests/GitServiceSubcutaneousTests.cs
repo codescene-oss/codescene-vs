@@ -7,8 +7,6 @@ namespace Codescene.VSExtension.Core.SubcutaneousTests;
 [TestClass]
 public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
 {
-    protected override bool AutoStartObserver => false;
-
     private const string MainContent = @"namespace TestingCodeSceneVS.CSharp
 {
     internal class TesfFile
@@ -50,6 +48,8 @@ public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
         }
     }
 }";
+
+    protected override bool AutoStartObserver => false;
 
     [TestMethod]
     public async Task GetFileContentForCommit_OnFeatureBranchBasedOnDevelop_UsesDevelopBaseline()

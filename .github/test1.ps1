@@ -3,8 +3,8 @@ param(
     [string]$TestName
 )
 
-$files = Get-ChildItem -Recurse -Filter '*Tests.dll' -Path 'Codescene.VSExtension.VS2022' | Where-Object { $_.FullName -match 'bin\\Release' } | Select-Object -ExpandProperty FullName
-vstest.console.exe $files /Tests:$TestName /logger:trx > test.log 2>&1
+$filter = "FullyQualifiedName~$TestName"
+dotnet test Codescene.VSExtension.VS2022/Codescene.VSExtension.sln -c Release --no-build --filter $filter --logger trx > test.log 2>&1
 
 if ($LASTEXITCODE -eq 0) {
     Get-Content test.log -Tail 4
