@@ -1,7 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
-using System.Linq;
 using Codescene.VSExtension.Core.Interfaces;
 using LibGit2Sharp;
 
@@ -30,9 +29,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _logger?.Info($">>> MergeBaseFinder: Finding merge base for branch '{currentBranch.FriendlyName}'");
                 #endif
 
-                var mainBranchCandidates = new[] { "main", "master", "develop", "trunk", "dev" };
-
-                foreach (var candidateName in mainBranchCandidates)
+                foreach (var candidateName in MainBranchNames.All)
                 {
                     var mergeBase = TryFindMergeBaseWithBranch(repo, currentBranch, candidateName);
                     if (mergeBase != null)
@@ -58,8 +55,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public bool IsMainBranch(string branchName)
         {
-            return !string.IsNullOrEmpty(branchName) &&
-                   new[] { "main", "master", "develop", "trunk", "dev" }.Contains(branchName, StringComparer.OrdinalIgnoreCase);
+            return MainBranchNames.IsMainBranch(branchName);
         }
 
         private Commit TryFindMergeBaseWithBranch(Repository repo, Branch currentBranch, string candidateName)

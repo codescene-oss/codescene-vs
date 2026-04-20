@@ -15,11 +15,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git;
 [Export(typeof(IGitService))]
 public class GitService : IGitService, IDisposable
 {
-    private static readonly HashSet<string> MainBranchNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-    {
-        "main", "master", "develop", "trunk", "dev",
-    };
-
     private readonly ILogger _logger;
 
     private readonly LibGit2SharpIgnoreChecker _ignoreChecker;
@@ -60,7 +55,7 @@ public class GitService : IGitService, IDisposable
             }
 
             // If on main branch, use HEAD commit as baseline
-            if (IsMainBranch(currentBranchName))
+            if (MainBranchNames.IsMainBranch(currentBranchName))
             {
                 var headCommit = repository.Head?.Tip?.Sha ?? string.Empty;
                 _logger.Debug($"On main branch '{currentBranchName}', using HEAD as baseline: {headCommit}");
@@ -174,11 +169,6 @@ public class GitService : IGitService, IDisposable
         return path;
     }
 
-    private bool IsMainBranch(string branchName)
-    {
-        return MainBranchNames.Contains(branchName);
-    }
-
     private string GetMergeBaseWithMain(Repository repository, string currentBranch)
     {
         var mergeBases = CollectMergeBaseCandidates(repository, currentBranch);
@@ -196,7 +186,7 @@ public class GitService : IGitService, IDisposable
     {
         var mergeBases = new Dictionary<string, Commit>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var mainBranchName in MainBranchNames)
+        foreach (var mainBranchName in MainBranchNames.All)
         {
             TryAddMergeBaseCandidate(repository, currentBranch, mainBranchName, mergeBases);
         }

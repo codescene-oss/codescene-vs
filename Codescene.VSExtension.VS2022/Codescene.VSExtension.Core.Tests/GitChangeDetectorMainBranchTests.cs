@@ -68,7 +68,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 var candidates = GetMainBranchCandidates(repo);
 
-                var expectedBranches = new[] { "main", "master", "develop", "trunk", "dev" };
+                var expectedBranches = MainBranchNames.All;
                 var currentBranch = repo.Head.FriendlyName;
 
                 Assert.Contains("develop", candidates, "Should detect 'develop'");
