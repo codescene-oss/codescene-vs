@@ -123,7 +123,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             await Task.Delay(200);
 
-            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Could not load file for review")));
+            Assert.IsTrue(_fakeLogger.ErrorMessages.Any(m => m.Item1.Contains("Could not load file for review")));
         }
 
         [TestMethod]
@@ -328,7 +328,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             await Task.Delay(200);
 
-            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Open document provider failed")));
+            Assert.IsTrue(_fakeLogger.ErrorMessages.Any(m => m.Item1.Contains("Open document provider failed")));
             Assert.AreEqual(1, _fakeCodeReviewer.ReviewCallCount);
             Assert.HasCount(1, _fakeCodeReviewer.ReviewedContents);
             Assert.AreEqual("content-from-disk", _fakeCodeReviewer.ReviewedContents[0]);

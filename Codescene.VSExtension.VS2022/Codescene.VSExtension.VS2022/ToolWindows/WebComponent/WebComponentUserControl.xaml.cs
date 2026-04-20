@@ -188,7 +188,7 @@ public partial class WebComponentUserControl : UserControl
         }
         catch (Exception ex)
         {
-            _logger.Warn($"WebView2 pending message send failed; will retry. {ex.Message}");
+            _logger.Error("WebView2 pending message send failed; will retry.", ex);
         }
     }
 

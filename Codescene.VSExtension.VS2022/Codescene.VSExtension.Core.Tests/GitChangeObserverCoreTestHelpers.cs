@@ -130,6 +130,14 @@ namespace Codescene.VSExtension.Core.Tests
                 ErrorMessages.Add((message, ex));
             }
         }
+
+        public List<(string, Exception)> SnapshotErrorMessages()
+        {
+            lock (_lock)
+            {
+                return new List<(string, Exception)>(ErrorMessages);
+            }
+        }
     }
 
     public class FakeCodeReviewer : ICodeReviewer

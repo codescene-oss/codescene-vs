@@ -143,7 +143,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             await _handler.HandleFileDeleteAsync(testFile, changedFiles);
 
-            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Error firing file deleted event")));
+            Assert.IsTrue(_fakeLogger.ErrorMessages.Any(m => m.Item1.Contains("Error firing file deleted event")));
         }
     }
 }

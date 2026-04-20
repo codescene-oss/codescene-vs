@@ -63,7 +63,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
                 catch (Exception ex)
                 {
-                    _logger?.Warn($"GitChangeObserver: Error getting changed files: {ex.Message}");
+                    _logger?.Error("GitChangeObserver: Error getting changed files", ex);
                     return new List<string>();
                 }
             },

@@ -100,7 +100,13 @@ namespace Codescene.VSExtension.VS2022.Application.Git
 
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
         {
-            return await _core.GetChangedFilesVsBaselineAsync();
+            var core = _core;
+            if (core == null)
+            {
+                return new List<string>();
+            }
+
+            return await core.GetChangedFilesVsBaselineAsync();
         }
 
         public void RemoveFromTracker(string filePath)

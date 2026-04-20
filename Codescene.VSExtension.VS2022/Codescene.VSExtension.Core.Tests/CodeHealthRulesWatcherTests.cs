@@ -122,7 +122,7 @@ namespace Codescene.VSExtension.Core.Tests
                 var deadline = System.DateTime.UtcNow.AddMilliseconds(3000);
                 while (System.DateTime.UtcNow < deadline)
                 {
-                    if (_logger.WarnMessages.Any(m => m.Contains("Error in RulesFileChanged handler")))
+                    if (_logger.SnapshotErrorMessages().Any(m => m.Item1.Contains("Error in RulesFileChanged handler")))
                     {
                         break;
                     }
@@ -131,8 +131,8 @@ namespace Codescene.VSExtension.Core.Tests
                 }
 
                 Assert.IsTrue(
-                    _logger.WarnMessages.Any(m => m.Contains("Error in RulesFileChanged handler")),
-                    "Warning should be logged when handler throws");
+                    _logger.SnapshotErrorMessages().Any(m => m.Item1.Contains("Error in RulesFileChanged handler")),
+                    "Error should be logged when handler throws");
             }
         }
     }

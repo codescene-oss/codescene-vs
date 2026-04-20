@@ -161,13 +161,13 @@ namespace Codescene.VSExtension.Core.Tests
             testableLister.Initialize(_testRepoPath, new[] { _testRepoPath });
             testableLister.ThrowInGetAllChangedFilesAsync = true;
 
-            _fakeLogger.WarnMessages.Clear();
+            _fakeLogger.ErrorMessages.Clear();
 
             await testableLister.InvokePeriodicScanAsync();
 
             Assert.IsTrue(
-                _fakeLogger.WarnMessages.Exists(m => m.Contains("Error during periodic scan")),
-                "Should log warning about periodic scan error");
+                _fakeLogger.ErrorMessages.Exists(m => m.Item1.Contains("Error during periodic scan")),
+                "Should log error about periodic scan error");
 
             testableLister.Dispose();
         }

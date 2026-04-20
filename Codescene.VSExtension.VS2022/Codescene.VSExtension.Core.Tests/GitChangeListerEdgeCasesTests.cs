@@ -154,7 +154,7 @@ namespace Codescene.VSExtension.Core.Tests
 
                 await testableInstance.InvokePeriodicScanAsync();
 
-                Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Error during periodic scan")), "Should log warning on exception");
+                Assert.IsTrue(_fakeLogger.ErrorMessages.Any(m => m.Item1.Contains("Error during periodic scan")), "Should log error on exception");
             }
             finally
             {
