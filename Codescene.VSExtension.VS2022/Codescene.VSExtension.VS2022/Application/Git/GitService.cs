@@ -1,7 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
@@ -63,11 +62,11 @@ public class GitService : IGitService, IDisposable
             }
 
             // On feature branch, try to find merge-base with main
-            var mergeBase = GetMergeBaseWithMain(repository, currentBranchName);
-            if (!string.IsNullOrEmpty(mergeBase))
+            var mergeBase = MainBranchMergeBaseSelector.FindClosest(repository, _logger);
+            if (mergeBase != null)
             {
-                _logger.Debug($"Using merge-base with main as baseline: {mergeBase}");
-                return mergeBase;
+                _logger.Debug($"Using merge-base with main as baseline: {mergeBase.Sha}");
+                return mergeBase.Sha;
             }
 
             // Fallback: try reflog-based approach
@@ -167,79 +166,6 @@ public class GitService : IGitService, IDisposable
         }
 
         return path;
-    }
-
-    private string GetMergeBaseWithMain(Repository repository, string currentBranch)
-    {
-        var mergeBases = CollectMergeBaseCandidates(repository, currentBranch);
-
-        if (mergeBases.Count == 0)
-        {
-            return string.Empty;
-        }
-
-        var closestMergeBase = GetClosestReachableMergeBase(repository, mergeBases);
-        return closestMergeBase?.Sha ?? mergeBases.Values.First().Sha;
-    }
-
-    private Dictionary<string, Commit> CollectMergeBaseCandidates(Repository repository, string currentBranch)
-    {
-        var mergeBases = new Dictionary<string, Commit>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var mainBranchName in MainBranchNames.All)
-        {
-            TryAddMergeBaseCandidate(repository, currentBranch, mainBranchName, mergeBases);
-        }
-
-        return mergeBases;
-    }
-
-    private void TryAddMergeBaseCandidate(
-        Repository repository,
-        string currentBranch,
-        string mainBranchName,
-        IDictionary<string, Commit> mergeBases)
-    {
-        var mainBranch = repository.Branches[mainBranchName]
-                      ?? repository.Branches[$"origin/{mainBranchName}"];
-
-        if (mainBranch == null || string.Equals(mainBranch.FriendlyName, currentBranch, StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
-        try
-        {
-            var mergeBase = repository.ObjectDatabase.FindMergeBase(
-                repository.Head.Tip,
-                mainBranch.Tip);
-
-            if (mergeBase != null)
-            {
-                mergeBases[mergeBase.Sha] = mergeBase;
-            }
-        }
-        catch (Exception e)
-        {
-            _logger.Debug($"Could not find merge-base with {mainBranchName}: {e.Message}");
-        }
-    }
-
-    private Commit GetClosestReachableMergeBase(Repository repository, IReadOnlyDictionary<string, Commit> mergeBases)
-    {
-        foreach (var commit in repository.Commits.QueryBy(new CommitFilter
-                 {
-                     IncludeReachableFrom = repository.Head,
-                     SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Time,
-                 }))
-        {
-            if (mergeBases.TryGetValue(commit.Sha, out var closestMergeBase))
-            {
-                return closestMergeBase;
-            }
-        }
-
-        return null;
     }
 
     private string GetBranchCreationCommitFromReflog(Repository repository)

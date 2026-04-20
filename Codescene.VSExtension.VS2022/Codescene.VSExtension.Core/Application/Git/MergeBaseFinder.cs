@@ -19,30 +19,27 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             try
             {
-                var currentBranch = repo.Head;
-                if (currentBranch == null || currentBranch.Tip == null)
+                if (repo?.Head?.Tip == null)
                 {
                     return null;
                 }
 
                 #if FEATURE_INITIAL_GIT_OBSERVER
-                _logger?.Info($">>> MergeBaseFinder: Finding merge base for branch '{currentBranch.FriendlyName}'");
+                _logger?.Info($">>> MergeBaseFinder: Finding merge base for branch '{repo.Head.FriendlyName}'");
                 #endif
 
-                foreach (var candidateName in MainBranchNames.All)
+                var mergeBase = MainBranchMergeBaseSelector.FindClosest(repo, _logger);
+                if (mergeBase != null)
                 {
-                    var mergeBase = TryFindMergeBaseWithBranch(repo, currentBranch, candidateName);
-                    if (mergeBase != null)
-                    {
-                        #if FEATURE_INITIAL_GIT_OBSERVER
-                        _logger?.Info($">>> MergeBaseFinder: Found merge base commit {mergeBase.Sha.Substring(0, 8)} for branch '{currentBranch.FriendlyName}'");
-                        #endif
-                        return mergeBase;
-                    }
+                    _logger?.Debug($"GitChangeLister: Found merge base using branch reachable from HEAD ({mergeBase.Sha})");
+                    #if FEATURE_INITIAL_GIT_OBSERVER
+                    _logger?.Info($">>> MergeBaseFinder: Found merge base commit {mergeBase.Sha.Substring(0, 8)} for branch '{repo.Head.FriendlyName}'");
+                    #endif
+                    return mergeBase;
                 }
 
                 #if FEATURE_INITIAL_GIT_OBSERVER
-                _logger?.Info($">>> MergeBaseFinder: No merge base found for branch '{currentBranch.FriendlyName}'");
+                _logger?.Info($">>> MergeBaseFinder: No merge base found for branch '{repo.Head.FriendlyName}'");
                 #endif
                 return null;
             }
@@ -56,41 +53,6 @@ namespace Codescene.VSExtension.Core.Application.Git
         public bool IsMainBranch(string branchName)
         {
             return MainBranchNames.IsMainBranch(branchName);
-        }
-
-        private Commit TryFindMergeBaseWithBranch(Repository repo, Branch currentBranch, string candidateName)
-        {
-            var mainBranch = repo.Branches[candidateName];
-            if (!IsValidBranchForMergeBase(mainBranch, currentBranch))
-            {
-                return null;
-            }
-
-            try
-            {
-                var mergeBase = repo.ObjectDatabase.FindMergeBase(currentBranch.Tip, mainBranch.Tip);
-                if (mergeBase != null)
-                {
-                    _logger?.Debug($"GitChangeLister: Found merge base using branch '{candidateName}'");
-                    #if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> MergeBaseFinder: Successfully found merge base with branch '{candidateName}'");
-                    #endif
-                    return mergeBase;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.Debug($"GitChangeLister: Could not find merge base with '{candidateName}': {ex.Message}");
-            }
-
-            return null;
-        }
-
-        private bool IsValidBranchForMergeBase(Branch mainBranch, Branch currentBranch)
-        {
-            return mainBranch != null &&
-                   mainBranch.Tip != null &&
-                   currentBranch.FriendlyName != mainBranch.FriendlyName;
         }
     }
 }
