@@ -1,7 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
@@ -15,11 +14,6 @@ namespace Codescene.VSExtension.VS2022.Application.Git;
 [Export(typeof(IGitService))]
 public class GitService : IGitService, IDisposable
 {
-    private static readonly HashSet<string> MainBranchNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-    {
-        "main", "master", "develop", "trunk", "dev",
-    };
-
     private readonly ILogger _logger;
 
     private readonly LibGit2SharpIgnoreChecker _ignoreChecker;
@@ -60,7 +54,7 @@ public class GitService : IGitService, IDisposable
             }
 
             // If on main branch, use HEAD commit as baseline
-            if (IsMainBranch(currentBranchName))
+            if (MainBranchNames.IsMainBranch(currentBranchName))
             {
                 var headCommit = repository.Head?.Tip?.Sha ?? string.Empty;
                 _logger.Debug($"On main branch '{currentBranchName}', using HEAD as baseline: {headCommit}");
@@ -68,11 +62,11 @@ public class GitService : IGitService, IDisposable
             }
 
             // On feature branch, try to find merge-base with main
-            var mergeBase = GetMergeBaseWithMain(repository, currentBranchName);
-            if (!string.IsNullOrEmpty(mergeBase))
+            var mergeBase = MainBranchMergeBaseSelector.FindClosest(repository, _logger);
+            if (mergeBase != null)
             {
-                _logger.Debug($"Using merge-base with main as baseline: {mergeBase}");
-                return mergeBase;
+                _logger.Debug($"Using merge-base with main as baseline: {mergeBase.Sha}");
+                return mergeBase.Sha;
             }
 
             // Fallback: try reflog-based approach
@@ -172,43 +166,6 @@ public class GitService : IGitService, IDisposable
         }
 
         return path;
-    }
-
-    private bool IsMainBranch(string branchName)
-    {
-        return MainBranchNames.Contains(branchName);
-    }
-
-    private string GetMergeBaseWithMain(Repository repository, string currentBranch)
-    {
-        foreach (var mainBranchName in MainBranchNames)
-        {
-            var mainBranch = repository.Branches[mainBranchName]
-                          ?? repository.Branches[$"origin/{mainBranchName}"];
-
-            if (mainBranch == null)
-            {
-                continue;
-            }
-
-            try
-            {
-                var mergeBase = repository.ObjectDatabase.FindMergeBase(
-                    repository.Head.Tip,
-                    mainBranch.Tip);
-
-                if (mergeBase != null)
-                {
-                    return mergeBase.Sha;
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.Debug($"Could not find merge-base with {mainBranchName}: {e.Message}");
-            }
-        }
-
-        return string.Empty;
     }
 
     private string GetBranchCreationCommitFromReflog(Repository repository)

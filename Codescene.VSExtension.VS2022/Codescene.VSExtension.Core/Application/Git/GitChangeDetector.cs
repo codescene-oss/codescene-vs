@@ -91,14 +91,12 @@ namespace Codescene.VSExtension.Core.Application.Git
             _logger?.Info(">>> GitChangeDetector: Computing main branch candidates");
             #endif
 
-            var possibleMainBranches = new[] { "main", "master", "develop", "trunk", "dev" };
-
             var localBranches = repo.Branches
                 .Where(b => !b.IsRemote)
                 .Select(b => b.FriendlyName)
                 .ToList();
 
-            var candidates = possibleMainBranches
+            var candidates = MainBranchNames.All
                 .Where(name => localBranches.Contains(name))
                 .ToList();
 

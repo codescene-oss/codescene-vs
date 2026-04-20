@@ -12,9 +12,9 @@ $testFiles = $csFiles | Where-Object { $_ -match 'Tests\.cs$' }
 
 if ($testFiles) {
     $testNames = $testFiles | ForEach-Object { [System.IO.Path]::GetFileNameWithoutExtension($_) }
-    $testDlls = Get-ChildItem -Recurse -Filter '*Tests.dll' -Path 'Codescene.VSExtension.VS2022' | Where-Object { $_.FullName -match 'bin\\Release' } | Select-Object -ExpandProperty FullName
-    $testNameStr = if ($testNames -is [array]) { $testNames -join ',' } else { $testNames }
-    vstest.console.exe $testDlls /Tests:$testNameStr /logger:trx > test.log 2>&1
+    $filters = @($testNames | ForEach-Object { "FullyQualifiedName~$_" })
+    $filter = $filters -join '|'
+    dotnet test Codescene.VSExtension.VS2022/Codescene.VSExtension.sln -c Release --no-build --filter $filter --logger trx > test.log 2>&1
 
     if ($LASTEXITCODE -eq 0) {
         Get-Content test.log -Tail 4
