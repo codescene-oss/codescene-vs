@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775830564944,
+  "lastUpdate": 1776668617342,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -332,6 +332,48 @@ window.BENCHMARK_DATA = {
             "value": 63537534.166666664,
             "unit": "ns",
             "range": "± 299286.3951218958"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8dd0a0d7ed8757e7d9c2ecb7c051692ec8bc9f3d",
+          "message": "fix: delta baseline selection for stacked branches (#275)",
+          "timestamp": "2026-04-20T08:56:16+02:00",
+          "tree_id": "d2dec7ec7c26eaaac3b0b76ee23be49c8bb0dbf8",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/8dd0a0d7ed8757e7d9c2ecb7c051692ec8bc9f3d"
+        },
+        "date": 1776668611360,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 91645384.10852712,
+            "unit": "ns",
+            "range": "± 3340532.322532291"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 79641930,
+            "unit": "ns",
+            "range": "± 903970.9619932406"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 52893657.82608695,
+            "unit": "ns",
+            "range": "± 1308300.9823534023"
           }
         ]
       }
