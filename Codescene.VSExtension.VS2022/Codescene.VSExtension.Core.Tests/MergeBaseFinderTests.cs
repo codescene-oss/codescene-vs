@@ -86,7 +86,7 @@ namespace Codescene.VSExtension.Core.Tests
                 var result = _finder.GetMergeBaseCommit(repo);
 
                 Assert.AreEqual(expectedMergeBase.Sha, result.Sha, "Should return the initial commit as merge base");
-                Assert.IsTrue(_fakeLogger.DebugMessages.Exists(m => m.Contains("Found merge base using branch")), "Should log merge base found");
+                Assert.IsTrue(_fakeLogger.SnapshotDebugMessages().Exists(m => m.Contains("Found merge base using branch")), "Should log merge base found");
             }
         }
 
@@ -169,7 +169,7 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 var result = _finder.GetMergeBaseCommit(repo);
 
-                Assert.IsNotEmpty(_fakeLogger.DebugMessages, "Should log debug messages");
+                Assert.IsNotEmpty(_fakeLogger.SnapshotDebugMessages(), "Should log debug messages");
             }
         }
     }

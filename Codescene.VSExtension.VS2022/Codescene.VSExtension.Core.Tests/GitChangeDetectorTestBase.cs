@@ -167,19 +167,86 @@ namespace Codescene.VSExtension.Core.Tests
 
         protected class FakeLogger : ILogger
         {
-            public readonly List<string> DebugMessages = new List<string>();
-            public readonly List<string> WarnMessages = new List<string>();
+            private readonly List<string> _debugMessages = new List<string>();
+            private readonly List<string> _warnMessages = new List<string>();
+            private readonly List<(string, Exception)> _errorMessages = new List<(string, Exception)>();
 
-            public void Debug(string message) => DebugMessages.Add(message);
+            private readonly object _lock = new object();
+
+            public void Debug(string message)
+            {
+                lock (_lock)
+                {
+                    _debugMessages.Add(message);
+                }
+            }
 
             public void Info(string message, bool statusBar = false)
             {
             }
 
-            public void Warn(string message, bool statusBar = false) => WarnMessages.Add(message);
+            public void Warn(string message, bool statusBar = false)
+            {
+                lock (_lock)
+                {
+                    _warnMessages.Add(message);
+                }
+            }
 
             public void Error(string message, Exception ex)
             {
+                lock (_lock)
+                {
+                    _errorMessages.Add((message, ex));
+                }
+            }
+
+            public List<(string, Exception)> SnapshotErrorMessages()
+            {
+                lock (_lock)
+                {
+                    return new List<(string, Exception)>(_errorMessages);
+                }
+            }
+
+            public List<string> SnapshotWarnMessages()
+            {
+                lock (_lock)
+                {
+                    return new List<string>(_warnMessages);
+                }
+            }
+
+            public List<string> SnapshotDebugMessages()
+            {
+                lock (_lock)
+                {
+                    return new List<string>(_debugMessages);
+                }
+            }
+
+            public void ClearErrorMessages()
+            {
+                lock (_lock)
+                {
+                    _errorMessages.Clear();
+                }
+            }
+
+            public void ClearWarnMessages()
+            {
+                lock (_lock)
+                {
+                    _warnMessages.Clear();
+                }
+            }
+
+            public void ClearDebugMessages()
+            {
+                lock (_lock)
+                {
+                    _debugMessages.Clear();
+                }
             }
         }
 

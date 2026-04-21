@@ -202,7 +202,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Debug($"GitChangeLister: Error collecting files from repo state: {ex.Message}");
+                _logger?.Error("GitChangeLister: Error collecting files from repo state", ex);
             }
 
             return changedFiles;
@@ -221,7 +221,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Debug($"GitChangeLister: Error collecting files from git diff: {ex.Message}");
+                _logger?.Error("GitChangeLister: Error collecting files from git diff", ex);
                 return new HashSet<string>();
             }
         }
@@ -304,7 +304,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
                 catch (Exception ex)
                 {
-                    _logger?.Warn($"GitChangeLister: Error {operationName}: {ex.Message}");
+                    _logger?.Error($"GitChangeLister: Error {operationName}", ex);
                     return new HashSet<string>();
                 }
             },
@@ -356,7 +356,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Warn($"GitChangeLister: Error during periodic scan: {ex.Message}");
+                _logger?.Error("GitChangeLister: Error during periodic scan", ex);
             }
         }
 

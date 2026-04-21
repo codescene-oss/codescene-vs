@@ -34,7 +34,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
                 catch (Exception ex)
                 {
-                    _logger?.Warn($"GitChangeObserver: Error processing detected files: {ex.Message}");
+                    _logger?.Error("GitChangeObserver: Error processing detected files", ex);
                 }
 
                 if (!_detectedFilesQueue.CompleteAndGetNext(filePath, out currentRequest))

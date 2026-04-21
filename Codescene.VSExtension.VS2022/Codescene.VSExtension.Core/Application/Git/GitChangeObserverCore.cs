@@ -361,7 +361,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
                 catch (Exception ex)
                 {
-                    _logger?.Warn($"GitChangeObserver: Error handling .gitignore change: {ex.Message}");
+                    _logger?.Error("GitChangeObserver: Error handling .gitignore change", ex);
                 }
             });
         }
@@ -399,7 +399,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Warn($"GitChangeObserver: Error processing detected files: {ex.Message}");
+                _logger?.Error("GitChangeObserver: Error processing detected files", ex);
             }
         }
 
@@ -414,7 +414,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Warn($"GitChangeObserver: Could not discover git repository: {ex.Message}");
+                _logger?.Error("GitChangeObserver: Could not discover git repository", ex);
                 _gitRootPath = _workspacePath = Directory.Exists(_solutionPath) ? _solutionPath : Path.GetDirectoryName(_solutionPath);
             }
         }
@@ -436,7 +436,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 {
                     token.ThrowIfCancellationRequested();
                     var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePaths, token);
+                    token.ThrowIfCancellationRequested();
                     var changedFiles = await _getChangedFilesCallback();
+                    token.ThrowIfCancellationRequested();
 
                     // Add all files to tracker unconditionally - this ensures HandleFileDelete works correctly.
                     // Files open in the editor are excluded from changedFiles (via OpenFilesObserver), but they
@@ -458,7 +460,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
                 catch (Exception ex)
                 {
-                    _logger?.Warn($"GitChangeObserver: Error initializing tracker: {ex.Message}");
+                    _logger?.Error("GitChangeObserver: Error initializing tracker", ex);
                     initTcs.TrySetException(ex);
                 }
             });

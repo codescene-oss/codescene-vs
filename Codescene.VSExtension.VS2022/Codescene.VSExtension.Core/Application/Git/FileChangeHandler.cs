@@ -180,7 +180,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                     }
                     catch (Exception ex)
                     {
-                        _logger?.Warn($"GitChangeObserver: Open document provider failed for {filePath}: {ex.Message}");
+                        _logger?.Warn($"GitChangeObserver: Open document provider failed for {filePath}. {ex.Message}");
                     }
                 }
 
@@ -208,7 +208,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Warn($"GitChangeObserver: Could not load file for review {filePath}: {ex.Message}");
+                _logger?.Error($"GitChangeObserver: Could not load file for review {filePath}", ex);
             }
         }
 
@@ -257,7 +257,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Warn($"GitChangeObserver: Error firing file deleted event: {ex.Message}");
+                _logger?.Error("GitChangeObserver: Error firing file deleted event", ex);
             }
         }
     }

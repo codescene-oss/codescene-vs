@@ -131,7 +131,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task HandleFileDeleteAsync_EventHandlerThrowsException_LogsWarning()
+        public async Task HandleFileDeleteAsync_EventHandlerThrowsException_LogsError()
         {
             var testFile = Path.Combine(_testWorkspacePath, "test.cs");
             var changedFiles = new List<string> { "test.cs" };
@@ -143,7 +143,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             await _handler.HandleFileDeleteAsync(testFile, changedFiles);
 
-            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Error firing file deleted event")));
+            Assert.IsTrue(_fakeLogger.SnapshotErrorMessages().Any(m => m.Item1.Contains("Error firing file deleted event")));
         }
     }
 }

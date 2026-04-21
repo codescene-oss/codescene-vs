@@ -107,11 +107,11 @@ namespace Codescene.VSExtension.Core.Tests
             File.Delete(testFile);
             await Task.Delay(100);
 
-            Assert.IsTrue(_fakeLogger.WarnMessages.Count > 0 || _fakeCodeReviewer.ReviewCallCount == 1);
+            Assert.IsTrue(_fakeLogger.SnapshotWarnMessages().Count > 0 || _fakeCodeReviewer.ReviewCallCount == 1);
         }
 
         [TestMethod]
-        public async Task HandleFileChangeAsync_CodeReviewerThrowsException_LogsWarning()
+        public async Task HandleFileChangeAsync_CodeReviewerThrowsException_LogsError()
         {
             var testFile = Path.Combine(_testWorkspacePath, "test.cs");
             var changedFiles = new List<string> { "test.cs" };
@@ -123,7 +123,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             await Task.Delay(200);
 
-            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Could not load file for review")));
+            Assert.IsTrue(_fakeLogger.SnapshotErrorMessages().Any(m => m.Item1.Contains("Could not load file for review")));
         }
 
         [TestMethod]
@@ -328,7 +328,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             await Task.Delay(200);
 
-            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Open document provider failed")));
+            Assert.IsTrue(_fakeLogger.SnapshotWarnMessages().Any(m => m.Contains("Open document provider failed")));
             Assert.AreEqual(1, _fakeCodeReviewer.ReviewCallCount);
             Assert.HasCount(1, _fakeCodeReviewer.ReviewedContents);
             Assert.AreEqual("content-from-disk", _fakeCodeReviewer.ReviewedContents[0]);

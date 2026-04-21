@@ -35,7 +35,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Warn($"GitIgnoreWatcher: Could not create watcher for {gitRootPath}: {ex.Message}");
+                _logger?.Error($"GitIgnoreWatcher: Could not create watcher for {gitRootPath}", ex);
             }
         }
 
@@ -77,7 +77,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Warn($"GitIgnoreWatcher: Error in GitIgnoreChanged handler: {ex.Message}");
+                _logger?.Error("GitIgnoreWatcher: Error in GitIgnoreChanged handler", ex);
             }
         }
     }

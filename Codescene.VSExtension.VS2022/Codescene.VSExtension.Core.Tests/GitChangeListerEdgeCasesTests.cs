@@ -143,7 +143,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task PeriodicScanAsync_WhenExceptionThrown_LogsWarning()
+        public async Task PeriodicScanAsync_WhenExceptionThrown_LogsError()
         {
             var testableInstance = new TestableGitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
 
@@ -154,7 +154,7 @@ namespace Codescene.VSExtension.Core.Tests
 
                 await testableInstance.InvokePeriodicScanAsync();
 
-                Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("Error during periodic scan")), "Should log warning on exception");
+                Assert.IsTrue(_fakeLogger.SnapshotErrorMessages().Any(m => m.Item1.Contains("Error during periodic scan")), "Should log error on exception");
             }
             finally
             {

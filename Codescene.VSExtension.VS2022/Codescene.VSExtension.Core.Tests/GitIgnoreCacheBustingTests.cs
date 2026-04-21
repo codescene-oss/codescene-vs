@@ -418,7 +418,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task GitIgnoreWatcher_ThrowingHandler_LogsWarningAndDoesNotCrash()
+        public async Task GitIgnoreWatcher_ThrowingHandler_LogsErrorAndDoesNotCrash()
         {
             var mockLogger = new Mock<ILogger>();
             var watcher = new GitIgnoreWatcher(_testDir, mockLogger.Object);
@@ -430,12 +430,12 @@ namespace Codescene.VSExtension.Core.Tests
             File.WriteAllText(gitignorePath, "*.log\n");
 
             await WaitForConditionAsync(
-                () => mockLogger.Invocations.Any(i => i.Method.Name == "Warn"),
+                () => mockLogger.Invocations.Any(i => i.Method.Name == "Error"),
                 2000);
             watcher.Dispose();
 
             mockLogger.Verify(
-                l => l.Warn(It.Is<string>(s => s.Contains("Error in GitIgnoreChanged handler")), It.IsAny<bool>()),
+                l => l.Error(It.Is<string>(s => s.Contains("Error in GitIgnoreChanged handler")), It.IsAny<Exception>()),
                 Times.AtLeastOnce);
         }
 

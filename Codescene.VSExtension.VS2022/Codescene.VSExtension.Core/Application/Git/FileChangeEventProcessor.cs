@@ -106,7 +106,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
                 catch (Exception ex)
                 {
-                    _logger?.Warn($"GitChangeObserver: Error processing queued events: {ex.Message}");
+                    _logger?.Error("GitChangeObserver: Error processing queued events", ex);
                 }
             });
         }
@@ -187,7 +187,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Warn($"GitChangeObserver: Error processing file change event: {ex.Message}");
+                _logger?.Error("GitChangeObserver: Error processing file change event", ex);
             }
             finally
             {

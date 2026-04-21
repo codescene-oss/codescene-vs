@@ -48,13 +48,15 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task ProcessQueuedEvents_WhenCallbackThrows_LogsWarning()
+        public async Task ProcessQueuedEvents_WhenCallbackThrows_LogsError()
         {
             var logger = new FakeLogger();
             var taskScheduler = new FakeAsyncTaskScheduler();
 
-            bool IsExpectedWarning(string m) =>
-                m.Contains("Error processing file change event") && m.Contains("simulated error");
+            bool IsExpectedError((string Message, Exception Ex) entry) =>
+                entry.Message.Contains("Error processing file change event")
+                && entry.Ex != null
+                && entry.Ex.Message.Contains("simulated error");
 
             Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct) =>
                 throw new InvalidOperationException("simulated error");
@@ -66,13 +68,13 @@ namespace Codescene.VSExtension.Core.Tests
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "test.cs"));
                 processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
                 var deadline = DateTime.UtcNow.AddSeconds(5);
-                while (DateTime.UtcNow < deadline && !logger.WarnMessages.Any(IsExpectedWarning))
+                while (DateTime.UtcNow < deadline && !logger.SnapshotErrorMessages().Any(IsExpectedError))
                 {
                     await Task.Delay(50);
                 }
             }
 
-            Assert.IsTrue(logger.WarnMessages.Any(IsExpectedWarning), "Expected Warn for callback throw (ProcessOneEventAsync catch)");
+            Assert.IsTrue(logger.SnapshotErrorMessages().Any(IsExpectedError), "Expected Error for callback throw (ProcessOneEventAsync catch)");
         }
 
         [TestMethod]

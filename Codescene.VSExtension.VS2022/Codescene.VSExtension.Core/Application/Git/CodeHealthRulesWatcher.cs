@@ -44,7 +44,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Warn($"CodeHealthRulesWatcher: Could not create watcher for {codescenePath}: {ex.Message}");
+                _logger?.Error($"CodeHealthRulesWatcher: Could not create watcher for {codescenePath}", ex);
             }
         }
 
@@ -88,7 +88,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
             catch (Exception ex)
             {
-                _logger?.Warn($"CodeHealthRulesWatcher: Error in RulesFileChanged handler: {ex.Message}");
+                _logger?.Error("CodeHealthRulesWatcher: Error in RulesFileChanged handler", ex);
             }
         }
     }

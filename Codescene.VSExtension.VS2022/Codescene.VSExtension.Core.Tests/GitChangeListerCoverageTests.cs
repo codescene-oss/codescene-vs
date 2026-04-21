@@ -61,15 +61,13 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task GetAllChangedFilesAsync_CorruptedGitRepo_ReturnsEmptySetAndLogsError()
         {
             CorruptGitIndex();
-            _fakeLogger.WarnMessages.Clear();
-            _fakeLogger.DebugMessages.Clear();
+            _fakeLogger.ClearErrorMessages();
 
             var result = await _lister.GetAllChangedFilesAsync(_testRepoPath, _testRepoPath);
 
             Assert.IsEmpty(result, "Corrupted git repo should return empty set");
             Assert.IsTrue(
-                _fakeLogger.WarnMessages.Exists(m => m.Contains("Error")) ||
-                _fakeLogger.DebugMessages.Exists(m => m.Contains("Error")),
+                _fakeLogger.SnapshotErrorMessages().Exists(m => m.Item1.Contains("Error")),
                 "Should log error about corrupted repo");
         }
 
@@ -154,20 +152,20 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task PeriodicScan_ExceptionThrown_LogsWarning()
+        public async Task PeriodicScan_ExceptionThrown_LogsError()
         {
             var testableLister = new TestableGitChangeLister(
                 _fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
             testableLister.Initialize(_testRepoPath, new[] { _testRepoPath });
             testableLister.ThrowInGetAllChangedFilesAsync = true;
 
-            _fakeLogger.WarnMessages.Clear();
+            _fakeLogger.ClearErrorMessages();
 
             await testableLister.InvokePeriodicScanAsync();
 
             Assert.IsTrue(
-                _fakeLogger.WarnMessages.Exists(m => m.Contains("Error during periodic scan")),
-                "Should log warning about periodic scan error");
+                _fakeLogger.SnapshotErrorMessages().Exists(m => m.Item1.Contains("Error during periodic scan")),
+                "Should log error about periodic scan error");
 
             testableLister.Dispose();
         }
