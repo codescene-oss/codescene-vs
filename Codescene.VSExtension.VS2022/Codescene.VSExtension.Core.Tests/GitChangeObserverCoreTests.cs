@@ -194,16 +194,16 @@ namespace Codescene.VSExtension.Core.Tests
         public void InitializeTracker_WhenCollectFilesThrows_LogsError()
         {
             _fakeGitChangeLister.ThrowOnCollectFiles = true;
-            _fakeLogger.ErrorMessages.Clear();
+            _fakeLogger.ClearErrorMessages();
             _gitChangeObserverCore.Dispose();
             _gitChangeObserverCore = CreateGitChangeObserverCore();
             Assert.IsTrue(
-                _fakeLogger.ErrorMessages.Exists(m => m.Item1.Contains("Error initializing tracker")),
+                _fakeLogger.SnapshotErrorMessages().Exists(m => m.Item1.Contains("Error initializing tracker")),
                 "Should log when CollectFilesFromRepoStateAsync throws");
         }
 
         [TestMethod]
-        public void OnGitChangeListerFilesDetected_WhenGetChangedFilesThrows_LogsWarning()
+        public void OnGitChangeListerFilesDetected_WhenGetChangedFilesThrows_LogsError()
         {
             _gitChangeObserverCore.Dispose();
             _gitChangeObserverCore = new GitChangeObserverCore(
@@ -214,10 +214,10 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeGitChangeLister,
                 _fakeGitService);
             _gitChangeObserverCore.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, getChangedFilesCallback: () => Task.FromException<List<string>>(new InvalidOperationException("simulated")));
-            _fakeLogger.ErrorMessages.Clear();
+            _fakeLogger.ClearErrorMessages();
             _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { Path.Combine(_testRepoPath, "x.cs") });
             Assert.IsTrue(
-                _fakeLogger.ErrorMessages.Exists(m => m.Item1.Contains("Error processing detected files")),
+                _fakeLogger.SnapshotErrorMessages().Exists(m => m.Item1.Contains("Error processing detected files")),
                 "Should log when getChangedFiles callback throws");
         }
 
@@ -265,7 +265,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task OnGitChangeListerFilesDetected_WhenExceptionThrown_LogsError()
         {
-            _fakeLogger.ErrorMessages.Clear();
+            _fakeLogger.ClearErrorMessages();
 
             var eventHandler = typeof(GitChangeObserverCore).GetMethod("OnGitChangeListerFilesDetected", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
@@ -281,11 +281,11 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsFalse(exceptionThrown, "Exception should be caught and logged, not thrown");
 
-            await WaitForConditionAsync(() => _fakeLogger.ErrorMessages.Count > 0, 2000);
+            await WaitForConditionAsync(() => _fakeLogger.SnapshotErrorMessages().Count > 0, 2000);
 
-            Assert.IsNotEmpty(_fakeLogger.ErrorMessages, "Should log error when exception is thrown");
+            Assert.IsNotEmpty(_fakeLogger.SnapshotErrorMessages(), "Should log error when exception is thrown");
             Assert.IsTrue(
-                _fakeLogger.ErrorMessages.Exists(msg => msg.Item1.Contains("Error processing detected files")),
+                _fakeLogger.SnapshotErrorMessages().Exists(msg => msg.Item1.Contains("Error processing detected files")),
                 "Error should mention error processing detected files");
         }
 
@@ -305,7 +305,7 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeSavedFilesTracker,
                 _fakeOpenFilesObserver,
                 getChangedFilesCallback: () => Task.FromCanceled<List<string>>(new CancellationToken(canceled: true)));
-            _fakeLogger.ErrorMessages.Clear();
+            _fakeLogger.ClearErrorMessages();
 
             var method = typeof(GitChangeObserverCore).GetMethod("ProcessDetectedFileQueueAsync", BindingFlags.NonPublic | BindingFlags.Instance);
             var task = (Task)method.Invoke(_gitChangeObserverCore, new object[] { Path.Combine(_testRepoPath, "cancelled.ts"), CancellationToken.None });
@@ -313,7 +313,7 @@ namespace Codescene.VSExtension.Core.Tests
             await task;
 
             Assert.IsFalse(
-                _fakeLogger.ErrorMessages.Exists(msg => msg.Item1.Contains("Error processing detected files")),
+                _fakeLogger.SnapshotErrorMessages().Exists(msg => msg.Item1.Contains("Error processing detected files")),
                 "Cancellation should be swallowed without error logs");
         }
 
@@ -344,7 +344,7 @@ namespace Codescene.VSExtension.Core.Tests
 
                     return Task.FromResult(new List<string> { existingFile });
                 });
-            _fakeLogger.WarnMessages.Clear();
+            _fakeLogger.ClearWarnMessages();
 
             _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { existingFile });
             var firstAttemptStarted = await WaitForConditionAsync(

@@ -244,11 +244,11 @@ namespace Codescene.VSExtension.Core.Tests
             _lister.Initialize(_testRepoPath, new[] { _testRepoPath });
             _lister.StartPeriodicScanning(CancellationToken.None);
 
-            _fakeLogger.WarnMessages.Clear();
+            _fakeLogger.ClearWarnMessages();
             _lister.StartPeriodicScanning(CancellationToken.None);
 
-            Assert.HasCount(1, _fakeLogger.WarnMessages, "Should log warning when already started");
-            Assert.IsTrue(_fakeLogger.WarnMessages.Any(m => m.Contains("already started")), "Warning should mention already started");
+            Assert.HasCount(1, _fakeLogger.SnapshotWarnMessages(), "Should log warning when already started");
+            Assert.IsTrue(_fakeLogger.SnapshotWarnMessages().Any(m => m.Contains("already started")), "Warning should mention already started");
         }
 
         [TestMethod]

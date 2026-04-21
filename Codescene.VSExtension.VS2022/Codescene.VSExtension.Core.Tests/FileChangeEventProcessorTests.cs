@@ -66,13 +66,13 @@ namespace Codescene.VSExtension.Core.Tests
                 processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "test.cs"));
                 processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
                 var deadline = DateTime.UtcNow.AddSeconds(5);
-                while (DateTime.UtcNow < deadline && !logger.WarnMessages.Any(IsExpectedWarning))
+                while (DateTime.UtcNow < deadline && !logger.SnapshotWarnMessages().Any(IsExpectedWarning))
                 {
                     await Task.Delay(50);
                 }
             }
 
-            Assert.IsTrue(logger.WarnMessages.Any(IsExpectedWarning), "Expected Warn for callback throw (ProcessOneEventAsync catch)");
+            Assert.IsTrue(logger.SnapshotWarnMessages().Any(IsExpectedWarning), "Expected Warn for callback throw (ProcessOneEventAsync catch)");
         }
 
         [TestMethod]

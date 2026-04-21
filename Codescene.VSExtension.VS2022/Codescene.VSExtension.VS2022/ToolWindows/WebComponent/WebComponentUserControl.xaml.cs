@@ -115,7 +115,7 @@ public partial class WebComponentUserControl : UserControl
             catch (Exception sendEx)
             {
                 _pendingMessage = messageString;
-                _logger.Warn($"WebView2 PostWebMessageAsJson failed; update queued for retry. {sendEx.Message}");
+                _logger.Error("WebView2 PostWebMessageAsJson failed; update queued for retry.", sendEx);
             }
         }
         catch (Exception e)

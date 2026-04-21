@@ -180,7 +180,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                     }
                     catch (Exception ex)
                     {
-                        _logger?.Error($"GitChangeObserver: Open document provider failed for {filePath}", ex);
+                        _logger?.Warn($"GitChangeObserver: Open document provider failed for {filePath}. {ex.Message}");
                     }
                 }
 

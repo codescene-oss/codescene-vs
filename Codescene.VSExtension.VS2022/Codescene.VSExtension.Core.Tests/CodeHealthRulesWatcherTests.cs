@@ -111,7 +111,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async System.Threading.Tasks.Task RulesFileChanged_ThrowingHandler_LogsWarningAndDoesNotCrash()
+        public async System.Threading.Tasks.Task RulesFileChanged_ThrowingHandler_LogsErrorAndDoesNotCrash()
         {
             using (var watcher = new CodeHealthRulesWatcher(_gitRootPath, _logger))
             {
