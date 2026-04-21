@@ -71,7 +71,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task GetDeviceIdAsync_WhenExceptionThrown_LogsWarningAndReturnsEmptyString()
+        public async Task GetDeviceIdAsync_WhenExceptionThrown_LogsErrorAndReturnsEmptyString()
         {
             // Arrange
             var expectedException = new Exception("CLI failed");
@@ -83,7 +83,9 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert
             Assert.AreEqual(string.Empty, result);
-            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Failed to fetch device ID"))), Times.Once);
+            _mockLogger.Verify(
+                l => l.Error(It.Is<string>(s => s.Contains("Failed to fetch device ID")), expectedException),
+                Times.Once);
         }
 
         [TestMethod]
