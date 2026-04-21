@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776755242410,
+  "lastUpdate": 1776755330317,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1594,6 +1594,54 @@ window.BENCHMARK_DATA = {
             "value": 19141.923800381748,
             "unit": "ns",
             "range": "± 467.99676615492524"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "188c35aaeebc759510c2bb247a1dd56e2a40eeee",
+          "message": "fix: solution switch error + improved error logs (#276)\n\n* fix: solution switch error + improved error logs\n\n* fix: align log severity with intent and harden FakeLogger for concurrency\n\nDowngrade the open-document provider fallback log to Warn, upgrade\nWebView2 and GitChangeLister collect catches to Error with full\nexception details, and rename tests to match their asserted level.\nMake FakeLogger message lists private with locked Snapshot/Clear\naccessors to prevent collection-modified races in background work.\n\nMade-with: Cursor\n\n* fix: assert error-level log in ProcessQueuedEvents callback throw test\n\n- Production FileChangeEventProcessor logs callback exceptions at Error\n  with the exception object; update the test to wait for and assert on\n  SnapshotErrorMessages instead of warnings. Rename LogsWarning to\n  LogsError.\n- Nit: capture SnapshotWarnMessages once in GitChangeListerTests when\n  asserting twice.\n\nCo-authored-by: Martin Säfsten <martin.safsten@codescene.com>\n\n* fix: update Warn-expecting tests to assert Error log for exception paths\n\nDeviceIdStore.GetDeviceIdAsync and GitIgnoreWatcher.OnGitIgnoreEvent now\nlog exceptions at Error with the exception object. Update their Moq\nverifications to match the new Error-level contract and rename the tests\nto reflect the actual log level.\n\nCo-authored-by: Martin Säfsten <martin.safsten@codescene.com>\n\n---------\n\nCo-authored-by: Cursor Agent <cursoragent@cursor.com>",
+          "timestamp": "2026-04-21T08:58:36+02:00",
+          "tree_id": "cded06b71c064efc5b0c17a331ea51e6da11b75e",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/188c35aaeebc759510c2bb247a1dd56e2a40eeee"
+        },
+        "date": 1776755328859,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 124949964.3478261,
+            "unit": "ns",
+            "range": "± 3149056.6525805877"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5322.15576171875,
+            "unit": "ns",
+            "range": "± 14.821159212319687"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 386545750,
+            "unit": "ns",
+            "range": "± 1830024.9802070512"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 19116.23134613037,
+            "unit": "ns",
+            "range": "± 372.47165906664276"
           }
         ]
       }
