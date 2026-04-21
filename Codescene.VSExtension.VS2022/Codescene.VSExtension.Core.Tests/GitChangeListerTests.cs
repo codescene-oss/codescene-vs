@@ -247,8 +247,9 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeLogger.ClearWarnMessages();
             _lister.StartPeriodicScanning(CancellationToken.None);
 
-            Assert.HasCount(1, _fakeLogger.SnapshotWarnMessages(), "Should log warning when already started");
-            Assert.IsTrue(_fakeLogger.SnapshotWarnMessages().Any(m => m.Contains("already started")), "Warning should mention already started");
+            var warnings = _fakeLogger.SnapshotWarnMessages();
+            Assert.HasCount(1, warnings, "Should log warning when already started");
+            Assert.IsTrue(warnings.Any(m => m.Contains("already started")), "Warning should mention already started");
         }
 
         [TestMethod]
