@@ -1,0 +1,14 @@
+CHANGELOG.md
+  h_0bea9e1dd5ef0d 8-12,234
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "536d18249891f014ff2ba42d20f838b23cc8d179",
+  "prompts": {},
+  "humans": {
+    "h_0bea9e1dd5ef0d": {
+      "author": "Martin Säfsten"
+    }
+  }
+}
