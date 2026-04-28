@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777365432015,
+  "lastUpdate": 1777365536456,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1894,6 +1894,54 @@ window.BENCHMARK_DATA = {
             "value": 19247.350856236048,
             "unit": "ns",
             "range": "± 269.8869825902305"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2ac8eb4355d8c296b4db4ce7aed19ec52004d5b6",
+          "message": "feat: add editor-version to telemetry payload (#277)\n\n* feat: add editor-version to telemetry payload\n\nReports the host Visual Studio version (e.g. 18.1.1) alongside\neditor-type so backend telemetry can segment by IDE release.\n\nMade-with: Cursor\n\n* fix: harden editor version telemetry\n\nAvoid caching missing VS editor versions and make telemetry tests deterministic.\n\nMade-with: Cursor",
+          "timestamp": "2026-04-28T10:28:39+02:00",
+          "tree_id": "9d32f422da640e3a7873b2182db8d8e7ffc3c881",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/2ac8eb4355d8c296b4db4ce7aed19ec52004d5b6"
+        },
+        "date": 1777365534398,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 120217614.28571428,
+            "unit": "ns",
+            "range": "± 3524508.4192648754"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5456.603139241536,
+            "unit": "ns",
+            "range": "± 37.45123458345966"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 376273207.6923077,
+            "unit": "ns",
+            "range": "± 2655304.001572933"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 19201.25223795573,
+            "unit": "ns",
+            "range": "± 186.82317363164293"
           }
         ]
       }
