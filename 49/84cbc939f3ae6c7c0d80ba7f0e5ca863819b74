@@ -1,0 +1,27 @@
+Codescene.VSExtension.VS2022/Codescene.VSExtension.Core.Tests/TelemetryManagerTests.cs
+  ccdadff84103d32b 118
+Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/Util/ExtensionMetadataProvider.cs
+  ccdadff84103d32b 32,49-54
+.cursor/rules/base-rule.mdc
+  ccdadff84103d32b 5,8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "4984cbc939f3ae6c7c0d80ba7f0e5ca863819b74",
+  "prompts": {
+    "ccdadff84103d32b": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "00397b82-2044-41e0-831f-398f01e0a79f",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Martin Säfsten",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 14,
+      "accepted_lines": 351,
+      "overriden_lines": 0
+    }
+  }
+}
