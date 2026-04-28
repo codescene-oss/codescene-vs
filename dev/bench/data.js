@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776852083590,
+  "lastUpdate": 1777365227130,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -500,6 +500,48 @@ window.BENCHMARK_DATA = {
             "value": 58974872.4014337,
             "unit": "ns",
             "range": "± 1594001.128983472"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2ac8eb4355d8c296b4db4ce7aed19ec52004d5b6",
+          "message": "feat: add editor-version to telemetry payload (#277)\n\n* feat: add editor-version to telemetry payload\n\nReports the host Visual Studio version (e.g. 18.1.1) alongside\neditor-type so backend telemetry can segment by IDE release.\n\nMade-with: Cursor\n\n* fix: harden editor version telemetry\n\nAvoid caching missing VS editor versions and make telemetry tests deterministic.\n\nMade-with: Cursor",
+          "timestamp": "2026-04-28T10:28:39+02:00",
+          "tree_id": "9d32f422da640e3a7873b2182db8d8e7ffc3c881",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/2ac8eb4355d8c296b4db4ce7aed19ec52004d5b6"
+        },
+        "date": 1777365223772,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 104589887.90697674,
+            "unit": "ns",
+            "range": "± 2293351.7078062613"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 93505859.375,
+            "unit": "ns",
+            "range": "± 2830516.0240150625"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 57172188.03418803,
+            "unit": "ns",
+            "range": "± 317376.9254172009"
           }
         ]
       }
