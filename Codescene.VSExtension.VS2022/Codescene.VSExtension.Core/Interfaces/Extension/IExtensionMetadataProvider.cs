@@ -11,5 +11,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Extension
         string GetDescription();
 
         string GetPublisher();
+
+        string GetEditorVersion();
     }
 }

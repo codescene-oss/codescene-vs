@@ -1,0 +1,13 @@
+---
+alwaysApply: true
+---
+
+Keep your answers short, precise and informative. Avoid unnecessary explanations and diagrams.
+
+Avoid writing unnecessary explanatory inline comments when writing code. 
+Only add comments for complex conditions that would warrant it. 
+Avoid adding regions to the code.
+
+Never reference the prompt conversation in comments, like "To match VS Code implementation".
+
+After completing changes to existing code, or created new files, run the tools in the CodeScene MCP to validate the quality of generated code

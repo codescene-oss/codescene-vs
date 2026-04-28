@@ -15,6 +15,9 @@ namespace Codescene.VSExtension.Core.Models.Cli.Telemetry
         [JsonProperty("editor-type", NullValueHandling = NullValueHandling.Ignore)]
         public string EditorType { get; set; }
 
+        [JsonProperty("editor-version", NullValueHandling = NullValueHandling.Ignore)]
+        public string EditorVersion { get; set; }
+
         [JsonProperty("extension-version", NullValueHandling = NullValueHandling.Ignore)]
         public string ExtensionVersion { get; set; }
 
@@ -36,6 +39,12 @@ namespace Codescene.VSExtension.Core.Models.Cli.Telemetry
         public TelemetryEvent WithEditorType(string editorType)
         {
             this.EditorType = editorType;
+            return this;
+        }
+
+        public TelemetryEvent WithEditorVersion(string editorVersion)
+        {
+            this.EditorVersion = editorVersion;
             return this;
         }
 
