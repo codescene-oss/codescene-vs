@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777365227130,
+  "lastUpdate": 1777365432015,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1260,6 +1260,66 @@ window.BENCHMARK_DATA = {
             "value": 266791307.14285713,
             "unit": "ns",
             "range": "± 4045696.0139928167"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2ac8eb4355d8c296b4db4ce7aed19ec52004d5b6",
+          "message": "feat: add editor-version to telemetry payload (#277)\n\n* feat: add editor-version to telemetry payload\n\nReports the host Visual Studio version (e.g. 18.1.1) alongside\neditor-type so backend telemetry can segment by IDE release.\n\nMade-with: Cursor\n\n* fix: harden editor version telemetry\n\nAvoid caching missing VS editor versions and make telemetry tests deterministic.\n\nMade-with: Cursor",
+          "timestamp": "2026-04-28T10:28:39+02:00",
+          "tree_id": "9d32f422da640e3a7873b2182db8d8e7ffc3c881",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/2ac8eb4355d8c296b4db4ce7aed19ec52004d5b6"
+        },
+        "date": 1777365430274,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 118917180,
+            "unit": "ns",
+            "range": "± 650184.8420769795"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 111136561.33333333,
+            "unit": "ns",
+            "range": "± 800361.2220372452"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 227062024.44444448,
+            "unit": "ns",
+            "range": "± 1871933.304268512"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 203577890.47619048,
+            "unit": "ns",
+            "range": "± 2163914.343867299"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 333910494.11764705,
+            "unit": "ns",
+            "range": "± 10653490.267959595"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 269448326.6666667,
+            "unit": "ns",
+            "range": "± 2125563.38303743"
           }
         ]
       }
