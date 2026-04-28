@@ -38,17 +38,13 @@ namespace Codescene.VSExtension.Core.Tests
                 _mockMetadataProvider.Object);
 
             ErrorTelemetryUtils.ResetErrorCount();
-#if DEBUG
             TelemetryUtils.TelemetryEnabledOverrideForTests = true;
-#endif
         }
 
         [TestCleanup]
         public void TearDown()
         {
-#if DEBUG
             TelemetryUtils.TelemetryEnabledOverrideForTests = null;
-#endif
         }
 
 #if DEBUG
@@ -119,6 +115,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var eventName = "test-event";
             string capturedCommand = null;
+            TelemetryUtils.TelemetryEnabledOverrideForTests = true;
             _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
             _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
             _mockMetadataProvider.Setup(x => x.GetEditorVersion()).Returns("18.1.1");

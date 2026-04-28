@@ -29,7 +29,7 @@ public class VsExtensionMetadataProvider : IExtensionMetadataProvider
             return _cachedEditorVersion;
         }
 
-        _cachedEditorVersion = ThreadHelper.JoinableTaskFactory.Run(async () =>
+        var editorVersion = ThreadHelper.JoinableTaskFactory.Run(async () =>
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -46,7 +46,12 @@ public class VsExtensionMetadataProvider : IExtensionMetadataProvider
             return TrimToThreeParts(raw as string ?? string.Empty);
         });
 
-        return _cachedEditorVersion;
+        if (!string.IsNullOrEmpty(editorVersion))
+        {
+            _cachedEditorVersion = editorVersion;
+        }
+
+        return editorVersion;
     }
 
     private static string TrimToThreeParts(string version)

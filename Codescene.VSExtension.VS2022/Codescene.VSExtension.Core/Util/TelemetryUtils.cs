@@ -12,7 +12,6 @@ namespace Codescene.VSExtension.Core.Util
 {
     public static class TelemetryUtils
     {
-#if DEBUG
         private static bool? _telemetryEnabledOverrideForTests;
 
         internal static bool? TelemetryEnabledOverrideForTests
@@ -20,7 +19,6 @@ namespace Codescene.VSExtension.Core.Util
             get => _telemetryEnabledOverrideForTests;
             set => _telemetryEnabledOverrideForTests = value;
         }
-#endif
 
         public static string GetTelemetryEventJson(string eventName, string deviceId, string version, string editorVersion = null, Dictionary<string, object> additionalEventData = null)
         {
@@ -58,12 +56,10 @@ namespace Codescene.VSExtension.Core.Util
         /// <returns>True if telemetry is enabled (opted in); otherwise, false.</returns>
         public static bool IsTelemetryEnabled(ILogger logger = null)
         {
-#if DEBUG
             if (_telemetryEnabledOverrideForTests.HasValue)
             {
                 return _telemetryEnabledOverrideForTests.Value;
             }
-#endif
 
             try
             {

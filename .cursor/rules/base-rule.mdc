@@ -2,10 +2,10 @@
 alwaysApply: true
 ---
 
-Keep your answers short, precise and informative. Avoid uneccesary explanations and diagrams.
+Keep your answers short, precise and informative. Avoid unnecessary explanations and diagrams.
 
 Avoid writing unnecessary explanatory inline comments when writing code. 
-Only add comments for complex confitions that would warrant it. 
+Only add comments for complex conditions that would warrant it. 
 Avoid adding regions to the code.
 
 Never reference the prompt conversation in comments, like "To match VS Code implementation".
