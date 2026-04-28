@@ -330,6 +330,17 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void TelemetryEvent_WithEditorVersion_SetsEditorVersionAndReturnsSelf()
+        {
+            var telemetryEvent = new TelemetryEvent();
+
+            var result = telemetryEvent.WithEditorVersion("18.1.1");
+
+            Assert.AreSame(telemetryEvent, result);
+            Assert.AreEqual("18.1.1", telemetryEvent.EditorVersion);
+        }
+
+        [TestMethod]
         public void TelemetryEvent_WithInternal_SetsInternalAndReturnsSelf()
         {
             var telemetryEvent = new TelemetryEvent();
@@ -347,12 +358,14 @@ namespace Codescene.VSExtension.Core.Tests
                 .WithEventName("code-review")
                 .WithUserId("user-456")
                 .WithEditorType("vs2022")
+                .WithEditorVersion("18.1.1")
                 .WithExtensionVersion("2.0.0")
                 .WithInternal(false);
 
             Assert.AreEqual("code-review", telemetryEvent.EventName);
             Assert.AreEqual("user-456", telemetryEvent.UserId);
             Assert.AreEqual("vs2022", telemetryEvent.EditorType);
+            Assert.AreEqual("18.1.1", telemetryEvent.EditorVersion);
             Assert.AreEqual("2.0.0", telemetryEvent.ExtensionVersion);
             Assert.IsFalse(telemetryEvent.Internal);
         }
@@ -365,13 +378,14 @@ namespace Codescene.VSExtension.Core.Tests
                 EventName = "test",
                 UserId = "user",
                 EditorType = "editor",
+                EditorVersion = "18.1.1",
                 ExtensionVersion = "1.0",
                 Internal = true,
             };
 
             var json = JsonConvert.SerializeObject(telemetryEvent);
 
-            AssertJsonContainsProperties(json, "event-name", "user-id", "editor-type", "extension-version", "internal");
+            AssertJsonContainsProperties(json, "event-name", "user-id", "editor-type", "editor-version", "extension-version", "internal");
         }
 
         [TestMethod]
@@ -384,6 +398,7 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.Contains("\"event-name\"", json);
             Assert.DoesNotContain("\"user-id\"", json);
             Assert.DoesNotContain("\"editor-type\"", json);
+            Assert.DoesNotContain("\"editor-version\"", json);
             Assert.DoesNotContain("\"extension-version\"", json);
             Assert.DoesNotContain("\"internal\"", json);
         }
@@ -395,6 +410,7 @@ namespace Codescene.VSExtension.Core.Tests
                 ""event-name"": ""refactor"",
                 ""user-id"": ""abc123"",
                 ""editor-type"": ""vs2022"",
+                ""editor-version"": ""18.1.1"",
                 ""extension-version"": ""3.0.0"",
                 ""internal"": true
             }";
@@ -404,6 +420,7 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual("refactor", result.EventName);
             Assert.AreEqual("abc123", result.UserId);
             Assert.AreEqual("vs2022", result.EditorType);
+            Assert.AreEqual("18.1.1", result.EditorVersion);
             Assert.AreEqual("3.0.0", result.ExtensionVersion);
             Assert.IsTrue(result.Internal);
         }

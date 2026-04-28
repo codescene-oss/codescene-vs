@@ -22,12 +22,13 @@ namespace Codescene.VSExtension.Core.Util
         }
 #endif
 
-        public static string GetTelemetryEventJson(string eventName, string deviceId, string version, Dictionary<string, object> additionalEventData = null)
+        public static string GetTelemetryEventJson(string eventName, string deviceId, string version, string editorVersion = null, Dictionary<string, object> additionalEventData = null)
         {
             var telemetryEvent = new TelemetryEvent
             {
                 UserId = deviceId,
                 EditorType = Constants.Telemetry.SOURCEIDE,
+                EditorVersion = editorVersion,
                 EventName = $"{Constants.Telemetry.SOURCEIDE}/{eventName}",
                 ExtensionVersion = version,
             };

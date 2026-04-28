@@ -11,12 +11,13 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void GetTelemetryEventJson_ReturnsValidJsonWithExpectedFields()
         {
-            var json = TelemetryUtils.GetTelemetryEventJson("test-event", "device-123", "1.0.0");
+            var json = TelemetryUtils.GetTelemetryEventJson("test-event", "device-123", "1.0.0", "18.1.1");
             var obj = JObject.Parse(json);
 
             Assert.AreEqual("vs/test-event", obj["event-name"]?.ToString());
             Assert.AreEqual("device-123", obj["user-id"]?.ToString());
             Assert.AreEqual("vs", obj["editor-type"]?.ToString());
+            Assert.AreEqual("18.1.1", obj["editor-version"]?.ToString());
             Assert.AreEqual("1.0.0", obj["extension-version"]?.ToString());
         }
 
@@ -29,12 +30,22 @@ namespace Codescene.VSExtension.Core.Tests
                 { "count", 42 },
             };
 
-            var json = TelemetryUtils.GetTelemetryEventJson("test-event", "device-123", "1.0.0", additionalData);
+            var json = TelemetryUtils.GetTelemetryEventJson("test-event", "device-123", "1.0.0", "18.1.1", additionalData);
             var obj = JObject.Parse(json);
 
             Assert.AreEqual("custom-value", obj["custom-key"]?.ToString());
             Assert.AreEqual(42, obj["count"]?.Value<int>());
             Assert.AreEqual("vs/test-event", obj["event-name"]?.ToString());
+            Assert.AreEqual("18.1.1", obj["editor-version"]?.ToString());
+        }
+
+        [TestMethod]
+        public void GetTelemetryEventJson_OmitsEditorVersion_WhenNull()
+        {
+            var json = TelemetryUtils.GetTelemetryEventJson("test-event", "device-123", "1.0.0");
+            var obj = JObject.Parse(json);
+
+            Assert.IsNull(obj["editor-version"]);
         }
     }
 }

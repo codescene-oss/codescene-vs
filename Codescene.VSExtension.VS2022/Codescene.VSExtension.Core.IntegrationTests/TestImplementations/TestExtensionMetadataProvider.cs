@@ -19,5 +19,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
         public string GetPublisher() => Mock.Object.GetPublisher();
 
         public string GetVersion() => Mock.Object.GetVersion();
+
+        public string GetEditorVersion() => Mock.Object.GetEditorVersion();
     }
 }

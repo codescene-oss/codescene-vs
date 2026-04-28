@@ -61,6 +61,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
                     eventName,
                     await _deviceIdStore.GetDeviceIdAsync(cancellationToken),
                     _extensionMetadataProvider.GetVersion(),
+                    _extensionMetadataProvider.GetEditorVersion(),
                     additionalEventData);
                 var arguments = _cliCommandProvider.SendTelemetryCommand(eventJson);
                 await _executor.ExecuteAsync(arguments, null, Constants.Timeout.TELEMETRYTIMEOUT, cancellationToken);

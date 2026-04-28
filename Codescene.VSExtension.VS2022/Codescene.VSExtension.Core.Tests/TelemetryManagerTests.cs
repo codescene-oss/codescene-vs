@@ -28,6 +28,7 @@ namespace Codescene.VSExtension.Core.Tests
             _mockDeviceIdStore = new Mock<IDeviceIdStore>();
             _mockCommandProvider = new Mock<ICliCommandProvider>();
             _mockMetadataProvider = new Mock<IExtensionMetadataProvider>();
+            _mockMetadataProvider.Setup(x => x.GetEditorVersion()).Returns("18.1.1");
 
             _telemetryManager = new TelemetryManager(
                 _mockLogger.Object,
@@ -111,6 +112,26 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert - device ID store should be called (if telemetry is enabled)
             // Note: This verification depends on TelemetryUtils.IsTelemetryEnabled() returning true
+        }
+
+        [TestMethod]
+        public async Task SendTelemetryAsync_IncludesEditorVersionInPayload()
+        {
+            var eventName = "test-event";
+            string capturedCommand = null;
+            _mockDeviceIdStore.Setup(x => x.GetDeviceIdAsync()).ReturnsAsync("device-123");
+            _mockMetadataProvider.Setup(x => x.GetVersion()).Returns("1.0.0");
+            _mockMetadataProvider.Setup(x => x.GetEditorVersion()).Returns("18.1.1");
+            _mockCommandProvider.Setup(x => x.SendTelemetryCommand(It.IsAny<string>()))
+                .Callback<string>(json => capturedCommand = json)
+                .Returns("cmd");
+            _mockExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>()))
+                .ReturnsAsync("ok");
+
+            await _telemetryManager.SendTelemetryAsync(eventName);
+
+            Assert.IsNotNull(capturedCommand);
+            Assert.Contains("\"editor-version\":\"18.1.1\"", capturedCommand);
         }
 
         [TestMethod]
