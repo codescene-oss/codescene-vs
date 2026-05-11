@@ -1,0 +1,20 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "665f55f38444b360f7dd2f6435ac7227617a70d3",
+  "prompts": {
+    "82a7c0480657b49e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "1e940689-b920-47ce-b347-dd30cf3eb479",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Martin Säfsten <martin.safsten@codescene.com>",
+      "total_additions": 76,
+      "total_deletions": 8,
+      "accepted_lines": 816,
+      "overriden_lines": 5
+    }
+  }
+}
