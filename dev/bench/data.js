@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777365536456,
+  "lastUpdate": 1778576213538,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -542,6 +542,48 @@ window.BENCHMARK_DATA = {
             "value": 57172188.03418803,
             "unit": "ns",
             "range": "± 317376.9254172009"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "99a056c84dba2224f6b106803105c07bf893f11b",
+          "message": "Delete .github/workflows/git-ai.yaml",
+          "timestamp": "2026-05-12T10:51:46+02:00",
+          "tree_id": "94f9e475445cbcd06f169b636f43d1314579ffdf",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/99a056c84dba2224f6b106803105c07bf893f11b"
+        },
+        "date": 1778576210504,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 110729805.30612245,
+            "unit": "ns",
+            "range": "± 4376552.633757105"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 95124467.77777778,
+            "unit": "ns",
+            "range": "± 458446.8957782104"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 60320102.380952395,
+            "unit": "ns",
+            "range": "± 396053.93294368865"
           }
         ]
       }
