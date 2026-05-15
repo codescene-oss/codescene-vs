@@ -96,6 +96,19 @@ namespace Codescene.VSExtension.Core.Application.Git
                 .Select(b => b.FriendlyName)
                 .ToList();
 
+            var defaultBranch = MainBranchNames.GetDefaultBranch(repo);
+            if (!string.IsNullOrEmpty(defaultBranch))
+            {
+                var singleCandidate = new List<string> { defaultBranch };
+                if (_mainBranchCandidatesCache == null)
+                {
+                    _mainBranchCandidatesCache = new Dictionary<string, List<string>>();
+                }
+
+                _mainBranchCandidatesCache[gitRoot] = singleCandidate;
+                return singleCandidate;
+            }
+
             var candidates = MainBranchNames.All
                 .Where(name => localBranches.Contains(name))
                 .ToList();
@@ -176,7 +189,8 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         protected virtual Commit TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
         {
-            var mainBranch = repo.Branches[candidateName];
+            var mainBranch = repo.Branches[candidateName]
+                          ?? repo.Branches[$"origin/{candidateName}"];
             if (!IsValidBranch(mainBranch))
             {
                 return null;

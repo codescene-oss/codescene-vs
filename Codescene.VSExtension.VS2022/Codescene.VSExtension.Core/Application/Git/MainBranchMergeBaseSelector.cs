@@ -38,6 +38,16 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             var mergeBases = new Dictionary<string, Commit>(StringComparer.OrdinalIgnoreCase);
 
+            var defaultBranch = MainBranchNames.GetDefaultBranch(repo);
+            if (!string.IsNullOrEmpty(defaultBranch))
+            {
+                TryAddCandidate(repo, currentBranch, defaultBranch, mergeBases, logger);
+                if (mergeBases.Count > 0)
+                {
+                    return mergeBases;
+                }
+            }
+
             foreach (var mainBranchName in MainBranchNames.All)
             {
                 TryAddCandidate(repo, currentBranch, mainBranchName, mergeBases, logger);

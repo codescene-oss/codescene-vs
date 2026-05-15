@@ -383,7 +383,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             var mergeBase = _mergeBaseFinder.GetMergeBaseCommit(repo);
             if (mergeBase == null)
             {
-                if (repo.Head != null && !_mergeBaseFinder.IsMainBranch(repo.Head.FriendlyName))
+                if (repo.Head != null && !_mergeBaseFinder.IsMainBranch(repo, repo.Head.FriendlyName))
                 {
                     _logger?.Warn("GitChangeLister: On non-main branch but can't determine merge-base");
                 }

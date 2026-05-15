@@ -169,5 +169,71 @@ namespace Codescene.VSExtension.Core.Tests
                 secondCall,
                 "Subsequent calls should return cached candidates");
         }
+
+        [TestMethod]
+        public void GetMainBranchCandidates_TrustsDefaultBranch_WithoutLocalBranch()
+        {
+            ExecGit("remote add origin https://github.com/test/repo.git");
+            ExecGit("config remote.origin.fetch +refs/heads/*:refs/remotes/origin/*");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+            }
+
+            ExecGit("remote set-head origin main");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-xyz");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+
+            ExecGit("branch -D master");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var detector = new GitChangeDetector(_fakeLogger, _fakeSupportedFileChecker, _fakeGitService);
+                var candidates = detector.GetMainBranchCandidates(repo);
+
+                Assert.HasCount(1, candidates, "Should return exactly one candidate");
+                Assert.AreEqual("main", candidates[0], "Should trust origin/HEAD resolved branch even without local branch");
+            }
+        }
+
+        [TestMethod]
+        public async Task GetChangedFilesVsBaseline_FallsBackToRemoteBranch()
+        {
+            ExecGit("remote add origin https://github.com/test/repo.git");
+            ExecGit("config remote.origin.fetch +refs/heads/*:refs/remotes/origin/*");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+            }
+
+            ExecGit("remote set-head origin main");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-xyz");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+
+            ExecGit("branch -D master");
+
+            CommitFile("test.cs", "public class Test {}", "Add test file");
+
+            var changedFiles = await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath,
+                new[] { _testRepoPath },
+                _fakeSavedFilesTracker,
+                _fakeOpenFilesObserver);
+
+            Assert.Contains(
+                "test.cs",
+                changedFiles,
+                "Should detect changed file using remote branch as baseline");
+        }
     }
 }
