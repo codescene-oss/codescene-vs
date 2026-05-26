@@ -17,6 +17,12 @@ namespace Codescene.VSExtension.Core.Application.Cli
     {
         private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Include };
 
+        private static readonly JsonSerializerSettings RefactorPostSerializerSettings = new JsonSerializerSettings
+        {
+            DefaultValueHandling = DefaultValueHandling.Include,
+            NullValueHandling = NullValueHandling.Ignore,
+        };
+
         private readonly ICliObjectScoreCreator _creator;
 
         [ImportingConstructor]
@@ -30,6 +36,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
         public string DeviceIdCommand => "telemetry --device-id";
 
         public string RefactorCommand => "run-command fns-to-refactor";
+
+        public string RefactorPostCommand => "run-command refactor";
 
         public string ReviewFileContentCommand => "run-command review";
 
@@ -53,28 +61,28 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return SerializeRefactorRequest(request, fileName, fileContent, cachePath, preflight);
         }
 
-        public string GetRefactorPostCommand(FnToRefactorModel fnToRefactor, bool skipCache, string token = null)
+        public string GetRefactorPostPayload(FnToRefactorModel fnToRefactor, bool skipCache, string token)
         {
-            var args = new List<string> { "refactor", "post" };
+            var request = new RefactorPostRequestModel
+            {
+                Token = token,
+            };
+
             if (skipCache)
             {
-                args.Add("--skip-cache");
-            }
-
-            if (!string.IsNullOrWhiteSpace(token))
-            {
-                args.Add("--token");
-                args.Add(token);
+                request.SkipCache = true;
             }
 
             if (!string.IsNullOrEmpty(fnToRefactor.NippyB64))
             {
-                args.Add("--fn-to-refactor-nippy-b64");
-                args.Add(fnToRefactor.NippyB64);
+                request.FnToRefactorNippyB64 = fnToRefactor.NippyB64;
+            }
+            else
+            {
+                request.FnToRefactor = fnToRefactor;
             }
 
-            var command = GetArgumentStr(args.ToArray());
-            return command;
+            return JsonConvert.SerializeObject(request, RefactorPostSerializerSettings);
         }
 
         public string GetReviewFileContentPayload(string filePath, string fileContent, string cachePath)

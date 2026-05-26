@@ -55,8 +55,9 @@ namespace Codescene.VSExtension.Core.Tests
             var jsonResponse = JsonConvert.SerializeObject(expectedResponse);
             var token = "test-token";
             _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
-            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(fnToRefactor, false, token)).Returns("refactor post command");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("refactor post command", It.IsAny<string>(), null, default, It.IsAny<string>())).ReturnsAsync(jsonResponse);
+            _mockCommandProvider.Setup(x => x.RefactorPostCommand).Returns("run-command refactor");
+            _mockCommandProvider.Setup(x => x.GetRefactorPostPayload(fnToRefactor, false, token)).Returns("{\"token\":\"test-token\"}");
+            _mockProcessExecutor.Setup(x => x.ExecuteAsync("run-command refactor", It.IsAny<string>(), null, default, It.IsAny<string>())).ReturnsAsync(jsonResponse);
 
             var result = await _cliExecutor.PostRefactoringAsync(fnToRefactor, skipCache: false);
 
@@ -87,13 +88,15 @@ namespace Codescene.VSExtension.Core.Tests
             var providedToken = "provided-token";
             var response = new RefactorResponseModel { Code = "refactored" };
             var jsonResponse = JsonConvert.SerializeObject(response);
-            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(fnToRefactor, false, providedToken)).Returns("refactor post");
+            _mockCommandProvider.Setup(x => x.RefactorPostCommand).Returns("run-command refactor");
+            _mockCommandProvider.Setup(x => x.GetRefactorPostPayload(fnToRefactor, false, providedToken)).Returns("{\"token\":\"provided-token\"}");
             _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>())).ReturnsAsync(jsonResponse);
 
             var result = await _cliExecutor.PostRefactoringAsync(fnToRefactor, skipCache: false, token: providedToken);
 
             Assert.IsNotNull(result);
-            _mockCommandProvider.Verify(x => x.GetRefactorPostCommand(fnToRefactor, false, providedToken), Times.Once);
+            _mockCommandProvider.Verify(x => x.GetRefactorPostPayload(fnToRefactor, false, providedToken), Times.Once);
+            _mockProcessExecutor.Verify(x => x.ExecuteAsync("run-command refactor", It.IsAny<string>(), null, It.IsAny<CancellationToken>(), It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
@@ -101,7 +104,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var fnToRefactor = new FnToRefactorModel { Name = "Test" };
             _mockSettingsProvider.Setup(x => x.AuthToken).Returns("test-token");
-            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>())).Returns(string.Empty);
+            _mockCommandProvider.Setup(x => x.RefactorPostCommand).Returns(string.Empty);
 
             var result = await _cliExecutor.PostRefactoringAsync(fnToRefactor);
 
@@ -114,7 +117,8 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var fnToRefactor = new FnToRefactorModel { Name = "Test" };
             _mockSettingsProvider.Setup(x => x.AuthToken).Returns("test-token");
-            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>())).Returns("refactor post");
+            _mockCommandProvider.Setup(x => x.RefactorPostCommand).Returns("run-command refactor");
+            _mockCommandProvider.Setup(x => x.GetRefactorPostPayload(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>())).Returns("{\"token\":\"test-token\"}");
             _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>())).ThrowsAsync(new Exception("Error"));
 
             var result = await _cliExecutor.PostRefactoringAsync(fnToRefactor);
@@ -131,13 +135,14 @@ namespace Codescene.VSExtension.Core.Tests
             var response = new RefactorResponseModel { Code = "refactored" };
             var jsonResponse = JsonConvert.SerializeObject(response);
             _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
-            _mockCommandProvider.Setup(x => x.GetRefactorPostCommand(fnToRefactor, true, token)).Returns("refactor post --skip-cache");
+            _mockCommandProvider.Setup(x => x.RefactorPostCommand).Returns("run-command refactor");
+            _mockCommandProvider.Setup(x => x.GetRefactorPostPayload(fnToRefactor, true, token)).Returns("{\"token\":\"test-token\",\"skip-cache\":true}");
             _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>())).ReturnsAsync(jsonResponse);
 
             var result = await _cliExecutor.PostRefactoringAsync(fnToRefactor, skipCache: true);
 
             Assert.IsNotNull(result);
-            _mockCommandProvider.Verify(x => x.GetRefactorPostCommand(fnToRefactor, true, token), Times.Once);
+            _mockCommandProvider.Verify(x => x.GetRefactorPostPayload(fnToRefactor, true, token), Times.Once);
         }
 
         [TestMethod]
