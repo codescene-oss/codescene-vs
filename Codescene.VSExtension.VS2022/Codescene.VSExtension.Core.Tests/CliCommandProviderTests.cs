@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System;
 using System.Globalization;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
@@ -146,6 +147,24 @@ namespace Codescene.VSExtension.Core.Tests
         public void RefactorPostCommand_ReturnsRunCommandRefactor()
         {
             Assert.AreEqual("run-command refactor", _commandProvider.RefactorPostCommand);
+        }
+
+        [TestMethod]
+        public void GetRefactorPostPayload_WithNullFnToRefactor_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                _commandProvider.GetRefactorPostPayload(null, skipCache: false, token: "token"));
+        }
+
+        [TestMethod]
+        public void GetRefactorPostPayload_WithNullOrEmptyToken_Throws()
+        {
+            var fnToRefactor = CreateFnToRefactor();
+
+            Assert.Throws<ArgumentNullException>(() =>
+                _commandProvider.GetRefactorPostPayload(fnToRefactor, skipCache: false, token: null));
+            Assert.Throws<ArgumentException>(() =>
+                _commandProvider.GetRefactorPostPayload(fnToRefactor, skipCache: false, token: string.Empty));
         }
 
         [TestMethod]

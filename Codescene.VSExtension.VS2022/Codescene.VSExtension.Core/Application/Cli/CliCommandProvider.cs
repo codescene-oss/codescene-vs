@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Text;
@@ -63,6 +64,21 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public string GetRefactorPostPayload(FnToRefactorModel fnToRefactor, bool skipCache, string token)
         {
+            if (fnToRefactor == null)
+            {
+                throw new ArgumentNullException(nameof(fnToRefactor));
+            }
+
+            if (token == null)
+            {
+                throw new ArgumentNullException(nameof(token));
+            }
+
+            if (token.Length == 0)
+            {
+                throw new ArgumentException("Token must not be empty.", nameof(token));
+            }
+
             var request = new RefactorPostRequestModel
             {
                 Token = token,
