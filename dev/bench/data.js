@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779801971174,
+  "lastUpdate": 1779802091406,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1770,6 +1770,66 @@ window.BENCHMARK_DATA = {
             "value": 300091896.15384614,
             "unit": "ns",
             "range": "± 2764197.4484364004"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7218a11f0d26e103bf909210b2ae693ac55dd1db",
+          "message": "fix: Anchor external navigation to HTTPS host allowlist (#282)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-26T15:20:35+02:00",
+          "tree_id": "e8619014a8ec0b840d847d40591ccc184545ec1d",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/7218a11f0d26e103bf909210b2ae693ac55dd1db"
+        },
+        "date": 1779802089282,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 123355521.66666667,
+            "unit": "ns",
+            "range": "± 1510186.6282157535"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 116016290.66666667,
+            "unit": "ns",
+            "range": "± 1857077.9885133936"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 245582050.98039213,
+            "unit": "ns",
+            "range": "± 4880459.818701591"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 214004524.44444448,
+            "unit": "ns",
+            "range": "± 2841846.7327802433"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 340325650,
+            "unit": "ns",
+            "range": "± 4494715.017191772"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 286777956.6666667,
+            "unit": "ns",
+            "range": "± 4653799.255019903"
           }
         ]
       }
