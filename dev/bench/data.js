@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779801716233,
+  "lastUpdate": 1779801889002,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1668,6 +1668,66 @@ window.BENCHMARK_DATA = {
             "value": 264162953.57142857,
             "unit": "ns",
             "range": "± 1194831.6908290223"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c25b6e60972389c8d973b1dc350d8059f61a673f",
+          "message": "CS-11167: DPAPI-encrypt auth token in VS settings (#283)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-26T15:17:26+02:00",
+          "tree_id": "4405a1abf68bdd0260ae486eef56a11429ca9da8",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/c25b6e60972389c8d973b1dc350d8059f61a673f"
+        },
+        "date": 1779801887480,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 126546588.46153846,
+            "unit": "ns",
+            "range": "± 372956.57164733787"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 116814214.66666667,
+            "unit": "ns",
+            "range": "± 1496867.842290631"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 239779764.44444445,
+            "unit": "ns",
+            "range": "± 1639618.5038506107"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 215199485.7142857,
+            "unit": "ns",
+            "range": "± 2502310.917870669"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 337974253.3333333,
+            "unit": "ns",
+            "range": "± 2580340.553898892"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 300091896.15384614,
+            "unit": "ns",
+            "range": "± 2764197.4484364004"
           }
         ]
       }
