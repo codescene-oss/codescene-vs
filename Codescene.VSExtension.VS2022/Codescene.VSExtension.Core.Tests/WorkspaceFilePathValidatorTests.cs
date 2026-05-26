@@ -34,6 +34,30 @@ public class WorkspaceFilePathValidatorTests
     }
 
     [TestMethod]
+    public void HasUnsafePathSyntax_Null_ReturnsTrue()
+    {
+        Assert.IsTrue(WorkspaceFilePathValidator.HasUnsafePathSyntax(null));
+    }
+
+    [TestMethod]
+    public void HasUnsafePathSyntax_Whitespace_ReturnsTrue()
+    {
+        Assert.IsTrue(WorkspaceFilePathValidator.HasUnsafePathSyntax("   "));
+    }
+
+    [TestMethod]
+    public void HasUnsafePathSyntax_InvalidPathChar_ReturnsTrue()
+    {
+        Assert.IsTrue(WorkspaceFilePathValidator.HasUnsafePathSyntax("bad\0path.cs"));
+    }
+
+    [TestMethod]
+    public void HasUnsafePathSyntax_Wildcard_ReturnsTrue()
+    {
+        Assert.IsTrue(WorkspaceFilePathValidator.HasUnsafePathSyntax(@"C:\repo\*.cs"));
+    }
+
+    [TestMethod]
     public void HasUnsafePathSyntax_ParentTraversal_ReturnsTrue()
     {
         Assert.IsTrue(WorkspaceFilePathValidator.HasUnsafePathSyntax(@"C:\repo\..\secret.cs"));
@@ -96,5 +120,49 @@ public class WorkspaceFilePathValidatorTests
         Assert.IsTrue(WorkspaceFilePathValidator.IsAllowedWorkspaceFilePath(
             "src" + Path.DirectorySeparatorChar + "file.cs",
             new[] { _workspaceDir }));
+    }
+
+    [TestMethod]
+    public void IsAllowedWorkspaceFilePath_EmptyRootSkipped_RelativePathStillAllowed()
+    {
+        var subDir = Path.Combine(_workspaceDir, "src");
+        Directory.CreateDirectory(subDir);
+        var filePath = Path.Combine(subDir, "file.cs");
+        File.WriteAllText(filePath, "x");
+        Assert.IsTrue(WorkspaceFilePathValidator.IsAllowedWorkspaceFilePath(
+            "src" + Path.DirectorySeparatorChar + "file.cs",
+            new[] { string.Empty, _workspaceDir }));
+    }
+
+    [TestMethod]
+    public void IsAllowedWorkspaceFilePath_UnsafeRelativePath_ReturnsFalse()
+    {
+        Assert.IsFalse(WorkspaceFilePathValidator.IsAllowedWorkspaceFilePath(
+            "bad\0file.cs",
+            new[] { _workspaceDir }));
+    }
+
+    [TestMethod]
+    public void IsAllowedWorkspaceFilePath_InvalidRootPath_ReturnsFalse()
+    {
+        var invalidRoot = _workspaceDir + Path.DirectorySeparatorChar + "a|b";
+        Assert.IsFalse(WorkspaceFilePathValidator.IsAllowedWorkspaceFilePath(
+            "file.cs",
+            new[] { invalidRoot }));
+    }
+
+    [TestMethod]
+    public void IsAllowedWorkspaceFilePath_OnlyEmptyRoots_ReturnsFalse()
+    {
+        Assert.IsFalse(WorkspaceFilePathValidator.IsAllowedWorkspaceFilePath(
+            "file.cs",
+            new[] { string.Empty }));
+    }
+
+    [TestMethod]
+    public void IsAllowedWorkspaceFilePath_EmptyRoots_ReturnsFalse()
+    {
+        var filePath = Path.Combine(_workspaceDir, "file.cs");
+        Assert.IsFalse(WorkspaceFilePathValidator.IsAllowedWorkspaceFilePath(filePath, Array.Empty<string>()));
     }
 }
