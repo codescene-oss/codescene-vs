@@ -51,7 +51,7 @@ public static class WorkspaceFilePathValidator
 
     public static bool IsAllowedWorkspaceFilePath(string filePath, IReadOnlyCollection<string> workspaceRoots)
     {
-        if (HasUnsafePathSyntax(filePath) || workspaceRoots == null || workspaceRoots.Count == 0)
+        if (!HasWorkspaceRootsForValidation(filePath, workspaceRoots))
         {
             return false;
         }
@@ -61,6 +61,21 @@ public static class WorkspaceFilePathValidator
             return GitPathHelper.IsPathUnderAnyRoot(filePath, workspaceRoots);
         }
 
+        return IsRelativePathUnderAnyRoot(filePath, workspaceRoots);
+    }
+
+    private static bool HasWorkspaceRootsForValidation(string filePath, IReadOnlyCollection<string> workspaceRoots)
+    {
+        if (HasUnsafePathSyntax(filePath))
+        {
+            return false;
+        }
+
+        return workspaceRoots != null && workspaceRoots.Count > 0;
+    }
+
+    private static bool IsRelativePathUnderAnyRoot(string filePath, IReadOnlyCollection<string> workspaceRoots)
+    {
         foreach (var root in workspaceRoots)
         {
             if (string.IsNullOrEmpty(root))
@@ -68,16 +83,19 @@ public static class WorkspaceFilePathValidator
                 continue;
             }
 
+            string absolutePath;
             try
             {
-                var absolutePath = Path.GetFullPath(Path.Combine(root, filePath));
-                if (GitPathHelper.IsPathUnderAnyRoot(absolutePath, workspaceRoots))
-                {
-                    return true;
-                }
+                absolutePath = Path.GetFullPath(Path.Combine(root, filePath));
             }
             catch
             {
+                continue;
+            }
+
+            if (GitPathHelper.IsPathUnderAnyRoot(absolutePath, workspaceRoots))
+            {
+                return true;
             }
         }
 
