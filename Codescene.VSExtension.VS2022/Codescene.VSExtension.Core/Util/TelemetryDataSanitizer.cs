@@ -54,19 +54,19 @@ namespace Codescene.VSExtension.Core.Util
                     token.Replace(SanitizeString(token.Value<string>()));
                     break;
                 case JTokenType.Object:
-                    foreach (var child in ((JObject)token).Properties())
-                    {
-                        SanitizeToken(child.Value);
-                    }
-
+                    SanitizeJObject((JObject)token);
                     break;
                 case JTokenType.Array:
-                    foreach (var child in (JArray)token)
-                    {
-                        SanitizeToken(child);
-                    }
-
+                    SanitizeJArray((JArray)token);
                     break;
+            }
+        }
+
+        private static void SanitizeJArray(JArray array)
+        {
+            foreach (var child in array)
+            {
+                SanitizeToken(child);
             }
         }
 
@@ -77,39 +77,36 @@ namespace Codescene.VSExtension.Core.Util
                 return null;
             }
 
-            if (value is string text)
+            return value switch
             {
-                return SanitizeString(text);
+                string text => SanitizeString(text),
+                Dictionary<string, object> dictionary => SanitizeDictionary(dictionary),
+                IDictionary<string, object> genericDictionary => SanitizeDictionary(CopyDictionary(genericDictionary)),
+                IEnumerable enumerable when value is not string => SanitizeEnumerable(enumerable),
+                _ => value,
+            };
+        }
+
+        private static Dictionary<string, object> CopyDictionary(IDictionary<string, object> source)
+        {
+            var copy = new Dictionary<string, object>(source.Count);
+            foreach (var entry in source)
+            {
+                copy[entry.Key] = entry.Value;
             }
 
-            if (value is Dictionary<string, object> dictionary)
+            return copy;
+        }
+
+        private static List<object> SanitizeEnumerable(IEnumerable source)
+        {
+            var list = new List<object>();
+            foreach (var item in source)
             {
-                return SanitizeDictionary(dictionary);
+                list.Add(SanitizeObject(item));
             }
 
-            if (value is IDictionary<string, object> genericDictionary)
-            {
-                var copy = new Dictionary<string, object>();
-                foreach (var entry in genericDictionary)
-                {
-                    copy[entry.Key] = entry.Value;
-                }
-
-                return SanitizeDictionary(copy);
-            }
-
-            if (value is IEnumerable enumerable && value is not string)
-            {
-                var list = new List<object>();
-                foreach (var item in enumerable)
-                {
-                    list.Add(SanitizeObject(item));
-                }
-
-                return list;
-            }
-
-            return value;
+            return list;
         }
     }
 }
