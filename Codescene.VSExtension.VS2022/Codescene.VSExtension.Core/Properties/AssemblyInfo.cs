@@ -34,3 +34,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("0.4.5.0")]
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Codescene.VSExtension.Core.Tests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Codescene.VSExtension.VS2022")]
