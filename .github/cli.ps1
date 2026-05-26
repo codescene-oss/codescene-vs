@@ -22,3 +22,8 @@ $url = "https://downloads.codescene.io/enterprise/cli/cs-ide-windows-amd64-$Requ
 Write-Host "Downloading from $url"
 Invoke-WebRequest -Uri $url -OutFile cs-ide.zip
 Expand-Archive -Path cs-ide.zip -DestinationPath ./cs-ide -Force
+
+$cliExePath = "./cs-ide/cs-ide.exe"
+$cliSha256 = (Get-FileHash $cliExePath -Algorithm SHA256).Hash.ToLowerInvariant()
+Write-Host "Bundled CLI SHA-256: $cliSha256"
+Write-Host "Update RequiredCliBinarySha256 in CliSettingsProvider.cs when RequiredDevToolVersion changes."
