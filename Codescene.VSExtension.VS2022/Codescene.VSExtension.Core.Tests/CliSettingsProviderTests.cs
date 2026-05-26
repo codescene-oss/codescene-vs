@@ -9,6 +9,7 @@ namespace Codescene.VSExtension.Core.Tests
     public class CliSettingsProviderTests
     {
         private readonly string expectedVersion = "0f50d883b976c66ab81681f4c3b5952f7c16ba87";
+        private readonly string expectedCliBinarySha256 = "64ba5083444d55090281a5639cd473ee870e404a485e9dde72ede7e144bb78bf";
 
         [TestMethod]
         public void RequiredDevToolVersion_ShouldReturnExpectedValue()
@@ -21,6 +22,14 @@ namespace Codescene.VSExtension.Core.Tests
 
             // ASSERT: Verify that the returned value is as expected
             Assert.AreEqual(expectedVersion, actualVersion, "RequiredDevToolVersion should return the expected SHA string.");
+        }
+
+        [TestMethod]
+        public void RequiredCliBinarySha256_ShouldReturnExpectedValue()
+        {
+            var provider = new CliSettingsProvider();
+
+            Assert.AreEqual(expectedCliBinarySha256, provider.RequiredCliBinarySha256);
         }
 
         [TestMethod]

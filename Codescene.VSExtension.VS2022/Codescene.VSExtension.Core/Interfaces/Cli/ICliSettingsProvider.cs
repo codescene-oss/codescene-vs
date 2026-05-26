@@ -6,6 +6,8 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
     {
         string RequiredDevToolVersion { get; }
 
+        string RequiredCliBinarySha256 { get; }
+
         string ArtifactBaseUrl { get; }
 
         string CliArtifactName { get; }

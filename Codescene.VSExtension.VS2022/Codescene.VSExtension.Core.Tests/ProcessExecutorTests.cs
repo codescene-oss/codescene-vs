@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Security.Cryptography;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -33,6 +34,19 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Execute_FileHashMismatch_ThrowsInvalidOperationException()
+        {
+            File.WriteAllText(_tempFilePath, "tampered cli");
+            SetupCliPath(_tempFilePath, "0000000000000000000000000000000000000000000000000000000000000000");
+            _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
+
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+                _processExecutor.ExecuteAsync("version --sha").GetAwaiter().GetResult());
+
+            Assert.Contains("integrity verification", exception.Message);
+        }
+
+        [TestMethod]
         public void Execute_FileDoesNotExist_ThrowsFileNotFoundException()
         {
             // Arrange
@@ -53,7 +67,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             // Arrange
             File.WriteAllText(_tempFilePath, "dummy executable content");
-            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
+            SetupCliPath(_tempFilePath);
             _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
 
             // Act & Assert
@@ -88,7 +102,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return;
             }
 
-            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
+            SetupCliPath(pingPath);
             _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
 
             var exception = await Assert.ThrowsAsync<TimeoutException>(() =>
@@ -108,7 +122,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return;
             }
 
-            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
+            SetupCliPath(pingPath);
             _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
             using var cts = new CancellationTokenSource();
             cts.Cancel();
@@ -127,12 +141,27 @@ namespace Codescene.VSExtension.Core.Tests
                 return;
             }
 
-            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(pingPath);
+            SetupCliPath(pingPath);
             _processExecutor = new ProcessExecutor(_mockCliSettingsProvider.Object, _mockLogger.Object);
 
             var result = await _processExecutor.ExecuteAsync("telemetry some-command", null, TimeSpan.FromMilliseconds(1));
 
             Assert.AreEqual(string.Empty, result);
+        }
+
+        private static string ComputeSha256Hex(string filePath)
+        {
+            using var stream = File.OpenRead(filePath);
+            using var sha = SHA256.Create();
+            var hashBytes = sha.ComputeHash(stream);
+            return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
+        }
+
+        private void SetupCliPath(string cliFilePath, string requiredSha256Hex = null)
+        {
+            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(cliFilePath);
+            var sha256Hex = requiredSha256Hex ?? ComputeSha256Hex(cliFilePath);
+            _mockCliSettingsProvider.Setup(x => x.RequiredCliBinarySha256).Returns(sha256Hex);
         }
     }
 }

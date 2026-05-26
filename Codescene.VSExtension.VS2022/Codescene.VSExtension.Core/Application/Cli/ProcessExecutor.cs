@@ -24,8 +24,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ProcessExecutor : IProcessExecutor
     {
+        private readonly object _integrityLock = new object();
         private readonly ICliSettingsProvider _cliSettingsProvider;
         private readonly ILogger _logger;
+        private bool _integrityVerified;
+        private string _verifiedCliPath;
 
         [ImportingConstructor]
         public ProcessExecutor(ICliSettingsProvider cliSettingsProvider, ILogger logger)
@@ -46,6 +49,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     "Please reinstall the extension or contact support if this issue persists.",
                     cliFilePath);
             }
+
+            EnsureCliIntegrity(cliFilePath);
 
             var actualTimeout = timeout ?? Constants.Timeout.DEFAULTCLITIMEOUT;
             using var timeoutCts = new CancellationTokenSource();
@@ -165,6 +170,21 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             throw new TimeoutException($"Process execution exceeded the timeout of {actualTimeout.TotalMilliseconds}ms.");
+        }
+
+        private void EnsureCliIntegrity(string cliFilePath)
+        {
+            lock (_integrityLock)
+            {
+                if (_integrityVerified && string.Equals(_verifiedCliPath, cliFilePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                CliBinaryIntegrityVerifier.Verify(cliFilePath, _cliSettingsProvider.RequiredCliBinarySha256);
+                _integrityVerified = true;
+                _verifiedCliPath = cliFilePath;
+            }
         }
 
         private void AttachOutputHandlers(AttachOutputHandlersArgs handlerArguments)
