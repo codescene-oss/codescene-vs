@@ -110,5 +110,121 @@ namespace Codescene.VSExtension.Core.Tests
             var extraData = (Dictionary<string, object>)result["extraData"];
             Assert.Contains("<path>", (string)extraData["context"]);
         }
+
+        [TestMethod]
+        public void SanitizeJObject_Null_DoesNotThrow()
+        {
+            TelemetryDataSanitizer.SanitizeJObject(null);
+        }
+
+        [TestMethod]
+        public void SanitizeDictionary_Null_ReturnsNull()
+        {
+            Assert.IsNull(TelemetryDataSanitizer.SanitizeDictionary(null));
+        }
+
+        [TestMethod]
+        public void SanitizeDictionary_NullEntryValue_ReturnsNullEntry()
+        {
+            var source = new Dictionary<string, object> { ["detail"] = null };
+
+            var result = TelemetryDataSanitizer.SanitizeDictionary(source);
+
+            Assert.IsNull(result["detail"]);
+        }
+
+        [TestMethod]
+        public void SanitizeDictionary_NonStringLeaf_PreservesValue()
+        {
+            var source = new Dictionary<string, object> { ["count"] = 7, ["flag"] = true };
+
+            var result = TelemetryDataSanitizer.SanitizeDictionary(source);
+
+            Assert.AreEqual(7, result["count"]);
+            Assert.IsTrue((bool)result["flag"]);
+        }
+
+        [TestMethod]
+        public void SanitizeDictionary_SortedDictionary_SanitizesValues()
+        {
+            var inner = new SortedDictionary<string, object>
+            {
+                ["context"] = "Failed at D:\\repo\\Main.cs",
+            };
+            var source = new Dictionary<string, object> { ["payload"] = inner };
+
+            var result = TelemetryDataSanitizer.SanitizeDictionary(source);
+
+            var sanitizedInner = (Dictionary<string, object>)result["payload"];
+            Assert.Contains("<path>", (string)sanitizedInner["context"]);
+        }
+
+        [TestMethod]
+        public void SanitizeDictionary_ListValue_SanitizesEachItem()
+        {
+            var source = new Dictionary<string, object>
+            {
+                ["paths"] = new List<object> { "C:\\a\\one.cs", "plain.cs" },
+            };
+
+            var result = TelemetryDataSanitizer.SanitizeDictionary(source);
+            var paths = (List<object>)result["paths"];
+
+            Assert.Contains("<path>", (string)paths[0]);
+            Assert.AreEqual("plain.cs", paths[1]);
+        }
+
+        [TestMethod]
+        public void SanitizeJObject_NestedObject_SanitizesInnerStrings()
+        {
+            var jObject = JObject.Parse("{\"outer\":{\"inner\":\"C:\\\\temp\\\\x.cs\"}}");
+
+            TelemetryDataSanitizer.SanitizeJObject(jObject);
+
+            var inner = jObject["outer"]?["inner"]?.ToString();
+            Assert.IsNotNull(inner);
+            Assert.Contains("<path>", inner);
+        }
+
+        [TestMethod]
+        public void SanitizeJObject_Array_SanitizesStringElements()
+        {
+            var jObject = JObject.Parse("{\"items\":[\"C:\\\\a\\\\b.cs\",\"--token abc\"]}");
+
+            TelemetryDataSanitizer.SanitizeJObject(jObject);
+
+            var items = (JArray)jObject["items"];
+            Assert.IsNotNull(items);
+            var first = items[0]?.ToString();
+            var second = items[1]?.ToString();
+            Assert.IsNotNull(first);
+            Assert.IsNotNull(second);
+            Assert.Contains("<path>", first);
+            Assert.Contains("--token ***", second);
+        }
+
+        [TestMethod]
+        public void SanitizeJObject_ArrayWithNullElement_DoesNotThrow()
+        {
+            var jObject = JObject.Parse("{\"items\":[null,\"ok\"]}");
+
+            TelemetryDataSanitizer.SanitizeJObject(jObject);
+
+            Assert.AreEqual("ok", jObject["items"]?[1]?.ToString());
+        }
+
+        [TestMethod]
+        public void GetTelemetryEventJson_SanitizesAdditionalProperties()
+        {
+            var additional = new Dictionary<string, object>
+            {
+                ["detail"] = "Bearer secret-token-value",
+            };
+
+            var json = TelemetryUtils.GetTelemetryEventJson("test-event", "device-1", "1.0.0", null, additional);
+
+            Assert.Contains("Bearer ***", json);
+            Assert.DoesNotContain("secret-token-value", json);
+        }
     }
 }

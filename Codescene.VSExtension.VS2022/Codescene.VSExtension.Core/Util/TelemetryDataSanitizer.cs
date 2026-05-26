@@ -64,9 +64,9 @@ namespace Codescene.VSExtension.Core.Util
 
         private static void SanitizeJArray(JArray array)
         {
-            foreach (var child in array)
+            for (var i = 0; i < array.Count; i++)
             {
-                SanitizeToken(child);
+                SanitizeToken(array[i]);
             }
         }
 
