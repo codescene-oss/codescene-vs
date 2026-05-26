@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -13,6 +12,7 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Payload;
+using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
@@ -31,18 +31,6 @@ public partial class WebComponentUserControl : UserControl
 {
     private const string FOLDERLOCATION = @"ToolWindows\WebComponent";
     private const string STYLEELEMENTID = "cs-theme-vars";
-    private static readonly string[] AllowedDomains =
-    {
-        "https://refactoring.com",
-        "https://en.wikipedia.org",
-        "https://codescene.io",
-        "https://codescene.com",
-        "https://blog.ploeh.dk/2018/08/27/on-constructor-over-injection/",
-        "https://supporthub.codescene.com",
-        "https://forms.clickup.com",
-        "https://helpcenter.codescene.com",
-    };
-
     private readonly ILogger _logger;
 
     private string _host;
@@ -368,8 +356,7 @@ public partial class WebComponentUserControl : UserControl
             return;
         }
 
-        var isExternalNavigationAllowed = AllowedDomains.Any(domain => uri.StartsWith(domain, StringComparison.OrdinalIgnoreCase));
-        if (isExternalNavigationAllowed)
+        if (ExternalNavigationAllowlist.IsAllowedExternalUri(uri))
         {
             try
             {
