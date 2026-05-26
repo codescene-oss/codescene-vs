@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779803179836,
+  "lastUpdate": 1779803370130,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2794,6 +2794,54 @@ window.BENCHMARK_DATA = {
             "value": 21137.03896658761,
             "unit": "ns",
             "range": "± 203.36721375329324"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "43b254aa947c99463d735aff2486557ff8fe4aef",
+          "message": "fix: Verify bundled CLI SHA-256 before execution (#284)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-26T15:36:10+02:00",
+          "tree_id": "ee59e5ba963732856baec0d73ac87b6927629ded",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/43b254aa947c99463d735aff2486557ff8fe4aef"
+        },
+        "date": 1779803368551,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 138273330.4597701,
+            "unit": "ns",
+            "range": "± 7548699.459507086"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5926.084340413411,
+            "unit": "ns",
+            "range": "± 64.22445400362984"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 400456525,
+            "unit": "ns",
+            "range": "± 20816982.02350574"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 20202.86045448453,
+            "unit": "ns",
+            "range": "± 759.517291713778"
           }
         ]
       }
