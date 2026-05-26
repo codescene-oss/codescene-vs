@@ -97,7 +97,7 @@ namespace Codescene.VSExtension.Core.Util
 
             result["extraData"] = extraData;
 
-            return result;
+            return TelemetryDataSanitizer.SanitizeDictionary(result);
         }
 
         private static bool IsNetworkError(Exception ex)

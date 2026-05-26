@@ -97,6 +97,8 @@ namespace Codescene.VSExtension.Core.Util
                     }
                 }
 
+                TelemetryDataSanitizer.SanitizeJObject(jObject);
+
                 return jObject.ToString(Formatting.None);
             }
             catch
