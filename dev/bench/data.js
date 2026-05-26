@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779801889002,
+  "lastUpdate": 1779801897839,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -710,6 +710,48 @@ window.BENCHMARK_DATA = {
             "value": 66534955.487804875,
             "unit": "ns",
             "range": "± 2345241.719671531"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7218a11f0d26e103bf909210b2ae693ac55dd1db",
+          "message": "fix: Anchor external navigation to HTTPS host allowlist (#282)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-26T15:20:35+02:00",
+          "tree_id": "e8619014a8ec0b840d847d40591ccc184545ec1d",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/7218a11f0d26e103bf909210b2ae693ac55dd1db"
+        },
+        "date": 1779801895255,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 111291705.30612245,
+            "unit": "ns",
+            "range": "± 4439842.789050034"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 95411603.57142857,
+            "unit": "ns",
+            "range": "± 900712.1165433348"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 63917333.65384615,
+            "unit": "ns",
+            "range": "± 446208.4970016532"
           }
         ]
       }
