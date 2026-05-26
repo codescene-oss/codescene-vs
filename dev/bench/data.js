@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779802178557,
+  "lastUpdate": 1779802886325,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -752,6 +752,48 @@ window.BENCHMARK_DATA = {
             "value": 63917333.65384615,
             "unit": "ns",
             "range": "± 446208.4970016532"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "43b254aa947c99463d735aff2486557ff8fe4aef",
+          "message": "fix: Verify bundled CLI SHA-256 before execution (#284)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-26T15:36:10+02:00",
+          "tree_id": "ee59e5ba963732856baec0d73ac87b6927629ded",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/43b254aa947c99463d735aff2486557ff8fe4aef"
+        },
+        "date": 1779802883311,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 114346201.78571428,
+            "unit": "ns",
+            "range": "± 1411129.8737272243"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 99891311.45833333,
+            "unit": "ns",
+            "range": "± 1849432.5005627333"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 69794240.87301588,
+            "unit": "ns",
+            "range": "± 1927044.2731931186"
           }
         ]
       }
