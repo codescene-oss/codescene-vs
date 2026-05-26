@@ -293,7 +293,7 @@ public partial class WebComponentUserControl : UserControl
 
     private async Task<CoreWebView2Environment> CreatePerWindowEnvAsync(string view)
     {
-        var cachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MyExtensionName", $"WebView2Cache_{view}");
+        var cachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Codescene", $"WebView2Cache_{view}");
         return await CoreWebView2Environment.CreateAsync(userDataFolder: cachePath);
     }
 
