@@ -11,6 +11,10 @@ namespace Codescene.VSExtension.Core.Util
 {
     public static class TextUtils
     {
+        private static readonly Regex SecretCliFlagRegex = new Regex(
+            @"--token(?:\s*=\s*|\s+)(?:""[^""]*""|'[^']*'|\S+)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         public static string ToSnakeCase(string input)
         {
             var normalized = input.Replace("-", "_");
@@ -51,20 +55,32 @@ namespace Codescene.VSExtension.Core.Util
             return value.Substring(0, maxLength) + "...";
         }
 
+        public static string RedactSensitiveCliArguments(string arguments)
+        {
+            if (string.IsNullOrEmpty(arguments))
+            {
+                return arguments;
+            }
+
+            return SecretCliFlagRegex.Replace(arguments, "--token ***");
+        }
+
         public static string BuildCommandForLogging(string arguments, string jsonContent, int maxValueLength = 120)
         {
+            var safeArguments = RedactSensitiveCliArguments(arguments);
+
             if (string.IsNullOrEmpty(jsonContent))
             {
-                return TrimForLogging(arguments, maxValueLength);
+                return TrimForLogging(safeArguments, maxValueLength);
             }
 
             var entries = ExtractLoggableJsonEntries(jsonContent, maxValueLength);
             if (string.IsNullOrEmpty(entries))
             {
-                return TrimForLogging(arguments, maxValueLength);
+                return TrimForLogging(safeArguments, maxValueLength);
             }
 
-            return $"{arguments} {entries}";
+            return $"{safeArguments} {entries}";
         }
 
         public static string ExtractLoggableJsonEntries(string jsonContent, int maxValueLength = 120)
@@ -93,6 +109,33 @@ namespace Codescene.VSExtension.Core.Util
             return FormatJsonProperties(jsonObject, maxValueLength);
         }
 
+        private static bool ShouldSkipLoggableJsonProperty(string propertyName) =>
+            propertyName == "file-content";
+
+        private static string FormatLoggableJsonProperty(JProperty property, int maxValueLength)
+        {
+            if (property.Name == "token")
+            {
+                return "'token' \"***\"";
+            }
+
+            var value = property.Value.Type == JTokenType.String
+                ? property.Value.ToString()
+                : property.Value.ToString(Formatting.None);
+
+            return $"'{property.Name}' \"{TrimForLogging(value, maxValueLength)}\"";
+        }
+
+        private static void AppendLoggableEntry(StringBuilder result, string entry)
+        {
+            if (result.Length > 0)
+            {
+                result.Append(" ");
+            }
+
+            result.Append(entry);
+        }
+
         private static string FormatJsonProperties(JObject jsonObject, int maxValueLength)
         {
             try
@@ -100,23 +143,12 @@ namespace Codescene.VSExtension.Core.Util
                 var result = new StringBuilder();
                 foreach (var property in jsonObject.Properties())
                 {
-                    if (property.Name == "file-content")
+                    if (ShouldSkipLoggableJsonProperty(property.Name))
                     {
                         continue;
                     }
 
-                    var value = property.Value.Type == JTokenType.String
-                        ? property.Value.ToString()
-                        : property.Value.ToString(Formatting.None);
-
-                    var trimmedValue = TrimForLogging(value, maxValueLength);
-
-                    if (result.Length > 0)
-                    {
-                        result.Append(" ");
-                    }
-
-                    result.Append($"'{property.Name}' \"{trimmedValue}\"");
+                    AppendLoggableEntry(result, FormatLoggableJsonProperty(property, maxValueLength));
                 }
 
                 return result.ToString();
