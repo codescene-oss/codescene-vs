@@ -217,5 +217,65 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.DoesNotContain("file-content", result);
             Assert.DoesNotContain("huge content", result);
         }
+
+        [TestMethod]
+        public void BuildCommandForLogging_RedactsTokenInJsonPayload()
+        {
+            var args = "run-command refactor";
+            var json = "{\"token\":\"super-secret\",\"skip-cache\":true}";
+            var result = TextUtils.BuildCommandForLogging(args, json);
+
+            Assert.Contains("'token' \"***\"", result);
+            Assert.DoesNotContain("super-secret", result);
+            Assert.Contains("'skip-cache'", result);
+        }
+
+        [TestMethod]
+        public void RedactSensitiveCliArguments_NullOrEmpty_ReturnsInput()
+        {
+            Assert.IsNull(TextUtils.RedactSensitiveCliArguments(null));
+            Assert.AreEqual(string.Empty, TextUtils.RedactSensitiveCliArguments(string.Empty));
+        }
+
+        [TestMethod]
+        public void RedactSensitiveCliArguments_TokenWithSpaceSeparatedValue_Redacts()
+        {
+            var args = "refactor post --skip-cache --token my-secret-token --fn-to-refactor-nippy-b64 abc";
+            var result = TextUtils.RedactSensitiveCliArguments(args);
+
+            Assert.AreEqual("refactor post --skip-cache --token *** --fn-to-refactor-nippy-b64 abc", result);
+            Assert.DoesNotContain("my-secret-token", result);
+        }
+
+        [TestMethod]
+        public void RedactSensitiveCliArguments_TokenWithEqualsForm_Redacts()
+        {
+            var args = "refactor post --token=my-secret-token";
+            var result = TextUtils.RedactSensitiveCliArguments(args);
+
+            Assert.AreEqual("refactor post --token ***", result);
+            Assert.DoesNotContain("my-secret-token", result);
+        }
+
+        [TestMethod]
+        public void RedactSensitiveCliArguments_QuotedTokenValue_Redacts()
+        {
+            var args = "refactor post --token \"secret with spaces\"";
+            var result = TextUtils.RedactSensitiveCliArguments(args);
+
+            Assert.AreEqual("refactor post --token ***", result);
+            Assert.DoesNotContain("secret with spaces", result);
+        }
+
+        [TestMethod]
+        public void BuildCommandForLogging_TokenInArgs_RedactsBeforeTrim()
+        {
+            var padding = new string('x', 200);
+            var args = $"refactor post --token {padding}super-secret";
+            var result = TextUtils.BuildCommandForLogging(args, null, maxValueLength: 120);
+
+            Assert.DoesNotContain("super-secret", result);
+            Assert.Contains("--token ***", result);
+        }
     }
 }
