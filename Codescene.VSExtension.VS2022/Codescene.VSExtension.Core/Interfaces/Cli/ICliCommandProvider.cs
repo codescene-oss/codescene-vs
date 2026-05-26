@@ -17,6 +17,8 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
 
         string ReviewFileContentCommand { get; }
 
+        string RefactorPostCommand { get; }
+
         string SendTelemetryCommand(string jsonEvent);
 
         string GetReviewFileContentPayload(string filePath, string fileContent, string cachePath);
@@ -29,6 +31,6 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
 
         string GetPreflightSupportInformationCommand(bool force);
 
-        string GetRefactorPostCommand(FnToRefactorModel fnToRefactor, bool skipCache, string token = null);
+        string GetRefactorPostPayload(FnToRefactorModel fnToRefactor, bool skipCache, string token);
     }
 }

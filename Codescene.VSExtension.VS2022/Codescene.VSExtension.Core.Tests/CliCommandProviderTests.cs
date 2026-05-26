@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System;
 using System.Globalization;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
@@ -7,6 +8,8 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Moq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Codescene.VSExtension.Core.Tests
 {
@@ -141,97 +144,81 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetRefactorPostCommand_WithoutSkipCache_ReturnsBasicCommand()
+        public void RefactorPostCommand_ReturnsRunCommandRefactor()
         {
-            var fnToRefactor = CreateFnToRefactor();
-
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);
-
-            Assert.StartsWith("refactor post", command);
-            Assert.DoesNotContain("--skip-cache", command);
+            Assert.AreEqual("run-command refactor", _commandProvider.RefactorPostCommand);
         }
 
         [TestMethod]
-        public void GetRefactorPostCommand_WithSkipCache_IncludesSkipCacheFlag()
+        public void GetRefactorPostPayload_WithNullFnToRefactor_ThrowsArgumentNullException()
         {
-            var fnToRefactor = CreateFnToRefactor();
-
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: true);
-
-            Assert.Contains("--skip-cache", command);
+            Assert.Throws<ArgumentNullException>(() =>
+                _commandProvider.GetRefactorPostPayload(null, skipCache: false, token: "token"));
         }
 
         [TestMethod]
-        public void GetRefactorPostCommand_WithToken_IncludesTokenArgument()
+        public void GetRefactorPostPayload_WithNullOrEmptyToken_Throws()
+        {
+            var fnToRefactor = CreateFnToRefactor();
+
+            Assert.Throws<ArgumentNullException>(() =>
+                _commandProvider.GetRefactorPostPayload(fnToRefactor, skipCache: false, token: null));
+            Assert.Throws<ArgumentException>(() =>
+                _commandProvider.GetRefactorPostPayload(fnToRefactor, skipCache: false, token: string.Empty));
+        }
+
+        [TestMethod]
+        public void GetRefactorPostPayload_WithoutSkipCache_IncludesTokenAndFnToRefactor()
         {
             var fnToRefactor = CreateFnToRefactor();
             var token = "test-token-123";
 
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false, token: token);
+            var payload = _commandProvider.GetRefactorPostPayload(fnToRefactor, skipCache: false, token: token);
+            var json = JObject.Parse(payload);
 
-            Assert.Contains("--token", command);
-            Assert.Contains(token, command);
+            Assert.AreEqual(token, json["token"]?.ToString());
+            Assert.IsNull(json["skip-cache"]);
+            Assert.IsNotNull(json["fn-to-refactor"]);
+            Assert.IsNull(json["fn-to-refactor-nippy-b64"]);
         }
 
         [TestMethod]
-        public void GetRefactorPostCommand_WithNullToken_DoesNotIncludeTokenArgument()
+        public void GetRefactorPostPayload_WithSkipCache_IncludesSkipCacheFlag()
         {
             var fnToRefactor = CreateFnToRefactor();
 
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false, token: null);
+            var payload = _commandProvider.GetRefactorPostPayload(fnToRefactor, skipCache: true, token: "token");
+            var json = JObject.Parse(payload);
 
-            Assert.DoesNotContain("--token", command);
+            Assert.IsTrue(json["skip-cache"]?.Value<bool>());
         }
 
         [TestMethod]
-        public void GetRefactorPostCommand_WithEmptyToken_DoesNotIncludeTokenArgument()
-        {
-            var fnToRefactor = CreateFnToRefactor();
-
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false, token: string.Empty);
-
-            Assert.DoesNotContain("--token", command);
-        }
-
-        [TestMethod]
-        public void GetRefactorPostCommand_WithWhitespaceToken_DoesNotIncludeTokenArgument()
-        {
-            var fnToRefactor = CreateFnToRefactor();
-
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false, token: "   ");
-
-            Assert.DoesNotContain("--token", command);
-        }
-
-        [TestMethod]
-        public void GetRefactorPostCommand_WithNippyB64_UsesFnToRefactorNippyB64Flag()
+        public void GetRefactorPostPayload_WithNippyB64_UsesFnToRefactorNippyB64Property()
         {
             var nippyB64 = "base64encodeddata";
             var fnToRefactor = CreateFnToRefactor(nippyB64: nippyB64);
 
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: false);
+            var payload = _commandProvider.GetRefactorPostPayload(fnToRefactor, skipCache: false, token: "token");
+            var json = JObject.Parse(payload);
 
-            Assert.Contains("--fn-to-refactor-nippy-b64", command);
-            Assert.Contains(nippyB64, command);
-            Assert.DoesNotContain("--fn-to-refactor ", command);
+            Assert.AreEqual(nippyB64, json["fn-to-refactor-nippy-b64"]?.ToString());
+            Assert.IsNull(json["fn-to-refactor"]);
         }
 
         [TestMethod]
-        public void GetRefactorPostCommand_WithAllOptions_IncludesAllArguments()
+        public void GetRefactorPostPayload_WithAllOptions_IncludesExpectedProperties()
         {
             var nippyB64 = "encodeddata";
             var fnToRefactor = CreateFnToRefactor(nippyB64: nippyB64);
             var token = "my-token";
 
-            var command = _commandProvider.GetRefactorPostCommand(fnToRefactor, skipCache: true, token: token);
+            var payload = _commandProvider.GetRefactorPostPayload(fnToRefactor, skipCache: true, token: token);
+            var json = JObject.Parse(payload);
 
-            Assert.Contains("refactor", command);
-            Assert.Contains("post", command);
-            Assert.Contains("--skip-cache", command);
-            Assert.Contains("--token", command);
-            Assert.Contains(token, command);
-            Assert.Contains("--fn-to-refactor-nippy-b64", command);
-            Assert.Contains(nippyB64, command);
+            Assert.AreEqual(token, json["token"]?.ToString());
+            Assert.IsTrue(json["skip-cache"]?.Value<bool>());
+            Assert.AreEqual(nippyB64, json["fn-to-refactor-nippy-b64"]?.ToString());
         }
 
         [TestMethod]

@@ -219,8 +219,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 throw missingTokenEx;
             }
 
-            var arguments = _cliServices.CommandProvider.GetRefactorPostCommand(fnToRefactor: fnToRefactor, skipCache: skipCache, token: effectiveToken);
-            if (string.IsNullOrEmpty(arguments))
+            var arguments = _cliServices.CommandProvider.RefactorPostCommand;
+            var payload = _cliServices.CommandProvider.GetRefactorPostPayload(fnToRefactor, skipCache, effectiveToken);
+            if (string.IsNullOrEmpty(arguments) || string.IsNullOrEmpty(payload))
             {
                 _logger.Warn("Skipping refactoring. Arguments were not defined.");
                 return null;
@@ -231,7 +232,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 cancellationToken,
                 () => ExecuteWithTimingAndLoggingAsync<RefactorResponseModel>(
                     "ACE refactoring",
-                    () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, null, null, cancellationToken),
+                    () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, payload, null, cancellationToken),
                     "Refactoring failed."));
 
             if (result != null && fnToRefactor != null)
