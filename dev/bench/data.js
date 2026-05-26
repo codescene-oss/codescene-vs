@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778583464826,
+  "lastUpdate": 1779801716233,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -668,6 +668,48 @@ window.BENCHMARK_DATA = {
             "value": 58400911.96581197,
             "unit": "ns",
             "range": "± 364393.19302742573"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c25b6e60972389c8d973b1dc350d8059f61a673f",
+          "message": "CS-11167: DPAPI-encrypt auth token in VS settings (#283)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-26T15:17:26+02:00",
+          "tree_id": "4405a1abf68bdd0260ae486eef56a11429ca9da8",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/c25b6e60972389c8d973b1dc350d8059f61a673f"
+        },
+        "date": 1779801712703,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 110219789.23076923,
+            "unit": "ns",
+            "range": "± 635415.002635568"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 98640685.33333333,
+            "unit": "ns",
+            "range": "± 1536923.883168987"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 66534955.487804875,
+            "unit": "ns",
+            "range": "± 2345241.719671531"
           }
         ]
       }
