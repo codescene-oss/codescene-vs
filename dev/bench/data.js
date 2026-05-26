@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779803370130,
+  "lastUpdate": 1779804050909,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -794,6 +794,48 @@ window.BENCHMARK_DATA = {
             "value": 69794240.87301588,
             "unit": "ns",
             "range": "± 1927044.2731931186"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e4a0ccfd181f8dd9c555e1383084f74a540425d",
+          "message": "fix: Use Codescene folder for WebView2 user data (#285)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-26T15:56:25+02:00",
+          "tree_id": "9258c18b7b634247ee6c78164b5c34f12b09c8b9",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/8e4a0ccfd181f8dd9c555e1383084f74a540425d"
+        },
+        "date": 1779804047885,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 106445601.53846154,
+            "unit": "ns",
+            "range": "± 417964.07584556343"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 94956833.33333333,
+            "unit": "ns",
+            "range": "± 271570.3153174439"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 62184249.20634921,
+            "unit": "ns",
+            "range": "± 451702.3847004251"
           }
         ]
       }
