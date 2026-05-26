@@ -3,6 +3,8 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Security;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 
@@ -57,9 +59,29 @@ public class General : BaseOptionModel<General>
 
     [Category("Authentication")]
     [DisplayName("Auth Token")]
-    [Description("Authentication token for CodeScene ACE. Note: Token is stored securely in Windows Credential Manager.")]
+    [Description("Authentication token for CodeScene ACE. The token is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
     [PasswordPropertyText(true)]
     public string AuthToken { get; set; } = string.Empty;
+
+    public override async Task LoadAsync()
+    {
+        await base.LoadAsync();
+        AuthToken = AuthTokenProtector.Unprotect(AuthToken);
+    }
+
+    public override async Task SaveAsync()
+    {
+        var plaintext = AuthToken;
+        AuthToken = AuthTokenProtector.Protect(plaintext);
+        try
+        {
+            await base.SaveAsync();
+        }
+        finally
+        {
+            AuthToken = plaintext;
+        }
+    }
 
     private void OnSettingsSaved(General obj)
     {
