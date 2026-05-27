@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779864542224,
+  "lastUpdate": 1779864671004,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3136,6 +3136,54 @@ window.BENCHMARK_DATA = {
             "value": 19011.702619280135,
             "unit": "ns",
             "range": "± 116.55454404288812"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "af712aa7739c500ca5a6f6d54209d6f2dfd83505",
+          "message": "CS-11171: Restrict webview file paths to workspace roots (#286)\n\n* CS-11171: Restrict webview file paths to workspace roots\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11171: Reduce complexity in workspace path validator\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11171: Expand WorkspaceFilePathValidator test coverage\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T08:41:09+02:00",
+          "tree_id": "b0451f64e4d78c907dcda7cc4ed765beb35f1432",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/af712aa7739c500ca5a6f6d54209d6f2dfd83505"
+        },
+        "date": 1779864669811,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 140128479,
+            "unit": "ns",
+            "range": "± 11107554.603482822"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5337.184361049107,
+            "unit": "ns",
+            "range": "± 16.79730148082307"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 397489776.9230769,
+            "unit": "ns",
+            "range": "± 2690377.3558597825"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 18712.724891075723,
+            "unit": "ns",
+            "range": "± 48.70527672181569"
           }
         ]
       }
