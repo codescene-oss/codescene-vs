@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System;
 using Codescene.VSExtension.Core.Application.Security;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -29,6 +30,34 @@ public class SecretBufferTests
         var stored = SecretBuffer.FromString("token-a");
         Assert.IsFalse(SecretBuffer.Equals(stored, "token-b"));
         SecretBuffer.Clear(ref stored);
+    }
+
+    [TestMethod]
+    public void Equals_NonEmptyLeft_EmptyRight_ReturnsFalse()
+    {
+        var stored = SecretBuffer.FromString("token");
+        Assert.IsFalse(SecretBuffer.Equals(stored, string.Empty));
+        SecretBuffer.Clear(ref stored);
+    }
+
+    [TestMethod]
+    public void Equals_DifferentLengths_ReturnsFalse()
+    {
+        var stored = SecretBuffer.FromString("ab");
+        Assert.IsFalse(SecretBuffer.Equals(stored, "abc"));
+        SecretBuffer.Clear(ref stored);
+    }
+
+    [TestMethod]
+    public void Clear_NullOrEmpty_SetsNull()
+    {
+        byte[] buffer = null;
+        SecretBuffer.Clear(ref buffer);
+        Assert.IsNull(buffer);
+
+        buffer = Array.Empty<byte>();
+        SecretBuffer.Clear(ref buffer);
+        Assert.IsNull(buffer);
     }
 
     [TestMethod]
