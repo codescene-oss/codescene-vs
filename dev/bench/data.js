@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779864671004,
+  "lastUpdate": 1779864686521,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2178,6 +2178,66 @@ window.BENCHMARK_DATA = {
             "value": 290981275,
             "unit": "ns",
             "range": "± 5058051.705152884"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b790a6ab8d0a30d6a09f9ccac962b95e2334bd3d",
+          "message": "CS-11170: Sanitize telemetry paths and secrets (#287)\n\n* CS-11170: Sanitize telemetry paths and secrets\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Reduce TelemetryDataSanitizer complexity for code health\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Expand telemetry sanitizer test coverage\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Resolve VS telemetry opt-in registry from running VS version\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Sanitize Dictionary<string,string> in telemetry payloads\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T08:42:47+02:00",
+          "tree_id": "485a7e402d563ccdb9e21902956c2a7ad18c69af",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/b790a6ab8d0a30d6a09f9ccac962b95e2334bd3d"
+        },
+        "date": 1779864684748,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 137411625,
+            "unit": "ns",
+            "range": "± 1080091.9511534323"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 125488144.64285715,
+            "unit": "ns",
+            "range": "± 817819.1246199207"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 260441403.33333334,
+            "unit": "ns",
+            "range": "± 1684365.206249467"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 231190553.33333334,
+            "unit": "ns",
+            "range": "± 2732925.016621601"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 361345157.14285713,
+            "unit": "ns",
+            "range": "± 2149869.554795677"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 306246192.85714287,
+            "unit": "ns",
+            "range": "± 1080132.936415546"
           }
         ]
       }
