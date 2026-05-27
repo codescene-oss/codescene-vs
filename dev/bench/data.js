@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779889281180,
+  "lastUpdate": 1779889496901,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2280,6 +2280,66 @@ window.BENCHMARK_DATA = {
             "value": 306246192.85714287,
             "unit": "ns",
             "range": "± 1080132.936415546"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5f7196d062ffdeeff8104c0c031e9f30ff4ce889",
+          "message": "CS-11174: Serialize theme CSS for WebView scripts (#288)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T15:36:27+02:00",
+          "tree_id": "449891a10a00eb2e1477345ff2a58ac72313bd3f",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/5f7196d062ffdeeff8104c0c031e9f30ff4ce889"
+        },
+        "date": 1779889495558,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 127809653.57142857,
+            "unit": "ns",
+            "range": "± 1408013.4272215816"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 116119622.85714285,
+            "unit": "ns",
+            "range": "± 1333352.7731216555"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 238431486.11111107,
+            "unit": "ns",
+            "range": "± 1752942.9735668676"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 216242980.76923078,
+            "unit": "ns",
+            "range": "± 3459822.538051293"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 337606781.25,
+            "unit": "ns",
+            "range": "± 6472903.3629141245"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 284248900,
+            "unit": "ns",
+            "range": "± 1728324.511629688"
           }
         ]
       }
