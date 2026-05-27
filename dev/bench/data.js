@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779894812526,
+  "lastUpdate": 1779895021526,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2688,6 +2688,66 @@ window.BENCHMARK_DATA = {
             "value": 275367053.3333333,
             "unit": "ns",
             "range": "± 1612739.2910451933"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "504f7af3f3d284ce630616c611f4de392e9cce0b",
+          "message": "fix: Restrict log directory to owner-only ACLs (#292)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T17:08:30+02:00",
+          "tree_id": "7e43211cc2c87f6b5f9047a5992fd8a2e54c38f7",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/504f7af3f3d284ce630616c611f4de392e9cce0b"
+        },
+        "date": 1779895020179,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 130490257.14285715,
+            "unit": "ns",
+            "range": "± 1030091.9681415202"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 119490012,
+            "unit": "ns",
+            "range": "± 675141.8432469262"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 249905570,
+            "unit": "ns",
+            "range": "± 1854196.9669027692"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 220510292.85714287,
+            "unit": "ns",
+            "range": "± 1881585.5729694022"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 354339930.7692308,
+            "unit": "ns",
+            "range": "± 5095897.027901404"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 294937019.2307692,
+            "unit": "ns",
+            "range": "± 1916396.496524408"
           }
         ]
       }
