@@ -47,5 +47,25 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsNull(obj["editor-version"]);
         }
+
+        [TestMethod]
+        [DataRow("18.1.1", "18.0")]
+        [DataRow("17.12.4", "17.0")]
+        [DataRow("18", "18.0")]
+        [DataRow("17.0.0", "17.0")]
+        public void GetVsCommonRegistryVersionFolder_FromEditorVersion_ReturnsMajorZero(string editorVersion, string expectedFolder)
+        {
+            Assert.AreEqual(expectedFolder, TelemetryUtils.GetVsCommonRegistryVersionFolder(editorVersion));
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("  ")]
+        [DataRow("invalid")]
+        public void GetVsCommonRegistryVersionFolder_InvalidInput_ReturnsNull(string editorVersion)
+        {
+            Assert.IsNull(TelemetryUtils.GetVsCommonRegistryVersionFolder(editorVersion));
+        }
     }
 }

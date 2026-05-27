@@ -50,7 +50,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
         /// </remarks>
         public async Task SendTelemetryAsync(string eventName, Dictionary<string, object> additionalEventData = null, CancellationToken cancellationToken = default)
         {
-            if (!TelemetryUtils.IsTelemetryEnabled(_logger))
+            if (!TelemetryUtils.IsTelemetryEnabled(_logger, _extensionMetadataProvider.GetEditorVersion()))
             {
                 return;
             }
@@ -74,7 +74,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
 
         public async Task SendErrorTelemetryAsync(Exception ex, string context, Dictionary<string, object> extraData = null, CancellationToken cancellationToken = default)
         {
-            if (!TelemetryUtils.IsTelemetryEnabled(_logger))
+            if (!TelemetryUtils.IsTelemetryEnabled(_logger, _extensionMetadataProvider.GetEditorVersion()))
             {
                 return;
             }
