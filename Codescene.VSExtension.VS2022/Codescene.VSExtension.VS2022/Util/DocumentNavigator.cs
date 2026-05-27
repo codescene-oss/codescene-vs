@@ -17,6 +17,12 @@ public static class DocumentNavigator
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
+            if (!await WorkspacePathResolver.IsAllowedWorkspaceFilePathAsync(filePath))
+            {
+                logger.Warn("Unable to open file: path is outside the workspace or uses unsafe syntax.");
+                return;
+            }
+
             var dte = await ServiceProvider.GetGlobalServiceAsync(typeof(DTE)) as DTE2;
             var window = dte?.ItemOperations.OpenFile(filePath);
 
