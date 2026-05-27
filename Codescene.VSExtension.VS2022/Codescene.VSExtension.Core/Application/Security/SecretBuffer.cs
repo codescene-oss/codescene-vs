@@ -53,25 +53,15 @@ internal static class SecretBuffer
 
     private static bool ConstantTimeEquals(byte[] a, byte[] b)
     {
-        if (a == null || a.Length == 0)
+        var aLength = a?.Length ?? 0;
+        var bLength = b?.Length ?? 0;
+        var diff = aLength ^ bLength;
+        var maxLength = Math.Max(aLength, bLength);
+        for (var i = 0; i < maxLength; i++)
         {
-            return b == null || b.Length == 0;
-        }
-
-        if (b == null || b.Length == 0)
-        {
-            return false;
-        }
-
-        if (a.Length != b.Length)
-        {
-            return false;
-        }
-
-        var diff = 0;
-        for (var i = 0; i < a.Length; i++)
-        {
-            diff |= a[i] ^ b[i];
+            var aByte = i < aLength ? a[i] : (byte)0;
+            var bByte = i < bLength ? b[i] : (byte)0;
+            diff |= aByte ^ bByte;
         }
 
         return diff == 0;
