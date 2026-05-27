@@ -41,7 +41,6 @@ namespace Codescene.VSExtension.Core.Consts
             public const string CLOSE = "close";
             public const string GOTOFUNCTIONLOCATION = "goto-function-location";
             public const string COPYCODE = "copyCode";
-            public const string SHOWLOGOUTPUT = "showLogoutput";
             public const string SHOWDIFF = "showDiff";
             public const string REQUESTANDPRESENTREFACTORING = "request-and-present-refactoring";
             public const string UPDATERENDERER = "update-renderer";
