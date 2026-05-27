@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779894735851,
+  "lastUpdate": 1779894812526,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1088,6 +1088,48 @@ window.BENCHMARK_DATA = {
             "value": 61027145.925925925,
             "unit": "ns",
             "range": "± 629077.4252679676"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "504f7af3f3d284ce630616c611f4de392e9cce0b",
+          "message": "fix: Restrict log directory to owner-only ACLs (#292)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T17:08:30+02:00",
+          "tree_id": "7e43211cc2c87f6b5f9047a5992fd8a2e54c38f7",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/504f7af3f3d284ce630616c611f4de392e9cce0b"
+        },
+        "date": 1779894809008,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 113771949.23076923,
+            "unit": "ns",
+            "range": "± 710467.8061022134"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 105084476.44444445,
+            "unit": "ns",
+            "range": "± 3937894.1819530646"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 66215071.428571425,
+            "unit": "ns",
+            "range": "± 558444.6769572082"
           }
         ]
       }
