@@ -145,6 +145,21 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void SanitizeDictionary_StringStringDictionary_SanitizesValues()
+        {
+            var inner = new Dictionary<string, string>
+            {
+                ["context"] = "Failed at D:\\repo\\Main.cs",
+            };
+            var source = new Dictionary<string, object> { ["payload"] = inner };
+
+            var result = TelemetryDataSanitizer.SanitizeDictionary(source);
+
+            var sanitizedInner = (Dictionary<string, object>)result["payload"];
+            Assert.Contains("<path>", (string)sanitizedInner["context"]);
+        }
+
+        [TestMethod]
         public void SanitizeDictionary_SortedDictionary_SanitizesValues()
         {
             var inner = new SortedDictionary<string, object>

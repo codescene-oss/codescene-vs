@@ -77,17 +77,64 @@ namespace Codescene.VSExtension.Core.Util
                 return null;
             }
 
+            if (TrySanitizeStringKeyedDictionary(value, out var sanitizedDictionary))
+            {
+                return sanitizedDictionary;
+            }
+
             return value switch
             {
                 string text => SanitizeString(text),
-                Dictionary<string, object> dictionary => SanitizeDictionary(dictionary),
-                IDictionary<string, object> genericDictionary => SanitizeDictionary(CopyDictionary(genericDictionary)),
                 IEnumerable enumerable when value is not string => SanitizeEnumerable(enumerable),
                 _ => value,
             };
         }
 
+        private static bool TrySanitizeStringKeyedDictionary(object value, out Dictionary<string, object> sanitized)
+        {
+            switch (value)
+            {
+                case Dictionary<string, object> objectDictionary:
+                    sanitized = SanitizeDictionary(objectDictionary);
+                    return true;
+                case IDictionary<string, object> objectValuesDictionary:
+                    sanitized = SanitizeDictionary(CopyDictionary(objectValuesDictionary));
+                    return true;
+                case IDictionary<string, string> stringValuesDictionary:
+                    sanitized = SanitizeDictionary(CopyDictionary(stringValuesDictionary));
+                    return true;
+                case IReadOnlyDictionary<string, string> readOnlyStringValuesDictionary:
+                    sanitized = SanitizeDictionary(CopyDictionary(readOnlyStringValuesDictionary));
+                    return true;
+                default:
+                    sanitized = null;
+                    return false;
+            }
+        }
+
         private static Dictionary<string, object> CopyDictionary(IDictionary<string, object> source)
+        {
+            var copy = new Dictionary<string, object>(source.Count);
+            foreach (var entry in source)
+            {
+                copy[entry.Key] = entry.Value;
+            }
+
+            return copy;
+        }
+
+        private static Dictionary<string, object> CopyDictionary(IDictionary<string, string> source)
+        {
+            var copy = new Dictionary<string, object>(source.Count);
+            foreach (var entry in source)
+            {
+                copy[entry.Key] = entry.Value;
+            }
+
+            return copy;
+        }
+
+        private static Dictionary<string, object> CopyDictionary(IReadOnlyDictionary<string, string> source)
         {
             var copy = new Dictionary<string, object>(source.Count);
             foreach (var entry in source)
