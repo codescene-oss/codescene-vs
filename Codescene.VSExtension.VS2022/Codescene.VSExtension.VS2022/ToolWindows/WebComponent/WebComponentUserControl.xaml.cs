@@ -144,6 +144,16 @@ public partial class WebComponentUserControl : UserControl
     // This prevents conflicts when multiple instances are open
     private static string GetHost(string view) => $"myapp-{System.Diagnostics.Process.GetCurrentProcess().Id}-{view}.local";
 
+    private static string GetTelemetryHost(string uri)
+    {
+        if (string.IsNullOrEmpty(uri))
+        {
+            return string.Empty;
+        }
+
+        return Uri.TryCreate(uri, UriKind.Absolute, out var parsed) ? parsed.Host ?? string.Empty : string.Empty;
+    }
+
     private CoreWebView2 TryGetCoreWebView2()
     {
         try
@@ -401,7 +411,7 @@ public partial class WebComponentUserControl : UserControl
         {
             var additionalData = new Dictionary<string, object>
             {
-                { "url", uri },
+                { "host", GetTelemetryHost(uri) },
             };
 
             var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
