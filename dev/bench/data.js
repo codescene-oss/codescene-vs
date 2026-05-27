@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779893982035,
+  "lastUpdate": 1779894045194,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2484,6 +2484,66 @@ window.BENCHMARK_DATA = {
             "value": 300758803.5714286,
             "unit": "ns",
             "range": "± 3936060.2770783324"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8ae854f0499ddf1e52c23c419e0860a64de15fe3",
+          "message": "fix: Gate Logger console output behind ShowDebugLogs (#289)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T16:51:54+02:00",
+          "tree_id": "09e8e6242438981feef60f3c131172116658ce62",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/8ae854f0499ddf1e52c23c419e0860a64de15fe3"
+        },
+        "date": 1779894043649,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 128808535.71428572,
+            "unit": "ns",
+            "range": "± 1011164.30704308"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 121085424.61538461,
+            "unit": "ns",
+            "range": "± 968356.5314199053"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 249978192.85714287,
+            "unit": "ns",
+            "range": "± 2975258.9136110456"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 218922251.2820513,
+            "unit": "ns",
+            "range": "± 1501742.334486195"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 340552693.3333333,
+            "unit": "ns",
+            "range": "± 4561578.482979434"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 294036350,
+            "unit": "ns",
+            "range": "± 4483943.612769902"
           }
         ]
       }
