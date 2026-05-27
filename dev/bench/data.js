@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779893878929,
+  "lastUpdate": 1779893982035,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3586,6 +3586,54 @@ window.BENCHMARK_DATA = {
             "value": 18896.226501464844,
             "unit": "ns",
             "range": "± 289.93544441282404"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e2d0728ebda0a71f610f4d07a19cf6a26faee64",
+          "message": "fix: Detect extension exceptions by assembly not stack text (#290)\n\n* CS-11176: Detect extension exceptions by assembly not stack text\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11176: Cover stack-frame path in ExtensionExceptionFilter tests\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T16:49:31+02:00",
+          "tree_id": "00c473b33dd919f1602994ecc6a5cb3cd2f5697d",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/5e2d0728ebda0a71f610f4d07a19cf6a26faee64"
+        },
+        "date": 1779893980043,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 128538450,
+            "unit": "ns",
+            "range": "± 2276951.034846662"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5644.645280104417,
+            "unit": "ns",
+            "range": "± 41.886252587618124"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 419872876.9230769,
+            "unit": "ns",
+            "range": "± 4348088.356039131"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 20653.911105069248,
+            "unit": "ns",
+            "range": "± 773.2259414294325"
           }
         ]
       }
