@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779864686521,
+  "lastUpdate": 1779864785339,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3244,6 +3244,54 @@ window.BENCHMARK_DATA = {
             "value": 18712.724891075723,
             "unit": "ns",
             "range": "± 48.70527672181569"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b790a6ab8d0a30d6a09f9ccac962b95e2334bd3d",
+          "message": "CS-11170: Sanitize telemetry paths and secrets (#287)\n\n* CS-11170: Sanitize telemetry paths and secrets\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Reduce TelemetryDataSanitizer complexity for code health\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Expand telemetry sanitizer test coverage\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Resolve VS telemetry opt-in registry from running VS version\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Sanitize Dictionary<string,string> in telemetry payloads\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T08:42:47+02:00",
+          "tree_id": "485a7e402d563ccdb9e21902956c2a7ad18c69af",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/b790a6ab8d0a30d6a09f9ccac962b95e2334bd3d"
+        },
+        "date": 1779864783671,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 135784298.9247312,
+            "unit": "ns",
+            "range": "± 4123637.473194285"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 4882.82723060021,
+            "unit": "ns",
+            "range": "± 50.979222763996205"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 434647977.7777778,
+            "unit": "ns",
+            "range": "± 11486216.26831761"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 16822.044881184895,
+            "unit": "ns",
+            "range": "± 121.74342566018406"
           }
         ]
       }
