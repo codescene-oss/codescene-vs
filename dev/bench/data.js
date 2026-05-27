@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779895021526,
+  "lastUpdate": 1779895110603,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3994,6 +3994,54 @@ window.BENCHMARK_DATA = {
             "value": 19291.045706612724,
             "unit": "ns",
             "range": "± 143.950431343009"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "504f7af3f3d284ce630616c611f4de392e9cce0b",
+          "message": "fix: Restrict log directory to owner-only ACLs (#292)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T17:08:30+02:00",
+          "tree_id": "7e43211cc2c87f6b5f9047a5992fd8a2e54c38f7",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/504f7af3f3d284ce630616c611f4de392e9cce0b"
+        },
+        "date": 1779895109241,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 129339361.66666667,
+            "unit": "ns",
+            "range": "± 732188.9769887344"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5581.412033807664,
+            "unit": "ns",
+            "range": "± 111.04753604992581"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 412998778.5714286,
+            "unit": "ns",
+            "range": "± 4025331.022638161"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 19270.379028320312,
+            "unit": "ns",
+            "range": "± 75.95132722475032"
           }
         ]
       }
