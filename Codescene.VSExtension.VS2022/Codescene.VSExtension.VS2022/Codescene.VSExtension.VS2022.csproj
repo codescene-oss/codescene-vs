@@ -64,6 +64,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Application\ErrorHandling\Logger.cs" />
+    <Compile Include="Application\ErrorHandling\SecureLogDirectory.cs" />
     <Compile Include="Application\ErrorHandling\OutputPaneManager.cs" />
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />

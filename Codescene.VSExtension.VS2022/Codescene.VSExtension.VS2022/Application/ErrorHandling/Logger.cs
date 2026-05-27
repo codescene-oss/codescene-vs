@@ -49,7 +49,7 @@ public class Logger : ILogger
     {
         _outputPaneManager = outputPaneManager ?? throw new ArgumentNullException(nameof(outputPaneManager));
         _scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
-        Directory.CreateDirectory(Path.GetDirectoryName(LogFilePath));
+        SecureLogDirectory.EnsureExists(Path.GetDirectoryName(LogFilePath));
     }
 
     public void Error(string message, Exception ex)
