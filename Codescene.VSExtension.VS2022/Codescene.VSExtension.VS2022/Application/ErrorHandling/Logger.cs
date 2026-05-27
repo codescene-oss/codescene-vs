@@ -64,32 +64,17 @@ public class Logger : ILogger
         }
     }
 
-    public void Info(string message, bool statusBar = false)
-    {
-        _scheduler.Schedule(ct => WriteLogAsync(message, INFORMATION));
-        Console.WriteLine(message);
-        if (statusBar)
-        {
-            _scheduler.Schedule(ct => SendToStatusBarAsync(message));
-        }
-    }
+    public void Info(string message, bool statusBar = false) =>
+        LogMessage(message, INFORMATION, statusBar);
 
-    public void Warn(string message, bool statusBar = false)
-    {
-        _scheduler.Schedule(ct => WriteLogAsync(message, WARNING));
-        Console.WriteLine(message);
-        if (statusBar)
-        {
-            _scheduler.Schedule(ct => SendToStatusBarAsync(message));
-        }
-    }
+    public void Warn(string message, bool statusBar = false) =>
+        LogMessage(message, WARNING, statusBar);
 
     public void Debug(string message)
     {
-        Console.WriteLine(message);
-
         if (General.Instance.ShowDebugLogs)
         {
+            Console.WriteLine(message);
             _scheduler.Schedule(ct => WriteLogAsync(message, DEBUG));
         }
     }
@@ -97,6 +82,20 @@ public class Logger : ILogger
     private static async Task SendToStatusBarAsync(string message)
     {
         await VS.StatusBar.ShowMessageAsync($"{Titles.CODESCENE}: {message}");
+    }
+
+    private void LogMessage(string message, string level, bool statusBar)
+    {
+        _scheduler.Schedule(ct => WriteLogAsync(message, level));
+        if (General.Instance.ShowDebugLogs)
+        {
+            Console.WriteLine(message);
+        }
+
+        if (statusBar)
+        {
+            _scheduler.Schedule(ct => SendToStatusBarAsync(message));
+        }
     }
 
     private async Task WriteLogAsync(string message, string level)
