@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779893667654,
+  "lastUpdate": 1779893823910,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1004,6 +1004,48 @@ window.BENCHMARK_DATA = {
             "value": 67469666.66666667,
             "unit": "ns",
             "range": "± 822526.2021942711"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8ae854f0499ddf1e52c23c419e0860a64de15fe3",
+          "message": "fix: Gate Logger console output behind ShowDebugLogs (#289)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T16:51:54+02:00",
+          "tree_id": "09e8e6242438981feef60f3c131172116658ce62",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/8ae854f0499ddf1e52c23c419e0860a64de15fe3"
+        },
+        "date": 1779893821228,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 110717938.66666667,
+            "unit": "ns",
+            "range": "± 3567305.346390899"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 94172553.57142857,
+            "unit": "ns",
+            "range": "± 564859.2090742684"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 61475016.239316255,
+            "unit": "ns",
+            "range": "± 180129.25346830642"
           }
         ]
       }
