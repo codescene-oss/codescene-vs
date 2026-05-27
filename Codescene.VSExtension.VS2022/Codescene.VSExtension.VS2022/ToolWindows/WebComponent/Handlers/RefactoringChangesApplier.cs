@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Models;
 using Codescene.VSExtension.VS2022.Util;
@@ -20,6 +21,13 @@ public class RefactoringChangesApplier
     public async Task ApplyAsync(ApplyPayload payload)
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        if (!await WorkspacePathResolver.IsAllowedWorkspaceFilePathAsync(payload?.FilePath))
+        {
+            var logger = await VS.GetMefServiceAsync<ILogger>();
+            logger?.Warn("Refactoring apply rejected: path is outside the workspace or uses unsafe syntax.");
+            return;
+        }
 
         var newCode = payload.Code;
         var fnStartLine = payload.Fn.Range.StartLine;
