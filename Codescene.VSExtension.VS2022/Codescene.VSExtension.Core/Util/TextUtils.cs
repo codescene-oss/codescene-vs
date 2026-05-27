@@ -11,10 +11,6 @@ namespace Codescene.VSExtension.Core.Util
 {
     public static class TextUtils
     {
-        private static readonly Regex SecretCliFlagRegex = new Regex(
-            @"--token(?:\s*=\s*|\s+)(?:""[^""]*""|'[^']*'|\S+)",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
         public static string ToSnakeCase(string input)
         {
             var normalized = input.Replace("-", "_");
@@ -55,15 +51,8 @@ namespace Codescene.VSExtension.Core.Util
             return value.Substring(0, maxLength) + "...";
         }
 
-        public static string RedactSensitiveCliArguments(string arguments)
-        {
-            if (string.IsNullOrEmpty(arguments))
-            {
-                return arguments;
-            }
-
-            return SecretCliFlagRegex.Replace(arguments, "--token ***");
-        }
+        public static string RedactSensitiveCliArguments(string arguments) =>
+            SensitiveDataRedactor.RedactCliTokenArguments(arguments);
 
         public static string BuildCommandForLogging(string arguments, string jsonContent, int maxValueLength = 120)
         {
