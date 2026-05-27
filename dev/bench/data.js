@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779864444361,
+  "lastUpdate": 1779864542224,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2118,6 +2118,66 @@ window.BENCHMARK_DATA = {
             "value": 278874453.5714286,
             "unit": "ns",
             "range": "± 3122505.8273311574"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "af712aa7739c500ca5a6f6d54209d6f2dfd83505",
+          "message": "CS-11171: Restrict webview file paths to workspace roots (#286)\n\n* CS-11171: Restrict webview file paths to workspace roots\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11171: Reduce complexity in workspace path validator\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11171: Expand WorkspaceFilePathValidator test coverage\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T08:41:09+02:00",
+          "tree_id": "b0451f64e4d78c907dcda7cc4ed765beb35f1432",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/af712aa7739c500ca5a6f6d54209d6f2dfd83505"
+        },
+        "date": 1779864540519,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 126185726.66666667,
+            "unit": "ns",
+            "range": "± 2356789.0811946015"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 116605254.28571428,
+            "unit": "ns",
+            "range": "± 1084798.685426608"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 250188076.31578946,
+            "unit": "ns",
+            "range": "± 5317875.605194668"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 217449675.3623188,
+            "unit": "ns",
+            "range": "± 5414351.761643294"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 340951233.3333333,
+            "unit": "ns",
+            "range": "± 4623045.804239369"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 290981275,
+            "unit": "ns",
+            "range": "± 5058051.705152884"
           }
         ]
       }
