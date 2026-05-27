@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779864336284,
+  "lastUpdate": 1779864444361,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -878,6 +878,48 @@ window.BENCHMARK_DATA = {
             "value": 63961701.23456792,
             "unit": "ns",
             "range": "± 2132520.8125890386"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b790a6ab8d0a30d6a09f9ccac962b95e2334bd3d",
+          "message": "CS-11170: Sanitize telemetry paths and secrets (#287)\n\n* CS-11170: Sanitize telemetry paths and secrets\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Reduce TelemetryDataSanitizer complexity for code health\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Expand telemetry sanitizer test coverage\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Resolve VS telemetry opt-in registry from running VS version\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11170: Sanitize Dictionary<string,string> in telemetry payloads\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T08:42:47+02:00",
+          "tree_id": "485a7e402d563ccdb9e21902956c2a7ad18c69af",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/b790a6ab8d0a30d6a09f9ccac962b95e2334bd3d"
+        },
+        "date": 1779864441690,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 116262208,
+            "unit": "ns",
+            "range": "± 723937.5469827688"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 105300660,
+            "unit": "ns",
+            "range": "± 1016115.1183529623"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 70634164.16666667,
+            "unit": "ns",
+            "range": "± 1203806.7461486151"
           }
         ]
       }
