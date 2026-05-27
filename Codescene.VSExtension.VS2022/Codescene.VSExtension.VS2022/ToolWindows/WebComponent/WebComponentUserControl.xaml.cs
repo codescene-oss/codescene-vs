@@ -368,6 +368,14 @@ public partial class WebComponentUserControl : UserControl
 
         if (ExternalNavigationAllowlist.IsAllowedExternalUri(uri))
         {
+            if (!Uri.TryCreate(uri, UriKind.Absolute, out var externalUri)
+                || !string.Equals(externalUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+            {
+                args.Cancel = true;
+                _logger.Info($"Blocked navigation to non-HTTPS link '{uri}'.");
+                return;
+            }
+
             try
             {
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
