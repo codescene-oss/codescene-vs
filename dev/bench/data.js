@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779864785339,
+  "lastUpdate": 1779889281180,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -920,6 +920,48 @@ window.BENCHMARK_DATA = {
             "value": 70634164.16666667,
             "unit": "ns",
             "range": "± 1203806.7461486151"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5f7196d062ffdeeff8104c0c031e9f30ff4ce889",
+          "message": "CS-11174: Serialize theme CSS for WebView scripts (#288)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T15:36:27+02:00",
+          "tree_id": "449891a10a00eb2e1477345ff2a58ac72313bd3f",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/5f7196d062ffdeeff8104c0c031e9f30ff4ce889"
+        },
+        "date": 1779889279124,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 109315820,
+            "unit": "ns",
+            "range": "± 1275939.8134932318"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 98350926.15384616,
+            "unit": "ns",
+            "range": "± 1530053.7830282222"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 63467124.038461536,
+            "unit": "ns",
+            "range": "± 577177.6698869993"
           }
         ]
       }
