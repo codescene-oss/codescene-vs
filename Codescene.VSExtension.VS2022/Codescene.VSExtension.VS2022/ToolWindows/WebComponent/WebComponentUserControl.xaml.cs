@@ -237,7 +237,7 @@ public partial class WebComponentUserControl : UserControl
             return;
         }
 
-        var css = GenerateCssVariablesFromTheme().Replace("`", "\\`");
+        var css = JsonConvert.SerializeObject(GenerateCssVariablesFromTheme());
 
         var script = $@"
         (function() {{
@@ -247,7 +247,7 @@ public partial class WebComponentUserControl : UserControl
             }}
             const style = document.createElement('style');
             style.id = '{STYLEELEMENTID}';
-            style.textContent = `{css}`;
+            style.textContent = {css};
             document.head.appendChild(style);
         }})();
         ";
@@ -263,7 +263,7 @@ public partial class WebComponentUserControl : UserControl
         const string template = $@"
         function setContext() {{
             window.ideContext = %ideContext%;
-            const css = `%cssVars%`;
+            const css = %cssVars%;
             function injectStyle() {{
                 const style = document.createElement('style');
                 style.id = '{STYLEELEMENTID}';
@@ -292,11 +292,11 @@ public partial class WebComponentUserControl : UserControl
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         }
 
-        var cssVars = GenerateCssVariablesFromTheme();
+        var cssVars = JsonConvert.SerializeObject(GenerateCssVariablesFromTheme());
 
         var script = template
            .Replace("%ideContext%", ideContext)
-           .Replace("%cssVars%", cssVars.Replace("`", "\\`"));
+           .Replace("%cssVars%", cssVars);
 
         return script;
     }
