@@ -9,6 +9,7 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.Handlers;
 using Codescene.VSExtension.VS2022.Options;
@@ -225,8 +226,7 @@ public sealed class VS2022Package : ToolkitPackage
     {
         if (e.ExceptionObject is Exception exception)
         {
-            var isFromThisExtension = exception.StackTrace?.Contains("Codescene.VSExtension") == true;
-            if (!isFromThisExtension)
+            if (exception == null || !ExtensionExceptionFilter.IsFromExtension(exception))
             {
                 return;
             }
@@ -237,9 +237,7 @@ public sealed class VS2022Package : ToolkitPackage
 
     private void OnUnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
     {
-        var isFromThisExtension = e.Exception?.StackTrace?.Contains("Codescene.VSExtension") == true;
-
-        if (isFromThisExtension)
+        if (ExtensionExceptionFilter.IsFromExtension(e.Exception))
         {
             _logger?.Error("Unobserved task exception", e.Exception);
             e.SetObserved();
@@ -248,9 +246,7 @@ public sealed class VS2022Package : ToolkitPackage
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        var isFromThisExtension = e.Exception.StackTrace?.Contains("Codescene.VSExtension") == true;
-
-        if (isFromThisExtension)
+        if (e.Exception != null && ExtensionExceptionFilter.IsFromExtension(e.Exception))
         {
             _logger?.Error("Unhandled UI exception", e.Exception);
             e.Handled = true;
