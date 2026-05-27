@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779894129483,
+  "lastUpdate": 1779894451652,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1046,6 +1046,48 @@ window.BENCHMARK_DATA = {
             "value": 61475016.239316255,
             "unit": "ns",
             "range": "± 180129.25346830642"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e5c24d7f169160221cf439b4e1b4ba1226b5e066",
+          "message": "CS-11179: Require HTTPS before Process.Start external links (#291)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T17:01:26+02:00",
+          "tree_id": "e4a9cd2164263a2a85a4bc58a66dfeb2dcbe60c5",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/e5c24d7f169160221cf439b4e1b4ba1226b5e066"
+        },
+        "date": 1779894448601,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 110572510.48387097,
+            "unit": "ns",
+            "range": "± 8730397.782612987"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 95904690,
+            "unit": "ns",
+            "range": "± 1333753.133597425"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 61027145.925925925,
+            "unit": "ns",
+            "range": "± 629077.4252679676"
           }
         ]
       }
