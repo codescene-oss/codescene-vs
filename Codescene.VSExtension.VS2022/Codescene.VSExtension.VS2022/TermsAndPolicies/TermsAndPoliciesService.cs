@@ -103,11 +103,21 @@ public class TermsAndPoliciesService : IVsInfoBarUIEvents
                 infoBarUIElement.Close();
                 break;
             case CodeSceneConstants.Titles.VIEWTERMS:
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                const string termsUrl = "https://codescene.com/policies";
+                if (Uri.TryCreate(termsUrl, UriKind.Absolute, out var termsUri)
+                    && string.Equals(termsUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
                 {
-                    FileName = "https://codescene.com/policies",
-                    UseShellExecute = true,
-                });
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = termsUrl,
+                        UseShellExecute = true,
+                    });
+                }
+                else
+                {
+                    _logger.Info("Blocked opening Terms & Policies link: URL is not HTTPS.");
+                }
+
                 break;
         }
     }
