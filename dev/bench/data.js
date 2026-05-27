@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779889579744,
+  "lastUpdate": 1779893667654,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -962,6 +962,48 @@ window.BENCHMARK_DATA = {
             "value": 63467124.038461536,
             "unit": "ns",
             "range": "± 577177.6698869993"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e2d0728ebda0a71f610f4d07a19cf6a26faee64",
+          "message": "fix: Detect extension exceptions by assembly not stack text (#290)\n\n* CS-11176: Detect extension exceptions by assembly not stack text\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11176: Cover stack-frame path in ExtensionExceptionFilter tests\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T16:49:31+02:00",
+          "tree_id": "00c473b33dd919f1602994ecc6a5cb3cd2f5697d",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/5e2d0728ebda0a71f610f4d07a19cf6a26faee64"
+        },
+        "date": 1779893664770,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 114483991.42857143,
+            "unit": "ns",
+            "range": "± 1824703.880325442"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 106713987.6923077,
+            "unit": "ns",
+            "range": "± 2839989.9432953037"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 67469666.66666667,
+            "unit": "ns",
+            "range": "± 822526.2021942711"
           }
         ]
       }
