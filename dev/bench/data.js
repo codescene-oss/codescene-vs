@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779893823910,
+  "lastUpdate": 1779893878929,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2424,6 +2424,66 @@ window.BENCHMARK_DATA = {
             "value": 284248900,
             "unit": "ns",
             "range": "± 1728324.511629688"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5e2d0728ebda0a71f610f4d07a19cf6a26faee64",
+          "message": "fix: Detect extension exceptions by assembly not stack text (#290)\n\n* CS-11176: Detect extension exceptions by assembly not stack text\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11176: Cover stack-frame path in ExtensionExceptionFilter tests\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-27T16:49:31+02:00",
+          "tree_id": "00c473b33dd919f1602994ecc6a5cb3cd2f5697d",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/5e2d0728ebda0a71f610f4d07a19cf6a26faee64"
+        },
+        "date": 1779893876616,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 127909185,
+            "unit": "ns",
+            "range": "± 1560559.6275512374"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 121341888,
+            "unit": "ns",
+            "range": "± 1525405.8782557326"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 251382456.66666666,
+            "unit": "ns",
+            "range": "± 4515236.505349204"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 225344848.88888887,
+            "unit": "ns",
+            "range": "± 3281874.7153540766"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 352687613.3333333,
+            "unit": "ns",
+            "range": "± 4709408.646508553"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 300758803.5714286,
+            "unit": "ns",
+            "range": "± 3936060.2770783324"
           }
         ]
       }
