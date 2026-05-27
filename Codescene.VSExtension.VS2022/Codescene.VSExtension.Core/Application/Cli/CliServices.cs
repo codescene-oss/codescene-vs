@@ -2,11 +2,7 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using Codescene.VSExtension.Core.Interfaces.Cli;
-
-[assembly: InternalsVisibleTo("Codescene.VSExtension.Core.Tests")]
-[assembly: InternalsVisibleTo("Codescene.VSExtension.Core.IntegrationTests")]
 
 [assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1518:File is required to end with a single newline character", Justification = "File ends with proper newline, false positive in pipeline")]
 

@@ -1,11 +1,8 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-
-[assembly: InternalsVisibleTo("Codescene.VSExtension.Core.Tests")]
 
 namespace Codescene.VSExtension.Core.Models.Cli
 {

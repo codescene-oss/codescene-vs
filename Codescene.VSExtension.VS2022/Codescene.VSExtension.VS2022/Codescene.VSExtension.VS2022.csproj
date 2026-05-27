@@ -36,6 +36,8 @@
     <StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
     <StartArguments>/rootsuffix Exp</StartArguments>
     <RuntimeIdentifiers>win</RuntimeIdentifiers>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\build\StrongName\Codescene.VSExtension.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

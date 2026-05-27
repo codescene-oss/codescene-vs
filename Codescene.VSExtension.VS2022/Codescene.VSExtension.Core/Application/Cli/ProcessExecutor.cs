@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,8 +14,6 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Util;
 using Newtonsoft.Json;
-
-[assembly: InternalsVisibleTo("Codescene.VSExtension.Core.Tests")]
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {

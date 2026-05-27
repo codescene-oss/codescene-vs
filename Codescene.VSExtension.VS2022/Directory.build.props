@@ -6,6 +6,14 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Codescene.VSExtension.Core' Or '$(AssemblyName)' == 'Codescene.VSExtension.VS2022'">
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)build\StrongName\Codescene.VSExtension.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Codescene.VSExtension.Core.Tests' Or '$(MSBuildProjectName)' == 'Codescene.VSExtension.Core.IntegrationTests' Or '$(MSBuildProjectName)' == 'Codescene.VSExtension.Core.SubcutaneousTests'">
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)build\StrongName\TestFriends.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)\stylecop.json" Link="stylecop.json" />
   </ItemGroup>
