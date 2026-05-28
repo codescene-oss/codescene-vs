@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779895110603,
+  "lastUpdate": 1779948987498,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1130,6 +1130,48 @@ window.BENCHMARK_DATA = {
             "value": 66215071.428571425,
             "unit": "ns",
             "range": "± 558444.6769572082"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "222191d80035d7d19d7b70504c43772af76eff7c",
+          "message": "fix: Store previous auth token in zeroed byte buffer (#294)\n\n* CS-11175: Store previous auth token in zeroed byte buffer\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11175: Cover SecretBuffer edge cases in tests\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11175: Use length-independent constant-time token compare\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-28T08:11:26+02:00",
+          "tree_id": "994b20a2b1198d47d28fa2a50d69de7a83d38a7a",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/222191d80035d7d19d7b70504c43772af76eff7c"
+        },
+        "date": 1779948984387,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 89651839.74358974,
+            "unit": "ns",
+            "range": "± 843439.4746704334"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 82268890.9774436,
+            "unit": "ns",
+            "range": "± 1782923.7078487996"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 52008275.2,
+            "unit": "ns",
+            "range": "± 1218367.7053511667"
           }
         ]
       }
