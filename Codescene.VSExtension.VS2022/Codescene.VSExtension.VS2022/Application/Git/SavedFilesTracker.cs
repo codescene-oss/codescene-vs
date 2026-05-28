@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Git;
+using Microsoft.VisualStudio.Shell;
 
 namespace Codescene.VSExtension.VS2022.Application.Git
 {
@@ -81,7 +82,11 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                 }
 
                 _core = new SavedFilesTrackerCore(_eventSource, _openFilesObserver, _logger);
-                _core.Start();
+                ThreadHelper.JoinableTaskFactory.Run(async () =>
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    _core.Start();
+                });
             }
         }
     }
