@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779952386442,
+  "lastUpdate": 1779952469809,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -4444,6 +4444,54 @@ window.BENCHMARK_DATA = {
             "value": 19409.452107747395,
             "unit": "ns",
             "range": "± 123.98281600647158"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e6057102dc20df10d6db22f0d8181bb043cb5047",
+          "message": "CS-11351: Harden margin update on window focus (#297)",
+          "timestamp": "2026-05-28T09:03:40+02:00",
+          "tree_id": "10d22758817d06ccd679e98663ca01ce1387a62c",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/e6057102dc20df10d6db22f0d8181bb043cb5047"
+        },
+        "date": 1779952468046,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 125491926.66666667,
+            "unit": "ns",
+            "range": "± 645086.7384553432"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5635.6768471854075,
+            "unit": "ns",
+            "range": "± 15.61486251078531"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 419324778.5714286,
+            "unit": "ns",
+            "range": "± 6475172.936945518"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 20151.077270507812,
+            "unit": "ns",
+            "range": "± 68.4598125395228"
           }
         ]
       }
