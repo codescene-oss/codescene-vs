@@ -44,42 +44,55 @@ public class OnActiveWindowChangeHandler
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        if (focused?.Kind == DocumentKind)
+        if (focused?.Kind != DocumentKind)
         {
-            var doc = focused.Document;
-            if (doc == null)
-            {
-                _marginSettings.HideMargin();
-                return;
-            }
+            _marginSettings.HideMargin();
+            return;
+        }
 
-            string path;
-            try
-            {
-                path = doc.FullName;
-            }
-            catch (Exception ex) when (ex is COMException or FileNotFoundException)
-            {
-                _marginSettings.HideMargin();
-                return;
-            }
+        Document doc;
+        try
+        {
+            doc = focused.Document;
+        }
+        catch (Exception ex) when (ex is NullReferenceException or COMException or FileNotFoundException)
+        {
+            _marginSettings.HideMargin();
+            return;
+        }
 
-            var isSupportedFile = _supportedFileChecker.IsSupported(path);
+        if (doc == null)
+        {
+            _marginSettings.HideMargin();
+            return;
+        }
 
-            var isTextDocument = false;
-            try
-            {
-                isTextDocument = doc.Object("TextDocument") is TextDocument;
-            }
-            catch (Exception ex) when (ex is COMException or FileNotFoundException)
-            {
-            }
+        string path;
+        try
+        {
+            path = doc.FullName;
+        }
+        catch (Exception ex) when (ex is NullReferenceException or COMException or FileNotFoundException)
+        {
+            _marginSettings.HideMargin();
+            return;
+        }
 
-            if (isSupportedFile && isTextDocument)
-            {
-                _marginSettings.NotifyScoreUpdated();
-                return;
-            }
+        var isSupportedFile = _supportedFileChecker.IsSupported(path);
+
+        var isTextDocument = false;
+        try
+        {
+            isTextDocument = doc.Object("TextDocument") is TextDocument;
+        }
+        catch (Exception ex) when (ex is NullReferenceException or COMException or FileNotFoundException)
+        {
+        }
+
+        if (isSupportedFile && isTextDocument)
+        {
+            _marginSettings.NotifyScoreUpdated();
+            return;
         }
 
         _marginSettings.HideMargin();
