@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779949305148,
+  "lastUpdate": 1779950624395,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1172,6 +1172,48 @@ window.BENCHMARK_DATA = {
             "value": 52008275.2,
             "unit": "ns",
             "range": "± 1218367.7053511667"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8537652eac50561c52ed35b21a5c6bc5ba8951c7",
+          "message": "fix: Marshal SavedFilesTracker start to UI thread (#296)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-28T08:39:41+02:00",
+          "tree_id": "f899bf831430b8e9befb4e75c08c544c3bea32e8",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/8537652eac50561c52ed35b21a5c6bc5ba8951c7"
+        },
+        "date": 1779950621333,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 103674276.92307693,
+            "unit": "ns",
+            "range": "± 416719.24896314816"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 98348628.68852457,
+            "unit": "ns",
+            "range": "± 4329532.374859313"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 60824364.28571428,
+            "unit": "ns",
+            "range": "± 693712.2394289257"
           }
         ]
       }
