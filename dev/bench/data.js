@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779952761894,
+  "lastUpdate": 1779952862283,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1298,6 +1298,48 @@ window.BENCHMARK_DATA = {
             "value": 67415950.48701298,
             "unit": "ns",
             "range": "± 3426478.3070220617"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "distinct": true,
+          "id": "3921f582aa5a4d5b7b84f0af6ce50ede05417895",
+          "message": "fix: Guard null refactorable functions in delta analysis (#298)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-28T09:16:00+02:00",
+          "tree_id": "d7261caa52949cf573d23d606b3f867efdd89e96",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/3921f582aa5a4d5b7b84f0af6ce50ede05417895"
+        },
+        "date": 1779952859655,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 108762102,
+            "unit": "ns",
+            "range": "± 3770349.943774314"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 97248435.55555557,
+            "unit": "ns",
+            "range": "± 809137.2878994724"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 64627150.89285714,
+            "unit": "ns",
+            "range": "± 795357.4592394865"
           }
         ]
       }
