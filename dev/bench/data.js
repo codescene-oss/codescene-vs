@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779948987498,
+  "lastUpdate": 1779949216696,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2790,6 +2790,66 @@ window.BENCHMARK_DATA = {
             "value": 294937019.2307692,
             "unit": "ns",
             "range": "± 1916396.496524408"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "222191d80035d7d19d7b70504c43772af76eff7c",
+          "message": "fix: Store previous auth token in zeroed byte buffer (#294)\n\n* CS-11175: Store previous auth token in zeroed byte buffer\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11175: Cover SecretBuffer edge cases in tests\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11175: Use length-independent constant-time token compare\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-28T08:11:26+02:00",
+          "tree_id": "994b20a2b1198d47d28fa2a50d69de7a83d38a7a",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/222191d80035d7d19d7b70504c43772af76eff7c"
+        },
+        "date": 1779949215283,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 99663612.85714285,
+            "unit": "ns",
+            "range": "± 294023.06488355034"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 91897967.14285715,
+            "unit": "ns",
+            "range": "± 371305.0204228442"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 194262095.23809525,
+            "unit": "ns",
+            "range": "± 2365649.2462716987"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 172603581.25000003,
+            "unit": "ns",
+            "range": "± 3287559.184922111"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 272950300,
+            "unit": "ns",
+            "range": "± 2283556.1481309514"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 234973646.6666667,
+            "unit": "ns",
+            "range": "± 3921356.407430374"
           }
         ]
       }
