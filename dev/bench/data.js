@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779952469809,
+  "lastUpdate": 1779952761894,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1256,6 +1256,48 @@ window.BENCHMARK_DATA = {
             "value": 64917445,
             "unit": "ns",
             "range": "± 321956.77833534026"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3380c6542790a5bdbc73d7d4dd666504982b216f",
+          "message": "CS-11350: Guard null refactorable functions in delta analysis (#298)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-28T09:14:06+02:00",
+          "tree_id": "d7261caa52949cf573d23d606b3f867efdd89e96",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/3380c6542790a5bdbc73d7d4dd666504982b216f"
+        },
+        "date": 1779952750067,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 109851880.9090909,
+            "unit": "ns",
+            "range": "± 4088021.1935348203"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 95794336.50793651,
+            "unit": "ns",
+            "range": "± 2188980.503806501"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 67415950.48701298,
+            "unit": "ns",
+            "range": "± 3426478.3070220617"
           }
         ]
       }
