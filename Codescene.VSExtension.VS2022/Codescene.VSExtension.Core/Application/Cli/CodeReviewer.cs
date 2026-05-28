@@ -109,7 +109,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
                 var preflight = await _preflightManager.GetPreflightResponseAsync(cancellationToken);
                 var refactorableFunctions = await _executor.FnsToRefactorFromDeltaAsync(path, currentCode, delta, preflight, cancellationToken);
-                if (refactorableFunctions == null || !refactorableFunctions.Any())
+                if (refactorableFunctions is not { Count: > 0 })
                 {
                     return delta;
                 }

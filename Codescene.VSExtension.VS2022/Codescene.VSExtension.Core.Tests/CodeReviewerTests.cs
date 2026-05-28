@@ -517,6 +517,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsNotNull(result);
             Assert.AreEqual(-1m, result.ScoreChange);
+            _mockLogger.Verify(l => l.Error(It.Is<string>(s => s.Contains("delta analysis")), It.IsAny<Exception>()), Times.Never);
         }
 
         [TestMethod]
