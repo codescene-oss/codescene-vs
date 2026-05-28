@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779952862283,
+  "lastUpdate": 1779952946935,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3138,6 +3138,66 @@ window.BENCHMARK_DATA = {
             "value": 293577392.85714287,
             "unit": "ns",
             "range": "± 921290.0163226692"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3380c6542790a5bdbc73d7d4dd666504982b216f",
+          "message": "CS-11350: Guard null refactorable functions in delta analysis (#298)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-28T09:14:06+02:00",
+          "tree_id": "d7261caa52949cf573d23d606b3f867efdd89e96",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/3380c6542790a5bdbc73d7d4dd666504982b216f"
+        },
+        "date": 1779952945434,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 124384503.33333333,
+            "unit": "ns",
+            "range": "± 1110772.661816132"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 113083850.66666667,
+            "unit": "ns",
+            "range": "± 1437052.5351141812"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 240138157.14285713,
+            "unit": "ns",
+            "range": "± 3763848.5559610445"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 207766164.2857143,
+            "unit": "ns",
+            "range": "± 2350382.377309391"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 330223606.6666667,
+            "unit": "ns",
+            "range": "± 2615922.038680125"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 284830931.25,
+            "unit": "ns",
+            "range": "± 5503336.6384668555"
           }
         ]
       }
