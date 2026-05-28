@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779950930910,
+  "lastUpdate": 1779951009304,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -4294,6 +4294,54 @@ window.BENCHMARK_DATA = {
             "value": 14661.611328125,
             "unit": "ns",
             "range": "± 69.71077987439062"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8537652eac50561c52ed35b21a5c6bc5ba8951c7",
+          "message": "fix: Marshal SavedFilesTracker start to UI thread (#296)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-28T08:39:41+02:00",
+          "tree_id": "f899bf831430b8e9befb4e75c08c544c3bea32e8",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/8537652eac50561c52ed35b21a5c6bc5ba8951c7"
+        },
+        "date": 1779951007348,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 120034595,
+            "unit": "ns",
+            "range": "± 398015.8833856668"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5336.647415161133,
+            "unit": "ns",
+            "range": "± 31.057766291704276"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 393253453.84615386,
+            "unit": "ns",
+            "range": "± 2196388.2855783133"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 19409.452107747395,
+            "unit": "ns",
+            "range": "± 123.98281600647158"
           }
         ]
       }
