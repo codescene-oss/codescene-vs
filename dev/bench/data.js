@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779951009304,
+  "lastUpdate": 1779952162462,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1214,6 +1214,48 @@ window.BENCHMARK_DATA = {
             "value": 60824364.28571428,
             "unit": "ns",
             "range": "± 693712.2394289257"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e6057102dc20df10d6db22f0d8181bb043cb5047",
+          "message": "CS-11351: Harden margin update on window focus (#297)",
+          "timestamp": "2026-05-28T09:03:40+02:00",
+          "tree_id": "10d22758817d06ccd679e98663ca01ce1387a62c",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/e6057102dc20df10d6db22f0d8181bb043cb5047"
+        },
+        "date": 1779952158631,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 114834432.17391305,
+            "unit": "ns",
+            "range": "± 4161551.673125949"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 100253515.71428572,
+            "unit": "ns",
+            "range": "± 425432.74476546975"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 64917445,
+            "unit": "ns",
+            "range": "± 321956.77833534026"
           }
         ]
       }
