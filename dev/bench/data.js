@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779952946935,
+  "lastUpdate": 1779953026625,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -4636,6 +4636,54 @@ window.BENCHMARK_DATA = {
             "value": 20151.077270507812,
             "unit": "ns",
             "range": "± 68.4598125395228"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3380c6542790a5bdbc73d7d4dd666504982b216f",
+          "message": "CS-11350: Guard null refactorable functions in delta analysis (#298)\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-28T09:14:06+02:00",
+          "tree_id": "d7261caa52949cf573d23d606b3f867efdd89e96",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/3380c6542790a5bdbc73d7d4dd666504982b216f"
+        },
+        "date": 1779953025189,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 124608723.21428572,
+            "unit": "ns",
+            "range": "± 1612189.6188600233"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 6013.123594011579,
+            "unit": "ns",
+            "range": "± 67.7906078483173"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 402904815.7894737,
+            "unit": "ns",
+            "range": "± 8934457.266440304"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 20879.38058035714,
+            "unit": "ns",
+            "range": "± 142.66779184210796"
           }
         ]
       }
