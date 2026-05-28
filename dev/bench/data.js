@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779949216696,
+  "lastUpdate": 1779949305148,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -4144,6 +4144,54 @@ window.BENCHMARK_DATA = {
             "value": 19270.379028320312,
             "unit": "ns",
             "range": "± 75.95132722475032"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "222191d80035d7d19d7b70504c43772af76eff7c",
+          "message": "fix: Store previous auth token in zeroed byte buffer (#294)\n\n* CS-11175: Store previous auth token in zeroed byte buffer\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11175: Cover SecretBuffer edge cases in tests\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* CS-11175: Use length-independent constant-time token compare\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-05-28T08:11:26+02:00",
+          "tree_id": "994b20a2b1198d47d28fa2a50d69de7a83d38a7a",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/222191d80035d7d19d7b70504c43772af76eff7c"
+        },
+        "date": 1779949303528,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 102553340,
+            "unit": "ns",
+            "range": "± 909698.6602766275"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 4159.251454671224,
+            "unit": "ns",
+            "range": "± 18.93129085865874"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 347494683.3333333,
+            "unit": "ns",
+            "range": "± 7223529.054518337"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 14661.611328125,
+            "unit": "ns",
+            "range": "± 69.71077987439062"
           }
         ]
       }
