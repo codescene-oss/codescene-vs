@@ -22,16 +22,14 @@ internal class OptionsProvider
 
 public class General : BaseOptionModel<General>
 {
-    // Track previous values to detect changes
-    private string _previousAuthToken;
+    private byte[] _previousAuthToken;
     private bool _previousShowDebugLogs;
 
     public General()
     {
         Load();
 
-        // Store initial values
-        _previousAuthToken = AuthToken;
+        _previousAuthToken = SecretBuffer.FromString(AuthToken);
         _previousShowDebugLogs = ShowDebugLogs;
 
         Saved += OnSettingsSaved;
@@ -92,9 +90,9 @@ public class General : BaseOptionModel<General>
         SettingsSaved?.Invoke(this, EventArgs.Empty);
 
         // Check for specific setting changes and fire targeted events
-        if (_previousAuthToken != AuthToken)
+        if (!SecretBuffer.Equals(_previousAuthToken, AuthToken))
         {
-            _previousAuthToken = AuthToken;
+            SecretBuffer.Replace(ref _previousAuthToken, AuthToken);
             AuthTokenChanged?.Invoke(this, EventArgs.Empty);
         }
 
