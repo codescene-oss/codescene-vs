@@ -253,6 +253,22 @@ public abstract class SubcutaneousGitTestBase
         ExecGit($"rebase {target}");
     }
 
+    protected void SetOriginHeadToBranch(string branchName)
+    {
+        ExecGit($"update-ref refs/remotes/origin/{branchName} refs/heads/{branchName}");
+        ExecGit($"symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/{branchName}");
+    }
+
+    protected void WriteCodesceneConfig(string baselineBranch)
+    {
+        var codesceneDir = Path.Combine(RepositoryRoot, CodesceneFileWatcher.CodesceneDir);
+        Directory.CreateDirectory(codesceneDir);
+        var configPath = Path.Combine(codesceneDir, CodesceneFileWatcher.ConfigFileName);
+        var json = $"{{\"baseline_branch\":\"{baselineBranch}\"}}";
+        System.IO.File.WriteAllText(configPath, json);
+        Journal.Record("stimulus.config-write", configPath, $"baseline_branch={baselineBranch}");
+    }
+
     protected bool IsTracked(string relativePath)
     {
         return Observer.GetTrackerManager().Contains(AbsolutePath(relativePath));

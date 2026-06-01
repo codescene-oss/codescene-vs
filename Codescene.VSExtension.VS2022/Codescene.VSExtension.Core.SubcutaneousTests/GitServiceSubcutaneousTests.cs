@@ -83,6 +83,49 @@ public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
     }
 
     [TestMethod]
+    public async Task GetFileContentForCommit_WithOriginHeadMain_WithoutConfig_UsesMainBaselineNotDevelop()
+    {
+        const string relativePath = "src/TesfFile.cs";
+
+        await CreateCommittedFileAsync(relativePath, MainContent, "Add baseline file on main");
+
+        CheckoutBranch("develop", create: true);
+        await WriteWorkingFileAsync(relativePath, DevelopContent);
+        CommitAll("Improve baseline file on develop");
+
+        SetOriginHeadToBranch("main");
+
+        CheckoutBranch("feature/config-baseline", create: true);
+        await WriteWorkingFileAsync(relativePath, FeatureContent);
+
+        var baselineContent = GitService.GetFileContentForCommit(AbsolutePath(relativePath));
+        Assert.AreEqual(NormalizeLineEndings(MainContent), NormalizeLineEndings(baselineContent));
+        Assert.AreNotEqual(NormalizeLineEndings(DevelopContent), NormalizeLineEndings(baselineContent));
+    }
+
+    [TestMethod]
+    public async Task GetFileContentForCommit_WithConfigBaselineDevelop_OverridesOriginHeadMain()
+    {
+        const string relativePath = "src/TesfFile.cs";
+
+        await CreateCommittedFileAsync(relativePath, MainContent, "Add baseline file on main");
+
+        CheckoutBranch("develop", create: true);
+        await WriteWorkingFileAsync(relativePath, DevelopContent);
+        CommitAll("Improve baseline file on develop");
+
+        SetOriginHeadToBranch("main");
+        WriteCodesceneConfig("develop");
+
+        CheckoutBranch("feature/config-baseline-override", create: true);
+        await WriteWorkingFileAsync(relativePath, FeatureContent);
+
+        var baselineContent = GitService.GetFileContentForCommit(AbsolutePath(relativePath));
+        Assert.AreEqual(NormalizeLineEndings(DevelopContent), NormalizeLineEndings(baselineContent));
+        Assert.AreNotEqual(NormalizeLineEndings(MainContent), NormalizeLineEndings(baselineContent));
+    }
+
+    [TestMethod]
     public async Task ReviewWithDeltaAsync_OnFeatureBranchBasedOnDevelop_UsesDevelopBaselineForActualCliScores()
     {
         const string relativePath = "src/TesfFile.cs";
