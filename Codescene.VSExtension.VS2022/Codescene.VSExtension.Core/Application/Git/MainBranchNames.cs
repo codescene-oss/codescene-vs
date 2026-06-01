@@ -21,6 +21,16 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             try
             {
+                var gitRoot = repo?.Info?.WorkingDirectory;
+                if (!string.IsNullOrEmpty(gitRoot))
+                {
+                    var configured = CodesceneRepoConfig.GetBaselineBranch(gitRoot);
+                    if (!string.IsNullOrEmpty(configured))
+                    {
+                        return configured;
+                    }
+                }
+
                 var originHead = repo?.Refs[OriginHeadRef];
                 if (originHead == null)
                 {

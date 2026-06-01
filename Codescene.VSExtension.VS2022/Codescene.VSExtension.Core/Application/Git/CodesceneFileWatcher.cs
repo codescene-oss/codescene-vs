@@ -7,18 +7,21 @@ using Codescene.VSExtension.Core.Interfaces;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
-    public class CodeHealthRulesWatcher : IDisposable
+    public sealed class CodesceneFileWatcher : IDisposable
     {
-        private const string RulesFileName = "code-health-rules.json";
-        private const string CodesceneDir = ".codescene";
+        public const string CodesceneDir = ".codescene";
+        public const string CodeHealthRulesFileName = "code-health-rules.json";
+        public const string ConfigFileName = "config.json";
 
         private readonly ILogger _logger;
+        private readonly string _changeLogMessage;
         private FileSystemWatcher _watcher;
         private bool _disposed;
 
-        public CodeHealthRulesWatcher(string gitRootPath, ILogger logger)
+        public CodesceneFileWatcher(string gitRootPath, string fileName, ILogger logger, string changeLogMessage = null)
         {
             _logger = logger;
+            _changeLogMessage = changeLogMessage;
             if (string.IsNullOrEmpty(gitRootPath) || !Directory.Exists(gitRootPath))
             {
                 return;
@@ -34,21 +37,21 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 _watcher = new FileSystemWatcher(codescenePath)
                 {
-                    Filter = RulesFileName,
+                    Filter = fileName,
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
                 };
-                _watcher.Created += OnRulesFileEvent;
-                _watcher.Changed += OnRulesFileEvent;
-                _watcher.Deleted += OnRulesFileEvent;
+                _watcher.Created += OnFileEvent;
+                _watcher.Changed += OnFileEvent;
+                _watcher.Deleted += OnFileEvent;
                 _watcher.EnableRaisingEvents = true;
             }
             catch (Exception ex)
             {
-                _logger?.Error($"CodeHealthRulesWatcher: Could not create watcher for {codescenePath}", ex);
+                _logger?.Error($"CodesceneFileWatcher: Could not create watcher for {codescenePath}", ex);
             }
         }
 
-        public event EventHandler RulesFileChanged;
+        public event EventHandler FileChanged;
 
         public void Dispose()
         {
@@ -62,9 +65,9 @@ namespace Codescene.VSExtension.Core.Application.Git
                 try
                 {
                     _watcher.EnableRaisingEvents = false;
-                    _watcher.Created -= OnRulesFileEvent;
-                    _watcher.Changed -= OnRulesFileEvent;
-                    _watcher.Deleted -= OnRulesFileEvent;
+                    _watcher.Created -= OnFileEvent;
+                    _watcher.Changed -= OnFileEvent;
+                    _watcher.Deleted -= OnFileEvent;
                     _watcher.Dispose();
                 }
                 catch
@@ -78,17 +81,21 @@ namespace Codescene.VSExtension.Core.Application.Git
             GC.SuppressFinalize(this);
         }
 
-        private void OnRulesFileEvent(object sender, FileSystemEventArgs e)
+        private void OnFileEvent(object sender, FileSystemEventArgs e)
         {
-            _logger?.Info("Code health rules change detected.");
+            if (!string.IsNullOrEmpty(_changeLogMessage))
+            {
+                _logger?.Info(_changeLogMessage);
+            }
+
             CacheGeneration.Increment();
             try
             {
-                RulesFileChanged?.Invoke(this, EventArgs.Empty);
+                FileChanged?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
-                _logger?.Error("CodeHealthRulesWatcher: Error in RulesFileChanged handler", ex);
+                _logger?.Error("CodesceneFileWatcher: Error in FileChanged handler", ex);
             }
         }
     }

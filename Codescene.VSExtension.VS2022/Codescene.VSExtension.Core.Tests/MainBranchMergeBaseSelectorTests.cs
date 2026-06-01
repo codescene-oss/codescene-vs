@@ -109,6 +109,29 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void FindClosest_WhenDefaultBranchHasNoResolvableRef_FallsBackToAllBranches()
+        {
+            CommitFile("README.md", "# Test", "Initial commit");
+            ExecGit("branch -m main");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/ghost", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/ghost"]);
+            }
+
+            ExecGit("checkout -b feature-branch");
+            CommitFile("feature.cs", "class Feature {}", "Add feature");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var result = MainBranchMergeBaseSelector.FindClosest(repo);
+
+                Assert.IsNotNull(result, "Should find merge base via fallback when default branch ref is not local");
+            }
+        }
+
+        [TestMethod]
         public void FindClosest_WhenNoDefaultBranch_FallsBackToAllBranches()
         {
             CommitFile("README.md", "# Test", "Initial commit on main");

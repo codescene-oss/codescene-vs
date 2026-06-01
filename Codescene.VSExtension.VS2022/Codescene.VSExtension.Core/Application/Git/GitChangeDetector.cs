@@ -29,6 +29,27 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
         }
 
+        public void ClearMainBranchCandidatesCache(string gitRootPath = null)
+        {
+            if (_mainBranchCandidatesCache == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(gitRootPath))
+            {
+                _mainBranchCandidatesCache = null;
+                return;
+            }
+
+            var key = gitRootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            _mainBranchCandidatesCache.Remove(key);
+            if (_mainBranchCandidatesCache.Count == 0)
+            {
+                _mainBranchCandidatesCache = null;
+            }
+        }
+
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, CancellationToken cancellationToken = default)
         {
             return await Task.Run(

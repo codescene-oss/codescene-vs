@@ -224,6 +224,56 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void GetDefaultBranch_WithConfigBaselineBranch_ReturnsConfiguredBranch()
+        {
+            WriteConfig("{\"baseline_branch\":\"release\"}");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var result = MainBranchNames.GetDefaultBranch(repo);
+
+                Assert.AreEqual("release", result);
+                Assert.IsTrue(MainBranchNames.IsMainBranch(repo, "release"));
+                Assert.IsFalse(MainBranchNames.IsMainBranch(repo, "main"));
+            }
+        }
+
+        [TestMethod]
+        public void GetDefaultBranch_ConfigOverridesOriginHead()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            WriteConfig("{\"baseline_branch\":\"develop\"}");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                Assert.AreEqual("develop", MainBranchNames.GetDefaultBranch(repo));
+                Assert.IsFalse(MainBranchNames.IsMainBranch(repo, "main"));
+            }
+        }
+
+        [TestMethod]
+        public void GetDefaultBranch_InvalidConfig_FallsBackToOriginHead()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            WriteConfig("not json");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                Assert.AreEqual("main", MainBranchNames.GetDefaultBranch(repo));
+            }
+        }
+
+        [TestMethod]
         public void GetDefaultBranch_WhenExceptionOccurs_ReturnsNull()
         {
             Repository disposedRepo;
@@ -235,6 +285,13 @@ namespace Codescene.VSExtension.Core.Tests
             var result = MainBranchNames.GetDefaultBranch(disposedRepo);
 
             Assert.IsNull(result, "Should return null when exception occurs (disposed repository)");
+        }
+
+        private void WriteConfig(string json)
+        {
+            var codesceneDir = Path.Combine(_testRepoPath, CodesceneFileWatcher.CodesceneDir);
+            Directory.CreateDirectory(codesceneDir);
+            File.WriteAllText(Path.Combine(codesceneDir, CodesceneFileWatcher.ConfigFileName), json);
         }
 
         private void CommitFile(string filename, string content, string message)

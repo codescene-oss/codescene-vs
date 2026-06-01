@@ -128,15 +128,7 @@ namespace Codescene.VSExtension.Core.Tests
                 LibGit2Sharp.Commands.Checkout(repo, featureBranch);
             }
 
-            ExecGit($"branch -D master");
-
-            try
-            {
-                ExecGit($"branch -D main");
-            }
-            catch
-            {
-            }
+            DeleteLocalMainBranches();
 
             using (var repo = new Repository(_testRepoPath))
             {
@@ -146,6 +138,27 @@ namespace Codescene.VSExtension.Core.Tests
                     candidates,
                     "Should return empty list when no main branch candidates exist");
             }
+        }
+
+        [TestMethod]
+        public void ClearMainBranchCandidatesCache_ForcesRecomputation()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.CreateBranch("develop");
+            }
+
+            List<string> beforeClear;
+            List<string> afterClear;
+            using (var repo = new Repository(_testRepoPath))
+            {
+                beforeClear = GetMainBranchCandidates(repo);
+                _detector.ClearMainBranchCandidatesCache(_testRepoPath.TrimEnd('\\', '/'));
+                afterClear = GetMainBranchCandidates(repo);
+            }
+
+            CollectionAssert.AreEqual(beforeClear, afterClear);
+            Assert.Contains("develop", afterClear);
         }
 
         [TestMethod]
@@ -189,7 +202,7 @@ namespace Codescene.VSExtension.Core.Tests
                 LibGit2Sharp.Commands.Checkout(repo, featureBranch);
             }
 
-            ExecGit("branch -D master");
+            DeleteLocalMainBranches();
 
             using (var repo = new Repository(_testRepoPath))
             {
@@ -220,7 +233,7 @@ namespace Codescene.VSExtension.Core.Tests
                 LibGit2Sharp.Commands.Checkout(repo, featureBranch);
             }
 
-            ExecGit("branch -D master");
+            DeleteLocalMainBranches();
 
             CommitFile("test.cs", "public class Test {}", "Add test file");
 
@@ -234,6 +247,20 @@ namespace Codescene.VSExtension.Core.Tests
                 "test.cs",
                 changedFiles,
                 "Should detect changed file using remote branch as baseline");
+        }
+
+        private void DeleteLocalMainBranches()
+        {
+            foreach (var branchName in MainBranchNames.All)
+            {
+                try
+                {
+                    ExecGit($"branch -D {branchName}");
+                }
+                catch
+                {
+                }
+            }
         }
     }
 }

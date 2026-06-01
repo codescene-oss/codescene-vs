@@ -164,6 +164,19 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void OnCodesceneConfigChanged_RemovesAllTrackedFiles()
+        {
+            var existingFile = CreateFile("config-invalidate.ts", "export const x = 1;");
+            _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { existingFile });
+            AssertFileInTracker(existingFile, true);
+
+            var method = typeof(GitChangeObserverCore).GetMethod("OnCodesceneConfigChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+            method.Invoke(_gitChangeObserverCore, new object[] { this, EventArgs.Empty });
+
+            AssertFileInTracker(existingFile, false);
+        }
+
+        [TestMethod]
         public void OnGitChangeListerFilesDetected_WhenTokenCancelled_DoesNotProcessFiles()
         {
             _gitChangeObserverCore.Start();

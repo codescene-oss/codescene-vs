@@ -44,7 +44,8 @@ namespace Codescene.VSExtension.Core.Application.Git
         private GitChangeDetector _gitChangeDetector;
         private FileChangeHandler _fileChangeHandler;
         private Func<Task<List<string>>> _getChangedFilesCallback;
-        private CodeHealthRulesWatcher _rulesWatcher;
+        private CodesceneFileWatcher _rulesFileWatcher;
+        private CodesceneFileWatcher _configFileWatcher;
         private GitIgnoreWatcher _gitIgnoreWatcher;
         private TaskCompletionSource<bool> _initializationComplete;
         private PerFileRequestQueue<string> _detectedFilesQueue = new PerFileRequestQueue<string>();
@@ -119,8 +120,19 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _fileWatcher = GitPathDiscovery.CreateWatcher(_gitRootPath);
             }
 
-            _rulesWatcher = new CodeHealthRulesWatcher(_gitRootPath, _logger);
-            _rulesWatcher.RulesFileChanged += OnCodeHealthRulesChanged;
+            _rulesFileWatcher = new CodesceneFileWatcher(
+                _gitRootPath,
+                CodesceneFileWatcher.CodeHealthRulesFileName,
+                _logger,
+                "Code health rules change detected.");
+            _rulesFileWatcher.FileChanged += OnCodeHealthRulesChanged;
+
+            _configFileWatcher = new CodesceneFileWatcher(
+                _gitRootPath,
+                CodesceneFileWatcher.ConfigFileName,
+                _logger,
+                "CodeScene config change detected.");
+            _configFileWatcher.FileChanged += OnCodesceneConfigChanged;
 
             _gitIgnoreWatcher = new GitIgnoreWatcher(_gitRootPath, _logger);
             _gitIgnoreWatcher.GitIgnoreChanged += OnGitIgnoreChanged;
@@ -224,8 +236,11 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _fileWatcher = null;
             }
 
-            _rulesWatcher?.Dispose();
-            _rulesWatcher = null;
+            _rulesFileWatcher?.Dispose();
+            _rulesFileWatcher = null;
+
+            _configFileWatcher?.Dispose();
+            _configFileWatcher = null;
 
             _gitIgnoreWatcher?.Dispose();
             _gitIgnoreWatcher = null;
@@ -333,6 +348,12 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private void OnCodeHealthRulesChanged(object sender, EventArgs e)
         {
+            InvalidateTrackedFiles(onlyIgnored: false);
+        }
+
+        private void OnCodesceneConfigChanged(object sender, EventArgs e)
+        {
+            _gitChangeDetector?.ClearMainBranchCandidatesCache(_gitRootPath);
             InvalidateTrackedFiles(onlyIgnored: false);
         }
 
