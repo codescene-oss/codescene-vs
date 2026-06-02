@@ -14,6 +14,7 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Util;
+using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
@@ -100,6 +101,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _cts = new CancellationTokenSource();
 
             InitializeGitPaths();
+            LogIdentifiedBaselineBranch();
 
 #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeObserverCore: Initialized with solution='{_solutionPath}', gitRoot='{_gitRootPath}', workspace='{_workspacePath}'");
@@ -437,6 +439,41 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 _logger?.Error("GitChangeObserver: Could not discover git repository", ex);
                 _gitRootPath = _workspacePath = Directory.Exists(_solutionPath) ? _solutionPath : Path.GetDirectoryName(_solutionPath);
+            }
+        }
+
+        private void LogIdentifiedBaselineBranch()
+        {
+            if (string.IsNullOrEmpty(_gitRootPath) || !Directory.Exists(_gitRootPath))
+            {
+                return;
+            }
+
+            try
+            {
+                using (var repo = new Repository(_gitRootPath))
+                {
+                    var baselineBranch = MainBranchNames.GetDefaultBranch(repo);
+                    if (!string.IsNullOrEmpty(baselineBranch))
+                    {
+                        _logger?.Info($"GitChangeObserver: Baseline branch is '{baselineBranch}'.");
+                        return;
+                    }
+
+                    var candidates = _gitChangeDetector.GetMainBranchCandidates(repo);
+                    if (candidates.Count > 0)
+                    {
+                        _logger?.Info(
+                            $"GitChangeObserver: Baseline branch candidates are {string.Join(", ", candidates)} (no config or origin/HEAD default).");
+                        return;
+                    }
+                }
+
+                _logger?.Info("GitChangeObserver: No baseline branch identified.");
+            }
+            catch (Exception ex)
+            {
+                _logger?.Warn($"GitChangeObserver: Could not determine baseline branch: {ex.Message}");
             }
         }
 

@@ -164,6 +164,24 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Initialize_LogsIdentifiedBaselineBranch_FromConfig()
+        {
+            _gitChangeObserverCore.Dispose();
+
+            var codesceneDir = Path.Combine(_testRepoPath, CodesceneFileWatcher.CodesceneDir);
+            Directory.CreateDirectory(codesceneDir);
+            File.WriteAllText(
+                Path.Combine(codesceneDir, CodesceneFileWatcher.ConfigFileName),
+                "{\"baseline_branch\":\"develop\"}");
+
+            _gitChangeObserverCore = CreateGitChangeObserverCore();
+
+            Assert.IsTrue(
+                _fakeLogger.SnapshotInfoMessages().Any(m => m.Contains("Baseline branch is 'develop'")),
+                "Should log configured baseline branch at initialization");
+        }
+
+        [TestMethod]
         public void OnCodesceneConfigChanged_RemovesAllTrackedFiles()
         {
             var existingFile = CreateFile("config-invalidate.ts", "export const x = 1;");
