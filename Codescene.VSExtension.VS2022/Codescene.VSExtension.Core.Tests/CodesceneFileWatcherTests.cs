@@ -1,5 +1,8 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Reflection;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using Codescene.VSExtension.Core.Application.Git;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -104,6 +107,62 @@ namespace Codescene.VSExtension.Core.Tests
             var filePath = Path.Combine(_codesceneDir, CodesceneFileWatcher.ConfigFileName);
             File.WriteAllText(filePath, "{}");
             var watcher = new CodesceneFileWatcher(_gitRootPath, CodesceneFileWatcher.ConfigFileName, _logger);
+            watcher.Dispose();
+            watcher.Dispose();
+        }
+
+        [TestMethod]
+        public void Constructor_WhenWatcherCreationFails_LogsError()
+        {
+            var security = Directory.GetAccessControl(_codesceneDir);
+            var denyRule = new FileSystemAccessRule(
+                WindowsIdentity.GetCurrent().User,
+                FileSystemRights.Read,
+                AccessControlType.Deny);
+            security.AddAccessRule(denyRule);
+            Directory.SetAccessControl(_codesceneDir, security);
+            try
+            {
+                using (var watcher = new CodesceneFileWatcher(_gitRootPath, CodesceneFileWatcher.ConfigFileName, _logger))
+                {
+                }
+
+                Assert.IsTrue(
+                    _logger.SnapshotErrorMessages().Any(m => m.Item1.Contains("Could not create watcher")),
+                    "Should log error when FileSystemWatcher creation fails");
+            }
+            finally
+            {
+                var resetSecurity = Directory.GetAccessControl(_codesceneDir);
+                resetSecurity.RemoveAccessRule(denyRule);
+                Directory.SetAccessControl(_codesceneDir, resetSecurity);
+            }
+        }
+
+        [TestMethod]
+        public void FileChanged_WithChangeLogMessage_LogsInfo()
+        {
+            var filePath = Path.Combine(_codesceneDir, CodesceneFileWatcher.ConfigFileName);
+            var eventFired = new ManualResetEventSlim(false);
+            using (var watcher = new CodesceneFileWatcher(_gitRootPath, CodesceneFileWatcher.ConfigFileName, _logger, "Config updated"))
+            {
+                watcher.FileChanged += (sender, args) => eventFired.Set();
+                File.WriteAllText(filePath, "{}");
+                Assert.IsTrue(eventFired.Wait(3000), "FileChanged should fire when file is created");
+            }
+
+            Assert.IsTrue(
+                _logger.SnapshotInfoMessages().Any(m => m == "Config updated"),
+                "Should log changeLogMessage when file event occurs");
+        }
+
+        [TestMethod]
+        public void Dispose_WhenInnerWatcherAlreadyDisposed_DoesNotThrow()
+        {
+            var watcher = new CodesceneFileWatcher(_gitRootPath, CodesceneFileWatcher.ConfigFileName, _logger);
+            var watcherField = typeof(CodesceneFileWatcher).GetField("_watcher", BindingFlags.NonPublic | BindingFlags.Instance);
+            var innerWatcher = (FileSystemWatcher)watcherField?.GetValue(watcher);
+            innerWatcher?.Dispose();
             watcher.Dispose();
             watcher.Dispose();
         }

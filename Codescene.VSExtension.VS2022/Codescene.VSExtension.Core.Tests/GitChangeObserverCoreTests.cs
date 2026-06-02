@@ -182,6 +182,59 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Initialize_LogsNoBaselineBranch_WhenNoDefaultAndNoCandidates()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var featureBranch = repo.CreateBranch("feature-only");
+                LibGit2Sharp.Commands.Checkout(repo, featureBranch);
+            }
+
+            DeleteLocalMainBranches();
+
+            _gitChangeObserverCore.Dispose();
+            _fakeLogger.ClearInfoMessages();
+            _gitChangeObserverCore = CreateGitChangeObserverCore();
+
+            Assert.IsTrue(
+                _fakeLogger.SnapshotInfoMessages().Any(m => m.Contains("No baseline branch identified.")),
+                "Should log when no baseline branch and no candidates");
+        }
+
+        [TestMethod]
+        public void Initialize_LogsWarning_WhenBaselineBranchLookupFails()
+        {
+            var nonGitDir = Path.Combine(Path.GetTempPath(), $"non-git-root-{Guid.NewGuid()}");
+            Directory.CreateDirectory(nonGitDir);
+            try
+            {
+                var gitRootField = typeof(GitChangeObserverCore).GetField("_gitRootPath", BindingFlags.NonPublic | BindingFlags.Instance);
+                gitRootField?.SetValue(_gitChangeObserverCore, nonGitDir);
+
+                _fakeLogger.ClearWarnMessages();
+                var method = typeof(GitChangeObserverCore).GetMethod("LogIdentifiedBaselineBranch", BindingFlags.NonPublic | BindingFlags.Instance);
+                method.Invoke(_gitChangeObserverCore, null);
+
+                Assert.IsTrue(
+                    _fakeLogger.SnapshotWarnMessages().Any(m => m.Contains("Could not determine baseline branch")),
+                    "Should warn when baseline branch lookup fails");
+            }
+            finally
+            {
+                if (Directory.Exists(nonGitDir))
+                {
+                    try
+                    {
+                        Directory.Delete(nonGitDir, true);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
         public void OnCodesceneConfigChanged_RemovesAllTrackedFiles()
         {
             var existingFile = CreateFile("config-invalidate.ts", "export const x = 1;");
@@ -456,6 +509,20 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Codescene.VSExtension.Core.Util.DeltaJobTracker.JobStarted -= onJobStarted;
                 Codescene.VSExtension.Core.Util.DeltaJobTracker.JobFinished -= onJobFinished;
+            }
+        }
+
+        private void DeleteLocalMainBranches()
+        {
+            foreach (var branchName in MainBranchNames.All)
+            {
+                try
+                {
+                    ExecGit($"branch -D {branchName}");
+                }
+                catch
+                {
+                }
             }
         }
     }

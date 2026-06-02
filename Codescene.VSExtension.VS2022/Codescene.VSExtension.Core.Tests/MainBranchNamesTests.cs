@@ -274,17 +274,37 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetDefaultBranch_WhenExceptionOccurs_ReturnsNull()
+        public void GetDefaultBranch_WhenOriginHeadTargetIsEmpty_ReturnsNull()
         {
-            Repository disposedRepo;
             using (var repo = new Repository(_testRepoPath))
             {
-                disposedRepo = repo;
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+
+                var originHeadPath = Path.Combine(_testRepoPath, ".git", "refs", "remotes", "origin", "HEAD");
+                File.WriteAllText(originHeadPath, "ref: \n");
+
+                var result = MainBranchNames.GetDefaultBranch(repo);
+
+                Assert.IsNull(result);
             }
+        }
 
-            var result = MainBranchNames.GetDefaultBranch(disposedRepo);
+        [TestMethod]
+        public void GetDefaultBranch_WhenExceptionOccurs_ReturnsNull()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
 
-            Assert.IsNull(result, "Should return null when exception occurs (disposed repository)");
+                var originHeadPath = Path.Combine(_testRepoPath, ".git", "refs", "remotes", "origin", "HEAD");
+                File.WriteAllText(originHeadPath, "not a valid ref\n");
+
+                var result = MainBranchNames.GetDefaultBranch(repo);
+
+                Assert.IsNull(result, "Should return null when exception occurs");
+            }
         }
 
         [TestMethod]

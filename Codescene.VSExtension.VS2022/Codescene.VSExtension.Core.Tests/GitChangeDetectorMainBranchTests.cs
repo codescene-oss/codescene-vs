@@ -162,6 +162,35 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void ClearMainBranchCandidatesCache_WhenCacheNull_IsNoOp()
+        {
+            _detector.ClearMainBranchCandidatesCache();
+            _detector.ClearMainBranchCandidatesCache(_testRepoPath);
+        }
+
+        [TestMethod]
+        public void ClearMainBranchCandidatesCache_WithNullPath_ClearsAllEntries()
+        {
+            List<string> firstCall;
+            List<string> secondCall;
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                firstCall = GetMainBranchCandidates(repo);
+            }
+
+            _detector.ClearMainBranchCandidatesCache();
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                secondCall = GetMainBranchCandidates(repo);
+            }
+
+            CollectionAssert.AreEqual(firstCall, secondCall);
+            Assert.IsNotEmpty(secondCall);
+        }
+
+        [TestMethod]
         public void GetMainBranchCandidates_CachesCandidates()
         {
             List<string> firstCall;
