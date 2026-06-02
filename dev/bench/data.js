@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780397388920,
+  "lastUpdate": 1780397726641,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3300,6 +3300,66 @@ window.BENCHMARK_DATA = {
             "value": 283088990,
             "unit": "ns",
             "range": "± 4741157.277998093"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "277b0378b394d919e39e48d3b521a6f0815ef98a",
+          "message": "feat: improve main branch detection using refs/remotes/origin/HEAD (#279)\n\n* feat: improve main branch detection using refs/remotes/origin/HEAD\n\nQuery refs/remotes/origin/HEAD to determine the default branch instead of\nrelying solely on a static list. When origin/HEAD points to a branch (e.g.\nmain), only that branch is considered the main branch. The static list is\nused as a fallback when origin/HEAD is unavailable.\n\nThis ensures that when origin/HEAD points to main, branches like master or\ndevelop are correctly identified as non-main branches.\n\n* feat: add baseline_branch config and CodesceneFileWatcher (CS-11255)\n\nExtend main-branch detection with .codescene/config.json baseline_branch\n(precedence over origin/HEAD, then static list fallback). Replace\nCodeHealthRulesWatcher with CodesceneFileWatcher for rules and config;\ninvalidate main-branch cache when config changes. Add coverage tests.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* test: subcutaneous coverage for baseline_branch config (CS-11255)\n\nVerify config overrides origin/HEAD and that origin/HEAD alone baselines against main.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* fix logging\n\n* update readme\n\n* test: cover MainBranchNames default branch fallbacks\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* test: cover Git baseline branch and file watcher edge cases\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: vemv <vemv@users.noreply.github.com>\nCo-authored-by: Martin Säfsten <martin.safsten@codescene.com>\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-06-02T12:45:22+02:00",
+          "tree_id": "f3626471ca13e0052cbb68fa85eba5cb694b3c1c",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/277b0378b394d919e39e48d3b521a6f0815ef98a"
+        },
+        "date": 1780397725084,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 130546285.78947368,
+            "unit": "ns",
+            "range": "± 9700926.348559102"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 115637972.58064516,
+            "unit": "ns",
+            "range": "± 3202943.288168418"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 255278248.33333325,
+            "unit": "ns",
+            "range": "± 18142315.74013887"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 235850338.46153843,
+            "unit": "ns",
+            "range": "± 1808139.5617557662"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 374413828,
+            "unit": "ns",
+            "range": "± 9837485.555496383"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 307851436.6666667,
+            "unit": "ns",
+            "range": "± 5569778.7436648635"
           }
         ]
       }
