@@ -287,6 +287,64 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNull(result, "Should return null when exception occurs (disposed repository)");
         }
 
+        [TestMethod]
+        public void GetDefaultBranch_WhenBaselineConfigIsEmpty_UsesOriginHead()
+        {
+            WriteConfig("{\"baseline_branch\":\"\"}");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var result = MainBranchNames.GetDefaultBranch(repo);
+
+                Assert.AreEqual("main", result);
+            }
+        }
+
+        [TestMethod]
+        public void GetDefaultBranch_WithBareRepository_ResolvesOriginHead()
+        {
+            var barePath = Path.Combine(Path.GetTempPath(), $"test-bare-main-{Guid.NewGuid()}");
+
+            try
+            {
+                ExecGit($"clone --bare \"{_testRepoPath}\" \"{barePath}\"");
+
+                using (var repo = new Repository(barePath))
+                {
+                    repo.Refs.Add("refs/remotes/origin/main", repo.Branches["main"].Tip.Id);
+                    repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+                }
+
+                using (var repo = new Repository(barePath))
+                {
+                    Assert.IsTrue(string.IsNullOrEmpty(repo.Info.WorkingDirectory));
+
+                    var result = MainBranchNames.GetDefaultBranch(repo);
+
+                    Assert.AreEqual("main", result);
+                }
+            }
+            finally
+            {
+                if (Directory.Exists(barePath))
+                {
+                    try
+                    {
+                        Directory.Delete(barePath, true);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+
         private void WriteConfig(string json)
         {
             var codesceneDir = Path.Combine(_testRepoPath, CodesceneFileWatcher.CodesceneDir);
