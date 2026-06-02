@@ -29,6 +29,27 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
         }
 
+        public void ClearMainBranchCandidatesCache(string gitRootPath = null)
+        {
+            if (_mainBranchCandidatesCache == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(gitRootPath))
+            {
+                _mainBranchCandidatesCache = null;
+                return;
+            }
+
+            var key = gitRootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            _mainBranchCandidatesCache.Remove(key);
+            if (_mainBranchCandidatesCache.Count == 0)
+            {
+                _mainBranchCandidatesCache = null;
+            }
+        }
+
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, CancellationToken cancellationToken = default)
         {
             return await Task.Run(
@@ -95,6 +116,19 @@ namespace Codescene.VSExtension.Core.Application.Git
                 .Where(b => !b.IsRemote)
                 .Select(b => b.FriendlyName)
                 .ToList();
+
+            var defaultBranch = MainBranchNames.GetDefaultBranch(repo);
+            if (!string.IsNullOrEmpty(defaultBranch))
+            {
+                var singleCandidate = new List<string> { defaultBranch };
+                if (_mainBranchCandidatesCache == null)
+                {
+                    _mainBranchCandidatesCache = new Dictionary<string, List<string>>();
+                }
+
+                _mainBranchCandidatesCache[gitRoot] = singleCandidate;
+                return singleCandidate;
+            }
 
             var candidates = MainBranchNames.All
                 .Where(name => localBranches.Contains(name))
@@ -176,7 +210,8 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         protected virtual Commit TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)
         {
-            var mainBranch = repo.Branches[candidateName];
+            var mainBranch = repo.Branches[candidateName]
+                          ?? repo.Branches[$"origin/{candidateName}"];
             if (!IsValidBranch(mainBranch))
             {
                 return null;

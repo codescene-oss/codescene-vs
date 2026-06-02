@@ -101,12 +101,18 @@ namespace Codescene.VSExtension.Core.Tests
                 expectedMergeBase = repo.Head.Tip;
             }
 
+            string defaultBranch;
+            using (var repo = new Repository(_testRepoPath))
+            {
+                defaultBranch = repo.Head.FriendlyName;
+            }
+
             ExecGit("checkout -b feature-branch");
 
             CommitFile("featureE.cs", "feature E", "Commit E");
             CommitFile("featureF.cs", "feature F", "Commit F");
 
-            ExecGit("checkout master");
+            ExecGit($"checkout {defaultBranch}");
             CommitFile("fileC.cs", "content C", "Commit C");
             CommitFile("fileD.cs", "content D", "Commit D");
 
@@ -155,6 +161,22 @@ namespace Codescene.VSExtension.Core.Tests
         {
             Assert.IsFalse(_finder.IsMainBranch(null), "Should return false for null");
             Assert.IsFalse(_finder.IsMainBranch(string.Empty), "Should return false for empty string");
+        }
+
+        [TestMethod]
+        public void IsMainBranch_WithRepo_WhenOriginHeadIsMain_OnlyMainIsMainBranch()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                Assert.IsTrue(_finder.IsMainBranch(repo, "main"), "main should be the main branch");
+                Assert.IsFalse(_finder.IsMainBranch(repo, "master"), "master should not be main when origin/HEAD is main");
+            }
         }
 
         [TestMethod]

@@ -54,5 +54,10 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             return MainBranchNames.IsMainBranch(branchName);
         }
+
+        public bool IsMainBranch(Repository repo, string branchName)
+        {
+            return MainBranchNames.IsMainBranch(repo, branchName);
+        }
     }
 }

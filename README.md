@@ -42,7 +42,43 @@ The **Code Health Monitor** flags for drops in code health in real time and offe
 | **Error List View** | When a file is opened in the editor, it is instantly scanned for existing Code Health issues. All discovered issues are then listed as warnings in the IDE Error List View. This way you instantly get an overview of all opportunities a file has for improvements. | <img style="margin: 10px 10px 10px 10px;" src="screenshots/problems.png" alt="Problem View" width="2000px"/> |
 | **Custom Code Health rules** | To customize the code analysis you can either use local [Code Comment Directives](https://codescene.io/docs/guides/technical/code-health.html#disable-local-smells-via-code-comment-directives) or create a `code-health-rules.json` file which applies to the entire project. | <img style="margin: 10px 10px 10px 10px;" src="screenshots/custom_directive.png" alt="ACR" width="2000px"/> |
 
-
 _* Available time-limited for non CodeScene customers._
 
 _** Paid add-on feature._
+
+## Configuration ##
+
+You can add configuration files to the git repository to customize and control behavior in the Extension. They should be located in a `.codescene` folder, at the repository root. In addition, we also have a Settings page for personalized configuration of the extension.
+
+### code-health-rules.json ###
+
+Location: `.codescene/code-health-rules.json`
+
+You can find more documentation on its content [here](https://codescene.io/docs/guides/technical/code-health.html#customize-the-code-health-rules-via-json)
+
+### config.json ###
+
+Location: `.codescene/config.json`
+
+Example configuration:
+```json
+{
+  "baseline_branch": "develop"
+}
+```
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| **baseline_branch** | String | origin/HEAD (default branch) | The name of the branch that the Code Health Monitor should compare against when running its delta analysis. If no origin/HEAD or config present, it will look for the nearest merge-base among common shared branches (main, master, develop etc)
+
+### Settings ###
+
+Location: `Code Health Monitor` > `Extension Settings`
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| **Auth Token** | String | - | CodeScene PAT Token for authentication. Used for Automatic Refactoring in ACE |
+| **Show Debug Logs** | Boolean | false | Enable/Disable debug logging in the CodeScene log file, and Output window.
+
+### Telemetry ###
+
+We collect anonymized telemetry for tracking usage and feature engagement. CodeScene adheres to Visual Studio's privacy settings to enable/disable this.

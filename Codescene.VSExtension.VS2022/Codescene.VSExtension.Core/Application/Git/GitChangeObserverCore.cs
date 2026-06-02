@@ -14,6 +14,7 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Util;
+using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
@@ -44,7 +45,8 @@ namespace Codescene.VSExtension.Core.Application.Git
         private GitChangeDetector _gitChangeDetector;
         private FileChangeHandler _fileChangeHandler;
         private Func<Task<List<string>>> _getChangedFilesCallback;
-        private CodeHealthRulesWatcher _rulesWatcher;
+        private CodesceneFileWatcher _rulesFileWatcher;
+        private CodesceneFileWatcher _configFileWatcher;
         private GitIgnoreWatcher _gitIgnoreWatcher;
         private TaskCompletionSource<bool> _initializationComplete;
         private PerFileRequestQueue<string> _detectedFilesQueue = new PerFileRequestQueue<string>();
@@ -99,6 +101,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _cts = new CancellationTokenSource();
 
             InitializeGitPaths();
+            LogIdentifiedBaselineBranch();
 
 #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeObserverCore: Initialized with solution='{_solutionPath}', gitRoot='{_gitRootPath}', workspace='{_workspacePath}'");
@@ -119,8 +122,19 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _fileWatcher = GitPathDiscovery.CreateWatcher(_gitRootPath);
             }
 
-            _rulesWatcher = new CodeHealthRulesWatcher(_gitRootPath, _logger);
-            _rulesWatcher.RulesFileChanged += OnCodeHealthRulesChanged;
+            _rulesFileWatcher = new CodesceneFileWatcher(
+                _gitRootPath,
+                CodesceneFileWatcher.CodeHealthRulesFileName,
+                _logger,
+                "Code health rules change detected.");
+            _rulesFileWatcher.FileChanged += OnCodeHealthRulesChanged;
+
+            _configFileWatcher = new CodesceneFileWatcher(
+                _gitRootPath,
+                CodesceneFileWatcher.ConfigFileName,
+                _logger,
+                "CodeScene config change detected.");
+            _configFileWatcher.FileChanged += OnCodesceneConfigChanged;
 
             _gitIgnoreWatcher = new GitIgnoreWatcher(_gitRootPath, _logger);
             _gitIgnoreWatcher.GitIgnoreChanged += OnGitIgnoreChanged;
@@ -224,8 +238,11 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _fileWatcher = null;
             }
 
-            _rulesWatcher?.Dispose();
-            _rulesWatcher = null;
+            _rulesFileWatcher?.Dispose();
+            _rulesFileWatcher = null;
+
+            _configFileWatcher?.Dispose();
+            _configFileWatcher = null;
 
             _gitIgnoreWatcher?.Dispose();
             _gitIgnoreWatcher = null;
@@ -336,6 +353,12 @@ namespace Codescene.VSExtension.Core.Application.Git
             InvalidateTrackedFiles(onlyIgnored: false);
         }
 
+        private void OnCodesceneConfigChanged(object sender, EventArgs e)
+        {
+            _gitChangeDetector?.ClearMainBranchCandidatesCache(_gitRootPath);
+            InvalidateTrackedFiles(onlyIgnored: false);
+        }
+
         private void OnGitIgnoreChanged(object sender, EventArgs e)
         {
             InvalidateTrackedFiles();
@@ -416,6 +439,41 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 _logger?.Error("GitChangeObserver: Could not discover git repository", ex);
                 _gitRootPath = _workspacePath = Directory.Exists(_solutionPath) ? _solutionPath : Path.GetDirectoryName(_solutionPath);
+            }
+        }
+
+        private void LogIdentifiedBaselineBranch()
+        {
+            if (string.IsNullOrEmpty(_gitRootPath) || !Directory.Exists(_gitRootPath))
+            {
+                return;
+            }
+
+            try
+            {
+                using (var repo = new Repository(_gitRootPath))
+                {
+                    var baselineBranch = MainBranchNames.GetDefaultBranch(repo);
+                    if (!string.IsNullOrEmpty(baselineBranch))
+                    {
+                        _logger?.Info($"GitChangeObserver: Baseline branch is '{baselineBranch}'.");
+                        return;
+                    }
+
+                    var candidates = _gitChangeDetector.GetMainBranchCandidates(repo);
+                    if (candidates.Count > 0)
+                    {
+                        _logger?.Info(
+                            $"GitChangeObserver: Baseline branch candidates are {string.Join(", ", candidates)} (no config or origin/HEAD default).");
+                        return;
+                    }
+                }
+
+                _logger?.Info("GitChangeObserver: No baseline branch identified.");
+            }
+            catch (Exception ex)
+            {
+                _logger?.Warn($"GitChangeObserver: Could not determine baseline branch: {ex.Message}");
             }
         }
 

@@ -54,7 +54,7 @@ public class GitService : IGitService, IDisposable
             }
 
             // If on main branch, use HEAD commit as baseline
-            if (MainBranchNames.IsMainBranch(currentBranchName))
+            if (MainBranchNames.IsMainBranch(repository, currentBranchName))
             {
                 var headCommit = repository.Head?.Tip?.Sha ?? string.Empty;
                 _logger.Debug($"On main branch '{currentBranchName}', using HEAD as baseline: {headCommit}");
