@@ -37,7 +37,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 AutoRefactor = new AutoRefactorConfig
                 {
                     Visible = true,
-                    Activated = aceAcknowledged,
+                    Activated = AutoRefactorConfigUtils.ComputeActivated(aceAcknowledged, hasToken),
                     Disabled = !hasToken || fnToRefactor == null,
                 },
                 FileData = new FileDataModel

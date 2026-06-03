@@ -213,6 +213,26 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Map_AceAcknowledgedFalse_NoAuthToken_SetsActivatedTrue()
+        {
+            SetupAuthToken(string.Empty);
+
+            var result = _mapper.Map(CreateModel(), CreateFnToRefactor(), aceAcknowledged: false);
+
+            Assert.IsTrue(result.AutoRefactor.Activated);
+        }
+
+        [TestMethod]
+        public void Map_AceAcknowledgedFalse_WhitespaceAuthToken_SetsActivatedTrue()
+        {
+            SetupAuthToken("   ");
+
+            var result = _mapper.Map(CreateModel(), CreateFnToRefactor(), aceAcknowledged: false);
+
+            Assert.IsTrue(result.AutoRefactor.Activated);
+        }
+
+        [TestMethod]
         public void Map_AutoRefactorVisibleAlwaysTrue()
         {
             var result = _mapper.Map(CreateModel(), CreateFnToRefactor());
