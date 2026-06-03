@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780486287933,
+  "lastUpdate": 1780486532792,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3402,6 +3402,66 @@ window.BENCHMARK_DATA = {
             "value": 307851436.6666667,
             "unit": "ns",
             "range": "± 5569778.7436648635"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1a21895b32eaf78f88532f865e8f956d4aa8b566",
+          "message": "fix: hide ACE ad in code smell docs when no auth token (#299)\n\nOnly show the ACE activation promo when a token is configured and ACE\nhas not yet been acknowledged, matching the JetBrains plugin behavior.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-06-03T13:25:59+02:00",
+          "tree_id": "3e7b81346be18f4d434804c60409630effcf4e2e",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/1a21895b32eaf78f88532f865e8f956d4aa8b566"
+        },
+        "date": 1780486531045,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 120625861.42857143,
+            "unit": "ns",
+            "range": "± 739271.9205964863"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 112214166.15384616,
+            "unit": "ns",
+            "range": "± 1753501.1360776592"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 244770400.77519387,
+            "unit": "ns",
+            "range": "± 8153890.400100509"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 213481175.55555555,
+            "unit": "ns",
+            "range": "± 1858945.1897051884"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 337168260,
+            "unit": "ns",
+            "range": "± 3743614.2442450295"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 279165491.6666667,
+            "unit": "ns",
+            "range": "± 1701210.373773136"
           }
         ]
       }
