@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781040841695,
+  "lastUpdate": 1781040955385,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -5386,6 +5386,54 @@ window.BENCHMARK_DATA = {
             "value": 19731.702880859375,
             "unit": "ns",
             "range": "± 218.92602533995074"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "25d2b183f0bf2315e9b652c0f15f9a3f9f0f2479",
+          "message": "fix: use configured baseline exclusively for merge-base resolution (#300)\n\n* fix: use configured baseline exclusively for merge-base resolution\n\nStop GitChangeLister from falling back to master/develop when the\nconfigured or origin/HEAD baseline cannot produce a merge base.\nDeduplicate no-merge-base log noise in lister and observer.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* fix: harden merge-base concurrency and baseline branch priority\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* test: cover merge-base log throttle reset paths\n\nAdd tests for observer cache clear and lister warn-state reset on successful merge-base lookup.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-06-09T23:24:36+02:00",
+          "tree_id": "3358f0e10c1cf1b3f9af2c2b2cc253819c63c1ca",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/25d2b183f0bf2315e9b652c0f15f9a3f9f0f2479"
+        },
+        "date": 1781040953749,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 135269291.53846154,
+            "unit": "ns",
+            "range": "± 6307389.862936317"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 6038.076019287109,
+            "unit": "ns",
+            "range": "± 27.9983990101603"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 462931514.28571427,
+            "unit": "ns",
+            "range": "± 7910976.682370577"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 21299.151175362724,
+            "unit": "ns",
+            "range": "± 68.84375583379519"
           }
         ]
       }
