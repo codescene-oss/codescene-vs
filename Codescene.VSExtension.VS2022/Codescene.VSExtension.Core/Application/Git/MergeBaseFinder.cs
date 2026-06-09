@@ -28,10 +28,14 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _logger?.Info($">>> MergeBaseFinder: Finding merge base for branch '{repo.Head.FriendlyName}'");
                 #endif
 
-                var mergeBase = MainBranchMergeBaseSelector.FindClosest(repo, _logger);
+                var selection = MainBranchMergeBaseSelector.Select(repo, _logger);
+                var mergeBase = selection.Commit;
                 if (mergeBase != null)
                 {
-                    _logger?.Debug($"GitChangeLister: Found merge base using branch reachable from HEAD ({mergeBase.Sha})");
+                    var branchLabel = string.IsNullOrEmpty(selection.BaselineBranchName)
+                        ? "closest main branch"
+                        : selection.BaselineBranchName;
+                    _logger?.Debug($"GitChangeLister: Found merge base using branch '{branchLabel}' ({mergeBase.Sha})");
                     #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> MergeBaseFinder: Found merge base commit {mergeBase.Sha.Substring(0, 8)} for branch '{repo.Head.FriendlyName}'");
                     #endif

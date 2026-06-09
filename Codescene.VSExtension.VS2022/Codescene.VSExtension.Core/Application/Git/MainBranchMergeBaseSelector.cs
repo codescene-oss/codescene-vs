@@ -17,50 +17,59 @@ namespace Codescene.VSExtension.Core.Application.Git
         /// </summary>
         public static Commit FindClosest(Repository repo, ILogger logger = null)
         {
+            return Select(repo, logger).Commit;
+        }
+
+        public static MergeBaseSelection Select(Repository repo, ILogger logger = null)
+        {
             if (repo?.Head?.Tip == null)
             {
-                return null;
+                return default;
             }
 
             var currentBranchName = repo.Head.FriendlyName;
             var candidates = CollectCandidates(repo, currentBranchName, logger);
 
-            if (candidates.Count == 0)
+            if (candidates.MergeBases.Count == 0)
             {
-                return null;
+                return default;
             }
 
-            var closest = FindClosestReachable(repo, candidates);
-            return closest ?? candidates.Values.First();
+            var closestSha = FindClosestReachableSha(repo, candidates.MergeBases);
+            if (closestSha == null)
+            {
+                closestSha = candidates.MergeBases.Keys.First();
+            }
+
+            candidates.MergeBases.TryGetValue(closestSha, out var commit);
+            candidates.BaselineBranches.TryGetValue(closestSha, out var baselineBranchName);
+            return new MergeBaseSelection(commit, baselineBranchName);
         }
 
-        private static Dictionary<string, Commit> CollectCandidates(Repository repo, string currentBranch, ILogger logger)
+        private static CandidateCollection CollectCandidates(Repository repo, string currentBranch, ILogger logger)
         {
-            var mergeBases = new Dictionary<string, Commit>(StringComparer.OrdinalIgnoreCase);
+            var candidates = new CandidateCollection();
 
             var defaultBranch = MainBranchNames.GetDefaultBranch(repo);
             if (!string.IsNullOrEmpty(defaultBranch))
             {
-                TryAddCandidate(repo, currentBranch, defaultBranch, mergeBases, logger);
-                if (mergeBases.Count > 0)
-                {
-                    return mergeBases;
-                }
+                TryAddCandidate(repo, currentBranch, defaultBranch, candidates, logger);
+                return candidates;
             }
 
             foreach (var mainBranchName in MainBranchNames.All)
             {
-                TryAddCandidate(repo, currentBranch, mainBranchName, mergeBases, logger);
+                TryAddCandidate(repo, currentBranch, mainBranchName, candidates, logger);
             }
 
-            return mergeBases;
+            return candidates;
         }
 
         private static void TryAddCandidate(
             Repository repo,
             string currentBranch,
             string mainBranchName,
-            IDictionary<string, Commit> mergeBases,
+            CandidateCollection candidates,
             ILogger logger)
         {
             var mainBranch = repo.Branches[mainBranchName]
@@ -77,7 +86,8 @@ namespace Codescene.VSExtension.Core.Application.Git
                 var mergeBase = repo.ObjectDatabase.FindMergeBase(repo.Head.Tip, mainBranch.Tip);
                 if (mergeBase != null)
                 {
-                    mergeBases[mergeBase.Sha] = mergeBase;
+                    candidates.MergeBases[mergeBase.Sha] = mergeBase;
+                    candidates.BaselineBranches[mergeBase.Sha] = mainBranchName;
                 }
             }
             catch (Exception e)
@@ -86,7 +96,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        private static Commit FindClosestReachable(Repository repo, IReadOnlyDictionary<string, Commit> mergeBases)
+        private static string FindClosestReachableSha(Repository repo, IReadOnlyDictionary<string, Commit> mergeBases)
         {
             foreach (var commit in repo.Commits.QueryBy(new CommitFilter
                      {
@@ -94,13 +104,20 @@ namespace Codescene.VSExtension.Core.Application.Git
                          SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Time,
                      }))
             {
-                if (mergeBases.TryGetValue(commit.Sha, out var closestMergeBase))
+                if (mergeBases.ContainsKey(commit.Sha))
                 {
-                    return closestMergeBase;
+                    return commit.Sha;
                 }
             }
 
             return null;
+        }
+
+        private sealed class CandidateCollection
+        {
+            public Dictionary<string, Commit> MergeBases { get; } = new Dictionary<string, Commit>(StringComparer.OrdinalIgnoreCase);
+
+            public Dictionary<string, string> BaselineBranches { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
     }
 }

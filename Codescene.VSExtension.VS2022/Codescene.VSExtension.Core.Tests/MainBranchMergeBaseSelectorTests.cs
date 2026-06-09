@@ -109,15 +109,14 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void FindClosest_WhenDefaultBranchHasNoResolvableRef_FallsBackToAllBranches()
+        public void FindClosest_WhenDefaultBranchHasNoResolvableRef_DoesNotFallBackToAllBranches()
         {
             CommitFile("README.md", "# Test", "Initial commit");
-            ExecGit("branch -m main");
+            ExecGit("branch -m master");
 
             using (var repo = new Repository(_testRepoPath))
             {
-                repo.Refs.Add("refs/remotes/origin/ghost", repo.Head.Tip.Id);
-                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/ghost"]);
+                repo.Refs.Add("refs/remotes/origin/HEAD", "refs/remotes/origin/missing-main");
             }
 
             ExecGit("checkout -b feature-branch");
@@ -127,7 +126,62 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 var result = MainBranchMergeBaseSelector.FindClosest(repo);
 
-                Assert.IsNotNull(result, "Should find merge base via fallback when default branch ref is not local");
+                Assert.IsNull(result, "Should not fall back to master when configured default branch is missing");
+            }
+        }
+
+        [TestMethod]
+        public void FindClosest_WhenDefaultBranchIsMain_DoesNotFallBackToMaster()
+        {
+            CommitFile("README.md", "# Master", "Initial on master");
+            ExecGit("branch -m master");
+            CommitFile("master-only.cs", "class M {}", "Master commit");
+
+            ExecGit("checkout --orphan main");
+            var mainFile = Path.Combine(_testRepoPath, "main.md");
+            File.WriteAllText(mainFile, "# Main");
+            using (var repo = new Repository(_testRepoPath))
+            {
+                Commands.Stage(repo, "main.md");
+                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
+                repo.Commit("Initial on main", signature, signature);
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            ExecGit("checkout master");
+            ExecGit("checkout -b feature-branch");
+            CommitFile("feature.cs", "class Feature {}", "Add feature");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var selection = MainBranchMergeBaseSelector.Select(repo);
+
+                Assert.IsNull(selection.Commit, "Should not use master when origin/HEAD default is main");
+            }
+        }
+
+        [TestMethod]
+        public void Select_WhenDefaultBranchYieldsMergeBase_ReportsBaselineBranchName()
+        {
+            CommitFile("README.md", "# Test", "Initial commit");
+            ExecGit("branch -m main");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            ExecGit("checkout -b feature-branch");
+            CommitFile("feature.cs", "class Feature {}", "Add feature");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var selection = MainBranchMergeBaseSelector.Select(repo);
+
+                Assert.IsNotNull(selection.Commit, "Should find a merge base");
+                Assert.AreEqual("main", selection.BaselineBranchName, "Should report the default baseline branch");
             }
         }
 

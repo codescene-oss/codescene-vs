@@ -280,6 +280,40 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task GetChangedFilesVsMergeBaseAsync_RepeatedNoMergeBaseState_LogsWarnOnce()
+        {
+            CommitFile("README.md", "# Master", "Initial on master");
+            ExecGit("branch -m master");
+            CommitFile("master-only.cs", "class M {}", "Master commit");
+
+            ExecGit("checkout --orphan main");
+            var mainFile = Path.Combine(_testRepoPath, "main.md");
+            File.WriteAllText(mainFile, "# Main");
+            using (var repo = new Repository(_testRepoPath))
+            {
+                Commands.Stage(repo, "main.md");
+                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
+                repo.Commit("Initial on main", signature, signature);
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            ExecGit("checkout master");
+            ExecGit("checkout -b feature-branch");
+            CommitFile("feature.cs", "class Feature {}", "Add feature");
+
+            _fakeLogger.ClearWarnMessages();
+
+            await _lister.GetChangedFilesVsMergeBaseAsync(_testRepoPath, _testRepoPath);
+            await _lister.GetChangedFilesVsMergeBaseAsync(_testRepoPath, _testRepoPath);
+
+            var warnCount = _fakeLogger.SnapshotWarnMessages()
+                .Count(m => m.Contains("can't determine merge-base"));
+
+            Assert.AreEqual(1, warnCount, "Should warn about missing merge base only once until repo state changes");
+        }
+
+        [TestMethod]
         public void Initialize_SetsGitRootAndWorkspacePath()
         {
             _lister.Initialize(_testRepoPath, new[] { _testRepoPath });
