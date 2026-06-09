@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780487657519,
+  "lastUpdate": 1781040624458,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1466,6 +1466,48 @@ window.BENCHMARK_DATA = {
             "value": 64713281.86813187,
             "unit": "ns",
             "range": "± 3606195.63744663"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "25d2b183f0bf2315e9b652c0f15f9a3f9f0f2479",
+          "message": "fix: use configured baseline exclusively for merge-base resolution (#300)\n\n* fix: use configured baseline exclusively for merge-base resolution\n\nStop GitChangeLister from falling back to master/develop when the\nconfigured or origin/HEAD baseline cannot produce a merge base.\nDeduplicate no-merge-base log noise in lister and observer.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* fix: harden merge-base concurrency and baseline branch priority\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* test: cover merge-base log throttle reset paths\n\nAdd tests for observer cache clear and lister warn-state reset on successful merge-base lookup.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-06-09T23:24:36+02:00",
+          "tree_id": "3358f0e10c1cf1b3f9af2c2b2cc253819c63c1ca",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/25d2b183f0bf2315e9b652c0f15f9a3f9f0f2479"
+        },
+        "date": 1781040618097,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 109324551.66666667,
+            "unit": "ns",
+            "range": "± 1386354.9387173764"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 98107473.33333333,
+            "unit": "ns",
+            "range": "± 1373687.2559578298"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 64430157.14285714,
+            "unit": "ns",
+            "range": "± 909926.7747471692"
           }
         ]
       }
