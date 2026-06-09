@@ -28,11 +28,25 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetChangedFilesVsBaselineAsync_RepeatedNoMergeBaseState_LogsOnce()
         {
+            string originalBranch;
             using (var repo = new Repository(_testRepoPath))
             {
-                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                originalBranch = repo.Head.FriendlyName;
+            }
+
+            ExecGit("checkout --orphan unrelated-main");
+            var unrelatedReadme = Path.Combine(_testRepoPath, "unrelated.md");
+            File.WriteAllText(unrelatedReadme, "# Unrelated");
+            using (var repo = new Repository(_testRepoPath))
+            {
+                LibGit2Sharp.Commands.Stage(repo, "unrelated.md");
+                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
+                var unrelatedCommitId = repo.Commit("Unrelated commit", signature, signature).Id;
+                repo.Refs.Add("refs/remotes/origin/main", unrelatedCommitId);
                 repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
             }
+
+            ExecGit($"checkout {originalBranch}");
 
             _fakeLogger.ClearDebugMessages();
 

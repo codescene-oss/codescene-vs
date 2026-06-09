@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -28,7 +29,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private string _gitRootPath;
         private IReadOnlyCollection<string> _workspacePaths;
         private DroppingScheduledExecutor _scheduledExecutor;
-        private Dictionary<string, string> _loggedNoMergeBaseWarnKeysByRepo;
+        private ConcurrentDictionary<string, string> _loggedNoMergeBaseWarnKeysByRepo;
         private bool _disposed = false;
 
         public GitChangeLister(
@@ -470,7 +471,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             var key = gitRootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            _loggedNoMergeBaseWarnKeysByRepo.Remove(key);
+            _loggedNoMergeBaseWarnKeysByRepo.TryRemove(key, out _);
             if (_loggedNoMergeBaseWarnKeysByRepo.Count == 0)
             {
                 _loggedNoMergeBaseWarnKeysByRepo = null;
@@ -490,7 +491,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             if (_loggedNoMergeBaseWarnKeysByRepo == null)
             {
-                _loggedNoMergeBaseWarnKeysByRepo = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                _loggedNoMergeBaseWarnKeysByRepo = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             }
 
             if (_loggedNoMergeBaseWarnKeysByRepo.TryGetValue(gitRoot, out var lastStateKey) &&

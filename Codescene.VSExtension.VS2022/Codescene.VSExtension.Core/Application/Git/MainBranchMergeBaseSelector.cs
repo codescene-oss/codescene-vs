@@ -87,7 +87,10 @@ namespace Codescene.VSExtension.Core.Application.Git
                 if (mergeBase != null)
                 {
                     candidates.MergeBases[mergeBase.Sha] = mergeBase;
-                    candidates.BaselineBranches[mergeBase.Sha] = mainBranchName;
+                    if (!candidates.BaselineBranches.ContainsKey(mergeBase.Sha))
+                    {
+                        candidates.BaselineBranches[mergeBase.Sha] = mainBranchName;
+                    }
                 }
             }
             catch (Exception e)
