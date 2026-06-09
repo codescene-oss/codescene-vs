@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly IGitService _gitService;
         private Dictionary<string, List<string>> _mainBranchCandidatesCache;
+        private ConcurrentDictionary<string, string> _loggedNoMergeBaseKeysByRepo;
 
         public GitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker, IGitService gitService)
         {
@@ -39,6 +41,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             if (string.IsNullOrEmpty(gitRootPath))
             {
                 _mainBranchCandidatesCache = null;
+                ClearNoMergeBaseLogState();
                 return;
             }
 
@@ -48,6 +51,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 _mainBranchCandidatesCache = null;
             }
+
+            ClearNoMergeBaseLogState(gitRootPath);
         }
 
         public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, CancellationToken cancellationToken = default)
@@ -151,10 +156,10 @@ namespace Codescene.VSExtension.Core.Application.Git
             _logger?.Info($">>> GitChangeDetector: Getting changed files from repository on branch '{currentBranch}'");
             #endif
 
-            var baseCommit = GetMergeBaseCommit(repo);
+            var (baseCommit, noMergeBaseCandidates) = GetMergeBaseCommit(repo);
             if (baseCommit == null)
             {
-                _logger?.Debug("GitChangeObserver: No merge base commit found, using working directory changes only");
+                LogNoMergeBaseStateOnce(repo, noMergeBaseCandidates);
             }
 
             var filesToExclude = BuildExclusionSet(context.SavedFilesTracker, context.OpenFilesObserver);
@@ -172,21 +177,20 @@ namespace Codescene.VSExtension.Core.Application.Git
             return changedFiles.Distinct().ToList();
         }
 
-        protected virtual Commit GetMergeBaseCommit(Repository repo)
+        protected virtual (Commit baseCommit, IReadOnlyList<string> noMergeBaseCandidates) GetMergeBaseCommit(Repository repo)
         {
             try
             {
                 var currentBranch = repo.Head;
                 if (!IsValidBranch(currentBranch))
                 {
-                    return null;
+                    return (null, null);
                 }
 
                 var mainBranchCandidates = GetMainBranchCandidates(repo);
                 if (mainBranchCandidates.Count == 0)
                 {
-                    _logger?.Debug("GitChangeObserver: No main branch candidates found");
-                    return null;
+                    return (null, mainBranchCandidates);
                 }
 
                 foreach (var candidateName in mainBranchCandidates)
@@ -194,17 +198,17 @@ namespace Codescene.VSExtension.Core.Application.Git
                     var mergeBase = TryFindMergeBase(repo, currentBranch, candidateName);
                     if (mergeBase != null)
                     {
-                        return mergeBase;
+                        ClearNoMergeBaseLogState(repo.Info.WorkingDirectory);
+                        return (mergeBase, mainBranchCandidates);
                     }
                 }
 
-                _logger?.Debug("GitChangeObserver: No merge base found with any main branch candidate");
-                return null;
+                return (null, mainBranchCandidates);
             }
             catch (Exception ex)
             {
                 _logger?.Debug($"GitChangeObserver: Could not determine merge base: {ex.Message}");
-                return null;
+                return (null, null);
             }
         }
 
@@ -333,6 +337,72 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 exclusionSet.Add(file);
             }
+        }
+
+        private void ClearNoMergeBaseLogState(string gitRootPath = null)
+        {
+            if (_loggedNoMergeBaseKeysByRepo == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(gitRootPath))
+            {
+                _loggedNoMergeBaseKeysByRepo = null;
+                return;
+            }
+
+            var key = gitRootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            _loggedNoMergeBaseKeysByRepo.TryRemove(key, out _);
+            if (_loggedNoMergeBaseKeysByRepo.Count == 0)
+            {
+                _loggedNoMergeBaseKeysByRepo = null;
+            }
+        }
+
+        private void LogNoMergeBaseStateOnce(Repository repo, IReadOnlyList<string> candidates)
+        {
+            if (!TryMarkNoMergeBaseLogged(repo, candidates))
+            {
+                return;
+            }
+
+            if (candidates == null || candidates.Count == 0)
+            {
+                _logger?.Debug("GitChangeObserver: No main branch candidates found");
+            }
+            else
+            {
+                _logger?.Debug("GitChangeObserver: No merge base found with any main branch candidate");
+            }
+
+            _logger?.Debug("GitChangeObserver: No merge base commit found, using working directory changes only");
+        }
+
+        private bool TryMarkNoMergeBaseLogged(Repository repo, IReadOnlyList<string> candidates)
+        {
+            var gitRoot = repo?.Info?.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (string.IsNullOrEmpty(gitRoot) || repo?.Head?.Tip == null)
+            {
+                return false;
+            }
+
+            var candidateKey = candidates == null ? string.Empty : string.Join(",", candidates);
+            var stateKey = $"{repo.Head.Tip.Sha}|{candidateKey}";
+
+            if (_loggedNoMergeBaseKeysByRepo == null)
+            {
+                _loggedNoMergeBaseKeysByRepo = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            if (_loggedNoMergeBaseKeysByRepo.TryGetValue(gitRoot, out var lastStateKey) &&
+                string.Equals(lastStateKey, stateKey, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            _loggedNoMergeBaseKeysByRepo[gitRoot] = stateKey;
+            return true;
         }
 
         private bool IsValidBranch(Branch branch)

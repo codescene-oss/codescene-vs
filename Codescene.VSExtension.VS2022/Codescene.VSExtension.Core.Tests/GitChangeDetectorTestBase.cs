@@ -364,11 +364,11 @@ namespace Codescene.VSExtension.Core.Tests
                 return candidates;
             }
 
-            protected override Commit? GetMergeBaseCommit(Repository repo)
+            protected override (Commit? baseCommit, IReadOnlyList<string>? noMergeBaseCandidates) GetMergeBaseCommit(Repository repo)
             {
                 if (SimulateInvalidCurrentBranch)
                 {
-                    return null;
+                    return (null, null);
                 }
 
                 if (ThrowInGetMergeBaseCommit)

@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -28,6 +29,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private string _gitRootPath;
         private IReadOnlyCollection<string> _workspacePaths;
         private DroppingScheduledExecutor _scheduledExecutor;
+        private ConcurrentDictionary<string, string> _loggedNoMergeBaseWarnKeysByRepo;
         private bool _disposed = false;
 
         public GitChangeLister(
@@ -383,13 +385,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             var mergeBase = _mergeBaseFinder.GetMergeBaseCommit(repo);
             if (mergeBase == null)
             {
-                if (repo.Head != null && !_mergeBaseFinder.IsMainBranch(repo, repo.Head.FriendlyName))
-                {
-                    _logger?.Warn("GitChangeLister: On non-main branch but can't determine merge-base");
-                }
-
+                LogNoMergeBaseWarnOnce(repo);
                 return new HashSet<string>();
             }
+
+            ClearNoMergeBaseWarnLogState(repo.Info.WorkingDirectory);
 
             if (repo.Head?.Tip == null)
             {
@@ -440,6 +440,68 @@ namespace Codescene.VSExtension.Core.Application.Git
         private bool ShouldReviewFile(string absolutePath)
         {
             return _supportedFileChecker.IsSupported(absolutePath);
+        }
+
+        private void LogNoMergeBaseWarnOnce(Repository repo)
+        {
+            if (repo?.Head == null || _mergeBaseFinder.IsMainBranch(repo, repo.Head.FriendlyName))
+            {
+                return;
+            }
+
+            if (!TryMarkNoMergeBaseWarnLogged(repo))
+            {
+                return;
+            }
+
+            _logger?.Warn("GitChangeLister: On non-main branch but can't determine merge-base");
+        }
+
+        private void ClearNoMergeBaseWarnLogState(string gitRootPath = null)
+        {
+            if (_loggedNoMergeBaseWarnKeysByRepo == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(gitRootPath))
+            {
+                _loggedNoMergeBaseWarnKeysByRepo = null;
+                return;
+            }
+
+            var key = gitRootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            _loggedNoMergeBaseWarnKeysByRepo.TryRemove(key, out _);
+            if (_loggedNoMergeBaseWarnKeysByRepo.Count == 0)
+            {
+                _loggedNoMergeBaseWarnKeysByRepo = null;
+            }
+        }
+
+        private bool TryMarkNoMergeBaseWarnLogged(Repository repo)
+        {
+            var gitRoot = repo?.Info?.WorkingDirectory?.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (string.IsNullOrEmpty(gitRoot) || repo?.Head?.Tip == null)
+            {
+                return false;
+            }
+
+            var defaultBranch = MainBranchNames.GetDefaultBranch(repo) ?? string.Empty;
+            var stateKey = $"{repo.Head.Tip.Sha}|{repo.Head.FriendlyName}|{defaultBranch}";
+
+            if (_loggedNoMergeBaseWarnKeysByRepo == null)
+            {
+                _loggedNoMergeBaseWarnKeysByRepo = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            if (_loggedNoMergeBaseWarnKeysByRepo.TryGetValue(gitRoot, out var lastStateKey) &&
+                string.Equals(lastStateKey, stateKey, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            _loggedNoMergeBaseWarnKeysByRepo[gitRoot] = stateKey;
+            return true;
         }
     }
 }

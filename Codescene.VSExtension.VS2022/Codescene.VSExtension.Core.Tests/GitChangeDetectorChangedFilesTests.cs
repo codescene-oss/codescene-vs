@@ -26,6 +26,83 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task GetChangedFilesVsBaselineAsync_RepeatedNoMergeBaseState_LogsOnce()
+        {
+            string originalBranch;
+            using (var repo = new Repository(_testRepoPath))
+            {
+                originalBranch = repo.Head.FriendlyName;
+            }
+
+            ExecGit("checkout --orphan unrelated-main");
+            var unrelatedReadme = Path.Combine(_testRepoPath, "unrelated.md");
+            File.WriteAllText(unrelatedReadme, "# Unrelated");
+            using (var repo = new Repository(_testRepoPath))
+            {
+                LibGit2Sharp.Commands.Stage(repo, "unrelated.md");
+                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
+                var unrelatedCommitId = repo.Commit("Unrelated commit", signature, signature).Id;
+                repo.Refs.Add("refs/remotes/origin/main", unrelatedCommitId);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            ExecGit($"checkout {originalBranch}");
+
+            _fakeLogger.ClearDebugMessages();
+
+            await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+            await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            var noMergeBaseLogs = _fakeLogger.SnapshotDebugMessages()
+                .Count(m => m.Contains("No merge base commit found, using working directory changes only"));
+
+            Assert.AreEqual(1, noMergeBaseLogs, "Should log no merge base state only once until repo state changes");
+        }
+
+        [TestMethod]
+        public async Task ClearMainBranchCandidatesCache_ClearsNoMergeBaseLogThrottle()
+        {
+            string originalBranch;
+            using (var repo = new Repository(_testRepoPath))
+            {
+                originalBranch = repo.Head.FriendlyName;
+            }
+
+            ExecGit("checkout --orphan unrelated-main");
+            var unrelatedReadme = Path.Combine(_testRepoPath, "unrelated.md");
+            File.WriteAllText(unrelatedReadme, "# Unrelated");
+            using (var repo = new Repository(_testRepoPath))
+            {
+                LibGit2Sharp.Commands.Stage(repo, "unrelated.md");
+                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
+                var unrelatedCommitId = repo.Commit("Unrelated commit", signature, signature).Id;
+                repo.Refs.Add("refs/remotes/origin/main", unrelatedCommitId);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            ExecGit($"checkout {originalBranch}");
+
+            _fakeLogger.ClearDebugMessages();
+
+            await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+            await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            _detector.ClearMainBranchCandidatesCache();
+
+            await _detector.GetChangedFilesVsBaselineAsync(
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+
+            var noMergeBaseLogs = _fakeLogger.SnapshotDebugMessages()
+                .Count(m => m.Contains("No merge base commit found, using working directory changes only"));
+
+            Assert.AreEqual(2, noMergeBaseLogs, "Clearing candidate cache should reset no-merge-base log throttle");
+        }
+
+        [TestMethod]
         public async Task GetChangedFilesVsBaselineAsync_FindsMergeBaseWithMainBranch()
         {
             using (var repo = new Repository(_testRepoPath))
