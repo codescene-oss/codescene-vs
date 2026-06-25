@@ -45,6 +45,11 @@ public sealed class RecordingGitChangeLister : IGitChangeLister, IDisposable
         _inner.SetWorkspacePaths(workspacePaths);
     }
 
+    public void MarkDirty()
+    {
+        _inner.MarkDirty();
+    }
+
     public void StartPeriodicScanning(CancellationToken cancellationToken)
     {
         _journal.Record("lister.periodic.start");

@@ -47,7 +47,6 @@ namespace Codescene.VSExtension.Core.Application.Git
         private Func<Task<List<string>>> _getChangedFilesCallback;
         private CodesceneFileWatcher _rulesFileWatcher;
         private CodesceneFileWatcher _configFileWatcher;
-        private GitIgnoreWatcher _gitIgnoreWatcher;
         private TaskCompletionSource<bool> _initializationComplete;
         private PerFileRequestQueue<string> _detectedFilesQueue = new PerFileRequestQueue<string>();
         private ConcurrentDictionary<string, SemaphoreSlim> _perFileProcessingLocks = new ConcurrentDictionary<string, SemaphoreSlim>(StringComparer.OrdinalIgnoreCase);
@@ -136,8 +135,8 @@ namespace Codescene.VSExtension.Core.Application.Git
                 "CodeScene config change detected.");
             _configFileWatcher.FileChanged += OnCodesceneConfigChanged;
 
-            _gitIgnoreWatcher = new GitIgnoreWatcher(_gitRootPath, _logger);
-            _gitIgnoreWatcher.GitIgnoreChanged += OnGitIgnoreChanged;
+            _gitService.GitIgnoreChanged += OnGitIgnoreChanged;
+            EnsureGitIgnoreWatcherInitialized();
 
             InitializeTracker();
         }
@@ -244,8 +243,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _configFileWatcher?.Dispose();
             _configFileWatcher = null;
 
-            _gitIgnoreWatcher?.Dispose();
-            _gitIgnoreWatcher = null;
+            _gitService.GitIgnoreChanged -= OnGitIgnoreChanged;
 
             _eventProcessor?.Dispose();
             _eventProcessor = null;
@@ -258,10 +256,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _gitChangeLister.StopPeriodicScanning();
             _eventProcessor?.DrainAndStop();
 
-            if (_gitIgnoreWatcher != null)
-            {
-                _gitIgnoreWatcher.GitIgnoreChanged -= OnGitIgnoreChanged;
-            }
+            _gitService.GitIgnoreChanged -= OnGitIgnoreChanged;
 
             _cts?.Cancel();
             _cts?.Dispose();
@@ -272,11 +267,10 @@ namespace Codescene.VSExtension.Core.Application.Git
             _detectedFilesQueue.Clear();
 
             ClearTrackerAndJobs();
+            _gitChangeLister.MarkDirty();
+            WorkspaceActivityTracker.Reset();
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
-            if (_gitIgnoreWatcher != null)
-            {
-                _gitIgnoreWatcher.GitIgnoreChanged += OnGitIgnoreChanged;
-            }
+            _gitService.GitIgnoreChanged += OnGitIgnoreChanged;
 
             _eventProcessor?.Start(TimeSpan.FromSeconds(1), _cts.Token);
             _gitChangeLister.StartPeriodicScanning(_cts.Token);
@@ -350,17 +344,20 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private void OnCodeHealthRulesChanged(object sender, EventArgs e)
         {
+            _gitChangeLister.MarkDirty();
             InvalidateTrackedFiles(onlyIgnored: false);
         }
 
         private void OnCodesceneConfigChanged(object sender, EventArgs e)
         {
+            _gitChangeLister.MarkDirty();
             _gitChangeDetector?.ClearMainBranchCandidatesCache(_gitRootPath);
             InvalidateTrackedFiles(onlyIgnored: false);
         }
 
         private void OnGitIgnoreChanged(object sender, EventArgs e)
         {
+            _gitChangeLister.MarkDirty();
             InvalidateTrackedFiles();
         }
 
@@ -405,7 +402,12 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
 
                 var token = cts.Token;
-                foreach (var path in absolutePaths.Where(path => !string.IsNullOrWhiteSpace(path)))
+                var sortedPaths = DetectedFilePrioritySorter.SortByVisibility(
+                    absolutePaths,
+                    _openFilesObserver.GetAllVisibleFileNames(),
+                    _openFilesObserver.GetActiveDocumentPath());
+
+                foreach (var path in sortedPaths)
                 {
                     if (_detectedFilesQueue.TryStart(path, path))
                     {
@@ -642,7 +644,24 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return false;
             }
 
-            return GitPathHelper.IsPathUnderAnyRoot(e.FullPath, _workspacePaths);
+            if (!GitPathHelper.IsPathUnderAnyRoot(e.FullPath, _workspacePaths))
+            {
+                return false;
+            }
+
+            WorkspaceActivityTracker.MarkActivity();
+            return true;
+        }
+
+        private void EnsureGitIgnoreWatcherInitialized()
+        {
+            if (string.IsNullOrEmpty(_gitRootPath) || !Directory.Exists(_gitRootPath))
+            {
+                return;
+            }
+
+            var probePath = Path.Combine(_gitRootPath, ".gitignore");
+            _gitService.IsFileIgnored(probePath);
         }
 
         private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration = null, CancellationToken cancellationToken = default)

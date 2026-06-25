@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
@@ -30,6 +31,8 @@ namespace Codescene.VSExtension.Core.Application.Git
         private IReadOnlyCollection<string> _workspacePaths;
         private DroppingScheduledExecutor _scheduledExecutor;
         private ConcurrentDictionary<string, string> _loggedNoMergeBaseWarnKeysByRepo;
+        private string _lastChangedFileSetKey;
+        private bool _forceNextScan;
         private bool _disposed = false;
 
         public GitChangeLister(
@@ -92,9 +95,17 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             _gitRootPath = gitRootPath;
             _workspacePaths = workspacePaths ?? Array.Empty<string>();
+            _lastChangedFileSetKey = null;
+            _forceNextScan = true;
+            WorkspaceActivityTracker.Reset();
 #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeLister: Initialized with gitRoot='{gitRootPath}', workspacePaths count={_workspacePaths.Count}");
 #endif
+        }
+
+        public void MarkDirty()
+        {
+            _forceNextScan = true;
         }
 
         public void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
@@ -332,21 +343,22 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             try
             {
-                _logger?.Info("Starting scheduled git change review");
                 cancellationToken.ThrowIfCancellationRequested();
-                var didCleanup = ReviewCacheCleanup.CleanupCaches(_gitRootPath);
-                var files = await GetAllChangedFilesAsync(_gitRootPath, _workspacePaths, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-                if (didCleanup)
-                {
-                    files ??= new HashSet<string>();
-                    files.Add("~~cleanup~~");
-                }
-
-                if (files == null || files.Count == 0)
+                if (ShouldSkipIdleScan(WorkspaceActivityTracker.ConsumeActivity()))
                 {
                     return;
                 }
+
+                _logger?.Info("Starting scheduled git change review");
+                var files = await CollectPeriodicScanFilesAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!ShouldPublishPeriodicScan(files, out var changedFileSetKey))
+                {
+                    return;
+                }
+
+                _forceNextScan = false;
+                _lastChangedFileSetKey = changedFileSetKey;
 
 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeLister: Periodic scan detected {files.Count} files");
@@ -360,6 +372,46 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 _logger?.Error("GitChangeLister: Error during periodic scan", ex);
             }
+        }
+
+        private async Task<HashSet<string>> CollectPeriodicScanFilesAsync(CancellationToken cancellationToken)
+        {
+            var didCleanup = ReviewCacheCleanup.CleanupCaches(_gitRootPath);
+            var files = await GetAllChangedFilesAsync(_gitRootPath, _workspacePaths, cancellationToken);
+            if (didCleanup)
+            {
+                files ??= new HashSet<string>();
+                files.Add("~~cleanup~~");
+            }
+
+            return files;
+        }
+
+        private bool ShouldPublishPeriodicScan(HashSet<string> files, out string changedFileSetKey)
+        {
+            changedFileSetKey = null;
+            if (files == null || files.Count == 0)
+            {
+                return false;
+            }
+
+            changedFileSetKey = SerializeChangedFileSet(files);
+            return !IsUnchangedFileSet(changedFileSetKey);
+        }
+
+        private bool ShouldSkipIdleScan(bool hadWorkspaceActivity)
+        {
+            return !_forceNextScan && !hadWorkspaceActivity && _lastChangedFileSetKey != null;
+        }
+
+        private bool IsUnchangedFileSet(string changedFileSetKey)
+        {
+            return !_forceNextScan && changedFileSetKey == _lastChangedFileSetKey;
+        }
+
+        private string SerializeChangedFileSet(IEnumerable<string> filePaths)
+        {
+            return string.Join("\0", filePaths.OrderBy(path => path, StringComparer.OrdinalIgnoreCase));
         }
 
         private bool IsValidGitRoot(string gitRootPath)

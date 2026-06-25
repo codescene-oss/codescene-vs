@@ -12,6 +12,12 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     {
         internal Mock<IGitService> Mock = new Mock<IGitService>();
 
+        public event EventHandler GitIgnoreChanged
+        {
+            add => Mock.Object.GitIgnoreChanged += value;
+            remove => Mock.Object.GitIgnoreChanged -= value;
+        }
+
         public string GetFileContentForCommit(string path)
         {
             return Mock.Object.GetFileContentForCommit(path);

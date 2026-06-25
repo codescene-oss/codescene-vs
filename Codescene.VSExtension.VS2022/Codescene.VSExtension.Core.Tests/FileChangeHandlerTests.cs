@@ -1,6 +1,9 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cache.Review;
 
 namespace Codescene.VSExtension.Core.Tests
 {
@@ -139,6 +142,29 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsTrue(_trackerManager.Contains(testFile));
             Assert.IsGreaterThanOrEqualTo(_fakeCodeReviewer.ReviewCallCount, 1);
+        }
+
+        [TestMethod]
+        public async Task HandleFileChangeAsync_CachedContent_SkipsReviewer()
+        {
+            var testFile = Path.Combine(_testWorkspacePath, "cached.cs");
+            var content = "public class Cached {}";
+            File.WriteAllText(testFile, content);
+
+            var cache = new ReviewCacheService();
+            cache.Clear();
+            cache.Put(new ReviewCacheEntry(content, testFile, new FileReviewModel
+            {
+                FilePath = testFile,
+                Score = 8.0f,
+            }));
+
+            var changedFiles = new List<string> { "cached.cs" };
+            await _handler.HandleFileChangeAsync(testFile, changedFiles);
+
+            await Task.Delay(100);
+
+            Assert.AreEqual(0, _fakeCodeReviewer.ReviewCallCount);
         }
 
         [TestMethod]

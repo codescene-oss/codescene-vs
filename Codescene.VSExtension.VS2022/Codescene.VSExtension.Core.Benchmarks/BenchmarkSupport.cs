@@ -232,6 +232,8 @@ internal sealed class FixedGitService : IGitService
         _defaultBaselineContent = defaultBaselineContent;
     }
 
+    public event EventHandler? GitIgnoreChanged;
+
     public void SetContent(string path, string content)
     {
         _pathContents[path] = content;

@@ -37,6 +37,16 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             return null;
         }
 
+        public bool IsCachedAtContent(string filePath, string content, bool isBaseline = false)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) || content == null)
+            {
+                return false;
+            }
+
+            return Get(new ReviewCacheQuery(content, filePath, isBaseline)) != null;
+        }
+
         public override void Put(ReviewCacheEntry entry, long? operationGeneration = null)
         {
             string cacheKey = GetCacheKey(entry.FilePath, entry.IsBaseline);

@@ -269,6 +269,8 @@ namespace Codescene.VSExtension.Core.Tests
 
     public class FakeGitService : IGitService
     {
+        public event EventHandler GitIgnoreChanged;
+
         public string GetFileContentForCommit(string path)
         {
             return string.Empty;
@@ -298,6 +300,8 @@ namespace Codescene.VSExtension.Core.Tests
             _ignoredPath = ignoredPath;
         }
 
+        public event EventHandler GitIgnoreChanged;
+
         public string GetFileContentForCommit(string path)
         {
             return string.Empty;
@@ -326,6 +330,8 @@ namespace Codescene.VSExtension.Core.Tests
         {
             _repoPath = repoPath;
         }
+
+        public event EventHandler GitIgnoreChanged;
 
         public string GetFileContentForCommit(string path)
         {
@@ -468,6 +474,10 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         public void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
+        {
+        }
+
+        public void MarkDirty()
         {
         }
 

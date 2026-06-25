@@ -6,10 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
+using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Application.Git
@@ -171,37 +173,15 @@ namespace Codescene.VSExtension.Core.Application.Git
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> FileChangeHandler: Starting review for file: {filePath}");
                 #endif
-                string content = null;
-                if (_openDocumentContentProvider != null)
-                {
-                    try
-                    {
-                        content = await _openDocumentContentProvider.GetContentForReviewAsync(filePath, cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger?.Warn($"GitChangeObserver: Open document provider failed for {filePath}. {ex.Message}");
-                    }
-                }
-
-                content ??= File.ReadAllText(filePath);
-
+                var content = await GetReviewContentAsync(filePath, cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
-                var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content, operationGeneration, cancellationToken).ConfigureAwait(false);
+                if (IsAlreadyCachedAtContent(filePath, content))
+                {
+                    return;
+                }
 
-                if (review != null)
-                {
-                    _logger?.Debug($"GitChangeObserver: File reviewed: {filePath}");
-                    #if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> FileChangeHandler: Completed review for file: {filePath}");
-                    #endif
-                }
-                else
-                {
-                    #if FEATURE_INITIAL_GIT_OBSERVER
-                    _logger?.Info($">>> FileChangeHandler: Review returned null for file: {filePath}");
-                    #endif
-                }
+                var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content, operationGeneration, cancellationToken).ConfigureAwait(false);
+                LogReviewOutcome(filePath, review);
             }
             catch (OperationCanceledException)
             {
@@ -210,6 +190,48 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 _logger?.Error($"GitChangeObserver: Could not load file for review {filePath}", ex);
             }
+        }
+
+        private async Task<string> GetReviewContentAsync(string filePath, CancellationToken cancellationToken)
+        {
+            if (_openDocumentContentProvider != null)
+            {
+                try
+                {
+                    var openContent = await _openDocumentContentProvider.GetContentForReviewAsync(filePath, cancellationToken).ConfigureAwait(false);
+                    if (openContent != null)
+                    {
+                        return openContent;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger?.Warn($"GitChangeObserver: Open document provider failed for {filePath}. {ex.Message}");
+                }
+            }
+
+            return File.ReadAllText(filePath);
+        }
+
+        private bool IsAlreadyCachedAtContent(string filePath, string content)
+        {
+            return new ReviewCacheService().IsCachedAtContent(filePath, content);
+        }
+
+        private void LogReviewOutcome(string filePath, FileReviewModel review)
+        {
+            if (review != null)
+            {
+                _logger?.Debug($"GitChangeObserver: File reviewed: {filePath}");
+                #if FEATURE_INITIAL_GIT_OBSERVER
+                _logger?.Info($">>> FileChangeHandler: Completed review for file: {filePath}");
+                #endif
+                return;
+            }
+
+            #if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> FileChangeHandler: Review returned null for file: {filePath}");
+            #endif
         }
 
         private bool IsFileInChangedList(string filePath, List<string> changedFiles)

@@ -19,6 +19,8 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
 
         void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths);
 
+        void MarkDirty();
+
         void StartPeriodicScanning(CancellationToken cancellationToken);
 
         void StopPeriodicScanning();

@@ -18,7 +18,7 @@ public class GitService : IGitService, IDisposable
 
     private readonly LibGit2SharpIgnoreChecker _ignoreChecker;
     private readonly CachingGitIgnoreChecker _cachingIgnoreChecker;
-    private FileSystemWatcher _gitignoreWatcher;
+    private GitIgnoreWatcher _gitignoreWatcher;
     private string _watchedRepoRoot;
 
     [ImportingConstructor]
@@ -28,6 +28,8 @@ public class GitService : IGitService, IDisposable
         _ignoreChecker = new LibGit2SharpIgnoreChecker(logger);
         _cachingIgnoreChecker = new CachingGitIgnoreChecker(_ignoreChecker);
     }
+
+    public event EventHandler GitIgnoreChanged;
 
     // TODO: Move to helper
     public static string GetRelativePath(string basePath, string fullPath)
@@ -155,6 +157,7 @@ public class GitService : IGitService, IDisposable
     {
         _gitignoreWatcher?.Dispose();
         _gitignoreWatcher = null;
+        _watchedRepoRoot = null;
     }
 
     // TODO: Move to helper
@@ -204,22 +207,14 @@ public class GitService : IGitService, IDisposable
             return;
         }
 
-        _gitignoreWatcher = new FileSystemWatcher(repoRoot)
-        {
-            Filter = ".gitignore",
-            IncludeSubdirectories = true,
-            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.CreationTime,
-        };
-
-        _gitignoreWatcher.Changed += OnGitignoreChanged;
-        _gitignoreWatcher.Created += OnGitignoreChanged;
-        _gitignoreWatcher.Deleted += OnGitignoreChanged;
-        _gitignoreWatcher.EnableRaisingEvents = true;
+        _gitignoreWatcher = new GitIgnoreWatcher(repoRoot, _logger);
+        _gitignoreWatcher.GitIgnoreChanged += OnGitignoreChanged;
     }
 
-    private void OnGitignoreChanged(object sender, FileSystemEventArgs e)
+    private void OnGitignoreChanged(object sender, EventArgs e)
     {
         ClearCache();
+        GitIgnoreChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void ClearCache()

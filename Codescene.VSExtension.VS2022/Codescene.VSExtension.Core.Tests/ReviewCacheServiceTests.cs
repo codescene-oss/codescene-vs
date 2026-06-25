@@ -123,6 +123,28 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void IsCachedAtContent_ReturnsTrueWhenContentMatches()
+        {
+            var filePath = "test.cs";
+            var content = "public class Test { }";
+            var response = new FileReviewModel { FilePath = filePath, Score = 8.5f };
+            _cacheService.Put(new ReviewCacheEntry(content, filePath, response));
+
+            Assert.IsTrue(_cacheService.IsCachedAtContent(filePath, content));
+        }
+
+        [TestMethod]
+        public void IsCachedAtContent_ReturnsFalseWhenContentDiffers()
+        {
+            var filePath = "test.cs";
+            var content = "public class Test { }";
+            var response = new FileReviewModel { FilePath = filePath, Score = 8.5f };
+            _cacheService.Put(new ReviewCacheEntry(content, filePath, response));
+
+            Assert.IsFalse(_cacheService.IsCachedAtContent(filePath, "public class Other { }"));
+        }
+
+        [TestMethod]
         public void Invalidate_RemovesEntry()
         {
             // Arrange
