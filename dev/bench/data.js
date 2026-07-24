@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784857717243,
+  "lastUpdate": 1784857933334,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3810,6 +3810,66 @@ window.BENCHMARK_DATA = {
             "value": 292133675,
             "unit": "ns",
             "range": "± 3015420.900889166"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e1933890d8d03da8a5d79a86cfdf9006a3181b26",
+          "message": "Merge pull request #302 from codescene-oss/skip-periodic-scan-when-unfocused\n\nfeat: skip periodic GitChangeLister when VS window is not focused",
+          "timestamp": "2026-07-24T03:43:27+02:00",
+          "tree_id": "69e917ad8c5cac12d8ca12486c343a9d67264516",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/e1933890d8d03da8a5d79a86cfdf9006a3181b26"
+        },
+        "date": 1784857931845,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 123342308.4,
+            "unit": "ns",
+            "range": "± 4792013.720504514"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 110408016,
+            "unit": "ns",
+            "range": "± 1978361.2741891781"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 233931708.8888889,
+            "unit": "ns",
+            "range": "± 2882139.471677429"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 205285162.22222224,
+            "unit": "ns",
+            "range": "± 2914339.260024221"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 322855446.6666667,
+            "unit": "ns",
+            "range": "± 4997071.258907085"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 277876266.6666667,
+            "unit": "ns",
+            "range": "± 4309914.137306262"
           }
         ]
       }
