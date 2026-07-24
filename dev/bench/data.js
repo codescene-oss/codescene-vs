@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781041117652,
+  "lastUpdate": 1784857717243,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1550,6 +1550,48 @@ window.BENCHMARK_DATA = {
             "value": 72778715.89285715,
             "unit": "ns",
             "range": "± 3530118.8318380006"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e1933890d8d03da8a5d79a86cfdf9006a3181b26",
+          "message": "Merge pull request #302 from codescene-oss/skip-periodic-scan-when-unfocused\n\nfeat: skip periodic GitChangeLister when VS window is not focused",
+          "timestamp": "2026-07-24T03:43:27+02:00",
+          "tree_id": "69e917ad8c5cac12d8ca12486c343a9d67264516",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/e1933890d8d03da8a5d79a86cfdf9006a3181b26"
+        },
+        "date": 1784857715299,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 106008517.64705883,
+            "unit": "ns",
+            "range": "± 2153773.2962394436"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 95895503.52564102,
+            "unit": "ns",
+            "range": "± 3775507.9176986204"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 60717644.44444443,
+            "unit": "ns",
+            "range": "± 1066010.1145325566"
           }
         ]
       }
