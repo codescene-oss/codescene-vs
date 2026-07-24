@@ -23,6 +23,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly ILogger _logger;
         private readonly IGitService _gitService;
+        private readonly IIdeActivityTracker _ideActivityTracker;
         private readonly UntrackedFileProcessor _untrackedFileProcessor;
         private readonly MergeBaseFinder _mergeBaseFinder;
 
@@ -37,12 +38,14 @@ namespace Codescene.VSExtension.Core.Application.Git
             ISupportedFileChecker supportedFileChecker,
             ILogger logger,
             IGitService gitService,
-            int? pollingInterval = null)
+            int? pollingInterval = null,
+            IIdeActivityTracker ideActivityTracker = null)
         {
             _savedFilesTracker = savedFilesTracker ?? throw new ArgumentNullException(nameof(savedFilesTracker));
             _supportedFileChecker = supportedFileChecker ?? throw new ArgumentNullException(nameof(supportedFileChecker));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
+            _ideActivityTracker = ideActivityTracker;
             _untrackedFileProcessor = new UntrackedFileProcessor(_gitService, logger);
             _mergeBaseFinder = new MergeBaseFinder(logger);
             if (pollingInterval.HasValue && pollingInterval.Value <= 0)
@@ -332,6 +335,11 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             try
             {
+                if (!ShouldRunPeriodicScan())
+                {
+                    return;
+                }
+
                 _logger?.Info("Starting scheduled git change review");
                 cancellationToken.ThrowIfCancellationRequested();
                 var didCleanup = ReviewCacheCleanup.CleanupCaches(_gitRootPath);
@@ -360,6 +368,16 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 _logger?.Error("GitChangeLister: Error during periodic scan", ex);
             }
+        }
+
+        private bool ShouldRunPeriodicScan()
+        {
+            if (_ideActivityTracker != null && !_ideActivityTracker.IsIdeWindowActive())
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private bool IsValidGitRoot(string gitRootPath)

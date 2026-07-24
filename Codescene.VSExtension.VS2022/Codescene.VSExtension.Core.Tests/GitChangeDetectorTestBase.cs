@@ -323,6 +323,21 @@ namespace Codescene.VSExtension.Core.Tests
             }
         }
 
+        protected class FakeIdeActivityTracker : IIdeActivityTracker
+        {
+            private bool _isActive = true;
+
+            public bool IsIdeWindowActive()
+            {
+                return _isActive;
+            }
+
+            public void SetActiveForTesting(bool active)
+            {
+                _isActive = active;
+            }
+        }
+
         protected class TestableGitChangeDetector : GitChangeDetector
         {
             public TestableGitChangeDetector(ILogger logger, ISupportedFileChecker supportedFileChecker, IGitService gitService)

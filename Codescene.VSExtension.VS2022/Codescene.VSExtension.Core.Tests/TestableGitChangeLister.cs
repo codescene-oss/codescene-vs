@@ -13,8 +13,9 @@ namespace Codescene.VSExtension.Core.Tests
             ISavedFilesTracker savedFilesTracker,
             ISupportedFileChecker supportedFileChecker,
             ILogger logger,
-            IGitService gitService)
-            : base(savedFilesTracker, supportedFileChecker, logger, gitService)
+            IGitService gitService,
+            IIdeActivityTracker ideActivityTracker = null)
+            : base(savedFilesTracker, supportedFileChecker, logger, gitService, ideActivityTracker: ideActivityTracker)
         {
         }
 

@@ -17,8 +17,9 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             ISavedFilesTracker savedFilesTracker,
             ISupportedFileChecker supportedFileChecker,
             ILogger logger,
-            IGitService gitService)
-            : base(savedFilesTracker, supportedFileChecker, logger, gitService)
+            IGitService gitService,
+            IIdeActivityTracker ideActivityTracker)
+            : base(savedFilesTracker, supportedFileChecker, logger, gitService, ideActivityTracker: ideActivityTracker)
         {
         }
     }

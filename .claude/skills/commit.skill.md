@@ -12,4 +12,3 @@ Create a git commit using Conventional Commits format.
 6, Ensure that the message body is wrapped at approximately 80 columns
 7. Surround all code references in backticks
 8. Create the commit
-9. Run `make lint`.
