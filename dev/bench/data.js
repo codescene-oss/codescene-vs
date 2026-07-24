@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784857933334,
+  "lastUpdate": 1784858015754,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -5644,6 +5644,54 @@ window.BENCHMARK_DATA = {
             "value": 19812.198079427082,
             "unit": "ns",
             "range": "± 197.12837777132137"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e1933890d8d03da8a5d79a86cfdf9006a3181b26",
+          "message": "Merge pull request #302 from codescene-oss/skip-periodic-scan-when-unfocused\n\nfeat: skip periodic GitChangeLister when VS window is not focused",
+          "timestamp": "2026-07-24T03:43:27+02:00",
+          "tree_id": "69e917ad8c5cac12d8ca12486c343a9d67264516",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/e1933890d8d03da8a5d79a86cfdf9006a3181b26"
+        },
+        "date": 1784858014209,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 121018897.33333333,
+            "unit": "ns",
+            "range": "± 1816863.1516021022"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5516.803792317708,
+            "unit": "ns",
+            "range": "± 70.85846753998598"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 395257820,
+            "unit": "ns",
+            "range": "± 8940758.459266607"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 19926.2890625,
+            "unit": "ns",
+            "range": "± 245.95367080065046"
           }
         ]
       }
