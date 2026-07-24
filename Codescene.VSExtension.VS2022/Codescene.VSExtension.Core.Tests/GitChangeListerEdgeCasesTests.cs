@@ -187,5 +187,72 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsNotNull(result, "Should handle corrupted main branch gracefully");
         }
+
+        [TestMethod]
+        public async Task PeriodicScanAsync_SkipsWhenIdeWindowNotFocused()
+        {
+            var activityTracker = new FakeIdeActivityTracker();
+            activityTracker.SetActiveForTesting(false);
+
+            var testableInstance = new TestableGitChangeLister(
+                _fakeSavedFilesTracker,
+                _fakeSupportedFileChecker,
+                _fakeLogger,
+                _fakeGitService,
+                activityTracker);
+
+            try
+            {
+                testableInstance.Initialize(_testRepoPath, new[] { _testRepoPath });
+
+                var newFile = Path.Combine(_testRepoPath, "should-not-scan.cs");
+                File.WriteAllText(newFile, "content");
+
+                var eventFired = false;
+                testableInstance.FilesDetected += (sender, files) => eventFired = true;
+
+                await testableInstance.InvokePeriodicScanAsync();
+
+                Assert.IsFalse(eventFired, "Should not fire event when IDE window not focused");
+            }
+            finally
+            {
+                testableInstance?.Dispose();
+            }
+        }
+
+        [TestMethod]
+        public async Task PeriodicScanAsync_ProceedsWhenIdeWindowFocused()
+        {
+            var activityTracker = new FakeIdeActivityTracker();
+            activityTracker.SetActiveForTesting(true);
+
+            var testableInstance = new TestableGitChangeLister(
+                _fakeSavedFilesTracker,
+                _fakeSupportedFileChecker,
+                _fakeLogger,
+                _fakeGitService,
+                activityTracker);
+
+            try
+            {
+                testableInstance.Initialize(_testRepoPath, new[] { _testRepoPath });
+
+                var newFile = Path.Combine(_testRepoPath, "should-scan.cs");
+                File.WriteAllText(newFile, "content");
+
+                HashSet<string> detectedFiles = null;
+                testableInstance.FilesDetected += (sender, files) => detectedFiles = files;
+
+                await testableInstance.InvokePeriodicScanAsync();
+
+                Assert.IsNotNull(detectedFiles, "Should fire event when IDE window is focused");
+                Assert.Contains(newFile, detectedFiles, "Should detect the new file");
+            }
+            finally
+            {
+                testableInstance?.Dispose();
+            }
+        }
     }
 }

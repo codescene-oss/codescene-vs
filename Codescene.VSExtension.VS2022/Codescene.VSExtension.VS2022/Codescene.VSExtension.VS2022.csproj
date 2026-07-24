@@ -68,6 +68,7 @@
     <Compile Include="Application\ErrorHandling\OutputPaneManager.cs" />
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
+    <Compile Include="Application\Adapters\IdeActivityTracker.cs" />
     <Compile Include="Application\Adapters\VsAsyncTaskScheduler.cs" />
     <Compile Include="Application\Adapters\VsDocumentSaveEventSource.cs" />
     <Compile Include="Application\Adapters\VsOpenFilesObserver.cs" />
