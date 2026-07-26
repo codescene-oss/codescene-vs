@@ -12,8 +12,9 @@ namespace Codescene.VSExtension.Core.Application.Util
         private readonly object _lock = new object();
         private readonly Func<CancellationToken, Task> _action;
         private readonly CancellationToken _cancellationToken;
-        private readonly TimeSpan _interval;
         private readonly ILogger _logger;
+
+        private TimeSpan _interval;
 
         private Timer _timer;
         private bool _isRunning;
@@ -57,6 +58,34 @@ namespace Codescene.VSExtension.Core.Application.Util
                 _timer?.Dispose();
                 _timer = null;
                 _logger.Debug("DroppingScheduledExecutor stopped");
+            }
+        }
+
+        public TimeSpan GetInterval()
+        {
+            lock (_lock)
+            {
+                return _interval;
+            }
+        }
+
+        public void SetInterval(TimeSpan newInterval)
+        {
+            lock (_lock)
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _interval = newInterval;
+                _logger.Debug($"DroppingScheduledExecutor interval updated to: {_interval.TotalSeconds}s");
+
+                if (_timer != null && !_stopped)
+                {
+                    _timer.Dispose();
+                    _timer = new Timer(OnTimerCallback, null, _interval, _interval);
+                }
             }
         }
 

@@ -18,7 +18,8 @@ namespace Codescene.VSExtension.Core.Application.Git
 {
     public class GitChangeLister : IGitChangeLister, IDisposable
     {
-        private readonly int _pollingInterval = 9; // Default value, calculated based on core count.
+        private readonly int _basePollingInterval;
+        private readonly int _pollingInterval; // Calculated based on core count, may differ from base.
         private readonly ISavedFilesTracker _savedFilesTracker;
         private readonly ISupportedFileChecker _supportedFileChecker;
         private readonly ILogger _logger;
@@ -54,6 +55,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             _pollingInterval = pollingInterval ?? CalculatePollingInterval();
+            _basePollingInterval = _pollingInterval;
         }
 
         public event EventHandler<HashSet<string>> FilesDetected;
@@ -333,6 +335,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private async Task PeriodicScanAsync(CancellationToken cancellationToken)
         {
+            var startTime = DateTime.UtcNow;
             try
             {
                 if (!ShouldRunPeriodicScan())
@@ -367,6 +370,28 @@ namespace Codescene.VSExtension.Core.Application.Git
             catch (Exception ex)
             {
                 _logger?.Error("GitChangeLister: Error during periodic scan", ex);
+            }
+            finally
+            {
+                AdjustIntervalIfNeeded(startTime);
+            }
+        }
+
+        private void AdjustIntervalIfNeeded(DateTime startTime)
+        {
+            var elapsedSeconds = (int)Math.Ceiling((DateTime.UtcNow - startTime).TotalSeconds);
+            _logger?.Debug($"Scheduled git change review completed in {elapsedSeconds}s");
+
+            var executor = _scheduledExecutor;
+            if (elapsedSeconds > _basePollingInterval && executor != null)
+            {
+                var newPeriodSeconds = (_basePollingInterval * 2) + elapsedSeconds;
+                var currentPeriodSeconds = (int)executor.GetInterval().TotalSeconds;
+                if (newPeriodSeconds > currentPeriodSeconds)
+                {
+                    executor.SetInterval(TimeSpan.FromSeconds(newPeriodSeconds));
+                    _logger?.Info($"Git change review took {elapsedSeconds}s, increased period to {newPeriodSeconds}s");
+                }
             }
         }
 

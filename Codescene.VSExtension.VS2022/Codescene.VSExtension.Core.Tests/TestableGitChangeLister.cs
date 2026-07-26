@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
@@ -14,12 +15,25 @@ namespace Codescene.VSExtension.Core.Tests
             ISupportedFileChecker supportedFileChecker,
             ILogger logger,
             IGitService gitService,
-            IIdeActivityTracker ideActivityTracker = null)
+            IIdeActivityTracker ideActivityTracker)
             : base(savedFilesTracker, supportedFileChecker, logger, gitService, ideActivityTracker: ideActivityTracker)
         {
         }
 
+        public TestableGitChangeLister(
+            ISavedFilesTracker savedFilesTracker,
+            ISupportedFileChecker supportedFileChecker,
+            ILogger logger,
+            IGitService gitService,
+            int? pollingInterval = null,
+            IIdeActivityTracker ideActivityTracker = null)
+            : base(savedFilesTracker, supportedFileChecker, logger, gitService, pollingInterval, ideActivityTracker)
+        {
+        }
+
         public bool ThrowInGetAllChangedFilesAsync { get; set; }
+
+        public TimeSpan? SimulatedScanDuration { get; set; }
 
         public async Task InvokePeriodicScanAsync()
         {
@@ -50,7 +64,18 @@ namespace Codescene.VSExtension.Core.Tests
                 throw new Exception("Simulated exception in CollectFilesFromRepoStateAsync");
             }
 
+            if (SimulatedScanDuration.HasValue)
+            {
+                await Task.Delay(SimulatedScanDuration.Value, cancellationToken);
+            }
+
             return await base.GetAllChangedFilesAsync(gitRootPath, workspacePaths, cancellationToken);
+        }
+
+        public DroppingScheduledExecutor? GetScheduledExecutorForTesting()
+        {
+            var field = typeof(GitChangeLister).GetField("_scheduledExecutor", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            return field?.GetValue(this) as DroppingScheduledExecutor;
         }
     }
 }

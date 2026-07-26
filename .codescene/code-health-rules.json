@@ -1,8 +1,8 @@
 {
     "rule_sets": [
         {
-            "matching_content_path": "**/*Tests.cs",
-            "matching_content_path_doc": "All test files - relaxed rules for test code",
+            "matching_content_path": "**/{*Tests,Testable*}.cs",
+            "matching_content_path_doc": "All test files and test helpers - relaxed rules for test code",
             "rules": [
                 {
                     "name": "Code Duplication",
@@ -26,6 +26,10 @@
                 },
                 {
                     "name": "Bumpy Road Ahead",
+                    "weight": 0.0
+                },
+                {
+                    "name": "Constructor Over-Injection",
                     "weight": 0.0
                 }
             ],
