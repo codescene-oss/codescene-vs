@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785117759096,
+  "lastUpdate": 1785117835537,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -5944,6 +5944,54 @@ window.BENCHMARK_DATA = {
             "value": 19441.297258649553,
             "unit": "ns",
             "range": "± 114.54587789587349"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ba4ddebaebe2a03a81e8d4d303d43cf2c7147a31",
+          "message": "Merge pull request #304 from codescene-oss/skip-GitChangeLister\n\n feat: skip GitChangeLister when analyses are running",
+          "timestamp": "2026-07-27T03:54:11+02:00",
+          "tree_id": "b9eddc8043264c4106fc5f8e3b46b6278fbb1f6f",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/ba4ddebaebe2a03a81e8d4d303d43cf2c7147a31"
+        },
+        "date": 1785117833216,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 125308783.33333336,
+            "unit": "ns",
+            "range": "± 1317479.0316208766"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5354.6518961588545,
+            "unit": "ns",
+            "range": "± 13.129065122480302"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 391735007.14285713,
+            "unit": "ns",
+            "range": "± 1600491.0316064714"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 18884.794029822715,
+            "unit": "ns",
+            "range": "± 92.25054490809661"
           }
         ]
       }
