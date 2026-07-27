@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784858015754,
+  "lastUpdate": 1785116403160,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1592,6 +1592,48 @@ window.BENCHMARK_DATA = {
             "value": 60717644.44444443,
             "unit": "ns",
             "range": "± 1066010.1145325566"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7b39f2dc77faa4f35157d8ca69ce1253c987a16a",
+          "message": "feat: dynamically increase GitChangeLister period based on execution time (#303)\n\nWhen `GitChangeLister` calls take longer than the base period, the\nscheduler now dynamically increases its period to prevent excessive\nresource consumption. The new period is calculated as\n`basePeriod * 2 + elapsedSeconds` and only increases (never decreases)\nto avoid oscillation.\n\nPorted from codescene-vscode commit 255f4f4.\n\nCo-authored-by: vemv <vemv@users.noreply.github.com>",
+          "timestamp": "2026-07-27T03:34:42+02:00",
+          "tree_id": "96863a30687d1b2a60a814fc49ec2c6a661f07b7",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/7b39f2dc77faa4f35157d8ca69ce1253c987a16a"
+        },
+        "date": 1785116398545,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 107086192.66666667,
+            "unit": "ns",
+            "range": "± 4780958.957178285"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 92537985.55555558,
+            "unit": "ns",
+            "range": "± 791451.8652919295"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 59391277.77777777,
+            "unit": "ns",
+            "range": "± 521073.52702009963"
           }
         ]
       }
