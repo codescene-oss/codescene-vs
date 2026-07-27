@@ -183,8 +183,6 @@ namespace Codescene.VSExtension.Core.Application.Git
                 AddNonIgnoredUntrackedFiles(untrackedCandidates, nonIgnoredUntracked, untrackedByDirectory);
 
                 _untrackedFileProcessor.ProcessUntrackedDirectories(untrackedByDirectory, savedFiles, changedFiles);
-                var notIgnored = _gitService.FilterIgnoredFiles(changedFiles);
-                changedFiles.IntersectWith(notIgnored);
 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeLister: CollectFilesFromRepoState collected {changedFiles.Count} files from repo state");
 #endif
