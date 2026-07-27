@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785116605340,
+  "lastUpdate": 1785116688511,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -5794,6 +5794,54 @@ window.BENCHMARK_DATA = {
             "value": 19926.2890625,
             "unit": "ns",
             "range": "± 245.95367080065046"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7b39f2dc77faa4f35157d8ca69ce1253c987a16a",
+          "message": "feat: dynamically increase GitChangeLister period based on execution time (#303)\n\nWhen `GitChangeLister` calls take longer than the base period, the\nscheduler now dynamically increases its period to prevent excessive\nresource consumption. The new period is calculated as\n`basePeriod * 2 + elapsedSeconds` and only increases (never decreases)\nto avoid oscillation.\n\nPorted from codescene-vscode commit 255f4f4.\n\nCo-authored-by: vemv <vemv@users.noreply.github.com>",
+          "timestamp": "2026-07-27T03:34:42+02:00",
+          "tree_id": "96863a30687d1b2a60a814fc49ec2c6a661f07b7",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/7b39f2dc77faa4f35157d8ca69ce1253c987a16a"
+        },
+        "date": 1785116686818,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 118786638.33333333,
+            "unit": "ns",
+            "range": "± 558145.8243120427"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5388.245664324079,
+            "unit": "ns",
+            "range": "± 29.532765638216585"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 381521246.6666667,
+            "unit": "ns",
+            "range": "± 1988402.366534021"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 19441.297258649553,
+            "unit": "ns",
+            "range": "± 114.54587789587349"
           }
         ]
       }
