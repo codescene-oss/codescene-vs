@@ -19,6 +19,20 @@ namespace Codescene.VSExtension.Core.Util
         public static event Action<Job> JobFinished;
 
         /// <summary>
+        /// Gets a value indicating whether any delta analysis jobs are currently running.
+        /// </summary>
+        public static bool IsAnalysisRunning
+        {
+            get
+            {
+                lock (Running)
+                {
+                    return Running.Count > 0;
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets a thread-safe snapshot of all currently running delta jobs.
         /// </summary>
         public static IReadOnlyCollection<Job> RunningJobs

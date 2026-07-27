@@ -402,6 +402,12 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return false;
             }
 
+            if (DeltaJobTracker.IsAnalysisRunning)
+            {
+                _logger?.Info("Skipping scheduled git change review: analysis in progress");
+                return false;
+            }
+
             return true;
         }
 
