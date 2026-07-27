@@ -168,6 +168,7 @@ namespace Codescene.VSExtension.Core.Tests
         protected class FakeLogger : ILogger
         {
             private readonly List<string> _debugMessages = new List<string>();
+            private readonly List<string> _infoMessages = new List<string>();
             private readonly List<string> _warnMessages = new List<string>();
             private readonly List<(string, Exception)> _errorMessages = new List<(string, Exception)>();
 
@@ -183,6 +184,10 @@ namespace Codescene.VSExtension.Core.Tests
 
             public void Info(string message, bool statusBar = false)
             {
+                lock (_lock)
+                {
+                    _infoMessages.Add(message);
+                }
             }
 
             public void Warn(string message, bool statusBar = false)
@@ -222,6 +227,14 @@ namespace Codescene.VSExtension.Core.Tests
                 lock (_lock)
                 {
                     return new List<string>(_debugMessages);
+                }
+            }
+
+            public List<string> SnapshotInfoMessages()
+            {
+                lock (_lock)
+                {
+                    return new List<string>(_infoMessages);
                 }
             }
 
