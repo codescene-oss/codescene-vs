@@ -1,6 +1,9 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using Codescene.VSExtension.Core.Application.Git;
+using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Util;
+using WebComponentFile = Codescene.VSExtension.Core.Models.WebComponent.Data.File;
 
 namespace Codescene.VSExtension.Core.Tests
 {
@@ -19,6 +22,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void CleanupLister()
         {
             _lister?.Dispose();
+            DeltaJobTracker.Clear();
         }
 
         [TestMethod]
@@ -252,6 +256,53 @@ namespace Codescene.VSExtension.Core.Tests
             finally
             {
                 testableInstance?.Dispose();
+            }
+        }
+
+        [TestMethod]
+        [DataRow(0, true, DisplayName = "proceeds when no analysis is running")]
+        [DataRow(1, false, DisplayName = "skips when analysis is running")]
+        public async Task PeriodicScanAsync_WhenAnalysisRunning_SkipsOrProceeds(int runningJobCount, bool expectEvent)
+        {
+            var jobs = new List<Job>();
+            for (int i = 0; i < runningJobCount; i++)
+            {
+                var job = new Job { Type = "deltaAnalysis", State = "running", File = new WebComponentFile { FileName = $"test{i}.cs" } };
+                DeltaJobTracker.Add(job);
+                jobs.Add(job);
+            }
+
+            var activityTracker = new FakeIdeActivityTracker();
+            activityTracker.SetActiveForTesting(true);
+
+            var testableInstance = new TestableGitChangeLister(
+                _fakeSavedFilesTracker,
+                _fakeSupportedFileChecker,
+                _fakeLogger,
+                _fakeGitService,
+                activityTracker);
+
+            try
+            {
+                testableInstance.Initialize(_testRepoPath, new[] { _testRepoPath });
+
+                var newFile = Path.Combine(_testRepoPath, "analysis-check.cs");
+                System.IO.File.WriteAllText(newFile, "content");
+
+                var eventFired = false;
+                testableInstance.FilesDetected += (sender, files) => eventFired = true;
+
+                await testableInstance.InvokePeriodicScanAsync();
+
+                Assert.AreEqual(expectEvent, eventFired);
+            }
+            finally
+            {
+                testableInstance?.Dispose();
+                foreach (var job in jobs)
+                {
+                    DeltaJobTracker.Remove(job);
+                }
             }
         }
     }
