@@ -254,55 +254,64 @@ namespace Codescene.VSExtension.Core.Tests
 
                 foreach (var group in pathsByRepo)
                 {
-                    var repoPath = group.Key;
-                    if (string.IsNullOrEmpty(repoPath))
-                    {
-                        result.UnionWith(group.Value);
-                        continue;
-                    }
-
-                    try
-                    {
-                        RepositoryOpenCount++;
-                        using (var repo = new Repository(repoPath))
-                        {
-                            var repoRoot = repo.Info.WorkingDirectory;
-                            if (string.IsNullOrEmpty(repoRoot))
-                            {
-                                result.UnionWith(group.Value);
-                                continue;
-                            }
-
-                            foreach (var absolutePath in group.Value)
-                            {
-                                if (IsInGitDirectory(absolutePath))
-                                {
-                                    continue;
-                                }
-
-                                var relativePath = GetRelativePath(repoRoot, absolutePath)
-                                    .Replace("\\", "/").Trim();
-
-                                if (string.IsNullOrEmpty(relativePath))
-                                {
-                                    relativePath = ".";
-                                }
-
-                                if (!repo.Ignore.IsPathIgnored(relativePath))
-                                {
-                                    result.Add(absolutePath);
-                                }
-                            }
-                        }
-                    }
-                    catch (LibGit2SharpException ex)
-                    {
-                        _logger.Warn($"BatchGitIgnoreChecker: LibGit2Sharp error for repo {repoPath}: {ex.Message}");
-                        result.UnionWith(group.Value);
-                    }
+                    FilterGroupByIgnoreStatus(group.Key, group.Value, result);
                 }
 
                 return result;
+            }
+
+            private static void FilterPathsInRepo(Repository repo, string repoRoot, List<string> paths, HashSet<string> result)
+            {
+                foreach (var absolutePath in paths)
+                {
+                    if (IsInGitDirectory(absolutePath))
+                    {
+                        continue;
+                    }
+
+                    var relativePath = GetRelativePath(repoRoot, absolutePath)
+                        .Replace("\\", "/").Trim();
+
+                    if (string.IsNullOrEmpty(relativePath))
+                    {
+                        relativePath = ".";
+                    }
+
+                    if (!repo.Ignore.IsPathIgnored(relativePath))
+                    {
+                        result.Add(absolutePath);
+                    }
+                }
+            }
+
+            private void FilterGroupByIgnoreStatus(string repoPath, List<string> paths, HashSet<string> result)
+            {
+                if (string.IsNullOrEmpty(repoPath))
+                {
+                    result.UnionWith(paths);
+                    return;
+                }
+
+                try
+                {
+                    RepositoryOpenCount++;
+                    using (var repo = new Repository(repoPath))
+                    {
+                        var repoRoot = repo.Info.WorkingDirectory;
+                        if (string.IsNullOrEmpty(repoRoot))
+                        {
+                            result.UnionWith(paths);
+                            return;
+                        }
+
+                        FilterPathsInRepo(repo, repoRoot, paths, result);
+                    }
+                }
+                catch (LibGit2SharpException ex)
+                {
+                    _logger.Warn($"BatchGitIgnoreChecker: LibGit2Sharp error for repo {repoPath}: {ex.Message}");
+                    result.UnionWith(paths);
+                }
             }
 
             private Dictionary<string, List<string>> GroupByRepository(List<string> paths)
