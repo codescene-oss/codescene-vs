@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785116688511,
+  "lastUpdate": 1785117557375,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1634,6 +1634,48 @@ window.BENCHMARK_DATA = {
             "value": 59391277.77777777,
             "unit": "ns",
             "range": "± 521073.52702009963"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ba4ddebaebe2a03a81e8d4d303d43cf2c7147a31",
+          "message": "Merge pull request #304 from codescene-oss/skip-GitChangeLister\n\n feat: skip GitChangeLister when analyses are running",
+          "timestamp": "2026-07-27T03:54:11+02:00",
+          "tree_id": "b9eddc8043264c4106fc5f8e3b46b6278fbb1f6f",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/ba4ddebaebe2a03a81e8d4d303d43cf2c7147a31"
+        },
+        "date": 1785117555533,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 106234856,
+            "unit": "ns",
+            "range": "± 600025.2827149393"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 94891352.08333333,
+            "unit": "ns",
+            "range": "± 427946.3330352679"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 61756026.1904762,
+            "unit": "ns",
+            "range": "± 272114.9713583635"
           }
         ]
       }
