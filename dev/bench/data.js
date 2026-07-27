@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785116403160,
+  "lastUpdate": 1785116605340,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3912,6 +3912,66 @@ window.BENCHMARK_DATA = {
             "value": 277876266.6666667,
             "unit": "ns",
             "range": "± 4309914.137306262"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7b39f2dc77faa4f35157d8ca69ce1253c987a16a",
+          "message": "feat: dynamically increase GitChangeLister period based on execution time (#303)\n\nWhen `GitChangeLister` calls take longer than the base period, the\nscheduler now dynamically increases its period to prevent excessive\nresource consumption. The new period is calculated as\n`basePeriod * 2 + elapsedSeconds` and only increases (never decreases)\nto avoid oscillation.\n\nPorted from codescene-vscode commit 255f4f4.\n\nCo-authored-by: vemv <vemv@users.noreply.github.com>",
+          "timestamp": "2026-07-27T03:34:42+02:00",
+          "tree_id": "96863a30687d1b2a60a814fc49ec2c6a661f07b7",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/7b39f2dc77faa4f35157d8ca69ce1253c987a16a"
+        },
+        "date": 1785116603692,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 117736280,
+            "unit": "ns",
+            "range": "± 1105968.9088169888"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 108270146.15384616,
+            "unit": "ns",
+            "range": "± 640397.6420102653"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 226062180.95238096,
+            "unit": "ns",
+            "range": "± 906013.507636362"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 199722561.53846154,
+            "unit": "ns",
+            "range": "± 784200.7352200451"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 322776442.3076923,
+            "unit": "ns",
+            "range": "± 2592199.3151606284"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 267424106.66666666,
+            "unit": "ns",
+            "range": "± 1678697.6848424014"
           }
         ]
       }
