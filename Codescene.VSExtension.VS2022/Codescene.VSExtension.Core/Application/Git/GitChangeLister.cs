@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
@@ -47,7 +48,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             _ideActivityTracker = ideActivityTracker;
-            _untrackedFileProcessor = new UntrackedFileProcessor(_gitService, logger);
+            _untrackedFileProcessor = new UntrackedFileProcessor(logger);
             _mergeBaseFinder = new MergeBaseFinder(logger);
             if (pollingInterval.HasValue && pollingInterval.Value <= 0)
             {
@@ -172,37 +173,18 @@ namespace Codescene.VSExtension.Core.Application.Git
                 var untrackedByDirectory = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
                 var savedFiles = new HashSet<string>(_savedFilesTracker.GetSavedFiles(), StringComparer.OrdinalIgnoreCase);
 
-                foreach (var item in status)
-                {
-                    if (ShouldSkipStatusItem(item))
-                    {
-                        continue;
-                    }
+                var (trackedCandidates, untrackedCandidates) = CategorizeStatusItems(status, gitRootPath, workspacePaths);
 
-                    var absolutePath = GitPathHelper.ConvertToAbsolutePath(item.FilePath, gitRootPath);
+                var nonIgnoredTracked = _gitService.FilterIgnoredFiles(trackedCandidates);
+                changedFiles.UnionWith(nonIgnoredTracked);
 
-                    if (!GitPathHelper.IsFileInWorkspace(item.FilePath, gitRootPath, workspacePaths) || !ShouldReviewFile(absolutePath))
-                    {
-                        continue;
-                    }
-
-                    if (_gitService.IsFileIgnored(absolutePath))
-                    {
-                        continue;
-                    }
-
-                    if (item.State == FileStatus.NewInWorkdir)
-                    {
-                        _untrackedFileProcessor.AddUntrackedFileToDirectory(item.FilePath, absolutePath, untrackedByDirectory);
-                    }
-                    else
-                    {
-                        changedFiles.Add(absolutePath);
-                    }
-                }
+                var untrackedAbsolutePaths = untrackedCandidates.Select(x => x.AbsolutePath);
+                var nonIgnoredUntracked = _gitService.FilterIgnoredFiles(untrackedAbsolutePaths);
+                AddNonIgnoredUntrackedFiles(untrackedCandidates, nonIgnoredUntracked, untrackedByDirectory);
 
                 _untrackedFileProcessor.ProcessUntrackedDirectories(untrackedByDirectory, savedFiles, changedFiles);
-                changedFiles.RemoveWhere(path => _gitService.IsFileIgnored(path));
+                var notIgnored = _gitService.FilterIgnoredFiles(changedFiles);
+                changedFiles.IntersectWith(notIgnored);
 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeLister: CollectFilesFromRepoState collected {changedFiles.Count} files from repo state");
 #endif
@@ -235,22 +217,17 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         protected HashSet<string> ConvertAndFilterPaths(IEnumerable<string> relativePaths, string gitRootPath)
         {
-            var result = new HashSet<string>();
+            var candidates = new List<string>();
             foreach (var relativePath in relativePaths)
             {
                 var absolutePath = GitPathHelper.ConvertToAbsolutePath(relativePath, gitRootPath);
-                if (!File.Exists(absolutePath) || _gitService.IsFileIgnored(absolutePath))
+                if (File.Exists(absolutePath) && ShouldReviewFile(absolutePath))
                 {
-                    continue;
-                }
-
-                if (ShouldReviewFile(absolutePath))
-                {
-                    result.Add(absolutePath);
+                    candidates.Add(absolutePath);
                 }
             }
 
-            return result;
+            return _gitService.FilterIgnoredFiles(candidates);
         }
 
         /// <summary>
@@ -455,27 +432,44 @@ namespace Codescene.VSExtension.Core.Application.Git
             IReadOnlyCollection<string> workspacePaths)
         {
             var diff = repo.Diff.Compare<TreeChanges>(mergeBase.Tree, repo.Head.Tip.Tree);
-            var changedFiles = new HashSet<string>();
+            var candidates = CollectDiffCandidates(diff, gitRootPath, workspacePaths);
+
+            var candidatePaths = candidates.Select(c => c.FullPath);
+            var nonIgnored = _gitService.FilterIgnoredFiles(candidatePaths);
+
+            var changedFiles = new HashSet<string>(
+                candidates.Where(c => nonIgnored.Contains(c.FullPath)).Select(c => c.RelativePath));
+
+#if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeLister: GetCommittedChanges found {changedFiles.Count} committed changes");
+#endif
+            return changedFiles;
+        }
+
+        private List<(string RelativePath, string FullPath)> CollectDiffCandidates(
+            TreeChanges diff,
+            string gitRootPath,
+            IReadOnlyCollection<string> workspacePaths)
+        {
+            var candidates = new List<(string RelativePath, string FullPath)>();
 
             foreach (var change in diff)
             {
                 var relativePath = change.Path;
                 var fullPath = Path.Combine(gitRootPath, relativePath);
-                if (!File.Exists(fullPath) || _gitService.IsFileIgnored(fullPath))
+
+                if (!File.Exists(fullPath))
                 {
                     continue;
                 }
 
                 if (GitPathHelper.IsFileInWorkspace(relativePath, gitRootPath, workspacePaths))
                 {
-                    changedFiles.Add(relativePath);
+                    candidates.Add((relativePath, fullPath));
                 }
             }
 
-#if FEATURE_INITIAL_GIT_OBSERVER
-            _logger?.Info($">>> GitChangeLister: GetCommittedChanges found {changedFiles.Count} committed changes");
-#endif
-            return changedFiles;
+            return candidates;
         }
 
         private bool ShouldSkipStatusItem(StatusEntry item)
@@ -551,6 +545,55 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             _loggedNoMergeBaseWarnKeysByRepo[gitRoot] = stateKey;
             return true;
+        }
+
+        private (List<string> Tracked, List<(string RelativePath, string AbsolutePath)> Untracked) CategorizeStatusItems(
+            RepositoryStatus status,
+            string gitRootPath,
+            IReadOnlyCollection<string> workspacePaths)
+        {
+            var trackedCandidates = new List<string>();
+            var untrackedCandidates = new List<(string RelativePath, string AbsolutePath)>();
+
+            foreach (var item in status)
+            {
+                if (ShouldSkipStatusItem(item))
+                {
+                    continue;
+                }
+
+                var absolutePath = GitPathHelper.ConvertToAbsolutePath(item.FilePath, gitRootPath);
+
+                if (!GitPathHelper.IsFileInWorkspace(item.FilePath, gitRootPath, workspacePaths) || !ShouldReviewFile(absolutePath))
+                {
+                    continue;
+                }
+
+                if (item.State == FileStatus.NewInWorkdir)
+                {
+                    untrackedCandidates.Add((item.FilePath, absolutePath));
+                }
+                else
+                {
+                    trackedCandidates.Add(absolutePath);
+                }
+            }
+
+            return (trackedCandidates, untrackedCandidates);
+        }
+
+        private void AddNonIgnoredUntrackedFiles(
+            List<(string RelativePath, string AbsolutePath)> untrackedCandidates,
+            HashSet<string> nonIgnoredUntracked,
+            Dictionary<string, List<string>> untrackedByDirectory)
+        {
+            foreach (var candidate in untrackedCandidates)
+            {
+                if (nonIgnoredUntracked.Contains(candidate.AbsolutePath))
+                {
+                    _untrackedFileProcessor.AddUntrackedFileToDirectory(candidate.RelativePath, candidate.AbsolutePath, untrackedByDirectory);
+                }
+            }
         }
     }
 }

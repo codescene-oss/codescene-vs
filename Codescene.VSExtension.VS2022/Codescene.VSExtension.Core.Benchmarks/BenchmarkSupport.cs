@@ -249,6 +249,11 @@ internal sealed class FixedGitService : IGitService
 
     public bool IsFileIgnored(string filePath) => false;
 
+    public HashSet<string> FilterIgnoredFiles(IEnumerable<string> absolutePaths)
+    {
+        return new HashSet<string>(absolutePaths, StringComparer.OrdinalIgnoreCase);
+    }
+
     public void Dispose()
     {
     }

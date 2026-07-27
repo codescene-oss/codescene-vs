@@ -279,6 +279,11 @@ namespace Codescene.VSExtension.Core.Tests
             return false;
         }
 
+        public HashSet<string> FilterIgnoredFiles(IEnumerable<string> absolutePaths)
+        {
+            return new HashSet<string>(absolutePaths, StringComparer.OrdinalIgnoreCase);
+        }
+
         public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
         {
             return string.Empty;
@@ -306,6 +311,20 @@ namespace Codescene.VSExtension.Core.Tests
         public bool IsFileIgnored(string filePath)
         {
             return string.Equals(filePath, _ignoredPath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public HashSet<string> FilterIgnoredFiles(IEnumerable<string> absolutePaths)
+        {
+            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var path in absolutePaths)
+            {
+                if (!IsFileIgnored(path))
+                {
+                    result.Add(path);
+                }
+            }
+
+            return result;
         }
 
         public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
@@ -357,6 +376,20 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 return false;
             }
+        }
+
+        public HashSet<string> FilterIgnoredFiles(IEnumerable<string> absolutePaths)
+        {
+            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var path in absolutePaths)
+            {
+                if (!IsFileIgnored(path))
+                {
+                    result.Add(path);
+                }
+            }
+
+            return result;
         }
 
         public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)

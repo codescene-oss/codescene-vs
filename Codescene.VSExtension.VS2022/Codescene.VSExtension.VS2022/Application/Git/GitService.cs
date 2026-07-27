@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
@@ -18,6 +19,7 @@ public class GitService : IGitService, IDisposable
 
     private readonly LibGit2SharpIgnoreChecker _ignoreChecker;
     private readonly CachingGitIgnoreChecker _cachingIgnoreChecker;
+    private readonly BatchGitIgnoreChecker _batchIgnoreChecker;
     private FileSystemWatcher _gitignoreWatcher;
     private string _watchedRepoRoot;
 
@@ -27,6 +29,7 @@ public class GitService : IGitService, IDisposable
         _logger = logger;
         _ignoreChecker = new LibGit2SharpIgnoreChecker(logger);
         _cachingIgnoreChecker = new CachingGitIgnoreChecker(_ignoreChecker);
+        _batchIgnoreChecker = new BatchGitIgnoreChecker(logger);
     }
 
     // TODO: Move to helper
@@ -149,6 +152,11 @@ public class GitService : IGitService, IDisposable
             _logger.Error($"Could not check if file is ignored: {ex.Message}", ex);
             return false;
         }
+    }
+
+    public HashSet<string> FilterIgnoredFiles(IEnumerable<string> absolutePaths)
+    {
+        return _batchIgnoreChecker.FilterIgnored(absolutePaths);
     }
 
     public void Dispose()
