@@ -404,5 +404,89 @@ namespace Codescene.VSExtension.Core.Tests
 
             _lister.StartPeriodicScanning(CancellationToken.None);
         }
+
+        [TestMethod]
+        public async Task CollectFilesFromRepoStateAsync_IgnoredFilesExcluded()
+        {
+            var trackedFile = Path.Combine(_testRepoPath, "tracked.cs");
+            var ignoredFile = Path.Combine(_testRepoPath, "tracked.ignored");
+            CommitFile("tracked.cs", "original", "Add tracked file");
+            CommitFile("tracked.ignored", "original", "Add ignored file");
+
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            File.WriteAllText(gitignorePath, "*.ignored\n");
+
+            File.WriteAllText(trackedFile, "modified content");
+            File.WriteAllText(ignoredFile, "modified content");
+
+            var gitServiceWithIgnore = new FakeGitServiceWithGitignoreSupport(_testRepoPath);
+            using (var listerWithIgnore = new GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, gitServiceWithIgnore))
+            {
+                var result = await listerWithIgnore.CollectFilesFromRepoStateAsync(_testRepoPath, new[] { _testRepoPath });
+
+                Assert.HasCount(1, result, "Should only include the non-ignored file");
+                Assert.Contains(trackedFile, result, "Should contain the non-ignored file");
+                Assert.DoesNotContain(ignoredFile, result, "Should not contain the ignored file");
+            }
+        }
+
+        [TestMethod]
+        public async Task GetAllChangedFilesAsync_IgnoredFilesDoNotCountTowardThreshold()
+        {
+            var subdir = Path.Combine(_testRepoPath, "threshold-test");
+            Directory.CreateDirectory(subdir);
+
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            File.WriteAllText(gitignorePath, "threshold-test/ignored*.cs\n");
+
+            for (int i = 0; i < 3; i++)
+            {
+                File.WriteAllText(Path.Combine(subdir, $"ignored{i}.cs"), $"ignored {i}");
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                File.WriteAllText(Path.Combine(subdir, $"tracked{i}.cs"), $"tracked {i}");
+            }
+
+            var gitServiceWithIgnore = new FakeGitServiceWithGitignoreSupport(_testRepoPath);
+            using (var listerWithIgnore = new GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, gitServiceWithIgnore))
+            {
+                var result = await listerWithIgnore.GetAllChangedFilesAsync(_testRepoPath, _testRepoPath);
+
+                Assert.HasCount(4, result, "Should include all 4 non-ignored files (under threshold of 5)");
+                Assert.IsTrue(result.All(f => f.Contains("tracked")), "All returned files should be non-ignored tracked files");
+                Assert.IsFalse(result.Any(f => f.Contains("ignored")), "No ignored files should be returned");
+            }
+        }
+
+        [TestMethod]
+        public async Task GetAllChangedFilesAsync_IgnoredFilesExcludedFromThresholdCalculation_AllowsMoreFiles()
+        {
+            var subdir = Path.Combine(_testRepoPath, "threshold-calc");
+            Directory.CreateDirectory(subdir);
+
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            File.WriteAllText(gitignorePath, "threshold-calc/ignored*.cs\n");
+
+            for (int i = 0; i < 5; i++)
+            {
+                File.WriteAllText(Path.Combine(subdir, $"ignored{i}.cs"), $"ignored {i}");
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                File.WriteAllText(Path.Combine(subdir, $"real{i}.cs"), $"real {i}");
+            }
+
+            var gitServiceWithIgnore = new FakeGitServiceWithGitignoreSupport(_testRepoPath);
+            using (var listerWithIgnore = new GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, gitServiceWithIgnore))
+            {
+                var result = await listerWithIgnore.GetAllChangedFilesAsync(_testRepoPath, _testRepoPath);
+
+                Assert.HasCount(5, result, "Should include all 5 non-ignored files (exactly at threshold)");
+                Assert.IsTrue(result.All(f => f.Contains("real")), "All returned files should be non-ignored files");
+            }
+        }
     }
 }

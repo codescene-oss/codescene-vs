@@ -1,5 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Moq;
@@ -20,6 +22,11 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
         public bool IsFileIgnored(string filePath)
         {
             return Mock.Object.IsFileIgnored(filePath);
+        }
+
+        public HashSet<string> FilterIgnoredFiles(IEnumerable<string> absolutePaths)
+        {
+            return new HashSet<string>(absolutePaths, StringComparer.OrdinalIgnoreCase);
         }
 
         public void Dispose()
