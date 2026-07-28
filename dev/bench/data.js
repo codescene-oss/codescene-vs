@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785202037847,
+  "lastUpdate": 1785202234017,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -4218,6 +4218,66 @@ window.BENCHMARK_DATA = {
             "value": 264591416.66666666,
             "unit": "ns",
             "range": "± 2260447.100185734"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7e8d674004cbb17e3118f170fa2736233185fae1",
+          "message": "feat: watch global gitignore (`core.excludesfile`) for cache invalidation (#306)\n\nPreviously, the gitignore cache was only invalidated when `.gitignore`\nfiles inside the repository changed. If a user configured a global\ngitignore via `core.excludesfile` and modified it, the cache became\nstale until the extension restarted.\n\nNow `GitService` reads the `core.excludesfile` config value and sets up\na `FileSystemWatcher` for that file, clearing the cache on changes.\nPaths starting with `~/` are expanded to the user's home directory.\n\nCo-authored-by: vemv <vemv@users.noreply.github.com>",
+          "timestamp": "2026-07-28T03:22:04+02:00",
+          "tree_id": "3dfe42153f7c80a13910505c5748050764f2c08a",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/7e8d674004cbb17e3118f170fa2736233185fae1"
+        },
+        "date": 1785202232494,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 120536515,
+            "unit": "ns",
+            "range": "± 2178263.6416380233"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 109188002.66666667,
+            "unit": "ns",
+            "range": "± 1529399.244164036"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 229664628.5714286,
+            "unit": "ns",
+            "range": "± 1869263.2684141253"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 206386564.44444445,
+            "unit": "ns",
+            "range": "± 2958818.387906527"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 329654489.28571427,
+            "unit": "ns",
+            "range": "± 818817.7044651663"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 277429703.5714286,
+            "unit": "ns",
+            "range": "± 1710265.6262950103"
           }
         ]
       }
