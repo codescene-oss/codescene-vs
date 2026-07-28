@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785202234017,
+  "lastUpdate": 1785202314760,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -6244,6 +6244,54 @@ window.BENCHMARK_DATA = {
             "value": 19062.184143066406,
             "unit": "ns",
             "range": "± 51.31368201507639"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7e8d674004cbb17e3118f170fa2736233185fae1",
+          "message": "feat: watch global gitignore (`core.excludesfile`) for cache invalidation (#306)\n\nPreviously, the gitignore cache was only invalidated when `.gitignore`\nfiles inside the repository changed. If a user configured a global\ngitignore via `core.excludesfile` and modified it, the cache became\nstale until the extension restarted.\n\nNow `GitService` reads the `core.excludesfile` config value and sets up\na `FileSystemWatcher` for that file, clearing the cache on changes.\nPaths starting with `~/` are expanded to the user's home directory.\n\nCo-authored-by: vemv <vemv@users.noreply.github.com>",
+          "timestamp": "2026-07-28T03:22:04+02:00",
+          "tree_id": "3dfe42153f7c80a13910505c5748050764f2c08a",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/7e8d674004cbb17e3118f170fa2736233185fae1"
+        },
+        "date": 1785202313154,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 122257076,
+            "unit": "ns",
+            "range": "± 2038926.256148424"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5492.198893229167,
+            "unit": "ns",
+            "range": "± 66.56552476654711"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 383169540,
+            "unit": "ns",
+            "range": "± 1057272.8319326367"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 19576.37674967448,
+            "unit": "ns",
+            "range": "± 200.7765976954549"
           }
         ]
       }
