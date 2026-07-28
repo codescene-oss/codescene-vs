@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Git;
 
 namespace Codescene.VSExtension.Core.Interfaces.Git
 {
@@ -15,7 +16,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
 
         Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default);
 
-        void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths);
+        void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths, DefaultBranchGate defaultBranchGate = null);
 
         void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths);
 
@@ -24,5 +25,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
         void StopPeriodicScanning();
 
         Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default);
+
+        void InvalidateDefaultBranchCache();
     }
 }

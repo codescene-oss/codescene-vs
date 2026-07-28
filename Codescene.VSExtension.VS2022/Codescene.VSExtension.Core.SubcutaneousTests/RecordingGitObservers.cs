@@ -34,10 +34,10 @@ public sealed class RecordingGitChangeLister : IGitChangeLister, IDisposable
         return _inner.GetChangedFilesVsMergeBaseAsync(gitRootPath, workspacePath, cancellationToken);
     }
 
-    public void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths)
+    public void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths, DefaultBranchGate? defaultBranchGate = null)
     {
         _journal.Record("lister.initialize", gitRootPath, $"workspaceCount={workspacePaths.Count}");
-        _inner.Initialize(gitRootPath, workspacePaths);
+        _inner.Initialize(gitRootPath, workspacePaths, defaultBranchGate);
     }
 
     public void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
@@ -63,6 +63,11 @@ public sealed class RecordingGitChangeLister : IGitChangeLister, IDisposable
         var files = await _inner.CollectFilesFromRepoStateAsync(gitRootPath, workspacePaths, cancellationToken);
         _journal.Record("lister.collect.completed", detail: $"count={files.Count}");
         return files;
+    }
+
+    public void InvalidateDefaultBranchCache()
+    {
+        _inner.InvalidateDefaultBranchCache();
     }
 
     public void Dispose()

@@ -48,6 +48,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private CodesceneFileWatcher _rulesFileWatcher;
         private CodesceneFileWatcher _configFileWatcher;
         private GitIgnoreWatcher _gitIgnoreWatcher;
+        private DefaultBranchGate _defaultBranchGate;
         private TaskCompletionSource<bool> _initializationComplete;
         private PerFileRequestQueue<string> _detectedFilesQueue = new PerFileRequestQueue<string>();
         private ConcurrentDictionary<string, SemaphoreSlim> _perFileProcessingLocks = new ConcurrentDictionary<string, SemaphoreSlim>(StringComparer.OrdinalIgnoreCase);
@@ -96,19 +97,20 @@ namespace Codescene.VSExtension.Core.Application.Git
             _openFilesObserver = openFilesObserver;
             _getChangedFilesCallback = getChangedFilesCallback ?? GetChangedFilesVsBaselineAsync;
             _gitChangeDetector = new GitChangeDetector(_logger, _supportedFileChecker, _gitService);
-
-            _eventProcessor = new FileChangeEventProcessor(_logger, _taskScheduler, ProcessEventAsync, _getChangedFilesCallback);
             _cts = new CancellationTokenSource();
 
             InitializeGitPaths();
+            InitializeDefaultBranchGate();
             LogIdentifiedBaselineBranch();
+
+            _eventProcessor = new FileChangeEventProcessor(_logger, _taskScheduler, ProcessEventAsync, _getChangedFilesCallback, ShouldSkipBasedOnDefaultBranch);
 
 #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeObserverCore: Initialized with solution='{_solutionPath}', gitRoot='{_gitRootPath}', workspace='{_workspacePath}'");
 #endif
 
             _workspacePaths = watchPaths != null && watchPaths.Count > 0 ? watchPaths : new[] { _workspacePath };
-            _gitChangeLister.Initialize(_gitRootPath, _workspacePaths);
+            _gitChangeLister.Initialize(_gitRootPath, _workspacePaths, _defaultBranchGate);
             _gitChangeLister.FilesDetected += OnGitChangeListerFilesDetected;
 
             _fileChangeHandler = new FileChangeHandler(_logger, _codeReviewer, _supportedFileChecker, _workspacePaths, _trackerManager, _gitService, _gitRootPath, OnFileDeleted, openDocumentContentProvider);
@@ -356,6 +358,8 @@ namespace Codescene.VSExtension.Core.Application.Git
         private void OnCodesceneConfigChanged(object sender, EventArgs e)
         {
             _gitChangeDetector?.ClearMainBranchCandidatesCache(_gitRootPath);
+            _defaultBranchGate?.InvalidateCache();
+            _gitChangeLister?.InvalidateDefaultBranchCache();
             InvalidateTrackedFiles(onlyIgnored: false);
         }
 
