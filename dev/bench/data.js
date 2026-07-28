@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785178934897,
+  "lastUpdate": 1785202037847,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1718,6 +1718,48 @@ window.BENCHMARK_DATA = {
             "value": 58150025.92592593,
             "unit": "ns",
             "range": "± 348666.2760796491"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7e8d674004cbb17e3118f170fa2736233185fae1",
+          "message": "feat: watch global gitignore (`core.excludesfile`) for cache invalidation (#306)\n\nPreviously, the gitignore cache was only invalidated when `.gitignore`\nfiles inside the repository changed. If a user configured a global\ngitignore via `core.excludesfile` and modified it, the cache became\nstale until the extension restarted.\n\nNow `GitService` reads the `core.excludesfile` config value and sets up\na `FileSystemWatcher` for that file, clearing the cache on changes.\nPaths starting with `~/` are expanded to the user's home directory.\n\nCo-authored-by: vemv <vemv@users.noreply.github.com>",
+          "timestamp": "2026-07-28T03:22:04+02:00",
+          "tree_id": "3dfe42153f7c80a13910505c5748050764f2c08a",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/7e8d674004cbb17e3118f170fa2736233185fae1"
+        },
+        "date": 1785202035383,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 106665935.71428572,
+            "unit": "ns",
+            "range": "± 938981.7901135439"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 94644017.70833333,
+            "unit": "ns",
+            "range": "± 947403.9549770994"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 61116391.26984126,
+            "unit": "ns",
+            "range": "± 421623.29245919496"
           }
         ]
       }
