@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785202314760,
+  "lastUpdate": 1785379426380,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1760,6 +1760,48 @@ window.BENCHMARK_DATA = {
             "value": 61116391.26984126,
             "unit": "ns",
             "range": "± 421623.29245919496"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e9fca701d0999470617acd955dcd43b08ef2f620",
+          "message": "Merge pull request #307 from codescene-oss/SkipGitChangeListerOnMain\n\nfeat: skip `GitChangeLister` and `GitChangeObserver` on default branch",
+          "timestamp": "2026-07-30T04:38:25+02:00",
+          "tree_id": "57efb6386abf55ffcc1ceefb41b3b3a312a8064f",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/e9fca701d0999470617acd955dcd43b08ef2f620"
+        },
+        "date": 1785379423108,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 116500980.44444445,
+            "unit": "ns",
+            "range": "± 4383286.667014498"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 113454321.53846154,
+            "unit": "ns",
+            "range": "± 1264462.637050789"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 76802525.00000001,
+            "unit": "ns",
+            "range": "± 1675655.789515924"
           }
         ]
       }
