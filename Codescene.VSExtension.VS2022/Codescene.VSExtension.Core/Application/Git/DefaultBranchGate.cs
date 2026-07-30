@@ -8,6 +8,7 @@ namespace Codescene.VSExtension.Core.Application.Git
     public class DefaultBranchGate
     {
         private readonly string _gitRootPath;
+        private readonly object _cacheLock = new object();
         private string _cachedDefaultBranch;
         private bool _hasFetched;
 
@@ -66,19 +67,25 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public void InvalidateCache()
         {
-            _cachedDefaultBranch = null;
-            _hasFetched = false;
+            lock (_cacheLock)
+            {
+                _cachedDefaultBranch = null;
+                _hasFetched = false;
+            }
         }
 
         private string GetDefaultBranchCached(Repository repo)
         {
-            if (!_hasFetched)
+            lock (_cacheLock)
             {
-                _cachedDefaultBranch = MainBranchNames.GetDefaultBranch(repo);
-                _hasFetched = true;
-            }
+                if (!_hasFetched)
+                {
+                    _cachedDefaultBranch = MainBranchNames.GetDefaultBranch(repo);
+                    _hasFetched = true;
+                }
 
-            return _cachedDefaultBranch;
+                return _cachedDefaultBranch;
+            }
         }
     }
 }
