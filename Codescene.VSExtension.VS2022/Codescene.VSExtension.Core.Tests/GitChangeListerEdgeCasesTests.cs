@@ -3,6 +3,7 @@
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Util;
+using LibGit2Sharp;
 using WebComponentFile = Codescene.VSExtension.Core.Models.WebComponent.Data.File;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -303,6 +304,44 @@ namespace Codescene.VSExtension.Core.Tests
                 {
                     DeltaJobTracker.Remove(job);
                 }
+            }
+        }
+
+        [TestMethod]
+        public async Task PeriodicScanAsync_SkipsWhenOnDefaultBranch()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var currentBranch = repo.Head.FriendlyName;
+                repo.Refs.Add($"refs/remotes/origin/{currentBranch}", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs[$"refs/remotes/origin/{currentBranch}"]);
+            }
+
+            var defaultBranchGate = new DefaultBranchGate(_testRepoPath);
+
+            var testableInstance = new TestableGitChangeLister(
+                _fakeSavedFilesTracker,
+                _fakeSupportedFileChecker,
+                _fakeLogger,
+                _fakeGitService);
+
+            try
+            {
+                testableInstance.Initialize(_testRepoPath, new[] { _testRepoPath }, defaultBranchGate);
+
+                var newFile = Path.Combine(_testRepoPath, "should-not-scan-on-main.cs");
+                File.WriteAllText(newFile, "content");
+
+                var eventFired = false;
+                testableInstance.FilesDetected += (sender, files) => eventFired = true;
+
+                await testableInstance.InvokePeriodicScanAsync();
+
+                Assert.IsFalse(eventFired, "Should not fire event when on default branch");
+            }
+            finally
+            {
+                testableInstance?.Dispose();
             }
         }
     }

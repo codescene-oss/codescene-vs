@@ -143,6 +143,38 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task ProcessQueuedEvents_CoalescesDeleteFollowedByCreateChange_EmitsDelete()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processedEvents = new List<FileChangeEvent>();
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            {
+                processedEvents.Add(evt);
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+            using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
+            {
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, "file.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "file.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "file.cs"));
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (processedEvents.Count == 0 && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(20);
+                }
+            }
+
+            Assert.HasCount(1, processedEvents);
+            Assert.AreEqual(FileChangeType.Delete, processedEvents[0].Type, "Delete should not be masked by subsequent Create/Change");
+        }
+
+        [TestMethod]
         public async Task ProcessQueuedEvents_DoesNotCoalesceDifferentPaths()
         {
             var logger = new FakeLogger();
@@ -266,6 +298,212 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsTrue(firstInvoked);
             Assert.IsFalse(secondInvoked);
+        }
+
+        [TestMethod]
+        public async Task ProcessQueuedEvents_WhenShouldSkipReturnsTrue_SkipsNonDeleteEvents()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processedEvents = new List<FileChangeEvent>();
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            {
+                processedEvents.Add(evt);
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+            using (var processor = new FileChangeEventProcessor(
+                logger,
+                taskScheduler,
+                ProcessEvent,
+                GetChangedFiles,
+                shouldSkipNonDeletesCallback: () => true))
+            {
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "create.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "change.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, "delete.cs"));
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (processedEvents.Count == 0 && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(20);
+                }
+
+                await Task.Delay(100);
+            }
+
+            Assert.HasCount(1, processedEvents);
+            Assert.AreEqual(FileChangeType.Delete, processedEvents[0].Type);
+            Assert.AreEqual("delete.cs", processedEvents[0].FilePath);
+        }
+
+        [TestMethod]
+        public async Task ProcessQueuedEvents_WhenShouldSkipReturnsTrue_StillProcessesDeleteEvents()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processedEvents = new List<FileChangeEvent>();
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            {
+                processedEvents.Add(evt);
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+            using (var processor = new FileChangeEventProcessor(
+                logger,
+                taskScheduler,
+                ProcessEvent,
+                GetChangedFiles,
+                shouldSkipNonDeletesCallback: () => true))
+            {
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, "first.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, "second.cs"));
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (processedEvents.Count < 2 && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(20);
+                }
+            }
+
+            Assert.HasCount(2, processedEvents);
+            Assert.IsTrue(processedEvents.All(e => e.Type == FileChangeType.Delete));
+        }
+
+        [TestMethod]
+        public async Task ProcessQueuedEvents_WhenShouldSkipReturnsFalse_ProcessesAllEvents()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processedEvents = new List<FileChangeEvent>();
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            {
+                processedEvents.Add(evt);
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+            using (var processor = new FileChangeEventProcessor(
+                logger,
+                taskScheduler,
+                ProcessEvent,
+                GetChangedFiles,
+                shouldSkipNonDeletesCallback: () => false))
+            {
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "create.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "change.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Delete, "delete.cs"));
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (processedEvents.Count < 3 && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(20);
+                }
+            }
+
+            Assert.HasCount(3, processedEvents);
+        }
+
+        [TestMethod]
+        public async Task ProcessQueuedEvents_WhenShouldSkipCallbackIsNull_ProcessesAllEvents()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processedEvents = new List<FileChangeEvent>();
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            {
+                processedEvents.Add(evt);
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+            using (var processor = new FileChangeEventProcessor(
+                logger,
+                taskScheduler,
+                ProcessEvent,
+                GetChangedFiles,
+                shouldSkipNonDeletesCallback: null))
+            {
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "create.cs"));
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "change.cs"));
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (processedEvents.Count < 2 && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(20);
+                }
+            }
+
+            Assert.HasCount(2, processedEvents);
+        }
+
+        [TestMethod]
+        public async Task ProcessQueuedEvents_DynamicSkipCallback_ReEvaluatesOnEachProcessingCycle()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processedEvents = new List<FileChangeEvent>();
+            var skipState = false;
+            var callbackInvocationCount = 0;
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            {
+                processedEvents.Add(evt);
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+
+            using (var processor = new FileChangeEventProcessor(
+                logger,
+                taskScheduler,
+                ProcessEvent,
+                GetChangedFiles,
+                shouldSkipNonDeletesCallback: () =>
+                {
+                    callbackInvocationCount++;
+                    return skipState;
+                }))
+            {
+                skipState = true;
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Create, "first.cs"));
+                processor.Start(TimeSpan.FromMilliseconds(10), CancellationToken.None);
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (callbackInvocationCount < 1 && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(20);
+                }
+
+                await Task.Delay(100);
+
+                Assert.HasCount(0, processedEvents, "First event should be skipped when callback returns true");
+                Assert.AreEqual(1, callbackInvocationCount, "Callback should have been invoked for first processing cycle");
+
+                skipState = false;
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "second.cs"));
+                deadline = DateTime.UtcNow.AddSeconds(5);
+                while (processedEvents.Count < 1 && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(20);
+                }
+
+                await Task.Delay(100);
+
+                Assert.HasCount(1, processedEvents, "Second event should be processed when callback returns false");
+                Assert.AreEqual(FileChangeType.Change, processedEvents[0].Type);
+                Assert.AreEqual("second.cs", processedEvents[0].FilePath);
+                Assert.AreEqual(2, callbackInvocationCount, "Callback should have been invoked for second processing cycle");
+            }
         }
     }
 }

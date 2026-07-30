@@ -29,6 +29,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly UntrackedFileProcessor _untrackedFileProcessor;
         private readonly MergeBaseFinder _mergeBaseFinder;
 
+        private DefaultBranchGate _defaultBranchGate;
         private string _gitRootPath;
         private IReadOnlyCollection<string> _workspacePaths;
         private DroppingScheduledExecutor _scheduledExecutor;
@@ -94,10 +95,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             return ExecuteAndLogAsync(gitRootPath, workspacePaths, "getting changed files vs merge base", "GetChangedFilesVsMergeBaseAsync found", GetChangedFilesVsMergeBase, cancellationToken);
         }
 
-        public void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths)
+        public void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths, DefaultBranchGate defaultBranchGate = null)
         {
             _gitRootPath = gitRootPath;
             _workspacePaths = workspacePaths ?? Array.Empty<string>();
+            _defaultBranchGate = defaultBranchGate ?? (!string.IsNullOrEmpty(gitRootPath) ? new DefaultBranchGate(gitRootPath) : null);
 #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeLister: Initialized with gitRoot='{gitRootPath}', workspacePaths count={_workspacePaths.Count}");
 #endif
@@ -145,6 +147,11 @@ namespace Codescene.VSExtension.Core.Application.Git
         public virtual Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default)
         {
             return ExecuteAndLogAsync(gitRootPath, workspacePaths, "collecting files from repo state", "CollectFilesFromRepoStateAsync collected", CollectFilesFromRepoState, cancellationToken);
+        }
+
+        public void InvalidateDefaultBranchCache()
+        {
+            _defaultBranchGate?.InvalidateCache();
         }
 
         public void Dispose()
@@ -313,7 +320,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             var startTime = DateTime.UtcNow;
             try
             {
-                if (!ShouldRunPeriodicScan())
+                if (!ShouldStartPeriodicScan())
                 {
                     return;
                 }
@@ -370,7 +377,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        private bool ShouldRunPeriodicScan()
+        private bool ShouldStartPeriodicScan()
         {
             if (_ideActivityTracker != null && !_ideActivityTracker.IsIdeWindowActive())
             {
@@ -383,7 +390,18 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return false;
             }
 
+            if (ShouldSkipBasedOnDefaultBranch())
+            {
+                _logger?.Debug("GitChangeLister: Skipping processing - current branch matches default branch");
+                return false;
+            }
+
             return true;
+        }
+
+        private bool ShouldSkipBasedOnDefaultBranch()
+        {
+            return _defaultBranchGate?.ShouldSkipForCurrentBranch() ?? false;
         }
 
         private bool IsValidGitRoot(string gitRootPath)

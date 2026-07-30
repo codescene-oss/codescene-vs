@@ -19,6 +19,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ILogger _logger;
         private readonly Func<FileChangeEvent, List<string>, long?, CancellationToken, Task> _processEventCallback;
         private readonly Func<Task<List<string>>> _getChangedFilesCallback;
+        private readonly Func<bool> _shouldSkipNonDeletesCallback;
         private readonly IAsyncTaskScheduler _taskScheduler;
         private Timer _scheduledTimer;
         private CancellationToken _cancellationToken;
@@ -27,12 +28,14 @@ namespace Codescene.VSExtension.Core.Application.Git
             ILogger logger,
             IAsyncTaskScheduler taskScheduler,
             Func<FileChangeEvent, List<string>, long?, CancellationToken, Task> processEventCallback,
-            Func<Task<List<string>>> getChangedFilesCallback)
+            Func<Task<List<string>>> getChangedFilesCallback,
+            Func<bool> shouldSkipNonDeletesCallback = null)
         {
             _logger = logger;
             _taskScheduler = taskScheduler;
             _processEventCallback = processEventCallback;
             _getChangedFilesCallback = getChangedFilesCallback;
+            _shouldSkipNonDeletesCallback = shouldSkipNonDeletesCallback;
 
             var numberOfThreads = CoreCountUtils.GetParallelizationCountByCoreCount(Environment.ProcessorCount);
             _concurrencySemaphore = new SemaphoreSlim(numberOfThreads, numberOfThreads);
@@ -69,19 +72,32 @@ namespace Codescene.VSExtension.Core.Application.Git
             _concurrencySemaphore?.Dispose();
         }
 
-        /// <summary>
-        /// Merges multiple events for the same path into one event per path.
-        /// It selects the last event in the queue per file.
-        ///
-        /// It will return either Delete or Change (Create is converted) per file.
-        /// </summary>
+        private static bool HasDeleteEvents(List<FileChangeEvent> events)
+        {
+            foreach (var evt in events)
+            {
+                if (evt.Type == FileChangeType.Delete)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static List<FileChangeEvent> CoalesceByPath(List<FileChangeEvent> events)
         {
             var byPath = new Dictionary<string, FileChangeType>(StringComparer.OrdinalIgnoreCase);
+            var hadDelete = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var evt in events)
             {
                 var path = evt.FilePath;
+                if (evt.Type == FileChangeType.Delete)
+                {
+                    hadDelete.Add(path);
+                }
+
                 byPath[path] = evt.Type == FileChangeType.Delete
                     ? FileChangeType.Delete
                     : FileChangeType.Change;
@@ -90,7 +106,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             var result = new List<FileChangeEvent>(byPath.Count);
             foreach (var kv in byPath)
             {
-                result.Add(new FileChangeEvent(kv.Value, kv.Key));
+                var type = hadDelete.Contains(kv.Key) ? FileChangeType.Delete : kv.Value;
+                result.Add(new FileChangeEvent(type, kv.Key));
             }
 
             return result;
@@ -138,6 +155,14 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
+            var shouldSkipNonDeletes = _shouldSkipNonDeletesCallback?.Invoke() ?? false;
+
+            if (shouldSkipNonDeletes && !HasDeleteEvents(coalesced))
+            {
+                _logger?.Debug("FileChangeEventProcessor: Skipping all events - current branch matches default branch and no deletes pending");
+                return;
+            }
+
             var changedFiles = await _getChangedFilesCallback();
 
             if (_cancellationToken.IsCancellationRequested)
@@ -145,7 +170,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            ScheduleCoalescedEvents(coalesced, changedFiles, operationGeneration);
+            ScheduleCoalescedEvents(coalesced, changedFiles, operationGeneration, shouldSkipNonDeletes);
         }
 
         private List<FileChangeEvent> DrainQueue()
@@ -159,11 +184,17 @@ namespace Codescene.VSExtension.Core.Application.Git
             return events;
         }
 
-        private void ScheduleCoalescedEvents(List<FileChangeEvent> coalesced, List<string> changedFiles, long? operationGeneration)
+        private void ScheduleCoalescedEvents(List<FileChangeEvent> coalesced, List<string> changedFiles, long? operationGeneration, bool shouldSkipNonDeletes)
         {
             var token = _cancellationToken;
             foreach (var evt in coalesced)
             {
+                if (shouldSkipNonDeletes && evt.Type != FileChangeType.Delete)
+                {
+                    _logger?.Debug($"FileChangeEventProcessor: Skipping {evt.Type} event for {evt.FilePath} - current branch matches default branch");
+                    continue;
+                }
+
                 var capturedEvt = evt;
                 var capturedChangedFiles = changedFiles;
                 _taskScheduler.Schedule(() => ProcessOneEventAsync(capturedEvt, capturedChangedFiles, operationGeneration, token));
