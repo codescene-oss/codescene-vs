@@ -23,6 +23,8 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
+            MainBranchNames.ClearDefaultBranchCache();
+
             _testRepoPath = Path.Combine(Path.GetTempPath(), $"test-git-detector-{Guid.NewGuid()}");
             Directory.CreateDirectory(_testRepoPath);
             Repository.Init(_testRepoPath);

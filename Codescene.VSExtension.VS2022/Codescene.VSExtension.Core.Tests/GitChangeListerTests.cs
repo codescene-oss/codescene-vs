@@ -345,6 +345,8 @@ namespace Codescene.VSExtension.Core.Tests
                 repo.Refs.Remove("refs/remotes/origin/HEAD");
             }
 
+            MainBranchNames.ClearDefaultBranchCache(_testRepoPath);
+
             _fakeLogger.ClearWarnMessages();
             var withFallbackMergeBase = await _lister.GetChangedFilesVsMergeBaseAsync(_testRepoPath, _testRepoPath);
             Assert.IsNotEmpty(withFallbackMergeBase, "Should find merge base via fallback when origin/HEAD is unset");
@@ -354,6 +356,8 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
             }
+
+            MainBranchNames.ClearDefaultBranchCache(_testRepoPath);
 
             _fakeLogger.ClearWarnMessages();
             await _lister.GetChangedFilesVsMergeBaseAsync(_testRepoPath, _testRepoPath);
