@@ -23,6 +23,8 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
+            MainBranchNames.ClearDefaultBranchCache();
+
             _testRepoPath = Path.Combine(Path.GetTempPath(), $"test-git-repo-observer-{Guid.NewGuid()}");
 
             if (Directory.Exists(_testRepoPath))

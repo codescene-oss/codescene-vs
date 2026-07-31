@@ -33,6 +33,8 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public void ClearMainBranchCandidatesCache(string gitRootPath = null)
         {
+            MainBranchNames.ClearDefaultBranchCache(gitRootPath);
+
             if (_mainBranchCandidatesCache == null)
             {
                 return;

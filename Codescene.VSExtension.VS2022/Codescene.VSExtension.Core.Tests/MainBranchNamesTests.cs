@@ -14,6 +14,8 @@ namespace Codescene.VSExtension.Core.Tests
         [TestInitialize]
         public void Setup()
         {
+            MainBranchNames.ClearDefaultBranchCache();
+
             _testRepoPath = Path.Combine(Path.GetTempPath(), $"test-main-branch-{Guid.NewGuid()}");
             Directory.CreateDirectory(_testRepoPath);
             Repository.Init(_testRepoPath);
@@ -362,6 +364,89 @@ namespace Codescene.VSExtension.Core.Tests
                     {
                     }
                 }
+            }
+        }
+
+        [TestMethod]
+        public void GetDefaultBranch_CachesResult()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            string firstResult;
+            using (var repo = new Repository(_testRepoPath))
+            {
+                firstResult = MainBranchNames.GetDefaultBranch(repo);
+                Assert.AreEqual("main", firstResult, "First call should return main");
+            }
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Remove(repo.Refs["refs/remotes/origin/HEAD"]);
+                repo.Refs.Add("refs/remotes/origin/develop", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/develop"]);
+            }
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var cachedResult = MainBranchNames.GetDefaultBranch(repo);
+                Assert.AreEqual("main", cachedResult, "Should return cached result even though underlying state changed");
+            }
+        }
+
+        [TestMethod]
+        public void GetDefaultBranch_DoesNotCacheNullResult()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var firstResult = MainBranchNames.GetDefaultBranch(repo);
+                Assert.IsNull(firstResult, "First call should return null when no origin/HEAD");
+            }
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var secondResult = MainBranchNames.GetDefaultBranch(repo);
+                Assert.AreEqual("main", secondResult, "Should return fresh result since null was not cached");
+            }
+        }
+
+        [TestMethod]
+        public void ClearDefaultBranchCache_InvalidatesCache()
+        {
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Add("refs/remotes/origin/main", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/main"]);
+            }
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var firstResult = MainBranchNames.GetDefaultBranch(repo);
+                Assert.AreEqual("main", firstResult);
+            }
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                repo.Refs.Remove(repo.Refs["refs/remotes/origin/HEAD"]);
+                repo.Refs.Add("refs/remotes/origin/develop", repo.Head.Tip.Id);
+                repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs["refs/remotes/origin/develop"]);
+            }
+
+            MainBranchNames.ClearDefaultBranchCache(_testRepoPath);
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                var freshResult = MainBranchNames.GetDefaultBranch(repo);
+                Assert.AreEqual("develop", freshResult, "Should return fresh result after cache clear");
             }
         }
 

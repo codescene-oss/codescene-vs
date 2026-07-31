@@ -55,6 +55,7 @@ public abstract class SubcutaneousGitTestBase
     {
         CacheGeneration.Reset();
         DeltaJobTracker.Clear();
+        MainBranchNames.ClearDefaultBranchCache();
         Journal = new EventJournal();
         Logger = new TestLogger(Journal);
         TaskScheduler = new RecordingAsyncTaskScheduler(Journal);
