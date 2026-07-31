@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785379697904,
+  "lastUpdate": 1785464026695,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1802,6 +1802,48 @@ window.BENCHMARK_DATA = {
             "value": 76802525.00000001,
             "unit": "ns",
             "range": "± 1675655.789515924"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "38931c0e106d0c36edd6d27c8560d9741982427c",
+          "message": "Merge pull request #308 from codescene-oss/cache-default-branch\n\nfeat: cache `GetDefaultBranch` calls to reduce redundant git operations",
+          "timestamp": "2026-07-31T04:08:49+02:00",
+          "tree_id": "08b047eca308f55161ab62940f83554478279159",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/38931c0e106d0c36edd6d27c8560d9741982427c"
+        },
+        "date": 1785464024215,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 103531828.33333333,
+            "unit": "ns",
+            "range": "± 1325744.061455324"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 92504423.33333333,
+            "unit": "ns",
+            "range": "± 837987.7965547"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 59141183.70370371,
+            "unit": "ns",
+            "range": "± 447291.67213617463"
           }
         ]
       }
