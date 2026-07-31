@@ -44,7 +44,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var entered = new TaskCompletionSource<bool>();
             var gate = new TaskCompletionSource<bool>();
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
             _mockInnerReviewer
                 .Setup(r => r.DeltaAsync(review, currentCode, precomputedBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .Returns(async () =>
@@ -86,7 +86,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var secondEntered = new TaskCompletionSource<bool>();
             var gate = new TaskCompletionSource<bool>();
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
             _mockInnerReviewer
                 .Setup(r => r.DeltaAsync(review, currentCode, firstBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .Returns(async () =>

@@ -42,7 +42,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var precomputedScore = "baseline123";
             var expectedDelta = new DeltaResponseModel();
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
 
             _mockInnerReviewer
                 .Setup(r => r.DeltaAsync(review, currentCode, precomputedScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()))

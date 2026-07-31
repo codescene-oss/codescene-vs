@@ -19,6 +19,11 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
             return Mock.Object.GetFileContentForCommit(path);
         }
 
+        public string GetFileContentForCommit(string path, string baselineCommit)
+        {
+            return Mock.Object.GetFileContentForCommit(path, baselineCommit);
+        }
+
         public bool IsFileIgnored(string filePath)
         {
             return Mock.Object.IsFileIgnored(filePath);

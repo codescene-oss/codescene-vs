@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Application.Git
 {
@@ -41,6 +42,35 @@ namespace Codescene.VSExtension.Core.Application.Git
                 {
                     return;
                 }
+            }
+        }
+
+        private string GetBaselineCommit()
+        {
+            if (string.IsNullOrEmpty(_gitRootPath))
+            {
+                return null;
+            }
+
+            try
+            {
+                var repoPath = Repository.Discover(_gitRootPath);
+                if (string.IsNullOrEmpty(repoPath))
+                {
+                    return null;
+                }
+
+                using (var repo = new Repository(repoPath))
+                {
+                    var mergeBaseFinder = new MergeBaseFinder(_logger);
+                    var mergeBase = mergeBaseFinder.GetMergeBaseCommit(repo);
+                    return mergeBase?.Sha;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger?.Debug($"GitChangeObserver: Could not get baseline commit: {ex.Message}");
+                return null;
             }
         }
     }

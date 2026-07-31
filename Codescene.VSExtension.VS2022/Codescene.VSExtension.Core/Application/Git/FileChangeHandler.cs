@@ -55,7 +55,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             _workspacePaths = workspacePaths ?? Array.Empty<string>();
         }
 
-        public async Task HandleFileChangeAsync(string filePath, List<string> changedFiles, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task HandleFileChangeAsync(string filePath, List<string> changedFiles, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
             var isDirectory = !Path.HasExtension(filePath);
             if (isDirectory)
@@ -82,7 +82,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             #endif
             _trackerManager.Add(filePath);
 
-            await ReviewFileAsync(filePath, operationGeneration, cancellationToken);
+            await ReviewFileAsync(filePath, operationGeneration, cancellationToken, baselineCommit);
         }
 
         public async Task HandleFileDeleteAsync(string filePath, List<string> changedFiles, CancellationToken cancellationToken = default)
@@ -155,7 +155,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return true;
         }
 
-        public async Task ReviewFileAsync(string filePath, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task ReviewFileAsync(string filePath, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
             try
             {
@@ -187,7 +187,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 content ??= File.ReadAllText(filePath);
 
                 cancellationToken.ThrowIfCancellationRequested();
-                var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content, operationGeneration, cancellationToken).ConfigureAwait(false);
+                var (review, delta) = await _codeReviewer.ReviewWithDeltaAsync(filePath, content, operationGeneration, cancellationToken, baselineCommit).ConfigureAwait(false);
 
                 if (review != null)
                 {

@@ -9,6 +9,8 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
     {
         string GetFileContentForCommit(string path);
 
+        string GetFileContentForCommit(string path, string baselineCommit);
+
         bool IsFileIgnored(string filePath);
 
         HashSet<string> FilterIgnoredFiles(IEnumerable<string> absolutePaths);

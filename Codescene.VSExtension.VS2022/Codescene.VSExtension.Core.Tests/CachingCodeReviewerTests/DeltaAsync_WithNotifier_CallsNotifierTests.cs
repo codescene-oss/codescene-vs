@@ -51,7 +51,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var oldCode = "old code";
             var expectedDelta = new DeltaResponseModel();
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
             _mockInnerReviewer
                 .Setup(r => r.DeltaAsync(review, currentCode, It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedDelta);
@@ -70,7 +70,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var currentCode = "current code";
             var oldCode = "old code";
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
             _mockInnerReviewer
                 .Setup(r => r.DeltaAsync(review, currentCode, It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("Test exception"));
@@ -89,7 +89,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var currentCode = "current code";
             var oldCode = "old code";
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
             _mockInnerReviewer
                 .Setup(r => r.DeltaAsync(review, currentCode, It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new OperationCanceledException());

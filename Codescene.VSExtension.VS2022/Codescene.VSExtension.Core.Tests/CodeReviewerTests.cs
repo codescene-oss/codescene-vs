@@ -211,7 +211,7 @@ namespace Codescene.VSExtension.Core.Tests
             var review = new FileReviewModel { FilePath = "test.cs", RawScore = "raw" };
             var expectedException = new Exception("Git error");
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
+            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>(), It.IsAny<string>()))
                 .Throws(expectedException);
 
             var result = await _codeReviewer.DeltaAsync(review, "current code");
@@ -226,7 +226,7 @@ namespace Codescene.VSExtension.Core.Tests
             var review = new FileReviewModel { FilePath = "test.cs", RawScore = "raw" };
             var expectedException = new InvalidOperationException("delta failed");
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>())).Returns("old");
+            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>(), It.IsAny<string>())).Returns("old");
             _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CliReviewModel { RawScore = "old-raw" });
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
@@ -246,7 +246,7 @@ namespace Codescene.VSExtension.Core.Tests
             // Arrange
             var review = new FileReviewModel { FilePath = "test.cs", RawScore = null };
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
+            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns("old code");
             _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CliReviewModel { RawScore = "old-raw" });
@@ -269,7 +269,7 @@ namespace Codescene.VSExtension.Core.Tests
             var review = new FileReviewModel { FilePath = "test.cs", RawScore = "raw-score" };
             var expectedDelta = new DeltaResponseModel { ScoreChange = 0m };
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
+            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(currentCode);
             _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(expectedDelta);
@@ -289,7 +289,7 @@ namespace Codescene.VSExtension.Core.Tests
             var review = new FileReviewModel { FilePath = "test.cs", RawScore = identicalRawScore };
             var expectedDelta = new DeltaResponseModel { ScoreChange = 0m };
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
+            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(oldCode);
             _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), oldCode, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CliReviewModel { RawScore = identicalRawScore });
@@ -312,7 +312,7 @@ namespace Codescene.VSExtension.Core.Tests
             var currentCode = "public class Test { int x; }";
             var review = new FileReviewModel { FilePath = "test.cs", RawScore = "new-raw" };
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>()))
+            _mockGitService.Setup(x => x.GetFileContentForCommit(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(oldCode);
             _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), oldCode, It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CliReviewModel { RawScore = "old-raw" });
@@ -339,7 +339,7 @@ namespace Codescene.VSExtension.Core.Tests
             var cliReview = new CliReviewModel { RawScore = "current-raw" };
             var baselineCliReview = new CliReviewModel { RawScore = "baseline-raw" };
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", currentCode, false, It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", oldCode, true, It.IsAny<CancellationToken>())).ReturnsAsync(baselineCliReview);
             _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(review);
@@ -360,7 +360,7 @@ namespace Codescene.VSExtension.Core.Tests
             var cliReview = new CliReviewModel { RawScore = "current-raw" };
             var review = new FileReviewModel { FilePath = path, RawScore = "current-raw" };
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns((string)null);
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, It.IsAny<string>())).Returns((string)null);
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", currentCode, false, It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
             _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(review);
 
@@ -429,7 +429,7 @@ namespace Codescene.VSExtension.Core.Tests
             var content = "public class Test { }";
             var review = new FileReviewModel { FilePath = path, RawScore = null };
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns("old code");
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, It.IsAny<string>())).Returns("old code");
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", content, false, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CliReviewModel { RawScore = null });
             _mockMapper.Setup(x => x.Map(path, It.IsAny<CliReviewModel>())).Returns(review);
@@ -468,7 +468,7 @@ namespace Codescene.VSExtension.Core.Tests
                 null,
                 mockPreflight.Object);
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns("old");
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, It.IsAny<string>())).Returns("old");
             _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), "old", true, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CliReviewModel { RawScore = "old-raw" });
             _mockMapper.Setup(x => x.Map(It.IsAny<string>(), It.IsAny<CliReviewModel>()))
@@ -505,7 +505,7 @@ namespace Codescene.VSExtension.Core.Tests
                 null,
                 mockPreflight.Object);
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns("old");
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, It.IsAny<string>())).Returns("old");
             _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(delta);
             mockPreflight.Setup(x => x.GetPreflightResponseAsync(It.IsAny<CancellationToken>()))
@@ -545,7 +545,7 @@ namespace Codescene.VSExtension.Core.Tests
                 null,
                 mockPreflight.Object);
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns("old");
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, It.IsAny<string>())).Returns("old");
             _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(delta);
             mockPreflight.Setup(x => x.GetPreflightResponseAsync(It.IsAny<CancellationToken>()))

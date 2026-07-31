@@ -539,6 +539,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             cancellationToken.ThrowIfCancellationRequested();
             var operationGeneration = CacheGeneration.Current;
             var changedFiles = await _getChangedFilesCallback();
+            var baselineCommit = GetBaselineCommit();
             await RemoveMissingTrackedFilesAsync(changedFiles, cancellationToken);
             foreach (var absolutePath in absolutePaths)
             {
@@ -555,7 +556,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 await ExecutePerFileAsync(
                     absolutePath,
                     cancellationToken,
-                    () => _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles, operationGeneration, cancellationToken));
+                    () => _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles, operationGeneration, cancellationToken, baselineCommit));
             }
         }
 
@@ -657,10 +658,11 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
+            var baselineCommit = GetBaselineCommit();
             await ExecutePerFileAsync(
                 evt.FilePath,
                 cancellationToken,
-                () => _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles, operationGeneration, cancellationToken));
+                () => _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles, operationGeneration, cancellationToken, baselineCommit));
         }
     }
 }

@@ -58,7 +58,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = identicalRawScore,
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(oldContent);
             _baselineCacheService.Put(filePath, oldContent, identicalRawScore);
 
             var result = await _cachingReviewer.DeltaAsync(review, currentContent);
@@ -81,7 +81,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = identicalRawScore,
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(oldContent);
             _baselineCacheService.Put(filePath, oldContent, identicalRawScore);
 
             await _cachingReviewer.DeltaAsync(review, currentContent);
@@ -104,7 +104,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = identicalRawScore,
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(oldContent);
             _baselineCacheService.Put(filePath, oldContent, identicalRawScore);
 
             await _cachingReviewer.DeltaAsync(review, currentContent);
@@ -127,7 +127,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = identicalRawScore,
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(oldContent);
             _baselineCacheService.Put(filePath, oldContent, identicalRawScore);
 
             await _cachingReviewer.DeltaAsync(review, currentContent);
@@ -151,7 +151,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = identicalRawScore,
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(oldContent);
 
             var result = await _cachingReviewer.DeltaAsync(review, currentContent, identicalRawScore);
 

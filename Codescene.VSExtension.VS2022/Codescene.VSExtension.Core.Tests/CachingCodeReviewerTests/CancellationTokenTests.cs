@@ -46,10 +46,10 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var callerToken = cts.Token;
             var capturedToken = CancellationToken.None;
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns("old code");
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path, It.IsAny<string>())).Returns("old code");
             _mockInnerReviewer
-                .Setup(r => r.DeltaAsync(review, currentCode, precomputedScore, null, It.IsAny<CancellationToken>()))
-                .Returns<FileReviewModel, string, string, long?, CancellationToken>(async (_, _, _, _, token) =>
+                .Setup(r => r.DeltaAsync(review, currentCode, precomputedScore, null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
+                .Returns<FileReviewModel, string, string, long?, CancellationToken, string>(async (_, _, _, _, token, _) =>
                 {
                     capturedToken = token;
                     entered.TrySetResult(true);
@@ -69,7 +69,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             Assert.AreEqual(expectedDelta, secondResult);
             Assert.AreEqual(CancellationToken.None, capturedToken);
-            _mockInnerReviewer.Verify(r => r.DeltaAsync(review, currentCode, precomputedScore, null, It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerReviewer.Verify(r => r.DeltaAsync(review, currentCode, precomputedScore, null, It.IsAny<CancellationToken>(), It.IsAny<string>()), Times.Once);
         }
     }
 }

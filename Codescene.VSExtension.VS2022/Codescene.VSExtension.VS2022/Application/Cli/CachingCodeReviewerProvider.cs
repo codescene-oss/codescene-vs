@@ -55,24 +55,24 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
             return _inner.ReviewAsync(path, content, isBaseline, operationGeneration, cancellationToken);
         }
 
-        public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            return _inner.DeltaAsync(review, currentCode, precomputedBaselineRawScore, operationGeneration, cancellationToken);
+            return _inner.DeltaAsync(review, currentCode, precomputedBaselineRawScore, operationGeneration, cancellationToken, baselineCommit);
         }
 
-        public Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            return _inner.ReviewAndBaselineAsync(path, currentCode, operationGeneration, cancellationToken);
+            return _inner.ReviewAndBaselineAsync(path, currentCode, operationGeneration, cancellationToken, baselineCommit);
         }
 
-        public Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            return _inner.ReviewWithDeltaAsync(path, content, operationGeneration, cancellationToken);
+            return _inner.ReviewWithDeltaAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
         }
 
-        public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            return _inner.GetOrComputeBaselineRawScoreAsync(path, baselineContent, operationGeneration, cancellationToken);
+            return _inner.GetOrComputeBaselineRawScoreAsync(path, baselineContent, operationGeneration, cancellationToken, baselineCommit);
         }
 
         private void OnViewUpdateRequested(object sender, EventArgs e)

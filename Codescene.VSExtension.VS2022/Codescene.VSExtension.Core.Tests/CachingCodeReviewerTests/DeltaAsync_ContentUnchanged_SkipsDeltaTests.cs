@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "rawscore123",
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(content);
 
             var result = await _cachingReviewer.DeltaAsync(review, content);
 
@@ -78,7 +78,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "raw456",
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(content);
 
             await _cachingReviewer.DeltaAsync(review, content);
 
@@ -97,7 +97,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "score789",
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(content);
 
             await _cachingReviewer.DeltaAsync(review, content);
 
@@ -116,7 +116,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "raw999",
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(content);
 
             await _cachingReviewer.DeltaAsync(review, content);
 
@@ -140,7 +140,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                     RawScore = "raw999",
                 };
                 _deltaCacheService.Put(new DeltaCacheEntry(filePath, content, baselineContent, new DeltaResponseModel()));
-                _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+                _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(content);
 
                 await _cachingReviewer.DeltaAsync(review, content);
 
@@ -169,7 +169,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "empty123",
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(string.Empty);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(string.Empty);
 
             var result = await _cachingReviewer.DeltaAsync(review, content);
 

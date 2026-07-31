@@ -50,7 +50,7 @@ namespace Codescene.VSExtension.Core.Tests
             var baselineCliReview = new CliReviewModel { RawScore = "baseline-raw" };
             var expectedDelta = new DeltaResponseModel { ScoreChange = 0.5m };
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", content, false, It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", oldCode, true, It.IsAny<CancellationToken>())).ReturnsAsync(baselineCliReview);
             _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(review);

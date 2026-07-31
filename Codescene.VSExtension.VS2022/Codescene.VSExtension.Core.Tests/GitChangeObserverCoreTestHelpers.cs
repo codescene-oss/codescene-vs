@@ -219,27 +219,27 @@ namespace Codescene.VSExtension.Core.Tests
             return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
         }
 
-        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
             var review = await ReviewAsync(path, currentCode, false, operationGeneration, cancellationToken);
-            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken);
+            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken, baselineCommit);
             return (review, baselineRawScore ?? string.Empty);
         }
 
-        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
-            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
+            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
             return (review, delta);
         }
 
-        public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default) =>
+        public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null) =>
             Task.FromResult("8.0");
 
         public FileReviewModel Review(string path, string content) =>
             ReviewAsync(path, content).GetAwaiter().GetResult();
 
-        public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default) =>
+        public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null) =>
             Task.FromResult<DeltaResponseModel>(null);
 
         public DeltaResponseModel Delta(FileReviewModel review, string currentCode) =>
@@ -274,6 +274,11 @@ namespace Codescene.VSExtension.Core.Tests
             return string.Empty;
         }
 
+        public string GetFileContentForCommit(string path, string baselineCommit)
+        {
+            return string.Empty;
+        }
+
         public bool IsFileIgnored(string filePath)
         {
             return false;
@@ -304,6 +309,11 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         public string GetFileContentForCommit(string path)
+        {
+            return string.Empty;
+        }
+
+        public string GetFileContentForCommit(string path, string baselineCommit)
         {
             return string.Empty;
         }
@@ -347,6 +357,11 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         public string GetFileContentForCommit(string path)
+        {
+            return string.Empty;
+        }
+
+        public string GetFileContentForCommit(string path, string baselineCommit)
         {
             return string.Empty;
         }

@@ -86,6 +86,11 @@ public class GitService : IGitService, IDisposable
 
     public string GetFileContentForCommit(string path)
     {
+        return GetFileContentForCommit(path, null);
+    }
+
+    public string GetFileContentForCommit(string path, string baselineCommit)
+    {
         try
         {
             var repoPath = Repository.Discover(path);
@@ -95,34 +100,36 @@ public class GitService : IGitService, IDisposable
                 return string.Empty;
             }
 
-            using var repo = new Repository(repoPath);
-            var commitHash = GetBaselineCommit(repo);
-
-            if (string.IsNullOrEmpty(commitHash))
+            using (var repo = new Repository(repoPath))
             {
-                _logger.Debug("No baseline commit found, skipping file content retrieval.");
-                return string.Empty;
+                var commitHash = string.IsNullOrEmpty(baselineCommit) ? GetBaselineCommit(repo) : baselineCommit;
+
+                if (string.IsNullOrEmpty(commitHash))
+                {
+                    _logger.Debug("No baseline commit found, skipping file content retrieval.");
+                    return string.Empty;
+                }
+
+                var repoRoot = repo.Info.WorkingDirectory;
+                var relativePath = GetRelativePath(repoRoot, path).Replace("\\", "/");
+
+                var commit = repo.Lookup<Commit>(commitHash);
+                if (commit == null)
+                {
+                    _logger.Warn($"Could not find commit {commitHash}");
+                    return string.Empty;
+                }
+
+                var entry = commit[relativePath];
+                if (entry == null)
+                {
+                    _logger.Debug($"File {relativePath} not found in commit {commitHash}");
+                    return string.Empty;
+                }
+
+                var blob = (Blob)entry.Target;
+                return blob.GetContentText();
             }
-
-            var repoRoot = repo.Info.WorkingDirectory;
-            var relativePath = GetRelativePath(repoRoot, path).Replace("\\", "/");
-
-            var commit = repo.Lookup<Commit>(commitHash);
-            if (commit == null)
-            {
-                _logger.Warn($"Could not find commit {commitHash}");
-                return string.Empty;
-            }
-
-            var entry = commit[relativePath];
-            if (entry == null)
-            {
-                _logger.Debug($"File {relativePath} not found in commit {commitHash}");
-                return string.Empty;
-            }
-
-            var blob = (Blob)entry.Target;
-            return blob.GetContentText();
         }
         catch (Exception e)
         {

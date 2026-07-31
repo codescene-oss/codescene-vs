@@ -44,17 +44,17 @@ public sealed class RecordingCodeReviewer : ICodeReviewer
         return _inner.ReviewAsync(path, content, isBaseline, operationGeneration, cancellationToken);
     }
 
-    public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string? precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
+    public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string? precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string? baselineCommit = null)
     {
-        return _inner.DeltaAsync(review, currentCode, precomputedBaselineRawScore, operationGeneration, cancellationToken);
+        return _inner.DeltaAsync(review, currentCode, precomputedBaselineRawScore, operationGeneration, cancellationToken, baselineCommit);
     }
 
-    public Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+    public Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string? baselineCommit = null)
     {
-        return _inner.ReviewAndBaselineAsync(path, currentCode, operationGeneration, cancellationToken);
+        return _inner.ReviewAndBaselineAsync(path, currentCode, operationGeneration, cancellationToken, baselineCommit);
     }
 
-    public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+    public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string? baselineCommit = null)
     {
         _reviewWithDeltaCalls.AddOrUpdate(path, 1, (_, count) => count + 1);
         var activeCount = _activeReviewWithDeltaCalls.AddOrUpdate(path, 1, (_, count) => count + 1);
@@ -69,7 +69,7 @@ public sealed class RecordingCodeReviewer : ICodeReviewer
 
         try
         {
-            var result = await _inner.ReviewWithDeltaAsync(path, content, operationGeneration, cancellationToken);
+            var result = await _inner.ReviewWithDeltaAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
             _journal.Record("review.completed", path, $"delta={result.delta != null}");
             return result;
         }
@@ -84,9 +84,9 @@ public sealed class RecordingCodeReviewer : ICodeReviewer
         }
     }
 
-    public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default)
+    public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string? baselineCommit = null)
     {
-        return _inner.GetOrComputeBaselineRawScoreAsync(path, baselineContent, operationGeneration, cancellationToken);
+        return _inner.GetOrComputeBaselineRawScoreAsync(path, baselineContent, operationGeneration, cancellationToken, baselineCommit);
     }
 }
 

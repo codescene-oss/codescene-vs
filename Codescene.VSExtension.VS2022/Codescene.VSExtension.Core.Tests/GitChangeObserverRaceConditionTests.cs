@@ -169,7 +169,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
             }
 
-            public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
                 _aboutToStore.Set();
                 _canProceed.Wait();
@@ -181,21 +181,21 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.FromResult(delta);
             }
 
-            public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
                 var review = await ReviewAsync(path, currentCode, false, operationGeneration, cancellationToken);
-                var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken);
+                var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken, baselineCommit);
                 return (review, baselineRawScore ?? string.Empty);
             }
 
-            public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
-                var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
-                var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
+                var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
+                var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
                 return (review, delta);
             }
 
-            public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
                 return Task.FromResult("8.0");
             }
@@ -220,7 +220,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
             }
 
-            public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
                 _aboutToStore.Set();
                 _canProceed.Wait();
@@ -234,21 +234,21 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.FromResult(delta);
             }
 
-            public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
                 var review = await ReviewAsync(path, currentCode, false, operationGeneration, cancellationToken);
-                var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken);
+                var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken, baselineCommit);
                 return (review, baselineRawScore ?? string.Empty);
             }
 
-            public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
-                var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
-                var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
+                var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
+                var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
                 return (review, delta);
             }
 
-            public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
                 return Task.FromResult("8.0");
             }
@@ -277,7 +277,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
             }
 
-            public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
                 Interlocked.Increment(ref _startedCount);
                 var currentActive = Interlocked.Increment(ref _activeCount);
@@ -300,21 +300,21 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.FromResult<DeltaResponseModel>(null);
             }
 
-            public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
                 var review = await ReviewAsync(path, currentCode, false, operationGeneration, cancellationToken);
-                var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken);
+                var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken, baselineCommit);
                 return (review, baselineRawScore ?? string.Empty);
             }
 
-            public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
-                var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
-                var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
+                var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
+                var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
                 return (review, delta);
             }
 
-            public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default)
+            public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
             {
                 return Task.FromResult("8.0");
             }

@@ -239,6 +239,11 @@ internal sealed class FixedGitService : IGitService
 
     public string GetFileContentForCommit(string path)
     {
+        return GetFileContentForCommit(path, string.Empty);
+    }
+
+    public string GetFileContentForCommit(string path, string baselineCommit)
+    {
         if (path != null && _pathContents.TryGetValue(path, out var content))
         {
             return content;

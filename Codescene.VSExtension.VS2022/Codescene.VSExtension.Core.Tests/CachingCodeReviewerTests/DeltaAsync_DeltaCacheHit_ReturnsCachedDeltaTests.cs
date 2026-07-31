@@ -70,7 +70,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             };
 
             _deltaCacheService.Put(new DeltaCacheEntry(_tempFilePath, baselineCode, currentCode, cachedDelta));
-            _mockGitService.Setup(g => g.GetFileContentForCommit(_tempFilePath)).Returns(baselineCode);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(_tempFilePath, It.IsAny<string>())).Returns(baselineCode);
 
             var result = await _cachingReviewer.DeltaAsync(review, currentCode);
 

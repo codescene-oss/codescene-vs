@@ -91,7 +91,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(oldContent);
             _baselineCacheService.Put(filePath, oldContent, oldRawScore);
             _mockInnerReviewer.Setup(r => r.DeltaAsync(
                 It.IsAny<FileReviewModel>(),
@@ -136,7 +136,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(oldContent);
             _baselineCacheService.Put(filePath, oldContent, oldRawScore);
             _mockInnerReviewer.Setup(r => r.DeltaAsync(
                 It.IsAny<FileReviewModel>(),
@@ -184,7 +184,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             var expectedDelta = CreateDeltaResponse(0.0m);
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(oldContent);
             _baselineCacheService.Put(filePath, oldContent, oldRawScore);
             _mockInnerReviewer.Setup(r => r.DeltaAsync(
                 It.IsAny<FileReviewModel>(),
@@ -222,7 +222,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(oldContent);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(oldContent);
             _mockInnerReviewer.Setup(r => r.ReviewAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -279,8 +279,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 .Callback(() => telemetrySent.TrySetResult(true))
                 .Returns(Task.CompletedTask);
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath1)).Returns(oldContent1);
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath2)).Returns(oldContent2);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath1, It.IsAny<string>())).Returns(oldContent1);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath2, It.IsAny<string>())).Returns(oldContent2);
             _baselineCacheService.Put(filePath1, oldContent1, "oldScore1");
             _baselineCacheService.Put(filePath2, oldContent2, "oldScore2");
             _mockInnerReviewer.Setup(r => r.DeltaAsync(

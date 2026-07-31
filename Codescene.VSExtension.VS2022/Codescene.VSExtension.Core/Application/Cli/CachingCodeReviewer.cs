@@ -91,29 +91,29 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
         }
 
-        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
             var review = await this.ReviewAsync(path, currentCode, isBaseline: false, operationGeneration, cancellationToken);
-            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, null, operationGeneration, cancellationToken);
+            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, null, operationGeneration, cancellationToken, baselineCommit);
 
             return (review, baselineRawScore ?? string.Empty);
         }
 
-        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
             if (review?.RawScore == null)
             {
                 return (review, null);
             }
 
-            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
+            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
             return (review, delta);
         }
 
-        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            var oldCode = GetBaselineContent(path, baselineContent);
+            var oldCode = GetBaselineContent(path, baselineContent, baselineCommit);
 
             if (string.IsNullOrEmpty(oldCode))
             {
@@ -130,7 +130,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return await ComputeAndCacheBaselineAsync(path, oldCode, operationGeneration, cancellationToken);
         }
 
-        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
             var path = review.FilePath;
 
@@ -140,7 +140,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            var oldCode = _git?.GetFileContentForCommit(path) ?? string.Empty;
+            var oldCode = _git?.GetFileContentForCommit(path, baselineCommit) ?? string.Empty;
 
             if (oldCode == currentCode)
             {
@@ -181,7 +181,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
         }
 
-        private string GetBaselineContent(string path, string baselineContent)
+        private string GetBaselineContent(string path, string baselineContent, string baselineCommit = null)
         {
             if (!string.IsNullOrEmpty(baselineContent))
             {
@@ -190,7 +190,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (_git != null)
             {
-                return _git.GetFileContentForCommit(path) ?? string.Empty;
+                return _git.GetFileContentForCommit(path, baselineCommit) ?? string.Empty;
             }
 
             return string.Empty;
