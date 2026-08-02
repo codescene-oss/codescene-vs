@@ -14,6 +14,11 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
     {
         internal Mock<IGitService> Mock = new Mock<IGitService>();
 
+        public string GetBaselineCommit(string repoRootPath)
+        {
+            return Mock.Object.GetBaselineCommit(repoRootPath);
+        }
+
         public string GetFileContentForCommit(string path)
         {
             return Mock.Object.GetFileContentForCommit(path);

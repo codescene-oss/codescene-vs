@@ -269,6 +269,11 @@ namespace Codescene.VSExtension.Core.Tests
 
     public class FakeGitService : IGitService
     {
+        public string GetBaselineCommit(string repoRootPath)
+        {
+            return string.Empty;
+        }
+
         public string GetFileContentForCommit(string path)
         {
             return string.Empty;
@@ -289,11 +294,6 @@ namespace Codescene.VSExtension.Core.Tests
             return new HashSet<string>(absolutePaths, StringComparer.OrdinalIgnoreCase);
         }
 
-        public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
-        {
-            return string.Empty;
-        }
-
         public void Dispose()
         {
         }
@@ -306,6 +306,11 @@ namespace Codescene.VSExtension.Core.Tests
         public FakeGitServiceIgnorePath(string ignoredPath)
         {
             _ignoredPath = ignoredPath;
+        }
+
+        public string GetBaselineCommit(string repoRootPath)
+        {
+            return string.Empty;
         }
 
         public string GetFileContentForCommit(string path)
@@ -337,11 +342,6 @@ namespace Codescene.VSExtension.Core.Tests
             return result;
         }
 
-        public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
-        {
-            return string.Empty;
-        }
-
         public void Dispose()
         {
         }
@@ -354,6 +354,11 @@ namespace Codescene.VSExtension.Core.Tests
         public FakeGitServiceWithGitignoreSupport(string repoPath)
         {
             _repoPath = repoPath;
+        }
+
+        public string GetBaselineCommit(string repoRootPath)
+        {
+            return string.Empty;
         }
 
         public string GetFileContentForCommit(string path)
@@ -405,11 +410,6 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             return result;
-        }
-
-        public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
-        {
-            return string.Empty;
         }
 
         public void Dispose()

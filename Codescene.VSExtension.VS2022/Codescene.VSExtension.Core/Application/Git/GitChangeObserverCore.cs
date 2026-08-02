@@ -539,7 +539,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             cancellationToken.ThrowIfCancellationRequested();
             var operationGeneration = CacheGeneration.Current;
             var changedFiles = await _getChangedFilesCallback();
-            var baselineCommit = GetBaselineCommit();
+            var baselineCommit = _gitService.GetBaselineCommit(_gitRootPath);
             await RemoveMissingTrackedFilesAsync(changedFiles, cancellationToken);
             foreach (var absolutePath in absolutePaths)
             {
@@ -658,7 +658,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            var baselineCommit = GetBaselineCommit();
+            var baselineCommit = _gitService.GetBaselineCommit(_gitRootPath);
             await ExecutePerFileAsync(
                 evt.FilePath,
                 cancellationToken,

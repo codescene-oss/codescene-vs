@@ -7,6 +7,8 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
 {
     public interface IGitService : IDisposable
     {
+        string GetBaselineCommit(string repoRootPath);
+
         string GetFileContentForCommit(string path);
 
         string GetFileContentForCommit(string path, string baselineCommit);
