@@ -17,9 +17,10 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ConcurrentQueue<FileChangeEvent> _eventQueue = new ConcurrentQueue<FileChangeEvent>();
         private readonly SemaphoreSlim _concurrencySemaphore;
         private readonly ILogger _logger;
-        private readonly Func<FileChangeEvent, List<string>, long?, CancellationToken, Task> _processEventCallback;
+        private readonly Func<FileChangeEvent, List<string>, long?, CancellationToken, string, Task> _processEventCallback;
         private readonly Func<Task<List<string>>> _getChangedFilesCallback;
         private readonly Func<bool> _shouldSkipNonDeletesCallback;
+        private readonly Func<string> _getBaselineCommitCallback;
         private readonly IAsyncTaskScheduler _taskScheduler;
         private Timer _scheduledTimer;
         private CancellationToken _cancellationToken;
@@ -27,15 +28,17 @@ namespace Codescene.VSExtension.Core.Application.Git
         public FileChangeEventProcessor(
             ILogger logger,
             IAsyncTaskScheduler taskScheduler,
-            Func<FileChangeEvent, List<string>, long?, CancellationToken, Task> processEventCallback,
+            Func<FileChangeEvent, List<string>, long?, CancellationToken, string, Task> processEventCallback,
             Func<Task<List<string>>> getChangedFilesCallback,
-            Func<bool> shouldSkipNonDeletesCallback = null)
+            Func<bool> shouldSkipNonDeletesCallback = null,
+            Func<string> getBaselineCommitCallback = null)
         {
             _logger = logger;
             _taskScheduler = taskScheduler;
             _processEventCallback = processEventCallback;
             _getChangedFilesCallback = getChangedFilesCallback;
             _shouldSkipNonDeletesCallback = shouldSkipNonDeletesCallback;
+            _getBaselineCommitCallback = getBaselineCommitCallback;
 
             var numberOfThreads = CoreCountUtils.GetParallelizationCountByCoreCount(Environment.ProcessorCount);
             _concurrencySemaphore = new SemaphoreSlim(numberOfThreads, numberOfThreads);
@@ -164,13 +167,14 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             var changedFiles = await _getChangedFilesCallback();
+            var baselineCommit = _getBaselineCommitCallback?.Invoke();
 
             if (_cancellationToken.IsCancellationRequested)
             {
                 return;
             }
 
-            ScheduleCoalescedEvents(coalesced, changedFiles, operationGeneration, shouldSkipNonDeletes);
+            ScheduleCoalescedEvents(coalesced, changedFiles, operationGeneration, shouldSkipNonDeletes, baselineCommit);
         }
 
         private List<FileChangeEvent> DrainQueue()
@@ -184,7 +188,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return events;
         }
 
-        private void ScheduleCoalescedEvents(List<FileChangeEvent> coalesced, List<string> changedFiles, long? operationGeneration, bool shouldSkipNonDeletes)
+        private void ScheduleCoalescedEvents(List<FileChangeEvent> coalesced, List<string> changedFiles, long? operationGeneration, bool shouldSkipNonDeletes, string baselineCommit)
         {
             var token = _cancellationToken;
             foreach (var evt in coalesced)
@@ -197,11 +201,11 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                 var capturedEvt = evt;
                 var capturedChangedFiles = changedFiles;
-                _taskScheduler.Schedule(() => ProcessOneEventAsync(capturedEvt, capturedChangedFiles, operationGeneration, token));
+                _taskScheduler.Schedule(() => ProcessOneEventAsync(capturedEvt, capturedChangedFiles, operationGeneration, token, baselineCommit));
             }
         }
 
-        private async Task ProcessOneEventAsync(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken token)
+        private async Task ProcessOneEventAsync(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken token, string baselineCommit)
         {
             if (token.IsCancellationRequested)
             {
@@ -211,7 +215,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             await _concurrencySemaphore.WaitAsync(token);
             try
             {
-                await _processEventCallback(evt, changedFiles, operationGeneration, token);
+                await _processEventCallback(evt, changedFiles, operationGeneration, token, baselineCommit);
             }
             catch (OperationCanceledException)
             {

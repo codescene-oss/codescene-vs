@@ -103,7 +103,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             InitializeDefaultBranchGate();
             LogIdentifiedBaselineBranch();
 
-            _eventProcessor = new FileChangeEventProcessor(_logger, _taskScheduler, ProcessEventAsync, _getChangedFilesCallback, ShouldSkipBasedOnDefaultBranch);
+            _eventProcessor = new FileChangeEventProcessor(_logger, _taskScheduler, ProcessEventAsync, _getChangedFilesCallback, ShouldSkipBasedOnDefaultBranch, () => _gitService.GetBaselineCommit(_gitRootPath));
 
 #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeObserverCore: Initialized with solution='{_solutionPath}', gitRoot='{_gitRootPath}', workspace='{_workspacePath}'");
@@ -650,7 +650,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return GitPathHelper.IsPathUnderAnyRoot(e.FullPath, _workspacePaths);
         }
 
-        private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken cancellationToken, string baselineCommit)
         {
             if (evt.Type == FileChangeType.Delete)
             {
@@ -658,7 +658,6 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            var baselineCommit = _gitService.GetBaselineCommit(_gitRootPath);
             await ExecutePerFileAsync(
                 evt.FilePath,
                 cancellationToken,
