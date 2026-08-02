@@ -234,7 +234,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var parameters = new DeltaComputationParameters(
                 currentCode: input.CurrentCode,
                 oldCode: input.OldCode,
-                oldRawScore: oldRawScore);
+                oldRawScore: oldRawScore,
+                baselineCommit: input.BaselineCommit);
             return await ComputeAndCacheDeltaAsync(review, parameters, operationGeneration, cancellationToken);
         }
 
@@ -242,7 +243,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             var path = review.FilePath;
             _logger?.Debug($"CachingCodeReviewer: Delta cache miss for '{path}', calling inner reviewer.");
-            var delta = await _innerReviewer.DeltaAsync(review, parameters.CurrentCode, parameters.OldRawScore, operationGeneration, cancellationToken);
+            var delta = await _innerReviewer.DeltaAsync(review, parameters.CurrentCode, parameters.OldRawScore, operationGeneration, cancellationToken, parameters.BaselineCommit);
             cancellationToken.ThrowIfCancellationRequested();
 
             var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(_deltaCache.GetAll());
@@ -352,11 +353,12 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private class DeltaComputationParameters
         {
-            public DeltaComputationParameters(string currentCode, string oldCode, string oldRawScore)
+            public DeltaComputationParameters(string currentCode, string oldCode, string oldRawScore, string baselineCommit = null)
             {
                 CurrentCode = currentCode;
                 OldCode = oldCode;
                 OldRawScore = oldRawScore;
+                BaselineCommit = baselineCommit;
             }
 
             public string CurrentCode { get; }
@@ -364,6 +366,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
             public string OldCode { get; }
 
             public string OldRawScore { get; }
+
+            public string BaselineCommit { get; }
         }
     }
 }
