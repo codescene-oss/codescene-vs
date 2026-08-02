@@ -372,7 +372,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task GetOrComputeBaselineRawScoreAsync_WhenBaselineContentEmpty_ReturnsEmptyWithoutCallingExecutor()
+        public async Task GetOrComputeBaselineRawScoreAsync_WhenBaselineContentEmptyAndNoCommit_ReturnsEmptyWithoutCallingExecutor()
         {
             var path = "test.cs";
             var baselineContent = string.Empty;
@@ -381,6 +381,28 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.AreEqual(string.Empty, result);
             _mockExecutor.Verify(x => x.ReviewContentAsync(It.IsAny<string>(), It.Is<string>(s => string.IsNullOrWhiteSpace(s)), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task GetOrComputeBaselineRawScoreAsync_WhenBaselineContentEmptyButCommitProvided_RetrievesFromGit()
+        {
+            var path = "test.cs";
+            var baselineContent = string.Empty;
+            var baselineCommit = "abc123";
+            var gitContent = "public class FromGit { }";
+            var expectedRawScore = "git-raw-score";
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, baselineCommit)).Returns(gitContent);
+            _mockExecutor.Setup(x => x.ReviewContentAsync(path, gitContent, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CliReviewModel { RawScore = expectedRawScore });
+            _mockMapper.Setup(x => x.Map(path, It.IsAny<CliReviewModel>()))
+                .Returns(new FileReviewModel { RawScore = expectedRawScore });
+
+            var result = await _codeReviewer.GetOrComputeBaselineRawScoreAsync(path, baselineContent, baselineCommit: baselineCommit);
+
+            Assert.AreEqual(expectedRawScore, result);
+            _mockGitService.Verify(x => x.GetFileContentForCommit(path, baselineCommit), Times.Once);
+            _mockExecutor.Verify(x => x.ReviewContentAsync(path, gitContent, true, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]

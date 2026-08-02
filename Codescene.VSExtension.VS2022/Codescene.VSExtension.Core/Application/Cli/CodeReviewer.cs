@@ -138,7 +138,16 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            return await GetOrComputeBaselineRawScoreInternalAsync(path, baselineContent, operationGeneration, cancellationToken);
+            var oldCode = !string.IsNullOrEmpty(baselineContent)
+                ? baselineContent
+                : (_git?.GetFileContentForCommit(path, baselineCommit) ?? string.Empty);
+
+            if (string.IsNullOrEmpty(oldCode))
+            {
+                return string.Empty;
+            }
+
+            return await GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, operationGeneration, cancellationToken);
         }
 
         private async Task<string> GetOrComputeBaselineRawScoreInternalAsync(string path, string oldCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
