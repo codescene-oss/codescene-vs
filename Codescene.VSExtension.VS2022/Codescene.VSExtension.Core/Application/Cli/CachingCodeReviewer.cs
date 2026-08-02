@@ -165,9 +165,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             var pendingKey = GetPendingDeltaKey(path, oldCode, currentCode, precomputedBaselineRawScore);
+            var input = new DeltaComputationInput(currentCode, oldCode, precomputedBaselineRawScore, baselineCommit);
             var lazyTask = _pendingDeltas.GetOrAdd(pendingKey, _ =>
                 new Lazy<Task<DeltaResponseModel>>(() =>
-                    ComputeDeltaWithLifecycleAsync(review, currentCode, oldCode, precomputedBaselineRawScore, operationGeneration, CancellationToken.None)));
+                    ComputeDeltaWithLifecycleAsync(review, input, operationGeneration, CancellationToken.None)));
             var pendingTask = lazyTask.Value;
             try
             {
@@ -216,7 +217,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var currentRawScore = review.RawScore ?? string.Empty;
 
             var oldRawScore = input.PrecomputedBaselineRawScore
-                ?? await GetOrComputeBaselineRawScoreAsync(path, input.OldCode, operationGeneration, cancellationToken);
+                ?? await GetOrComputeBaselineRawScoreAsync(path, input.OldCode, operationGeneration, cancellationToken, input.BaselineCommit);
 
             if (oldRawScore == currentRawScore)
             {
@@ -259,9 +260,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private async Task<DeltaResponseModel> ComputeDeltaWithLifecycleAsync(
             FileReviewModel review,
-            string currentCode,
-            string oldCode,
-            string precomputedBaselineRawScore,
+            DeltaComputationInput input,
             long? operationGeneration = null,
             CancellationToken cancellationToken = default)
         {
@@ -271,8 +270,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 try
                 {
-                    var computationParams = new DeltaComputationInput(currentCode, oldCode, precomputedBaselineRawScore);
-                    return await ComputeDeltaInternalAsync(review, computationParams, operationGeneration, cancellationToken);
+                    return await ComputeDeltaInternalAsync(review, input, operationGeneration, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -335,11 +333,12 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private class DeltaComputationInput
         {
-            public DeltaComputationInput(string currentCode, string oldCode, string precomputedBaselineRawScore)
+            public DeltaComputationInput(string currentCode, string oldCode, string precomputedBaselineRawScore, string baselineCommit = null)
             {
                 CurrentCode = currentCode;
                 OldCode = oldCode;
                 PrecomputedBaselineRawScore = precomputedBaselineRawScore;
+                BaselineCommit = baselineCommit;
             }
 
             public string CurrentCode { get; }
@@ -347,6 +346,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
             public string OldCode { get; }
 
             public string PrecomputedBaselineRawScore { get; }
+
+            public string BaselineCommit { get; }
         }
 
         private class DeltaComputationParameters
