@@ -98,7 +98,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<long?>(),
-                It.IsAny<CancellationToken>())).ReturnsAsync(expectedDelta);
+                It.IsAny<CancellationToken>(),
+                It.IsAny<string>())).ReturnsAsync(expectedDelta);
 
             var result = await _cachingReviewer.DeltaAsync(review, currentContent);
 
@@ -143,7 +144,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<long?>(),
-                It.IsAny<CancellationToken>())).ReturnsAsync(expectedDelta);
+                It.IsAny<CancellationToken>(),
+                It.IsAny<string>())).ReturnsAsync(expectedDelta);
 
             var result = await _cachingReviewer.DeltaAsync(review, currentContent);
 
@@ -191,7 +193,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<long?>(),
-                It.IsAny<CancellationToken>())).ReturnsAsync(expectedDelta);
+                It.IsAny<CancellationToken>(),
+                It.IsAny<string>())).ReturnsAsync(expectedDelta);
 
             var result = await cachingReviewerWithoutTelemetry.DeltaAsync(review, currentContent);
 
@@ -234,7 +237,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<long?>(),
-                It.IsAny<CancellationToken>())).ReturnsAsync(expectedDelta);
+                It.IsAny<CancellationToken>(),
+                It.IsAny<string>())).ReturnsAsync(expectedDelta);
 
             var result = await _cachingReviewer.DeltaAsync(review, currentContent);
 
@@ -288,7 +292,8 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<long?>(),
-                It.IsAny<CancellationToken>())).ReturnsAsync(CreateDeltaResponse(0.5m));
+                It.IsAny<CancellationToken>(),
+                It.IsAny<string>())).ReturnsAsync(CreateDeltaResponse(0.5m));
 
             var result1 = await _cachingReviewer.DeltaAsync(review1, currentContent1);
             var result2 = await _cachingReviewer.DeltaAsync(review2, currentContent2);
