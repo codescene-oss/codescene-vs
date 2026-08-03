@@ -71,11 +71,8 @@ public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
         CheckoutBranch("feature/test-suppression2", create: true);
         await WriteWorkingFileAsync(relativePath, FeatureContent);
 
-        using (var repo = new Repository(RepositoryRoot))
-        {
-            var baselineCommit = GitService.GetBaselineCommit(repo);
-            Assert.AreEqual(developCommit, baselineCommit);
-        }
+        var baselineCommit = GitService.GetBaselineCommit(RepositoryRoot);
+        Assert.AreEqual(developCommit, baselineCommit);
 
         var baselineContent = GitService.GetFileContentForCommit(AbsolutePath(relativePath));
         Assert.AreEqual(NormalizeLineEndings(DevelopContent), NormalizeLineEndings(baselineContent));

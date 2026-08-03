@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 {
     public partial class GitChangeObserverCore
     {
-        private async Task ProcessDetectedFileQueueAsync(string filePath, CancellationToken token)
+        private async Task ProcessDetectedFileQueueAsync(string filePath, CancellationToken token, string baselineCommit)
         {
             var currentRequest = filePath;
             while (true)
@@ -23,7 +23,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: GitChangeLister detected 1 file");
 #endif
-                    await ProcessFilesAsync(new[] { currentRequest }, token);
+                    await ProcessFilesAsync(new[] { currentRequest }, token, baselineCommit);
 #if FEATURE_INITIAL_GIT_OBSERVER
                     _logger?.Info($">>> GitChangeObserverCore: Processed detected files");
 #endif

@@ -44,7 +44,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private IOpenFilesObserver _openFilesObserver;
         private GitChangeDetector _gitChangeDetector;
         private FileChangeHandler _fileChangeHandler;
-        private Func<Task<List<string>>> _getChangedFilesCallback;
+        private Func<string, Task<List<string>>> _getChangedFilesCallback;
         private CodesceneFileWatcher _rulesFileWatcher;
         private CodesceneFileWatcher _configFileWatcher;
         private GitIgnoreWatcher _gitIgnoreWatcher;
@@ -80,7 +80,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         public Timer ScheduledTimer => _eventProcessor?.ScheduledTimer;
 
-        public void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, Func<Task<List<string>>> getChangedFilesCallback = null, IOpenDocumentContentProvider openDocumentContentProvider = null, IReadOnlyCollection<string> watchPaths = null)
+        public void Initialize(string solutionPath, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, Func<string, Task<List<string>>> getChangedFilesCallback = null, IOpenDocumentContentProvider openDocumentContentProvider = null, IReadOnlyCollection<string> watchPaths = null)
         {
             if (savedFilesTracker == null)
             {
@@ -103,7 +103,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             InitializeDefaultBranchGate();
             LogIdentifiedBaselineBranch();
 
-            _eventProcessor = new FileChangeEventProcessor(_logger, _taskScheduler, ProcessEventAsync, _getChangedFilesCallback, ShouldSkipBasedOnDefaultBranch);
+            _eventProcessor = new FileChangeEventProcessor(_logger, _taskScheduler, ProcessEventAsync, _getChangedFilesCallback, ShouldSkipBasedOnDefaultBranch, () => _gitService.GetBaselineCommit(_gitRootPath));
 
 #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeObserverCore: Initialized with solution='{_solutionPath}', gitRoot='{_gitRootPath}', workspace='{_workspacePath}'");
@@ -160,9 +160,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             _taskScheduler.Schedule(ct => StartWatcherAfterInitializationAsync(ct));
         }
 
-        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
+        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string baselineCommit)
         {
-            return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _workspacePaths, _savedFilesTracker, _openFilesObserver);
+            return await _gitChangeDetector.GetChangedFilesVsBaselineAsync(_gitRootPath, _workspacePaths, _savedFilesTracker, _openFilesObserver, baselineCommit);
         }
 
         public void UpdateWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
@@ -409,11 +409,12 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
 
                 var token = cts.Token;
+                var baselineCommit = _gitService.GetBaselineCommit(_gitRootPath);
                 foreach (var path in absolutePaths.Where(path => !string.IsNullOrWhiteSpace(path)))
                 {
                     if (_detectedFilesQueue.TryStart(path, path))
                     {
-                        _taskScheduler.Schedule(async () => await ProcessDetectedFileQueueAsync(path, token));
+                        _taskScheduler.Schedule(async () => await ProcessDetectedFileQueueAsync(path, token, baselineCommit));
                     }
                     else
                     {
@@ -499,7 +500,8 @@ namespace Codescene.VSExtension.Core.Application.Git
                     token.ThrowIfCancellationRequested();
                     var absolutePaths = await _gitChangeLister.CollectFilesFromRepoStateAsync(_gitRootPath, _workspacePaths, token);
                     token.ThrowIfCancellationRequested();
-                    var changedFiles = await _getChangedFilesCallback();
+                    var baselineCommit = _gitService.GetBaselineCommit(_gitRootPath);
+                    var changedFiles = await _getChangedFilesCallback(baselineCommit);
                     token.ThrowIfCancellationRequested();
 
                     // Add all files to tracker unconditionally - this ensures HandleFileDelete works correctly.
@@ -528,7 +530,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             });
         }
 
-        private async Task ProcessFilesAsync(IEnumerable<string> absolutePaths, CancellationToken cancellationToken)
+        private async Task ProcessFilesAsync(IEnumerable<string> absolutePaths, CancellationToken cancellationToken, string baselineCommit)
         {
             if (absolutePaths.Contains("~~cleanup~~"))
             {
@@ -538,7 +540,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             cancellationToken.ThrowIfCancellationRequested();
             var operationGeneration = CacheGeneration.Current;
-            var changedFiles = await _getChangedFilesCallback();
+            var changedFiles = await _getChangedFilesCallback(baselineCommit);
             await RemoveMissingTrackedFilesAsync(changedFiles, cancellationToken);
             foreach (var absolutePath in absolutePaths)
             {
@@ -555,7 +557,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 await ExecutePerFileAsync(
                     absolutePath,
                     cancellationToken,
-                    () => _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles, operationGeneration, cancellationToken));
+                    () => _fileChangeHandler.HandleFileChangeAsync(absolutePath, changedFiles, operationGeneration, cancellationToken, baselineCommit));
             }
         }
 
@@ -649,7 +651,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             return GitPathHelper.IsPathUnderAnyRoot(e.FullPath, _workspacePaths);
         }
 
-        private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        private async Task ProcessEventAsync(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken cancellationToken, string baselineCommit)
         {
             if (evt.Type == FileChangeType.Delete)
             {
@@ -660,7 +662,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             await ExecutePerFileAsync(
                 evt.FilePath,
                 cancellationToken,
-                () => _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles, operationGeneration, cancellationToken));
+                () => _fileChangeHandler.HandleFileChangeAsync(evt.FilePath, changedFiles, operationGeneration, cancellationToken, baselineCommit));
         }
     }
 }

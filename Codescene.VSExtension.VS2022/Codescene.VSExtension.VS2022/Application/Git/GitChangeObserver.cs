@@ -80,7 +80,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                 InitializeCore();
             }
 
-            _core.Initialize(solutionPath, savedFilesTracker, openFilesObserver, async () => await GetChangedFilesVsBaselineAsync(), _openDocumentContentProvider, workspacePaths);
+            _core.Initialize(solutionPath, savedFilesTracker, openFilesObserver, async (baselineCommit) => await GetChangedFilesVsBaselineAsync(baselineCommit), _openDocumentContentProvider, workspacePaths);
         }
 
         public void UpdateWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
@@ -98,7 +98,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             _core?.CancelAndReset();
         }
 
-        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync()
+        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string baselineCommit = null)
         {
             var core = _core;
             if (core == null)
@@ -106,7 +106,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                 return new List<string>();
             }
 
-            return await core.GetChangedFilesVsBaselineAsync();
+            return await core.GetChangedFilesVsBaselineAsync(baselineCommit);
         }
 
         public void RemoveFromTracker(string filePath)

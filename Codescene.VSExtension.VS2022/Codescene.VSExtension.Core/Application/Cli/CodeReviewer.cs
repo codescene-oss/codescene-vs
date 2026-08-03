@@ -60,9 +60,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return _mapper.Map(path, review);
         }
 
-        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            var oldCode = _git.GetFileContentForCommit(path) ?? string.Empty;
+            var oldCode = _git.GetFileContentForCommit(path, baselineCommit) ?? string.Empty;
             var reviewTask = ReviewAsync(path, currentCode, false, operationGeneration, cancellationToken);
             var baselineTask = GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, operationGeneration, cancellationToken);
             await Task.WhenAll(reviewTask, baselineTask).ConfigureAwait(false);
@@ -71,19 +71,19 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return (review, baselineRawScore);
         }
 
-        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
             if (review?.RawScore == null)
             {
                 return (review, null);
             }
 
-            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
+            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
             return (review, delta);
         }
 
-        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
             var path = review.FilePath;
             var currentRawScore = review.RawScore ?? string.Empty;
@@ -96,7 +96,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             try
             {
-                var oldCode = _git.GetFileContentForCommit(path);
+                var oldCode = _git.GetFileContentForCommit(path, baselineCommit);
                 var oldRawScore = precomputedBaselineRawScore ?? await GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, operationGeneration, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -136,9 +136,18 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
         }
 
-        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            return await GetOrComputeBaselineRawScoreInternalAsync(path, baselineContent, operationGeneration, cancellationToken);
+            var oldCode = !string.IsNullOrEmpty(baselineContent)
+                ? baselineContent
+                : (_git?.GetFileContentForCommit(path, baselineCommit) ?? string.Empty);
+
+            if (string.IsNullOrEmpty(oldCode))
+            {
+                return string.Empty;
+            }
+
+            return await GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, operationGeneration, cancellationToken);
         }
 
         private async Task<string> GetOrComputeBaselineRawScoreInternalAsync(string path, string oldCode, long? operationGeneration = null, CancellationToken cancellationToken = default)

@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "rawscore123",
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(content);
 
             var result = await _cachingReviewer.DeltaAsync(review, content);
 
@@ -78,7 +78,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "raw456",
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(content);
 
             await _cachingReviewer.DeltaAsync(review, content);
 
@@ -97,11 +97,11 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "score789",
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(content);
 
             await _cachingReviewer.DeltaAsync(review, content);
 
-            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
@@ -116,7 +116,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "raw999",
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(content);
 
             await _cachingReviewer.DeltaAsync(review, content);
 
@@ -140,7 +140,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                     RawScore = "raw999",
                 };
                 _deltaCacheService.Put(new DeltaCacheEntry(filePath, content, baselineContent, new DeltaResponseModel()));
-                _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(content);
+                _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(content);
 
                 await _cachingReviewer.DeltaAsync(review, content);
 
@@ -169,13 +169,13 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                 RawScore = "empty123",
             };
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath)).Returns(string.Empty);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(filePath, It.IsAny<string>())).Returns(string.Empty);
 
             var result = await _cachingReviewer.DeltaAsync(review, content);
 
             Assert.IsNull(result);
             _mockLogger.Verify(l => l.Debug(It.Is<string>(msg => msg.Contains("Delta analysis skipped") && msg.Contains("content unchanged"))), Times.Once);
-            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Never);
+            _mockInnerReviewer.Verify(r => r.DeltaAsync(It.IsAny<FileReviewModel>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()), Times.Never);
         }
     }
 }

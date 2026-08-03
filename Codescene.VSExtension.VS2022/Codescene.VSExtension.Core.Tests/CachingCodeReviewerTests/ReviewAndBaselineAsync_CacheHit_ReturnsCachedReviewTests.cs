@@ -56,7 +56,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             _reviewCacheService.Put(new ReviewCacheEntry(currentCode, path.ToLowerInvariant(), cachedReview));
             _baselineCacheService.Put(path, baselineCode, cachedBaselineRawScore);
-            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(baselineCode);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path, It.IsAny<string>())).Returns(baselineCode);
 
             var result = await _cachingReviewer.ReviewAndBaselineAsync(path, currentCode);
 

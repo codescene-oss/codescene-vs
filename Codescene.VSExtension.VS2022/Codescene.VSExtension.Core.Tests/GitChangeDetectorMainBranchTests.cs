@@ -270,7 +270,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath,
                 new[] { _testRepoPath },
                 _fakeSavedFilesTracker,
-                _fakeOpenFilesObserver);
+                _fakeOpenFilesObserver,
+                string.Empty);
 
             Assert.Contains(
                 "test.cs",

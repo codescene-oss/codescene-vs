@@ -47,35 +47,25 @@ public class GitService : IGitService, IDisposable
     /// - If on a main branch: returns HEAD commit (compare against current committed state)
     /// - If on a feature branch: returns merge-base with main branch.
     /// </summary>
-    public string GetBaselineCommit(Repository repository)
+    public string GetBaselineCommit(string repoRootPath)
     {
+        if (string.IsNullOrEmpty(repoRootPath))
+        {
+            return string.Empty;
+        }
+
         try
         {
-            var currentBranchName = repository.Head?.FriendlyName;
-            if (string.IsNullOrEmpty(currentBranchName))
+            var repoPath = Repository.Discover(repoRootPath);
+            if (string.IsNullOrEmpty(repoPath))
             {
-                _logger.Warn("Could not determine current branch name.");
                 return string.Empty;
             }
 
-            // If on main branch, use HEAD commit as baseline
-            if (MainBranchNames.IsMainBranch(repository, currentBranchName))
+            using (var repo = new Repository(repoPath))
             {
-                var headCommit = repository.Head?.Tip?.Sha ?? string.Empty;
-                _logger.Debug($"On main branch '{currentBranchName}', using HEAD as baseline: {headCommit}");
-                return headCommit;
+                return GetBaselineCommitFromRepo(repo);
             }
-
-            // On feature branch, try to find merge-base with main
-            var mergeBase = MainBranchMergeBaseSelector.FindClosest(repository, _logger);
-            if (mergeBase != null)
-            {
-                _logger.Debug($"Using merge-base with main as baseline: {mergeBase.Sha}");
-                return mergeBase.Sha;
-            }
-
-            // Fallback: try reflog-based approach
-            return GetBranchCreationCommitFromReflog(repository);
         }
         catch (Exception e)
         {
@@ -86,6 +76,11 @@ public class GitService : IGitService, IDisposable
 
     public string GetFileContentForCommit(string path)
     {
+        return GetFileContentForCommit(path, null);
+    }
+
+    public string GetFileContentForCommit(string path, string baselineCommit)
+    {
         try
         {
             var repoPath = Repository.Discover(path);
@@ -95,34 +90,36 @@ public class GitService : IGitService, IDisposable
                 return string.Empty;
             }
 
-            using var repo = new Repository(repoPath);
-            var commitHash = GetBaselineCommit(repo);
-
-            if (string.IsNullOrEmpty(commitHash))
+            using (var repo = new Repository(repoPath))
             {
-                _logger.Debug("No baseline commit found, skipping file content retrieval.");
-                return string.Empty;
+                var commitHash = string.IsNullOrEmpty(baselineCommit) ? GetBaselineCommitFromRepo(repo) : baselineCommit;
+
+                if (string.IsNullOrEmpty(commitHash))
+                {
+                    _logger.Debug("No baseline commit found, skipping file content retrieval.");
+                    return string.Empty;
+                }
+
+                var repoRoot = repo.Info.WorkingDirectory;
+                var relativePath = GetRelativePath(repoRoot, path).Replace("\\", "/");
+
+                var commit = repo.Lookup<Commit>(commitHash);
+                if (commit == null)
+                {
+                    _logger.Warn($"Could not find commit {commitHash}");
+                    return string.Empty;
+                }
+
+                var entry = commit[relativePath];
+                if (entry == null)
+                {
+                    _logger.Debug($"File {relativePath} not found in commit {commitHash}");
+                    return string.Empty;
+                }
+
+                var blob = (Blob)entry.Target;
+                return blob.GetContentText();
             }
-
-            var repoRoot = repo.Info.WorkingDirectory;
-            var relativePath = GetRelativePath(repoRoot, path).Replace("\\", "/");
-
-            var commit = repo.Lookup<Commit>(commitHash);
-            if (commit == null)
-            {
-                _logger.Warn($"Could not find commit {commitHash}");
-                return string.Empty;
-            }
-
-            var entry = commit[relativePath];
-            if (entry == null)
-            {
-                _logger.Debug($"File {relativePath} not found in commit {commitHash}");
-                return string.Empty;
-            }
-
-            var blob = (Blob)entry.Target;
-            return blob.GetContentText();
         }
         catch (Exception e)
         {
@@ -194,6 +191,43 @@ public class GitService : IGitService, IDisposable
         }
 
         return path;
+    }
+
+    private string GetBaselineCommitFromRepo(Repository repository)
+    {
+        try
+        {
+            var currentBranchName = repository.Head?.FriendlyName;
+            if (string.IsNullOrEmpty(currentBranchName))
+            {
+                _logger.Warn("Could not determine current branch name.");
+                return string.Empty;
+            }
+
+            // If on main branch, use HEAD commit as baseline
+            if (MainBranchNames.IsMainBranch(repository, currentBranchName))
+            {
+                var headCommit = repository.Head?.Tip?.Sha ?? string.Empty;
+                _logger.Debug($"On main branch '{currentBranchName}', using HEAD as baseline: {headCommit}");
+                return headCommit;
+            }
+
+            // On feature branch, try to find merge-base with main
+            var mergeBase = MainBranchMergeBaseSelector.FindClosest(repository, _logger);
+            if (mergeBase != null)
+            {
+                _logger.Debug($"Using merge-base with main as baseline: {mergeBase.Sha}");
+                return mergeBase.Sha;
+            }
+
+            // Fallback: try reflog-based approach
+            return GetBranchCreationCommitFromReflog(repository);
+        }
+        catch (Exception e)
+        {
+            _logger.Error("Could not get baseline commit.", e);
+            return string.Empty;
+        }
     }
 
     private string GetBranchCreationCommitFromReflog(Repository repository)

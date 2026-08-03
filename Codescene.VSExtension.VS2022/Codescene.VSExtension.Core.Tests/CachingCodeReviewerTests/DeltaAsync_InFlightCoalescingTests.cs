@@ -44,9 +44,9 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var entered = new TaskCompletionSource<bool>();
             var gate = new TaskCompletionSource<bool>();
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
             _mockInnerReviewer
-                .Setup(r => r.DeltaAsync(review, currentCode, precomputedBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.DeltaAsync(review, currentCode, precomputedBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
                 .Returns(async () =>
                 {
                     entered.TrySetResult(true);
@@ -59,7 +59,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
 
             await entered.Task;
             _mockInnerReviewer.Verify(
-                r => r.DeltaAsync(review, currentCode, precomputedBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
+                r => r.DeltaAsync(review, currentCode, precomputedBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()),
                 Times.Once);
 
             gate.TrySetResult(true);
@@ -69,7 +69,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             Assert.AreEqual(expectedDelta, firstResult);
             Assert.AreEqual(expectedDelta, secondResult);
             _mockInnerReviewer.Verify(
-                r => r.DeltaAsync(review, currentCode, precomputedBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
+                r => r.DeltaAsync(review, currentCode, precomputedBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()),
                 Times.Once);
         }
 
@@ -86,9 +86,9 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var secondEntered = new TaskCompletionSource<bool>();
             var gate = new TaskCompletionSource<bool>();
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
             _mockInnerReviewer
-                .Setup(r => r.DeltaAsync(review, currentCode, firstBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.DeltaAsync(review, currentCode, firstBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
                 .Returns(async () =>
                 {
                     firstEntered.TrySetResult(true);
@@ -96,7 +96,7 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
                     return new DeltaResponseModel();
                 });
             _mockInnerReviewer
-                .Setup(r => r.DeltaAsync(review, currentCode, secondBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.DeltaAsync(review, currentCode, secondBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
                 .Returns(async () =>
                 {
                     secondEntered.TrySetResult(true);
@@ -110,10 +110,10 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             await Task.WhenAll(firstEntered.Task, secondEntered.Task);
 
             _mockInnerReviewer.Verify(
-                r => r.DeltaAsync(review, currentCode, firstBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
+                r => r.DeltaAsync(review, currentCode, firstBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()),
                 Times.Once);
             _mockInnerReviewer.Verify(
-                r => r.DeltaAsync(review, currentCode, secondBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()),
+                r => r.DeltaAsync(review, currentCode, secondBaselineRawScore, It.IsAny<long?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()),
                 Times.Once);
 
             gate.TrySetResult(true);

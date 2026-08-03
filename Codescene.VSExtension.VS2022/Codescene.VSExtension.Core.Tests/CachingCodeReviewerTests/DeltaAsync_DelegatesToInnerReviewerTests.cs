@@ -42,16 +42,16 @@ namespace Codescene.VSExtension.Core.Tests.CachingCodeReviewerTests
             var precomputedScore = "baseline123";
             var expectedDelta = new DeltaResponseModel();
 
-            _mockGitService.Setup(g => g.GetFileContentForCommit(path)).Returns(oldCode);
+            _mockGitService.Setup(g => g.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
 
             _mockInnerReviewer
-                .Setup(r => r.DeltaAsync(review, currentCode, precomputedScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()))
+                .Setup(r => r.DeltaAsync(review, currentCode, precomputedScore, It.IsAny<long?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
                 .ReturnsAsync(expectedDelta);
 
             var result = await _cachingReviewer.DeltaAsync(review, currentCode, precomputedScore);
 
             Assert.AreEqual(expectedDelta, result);
-            _mockInnerReviewer.Verify(r => r.DeltaAsync(review, currentCode, precomputedScore, It.IsAny<long?>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockInnerReviewer.Verify(r => r.DeltaAsync(review, currentCode, precomputedScore, It.IsAny<long?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()), Times.Once);
         }
     }
 }

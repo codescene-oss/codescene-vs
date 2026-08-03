@@ -103,10 +103,10 @@ public sealed class RecordingGitChangeObserverCore : GitChangeObserverCore
         _journal = journal;
     }
 
-    public override async Task<List<string>> GetChangedFilesVsBaselineAsync()
+    public override async Task<List<string>> GetChangedFilesVsBaselineAsync(string baselineCommit)
     {
         _journal.Record("observer.changed-files.started");
-        var files = await base.GetChangedFilesVsBaselineAsync();
+        var files = await base.GetChangedFilesVsBaselineAsync(baselineCommit);
         _journal.Record("observer.changed-files.completed", detail: $"count={files.Count}");
         return files;
     }

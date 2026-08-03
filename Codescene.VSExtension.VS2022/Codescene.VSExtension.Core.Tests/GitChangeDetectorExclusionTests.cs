@@ -24,7 +24,7 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeSavedFilesTracker.AddSavedFile(testFilePath);
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             var normalizedResult = result.Select(f => f.Replace('/', '\\')).ToList();
             Assert.IsFalse(
@@ -49,7 +49,7 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeOpenFilesObserver.SetActiveDocument(testFilePath);
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             var normalizedResult = result.Select(f => f.Replace('/', '\\')).ToList();
             Assert.IsTrue(
@@ -70,7 +70,7 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeOpenFilesObserver.SetActiveDocument(committedFilePath);
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             var normalizedResult = result.Select(f => f.Replace('/', '\\')).ToList();
             Assert.IsTrue(
@@ -86,7 +86,7 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeSavedFilesTracker.AddSavedFile(excludedPath);
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             var normalizedResult = result.Select(f => f.Replace('/', '\\')).ToList();
             Assert.IsFalse(

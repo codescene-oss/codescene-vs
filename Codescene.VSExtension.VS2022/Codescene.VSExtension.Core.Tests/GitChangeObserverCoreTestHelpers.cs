@@ -219,27 +219,27 @@ namespace Codescene.VSExtension.Core.Tests
             return Task.FromResult(new FileReviewModel { FilePath = path, RawScore = "8.5" });
         }
 
-        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
             var review = await ReviewAsync(path, currentCode, false, operationGeneration, cancellationToken);
-            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken);
+            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, string.Empty, operationGeneration, cancellationToken, baselineCommit);
             return (review, baselineRawScore ?? string.Empty);
         }
 
-        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
-            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
+            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
             return (review, delta);
         }
 
-        public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default) =>
+        public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null) =>
             Task.FromResult("8.0");
 
         public FileReviewModel Review(string path, string content) =>
             ReviewAsync(path, content).GetAwaiter().GetResult();
 
-        public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default) =>
+        public Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null) =>
             Task.FromResult<DeltaResponseModel>(null);
 
         public DeltaResponseModel Delta(FileReviewModel review, string currentCode) =>
@@ -269,7 +269,17 @@ namespace Codescene.VSExtension.Core.Tests
 
     public class FakeGitService : IGitService
     {
+        public string GetBaselineCommit(string repoRootPath)
+        {
+            return string.Empty;
+        }
+
         public string GetFileContentForCommit(string path)
+        {
+            return string.Empty;
+        }
+
+        public string GetFileContentForCommit(string path, string baselineCommit)
         {
             return string.Empty;
         }
@@ -282,11 +292,6 @@ namespace Codescene.VSExtension.Core.Tests
         public HashSet<string> FilterIgnoredFiles(IEnumerable<string> absolutePaths)
         {
             return new HashSet<string>(absolutePaths, StringComparer.OrdinalIgnoreCase);
-        }
-
-        public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
-        {
-            return string.Empty;
         }
 
         public void Dispose()
@@ -303,7 +308,17 @@ namespace Codescene.VSExtension.Core.Tests
             _ignoredPath = ignoredPath;
         }
 
+        public string GetBaselineCommit(string repoRootPath)
+        {
+            return string.Empty;
+        }
+
         public string GetFileContentForCommit(string path)
+        {
+            return string.Empty;
+        }
+
+        public string GetFileContentForCommit(string path, string baselineCommit)
         {
             return string.Empty;
         }
@@ -327,11 +342,6 @@ namespace Codescene.VSExtension.Core.Tests
             return result;
         }
 
-        public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
-        {
-            return string.Empty;
-        }
-
         public void Dispose()
         {
         }
@@ -346,7 +356,17 @@ namespace Codescene.VSExtension.Core.Tests
             _repoPath = repoPath;
         }
 
+        public string GetBaselineCommit(string repoRootPath)
+        {
+            return string.Empty;
+        }
+
         public string GetFileContentForCommit(string path)
+        {
+            return string.Empty;
+        }
+
+        public string GetFileContentForCommit(string path, string baselineCommit)
         {
             return string.Empty;
         }
@@ -390,11 +410,6 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             return result;
-        }
-
-        public string GetBranchCreationCommit(string path, LibGit2Sharp.Repository repository)
-        {
-            return string.Empty;
         }
 
         public void Dispose()
@@ -552,10 +567,10 @@ namespace Codescene.VSExtension.Core.Tests
             GetChangedFilesCallCount = 0;
         }
 
-        public override async Task<List<string>> GetChangedFilesVsBaselineAsync()
+        public override async Task<List<string>> GetChangedFilesVsBaselineAsync(string baselineCommit)
         {
             GetChangedFilesCallCount++;
-            return await base.GetChangedFilesVsBaselineAsync();
+            return await base.GetChangedFilesVsBaselineAsync(baselineCommit);
         }
     }
 }

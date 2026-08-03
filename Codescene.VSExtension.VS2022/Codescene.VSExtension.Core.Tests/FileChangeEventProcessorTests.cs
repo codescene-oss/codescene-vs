@@ -17,7 +17,7 @@ namespace Codescene.VSExtension.Core.Tests
             FileChangeEvent capturedEvt = null;
             List<string> capturedChangedFiles = null;
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processEventInvoked = true;
                 capturedEvt = evt;
@@ -25,7 +25,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string> { "file1.cs" });
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string> { "file1.cs" });
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -58,10 +58,10 @@ namespace Codescene.VSExtension.Core.Tests
                 && entry.Ex != null
                 && entry.Ex.Message.Contains("simulated error");
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct) =>
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit) =>
                 throw new InvalidOperationException("simulated error");
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -84,13 +84,13 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -117,13 +117,13 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -149,13 +149,13 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -181,13 +181,13 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -214,13 +214,13 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processEventInvoked = false;
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processEventInvoked = true;
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var cts = new CancellationTokenSource())
             {
@@ -243,13 +243,13 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processEventInvoked = false;
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processEventInvoked = true;
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -270,7 +270,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             using (var cts = new CancellationTokenSource())
             {
-                Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+                Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
                 {
                     if (evt.FilePath == "first.cs")
                     {
@@ -285,7 +285,7 @@ namespace Codescene.VSExtension.Core.Tests
                     return Task.CompletedTask;
                 }
 
-                Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+                Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
                 using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
                 {
@@ -307,13 +307,13 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(
                 logger,
@@ -347,13 +347,13 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(
                 logger,
@@ -383,13 +383,13 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(
                 logger,
@@ -419,13 +419,13 @@ namespace Codescene.VSExtension.Core.Tests
             var taskScheduler = new FakeAsyncTaskScheduler();
             var processedEvents = new List<FileChangeEvent>();
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(
                 logger,
@@ -456,13 +456,13 @@ namespace Codescene.VSExtension.Core.Tests
             var skipState = false;
             var callbackInvocationCount = 0;
 
-            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct)
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
             {
                 processedEvents.Add(evt);
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(
                 logger,

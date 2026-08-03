@@ -91,29 +91,29 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
         }
 
-        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
             var review = await this.ReviewAsync(path, currentCode, isBaseline: false, operationGeneration, cancellationToken);
-            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, null, operationGeneration, cancellationToken);
+            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, null, operationGeneration, cancellationToken, baselineCommit);
 
             return (review, baselineRawScore ?? string.Empty);
         }
 
-        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken);
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
             if (review?.RawScore == null)
             {
                 return (review, null);
             }
 
-            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken);
+            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
             return (review, delta);
         }
 
-        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            var oldCode = GetBaselineContent(path, baselineContent);
+            var oldCode = GetBaselineContent(path, baselineContent, baselineCommit);
 
             if (string.IsNullOrEmpty(oldCode))
             {
@@ -130,7 +130,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return await ComputeAndCacheBaselineAsync(path, oldCode, operationGeneration, cancellationToken);
         }
 
-        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
             var path = review.FilePath;
 
@@ -140,7 +140,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            var oldCode = _git?.GetFileContentForCommit(path) ?? string.Empty;
+            var oldCode = _git?.GetFileContentForCommit(path, baselineCommit) ?? string.Empty;
 
             if (oldCode == currentCode)
             {
@@ -165,9 +165,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             var pendingKey = GetPendingDeltaKey(path, oldCode, currentCode, precomputedBaselineRawScore);
+            var input = new DeltaComputationInput(currentCode, oldCode, precomputedBaselineRawScore, baselineCommit);
             var lazyTask = _pendingDeltas.GetOrAdd(pendingKey, _ =>
                 new Lazy<Task<DeltaResponseModel>>(() =>
-                    ComputeDeltaWithLifecycleAsync(review, currentCode, oldCode, precomputedBaselineRawScore, operationGeneration, CancellationToken.None)));
+                    ComputeDeltaWithLifecycleAsync(review, input, operationGeneration, CancellationToken.None)));
             var pendingTask = lazyTask.Value;
             try
             {
@@ -181,7 +182,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
         }
 
-        private string GetBaselineContent(string path, string baselineContent)
+        private string GetBaselineContent(string path, string baselineContent, string baselineCommit = null)
         {
             if (!string.IsNullOrEmpty(baselineContent))
             {
@@ -190,7 +191,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (_git != null)
             {
-                return _git.GetFileContentForCommit(path) ?? string.Empty;
+                return _git.GetFileContentForCommit(path, baselineCommit) ?? string.Empty;
             }
 
             return string.Empty;
@@ -216,7 +217,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var currentRawScore = review.RawScore ?? string.Empty;
 
             var oldRawScore = input.PrecomputedBaselineRawScore
-                ?? await GetOrComputeBaselineRawScoreAsync(path, input.OldCode, operationGeneration, cancellationToken);
+                ?? await GetOrComputeBaselineRawScoreAsync(path, input.OldCode, operationGeneration, cancellationToken, input.BaselineCommit);
 
             if (oldRawScore == currentRawScore)
             {
@@ -233,7 +234,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var parameters = new DeltaComputationParameters(
                 currentCode: input.CurrentCode,
                 oldCode: input.OldCode,
-                oldRawScore: oldRawScore);
+                oldRawScore: oldRawScore,
+                baselineCommit: input.BaselineCommit);
             return await ComputeAndCacheDeltaAsync(review, parameters, operationGeneration, cancellationToken);
         }
 
@@ -241,7 +243,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             var path = review.FilePath;
             _logger?.Debug($"CachingCodeReviewer: Delta cache miss for '{path}', calling inner reviewer.");
-            var delta = await _innerReviewer.DeltaAsync(review, parameters.CurrentCode, parameters.OldRawScore, operationGeneration, cancellationToken);
+            var delta = await _innerReviewer.DeltaAsync(review, parameters.CurrentCode, parameters.OldRawScore, operationGeneration, cancellationToken, parameters.BaselineCommit);
             cancellationToken.ThrowIfCancellationRequested();
 
             var cacheSnapshot = new Dictionary<string, DeltaResponseModel>(_deltaCache.GetAll());
@@ -259,9 +261,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private async Task<DeltaResponseModel> ComputeDeltaWithLifecycleAsync(
             FileReviewModel review,
-            string currentCode,
-            string oldCode,
-            string precomputedBaselineRawScore,
+            DeltaComputationInput input,
             long? operationGeneration = null,
             CancellationToken cancellationToken = default)
         {
@@ -271,8 +271,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 try
                 {
-                    var computationParams = new DeltaComputationInput(currentCode, oldCode, precomputedBaselineRawScore);
-                    return await ComputeDeltaInternalAsync(review, computationParams, operationGeneration, cancellationToken);
+                    return await ComputeDeltaInternalAsync(review, input, operationGeneration, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -335,11 +334,12 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private class DeltaComputationInput
         {
-            public DeltaComputationInput(string currentCode, string oldCode, string precomputedBaselineRawScore)
+            public DeltaComputationInput(string currentCode, string oldCode, string precomputedBaselineRawScore, string baselineCommit = null)
             {
                 CurrentCode = currentCode;
                 OldCode = oldCode;
                 PrecomputedBaselineRawScore = precomputedBaselineRawScore;
+                BaselineCommit = baselineCommit;
             }
 
             public string CurrentCode { get; }
@@ -347,15 +347,18 @@ namespace Codescene.VSExtension.Core.Application.Cli
             public string OldCode { get; }
 
             public string PrecomputedBaselineRawScore { get; }
+
+            public string BaselineCommit { get; }
         }
 
         private class DeltaComputationParameters
         {
-            public DeltaComputationParameters(string currentCode, string oldCode, string oldRawScore)
+            public DeltaComputationParameters(string currentCode, string oldCode, string oldRawScore, string baselineCommit = null)
             {
                 CurrentCode = currentCode;
                 OldCode = oldCode;
                 OldRawScore = oldRawScore;
+                BaselineCommit = baselineCommit;
             }
 
             public string CurrentCode { get; }
@@ -363,6 +366,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
             public string OldCode { get; }
 
             public string OldRawScore { get; }
+
+            public string BaselineCommit { get; }
         }
     }
 }

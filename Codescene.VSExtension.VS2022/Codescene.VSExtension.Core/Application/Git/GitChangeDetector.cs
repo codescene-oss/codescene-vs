@@ -57,7 +57,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             ClearNoMergeBaseLogState(gitRootPath);
         }
 
-        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, CancellationToken cancellationToken = default)
+        public virtual async Task<List<string>> GetChangedFilesVsBaselineAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, ISavedFilesTracker savedFilesTracker, IOpenFilesObserver openFilesObserver, string baselineCommit, CancellationToken cancellationToken = default)
         {
             return await Task.Run(
                 () =>
@@ -82,7 +82,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                     using (var repo = new Repository(repoPath))
                     {
                         var context = new ChangeDetectionContext(gitRootPath, effectivePaths, savedFilesTracker, openFilesObserver);
-                        var changedFiles = GetChangedFilesFromRepository(repo, context);
+                        var changedFiles = GetChangedFilesFromRepository(repo, context, baselineCommit);
                         #if FEATURE_INITIAL_GIT_OBSERVER
                         _logger?.Info($">>> GitChangeDetector: Found {changedFiles.Count} changed files vs baseline");
                         #endif
@@ -151,17 +151,27 @@ namespace Codescene.VSExtension.Core.Application.Git
             return candidates;
         }
 
-        protected virtual List<string> GetChangedFilesFromRepository(Repository repo, ChangeDetectionContext context)
+        protected virtual List<string> GetChangedFilesFromRepository(Repository repo, ChangeDetectionContext context, string baselineCommit)
         {
             var currentBranch = repo.Head?.FriendlyName ?? "unknown";
             #if FEATURE_INITIAL_GIT_OBSERVER
             _logger?.Info($">>> GitChangeDetector: Getting changed files from repository on branch '{currentBranch}'");
             #endif
 
-            var (baseCommit, noMergeBaseCandidates) = GetMergeBaseCommit(repo);
+            Commit baseCommit = null;
+            if (!string.IsNullOrEmpty(baselineCommit))
+            {
+                baseCommit = repo.Lookup<Commit>(baselineCommit);
+            }
+
             if (baseCommit == null)
             {
-                LogNoMergeBaseStateOnce(repo, noMergeBaseCandidates);
+                var (computedBase, noMergeBaseCandidates) = GetMergeBaseCommit(repo);
+                baseCommit = computedBase;
+                if (baseCommit == null)
+                {
+                    LogNoMergeBaseStateOnce(repo, noMergeBaseCandidates);
+                }
             }
 
             var filesToExclude = BuildExclusionSet(context.SavedFilesTracker, context.OpenFilesObserver);
@@ -419,7 +429,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private bool ShouldIncludeStatusItem(StatusEntry item, HashSet<string> filesToExclude, string gitRootPath)
         {
-            if (item.State == FileStatus.Unaltered || item.State == FileStatus.Ignored)
+            if (IsUnalteredOrIgnored(item))
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeDetector: File excluded - unaltered or ignored: {item.FilePath}");
@@ -429,12 +439,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             var fullPath = Path.Combine(gitRootPath, item.FilePath);
 
-            if (_gitService.IsFileIgnored(fullPath))
-            {
-                return false;
-            }
-
-            if (filesToExclude.Contains(fullPath))
+            if (IsExcluded(fullPath, filesToExclude))
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeDetector: File excluded - in exclusion set: {item.FilePath}");
@@ -451,6 +456,16 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             return isSupported;
+        }
+
+        private bool IsUnalteredOrIgnored(StatusEntry item)
+        {
+            return item.State == FileStatus.Unaltered || item.State == FileStatus.Ignored;
+        }
+
+        private bool IsExcluded(string fullPath, HashSet<string> filesToExclude)
+        {
+            return _gitService.IsFileIgnored(fullPath) || filesToExclude.Contains(fullPath);
         }
 
         private bool IsFileInAnyWorkspace(string gitRelativePath, string gitRootPath, IReadOnlyCollection<string> workspacePaths)

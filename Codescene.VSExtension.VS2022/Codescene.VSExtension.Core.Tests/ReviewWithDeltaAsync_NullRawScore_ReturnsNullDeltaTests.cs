@@ -47,7 +47,7 @@ namespace Codescene.VSExtension.Core.Tests
             var reviewWithNullRawScore = new FileReviewModel { FilePath = path, RawScore = null, Score = 8.0f };
             var cliReview = new CliReviewModel { RawScore = null };
 
-            _mockGitService.Setup(x => x.GetFileContentForCommit(path)).Returns("old code");
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, It.IsAny<string>())).Returns("old code");
             _mockExecutor.Setup(x => x.ReviewContentAsync("test.cs", content, false, It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
             _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(reviewWithNullRawScore);
 
