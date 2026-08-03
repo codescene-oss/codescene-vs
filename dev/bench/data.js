@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785464315581,
+  "lastUpdate": 1785749530342,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1844,6 +1844,48 @@ window.BENCHMARK_DATA = {
             "value": 59141183.70370371,
             "unit": "ns",
             "range": "± 447291.67213617463"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3299fd859292a9068a7bd09fa46bc8ebaabba85a",
+          "message": "Merge pull request #309 from codescene-oss/cache-baseline-commit\n\nfeat: cache baseline commit to eliminate redundant git merge-base calls",
+          "timestamp": "2026-08-03T11:24:07+02:00",
+          "tree_id": "5fdaa1509a0ad155e112a3f86f03551bf5a4e47f",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/3299fd859292a9068a7bd09fa46bc8ebaabba85a"
+        },
+        "date": 1785749461609,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 120098708.7755102,
+            "unit": "ns",
+            "range": "± 6938428.679377245"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 104105296.47058824,
+            "unit": "ns",
+            "range": "± 2081648.4901062823"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 60720716.85606061,
+            "unit": "ns",
+            "range": "± 2522220.498022843"
           }
         ]
       }
