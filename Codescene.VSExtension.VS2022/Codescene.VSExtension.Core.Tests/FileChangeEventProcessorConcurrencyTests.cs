@@ -238,5 +238,57 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.HasCount(2, processedEvents);
             Assert.AreEqual(2, baselineCommitCallCount, "GetBaselineCommit should be called twice for non-delayed ticks");
         }
+
+        [TestMethod]
+        public async Task ProcessQueuedEvents_WhenGetChangedFilesThrows_ResetsProcessingFlagAndContinues()
+        {
+            var logger = new FakeLogger();
+            var taskScheduler = new FakeAsyncTaskScheduler();
+            var processedEvents = new List<FileChangeEvent>();
+            var shouldThrow = true;
+
+            Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit)
+            {
+                processedEvents.Add(evt);
+                return Task.CompletedTask;
+            }
+
+            Task<List<string>> GetChangedFiles(string baselineCommit)
+            {
+                if (shouldThrow)
+                {
+                    shouldThrow = false;
+                    throw new InvalidOperationException("simulated GetChangedFiles error");
+                }
+
+                return Task.FromResult(new List<string>());
+            }
+
+            using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
+            {
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "first.cs"));
+                processor.Start(TimeSpan.FromMilliseconds(50), CancellationToken.None);
+
+                await Task.Delay(200);
+
+                processor.EnqueueEvent(new FileChangeEvent(FileChangeType.Change, "second.cs"));
+
+                var deadline = DateTime.UtcNow.AddSeconds(5);
+                while (processedEvents.Count < 1 && DateTime.UtcNow < deadline)
+                {
+                    await Task.Delay(20);
+                }
+            }
+
+            Assert.HasCount(1, processedEvents);
+            Assert.AreEqual("second.cs", processedEvents[0].FilePath);
+
+            bool IsExpectedError((string Message, Exception Ex) entry) =>
+                entry.Message.Contains("Error processing queued events")
+                && entry.Ex != null
+                && entry.Ex.Message.Contains("simulated GetChangedFiles error");
+
+            Assert.IsTrue(logger.SnapshotErrorMessages().Any(IsExpectedError), "Expected outer error handler to log 'Error processing queued events'");
+        }
     }
 }
