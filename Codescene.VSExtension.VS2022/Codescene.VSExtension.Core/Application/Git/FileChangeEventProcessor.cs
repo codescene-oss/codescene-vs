@@ -24,6 +24,9 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly IAsyncTaskScheduler _taskScheduler;
         private Timer _scheduledTimer;
         private CancellationToken _cancellationToken;
+        private int _isProcessing;
+        private int _wasDelayed;
+        private string _cachedBaselineCommit;
 
         public FileChangeEventProcessor(
             ILogger logger,
@@ -118,20 +121,32 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private void ProcessQueuedEventsCallback(object state)
         {
+            if (Interlocked.CompareExchange(ref _isProcessing, 1, 0) != 0)
+            {
+                Interlocked.Exchange(ref _wasDelayed, 1);
+                return;
+            }
+
+            var useCache = Interlocked.Exchange(ref _wasDelayed, 0) == 1;
+
             _taskScheduler.Schedule(async () =>
             {
                 try
                 {
-                    await ProcessQueuedEventsAsync();
+                    await ProcessQueuedEventsAsync(useCache);
                 }
                 catch (Exception ex)
                 {
                     _logger?.Error("GitChangeObserver: Error processing queued events", ex);
                 }
+                finally
+                {
+                    Interlocked.Exchange(ref _isProcessing, 0);
+                }
             });
         }
 
-        private async Task ProcessQueuedEventsAsync()
+        private async Task ProcessQueuedEventsAsync(bool useCache = false)
         {
             if (_cancellationToken.IsCancellationRequested)
             {
@@ -161,7 +176,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            var baselineCommit = _getBaselineCommitCallback?.Invoke() ?? string.Empty;
+            var baselineCommit = GetOrCacheBaselineCommit(useCache);
             var changedFiles = await _getChangedFilesCallback(baselineCommit);
 
             if (_cancellationToken.IsCancellationRequested)
@@ -170,6 +185,18 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             ScheduleCoalescedEvents(coalesced, changedFiles, operationGeneration, shouldSkipNonDeletes, baselineCommit);
+        }
+
+        private string GetOrCacheBaselineCommit(bool useCache)
+        {
+            if (useCache && _cachedBaselineCommit != null)
+            {
+                return _cachedBaselineCommit;
+            }
+
+            var baselineCommit = _getBaselineCommitCallback?.Invoke() ?? string.Empty;
+            _cachedBaselineCommit = baselineCommit;
+            return baselineCommit;
         }
 
         private bool ShouldSkipAllEvents(bool shouldSkipNonDeletes, List<FileChangeEvent> coalesced)
