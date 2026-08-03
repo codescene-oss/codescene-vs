@@ -429,7 +429,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private bool ShouldIncludeStatusItem(StatusEntry item, HashSet<string> filesToExclude, string gitRootPath)
         {
-            if (item.State == FileStatus.Unaltered || item.State == FileStatus.Ignored)
+            if (IsUnalteredOrIgnored(item))
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeDetector: File excluded - unaltered or ignored: {item.FilePath}");
@@ -439,12 +439,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             var fullPath = Path.Combine(gitRootPath, item.FilePath);
 
-            if (_gitService.IsFileIgnored(fullPath))
-            {
-                return false;
-            }
-
-            if (filesToExclude.Contains(fullPath))
+            if (IsExcluded(fullPath, filesToExclude))
             {
                 #if FEATURE_INITIAL_GIT_OBSERVER
                 _logger?.Info($">>> GitChangeDetector: File excluded - in exclusion set: {item.FilePath}");
@@ -461,6 +456,16 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             return isSupported;
+        }
+
+        private bool IsUnalteredOrIgnored(StatusEntry item)
+        {
+            return item.State == FileStatus.Unaltered || item.State == FileStatus.Ignored;
+        }
+
+        private bool IsExcluded(string fullPath, HashSet<string> filesToExclude)
+        {
+            return _gitService.IsFileIgnored(fullPath) || filesToExclude.Contains(fullPath);
         }
 
         private bool IsFileInAnyWorkspace(string gitRelativePath, string gitRootPath, IReadOnlyCollection<string> workspacePaths)

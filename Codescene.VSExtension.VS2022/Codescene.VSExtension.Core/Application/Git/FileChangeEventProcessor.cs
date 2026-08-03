@@ -139,7 +139,6 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             var operationGeneration = CacheGeneration.Current;
-
             var events = DrainQueue();
 
             if (events.Count == 0)
@@ -148,10 +147,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             var coalesced = CoalesceByPath(events);
-
-#if FEATURE_INITIAL_GIT_OBSERVER
-            _logger?.Info($">>> GitChangeObserverCore: Processing {coalesced.Count} coalesced file change events (from {events.Count} raw)");
-#endif
+            LogCoalescedEvents(coalesced.Count, events.Count);
 
             if (_cancellationToken.IsCancellationRequested)
             {
@@ -160,9 +156,8 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             var shouldSkipNonDeletes = _shouldSkipNonDeletesCallback?.Invoke() ?? false;
 
-            if (shouldSkipNonDeletes && !HasDeleteEvents(coalesced))
+            if (ShouldSkipAllEvents(shouldSkipNonDeletes, coalesced))
             {
-                _logger?.Debug("FileChangeEventProcessor: Skipping all events - current branch matches default branch and no deletes pending");
                 return;
             }
 
@@ -175,6 +170,24 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             ScheduleCoalescedEvents(coalesced, changedFiles, operationGeneration, shouldSkipNonDeletes, baselineCommit);
+        }
+
+        private bool ShouldSkipAllEvents(bool shouldSkipNonDeletes, List<FileChangeEvent> coalesced)
+        {
+            if (shouldSkipNonDeletes && !HasDeleteEvents(coalesced))
+            {
+                _logger?.Debug("FileChangeEventProcessor: Skipping all events - current branch matches default branch and no deletes pending");
+                return true;
+            }
+
+            return false;
+        }
+
+        private void LogCoalescedEvents(int coalescedCount, int rawCount)
+        {
+#if FEATURE_INITIAL_GIT_OBSERVER
+            _logger?.Info($">>> GitChangeObserverCore: Processing {coalescedCount} coalesced file change events (from {rawCount} raw)");
+#endif
         }
 
         private List<FileChangeEvent> DrainQueue()
