@@ -187,7 +187,7 @@ namespace Codescene.VSExtension.Core.Tests
 
         protected async Task TriggerFileChangeAsync(string filePath)
         {
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             await _gitChangeObserverCore.HandleFileChangeForTestingAsync(filePath, changedFiles);
         }
 

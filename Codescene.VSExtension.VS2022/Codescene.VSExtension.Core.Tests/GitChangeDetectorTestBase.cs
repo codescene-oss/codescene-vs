@@ -409,14 +409,14 @@ namespace Codescene.VSExtension.Core.Tests
                 return base.GetMergeBaseCommit(repo);
             }
 
-            protected override List<string> GetChangedFilesFromRepository(Repository repo, ChangeDetectionContext context)
+            protected override List<string> GetChangedFilesFromRepository(Repository repo, ChangeDetectionContext context, string baselineCommit)
             {
                 if (ThrowInGetChangedFilesFromRepository)
                 {
                     throw new LibGit2SharpException("Simulated LibGit2Sharp exception");
                 }
 
-                return base.GetChangedFilesFromRepository(repo, context);
+                return base.GetChangedFilesFromRepository(repo, context, baselineCommit);
             }
 
             protected override Commit? TryFindMergeBase(Repository repo, Branch currentBranch, string candidateName)

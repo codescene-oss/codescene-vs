@@ -567,10 +567,10 @@ namespace Codescene.VSExtension.Core.Tests
             GetChangedFilesCallCount = 0;
         }
 
-        public override async Task<List<string>> GetChangedFilesVsBaselineAsync()
+        public override async Task<List<string>> GetChangedFilesVsBaselineAsync(string baselineCommit)
         {
             GetChangedFilesCallCount++;
-            return await base.GetChangedFilesVsBaselineAsync();
+            return await base.GetChangedFilesVsBaselineAsync(baselineCommit);
         }
     }
 }

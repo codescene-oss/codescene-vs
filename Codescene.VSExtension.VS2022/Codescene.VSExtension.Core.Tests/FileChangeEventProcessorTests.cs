@@ -25,7 +25,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string> { "file1.cs" });
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string> { "file1.cs" });
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -61,7 +61,7 @@ namespace Codescene.VSExtension.Core.Tests
             Task ProcessEvent(FileChangeEvent evt, List<string> changedFiles, long? operationGeneration, CancellationToken ct, string baselineCommit) =>
                 throw new InvalidOperationException("simulated error");
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -90,7 +90,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -123,7 +123,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -155,7 +155,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -187,7 +187,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -220,7 +220,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var cts = new CancellationTokenSource())
             {
@@ -249,7 +249,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
             {
@@ -285,7 +285,7 @@ namespace Codescene.VSExtension.Core.Tests
                     return Task.CompletedTask;
                 }
 
-                Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+                Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
                 using (var processor = new FileChangeEventProcessor(logger, taskScheduler, ProcessEvent, GetChangedFiles))
                 {
@@ -313,7 +313,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(
                 logger,
@@ -353,7 +353,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(
                 logger,
@@ -389,7 +389,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(
                 logger,
@@ -425,7 +425,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(
                 logger,
@@ -462,7 +462,7 @@ namespace Codescene.VSExtension.Core.Tests
                 return Task.CompletedTask;
             }
 
-            Task<List<string>> GetChangedFiles() => Task.FromResult(new List<string>());
+            Task<List<string>> GetChangedFiles(string baselineCommit) => Task.FromResult(new List<string>());
 
             using (var processor = new FileChangeEventProcessor(
                 logger,

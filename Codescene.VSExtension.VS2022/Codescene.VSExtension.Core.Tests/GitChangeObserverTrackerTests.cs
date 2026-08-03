@@ -41,7 +41,7 @@ namespace Codescene.VSExtension.Core.Tests
             AssertFileInTracker(newFile);
 
             File.Delete(newFile);
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
 
             await _gitChangeObserverCore.HandleFileDeleteForTestingAsync(newFile, changedFiles);
 
@@ -61,7 +61,7 @@ namespace Codescene.VSExtension.Core.Tests
             AssertFileInTracker(newFile);
 
             File.Delete(newFile);
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
 
             await _gitChangeObserverCore.HandleFileDeleteForTestingAsync(newFile, changedFiles);
 
@@ -86,7 +86,7 @@ namespace Codescene.VSExtension.Core.Tests
             AssertFileInTracker(file2);
 
             Directory.Delete(subDir, true);
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
 
             await _gitChangeObserverCore.HandleFileDeleteForTestingAsync(subDir, changedFiles);
 
@@ -113,7 +113,7 @@ namespace Codescene.VSExtension.Core.Tests
             _gitChangeObserverCore.ViewUpdateRequested += (sender, e) => eventRaised = true;
 
             File.Delete(testFile);
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             CollectionAssert.AreEqual(new List<string>(), changedFiles, "Changed list should be empty after git stash");
 
             await _gitChangeObserverCore.HandleFileDeleteForTestingAsync(testFile, changedFiles);

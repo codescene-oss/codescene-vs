@@ -18,7 +18,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly SemaphoreSlim _concurrencySemaphore;
         private readonly ILogger _logger;
         private readonly Func<FileChangeEvent, List<string>, long?, CancellationToken, string, Task> _processEventCallback;
-        private readonly Func<Task<List<string>>> _getChangedFilesCallback;
+        private readonly Func<string, Task<List<string>>> _getChangedFilesCallback;
         private readonly Func<bool> _shouldSkipNonDeletesCallback;
         private readonly Func<string> _getBaselineCommitCallback;
         private readonly IAsyncTaskScheduler _taskScheduler;
@@ -29,7 +29,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             ILogger logger,
             IAsyncTaskScheduler taskScheduler,
             Func<FileChangeEvent, List<string>, long?, CancellationToken, string, Task> processEventCallback,
-            Func<Task<List<string>>> getChangedFilesCallback,
+            Func<string, Task<List<string>>> getChangedFilesCallback,
             Func<bool> shouldSkipNonDeletesCallback = null,
             Func<string> getBaselineCommitCallback = null)
         {
@@ -166,8 +166,8 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
-            var changedFiles = await _getChangedFilesCallback();
-            var baselineCommit = _getBaselineCommitCallback?.Invoke();
+            var baselineCommit = _getBaselineCommitCallback?.Invoke() ?? string.Empty;
+            var changedFiles = await _getChangedFilesCallback(baselineCommit);
 
             if (_cancellationToken.IsCancellationRequested)
             {

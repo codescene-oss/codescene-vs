@@ -13,7 +13,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetChangedFilesVsBaseline_ReturnsEmptyArray_ForCleanRepository()
         {
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
 
             Assert.IsEmpty(changedFiles, "Should return empty list for clean repository");
         }
@@ -23,7 +23,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             CreateFile("test.ts", "console.log(\"test\");");
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
 
             AssertFileInChangedList(changedFiles, "test.ts");
         }
@@ -34,7 +34,7 @@ namespace Codescene.VSExtension.Core.Tests
             var testFile = CommitFile("index.js", "console.log(\"hello\");", "Add index.js");
             File.WriteAllText(testFile, "console.log(\"modified\");");
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
 
             AssertFileInChangedList(changedFiles, "index.js");
         }
@@ -49,7 +49,7 @@ namespace Codescene.VSExtension.Core.Tests
                 LibGit2Sharp.Commands.Stage(repo, "script.py");
             }
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
 
             AssertFileInChangedList(changedFiles, "script.py");
         }
@@ -66,7 +66,7 @@ namespace Codescene.VSExtension.Core.Tests
             CommitFile("committed.ts", "export const foo = 1;", "Add committed.ts");
             CreateFile("uncommitted.ts", "export const bar = 2;");
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
 
             AssertFileInChangedList(changedFiles, "committed.ts");
             AssertFileInChangedList(changedFiles, "uncommitted.ts");
@@ -80,7 +80,7 @@ namespace Codescene.VSExtension.Core.Tests
             var filePath = CreateFile(filename, content);
             _fakeSupportedFileChecker.SetSupported(filePath, expectedResult);
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             var result = _gitChangeObserverCore.ShouldProcessFileForTesting(filePath, changedFiles);
 
             Assert.AreEqual(
@@ -95,7 +95,7 @@ namespace Codescene.VSExtension.Core.Tests
             var changedFile = CreateFile("changed.ts", "export const x = 1;");
             var committedFile = CommitFile("committed.js", "console.log(\"committed\");", "Add committed.js");
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, "changed.ts");
             AssertFileInChangedList(changedFiles, "committed.js", false);
 
@@ -112,7 +112,7 @@ namespace Codescene.VSExtension.Core.Tests
             CreateFile("my file.ts", "console.log(\"has spaces\");");
             CreateFile("test file with spaces.js", "console.log(\"also has spaces\");");
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             var fileNames = changedFiles.Select(f => Path.GetFileName(f)).ToList();
 
             Assert.Contains("my file.ts", fileNames, "Should include file with spaces: my file.ts");
@@ -297,7 +297,7 @@ namespace Codescene.VSExtension.Core.Tests
                 _fakeTaskScheduler,
                 _fakeGitChangeLister,
                 _fakeGitService);
-            _gitChangeObserverCore.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, getChangedFilesCallback: () => Task.FromException<List<string>>(new InvalidOperationException("simulated")));
+            _gitChangeObserverCore.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, getChangedFilesCallback: (_) => Task.FromException<List<string>>(new InvalidOperationException("simulated")));
             _fakeLogger.ClearErrorMessages();
             _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { Path.Combine(_testRepoPath, "x.cs") });
             Assert.IsTrue(
@@ -388,7 +388,7 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath,
                 _fakeSavedFilesTracker,
                 _fakeOpenFilesObserver,
-                getChangedFilesCallback: () => Task.FromCanceled<List<string>>(new CancellationToken(canceled: true)));
+                getChangedFilesCallback: (_) => Task.FromCanceled<List<string>>(new CancellationToken(canceled: true)));
             _fakeLogger.ClearErrorMessages();
 
             var method = typeof(GitChangeObserverCore).GetMethod("ProcessDetectedFileQueueAsync", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -419,7 +419,7 @@ namespace Codescene.VSExtension.Core.Tests
                 _testRepoPath,
                 _fakeSavedFilesTracker,
                 _fakeOpenFilesObserver,
-                getChangedFilesCallback: () =>
+                getChangedFilesCallback: (_) =>
                 {
                     if (Interlocked.Increment(ref getChangedFilesCallCount) == 1)
                     {

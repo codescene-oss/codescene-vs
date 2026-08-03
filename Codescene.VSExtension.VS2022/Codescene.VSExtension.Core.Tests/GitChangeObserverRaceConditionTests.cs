@@ -34,7 +34,7 @@ namespace Codescene.VSExtension.Core.Tests
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, null);
 
             var testFile = CreateFile("test.cs", "public class Test {}");
-            var changedFiles = await observer.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await observer.GetChangedFilesVsBaselineAsync(string.Empty);
 
             await observer.HandleFileChangeForTestingAsync(testFile, changedFiles);
 
@@ -61,7 +61,7 @@ namespace Codescene.VSExtension.Core.Tests
             observer.Initialize(_testRepoPath, _fakeSavedFilesTracker, _fakeOpenFilesObserver, null);
 
             var testFile = CreateFile("test.cs", "public class Test {}");
-            var changedFiles = await observer.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await observer.GetChangedFilesVsBaselineAsync(string.Empty);
 
             var changeTask = Task.Run(async () =>
                 await observer.HandleFileChangeForTestingAsync(testFile, changedFiles));

@@ -51,9 +51,9 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeLogger.ClearDebugMessages();
 
             await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
             await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             var noMergeBaseLogs = _fakeLogger.SnapshotDebugMessages()
                 .Count(m => m.Contains("No merge base commit found, using working directory changes only"));
@@ -87,14 +87,14 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeLogger.ClearDebugMessages();
 
             await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
             await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             _detector.ClearMainBranchCandidatesCache();
 
             await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             var noMergeBaseLogs = _fakeLogger.SnapshotDebugMessages()
                 .Count(m => m.Contains("No merge base commit found, using working directory changes only"));
@@ -114,7 +114,7 @@ namespace Codescene.VSExtension.Core.Tests
             CommitFile("feature.cs", "public class Feature {}", "Add feature");
 
             var changedFiles = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsTrue(
                 changedFiles.Any(f => f.EndsWith("feature.cs")),
@@ -155,7 +155,7 @@ namespace Codescene.VSExtension.Core.Tests
             CommitFile("feature.cs", "public class Feature {}", "Add feature");
 
             var changedFiles = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsTrue(
                 changedFiles.Any(f => f.EndsWith("feature.cs")),
@@ -177,7 +177,7 @@ namespace Codescene.VSExtension.Core.Tests
             File.WriteAllText(filePath, "public class Detached {}");
 
             var changedFiles = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsNotNull(
                 changedFiles,
@@ -191,7 +191,7 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task GetChangedFilesVsBaselineAsync_NullGitRootPath_ReturnsEmptyList()
         {
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                null, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                null, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsNotNull(result);
             Assert.IsEmpty(result);
@@ -201,7 +201,7 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task GetChangedFilesVsBaselineAsync_EmptyGitRootPath_ReturnsEmptyList()
         {
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                string.Empty, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                string.Empty, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsNotNull(result);
             Assert.IsEmpty(result);
@@ -213,7 +213,7 @@ namespace Codescene.VSExtension.Core.Tests
             var nonExistentPath = Path.Combine(Path.GetTempPath(), $"nonexistent-{Guid.NewGuid()}");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                nonExistentPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                nonExistentPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsNotNull(result);
             Assert.IsEmpty(result);
@@ -228,7 +228,7 @@ namespace Codescene.VSExtension.Core.Tests
             try
             {
                 var result = await _detector.GetChangedFilesVsBaselineAsync(
-                    tempDir, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                    tempDir, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
                 Assert.IsNotNull(result);
                 Assert.IsEmpty(result);
@@ -261,7 +261,7 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsNotNull(result);
             Assert.IsEmpty(result);
@@ -273,7 +273,7 @@ namespace Codescene.VSExtension.Core.Tests
             CommitFile("test.cs", "public class Test {}", "Add test file");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, null, _fakeOpenFilesObserver);
+                _testRepoPath, null, null, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsNotNull(result);
         }
@@ -284,7 +284,7 @@ namespace Codescene.VSExtension.Core.Tests
             CommitFile("test.cs", "public class Test {}", "Add test file");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, null);
+                _testRepoPath, null, _fakeSavedFilesTracker, null, string.Empty);
 
             Assert.IsNotNull(result);
         }
@@ -319,7 +319,7 @@ namespace Codescene.VSExtension.Core.Tests
             File.WriteAllText(testFilePath, "public class NewFile {}");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsNotNull(result);
             Assert.IsTrue(
@@ -340,7 +340,7 @@ namespace Codescene.VSExtension.Core.Tests
             CommitFile("test.cs", "public class Test {}", "Add cs file");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsTrue(
                 result.Any(f => f.EndsWith("test.cs")),
@@ -364,7 +364,7 @@ namespace Codescene.VSExtension.Core.Tests
             CommitFile("file3.py", "def test():\n    pass", "Add file3");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsTrue(result.Any(f => f.EndsWith("file1.cs")));
             Assert.IsTrue(result.Any(f => f.EndsWith("file2.js")));
@@ -378,7 +378,7 @@ namespace Codescene.VSExtension.Core.Tests
             File.WriteAllText(testFilePath, "public class NewFile {}");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsNotNull(result);
             Assert.IsTrue(
@@ -400,7 +400,7 @@ namespace Codescene.VSExtension.Core.Tests
             File.WriteAllText(testFilePath, "public class Test { /* modified */ }");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             var testFileCount = result.Count(f => f.EndsWith("test.cs"));
             Assert.AreEqual(1, testFileCount, "Should deduplicate files that appear in both committed and status changes");
@@ -435,7 +435,7 @@ namespace Codescene.VSExtension.Core.Tests
             File.WriteAllText(newFile, "public class Test {}");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsNotEmpty(result, "Should detect working directory changes");
             Assert.IsTrue(result.Any(f => f.Contains("test.cs")), "Should include new file");
@@ -450,7 +450,7 @@ namespace Codescene.VSExtension.Core.Tests
             File.WriteAllText(modifiedFile, "public class Modified {}");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsTrue(
                 result.Any(f => f.Contains("modified.cs")),
@@ -480,7 +480,7 @@ namespace Codescene.VSExtension.Core.Tests
             File.WriteAllText(normalFile, "public class Test {}");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, null, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsTrue(
                 result.Any(f => f.Contains("test.cs")),
@@ -511,7 +511,7 @@ namespace Codescene.VSExtension.Core.Tests
             File.WriteAllText(Path.Combine(_testRepoPath, "outside.cs"), "public class OutsideModified {}");
 
             var result = await _detector.GetChangedFilesVsBaselineAsync(
-                _testRepoPath, new[] { workspaceSubdir }, _fakeSavedFilesTracker, _fakeOpenFilesObserver);
+                _testRepoPath, new[] { workspaceSubdir }, _fakeSavedFilesTracker, _fakeOpenFilesObserver, string.Empty);
 
             Assert.IsTrue(
                 result.Any(f => f.Replace('\\', '/').Equals("workspace-subdir/inside.cs")),

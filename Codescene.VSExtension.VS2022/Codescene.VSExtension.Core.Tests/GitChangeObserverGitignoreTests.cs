@@ -31,7 +31,7 @@ namespace Codescene.VSExtension.Core.Tests
                 repo.Commit("Add to gitignore and remove file", signature, signature);
             }
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, fileName, false);
 
             var shouldProcess = _gitChangeObserverCore.ShouldProcessFileForTesting(filePath, changedFiles);
@@ -46,7 +46,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var ignoredFile = CreateFile("secret.ignored", "export const secret = \"hidden\";");
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, "secret.ignored", false);
 
             await TriggerFileChangeAsync(ignoredFile);
@@ -64,7 +64,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var ignoredFile = CreateFile("config.ts", "export const config = { secret: true };");
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, "config.ts", false);
 
             await TriggerFileChangeAsync(ignoredFile);
@@ -73,7 +73,7 @@ namespace Codescene.VSExtension.Core.Tests
             File.Delete(gitignorePath);
             await Task.Delay(100);
 
-            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, "config.ts");
 
             await TriggerFileChangeAsync(ignoredFile);

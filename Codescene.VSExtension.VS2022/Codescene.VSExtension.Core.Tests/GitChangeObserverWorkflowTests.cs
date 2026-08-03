@@ -17,7 +17,7 @@ namespace Codescene.VSExtension.Core.Tests
                 LibGit2Sharp.Commands.Stage(repo, "staging-test.ts");
             }
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, "staging-test.ts");
 
             using (var repo = new Repository(_testRepoPath))
@@ -25,11 +25,11 @@ namespace Codescene.VSExtension.Core.Tests
                 LibGit2Sharp.Commands.Unstage(repo, "staging-test.ts");
             }
 
-            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, "staging-test.ts");
 
             File.Delete(file);
-            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, "staging-test.ts", false);
         }
 
@@ -46,7 +46,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var file = CreateFile("detached.ts", "export const detached = 1;");
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, "detached.ts");
 
             Assert.IsNotNull(changedFiles, "Should return results even in detached HEAD state");
@@ -72,7 +72,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             ExecGit("merge merge-feature --no-ff --no-edit");
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
 
             AssertFileInChangedList(changedFiles, "merge1.ts", false);
             AssertFileInChangedList(changedFiles, "merge2.ts", false);
@@ -85,20 +85,20 @@ namespace Codescene.VSExtension.Core.Tests
             var originalContent = "export function hello() { return \"world\"; }";
             var filePath = CommitFile(fileName, originalContent, "Add healthy file");
 
-            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, fileName, false);
 
             var modifiedContent = "export function hello() { return \"modified\"; }";
             File.WriteAllText(filePath, modifiedContent);
 
             await TriggerFileChangeAsync(filePath);
-            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, fileName, true);
             AssertFileInTracker(filePath, true);
 
             File.WriteAllText(filePath, originalContent);
 
-            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync();
+            changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
             AssertFileInChangedList(changedFiles, fileName, false);
 
             await TriggerFileChangeAsync(filePath);
