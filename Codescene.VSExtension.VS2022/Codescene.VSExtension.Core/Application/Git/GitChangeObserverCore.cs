@@ -409,11 +409,12 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
 
                 var token = cts.Token;
+                var baselineCommit = _gitService.GetBaselineCommit(_gitRootPath);
                 foreach (var path in absolutePaths.Where(path => !string.IsNullOrWhiteSpace(path)))
                 {
                     if (_detectedFilesQueue.TryStart(path, path))
                     {
-                        _taskScheduler.Schedule(async () => await ProcessDetectedFileQueueAsync(path, token));
+                        _taskScheduler.Schedule(async () => await ProcessDetectedFileQueueAsync(path, token, baselineCommit));
                     }
                     else
                     {
@@ -529,7 +530,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             });
         }
 
-        private async Task ProcessFilesAsync(IEnumerable<string> absolutePaths, CancellationToken cancellationToken)
+        private async Task ProcessFilesAsync(IEnumerable<string> absolutePaths, CancellationToken cancellationToken, string baselineCommit)
         {
             if (absolutePaths.Contains("~~cleanup~~"))
             {
@@ -539,7 +540,6 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             cancellationToken.ThrowIfCancellationRequested();
             var operationGeneration = CacheGeneration.Current;
-            var baselineCommit = _gitService.GetBaselineCommit(_gitRootPath);
             var changedFiles = await _getChangedFilesCallback(baselineCommit);
             await RemoveMissingTrackedFilesAsync(changedFiles, cancellationToken);
             foreach (var absolutePath in absolutePaths)

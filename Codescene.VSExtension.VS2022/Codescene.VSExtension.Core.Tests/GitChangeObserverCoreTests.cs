@@ -392,7 +392,7 @@ namespace Codescene.VSExtension.Core.Tests
             _fakeLogger.ClearErrorMessages();
 
             var method = typeof(GitChangeObserverCore).GetMethod("ProcessDetectedFileQueueAsync", BindingFlags.NonPublic | BindingFlags.Instance);
-            var task = (Task)method.Invoke(_gitChangeObserverCore, new object[] { Path.Combine(_testRepoPath, "cancelled.ts"), CancellationToken.None });
+            var task = (Task)method.Invoke(_gitChangeObserverCore, new object[] { Path.Combine(_testRepoPath, "cancelled.ts"), CancellationToken.None, string.Empty });
 
             await task;
 
