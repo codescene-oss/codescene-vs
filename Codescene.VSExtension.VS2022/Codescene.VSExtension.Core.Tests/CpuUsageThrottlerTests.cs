@@ -144,5 +144,65 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsTrue(task.IsCompleted);
             await task;
         }
+
+        [TestMethod]
+        public async Task WaitForCpuAsync_WhenCpuBecomesBusyAfterFirstCheck_ExecutesImmediately()
+        {
+            var responses = new Queue<bool>(new[] { false, true });
+            var delayCallCount = 0;
+            var throttler = new CpuUsageThrottler(
+                _mockLogger.Object,
+                () => Task.FromResult(responses.Dequeue()),
+                (ms, ct) =>
+                {
+                    delayCallCount++;
+                    return Task.CompletedTask;
+                });
+
+            await throttler.WaitForCpuAsync(CancellationToken.None);
+
+            Assert.AreEqual(0, delayCallCount);
+            _mockLogger.Verify(x => x.Info(It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task WaitForCpuAsync_WhenCpuBusyThenFreeTheBusyAgain_WaitsOnce()
+        {
+            var responses = new Queue<bool>(new[] { true, false, true });
+            var delayCallCount = 0;
+            var throttler = new CpuUsageThrottler(
+                _mockLogger.Object,
+                () => Task.FromResult(responses.Dequeue()),
+                (ms, ct) =>
+                {
+                    delayCallCount++;
+                    return Task.CompletedTask;
+                });
+
+            await throttler.WaitForCpuAsync(CancellationToken.None);
+
+            Assert.AreEqual(1, delayCallCount);
+            _mockLogger.Verify(x => x.Info(It.Is<string>(s => s.Contains("CPU too busy"))), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task WaitForCpuAsync_WhenCpuFreeThenBusyThenFree_ExecutesImmediately()
+        {
+            var responses = new Queue<bool>(new[] { false, true, false });
+            var delayCallCount = 0;
+            var throttler = new CpuUsageThrottler(
+                _mockLogger.Object,
+                () => Task.FromResult(responses.Dequeue()),
+                (ms, ct) =>
+                {
+                    delayCallCount++;
+                    return Task.CompletedTask;
+                });
+
+            await throttler.WaitForCpuAsync(CancellationToken.None);
+
+            Assert.AreEqual(0, delayCallCount);
+            _mockLogger.Verify(x => x.Info(It.IsAny<string>()), Times.Never);
+        }
     }
 }

@@ -21,6 +21,7 @@ namespace Codescene.VSExtension.Core.Application.Util
         private static readonly object _snapshotLock = new object();
         private static Func<CpuSnapshot> _snapshotProvider = DefaultSnapshotProvider;
         private static CpuSnapshot _previousSnapshot = DefaultSnapshotProvider();
+        private static Func<int> _coreCountProvider = () => Environment.ProcessorCount;
 
         static CpuMonitor()
         {
@@ -44,9 +45,30 @@ namespace Codescene.VSExtension.Core.Application.Util
             }
         }
 
+        public static void SetCoreCountProvider(Func<int> provider)
+        {
+            lock (_snapshotLock)
+            {
+                _coreCountProvider = provider ?? (() => Environment.ProcessorCount);
+            }
+        }
+
+        public static void ResetCoreCountProvider()
+        {
+            lock (_snapshotLock)
+            {
+                _coreCountProvider = () => Environment.ProcessorCount;
+            }
+        }
+
         public static async Task<bool> IsCpuTooBusyAsync()
         {
-            var coreCount = Environment.ProcessorCount;
+            int coreCount;
+            lock (_snapshotLock)
+            {
+                coreCount = _coreCountProvider();
+            }
+
             double usageSum = 0;
 
             for (int i = 0; i < Samples; i++)

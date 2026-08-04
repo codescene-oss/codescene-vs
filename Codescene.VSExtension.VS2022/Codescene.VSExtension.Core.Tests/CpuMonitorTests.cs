@@ -12,6 +12,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void Cleanup()
         {
             CpuMonitor.ResetSnapshotProvider();
+            CpuMonitor.ResetCoreCountProvider();
         }
 
         [TestMethod]
@@ -112,6 +113,40 @@ namespace Codescene.VSExtension.Core.Tests
             var result = await CpuMonitor.IsCpuTooBusyAsync();
 
             Assert.IsFalse(result);
+        }
+
+        [TestMethod]
+        [DataRow(8, 20, false, DisplayName = "8 cores at 20% usage - below 75% threshold")]
+        [DataRow(8, 75, false, DisplayName = "8 cores at 75% usage - at 75% threshold")]
+        [DataRow(8, 80, true, DisplayName = "8 cores at 80% usage - above 75% threshold")]
+        [DataRow(6, 20, false, DisplayName = "6 cores at 20% usage - below 70% threshold")]
+        [DataRow(6, 70, false, DisplayName = "6 cores at 70% usage - at 70% threshold")]
+        [DataRow(6, 75, true, DisplayName = "6 cores at 75% usage - above 70% threshold")]
+        [DataRow(2, 20, false, DisplayName = "2 cores at 20% usage - below 65% threshold")]
+        [DataRow(2, 65, false, DisplayName = "2 cores at 65% usage - at 65% threshold")]
+        [DataRow(2, 70, true, DisplayName = "2 cores at 70% usage - above 65% threshold")]
+        public async Task IsCpuTooBusyAsync_WithMockedCoreCount_VerifiesThresholdTiers(
+            int coreCount, int usagePercent, bool expectedTooBusy)
+        {
+            var callCount = 0;
+            var baseTime = DateTime.UtcNow;
+
+            CpuMonitor.SetCoreCountProvider(() => coreCount);
+
+            CpuMonitor.SetSnapshotProvider(() =>
+            {
+                callCount++;
+                var cpuTimeMs = callCount * 100 * usagePercent / 100.0 * coreCount;
+                return new CpuSnapshot
+                {
+                    TotalProcessorTime = TimeSpan.FromMilliseconds(cpuTimeMs),
+                    Timestamp = baseTime.AddMilliseconds(callCount * 100),
+                };
+            });
+
+            var result = await CpuMonitor.IsCpuTooBusyAsync();
+
+            Assert.AreEqual(expectedTooBusy, result);
         }
     }
 }
