@@ -37,14 +37,14 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task IsCpuTooBusyAsync_WhenCpuBelowThreshold_ReturnsFalse()
         {
             var callCount = 0;
-            var baseTime = DateTime.UtcNow;
             CpuMonitor.SetSnapshotProvider(() =>
             {
                 callCount++;
                 return new CpuSnapshot
                 {
-                    TotalProcessorTime = TimeSpan.FromMilliseconds(callCount * 10),
-                    Timestamp = baseTime.AddMilliseconds(callCount * 100),
+                    IdleTime = callCount * 900,
+                    KernelTime = callCount * 1000,
+                    UserTime = callCount * 100,
                 };
             });
 
@@ -57,15 +57,14 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task IsCpuTooBusyAsync_WhenCpuAboveThreshold_ReturnsTrue()
         {
             var callCount = 0;
-            var baseTime = DateTime.UtcNow;
-            var coreCount = Environment.ProcessorCount;
             CpuMonitor.SetSnapshotProvider(() =>
             {
                 callCount++;
                 return new CpuSnapshot
                 {
-                    TotalProcessorTime = TimeSpan.FromMilliseconds(callCount * 100 * coreCount),
-                    Timestamp = baseTime.AddMilliseconds(callCount * 100),
+                    IdleTime = callCount * 100,
+                    KernelTime = callCount * 1000,
+                    UserTime = callCount * 100,
                 };
             });
 
@@ -78,14 +77,14 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task IsCpuTooBusyAsync_TakesMultipleSamples()
         {
             var callCount = 0;
-            var baseTime = DateTime.UtcNow;
             CpuMonitor.SetSnapshotProvider(() =>
             {
                 callCount++;
                 return new CpuSnapshot
                 {
-                    TotalProcessorTime = TimeSpan.FromMilliseconds(callCount * 5),
-                    Timestamp = baseTime.AddMilliseconds(callCount * 50),
+                    IdleTime = callCount * 500,
+                    KernelTime = callCount * 1000,
+                    UserTime = callCount * 100,
                 };
             });
 
@@ -96,17 +95,15 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task IsCpuTooBusyAsync_WhenWallTimeDiffIsZeroOrNegative_ReturnsFalse()
+        public async Task IsCpuTooBusyAsync_WhenTotalTimeDiffIsZeroOrNegative_ReturnsFalse()
         {
-            var callCount = 0;
-            var baseTime = DateTime.UtcNow;
             CpuMonitor.SetSnapshotProvider(() =>
             {
-                callCount++;
                 return new CpuSnapshot
                 {
-                    TotalProcessorTime = TimeSpan.FromMilliseconds(callCount * 1000),
-                    Timestamp = baseTime,
+                    IdleTime = 0,
+                    KernelTime = 0,
+                    UserTime = 0,
                 };
             });
 
@@ -129,18 +126,18 @@ namespace Codescene.VSExtension.Core.Tests
             int coreCount, int usagePercent, bool expectedTooBusy)
         {
             var callCount = 0;
-            var baseTime = DateTime.UtcNow;
 
             CpuMonitor.SetCoreCountProvider(() => coreCount);
 
             CpuMonitor.SetSnapshotProvider(() =>
             {
                 callCount++;
-                var cpuTimeMs = callCount * 100 * usagePercent / 100.0 * coreCount;
+                var idlePercent = 100 - usagePercent;
                 return new CpuSnapshot
                 {
-                    TotalProcessorTime = TimeSpan.FromMilliseconds(cpuTimeMs),
-                    Timestamp = baseTime.AddMilliseconds(callCount * 100),
+                    IdleTime = callCount * 1000 * idlePercent,
+                    KernelTime = callCount * 1000 * 100,
+                    UserTime = 0,
                 };
             });
 

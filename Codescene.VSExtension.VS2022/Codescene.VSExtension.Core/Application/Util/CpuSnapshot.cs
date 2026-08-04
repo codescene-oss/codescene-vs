@@ -1,13 +1,13 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System;
-
 namespace Codescene.VSExtension.Core.Application.Util
 {
     public class CpuSnapshot
     {
-        public TimeSpan TotalProcessorTime { get; set; }
+        public long IdleTime { get; set; }
 
-        public DateTime Timestamp { get; set; }
+        public long KernelTime { get; set; }
+
+        public long UserTime { get; set; }
     }
 }

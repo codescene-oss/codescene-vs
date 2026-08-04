@@ -1,7 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
-using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Util
@@ -100,42 +100,55 @@ namespace Codescene.VSExtension.Core.Application.Util
             return 65;
         }
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetSystemTimes(
+            out long idleTime,
+            out long kernelTime,
+            out long userTime);
+
         private static double TakeSample(int coreCount)
         {
             lock (_snapshotLock)
             {
-                var currentSnapshot = _snapshotProvider();
+                var current = _snapshotProvider();
                 var previous = _previousSnapshot;
-                _previousSnapshot = currentSnapshot;
+                _previousSnapshot = current;
 
                 if (previous == null)
                 {
                     return 0;
                 }
 
-                var cpuTimeDiff = currentSnapshot.TotalProcessorTime - previous.TotalProcessorTime;
-                var wallTimeDiff = currentSnapshot.Timestamp - previous.Timestamp;
+                var idleDiff = current.IdleTime - previous.IdleTime;
+                var kernelDiff = current.KernelTime - previous.KernelTime;
+                var userDiff = current.UserTime - previous.UserTime;
 
-                if (wallTimeDiff.TotalMilliseconds <= 0)
+                var totalDiff = kernelDiff + userDiff;
+
+                if (totalDiff <= 0)
                 {
                     return 0;
                 }
 
-                var usage = (cpuTimeDiff.TotalMilliseconds / wallTimeDiff.TotalMilliseconds) * 100.0 / coreCount;
+                var usage = 100.0 - ((100.0 * idleDiff) / totalDiff);
                 return Math.Min(100, Math.Max(0, usage));
             }
         }
 
         private static CpuSnapshot DefaultSnapshotProvider()
         {
-            using (var process = Process.GetCurrentProcess())
+            if (!GetSystemTimes(out long idleTime, out long kernelTime, out long userTime))
             {
-                return new CpuSnapshot
-                {
-                    TotalProcessorTime = process.TotalProcessorTime,
-                    Timestamp = DateTime.UtcNow,
-                };
+                return new CpuSnapshot { IdleTime = 0, KernelTime = 0, UserTime = 0 };
             }
+
+            return new CpuSnapshot
+            {
+                IdleTime = idleTime,
+                KernelTime = kernelTime,
+                UserTime = userTime,
+            };
         }
 
         private class CpuThreshold
