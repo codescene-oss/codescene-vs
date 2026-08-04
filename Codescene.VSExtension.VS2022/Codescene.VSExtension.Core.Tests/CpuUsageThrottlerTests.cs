@@ -102,6 +102,39 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task WaitForCpuAsync_WhenCpuCheckThrowsException_LogsAndCompletes()
+        {
+            var callCount = 0;
+            var throttler = new CpuUsageThrottler(
+                _mockLogger.Object,
+                () =>
+                {
+                    callCount++;
+                    throw new InvalidOperationException("CPU check failed");
+                },
+                (ms, ct) => Task.Delay(ms, ct));
+
+            await throttler.WaitForCpuAsync(CancellationToken.None);
+
+            Assert.AreEqual(1, callCount);
+            _mockLogger.Verify(x => x.Warn(It.Is<string>(s => s.Contains("CPU check failed"))), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task WaitForCpuAsync_WhenCpuCheckThrowsOperationCanceledException_PropagatesException()
+        {
+            var throttler = new CpuUsageThrottler(
+                _mockLogger.Object,
+                () => throw new OperationCanceledException(),
+                (ms, ct) => Task.Delay(ms, ct));
+
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => throttler.WaitForCpuAsync(CancellationToken.None));
+
+            _mockLogger.Verify(x => x.Warn(It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
         public async Task NoOpCpuUsageThrottler_CompletesImmediately()
         {
             var throttler = new NoOpCpuUsageThrottler();

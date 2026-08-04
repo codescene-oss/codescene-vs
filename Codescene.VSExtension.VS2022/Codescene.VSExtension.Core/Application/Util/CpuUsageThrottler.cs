@@ -37,8 +37,28 @@ namespace Codescene.VSExtension.Core.Application.Util
 
         public async Task WaitForCpuAsync(CancellationToken cancellationToken)
         {
-            while (await _isCpuTooBusyFn())
+            while (true)
             {
+                bool isBusy;
+                try
+                {
+                    isBusy = await _isCpuTooBusyFn();
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger?.Warn($"CPU check failed: {ex.Message}");
+                    return;
+                }
+
+                if (!isBusy)
+                {
+                    return;
+                }
+
                 cancellationToken.ThrowIfCancellationRequested();
                 _logger?.Info($"CPU too busy, waiting {RetryDelayMs}ms before retry");
                 await _delayFn(RetryDelayMs, cancellationToken);
