@@ -590,5 +590,39 @@ namespace Codescene.VSExtension.Core.Tests
             cpuWaitSignal.SetResult(true);
             await Task.WhenAll(task1, task2);
         }
+
+        [TestMethod]
+        public async Task ReviewDeltaAsync_WaitsForCpuBeforeAcquiringSemaphore()
+        {
+            var cpuWaitCalled = false;
+            var mockThrottler = new Mock<ICpuUsageThrottler>();
+            mockThrottler.Setup(x => x.WaitForCpuAsync(It.IsAny<CancellationToken>()))
+                .Returns(() =>
+                {
+                    cpuWaitCalled = true;
+                    return Task.CompletedTask;
+                });
+
+            var executor = new CliExecutor(
+                _mockLogger.Object,
+                _mockCliServices.Object,
+                _mockSettingsProvider.Object,
+                _lazyTelemetryManager,
+                mockThrottler.Object,
+                cliCommandConcurrencyLimit: 1);
+
+            var expectedDelta = new DeltaResponseModel { NewScore = 8.5m, OldScore = 7.0m };
+            var jsonResponse = JsonConvert.SerializeObject(expectedDelta);
+            _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns("delta command");
+            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
+                .ReturnsAsync(jsonResponse);
+
+            var result = await executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = "old", NewScore = "new", FilePath = TestFilePath });
+
+            Assert.IsNotNull(result);
+            Assert.IsTrue(cpuWaitCalled, "ReviewDeltaAsync should call WaitForCpuAsync before executing");
+            mockThrottler.Verify(x => x.WaitForCpuAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }

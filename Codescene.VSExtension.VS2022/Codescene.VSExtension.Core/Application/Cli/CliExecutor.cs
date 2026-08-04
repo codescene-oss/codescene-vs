@@ -158,6 +158,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
+            await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
             await _deltaChannel.WaitAsync(cancellationToken);
             try
             {
@@ -233,13 +234,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            var (result, elapsedMs) = await ExecuteOnChannelAsync(
-                _cliCommandChannel,
-                cancellationToken,
-                () => ExecuteWithTimingAndLoggingAsync<RefactorResponseModel>(
-                    "ACE refactoring",
-                    () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, payload, null, cancellationToken),
-                    "Refactoring failed."));
+            var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync<RefactorResponseModel>(
+                "ACE refactoring",
+                () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, payload, null, cancellationToken),
+                "Refactoring failed.");
 
             if (result != null && fnToRefactor != null)
             {
@@ -401,13 +399,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var command = _cliServices.CommandProvider.RefactorCommand;
 
-            var (result, _) = await ExecuteOnChannelAsync(
-                _cliCommandChannel,
-                cancellationToken,
-                () => ExecuteWithTimingAndLoggingAsync<IList<FnToRefactorModel>>(
-                    operationLabel,
-                    () => _cliServices.ProcessExecutor.ExecuteAsync(command, payloadContent, null, cancellationToken),
-                    errorMessage));
+            var (result, _) = await ExecuteWithTimingAndLoggingAsync<IList<FnToRefactorModel>>(
+                operationLabel,
+                () => _cliServices.ProcessExecutor.ExecuteAsync(command, payloadContent, null, cancellationToken),
+                errorMessage);
             return result;
         }
 
