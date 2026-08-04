@@ -158,10 +158,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
             await _deltaChannel.WaitAsync(cancellationToken);
             try
             {
+                await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
                 var workingDirectory = GetCliWorkingDirectoryForFile(request.FilePath);
                 var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync<DeltaResponseModel>(
                     "CLI file delta review",
@@ -419,10 +419,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private async Task<T> ExecuteOnChannelAsync<T>(SemaphoreSlim channel, CancellationToken cancellationToken, Func<Task<T>> operation)
         {
-            await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
             await channel.WaitAsync(cancellationToken);
             try
             {
+                await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
                 return await operation();
             }
             finally

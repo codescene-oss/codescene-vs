@@ -551,16 +551,23 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task ExecuteOnChannelAsync_WaitsForCpuBeforeAcquiringSemaphore()
+        public async Task ExecuteOnChannelAsync_AcquiresSemaphoreBeforeWaitingForCpu()
         {
-            var cpuWaitSignal = new TaskCompletionSource<bool>();
-            var cpuWaitCount = 0;
+            var operationLog = new List<string>();
+            var semaphoreAcquiredSignal = new TaskCompletionSource<bool>();
+            var cpuCheckSignal = new TaskCompletionSource<bool>();
+
             var mockThrottler = new Mock<ICpuUsageThrottler>();
             mockThrottler.Setup(x => x.WaitForCpuAsync(It.IsAny<CancellationToken>()))
                 .Returns(async () =>
                 {
-                    Interlocked.Increment(ref cpuWaitCount);
-                    await cpuWaitSignal.Task;
+                    lock (operationLog)
+                    {
+                        operationLog.Add("cpu_wait");
+                    }
+
+                    semaphoreAcquiredSignal.TrySetResult(true);
+                    await cpuCheckSignal.Task;
                 });
 
             var executor = new CliExecutor(
@@ -580,27 +587,42 @@ namespace Codescene.VSExtension.Core.Tests
             var task1 = executor.ReviewContentAsync("/file1.cs", "content1");
             var task2 = executor.ReviewContentAsync("/file2.cs", "content2");
 
-            await Task.Delay(100);
+            await semaphoreAcquiredSignal.Task;
+            await Task.Delay(50);
+
+            int cpuWaitCount;
+            lock (operationLog)
+            {
+                cpuWaitCount = operationLog.Count(x => x == "cpu_wait");
+            }
 
             Assert.AreEqual(
-                2,
+                1,
                 cpuWaitCount,
-                "Both operations should wait for CPU in parallel before acquiring semaphore");
+                "Only the operation that acquired the semaphore should check CPU; the other should be blocked waiting for the semaphore");
 
-            cpuWaitSignal.SetResult(true);
+            cpuCheckSignal.SetResult(true);
             await Task.WhenAll(task1, task2);
         }
 
         [TestMethod]
-        public async Task ReviewDeltaAsync_WaitsForCpuBeforeAcquiringSemaphore()
+        public async Task ReviewDeltaAsync_AcquiresSemaphoreBeforeWaitingForCpu()
         {
-            var cpuWaitCalled = false;
+            var operationLog = new List<string>();
+            var semaphoreAcquiredSignal = new TaskCompletionSource<bool>();
+            var cpuCheckSignal = new TaskCompletionSource<bool>();
+
             var mockThrottler = new Mock<ICpuUsageThrottler>();
             mockThrottler.Setup(x => x.WaitForCpuAsync(It.IsAny<CancellationToken>()))
-                .Returns(() =>
+                .Returns(async () =>
                 {
-                    cpuWaitCalled = true;
-                    return Task.CompletedTask;
+                    lock (operationLog)
+                    {
+                        operationLog.Add("cpu_wait");
+                    }
+
+                    semaphoreAcquiredSignal.TrySetResult(true);
+                    await cpuCheckSignal.Task;
                 });
 
             var executor = new CliExecutor(
@@ -618,11 +640,25 @@ namespace Codescene.VSExtension.Core.Tests
             _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
                 .ReturnsAsync(jsonResponse);
 
-            var result = await executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = "old", NewScore = "new", FilePath = TestFilePath });
+            var task1 = executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = "old1", NewScore = "new1", FilePath = "/file1.cs" });
+            var task2 = executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = "old2", NewScore = "new2", FilePath = "/file2.cs" });
 
-            Assert.IsNotNull(result);
-            Assert.IsTrue(cpuWaitCalled, "ReviewDeltaAsync should call WaitForCpuAsync before executing");
-            mockThrottler.Verify(x => x.WaitForCpuAsync(It.IsAny<CancellationToken>()), Times.Once);
+            await semaphoreAcquiredSignal.Task;
+            await Task.Delay(50);
+
+            int cpuWaitCount;
+            lock (operationLog)
+            {
+                cpuWaitCount = operationLog.Count(x => x == "cpu_wait");
+            }
+
+            Assert.AreEqual(
+                1,
+                cpuWaitCount,
+                "Only the operation that acquired the delta semaphore should check CPU; the other should be blocked waiting for the semaphore");
+
+            cpuCheckSignal.SetResult(true);
+            await Task.WhenAll(task1, task2);
         }
     }
 }
