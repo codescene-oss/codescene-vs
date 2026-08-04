@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785749823020,
+  "lastUpdate": 1785801753710,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1886,6 +1886,48 @@ window.BENCHMARK_DATA = {
             "value": 60720716.85606061,
             "unit": "ns",
             "range": "± 2522220.498022843"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "aba2a51609c7eef7b20c77dec9cfa273372be860",
+          "message": "Merge pull request #310 from codescene-oss/prevent-concurrent-processing\n\nfix: prevent concurrent processing in `FileChangeEventProcessor`",
+          "timestamp": "2026-08-04T01:57:37+02:00",
+          "tree_id": "8522ccdccd4e76741f0d83e7c8b0b6af11f05e20",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/aba2a51609c7eef7b20c77dec9cfa273372be860"
+        },
+        "date": 1785801750663,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 104593241.33333333,
+            "unit": "ns",
+            "range": "± 1543863.245543773"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 94158494.44444446,
+            "unit": "ns",
+            "range": "± 1184307.9381678577"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 59083251.85185185,
+            "unit": "ns",
+            "range": "± 647139.9231368566"
           }
         ]
       }
