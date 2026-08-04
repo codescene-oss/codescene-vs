@@ -15,6 +15,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        [DataRow(0, 65)]
         [DataRow(1, 65)]
         [DataRow(2, 65)]
         [DataRow(3, 65)]
@@ -91,6 +92,26 @@ namespace Codescene.VSExtension.Core.Tests
             await CpuMonitor.IsCpuTooBusyAsync();
 
             Assert.IsGreaterThanOrEqualTo(callCount, 5);
+        }
+
+        [TestMethod]
+        public async Task IsCpuTooBusyAsync_WhenWallTimeDiffIsZeroOrNegative_ReturnsFalse()
+        {
+            var callCount = 0;
+            var baseTime = DateTime.UtcNow;
+            CpuMonitor.SetSnapshotProvider(() =>
+            {
+                callCount++;
+                return new CpuSnapshot
+                {
+                    TotalProcessorTime = TimeSpan.FromMilliseconds(callCount * 1000),
+                    Timestamp = baseTime,
+                };
+            });
+
+            var result = await CpuMonitor.IsCpuTooBusyAsync();
+
+            Assert.IsFalse(result);
         }
     }
 }
