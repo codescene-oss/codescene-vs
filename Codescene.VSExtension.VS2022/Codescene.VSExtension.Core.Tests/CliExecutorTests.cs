@@ -7,6 +7,7 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
@@ -547,6 +548,47 @@ namespace Codescene.VSExtension.Core.Tests
                     Directory.Delete(bad, true);
                 }
             }
+        }
+
+        [TestMethod]
+        public async Task ExecuteOnChannelAsync_WaitsForCpuBeforeAcquiringSemaphore()
+        {
+            var cpuWaitSignal = new TaskCompletionSource<bool>();
+            var cpuWaitCount = 0;
+            var mockThrottler = new Mock<ICpuUsageThrottler>();
+            mockThrottler.Setup(x => x.WaitForCpuAsync(It.IsAny<CancellationToken>()))
+                .Returns(async () =>
+                {
+                    Interlocked.Increment(ref cpuWaitCount);
+                    await cpuWaitSignal.Task;
+                });
+
+            var executor = new CliExecutor(
+                _mockLogger.Object,
+                _mockCliServices.Object,
+                _mockSettingsProvider.Object,
+                _lazyTelemetryManager,
+                mockThrottler.Object,
+                cliCommandConcurrencyLimit: 1);
+
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(It.IsAny<string>(), It.IsAny<string>(), TestCachePath))
+                .Returns("payload");
+            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
+                .ReturnsAsync(JsonConvert.SerializeObject(new CliReviewModel { Score = 1 }));
+
+            var task1 = executor.ReviewContentAsync("/file1.cs", "content1");
+            var task2 = executor.ReviewContentAsync("/file2.cs", "content2");
+
+            await Task.Delay(100);
+
+            Assert.AreEqual(
+                2,
+                cpuWaitCount,
+                "Both operations should wait for CPU in parallel before acquiring semaphore");
+
+            cpuWaitSignal.SetResult(true);
+            await Task.WhenAll(task1, task2);
         }
     }
 }

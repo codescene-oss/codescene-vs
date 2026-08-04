@@ -424,10 +424,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private async Task<T> ExecuteOnChannelAsync<T>(SemaphoreSlim channel, CancellationToken cancellationToken, Func<Task<T>> operation)
         {
+            await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
             await channel.WaitAsync(cancellationToken);
             try
             {
-                await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
                 return await operation();
             }
             finally
