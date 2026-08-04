@@ -18,6 +18,7 @@ namespace Codescene.VSExtension.Core.Application.Util
             new CpuThreshold { MinCores = 0, Threshold = 65 },
         };
 
+        private static readonly object _snapshotLock = new object();
         private static Func<CpuSnapshot> _snapshotProvider = DefaultSnapshotProvider;
         private static CpuSnapshot _previousSnapshot = DefaultSnapshotProvider();
 
@@ -27,14 +28,20 @@ namespace Codescene.VSExtension.Core.Application.Util
 
         public static void SetSnapshotProvider(Func<CpuSnapshot> provider)
         {
-            _snapshotProvider = provider ?? DefaultSnapshotProvider;
-            _previousSnapshot = _snapshotProvider();
+            lock (_snapshotLock)
+            {
+                _snapshotProvider = provider ?? DefaultSnapshotProvider;
+                _previousSnapshot = _snapshotProvider();
+            }
         }
 
         public static void ResetSnapshotProvider()
         {
-            _snapshotProvider = DefaultSnapshotProvider;
-            _previousSnapshot = _snapshotProvider();
+            lock (_snapshotLock)
+            {
+                _snapshotProvider = DefaultSnapshotProvider;
+                _previousSnapshot = _snapshotProvider();
+            }
         }
 
         public static async Task<bool> IsCpuTooBusyAsync()
@@ -49,21 +56,7 @@ namespace Codescene.VSExtension.Core.Application.Util
                     await Task.Delay(SampleDelayMs);
                 }
 
-                var currentSnapshot = _snapshotProvider();
-
-                if (_previousSnapshot != null)
-                {
-                    var cpuTimeDiff = currentSnapshot.TotalProcessorTime - _previousSnapshot.TotalProcessorTime;
-                    var wallTimeDiff = currentSnapshot.Timestamp - _previousSnapshot.Timestamp;
-
-                    if (wallTimeDiff.TotalMilliseconds > 0)
-                    {
-                        var usage = (cpuTimeDiff.TotalMilliseconds / wallTimeDiff.TotalMilliseconds) * 100.0 / coreCount;
-                        usageSum += Math.Min(100, Math.Max(0, usage));
-                    }
-                }
-
-                _previousSnapshot = currentSnapshot;
+                usageSum += TakeSample(coreCount);
             }
 
             var averageUsage = usageSum / Samples;
@@ -83,6 +76,32 @@ namespace Codescene.VSExtension.Core.Application.Util
             }
 
             return 65;
+        }
+
+        private static double TakeSample(int coreCount)
+        {
+            lock (_snapshotLock)
+            {
+                var currentSnapshot = _snapshotProvider();
+                var previous = _previousSnapshot;
+                _previousSnapshot = currentSnapshot;
+
+                if (previous == null)
+                {
+                    return 0;
+                }
+
+                var cpuTimeDiff = currentSnapshot.TotalProcessorTime - previous.TotalProcessorTime;
+                var wallTimeDiff = currentSnapshot.Timestamp - previous.Timestamp;
+
+                if (wallTimeDiff.TotalMilliseconds <= 0)
+                {
+                    return 0;
+                }
+
+                var usage = (cpuTimeDiff.TotalMilliseconds / wallTimeDiff.TotalMilliseconds) * 100.0 / coreCount;
+                return Math.Min(100, Math.Max(0, usage));
+            }
         }
 
         private static CpuSnapshot DefaultSnapshotProvider()
