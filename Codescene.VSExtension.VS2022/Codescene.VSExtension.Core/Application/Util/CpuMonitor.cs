@@ -111,28 +111,37 @@ namespace Codescene.VSExtension.Core.Application.Util
         {
             lock (_snapshotLock)
             {
-                var current = _snapshotProvider();
-                var previous = _previousSnapshot;
-                _previousSnapshot = current;
-
-                if (previous == null)
+                try
                 {
+                    var current = _snapshotProvider();
+                    var previous = _previousSnapshot;
+                    _previousSnapshot = current;
+
+                    if (previous == null)
+                    {
+                        return 0;
+                    }
+
+                    var idleDiff = current.IdleTime - previous.IdleTime;
+                    var kernelDiff = current.KernelTime - previous.KernelTime;
+                    var userDiff = current.UserTime - previous.UserTime;
+
+                    var totalDiff = kernelDiff + userDiff;
+
+                    if (totalDiff <= 0)
+                    {
+                        return 0;
+                    }
+
+                    var usage = 100.0 - ((100.0 * idleDiff) / totalDiff);
+                    return Math.Min(100, Math.Max(0, usage));
+                }
+                catch
+                {
+                    // Return 0 (not busy) on any error - better to allow CLI operations
+                    // than to block them due to monitoring failures.
                     return 0;
                 }
-
-                var idleDiff = current.IdleTime - previous.IdleTime;
-                var kernelDiff = current.KernelTime - previous.KernelTime;
-                var userDiff = current.UserTime - previous.UserTime;
-
-                var totalDiff = kernelDiff + userDiff;
-
-                if (totalDiff <= 0)
-                {
-                    return 0;
-                }
-
-                var usage = 100.0 - ((100.0 * idleDiff) / totalDiff);
-                return Math.Min(100, Math.Max(0, usage));
             }
         }
 
