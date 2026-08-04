@@ -10,11 +10,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
@@ -38,14 +40,16 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ConcurrentDictionary<string, Lazy<Task<IList<FnToRefactorModel>>>> _pendingRefactorRequests = new ConcurrentDictionary<string, Lazy<Task<IList<FnToRefactorModel>>>>();
         private readonly SemaphoreSlim _cliCommandChannel;
         private readonly SemaphoreSlim _deltaChannel = new SemaphoreSlim(1, 1);
+        private readonly ICpuUsageThrottler _cpuUsageThrottler;
 
         [ImportingConstructor]
         public CliExecutor(
             ILogger logger,
             ICliServices cliServices,
             ISettingsProvider settingsProvider,
-            [Import(AllowDefault = true)] Lazy<ITelemetryManager> telemetryManagerLazy = null)
-            : this(logger, cliServices, settingsProvider, telemetryManagerLazy, 1)
+            [Import(AllowDefault = true)] Lazy<ITelemetryManager> telemetryManagerLazy = null,
+            [Import(AllowDefault = true)] ICpuUsageThrottler cpuUsageThrottler = null)
+            : this(logger, cliServices, settingsProvider, telemetryManagerLazy, cpuUsageThrottler, 1)
         {
         }
 
@@ -54,12 +58,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
             ICliServices cliServices,
             ISettingsProvider settingsProvider,
             Lazy<ITelemetryManager> telemetryManagerLazy,
+            ICpuUsageThrottler cpuUsageThrottler,
             int cliCommandConcurrencyLimit)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cliServices = cliServices ?? throw new ArgumentNullException(nameof(cliServices));
             _settingsProvider = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
             _telemetryManagerLazy = telemetryManagerLazy;
+            _cpuUsageThrottler = cpuUsageThrottler ?? new NoOpCpuUsageThrottler();
             var effectiveLimit = Math.Max(1, cliCommandConcurrencyLimit);
             _cliCommandChannel = new SemaphoreSlim(effectiveLimit, effectiveLimit);
         }
@@ -421,6 +427,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             await channel.WaitAsync(cancellationToken);
             try
             {
+                await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
                 return await operation();
             }
             finally
