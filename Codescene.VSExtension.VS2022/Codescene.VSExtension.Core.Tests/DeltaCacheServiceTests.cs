@@ -140,11 +140,12 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void RemoveEntriesOutsideRoot_NullOrEmptyRoot_DoesNothing()
+        [DataRow(null)]
+        [DataRow("")]
+        public void RemoveEntriesOutsideRoot_NullOrEmptyRoot_DoesNothing(string root)
         {
             PutCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, CreateDelta(1.0m));
-            _cacheService.RemoveEntriesOutsideRoot(null);
-            _cacheService.RemoveEntriesOutsideRoot(string.Empty);
+            _cacheService.RemoveEntriesOutsideRoot(root);
             Assert.IsTrue(_cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent)).Item1);
         }
 
@@ -284,17 +285,11 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetDeltaForFile_NullPath_ReturnsNull()
+        [DataRow(null)]
+        [DataRow("")]
+        public void GetDeltaForFile_NullOrEmptyPath_ReturnsNull(string path)
         {
-            var result = _cacheService.GetDeltaForFile(null);
-
-            Assert.IsNull(result);
-        }
-
-        [TestMethod]
-        public void GetDeltaForFile_EmptyPath_ReturnsNull()
-        {
-            var result = _cacheService.GetDeltaForFile(string.Empty);
+            var result = _cacheService.GetDeltaForFile(path);
 
             Assert.IsNull(result);
         }
@@ -414,6 +409,86 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsFalse(oldResult.Item1); // Old key should not exist
             Assert.IsTrue(newResult.Item1); // New key should work
             Assert.AreEqual(1.5m, newResult.Item2.ScoreChange);
+        }
+
+        [TestMethod]
+        public void RemoveEntriesNotIn_EmptyCache_ReturnsZero()
+        {
+            var result = _cacheService.RemoveEntriesNotIn(new[] { _tempFile1 });
+
+            Assert.AreEqual(0, result);
+        }
+
+        [TestMethod]
+        public void RemoveEntriesNotIn_NullFilesToKeep_ReturnsZero()
+        {
+            PutCacheEntry(_tempFile1, "b1", "c1", CreateDelta(1.0m));
+
+            var result = _cacheService.RemoveEntriesNotIn(null);
+
+            Assert.AreEqual(0, result);
+            Assert.IsTrue(_cacheService.Contains(_tempFile1));
+        }
+
+        [TestMethod]
+        public void RemoveEntriesNotIn_FilesInKeepSet_AreKept()
+        {
+            PutCacheEntry(_tempFile1, "b1", "c1", CreateDelta(1.0m));
+            PutCacheEntry(_tempFile2, "b2", "c2", CreateDelta(2.0m));
+
+            var result = _cacheService.RemoveEntriesNotIn(new[] { _tempFile1, _tempFile2 });
+
+            Assert.AreEqual(0, result);
+            Assert.IsTrue(_cacheService.Contains(_tempFile1));
+            Assert.IsTrue(_cacheService.Contains(_tempFile2));
+        }
+
+        [TestMethod]
+        public void RemoveEntriesNotIn_FilesNotInKeepSet_AreRemoved()
+        {
+            PutCacheEntry(_tempFile1, "b1", "c1", CreateDelta(1.0m));
+            PutCacheEntry(_tempFile2, "b2", "c2", CreateDelta(2.0m));
+
+            var result = _cacheService.RemoveEntriesNotIn(new[] { _tempFile1 });
+
+            Assert.AreEqual(1, result);
+            Assert.IsTrue(_cacheService.Contains(_tempFile1));
+            Assert.IsFalse(_cacheService.Contains(_tempFile2));
+        }
+
+        [TestMethod]
+        public void RemoveEntriesNotIn_EmptyKeepSet_RemovesAll()
+        {
+            PutCacheEntry(_tempFile1, "b1", "c1", CreateDelta(1.0m));
+            PutCacheEntry(_tempFile2, "b2", "c2", CreateDelta(2.0m));
+
+            var result = _cacheService.RemoveEntriesNotIn(Enumerable.Empty<string>());
+
+            Assert.AreEqual(2, result);
+            Assert.IsFalse(_cacheService.Contains(_tempFile1));
+            Assert.IsFalse(_cacheService.Contains(_tempFile2));
+        }
+
+        [TestMethod]
+        public void RemoveEntriesNotIn_CaseInsensitivePathComparison()
+        {
+            PutCacheEntry(_tempFile1, "b1", "c1", CreateDelta(1.0m));
+
+            var result = _cacheService.RemoveEntriesNotIn(new[] { _tempFile1.ToUpperInvariant() });
+
+            Assert.AreEqual(0, result);
+            Assert.IsTrue(_cacheService.Contains(_tempFile1));
+        }
+
+        [TestMethod]
+        public void RemoveEntriesNotIn_WithNullInKeepSet_ThrowsNullReferenceException()
+        {
+            PutCacheEntry(_tempFile1, "b1", "c1", CreateDelta(1.0m));
+
+            Assert.Throws<NullReferenceException>(() =>
+            {
+                _cacheService.RemoveEntriesNotIn(new[] { _tempFile1, null });
+            });
         }
 
         private static DeltaResponseModel CreateDelta(decimal scoreChange)

@@ -408,9 +408,12 @@ namespace Codescene.VSExtension.Core.Application.Git
                     throw new ArgumentNullException(nameof(absolutePaths));
                 }
 
+                var validPaths = absolutePaths.Where(path => !string.IsNullOrWhiteSpace(path)).ToHashSet();
+                RemoveStaleFilesFromCache(validPaths);
+
                 var token = cts.Token;
                 var baselineCommit = _gitService.GetBaselineCommit(_gitRootPath);
-                foreach (var path in absolutePaths.Where(path => !string.IsNullOrWhiteSpace(path)))
+                foreach (var path in validPaths)
                 {
                     if (_detectedFilesQueue.TryStart(path, path))
                     {

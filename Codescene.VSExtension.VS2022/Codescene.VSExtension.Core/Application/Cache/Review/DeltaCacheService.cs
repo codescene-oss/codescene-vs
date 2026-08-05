@@ -156,6 +156,35 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             return false;
         }
 
+        public int RemoveEntriesNotIn(IEnumerable<string> filesToKeep)
+        {
+            if (filesToKeep == null)
+            {
+                return 0;
+            }
+
+            var keepSet = new HashSet<string>(
+                filesToKeep.Select(f => GetCacheKey(f)),
+                StringComparer.OrdinalIgnoreCase);
+
+            var keysToRemove = new List<string>();
+
+            foreach (var pair in Cache)
+            {
+                if (!keepSet.Contains(pair.Key))
+                {
+                    keysToRemove.Add(pair.Key);
+                }
+            }
+
+            foreach (var key in keysToRemove)
+            {
+                Cache.TryRemove(key, out _);
+            }
+
+            return keysToRemove.Count;
+        }
+
         private string GetRootPrefix(string gitRootPath)
         {
             return Path.GetFullPath(gitRootPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
