@@ -480,6 +480,17 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsTrue(_cacheService.Contains(_tempFile1));
         }
 
+        [TestMethod]
+        public void RemoveEntriesNotIn_WithNullInKeepSet_ThrowsNullReferenceException()
+        {
+            PutCacheEntry(_tempFile1, "b1", "c1", CreateDelta(1.0m));
+
+            Assert.Throws<NullReferenceException>(() =>
+            {
+                _cacheService.RemoveEntriesNotIn(new[] { _tempFile1, null });
+            });
+        }
+
         private static DeltaResponseModel CreateDelta(decimal scoreChange)
         {
             return new DeltaResponseModel { ScoreChange = scoreChange };
