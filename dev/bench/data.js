@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785802040274,
+  "lastUpdate": 1785911831360,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1928,6 +1928,48 @@ window.BENCHMARK_DATA = {
             "value": 59083251.85185185,
             "unit": "ns",
             "range": "± 647139.9231368566"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1986291900d03dfe7de5c4b01e17c2d58210f057",
+          "message": "Merge pull request #311 from codescene-oss/cpu-monitor\n\nfeat: add CPU monitoring to throttle CLI commands during high load",
+          "timestamp": "2026-08-05T08:31:07+02:00",
+          "tree_id": "50d956e57e112e521be1ae570f8e1244dce9470e",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/1986291900d03dfe7de5c4b01e17c2d58210f057"
+        },
+        "date": 1785911827595,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 86518903.84615384,
+            "unit": "ns",
+            "range": "± 632509.3443224934"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 86115032.05574912,
+            "unit": "ns",
+            "range": "± 4555553.9126171265"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 56436788.88888889,
+            "unit": "ns",
+            "range": "± 716537.5386750394"
           }
         ]
       }
