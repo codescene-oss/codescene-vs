@@ -140,11 +140,12 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void RemoveEntriesOutsideRoot_NullOrEmptyRoot_DoesNothing()
+        [DataRow(null)]
+        [DataRow("")]
+        public void RemoveEntriesOutsideRoot_NullOrEmptyRoot_DoesNothing(string root)
         {
             PutCacheEntry(_tempFile, DefaultBaseline, DefaultCurrent, CreateDelta(1.0m));
-            _cacheService.RemoveEntriesOutsideRoot(null);
-            _cacheService.RemoveEntriesOutsideRoot(string.Empty);
+            _cacheService.RemoveEntriesOutsideRoot(root);
             Assert.IsTrue(_cacheService.Get(new DeltaCacheQuery(_tempFile, DefaultBaseline, DefaultCurrent)).Item1);
         }
 
@@ -284,17 +285,11 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetDeltaForFile_NullPath_ReturnsNull()
+        [DataRow(null)]
+        [DataRow("")]
+        public void GetDeltaForFile_NullOrEmptyPath_ReturnsNull(string path)
         {
-            var result = _cacheService.GetDeltaForFile(null);
-
-            Assert.IsNull(result);
-        }
-
-        [TestMethod]
-        public void GetDeltaForFile_EmptyPath_ReturnsNull()
-        {
-            var result = _cacheService.GetDeltaForFile(string.Empty);
+            var result = _cacheService.GetDeltaForFile(path);
 
             Assert.IsNull(result);
         }
