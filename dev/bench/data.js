@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785911831360,
+  "lastUpdate": 1785912035199,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -4728,6 +4728,66 @@ window.BENCHMARK_DATA = {
             "value": 283893011.1111111,
             "unit": "ns",
             "range": "± 5679991.730202026"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1986291900d03dfe7de5c4b01e17c2d58210f057",
+          "message": "Merge pull request #311 from codescene-oss/cpu-monitor\n\nfeat: add CPU monitoring to throttle CLI commands during high load",
+          "timestamp": "2026-08-05T08:31:07+02:00",
+          "tree_id": "50d956e57e112e521be1ae570f8e1244dce9470e",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/1986291900d03dfe7de5c4b01e17c2d58210f057"
+        },
+        "date": 1785912033861,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 104145807.17299573,
+            "unit": "ns",
+            "range": "± 5410837.920835013"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 92209975,
+            "unit": "ns",
+            "range": "± 886853.239925673"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 192628445.23809522,
+            "unit": "ns",
+            "range": "± 1712744.972040228"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 169632858.97435898,
+            "unit": "ns",
+            "range": "± 1532789.310625966"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 271518995.8333333,
+            "unit": "ns",
+            "range": "± 2495900.8906840477"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 229611279.99999997,
+            "unit": "ns",
+            "range": "± 1958758.6550816165"
           }
         ]
       }
