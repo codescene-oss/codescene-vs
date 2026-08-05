@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785919851434,
+  "lastUpdate": 1785920154169,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -4830,6 +4830,66 @@ window.BENCHMARK_DATA = {
             "value": 229611279.99999997,
             "unit": "ns",
             "range": "± 1958758.6550816165"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5442729fb7d7135466b55ced27903d80e7babf76",
+          "message": "Merge pull request #312 from codescene-oss/rm-stale-files\n\nfeat: remove stale files from Code Health Monitor after GitChangeLister runs",
+          "timestamp": "2026-08-05T10:45:04+02:00",
+          "tree_id": "1cb799621a6edf34989a0e3f45c4312f14a0b7f7",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/5442729fb7d7135466b55ced27903d80e7babf76"
+        },
+        "date": 1785920151583,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 121507513.84615384,
+            "unit": "ns",
+            "range": "± 1320310.183287362"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 115648746.66666667,
+            "unit": "ns",
+            "range": "± 3005735.2959715654"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 236713322.91666666,
+            "unit": "ns",
+            "range": "± 3619826.6494552568"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 201653387.5,
+            "unit": "ns",
+            "range": "± 3955907.909291657"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 316218102.6315789,
+            "unit": "ns",
+            "range": "± 7025283.034580522"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 296241673.3333333,
+            "unit": "ns",
+            "range": "± 43046032.14043222"
           }
         ]
       }
