@@ -100,6 +100,17 @@ namespace Codescene.VSExtension.Core.Application.Util
             return 65;
         }
 
+        internal static double TakeSampleSync()
+        {
+            int coreCount;
+            lock (_snapshotLock)
+            {
+                coreCount = _coreCountProvider();
+            }
+
+            return TakeSample(coreCount);
+        }
+
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GetSystemTimes(

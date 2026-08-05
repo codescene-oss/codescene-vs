@@ -12,6 +12,7 @@ using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
+using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Util;
 using LibGit2Sharp;
 
@@ -26,6 +27,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly ILogger _logger;
         private readonly IGitService _gitService;
         private readonly IIdeActivityTracker _ideActivityTracker;
+        private readonly ICpuUsageChecker _cpuUsageChecker;
         private readonly UntrackedFileProcessor _untrackedFileProcessor;
         private readonly MergeBaseFinder _mergeBaseFinder;
 
@@ -42,13 +44,15 @@ namespace Codescene.VSExtension.Core.Application.Git
             ILogger logger,
             IGitService gitService,
             int? pollingInterval = null,
-            IIdeActivityTracker ideActivityTracker = null)
+            IIdeActivityTracker ideActivityTracker = null,
+            ICpuUsageChecker cpuUsageChecker = null)
         {
             _savedFilesTracker = savedFilesTracker ?? throw new ArgumentNullException(nameof(savedFilesTracker));
             _supportedFileChecker = supportedFileChecker ?? throw new ArgumentNullException(nameof(supportedFileChecker));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
             _ideActivityTracker = ideActivityTracker;
+            _cpuUsageChecker = cpuUsageChecker;
             _untrackedFileProcessor = new UntrackedFileProcessor(logger);
             _mergeBaseFinder = new MergeBaseFinder(logger);
             if (pollingInterval.HasValue && pollingInterval.Value <= 0)
@@ -320,7 +324,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             var startTime = DateTime.UtcNow;
             try
             {
-                if (!ShouldStartPeriodicScan())
+                if (!await ShouldStartPeriodicScanAsync())
                 {
                     return;
                 }
@@ -377,7 +381,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
         }
 
-        private bool ShouldStartPeriodicScan()
+        private async Task<bool> ShouldStartPeriodicScanAsync()
         {
             if (_ideActivityTracker != null && !_ideActivityTracker.IsIdeWindowActive())
             {
@@ -393,6 +397,12 @@ namespace Codescene.VSExtension.Core.Application.Git
             if (ShouldSkipBasedOnDefaultBranch())
             {
                 _logger?.Debug("GitChangeLister: Skipping processing - current branch matches default branch");
+                return false;
+            }
+
+            if (_cpuUsageChecker != null && await _cpuUsageChecker.IsCpuTooBusyAsync())
+            {
+                _logger?.Info("Skipping scheduled git change review: CPU usage too high");
                 return false;
             }
 

@@ -5,6 +5,7 @@ using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
+using Codescene.VSExtension.Core.Interfaces.Util;
 
 namespace Codescene.VSExtension.VS2022.Application.Git
 {
@@ -18,8 +19,9 @@ namespace Codescene.VSExtension.VS2022.Application.Git
             ISupportedFileChecker supportedFileChecker,
             ILogger logger,
             IGitService gitService,
-            IIdeActivityTracker ideActivityTracker)
-            : base(savedFilesTracker, supportedFileChecker, logger, gitService, ideActivityTracker: ideActivityTracker)
+            IIdeActivityTracker ideActivityTracker,
+            ICpuUsageChecker cpuUsageChecker)
+            : base(savedFilesTracker, supportedFileChecker, logger, gitService, ideActivityTracker: ideActivityTracker, cpuUsageChecker: cpuUsageChecker)
         {
         }
     }

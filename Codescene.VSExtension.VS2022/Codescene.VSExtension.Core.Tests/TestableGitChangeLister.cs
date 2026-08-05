@@ -5,6 +5,7 @@ using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Git;
+using Codescene.VSExtension.Core.Interfaces.Util;
 
 namespace Codescene.VSExtension.Core.Tests
 {
@@ -26,8 +27,9 @@ namespace Codescene.VSExtension.Core.Tests
             ILogger logger,
             IGitService gitService,
             int? pollingInterval = null,
-            IIdeActivityTracker ideActivityTracker = null)
-            : base(savedFilesTracker, supportedFileChecker, logger, gitService, pollingInterval, ideActivityTracker)
+            IIdeActivityTracker ideActivityTracker = null,
+            ICpuUsageChecker cpuUsageChecker = null)
+            : base(savedFilesTracker, supportedFileChecker, logger, gitService, pollingInterval, ideActivityTracker, cpuUsageChecker)
         {
         }
 
