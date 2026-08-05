@@ -1,8 +1,12 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Reflection;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cache.Delta;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
+using Codescene.VSExtension.Core.Util;
 using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -509,6 +513,46 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Codescene.VSExtension.Core.Util.DeltaJobTracker.JobStarted -= onJobStarted;
                 Codescene.VSExtension.Core.Util.DeltaJobTracker.JobFinished -= onJobFinished;
+            }
+        }
+
+        [TestMethod]
+        public void OnGitChangeListerFilesDetected_PreservesVisibleFilesInCache()
+        {
+            var visibleFile = CreateFile("visible.cs", "public class Visible {}");
+            var detectedFile = CreateFile("detected.cs", "public class Detected {}");
+
+            var cacheService = new DeltaCacheService();
+            cacheService.Put(new DeltaCacheEntry(visibleFile, "baseline", "current", new DeltaResponseModel { ScoreChange = 1.0m }));
+            Assert.IsTrue(cacheService.Contains(visibleFile), "Cache should contain visible file before test");
+
+            _fakeOpenFilesObserver.AddOpenFile(visibleFile);
+            _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { detectedFile });
+
+            Assert.IsTrue(cacheService.Contains(visibleFile), "Visible file should be preserved in cache");
+        }
+
+        [TestMethod]
+        public void OnGitChangeListerFilesDetected_PreservesRunningJobFilesInCache()
+        {
+            var jobFile = CreateFile("running-job.cs", "public class RunningJob {}");
+            var detectedFile = CreateFile("detected.cs", "public class Detected {}");
+
+            var cacheService = new DeltaCacheService();
+            cacheService.Put(new DeltaCacheEntry(jobFile, "baseline", "current", new DeltaResponseModel { ScoreChange = 1.0m }));
+            Assert.IsTrue(cacheService.Contains(jobFile), "Cache should contain job file before test");
+
+            var job = new Job { File = new Codescene.VSExtension.Core.Models.WebComponent.Data.File { FileName = jobFile } };
+            DeltaJobTracker.Add(job);
+            try
+            {
+                _fakeGitChangeLister.SimulateFilesDetected(new HashSet<string> { detectedFile });
+
+                Assert.IsTrue(cacheService.Contains(jobFile), "Running job file should be preserved in cache");
+            }
+            finally
+            {
+                DeltaJobTracker.Remove(job);
             }
         }
 
