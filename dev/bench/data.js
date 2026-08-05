@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785912119273,
+  "lastUpdate": 1785919851434,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -1970,6 +1970,48 @@ window.BENCHMARK_DATA = {
             "value": 56436788.88888889,
             "unit": "ns",
             "range": "± 716537.5386750394"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5442729fb7d7135466b55ced27903d80e7babf76",
+          "message": "Merge pull request #312 from codescene-oss/rm-stale-files\n\nfeat: remove stale files from Code Health Monitor after GitChangeLister runs",
+          "timestamp": "2026-08-05T10:45:04+02:00",
+          "tree_id": "1cb799621a6edf34989a0e3f45c4312f14a0b7f7",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/5442729fb7d7135466b55ced27903d80e7babf76"
+        },
+        "date": 1785919848898,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 110718592.12121212,
+            "unit": "ns",
+            "range": "± 6882630.347962948"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 97134942.22222222,
+            "unit": "ns",
+            "range": "± 1655671.570247693"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 66666637.5,
+            "unit": "ns",
+            "range": "± 968406.3686624905"
           }
         ]
       }
