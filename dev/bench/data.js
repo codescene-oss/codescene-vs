@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785912035199,
+  "lastUpdate": 1785912119273,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -6994,6 +6994,54 @@ window.BENCHMARK_DATA = {
             "value": 19558.547973632812,
             "unit": "ns",
             "range": "± 131.80343935438438"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1986291900d03dfe7de5c4b01e17c2d58210f057",
+          "message": "Merge pull request #311 from codescene-oss/cpu-monitor\n\nfeat: add CPU monitoring to throttle CLI commands during high load",
+          "timestamp": "2026-08-05T08:31:07+02:00",
+          "tree_id": "50d956e57e112e521be1ae570f8e1244dce9470e",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/1986291900d03dfe7de5c4b01e17c2d58210f057"
+        },
+        "date": 1785912117890,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 100355562.66666667,
+            "unit": "ns",
+            "range": "± 929012.3140154715"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 4175.663920811245,
+            "unit": "ns",
+            "range": "± 27.08616495914421"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 323340760,
+            "unit": "ns",
+            "range": "± 1929069.9491316683"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 14650.318400065104,
+            "unit": "ns",
+            "range": "± 115.46835133052073"
           }
         ]
       }
