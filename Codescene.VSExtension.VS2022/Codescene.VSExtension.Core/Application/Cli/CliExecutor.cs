@@ -10,11 +10,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
@@ -38,14 +40,16 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ConcurrentDictionary<string, Lazy<Task<IList<FnToRefactorModel>>>> _pendingRefactorRequests = new ConcurrentDictionary<string, Lazy<Task<IList<FnToRefactorModel>>>>();
         private readonly SemaphoreSlim _cliCommandChannel;
         private readonly SemaphoreSlim _deltaChannel = new SemaphoreSlim(1, 1);
+        private readonly ICpuUsageThrottler _cpuUsageThrottler;
 
         [ImportingConstructor]
         public CliExecutor(
             ILogger logger,
             ICliServices cliServices,
             ISettingsProvider settingsProvider,
-            [Import(AllowDefault = true)] Lazy<ITelemetryManager> telemetryManagerLazy = null)
-            : this(logger, cliServices, settingsProvider, telemetryManagerLazy, 1)
+            [Import(AllowDefault = true)] Lazy<ITelemetryManager> telemetryManagerLazy = null,
+            [Import(AllowDefault = true)] ICpuUsageThrottler cpuUsageThrottler = null)
+            : this(logger, cliServices, settingsProvider, telemetryManagerLazy, cpuUsageThrottler, 1)
         {
         }
 
@@ -54,12 +58,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
             ICliServices cliServices,
             ISettingsProvider settingsProvider,
             Lazy<ITelemetryManager> telemetryManagerLazy,
+            ICpuUsageThrottler cpuUsageThrottler,
             int cliCommandConcurrencyLimit)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cliServices = cliServices ?? throw new ArgumentNullException(nameof(cliServices));
             _settingsProvider = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
             _telemetryManagerLazy = telemetryManagerLazy;
+            _cpuUsageThrottler = cpuUsageThrottler ?? new NoOpCpuUsageThrottler();
             var effectiveLimit = Math.Max(1, cliCommandConcurrencyLimit);
             _cliCommandChannel = new SemaphoreSlim(effectiveLimit, effectiveLimit);
         }
@@ -155,6 +161,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             await _deltaChannel.WaitAsync(cancellationToken);
             try
             {
+                await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
                 var workingDirectory = GetCliWorkingDirectoryForFile(request.FilePath);
                 var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync<DeltaResponseModel>(
                     "CLI file delta review",
@@ -227,13 +234,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            var (result, elapsedMs) = await ExecuteOnChannelAsync(
-                _cliCommandChannel,
-                cancellationToken,
-                () => ExecuteWithTimingAndLoggingAsync<RefactorResponseModel>(
-                    "ACE refactoring",
-                    () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, payload, null, cancellationToken),
-                    "Refactoring failed."));
+            var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync<RefactorResponseModel>(
+                "ACE refactoring",
+                () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, payload, null, cancellationToken),
+                "Refactoring failed.");
 
             if (result != null && fnToRefactor != null)
             {
@@ -395,13 +399,10 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var command = _cliServices.CommandProvider.RefactorCommand;
 
-            var (result, _) = await ExecuteOnChannelAsync(
-                _cliCommandChannel,
-                cancellationToken,
-                () => ExecuteWithTimingAndLoggingAsync<IList<FnToRefactorModel>>(
-                    operationLabel,
-                    () => _cliServices.ProcessExecutor.ExecuteAsync(command, payloadContent, null, cancellationToken),
-                    errorMessage));
+            var (result, _) = await ExecuteWithTimingAndLoggingAsync<IList<FnToRefactorModel>>(
+                operationLabel,
+                () => _cliServices.ProcessExecutor.ExecuteAsync(command, payloadContent, null, cancellationToken),
+                errorMessage);
             return result;
         }
 
@@ -421,6 +422,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             await channel.WaitAsync(cancellationToken);
             try
             {
+                await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
                 return await operation();
             }
             finally

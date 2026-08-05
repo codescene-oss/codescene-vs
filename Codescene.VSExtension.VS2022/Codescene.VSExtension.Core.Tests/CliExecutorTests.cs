@@ -7,6 +7,7 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
@@ -547,6 +548,117 @@ namespace Codescene.VSExtension.Core.Tests
                     Directory.Delete(bad, true);
                 }
             }
+        }
+
+        [TestMethod]
+        public async Task ExecuteOnChannelAsync_AcquiresSemaphoreBeforeWaitingForCpu()
+        {
+            var operationLog = new List<string>();
+            var semaphoreAcquiredSignal = new TaskCompletionSource<bool>();
+            var cpuCheckSignal = new TaskCompletionSource<bool>();
+
+            var mockThrottler = new Mock<ICpuUsageThrottler>();
+            mockThrottler.Setup(x => x.WaitForCpuAsync(It.IsAny<CancellationToken>()))
+                .Returns(async () =>
+                {
+                    lock (operationLog)
+                    {
+                        operationLog.Add("cpu_wait");
+                    }
+
+                    semaphoreAcquiredSignal.TrySetResult(true);
+                    await cpuCheckSignal.Task;
+                });
+
+            var executor = new CliExecutor(
+                _mockLogger.Object,
+                _mockCliServices.Object,
+                _mockSettingsProvider.Object,
+                _lazyTelemetryManager,
+                mockThrottler.Object,
+                cliCommandConcurrencyLimit: 1);
+
+            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review");
+            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(It.IsAny<string>(), It.IsAny<string>(), TestCachePath))
+                .Returns("payload");
+            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
+                .ReturnsAsync(JsonConvert.SerializeObject(new CliReviewModel { Score = 1 }));
+
+            var task1 = executor.ReviewContentAsync("/file1.cs", "content1");
+            var task2 = executor.ReviewContentAsync("/file2.cs", "content2");
+
+            await semaphoreAcquiredSignal.Task;
+            await Task.Delay(50);
+
+            int cpuWaitCount;
+            lock (operationLog)
+            {
+                cpuWaitCount = operationLog.Count(x => x == "cpu_wait");
+            }
+
+            Assert.AreEqual(
+                1,
+                cpuWaitCount,
+                "Only the operation that acquired the semaphore should check CPU; the other should be blocked waiting for the semaphore");
+
+            cpuCheckSignal.SetResult(true);
+            await Task.WhenAll(task1, task2);
+        }
+
+        [TestMethod]
+        public async Task ReviewDeltaAsync_AcquiresSemaphoreBeforeWaitingForCpu()
+        {
+            var operationLog = new List<string>();
+            var semaphoreAcquiredSignal = new TaskCompletionSource<bool>();
+            var cpuCheckSignal = new TaskCompletionSource<bool>();
+
+            var mockThrottler = new Mock<ICpuUsageThrottler>();
+            mockThrottler.Setup(x => x.WaitForCpuAsync(It.IsAny<CancellationToken>()))
+                .Returns(async () =>
+                {
+                    lock (operationLog)
+                    {
+                        operationLog.Add("cpu_wait");
+                    }
+
+                    semaphoreAcquiredSignal.TrySetResult(true);
+                    await cpuCheckSignal.Task;
+                });
+
+            var executor = new CliExecutor(
+                _mockLogger.Object,
+                _mockCliServices.Object,
+                _mockSettingsProvider.Object,
+                _lazyTelemetryManager,
+                mockThrottler.Object,
+                cliCommandConcurrencyLimit: 1);
+
+            var expectedDelta = new DeltaResponseModel { NewScore = 8.5m, OldScore = 7.0m };
+            var jsonResponse = JsonConvert.SerializeObject(expectedDelta);
+            _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns("delta command");
+            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
+                .ReturnsAsync(jsonResponse);
+
+            var task1 = executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = "old1", NewScore = "new1", FilePath = "/file1.cs" });
+            var task2 = executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = "old2", NewScore = "new2", FilePath = "/file2.cs" });
+
+            await semaphoreAcquiredSignal.Task;
+            await Task.Delay(50);
+
+            int cpuWaitCount;
+            lock (operationLog)
+            {
+                cpuWaitCount = operationLog.Count(x => x == "cpu_wait");
+            }
+
+            Assert.AreEqual(
+                1,
+                cpuWaitCount,
+                "Only the operation that acquired the delta semaphore should check CPU; the other should be blocked waiting for the semaphore");
+
+            cpuCheckSignal.SetResult(true);
+            await Task.WhenAll(task1, task2);
         }
     }
 }
