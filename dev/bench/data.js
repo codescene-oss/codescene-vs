@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786015567589,
+  "lastUpdate": 1786016618258,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2180,6 +2180,48 @@ window.BENCHMARK_DATA = {
             "value": 62320692.5925926,
             "unit": "ns",
             "range": "± 452130.803006864"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c1ec10a9c403a58de9f0638c111bee1055523847",
+          "message": "chore: update CI to VS2025 (#316)",
+          "timestamp": "2026-08-06T13:38:32+02:00",
+          "tree_id": "509d63d721a87d79a86171abcffd372b125440ec",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/c1ec10a9c403a58de9f0638c111bee1055523847"
+        },
+        "date": 1786016614859,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 107052614.04255319,
+            "unit": "ns",
+            "range": "± 4123084.5192613304"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 93934747.43589744,
+            "unit": "ns",
+            "range": "± 1372811.799246453"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 62281352.38095238,
+            "unit": "ns",
+            "range": "± 899993.2188351541"
           }
         ]
       }
