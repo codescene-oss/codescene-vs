@@ -14,7 +14,7 @@ jobs:
   # ------------------------
   prepare:
     name: Prepare VSIX package
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -68,7 +68,7 @@ jobs:
   # ------------------------
   publish:
     name: Publish VSIX Extension
-    runs-on: windows-2022
+    runs-on: windows-2025-vs2026
     needs: prepare
     if: ${{ github.event.inputs.publish_vs_marketplace == 'true' }}
     steps:
@@ -88,7 +88,7 @@ jobs:
         id: find-vsixpub
         shell: pwsh
         run: |
-          $vsix = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\2022" -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue | 
+          $vsix = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\18" -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue | 
                   Select-Object -First 1 -ExpandProperty FullName
           if (-not $vsix) { throw "VsixPublisher.exe not found on runner." }
           echo "path=$vsix" >> $env:GITHUB_OUTPUT

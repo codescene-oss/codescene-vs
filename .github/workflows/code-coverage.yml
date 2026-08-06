@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   code-coverage-data:
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     env:
       FEATURE_ACE: true  # ACE feature enabled 
     steps:
