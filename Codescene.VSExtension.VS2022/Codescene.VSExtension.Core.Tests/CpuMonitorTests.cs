@@ -131,6 +131,7 @@ namespace Codescene.VSExtension.Core.Tests
             var result = CpuMonitor.TakeSampleSync();
 
             Assert.IsTrue(result >= 0 && result <= 100);
+            Assert.AreEqual(54.54, result, 0.01);
         }
 
         [TestMethod]
