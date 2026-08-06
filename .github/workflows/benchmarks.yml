@@ -12,7 +12,7 @@ permissions:
 jobs:
   fetch-cli:
     name: Fetch CLI Asset
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
 
   benchmarks:
     name: Run review benchmarks
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     needs: fetch-cli
     steps:
       - name: Checkout code
