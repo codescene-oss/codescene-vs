@@ -1,27 +1,16 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Codescene.VSExtension.Core.Application.Util
 {
     public static class CpuMonitor
     {
-        private const int Samples = 5;
-        private const int SampleDelayMs = 13;
-
-        private static readonly CpuThreshold[] CpuThresholds =
-        {
-            new CpuThreshold { MinCores = 8, Threshold = 75 },
-            new CpuThreshold { MinCores = 4, Threshold = 70 },
-            new CpuThreshold { MinCores = 0, Threshold = 65 },
-        };
-
-        private static readonly object _snapshotLock = new object();
-        private static Func<CpuSnapshot> _snapshotProvider = DefaultSnapshotProvider;
-        private static CpuSnapshot _previousSnapshot = DefaultSnapshotProvider();
-        private static Func<int> _coreCountProvider = () => Environment.ProcessorCount;
+        private static readonly object _samplerLock = new object();
+        private static CpuSampler _sampler = new CpuSampler();
+        private static Func<CpuSnapshot> _customSnapshotProvider;
+        private static Func<int> _customCoreCountProvider;
 
         static CpuMonitor()
         {
@@ -29,153 +18,76 @@ namespace Codescene.VSExtension.Core.Application.Util
 
         public static void SetSnapshotProvider(Func<CpuSnapshot> provider)
         {
-            lock (_snapshotLock)
+            lock (_samplerLock)
             {
-                _snapshotProvider = provider ?? DefaultSnapshotProvider;
-                _previousSnapshot = _snapshotProvider();
+                _customSnapshotProvider = provider;
+                RecreateSampler();
             }
         }
 
         public static void ResetSnapshotProvider()
         {
-            lock (_snapshotLock)
+            lock (_samplerLock)
             {
-                _snapshotProvider = DefaultSnapshotProvider;
-                _previousSnapshot = _snapshotProvider();
+                _customSnapshotProvider = null;
+                RecreateSampler();
             }
         }
 
         public static void SetCoreCountProvider(Func<int> provider)
         {
-            lock (_snapshotLock)
+            lock (_samplerLock)
             {
-                _coreCountProvider = provider ?? (() => Environment.ProcessorCount);
+                _customCoreCountProvider = provider;
+                RecreateSampler();
             }
         }
 
         public static void ResetCoreCountProvider()
         {
-            lock (_snapshotLock)
+            lock (_samplerLock)
             {
-                _coreCountProvider = () => Environment.ProcessorCount;
+                _customCoreCountProvider = null;
+                RecreateSampler();
             }
         }
 
         public static async Task<bool> IsCpuTooBusyAsync()
         {
-            int coreCount;
-            lock (_snapshotLock)
+            CpuSampler sampler;
+            lock (_samplerLock)
             {
-                coreCount = _coreCountProvider();
+                sampler = _sampler;
             }
 
-            double usageSum = 0;
-
-            for (int i = 0; i < Samples; i++)
-            {
-                if (i > 0)
-                {
-                    await Task.Delay(SampleDelayMs);
-                }
-
-                usageSum += TakeSample(coreCount);
-            }
-
-            var averageUsage = usageSum / Samples;
-            var threshold = GetThresholdForCoreCount(coreCount);
-
-            return averageUsage > threshold;
+            return await sampler.IsCpuTooBusyAsync();
         }
 
         internal static int GetThresholdForCoreCount(int coreCount)
         {
-            foreach (var t in CpuThresholds)
+            CpuSampler sampler;
+            lock (_samplerLock)
             {
-                if (coreCount >= t.MinCores)
-                {
-                    return t.Threshold;
-                }
+                sampler = _sampler;
             }
 
-            return 65;
+            return sampler.GetThresholdForCoreCount(coreCount);
         }
 
         internal static double TakeSampleSync()
         {
-            int coreCount;
-            lock (_snapshotLock)
+            CpuSampler sampler;
+            lock (_samplerLock)
             {
-                coreCount = _coreCountProvider();
+                sampler = _sampler;
             }
 
-            return TakeSample(coreCount);
+            return sampler.TakeSampleSync();
         }
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GetSystemTimes(
-            out long idleTime,
-            out long kernelTime,
-            out long userTime);
-
-        private static double TakeSample(int coreCount)
+        private static void RecreateSampler()
         {
-            lock (_snapshotLock)
-            {
-                try
-                {
-                    var current = _snapshotProvider();
-                    var previous = _previousSnapshot;
-                    _previousSnapshot = current;
-
-                    if (previous == null)
-                    {
-                        return 0;
-                    }
-
-                    var idleDiff = current.IdleTime - previous.IdleTime;
-                    var kernelDiff = current.KernelTime - previous.KernelTime;
-                    var userDiff = current.UserTime - previous.UserTime;
-
-                    var totalDiff = kernelDiff + userDiff;
-
-                    if (totalDiff <= 0)
-                    {
-                        return 0;
-                    }
-
-                    var usage = 100.0 - ((100.0 * idleDiff) / totalDiff);
-                    return Math.Min(100, Math.Max(0, usage));
-                }
-                catch
-                {
-                    // Return 0 (not busy) on any error - better to allow CLI operations
-                    // than to block them due to monitoring failures.
-                    return 0;
-                }
-            }
-        }
-
-        private static CpuSnapshot DefaultSnapshotProvider()
-        {
-            if (!GetSystemTimes(out long idleTime, out long kernelTime, out long userTime))
-            {
-                return new CpuSnapshot { IdleTime = 0, KernelTime = 0, UserTime = 0 };
-            }
-
-            return new CpuSnapshot
-            {
-                IdleTime = idleTime,
-                KernelTime = kernelTime,
-                UserTime = userTime,
-            };
-        }
-
-        private class CpuThreshold
-        {
-            public int MinCores { get; set; }
-
-            public int Threshold { get; set; }
+            _sampler = new CpuSampler(0, _customSnapshotProvider, _customCoreCountProvider);
         }
     }
 }

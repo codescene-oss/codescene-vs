@@ -12,23 +12,16 @@ namespace Codescene.VSExtension.Core.Application.Util
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CpuUsageChecker : ICpuUsageChecker
     {
+        private const int ThresholdOffset = 10;
         private const int Samples = 5;
         private const int SampleDelayMs = 13;
 
-        private static readonly CpuThreshold[] CpuThresholds =
-        {
-            new CpuThreshold { MinCores = 8, Threshold = 85 },
-            new CpuThreshold { MinCores = 4, Threshold = 80 },
-            new CpuThreshold { MinCores = 0, Threshold = 75 },
-        };
-
         private readonly ILogger _logger;
-        private readonly Func<Task<double>> _sampleFn;
-        private readonly Func<int> _coreCountProvider;
+        private readonly CpuSampler _sampler;
 
         [ImportingConstructor]
         public CpuUsageChecker(ILogger logger)
-            : this(logger, null, null)
+            : this(logger, new CpuSampler(ThresholdOffset))
         {
         }
 
@@ -36,33 +29,21 @@ namespace Codescene.VSExtension.Core.Application.Util
             ILogger logger,
             Func<Task<double>> sampleFn,
             Func<int> coreCountProvider)
+            : this(logger, new CpuSampler(ThresholdOffset, sampleFn, coreCountProvider, Samples, SampleDelayMs))
+        {
+        }
+
+        internal CpuUsageChecker(ILogger logger, CpuSampler sampler)
         {
             _logger = logger;
-            _sampleFn = sampleFn ?? DefaultSampleAsync;
-            _coreCountProvider = coreCountProvider ?? (() => Environment.ProcessorCount);
+            _sampler = sampler;
         }
 
         public async Task<bool> IsCpuTooBusyAsync()
         {
             try
             {
-                var coreCount = _coreCountProvider();
-                double usageSum = 0;
-
-                for (int i = 0; i < Samples; i++)
-                {
-                    if (i > 0)
-                    {
-                        await Task.Delay(SampleDelayMs);
-                    }
-
-                    usageSum += await _sampleFn();
-                }
-
-                var averageUsage = usageSum / Samples;
-                var threshold = GetThresholdForCoreCount(coreCount);
-
-                return averageUsage > threshold;
+                return await _sampler.IsCpuTooBusyAsync();
             }
             catch (Exception ex)
             {
@@ -73,27 +54,8 @@ namespace Codescene.VSExtension.Core.Application.Util
 
         internal static int GetThresholdForCoreCount(int coreCount)
         {
-            foreach (var t in CpuThresholds)
-            {
-                if (coreCount >= t.MinCores)
-                {
-                    return t.Threshold;
-                }
-            }
-
-            return 75;
-        }
-
-        private static async Task<double> DefaultSampleAsync()
-        {
-            return await Task.Run(() => CpuMonitor.TakeSampleSync());
-        }
-
-        private class CpuThreshold
-        {
-            public int MinCores { get; set; }
-
-            public int Threshold { get; set; }
+            var sampler = new CpuSampler(ThresholdOffset);
+            return sampler.GetThresholdForCoreCount(coreCount);
         }
     }
 }
