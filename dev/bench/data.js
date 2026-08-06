@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785987720924,
+  "lastUpdate": 1785987920397,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -4932,6 +4932,66 @@ window.BENCHMARK_DATA = {
             "value": 296241673.3333333,
             "unit": "ns",
             "range": "± 43046032.14043222"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0448275f8fe67a56725e9b4d949b8d67bd7dbe10",
+          "message": "Merge pull request #313 from codescene-oss/cpu-throttle-git-lister\n\nfeat: add CPU-based throttling to GitChangeLister periodic scan",
+          "timestamp": "2026-08-06T05:37:24+02:00",
+          "tree_id": "609fee0000ccc475cd4057a1430dc5313886bb60",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/0448275f8fe67a56725e9b4d949b8d67bd7dbe10"
+        },
+        "date": 1785987918758,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 124513450,
+            "unit": "ns",
+            "range": "± 1085996.8817687915"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 112580165.71428572,
+            "unit": "ns",
+            "range": "± 1536825.7134442073"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 232210755.55555552,
+            "unit": "ns",
+            "range": "± 2188943.975936424"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 211118851.11111113,
+            "unit": "ns",
+            "range": "± 3157039.994413763"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 339665313.3333333,
+            "unit": "ns",
+            "range": "± 4154249.9628808126"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 280993993.3333333,
+            "unit": "ns",
+            "range": "± 3099517.2751383325"
           }
         ]
       }
