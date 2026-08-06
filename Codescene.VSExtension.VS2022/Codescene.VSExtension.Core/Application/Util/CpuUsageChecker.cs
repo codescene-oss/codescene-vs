@@ -13,8 +13,6 @@ namespace Codescene.VSExtension.Core.Application.Util
     public class CpuUsageChecker : ICpuUsageChecker
     {
         private const int ThresholdOffset = 10;
-        private const int Samples = 5;
-        private const int SampleDelayMs = 13;
 
         private readonly ILogger _logger;
         private readonly CpuSampler _sampler;
@@ -29,7 +27,7 @@ namespace Codescene.VSExtension.Core.Application.Util
             ILogger logger,
             Func<Task<double>> sampleFn,
             Func<int> coreCountProvider)
-            : this(logger, new CpuSampler(ThresholdOffset, sampleFn, coreCountProvider, Samples, SampleDelayMs))
+            : this(logger, new CpuSampler(ThresholdOffset, sampleFn, coreCountProvider, CpuSampler.DefaultSamples, CpuSampler.DefaultSampleDelayMs))
         {
         }
 
@@ -54,8 +52,7 @@ namespace Codescene.VSExtension.Core.Application.Util
 
         internal static int GetThresholdForCoreCount(int coreCount)
         {
-            var sampler = new CpuSampler(ThresholdOffset);
-            return sampler.GetThresholdForCoreCount(coreCount);
+            return CpuSampler.GetThresholdForCoreCount(coreCount, ThresholdOffset);
         }
     }
 }

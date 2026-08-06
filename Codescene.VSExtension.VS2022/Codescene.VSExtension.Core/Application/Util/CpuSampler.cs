@@ -8,8 +8,8 @@ namespace Codescene.VSExtension.Core.Application.Util
 {
     public class CpuSampler
     {
-        private const int DefaultSamples = 5;
-        private const int DefaultSampleDelayMs = 13;
+        internal const int DefaultSamples = 5;
+        internal const int DefaultSampleDelayMs = 13;
 
         private static readonly CpuThreshold[] BaseThresholds =
         {
@@ -54,12 +54,12 @@ namespace Codescene.VSExtension.Core.Application.Util
             int sampleDelayMs)
         {
             _thresholdOffset = thresholdOffset;
-            _snapshotProvider = snapshotProvider ?? DefaultSnapshotProvider;
-            _coreCountProvider = coreCountProvider ?? (() => Environment.ProcessorCount);
             _samples = samples;
             _sampleDelayMs = sampleDelayMs;
-            _usageProvider = null;
+            _coreCountProvider = coreCountProvider ?? (() => Environment.ProcessorCount);
+            _snapshotProvider = snapshotProvider ?? DefaultSnapshotProvider;
             _previousSnapshot = _snapshotProvider();
+            _usageProvider = null;
         }
 
         internal CpuSampler(
@@ -69,22 +69,31 @@ namespace Codescene.VSExtension.Core.Application.Util
             int samples,
             int sampleDelayMs)
         {
-            _thresholdOffset = thresholdOffset;
             _usageProvider = usageProvider;
-            _coreCountProvider = coreCountProvider ?? (() => Environment.ProcessorCount);
-            _samples = samples;
-            _sampleDelayMs = sampleDelayMs;
             _snapshotProvider = null;
             _previousSnapshot = null;
+            _thresholdOffset = thresholdOffset;
+            _samples = samples;
+            _sampleDelayMs = sampleDelayMs;
+            _coreCountProvider = coreCountProvider ?? (() => Environment.ProcessorCount);
+        }
+
+        public static int GetThresholdForCoreCount(int coreCount, int thresholdOffset)
+        {
+            foreach (var t in BaseThresholds)
+            {
+                if (coreCount >= t.MinCores)
+                {
+                    return t.Threshold + thresholdOffset;
+                }
+            }
+
+            return 65 + thresholdOffset;
         }
 
         public async Task<bool> IsCpuTooBusyAsync()
         {
-            int coreCount;
-            lock (_snapshotLock)
-            {
-                coreCount = _coreCountProvider();
-            }
+            var coreCount = _coreCountProvider();
 
             double usageSum = 0;
 
@@ -113,26 +122,19 @@ namespace Codescene.VSExtension.Core.Application.Util
 
         public double TakeSampleSync()
         {
-            int coreCount;
-            lock (_snapshotLock)
+            if (_snapshotProvider == null)
             {
-                coreCount = _coreCountProvider();
+                throw new InvalidOperationException(
+                    "TakeSampleSync is not supported when CpuSampler is constructed with a usageProvider.");
             }
 
+            var coreCount = _coreCountProvider();
             return TakeSample(coreCount);
         }
 
         public int GetThresholdForCoreCount(int coreCount)
         {
-            foreach (var t in BaseThresholds)
-            {
-                if (coreCount >= t.MinCores)
-                {
-                    return t.Threshold + _thresholdOffset;
-                }
-            }
-
-            return 65 + _thresholdOffset;
+            return GetThresholdForCoreCount(coreCount, _thresholdOffset);
         }
 
         [DllImport("kernel32.dll", SetLastError = true)]
