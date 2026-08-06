@@ -131,10 +131,13 @@ function Commit-And-Tag {
     git add -- $manifest $vsix $changelog | Out-Null
     $commitMsg = "chore(release): v$version"
     git commit -m $commitMsg
-    git tag "v$version"
+    git tag -a "v$version" -m "Release v$version"
     Write-Host ""
-    Write-Host "✔ Release v$version created."
-    Write-Host "   Push with: git push --follow-tags"
+    Write-Host "Release v$version created."
+    Write-Host "Pushing to remote..."
+    git push
+    git push origin "v$version"
+    Write-Host "Pushed successfully."
 }
 
 function Main {
