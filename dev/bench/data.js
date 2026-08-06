@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786001209097,
+  "lastUpdate": 1786011178091,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2096,6 +2096,48 @@ window.BENCHMARK_DATA = {
             "value": 60352524.444444455,
             "unit": "ns",
             "range": "± 826266.7949203857"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vemv@users.noreply.github.com",
+            "name": "vemv",
+            "username": "vemv"
+          },
+          "committer": {
+            "email": "vemv@users.noreply.github.com",
+            "name": "vemv",
+            "username": "vemv"
+          },
+          "distinct": true,
+          "id": "1cb3a2c2edbc0e95d116c117719a92a3f4565313",
+          "message": "chore(release): v0.7.7",
+          "timestamp": "2026-08-06T12:06:39+02:00",
+          "tree_id": "35dcea441f38c71367d26d3e10fbb31ad01f7570",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/1cb3a2c2edbc0e95d116c117719a92a3f4565313"
+        },
+        "date": 1786011174582,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 126915860.2,
+            "unit": "ns",
+            "range": "± 12325218.734401116"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 100928574.5614035,
+            "unit": "ns",
+            "range": "± 1065977.424531183"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 64858773.21428572,
+            "unit": "ns",
+            "range": "± 426039.62163547263"
           }
         ]
       }
