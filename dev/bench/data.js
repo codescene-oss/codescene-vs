@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786016618258,
+  "lastUpdate": 1786016854939,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -5340,6 +5340,66 @@ window.BENCHMARK_DATA = {
             "value": 280054423.0769231,
             "unit": "ns",
             "range": "± 2167076.167483062"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c1ec10a9c403a58de9f0638c111bee1055523847",
+          "message": "chore: update CI to VS2025 (#316)",
+          "timestamp": "2026-08-06T13:38:32+02:00",
+          "tree_id": "509d63d721a87d79a86171abcffd372b125440ec",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/c1ec10a9c403a58de9f0638c111bee1055523847"
+        },
+        "date": 1786016853281,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 125048176.36363636,
+            "unit": "ns",
+            "range": "± 3049509.607487337"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 111719440,
+            "unit": "ns",
+            "range": "± 2018131.9971130304"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 231402526.66666663,
+            "unit": "ns",
+            "range": "± 4033037.832567484"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 204703629.4117647,
+            "unit": "ns",
+            "range": "± 3985294.2955229925"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 329178250,
+            "unit": "ns",
+            "range": "± 4242117.739407996"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 269686794.4444444,
+            "unit": "ns",
+            "range": "± 5761870.487955046"
           }
         ]
       }
