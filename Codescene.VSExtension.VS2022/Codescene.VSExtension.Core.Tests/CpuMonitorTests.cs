@@ -113,6 +113,28 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void TakeSampleSync_ReturnsExpectedCpuUsage()
+        {
+            var callCount = 0;
+            CpuMonitor.SetCoreCountProvider(() => 8);
+            CpuMonitor.SetSnapshotProvider(() =>
+            {
+                callCount++;
+                return new CpuSnapshot
+                {
+                    IdleTime = callCount * 500,
+                    KernelTime = callCount * 1000,
+                    UserTime = callCount * 100,
+                };
+            });
+
+            var result = CpuMonitor.TakeSampleSync();
+
+            Assert.IsTrue(result >= 0 && result <= 100);
+            Assert.AreEqual(54.54, result, 0.01);
+        }
+
+        [TestMethod]
         [DataRow(8, 20, false, DisplayName = "8 cores at 20% usage - below 75% threshold")]
         [DataRow(8, 75, false, DisplayName = "8 cores at 75% usage - at 75% threshold")]
         [DataRow(8, 80, true, DisplayName = "8 cores at 80% usage - above 75% threshold")]
