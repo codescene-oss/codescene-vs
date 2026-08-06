@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786011494625,
+  "lastUpdate": 1786015151684,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2138,6 +2138,48 @@ window.BENCHMARK_DATA = {
             "value": 64858773.21428572,
             "unit": "ns",
             "range": "± 426039.62163547263"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "da30903a97ff2dce469e19e3d73866067a0bf322",
+          "message": "Update workflow to use windows-2022 for publishing",
+          "timestamp": "2026-08-06T13:14:42+02:00",
+          "tree_id": "217a994942c0050df3d919d32d66977ba8de561d",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/da30903a97ff2dce469e19e3d73866067a0bf322"
+        },
+        "date": 1786015148543,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 106875593.33333333,
+            "unit": "ns",
+            "range": "± 595109.2239564896"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 94774546.31578948,
+            "unit": "ns",
+            "range": "± 941791.5686381434"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 62320692.5925926,
+            "unit": "ns",
+            "range": "± 452130.803006864"
           }
         ]
       }
