@@ -16,7 +16,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
 
         Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default);
 
-        void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths, DefaultBranchGate defaultBranchGate = null);
+        void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths);
 
         void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths);
 
@@ -25,7 +25,5 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
         void StopPeriodicScanning();
 
         Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default);
-
-        void InvalidateDefaultBranchCache();
     }
 }

@@ -511,7 +511,7 @@ namespace Codescene.VSExtension.Core.Tests
             return Task.FromResult(new HashSet<string>());
         }
 
-        public void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths, DefaultBranchGate defaultBranchGate = null)
+        public void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths)
         {
         }
 
@@ -535,10 +535,6 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             return Task.FromResult(FilesToReturn);
-        }
-
-        public void InvalidateDefaultBranchCache()
-        {
         }
 
         public void SimulateFilesDetected(HashSet<string> files)
