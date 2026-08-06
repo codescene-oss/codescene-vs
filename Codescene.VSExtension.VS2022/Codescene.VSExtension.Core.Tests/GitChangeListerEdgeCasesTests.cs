@@ -308,7 +308,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task PeriodicScanAsync_SkipsWhenOnDefaultBranch()
+        public async Task PeriodicScanAsync_ProceedsEvenWhenOnDefaultBranch()
         {
             using (var repo = new Repository(_testRepoPath))
             {
@@ -316,8 +316,6 @@ namespace Codescene.VSExtension.Core.Tests
                 repo.Refs.Add($"refs/remotes/origin/{currentBranch}", repo.Head.Tip.Id);
                 repo.Refs.Add("refs/remotes/origin/HEAD", repo.Refs[$"refs/remotes/origin/{currentBranch}"]);
             }
-
-            var defaultBranchGate = new DefaultBranchGate(_testRepoPath);
 
             var testableInstance = new TestableGitChangeLister(
                 _fakeSavedFilesTracker,
@@ -327,9 +325,9 @@ namespace Codescene.VSExtension.Core.Tests
 
             try
             {
-                testableInstance.Initialize(_testRepoPath, new[] { _testRepoPath }, defaultBranchGate);
+                testableInstance.Initialize(_testRepoPath, new[] { _testRepoPath });
 
-                var newFile = Path.Combine(_testRepoPath, "should-not-scan-on-main.cs");
+                var newFile = Path.Combine(_testRepoPath, "should-scan-on-main.cs");
                 File.WriteAllText(newFile, "content");
 
                 var eventFired = false;
@@ -337,7 +335,7 @@ namespace Codescene.VSExtension.Core.Tests
 
                 await testableInstance.InvokePeriodicScanAsync();
 
-                Assert.IsFalse(eventFired, "Should not fire event when on default branch");
+                Assert.IsTrue(eventFired, "Should fire event even when on default branch");
             }
             finally
             {

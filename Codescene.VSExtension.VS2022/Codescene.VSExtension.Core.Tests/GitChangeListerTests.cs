@@ -492,20 +492,5 @@ namespace Codescene.VSExtension.Core.Tests
                 Assert.IsTrue(result.All(f => f.Contains("real")), "All returned files should be non-ignored files");
             }
         }
-
-        [TestMethod]
-        public async Task GetAllChangedFilesAsync_NullDefaultBranchGate_DoesNotSkip()
-        {
-            var listerWithoutGate = new GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, _fakeGitService);
-            listerWithoutGate.Initialize(null, new[] { _testRepoPath });
-
-            var newFile = Path.Combine(_testRepoPath, "new-file.cs");
-            File.WriteAllText(newFile, "public class NewClass { }");
-
-            var result = await listerWithoutGate.GetAllChangedFilesAsync(_testRepoPath, _testRepoPath);
-
-            Assert.HasCount(1, result, "Should detect file even when _defaultBranchGate is null");
-            Assert.Contains(newFile, result, "Should contain the new file");
-        }
     }
 }
