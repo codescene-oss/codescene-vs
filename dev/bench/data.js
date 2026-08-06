@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785988110553,
+  "lastUpdate": 1786000807845,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2054,6 +2054,48 @@ window.BENCHMARK_DATA = {
             "value": 63049662.5,
             "unit": "ns",
             "range": "± 1129363.5364923882"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7e67b3dd1e2fa29263c2986a73da98ad4d75c73f",
+          "message": "Merge pull request #314 from codescene-oss/skip-refinement\n\nrefactor: remove default branch skipping from GitChangeLister",
+          "timestamp": "2026-08-06T09:15:49+02:00",
+          "tree_id": "d68287b91ad4267c0823e8e16b3fe358f5c6200e",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/7e67b3dd1e2fa29263c2986a73da98ad4d75c73f"
+        },
+        "date": 1786000804898,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 105867130.66666667,
+            "unit": "ns",
+            "range": "± 698795.4738534697"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 95861429.56521739,
+            "unit": "ns",
+            "range": "± 2368451.0828031935"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 60352524.444444455,
+            "unit": "ns",
+            "range": "± 826266.7949203857"
           }
         ]
       }
