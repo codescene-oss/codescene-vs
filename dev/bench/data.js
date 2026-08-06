@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785920270908,
+  "lastUpdate": 1785987720924,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2012,6 +2012,48 @@ window.BENCHMARK_DATA = {
             "value": 66666637.5,
             "unit": "ns",
             "range": "± 968406.3686624905"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0448275f8fe67a56725e9b4d949b8d67bd7dbe10",
+          "message": "Merge pull request #313 from codescene-oss/cpu-throttle-git-lister\n\nfeat: add CPU-based throttling to GitChangeLister periodic scan",
+          "timestamp": "2026-08-06T05:37:24+02:00",
+          "tree_id": "609fee0000ccc475cd4057a1430dc5313886bb60",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/0448275f8fe67a56725e9b4d949b8d67bd7dbe10"
+        },
+        "date": 1785987717587,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 110238147.36842105,
+            "unit": "ns",
+            "range": "± 2373387.2806247994"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 101358820,
+            "unit": "ns",
+            "range": "± 2641651.6369751203"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 63049662.5,
+            "unit": "ns",
+            "range": "± 1129363.5364923882"
           }
         ]
       }
