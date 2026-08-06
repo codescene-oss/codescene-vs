@@ -68,7 +68,7 @@ jobs:
   # ------------------------
   publish:
     name: Publish VSIX Extension
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: prepare
     if: ${{ github.event.inputs.publish_vs_marketplace == 'true' }}
     steps:
