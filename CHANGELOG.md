@@ -1,9 +1,63 @@
-# CodeScene Visual Studio Extension Changelog
+﻿# CodeScene Visual Studio Extension Changelog
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.7.7] - 2026-08-06
+
+### Added
+- add CPU-based throttling to GitChangeLister periodic scan
+- remove stale files from Code Health Monitor after GitChangeLister runs
+- add CPU monitoring to throttle CLI commands during high load
+- cache baseline commit to eliminate redundant git merge-base calls
+- cache `GetDefaultBranch` calls to reduce redundant git operations
+- skip `GitChangeLister` and `GitChangeObserver` on default branch
+- watch global gitignore (`core.excludesfile`) for cache invalidation (#306)
+- batch git ignore checks to reduce Repository overhead
+- skip GitChangeLister when analyses are running
+- dynamically increase GitChangeLister period based on execution time (#303)
+- skip periodic GitChangeLister when VS window is not focused
+
+### Fixed
+- resolve issues from `CpuSampler` refactoring code review
+- filter invalid paths before cache cleanup in GitChangeLister
+- check CPU after acquiring semaphore, not before
+- catch exceptions in `TakeSample` to ensure graceful fallback
+- align CPU throttling with codescene-vscode parity
+- use system-wide CPU metrics instead of process-specific
+- handle exceptions in CPU monitoring gracefully in `CpuUsageThrottler`
+- wait for CPU availability before acquiring semaphore in `CliExecutor`
+- synchronize access to `_previousSnapshot` in `CpuMonitor`
+- prevent concurrent processing in `FileChangeEventProcessor`
+- compute baseline commit once per batch in `OnGitChangeListerFilesDetected`
+- thread `baselineCommit` through `GetChangedFilesVsBaselineAsync`
+- forward `baselineCommit` to inner reviewer in `ComputeAndCacheDeltaAsync`
+- add missing `baselineCommit` parameter to Moq setup expressions
+- thread `baselineCommit` through internal delta computation methods
+- compute baseline commit once per batch instead of per-event
+- add missing `baselineCommit` parameter to `DeltaAsync` Moq expressions
+- use `baselineCommit` parameter in `CodeReviewer.GetOrComputeBaselineRawScoreAsync`
+- synchronize `DefaultBranchGate` cache access
+
+### Changed
+- remove default branch skipping from GitChangeLister
+- assert calculated CPU usage in `TakeSampleSync_ReturnsExpectedCpuUsage`
+- extract common CPU sampling logic into `CpuSampler`
+- add coverage for `CpuMonitor.TakeSampleSync`
+- add coverage for stale file removal preservation logic
+- consolidate duplicate tests using DataRow
+- add comprehensive CPU monitoring threshold and edge case tests
+- add edge case coverage for `CpuMonitor`
+- cover outer exception handler in `FileChangeEventProcessor`
+- reduce cyclomatic complexity in git change detection
+- consolidate baseline commit resolution into `IGitService`
+- remove redundant FilterIgnoredFiles call in CollectFilesFromRepoState
+- add coverage for ignored files not counting toward threshold
+
 
 ## [0.7.6] - 2026-06-09
 ### Fixed
@@ -226,6 +280,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 
 
 
