@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786092263000,
+  "lastUpdate": 1786092465633,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -5544,6 +5544,66 @@ window.BENCHMARK_DATA = {
             "value": 279609510,
             "unit": "ns",
             "range": "± 3576866.4816528205"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "70503504497da9c921f3b8ad68b2bd1a9aea2265",
+          "message": "fix(release): clarify editor instructions in release script (#317)\n\nAdds a message before opening the editor instructing users to close it\nafter editing. This clarifies the workflow, especially for editors like\nVS Code where `--wait` requires closing the window, not just saving.\n\nCo-authored-by: vemv <vemv@users.noreply.github.com>",
+          "timestamp": "2026-08-07T10:40:04+02:00",
+          "tree_id": "b6c9d05f05aa390d95581198ca960273de4d6c3c",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/70503504497da9c921f3b8ad68b2bd1a9aea2265"
+        },
+        "date": 1786092464306,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 113270617.14285715,
+            "unit": "ns",
+            "range": "± 959888.924915703"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 103257673.84615384,
+            "unit": "ns",
+            "range": "± 1295758.9884024113"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 215101362.2222222,
+            "unit": "ns",
+            "range": "± 1685314.8268304032"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 188379453.8461538,
+            "unit": "ns",
+            "range": "± 1511255.609280307"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 295650800,
+            "unit": "ns",
+            "range": "± 2269811.828273267"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 251858563.33333334,
+            "unit": "ns",
+            "range": "± 4400768.8939169105"
           }
         ]
       }
