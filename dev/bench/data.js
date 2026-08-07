@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786090724053,
+  "lastUpdate": 1786090809091,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -8044,6 +8044,54 @@ window.BENCHMARK_DATA = {
             "value": 16682.903081720524,
             "unit": "ns",
             "range": "± 405.1990230703003"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "vemv@users.noreply.github.com",
+            "name": "vemv",
+            "username": "vemv"
+          },
+          "committer": {
+            "email": "vemv@users.noreply.github.com",
+            "name": "vemv",
+            "username": "vemv"
+          },
+          "distinct": true,
+          "id": "946275a4dc1bf5acaaadd30cfd3febcd3b8ad79d",
+          "message": "chore(release): v0.8.0",
+          "timestamp": "2026-08-07T10:10:08+02:00",
+          "tree_id": "5358c32e278fffce293198d2f24f915dc8d74bfc",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/946275a4dc1bf5acaaadd30cfd3febcd3b8ad79d"
+        },
+        "date": 1786090806828,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 124167050,
+            "unit": "ns",
+            "range": "± 1578535.3624879615"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 6039.468231201172,
+            "unit": "ns",
+            "range": "± 63.1860486761495"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 398298346.6666667,
+            "unit": "ns",
+            "range": "± 6950519.037747846"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 21383.73203277588,
+            "unit": "ns",
+            "range": "± 376.1872531159928"
           }
         ]
       }
