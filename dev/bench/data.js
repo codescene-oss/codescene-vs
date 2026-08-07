@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786090809091,
+  "lastUpdate": 1786092263000,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2264,6 +2264,48 @@ window.BENCHMARK_DATA = {
             "value": 62506907.4074074,
             "unit": "ns",
             "range": "± 840054.4931269003"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "victor.valenzuela+gh@codescene.com",
+            "name": "vemvcs",
+            "username": "vemvcs"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "70503504497da9c921f3b8ad68b2bd1a9aea2265",
+          "message": "fix(release): clarify editor instructions in release script (#317)\n\nAdds a message before opening the editor instructing users to close it\nafter editing. This clarifies the workflow, especially for editors like\nVS Code where `--wait` requires closing the window, not just saving.\n\nCo-authored-by: vemv <vemv@users.noreply.github.com>",
+          "timestamp": "2026-08-07T10:40:04+02:00",
+          "tree_id": "b6c9d05f05aa390d95581198ca960273de4d6c3c",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/70503504497da9c921f3b8ad68b2bd1a9aea2265"
+        },
+        "date": 1786092260742,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 99462900.47619046,
+            "unit": "ns",
+            "range": "± 3268115.4715148914"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 86214636.90476191,
+            "unit": "ns",
+            "range": "± 1154609.6944251873"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 58111857.142857134,
+            "unit": "ns",
+            "range": "± 858718.57508928"
           }
         ]
       }
