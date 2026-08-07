@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-07
+
+### Fixed
+- ensure tags are pushed to remote (#315)
+### Changed
+- Update workflow to use windows-2022 for publishing
+
+
 ## [0.7.7] - 2026-08-06
 
 ### Added
@@ -280,6 +288,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial CodeScene plugin settings.
 - Documentation for code smells.
 - Code Health visibility in a separate editor margin.
+
 
 
 
