@@ -154,8 +154,9 @@ function Main {
         $groups = Group-Commits $rawCommits
         Update-Changelog $newVersion $groups
 
+        Write-Host "Opening changelog for editing. Please review, make any changes, save, and close the editor."
         Open-ChangelogForEdit
-        $response = Read-Host "Edit the changelog now, then press Enter to continue (or 'q' to abort)"
+        $response = Read-Host "Press Enter to continue after closing the editor (or 'q' to abort)"
         if ($response -eq 'q') {
             git checkout -- $changelog
             Write-Host "Aborted. Changelog reverted."
