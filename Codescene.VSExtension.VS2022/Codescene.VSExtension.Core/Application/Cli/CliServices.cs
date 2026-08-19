@@ -17,17 +17,13 @@ namespace Codescene.VSExtension.Core.Application.Cli;
 [SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1009:Closing parenthesis should not be followed by a space", Justification = "Space is required by C# syntax for primary constructors with inheritance")]
 [method: ImportingConstructor]
 internal class CliServices(
-    ICliCommandProvider commandProvider,
-    IProcessExecutor processExecutor,
+    IIdeServerHost host,
     ICacheStorageService cacheStorage) : ICliServices
 {
-    private readonly ICliCommandProvider _commandProvider = commandProvider ?? throw new System.ArgumentNullException(nameof(commandProvider));
-    private readonly IProcessExecutor _processExecutor = processExecutor ?? throw new System.ArgumentNullException(nameof(processExecutor));
+    private readonly IIdeServerHost _host = host ?? throw new System.ArgumentNullException(nameof(host));
     private readonly ICacheStorageService _cacheStorage = cacheStorage ?? throw new System.ArgumentNullException(nameof(cacheStorage));
 
-    public ICliCommandProvider CommandProvider => _commandProvider;
-
-    public IProcessExecutor ProcessExecutor => _processExecutor;
+    public IIdeServerHost Host => _host;
 
     public ICacheStorageService CacheStorage => _cacheStorage;
 }

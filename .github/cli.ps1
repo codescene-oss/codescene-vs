@@ -18,12 +18,30 @@ if ($content -match 'RequiredDevToolVersion\s*=>\s*"([^"]+)"') {
     exit 1
 }
 
-$url = "https://downloads.codescene.io/enterprise/cli/cs-ide-windows-amd64-$RequiredDevToolVersion.zip"
+$url = "https://downloads.codescene.io/enterprise/cli/cs-ide-jre-windows-amd64-$RequiredDevToolVersion.zip"
 Write-Host "Downloading from $url"
 Invoke-WebRequest -Uri $url -OutFile cs-ide.zip
+
+if (Test-Path ./cs-ide) {
+    Remove-Item ./cs-ide -Recurse -Force
+}
 Expand-Archive -Path cs-ide.zip -DestinationPath ./cs-ide -Force
 
-$cliExePath = "./cs-ide/cs-ide.exe"
-$cliSha256 = (Get-FileHash $cliExePath -Algorithm SHA256).Hash.ToLowerInvariant()
-Write-Host "Bundled CLI SHA-256: $cliSha256"
-Write-Host "Update RequiredCliBinarySha256 in CliSettingsProvider.cs when RequiredDevToolVersion changes."
+$distRoot = $null
+if (Test-Path "./cs-ide/cs-windows-amd64/cs-ide.jar") {
+    $distRoot = "./cs-ide/cs-windows-amd64"
+} elseif (Test-Path "./cs-ide/cs-ide.jar") {
+    $distRoot = "./cs-ide"
+} else {
+    $nested = Get-ChildItem -Path ./cs-ide -Directory | Where-Object { Test-Path (Join-Path $_.FullName "cs-ide.jar") } | Select-Object -First 1
+    if ($nested) {
+        $distRoot = $nested.FullName
+    }
+}
+
+if (-not $distRoot) {
+    Write-Error "Downloaded CLI zip did not contain cs-ide.jar."
+    exit 1
+}
+
+Write-Host "CLI distribution root: $distRoot"

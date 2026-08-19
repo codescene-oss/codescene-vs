@@ -1,9 +1,9 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Diagnostics;
-using System.Reflection;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Cli;
+using Codescene.VSExtension.Core.Application.Cli.Rpc;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Application.Services;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -14,6 +14,9 @@ namespace Codescene.VSExtension.Core.SubcutaneousTests;
 
 public abstract class SubcutaneousGitTestBase
 {
+    private static readonly object HostSync = new object();
+    private static IIdeServerHost? _sharedHost;
+
     protected EventJournal Journal { get; private set; } = null!;
 
     protected TestLogger Logger { get; private set; } = null!;
@@ -30,10 +33,6 @@ public abstract class SubcutaneousGitTestBase
 
     protected RecordingCodeReviewer CodeReviewer { get; private set; } = null!;
 
-    protected RecordingGitChangeLister GitChangeLister { get; private set; } = null!;
-
-    protected RecordingGitChangeObserverCore Observer { get; private set; } = null!;
-
     protected GitService GitService { get; private set; } = null!;
 
     protected DeltaCacheService DeltaCache { get; private set; } = null!;
@@ -43,8 +42,6 @@ public abstract class SubcutaneousGitTestBase
     protected string CacheDirectory { get; private set; } = string.Empty;
 
     protected virtual int GitPollingIntervalSeconds => 1;
-
-    protected virtual bool AutoStartObserver => true;
 
     protected virtual int DefaultTimeoutMs => 30000;
 
@@ -94,27 +91,6 @@ public abstract class SubcutaneousGitTestBase
             deltaCache: DeltaCache);
 
         CodeReviewer = new RecordingCodeReviewer(cachingReviewer, Journal);
-        GitChangeLister = new RecordingGitChangeLister(
-            new GitChangeLister(SavedFilesTracker, SupportedFileChecker, Logger, GitService, pollingInterval: GitPollingIntervalSeconds),
-            Journal);
-
-        Observer = new RecordingGitChangeObserverCore(
-            Logger,
-            CodeReviewer,
-            SupportedFileChecker,
-            TaskScheduler,
-            GitChangeLister,
-            GitService,
-            Journal);
-
-        Observer.FileDeletedFromGit += (_, path) => Journal.Record("observer.file-deleted", path);
-        Observer.ViewUpdateRequested += (_, _) => Journal.Record("observer.view-update");
-        Observer.Initialize(RepositoryRoot, SavedFilesTracker, OpenFilesObserver);
-
-        if (AutoStartObserver)
-        {
-            await StartObserverAsync();
-        }
     }
 
     [TestCleanup]
@@ -125,8 +101,6 @@ public abstract class SubcutaneousGitTestBase
             await TaskScheduler.WaitForIdleAsync(DefaultTimeoutMs);
         }
 
-        Observer?.Dispose();
-        GitChangeLister?.Dispose();
         GitService?.Dispose();
         TaskScheduler?.Dispose();
 
@@ -150,14 +124,6 @@ public abstract class SubcutaneousGitTestBase
     protected string AbsolutePath(string relativePath)
     {
         return Path.Combine(RepositoryRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
-    }
-
-    protected async Task StartObserverAsync()
-    {
-        Observer.Start();
-        await WaitForConditionAsync(
-            () => Observer.FileWatcher != null && Observer.FileWatcher.EnableRaisingEvents,
-            "The git observer did not finish starting.");
     }
 
     protected Task<string> WriteWorkingFileAsync(string relativePath, string content, bool markSaved = false)
@@ -270,11 +236,6 @@ public abstract class SubcutaneousGitTestBase
         Journal.Record("stimulus.config-write", configPath, $"baseline_branch={baselineBranch}");
     }
 
-    protected bool IsTracked(string relativePath)
-    {
-        return Observer.GetTrackerManager().Contains(AbsolutePath(relativePath));
-    }
-
     protected bool HasDelta(string relativePath)
     {
         var abs = AbsolutePath(relativePath);
@@ -307,34 +268,6 @@ public abstract class SubcutaneousGitTestBase
         return DeltaCache.GetAll().Keys.ToList().AsReadOnly();
     }
 
-    protected async Task WaitForTrackedAsync(string relativePath, string? message = null, int timeoutMs = 30000)
-    {
-        await WaitForConditionAsync(() => IsTracked(relativePath), message ?? $"Expected {relativePath} to be tracked.", timeoutMs);
-    }
-
-    protected async Task WaitForNotTrackedAsync(string relativePath, string? message = null, int timeoutMs = 30000)
-    {
-        await WaitForConditionAsync(() => !IsTracked(relativePath), message ?? $"Expected {relativePath} to be removed from the tracker.", timeoutMs);
-    }
-
-    protected async Task WaitForDeltaAsync(string relativePath, string? message = null, int timeoutMs = 30000)
-    {
-        await WaitForConditionAsync(() => HasDelta(relativePath), message ?? $"Expected {relativePath} to produce a delta result.", timeoutMs);
-    }
-
-    protected async Task WaitForNoDeltaAsync(string relativePath, string? message = null, int timeoutMs = 30000)
-    {
-        await WaitForConditionAsync(() => !HasDelta(relativePath), message ?? $"Expected {relativePath} to be absent from the delta cache.", timeoutMs);
-    }
-
-    protected async Task WaitForReviewCountAsync(string relativePath, int expectedCount, string? message = null, int timeoutMs = 30000)
-    {
-        await WaitForConditionAsync(
-            () => ReviewCount(relativePath) >= expectedCount,
-            message ?? $"Expected at least {expectedCount} review(s) for {relativePath}.",
-            timeoutMs);
-    }
-
     protected void SnapshotState(string label, params string[] relativePaths)
     {
         foreach (var relativePath in relativePaths)
@@ -343,7 +276,7 @@ public abstract class SubcutaneousGitTestBase
             Journal.Record(
                 "state.snapshot",
                 absolutePath,
-                $"{label};tracked={Observer.GetTrackerManager().Contains(absolutePath)};delta={HasDelta(relativePath)};reviewCount={CodeReviewer.GetReviewWithDeltaCallCount(absolutePath)}");
+                $"{label};delta={HasDelta(relativePath)};reviewCount={CodeReviewer.GetReviewWithDeltaCallCount(absolutePath)}");
         }
     }
 
@@ -397,27 +330,23 @@ public abstract class SubcutaneousGitTestBase
     private CliExecutor CreateCliExecutor()
     {
         var settingsProvider = new TestSettingsProvider();
-        var cliSettingsProvider = new CliSettingsProvider();
-        var commandProvider = new CliCommandProvider(new CliObjectScoreCreator(Logger));
-        var processExecutor = CreateProcessExecutor(cliSettingsProvider);
-        var cliServices = new TestCliServices(commandProvider, processExecutor, new TestCacheStorageService(CacheDirectory));
-        return new CliExecutor(Logger, cliServices, settingsProvider, null);
+        return new CliExecutor(Logger, EnsureSharedHost(), new TestCacheStorageService(CacheDirectory), settingsProvider, null!);
     }
 
-    private IProcessExecutor CreateProcessExecutor(ICliSettingsProvider cliSettingsProvider)
+    private IIdeServerHost EnsureSharedHost()
     {
-        var processExecutorType = typeof(CliSettingsProvider).Assembly.GetType(
-            "Codescene.VSExtension.Core.Application.Cli.ProcessExecutor",
-            throwOnError: true);
+        lock (HostSync)
+        {
+            if (_sharedHost?.IsRunning == true)
+            {
+                return _sharedHost;
+            }
 
-        var processExecutor = Activator.CreateInstance(
-            processExecutorType!,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-            null,
-            new object[] { cliSettingsProvider, Logger },
-            null);
-
-        return (IProcessExecutor)processExecutor!;
+            _sharedHost?.Dispose();
+            _sharedHost = new IdeServerHost(new CliSettingsProvider(), Logger);
+            _sharedHost.StartAsync().GetAwaiter().GetResult();
+            return _sharedHost;
+        }
     }
 
     private void InitializeGitRepository()

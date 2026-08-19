@@ -6,13 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);VSTHRD002;VSTHRD110;VSTHRD200</NoWarn>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="..\..\cs-ide\cs-ide.exe" Link="cs-ide.exe">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="coverlet.collector" Version="6.0.4" />

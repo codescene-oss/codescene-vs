@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.VS2022.Application.Git;
@@ -26,8 +27,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     private readonly object _initGate = new object();
     private uint _cookie;
     private IVsSolution _solution;
-    private BranchWatcherService _branchWatcher;
-    private IGitChangeObserver _gitChangeObserver;
+    private IWorkspaceReviewCoordinator _workspaceReviewCoordinator;
     private IAsyncTaskScheduler _scheduler;
     private IErrorListWindowHandler _errorListWindowHandler;
     private Task _solutionInitializationTask;
@@ -121,11 +121,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             _solutionInitializationTask = null;
         }
 
-        _branchWatcher?.Dispose();
-        _branchWatcher = null;
-        _gitChangeObserver?.CancelAndReset();
-        _gitChangeObserver?.Dispose();
-        _gitChangeObserver = null;
+        _workspaceReviewCoordinator?.Stop();
         return VSConstants.S_OK;
     }
 
@@ -168,6 +164,8 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             VS.Events.SolutionEvents.OnBeforeCloseFolder -= SolutionEvents_OnBeforeCloseFolder;
             VS.Events.SolutionEvents.OnAfterOpenFolder -= SolutionEvents_OnAfterOpenFolder;
         }
+
+        _workspaceReviewCoordinator?.Stop();
     }
 
     private void Log(Func<ILogger, Task> logAction)
@@ -233,36 +231,19 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         _errorListWindowHandler?.ClearAll();
 
-        _branchWatcher = new BranchWatcherService();
-        _branchWatcher.StartWatching(solutionPath, (newBranch) =>
-            _scheduler.Schedule(ct2 => OnBranchChangedAsync(newBranch)));
-
-        await InitializeGitChangeObserverAsync(solutionPath);
+        await InitializeWorkspaceReviewAsync(solutionPath);
     }
 
-    private async Task InitializeGitChangeObserverAsync(string solutionPath)
+    private async Task InitializeWorkspaceReviewAsync(string solutionPath)
     {
         try
         {
-            _gitChangeObserver = await VS.GetMefServiceAsync<IGitChangeObserver>();
-            if (_gitChangeObserver == null)
+            _workspaceReviewCoordinator = await VS.GetMefServiceAsync<IWorkspaceReviewCoordinator>();
+            if (_workspaceReviewCoordinator == null)
             {
                 Log(logger =>
                 {
-                    logger.Warn("Failed to obtain IGitChangeObserver service.");
-                    return Task.CompletedTask;
-                });
-                return;
-            }
-
-            var savedFilesTracker = await VS.GetMefServiceAsync<ISavedFilesTracker>();
-            var openFilesObserver = await VS.GetMefServiceAsync<IOpenFilesObserver>();
-
-            if (savedFilesTracker == null || openFilesObserver == null)
-            {
-                Log(logger =>
-                {
-                    logger.Warn("Failed to obtain required services for GitChangeObserver.");
+                    logger.Warn("Failed to obtain IWorkspaceReviewCoordinator service.");
                     return Task.CompletedTask;
                 });
                 return;
@@ -275,12 +256,11 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
             }
 
-            _gitChangeObserver.Initialize(solutionPath, savedFilesTracker, openFilesObserver, workspacePaths);
-            _gitChangeObserver.Start();
+            await _workspaceReviewCoordinator.StartAsync(solutionPath, workspacePaths);
 
             Log(logger =>
             {
-                logger.Info("GitChangeObserver initialized and started.");
+                logger.Info("Workspace review coordinator started.");
                 return Task.CompletedTask;
             });
         }
@@ -288,7 +268,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         {
             Log(logger =>
             {
-                logger.Error("Failed to initialize GitChangeObserver.", ex);
+                logger.Error("Failed to start workspace review coordinator.", ex);
                 return Task.CompletedTask;
             });
         }
@@ -296,7 +276,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
     private async Task RefreshWorkspacePathsAsync()
     {
-        if (_gitChangeObserver == null)
+        if (_workspaceReviewCoordinator == null)
         {
             return;
         }
@@ -315,34 +295,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         }
 
         var workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
-        if (workspacePaths != null && workspacePaths.Count > 0)
-        {
-            _gitChangeObserver.UpdateWorkspacePaths(workspacePaths);
-        }
-    }
-
-    private async Task OnBranchChangedAsync(string newBranch)
-    {
-        try
-        {
-            Log(logger =>
-            {
-                logger.Info($"Branch switched to: '{newBranch}'. Clearing delta cache...");
-                return Task.CompletedTask;
-            });
-
-            _gitChangeObserver?.CancelAndReset();
-
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
-        }
-        catch (Exception ex)
-        {
-            Log(logger =>
-            {
-                logger.Error($"Failed handling branch switch event: {newBranch}", ex);
-                return Task.CompletedTask;
-            });
-        }
+        await _workspaceReviewCoordinator.StartAsync(solutionPath, workspacePaths);
     }
 }

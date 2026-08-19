@@ -32,5 +32,11 @@ namespace Codescene.VSExtension.Core.Models.Cli.Delta
         /// </summary>
         [JsonProperty("score-change")]
         public decimal ScoreChange { get; set; }
+
+        [JsonProperty("old-git-blob-sha")]
+        public string OldGitBlobSha { get; set; }
+
+        [JsonProperty("new-git-blob-sha")]
+        public string NewGitBlobSha { get; set; }
     }
 }

@@ -75,11 +75,7 @@
     <Compile Include="Application\Adapters\VsOpenDocumentContentProvider.cs" />
     <Compile Include="Application\Adapters\VsOpenFilesSource.cs" />
     <Compile Include="Application\Cli\CachingCodeReviewerProvider.cs" />
-    <Compile Include="Application\Git\BranchWatcherService.cs" />
-    <Compile Include="Application\Git\GitChangeObserver.cs" />
-    <Compile Include="Application\Git\GitChangeListerService.cs" />
     <Compile Include="Application\Git\GitService.cs" />
-    <Compile Include="Application\Git\IGitChangeObserver.cs" />
     <Compile Include="Application\Git\SolutionProjectDiscovery.cs" />
     <Compile Include="Application\Git\BatchGitIgnoreChecker.cs" />
     <Compile Include="Application\Git\LibGit2SharpIgnoreChecker.cs" />
@@ -100,6 +96,7 @@
       <DependentUpon>UnderlineTaggerTooltip.xaml</DependentUpon>
     </Compile>
     <Compile Include="Handlers\EditorDocumentLifecycleHandler.cs" />
+    <Compile Include="Handlers\WorkspaceReviewPresentationHandler.cs" />
     <Compile Include="Handlers\OnActiveWindowChangeHandler.cs" />
     <Compile Include="EditorMargin\CodeSceneMarginSettingsManager.cs" />
     <Compile Include="ToolWindows\WebComponent\CodeSceneToolWindow.cs" />
@@ -153,8 +150,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="cs-ide.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="cs-windows-amd64\**\*" Condition="Exists('cs-windows-amd64')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="ToolWindows\WebComponent\index.css">

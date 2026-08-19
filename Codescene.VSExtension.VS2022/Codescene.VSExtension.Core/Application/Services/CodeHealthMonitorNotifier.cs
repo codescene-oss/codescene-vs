@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.ComponentModel.Composition;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Models;
@@ -10,6 +11,9 @@ using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Application.Services
 {
+    [Export(typeof(ICodeHealthMonitorNotifier))]
+    [Export(typeof(CodeHealthMonitorNotifier))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeHealthMonitorNotifier : ICodeHealthMonitorNotifier
     {
         private readonly ConcurrentDictionary<string, Job> _activeJobs = new ConcurrentDictionary<string, Job>();
