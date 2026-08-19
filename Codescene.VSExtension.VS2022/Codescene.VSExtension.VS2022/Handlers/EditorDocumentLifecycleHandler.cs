@@ -5,7 +5,6 @@ using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Ace;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Git;
@@ -32,9 +31,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private readonly ILogger _logger;
 
         [Import]
-        private readonly ICodeReviewer _reviewer;
-
-        [Import]
         private readonly IDebounceService _debounceService;
 
         [Import]
@@ -56,13 +52,16 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private readonly IGitService _gitService;
 
         [Import]
-        private readonly IAceRefactorService _aceRefactorService;
-
-        [Import]
         private readonly IAsyncTaskScheduler _scheduler;
 
         [Import]
         private readonly IAceRefactorSuggestedActionsNotifier _aceRefactorSuggestedActionsNotifier;
+
+        [Import]
+        private readonly IWorkspaceReviewCoordinator _workspaceReviewCoordinator;
+
+        [Import]
+        private readonly IWorkspaceReviewListener _workspaceReviewListener;
 
         public void TextViewCreated(IWpfTextView textView)
         {
@@ -87,6 +86,18 @@ namespace Codescene.VSExtension.VS2022.Handlers
             _logger.Debug($"File opened: {filePath}. ");
             buffer.CurrentSnapshot.GetText();
 
+            EventHandler<Core.Application.Cli.Rpc.FileReviewAppliedEventArgs> applied = (s, e) =>
+            {
+                if (!string.Equals(e.AbsolutePath, filePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                _scheduler.Schedule(ct => ApplyReviewResultsAsync(e.Review, buffer));
+                _aceRefactorSuggestedActionsNotifier.NotifyAceRefactorableDataChanged(buffer);
+            };
+            _workspaceReviewListener.ReviewApplied += applied;
+
             _scheduler.Schedule(ct => ReviewContentAsync(filePath, buffer));
 
             buffer.Changed += (_, _) =>
@@ -108,9 +119,8 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
             textView.Closed += (_, _) =>
             {
+                _workspaceReviewListener.ReviewApplied -= applied;
                 _logger.Debug($"File closed: {filePath}...");
-
-                // TODO: Stop any pending analysis for optimization?
             };
         }
 
@@ -204,10 +214,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
                 }
 
                 var code = buffer.CurrentSnapshot.GetText();
-                var (result, _) = await _reviewer.ReviewWithDeltaAsync(path, code);
-                await ApplyReviewResultsAsync(result, buffer);
-                await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(result, code);
-                _aceRefactorSuggestedActionsNotifier.NotifyAceRefactorableDataChanged(buffer);
+                _workspaceReviewCoordinator.SubmitBufferReview(path, code);
             }
             catch (Exception e)
             {

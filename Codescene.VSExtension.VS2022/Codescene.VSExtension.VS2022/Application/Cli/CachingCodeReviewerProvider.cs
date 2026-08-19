@@ -34,11 +34,12 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
             ITelemetryManager telemetryManager,
             IGitService git,
             IAsyncTaskScheduler scheduler,
-            IPreflightManager preflightManager)
+            IPreflightManager preflightManager,
+            CodeHealthMonitorNotifier notifier)
         {
             _scheduler = scheduler;
             _preflightManager = preflightManager;
-            _notifier = new CodeHealthMonitorNotifier();
+            _notifier = notifier ?? throw new ArgumentNullException(nameof(notifier));
             _notifier.ViewUpdateRequested += OnViewUpdateRequested;
 
             var baseReviewer = new CodeReviewer(logger, mapper, executor, telemetryManager, git, _notifier, _preflightManager);

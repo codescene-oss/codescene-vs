@@ -12,6 +12,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.CliExecutor
         public new virtual void Initialize()
         {
             base.Initialize();
+            GetService<IIdeServerHost>().StartAsync().GetAwaiter().GetResult();
             cliExecutor = GetService<ICliExecutor>();
 
             tempCacheDir = Path.Combine(Path.GetTempPath(), "codescene-test-cache", Guid.NewGuid().ToString());

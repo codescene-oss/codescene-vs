@@ -113,16 +113,13 @@ public sealed class TestSupportedFileChecker : ISupportedFileChecker
 
 public sealed class TestCliServices : ICliServices
 {
-    public TestCliServices(ICliCommandProvider commandProvider, IProcessExecutor processExecutor, ICacheStorageService cacheStorage)
+    public TestCliServices(IIdeServerHost host, ICacheStorageService cacheStorage)
     {
-        CommandProvider = commandProvider;
-        ProcessExecutor = processExecutor;
+        Host = host;
         CacheStorage = cacheStorage;
     }
 
-    public ICliCommandProvider CommandProvider { get; }
-
-    public IProcessExecutor ProcessExecutor { get; }
+    public IIdeServerHost Host { get; }
 
     public ICacheStorageService CacheStorage { get; }
 }

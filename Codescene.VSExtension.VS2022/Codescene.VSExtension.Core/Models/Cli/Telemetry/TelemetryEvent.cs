@@ -1,6 +1,8 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Codescene.VSExtension.Core.Models.Cli.Telemetry
 {
@@ -23,6 +25,9 @@ namespace Codescene.VSExtension.Core.Models.Cli.Telemetry
 
         [JsonProperty("internal", NullValueHandling = NullValueHandling.Ignore)]
         public bool? Internal { get; set; }
+
+        [JsonExtensionData]
+        public IDictionary<string, JToken> AdditionalData { get; set; }
 
         public TelemetryEvent WithEventName(string eventName)
         {

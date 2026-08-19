@@ -22,9 +22,8 @@ internal sealed class BenchmarkEnvironment : IDisposable
     private readonly ICliSettingsProvider _cliSettingsProvider = new CliSettingsProvider();
     private readonly ModelMapper _modelMapper = new ModelMapper();
     private readonly FixedSettingsProvider _settingsProvider = new FixedSettingsProvider();
-    private readonly IProcessExecutor _processExecutor;
-    private readonly ICliCommandProvider _commandProvider;
     private readonly BenchmarkCacheStorageService _cacheStorageService;
+    private readonly IIdeServerHost _host;
     private bool _disposed;
 
     public BenchmarkEnvironment()
@@ -38,8 +37,7 @@ internal sealed class BenchmarkEnvironment : IDisposable
         System.IO.File.WriteAllText(ExistingFilePath, BenchmarkInputs.CurrentCode);
 
         _cacheStorageService = new BenchmarkCacheStorageService(CacheDirectory, RootDirectory);
-        _commandProvider = new CliCommandProvider(new CliObjectScoreCreator(_logger));
-        _processExecutor = CreateProcessExecutor(_cliSettingsProvider, _logger);
+        _host = new BenchmarkIdeServerHost();
     }
 
     public string RootDirectory { get; }
@@ -52,7 +50,8 @@ internal sealed class BenchmarkEnvironment : IDisposable
     {
         return new CliExecutor(
             _logger,
-            new BenchmarkCliServices(_commandProvider, _processExecutor, _cacheStorageService),
+            _host,
+            _cacheStorageService,
             _settingsProvider,
             null);
     }
@@ -98,19 +97,25 @@ internal sealed class BenchmarkEnvironment : IDisposable
         {
         }
     }
+}
 
-    private static IProcessExecutor CreateProcessExecutor(ICliSettingsProvider cliSettingsProvider, ILogger logger)
+internal sealed class BenchmarkIdeServerHost : IIdeServerHost
+{
+    public event EventHandler? Restarted;
+
+    public IIdeServerClient? Client => null;
+
+    public Codescene.VSExtension.Core.Models.Cli.Rpc.ServerStartMetadata? Metadata { get; }
+
+    public bool IsRunning => false;
+
+    public Task StartAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+    public Task RestartAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+    public void Dispose()
     {
-        var processExecutorType = typeof(CliSettingsProvider).Assembly.GetType(
-            "Codescene.VSExtension.Core.Application.Cli.ProcessExecutor",
-            throwOnError: true);
-        var processExecutor = (IProcessExecutor?)Activator.CreateInstance(
-            processExecutorType,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-            null,
-            new object[] { cliSettingsProvider, logger },
-            null);
-        return processExecutor!;
+        Restarted?.Invoke(this, EventArgs.Empty);
     }
 }
 
@@ -151,22 +156,6 @@ public class ComplexProcessor
         return 0;
     }
 }";
-}
-
-internal sealed class BenchmarkCliServices : ICliServices
-{
-    public BenchmarkCliServices(ICliCommandProvider commandProvider, IProcessExecutor processExecutor, ICacheStorageService cacheStorage)
-    {
-        CommandProvider = commandProvider;
-        ProcessExecutor = processExecutor;
-        CacheStorage = cacheStorage;
-    }
-
-    public ICliCommandProvider CommandProvider { get; }
-
-    public IProcessExecutor ProcessExecutor { get; }
-
-    public ICacheStorageService CacheStorage { get; }
 }
 
 internal sealed class BenchmarkCacheStorageService : ICacheStorageService

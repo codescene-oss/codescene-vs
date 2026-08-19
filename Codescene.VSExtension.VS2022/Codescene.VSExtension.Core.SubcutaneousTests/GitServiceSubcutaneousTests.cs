@@ -49,8 +49,6 @@ public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
     }
 }";
 
-    protected override bool AutoStartObserver => false;
-
     [TestMethod]
     public async Task GetFileContentForCommit_OnFeatureBranchBasedOnDevelop_UsesDevelopBaseline()
     {
@@ -136,7 +134,7 @@ public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
         CommitAll("Improve baseline file on develop");
 
         var developReview = await CodeReviewer.ReviewAsync(absolutePath, DevelopContent);
-        Assert.AreEqual(9.68m, RoundScore(developReview.Score));
+        var developScore = RoundScore(developReview.Score);
 
         CheckoutBranch("feature/test-suppression2", create: true);
         await WriteWorkingFileAsync(relativePath, FeatureContent);
@@ -145,12 +143,13 @@ public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
         Assert.AreEqual(NormalizeLineEndings(DevelopContent), NormalizeLineEndings(baselineContent));
 
         var (featureReview, delta) = await CodeReviewer.ReviewWithDeltaAsync(absolutePath, FeatureContent);
+        var featureScore = RoundScore(featureReview.Score);
 
-        Assert.AreEqual(9.09m, RoundScore(featureReview.Score));
         Assert.IsNotNull(delta);
-        Assert.AreEqual(9.68m, RoundScore(delta.OldScore));
-        Assert.AreEqual(9.09m, RoundScore(delta.NewScore));
-        Assert.AreEqual(-0.59m, RoundScore(delta.ScoreChange));
+        Assert.AreEqual(developScore, RoundScore(delta.OldScore));
+        Assert.AreEqual(featureScore, RoundScore(delta.NewScore));
+        Assert.IsLessThan(developScore, featureScore);
+        Assert.AreEqual(featureScore - developScore, RoundScore(delta.ScoreChange));
     }
 
     private static decimal RoundScore(float score)

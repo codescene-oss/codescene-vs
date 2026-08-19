@@ -6,16 +6,18 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
     {
         string RequiredDevToolVersion { get; }
 
-        string RequiredCliBinarySha256 { get; }
-
         string ArtifactBaseUrl { get; }
 
         string CliArtifactName { get; }
 
         string CliArtifactUrl { get; }
 
-        string CliFileName { get; }
+        string DistributionDirectoryName { get; }
 
-        string CliFileFullPath { get; }
+        string DistributionFullPath { get; }
+
+        string JavaExeFullPath { get; }
+
+        string JarFullPath { get; }
     }
 }

@@ -42,6 +42,8 @@ public sealed class VS2022Package : ToolkitPackage
     private ILogger _logger;
     private SolutionEventsHandler _solutionEventsHandler;
     private IAsyncTaskScheduler _scheduler;
+    private IIdeServerHost _ideServerHost;
+    private WorkspaceReviewPresentationHandler _workspaceReviewPresentationHandler;
 
     public static VS2022Package Instance { get; private set; }
 
@@ -71,6 +73,7 @@ public sealed class VS2022Package : ToolkitPackage
 
             // Cli file
             await CheckCliFileAsync();
+            await StartIdeServerAsync();
 
             // Subscribe on active document change event
             await SubscribeOnActiveWindowChangeAsync();
@@ -111,6 +114,8 @@ public sealed class VS2022Package : ToolkitPackage
             UnsubscribeFromGlobalExceptionHandlers();
             _solutionEventsHandler?.Dispose();
             (_scheduler as IDisposable)?.Dispose();
+            _workspaceReviewPresentationHandler?.Dispose();
+            _ideServerHost?.Dispose();
         }
 
         base.Dispose(disposing);
@@ -259,6 +264,26 @@ public sealed class VS2022Package : ToolkitPackage
         if (cliFileChecker != null)
         {
             await cliFileChecker.CheckAsync();
+        }
+    }
+
+    private async Task StartIdeServerAsync()
+    {
+        _ideServerHost = await GetServiceAsync<IIdeServerHost>();
+        _workspaceReviewPresentationHandler = await GetServiceAsync<WorkspaceReviewPresentationHandler>();
+        if (_ideServerHost == null)
+        {
+            _logger?.Warn("Failed to obtain IDE server host.");
+            return;
+        }
+
+        try
+        {
+            await _ideServerHost.StartAsync(DisposalToken);
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error("Failed to start the CodeScene IDE server.", ex);
         }
     }
 

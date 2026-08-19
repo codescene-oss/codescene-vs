@@ -412,6 +412,7 @@ FodyWeavers.xsd
 /cs-ide
 /cs-ide/vcruntime140.dll
 /cs-ide.zip
+/Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/cs-windows-amd64/
 
 .build-timestamp
 .copy-assets

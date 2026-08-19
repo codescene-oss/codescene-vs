@@ -17,68 +17,42 @@ namespace Codescene.VSExtension.Core.IntegrationTests
             _settingsProvider = new CliSettingsProvider();
         }
 
-        /// <summary>
-        /// Asserts that the CLI file is downloaded, and is present in the expected location.
-        /// </summary>
         [TestMethod]
-        public void Cli_FileExists()
+        public void Cli_DistributionExists()
         {
-            // Arrange
-            var cliSettingsProvider = new CliSettingsProvider();
-
-            // Act
-            var cliFilePath = cliSettingsProvider.CliFileFullPath;
-
-            // Assert
-            Assert.IsTrue(File.Exists(cliFilePath), $"CLI file does not exist at path: {cliFilePath}");
+            Assert.IsTrue(File.Exists(_settingsProvider.JarFullPath), $"CLI jar does not exist at path: {_settingsProvider.JarFullPath}");
+            Assert.IsTrue(File.Exists(_settingsProvider.JavaExeFullPath), $"JRE java.exe does not exist at path: {_settingsProvider.JavaExeFullPath}");
         }
 
-        /// <summary>
-        /// Validates that the CLI is up and running and is callable via the real CliExecutor implementation.
-        /// </summary>
         [TestMethod]
         public async Task Cli_VersionCheck_ShouldReturnCorrectVersion()
         {
-            // Arrange
-            var cliExecutor = GetService<ICliExecutor>();
-
-            // Act
-            var versionOutput = (await cliExecutor.GetFileVersionAsync()).Trim();
-
-            // Assert
-            Assert.AreEqual(_settingsProvider.RequiredDevToolVersion, versionOutput);
+            var host = GetService<IIdeServerHost>();
+            await host.StartAsync();
+            Assert.AreEqual(_settingsProvider.RequiredDevToolVersion, host.Metadata.Sha);
         }
 
-        /// <summary>
-        /// Tests mocking strategy, and Test_Mocking2 validates that mocking the same service in parallel works as expected.
-        /// </summary>
         [TestMethod]
         public void Test_Mocking()
         {
-            // Arrange
             mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation())
                 .Returns("/mocked/location");
             var cacheStorageService = GetService<ICacheStorageService>();
 
-            // Act
             var location = cacheStorageService.GetSolutionReviewCacheLocation();
 
-            // Assert
             Assert.AreEqual("/mocked/location", location);
         }
 
         [TestMethod]
         public void Test_Mocking2()
         {
-            // Arrange
             mockCacheStorageService.Setup(x => x.GetSolutionReviewCacheLocation())
                 .Returns("/mocked/location2");
             var cacheStorageService = GetService<ICacheStorageService>();
 
-            // Act
             var location = cacheStorageService.GetSolutionReviewCacheLocation();
 
-            // Assert
             Assert.AreEqual("/mocked/location2", location);
         }
     }

@@ -11,118 +11,58 @@ namespace Codescene.VSExtension.Core.Tests
     public class CliFileCheckerTests
     {
         private Mock<ILogger> _mockLogger;
-        private Mock<ICliExecutor> _mockCliExecutor;
         private Mock<ICliSettingsProvider> _mockCliSettingsProvider;
         private CliFileChecker _fileChecker;
-
-        private string _tempFilePath;
+        private string _tempDir;
 
         [TestInitialize]
         public void Setup()
         {
             _mockLogger = new Mock<ILogger>();
-            _mockCliExecutor = new Mock<ICliExecutor>();
             _mockCliSettingsProvider = new Mock<ICliSettingsProvider>();
-
-            _fileChecker = new CliFileChecker(
-                _mockLogger.Object,
-                _mockCliExecutor.Object,
-                _mockCliSettingsProvider.Object);
-
-            _tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".exe");
+            _fileChecker = new CliFileChecker(_mockLogger.Object, _mockCliSettingsProvider.Object);
+            _tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(_tempDir);
         }
 
         [TestCleanup]
         public void Cleanup()
         {
-            if (File.Exists(_tempFilePath))
+            if (Directory.Exists(_tempDir))
             {
-                File.Delete(_tempFilePath);
+                Directory.Delete(_tempDir, true);
             }
         }
 
         [TestMethod]
-        public async Task CheckAsync_FileDoesNotExist_ShouldLogErrorAndReturnFalse()
+        public async Task CheckAsync_DistributionMissing_ReturnsFalse()
         {
-            SetupCliPathMock();
+            _mockCliSettingsProvider.Setup(x => x.DistributionFullPath).Returns(_tempDir);
+            _mockCliSettingsProvider.Setup(x => x.JavaExeFullPath).Returns(Path.Combine(_tempDir, "missing-java.exe"));
+            _mockCliSettingsProvider.Setup(x => x.JarFullPath).Returns(Path.Combine(_tempDir, "missing.jar"));
 
             var result = await _fileChecker.CheckAsync();
 
             Assert.IsFalse(result);
             _mockLogger.Verify(
-                l => l.Error(
-                It.Is<string>(s => s.Contains("not found") && s.Contains("bundled")),
-                It.IsAny<FileNotFoundException>()), Times.Once);
+                l => l.Error(It.Is<string>(s => s.Contains("not found") && s.Contains("bundled")), It.IsAny<FileNotFoundException>()),
+                Times.Once);
         }
 
         [TestMethod]
-        public async Task CheckAsync_FileExists_ShouldLogVersionAndReturnTrue()
+        public async Task CheckAsync_DistributionPresent_ReturnsTrue()
         {
-            CreateTempFile();
-            SetupCliPathMock();
-            SetupVersionMock("abc123");
+            var java = Path.Combine(_tempDir, "java.exe");
+            var jar = Path.Combine(_tempDir, "cs-ide.jar");
+            File.WriteAllText(java, "java");
+            File.WriteAllText(jar, "jar");
+            _mockCliSettingsProvider.Setup(x => x.DistributionFullPath).Returns(_tempDir);
+            _mockCliSettingsProvider.Setup(x => x.JavaExeFullPath).Returns(java);
+            _mockCliSettingsProvider.Setup(x => x.JarFullPath).Returns(jar);
 
             var result = await _fileChecker.CheckAsync();
 
             Assert.IsTrue(result);
-            _mockLogger.Verify(l => l.Debug(It.Is<string>(s => s.Contains("Using CLI version") && s.Contains("abc123"))), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task CheckAsync_FileExistsButVersionCheckReturnsEmpty_ShouldLogWarningAndReturnFalse()
-        {
-            CreateTempFile();
-            SetupCliPathMock();
-            SetupVersionMock(string.Empty);
-
-            var result = await _fileChecker.CheckAsync();
-
-            Assert.IsFalse(result);
-            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Could not determine CLI version"))), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task CheckAsync_FileExistsButVersionCheckReturnsNull_ShouldLogWarningAndReturnFalse()
-        {
-            CreateTempFile();
-            SetupCliPathMock();
-            SetupVersionMock(null);
-
-            var result = await _fileChecker.CheckAsync();
-
-            Assert.IsFalse(result);
-            _mockLogger.Verify(l => l.Warn(It.Is<string>(s => s.Contains("Could not determine CLI version"))), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task CheckAsync_WhenGetFileVersionThrows_ShouldLogErrorAndReturnFalse()
-        {
-            CreateTempFile();
-            SetupCliPathMock();
-            _mockCliExecutor.Setup(x => x.GetFileVersionAsync()).ThrowsAsync(new Exception("Version check failed"));
-
-            var result = await _fileChecker.CheckAsync();
-
-            Assert.IsFalse(result);
-            _mockLogger.Verify(
-                l => l.Error(
-                It.Is<string>(s => s.Contains("Failed to check")),
-                It.IsAny<Exception>()), Times.Once);
-        }
-
-        private void SetupCliPathMock()
-        {
-            _mockCliSettingsProvider.Setup(x => x.CliFileFullPath).Returns(_tempFilePath);
-        }
-
-        private void SetupVersionMock(string version)
-        {
-            _mockCliExecutor.Setup(x => x.GetFileVersionAsync()).ReturnsAsync(version);
-        }
-
-        private void CreateTempFile()
-        {
-            File.WriteAllText(_tempFilePath, "dummy content");
         }
     }
 }

@@ -25,35 +25,6 @@ namespace Codescene.VSExtension.Core.Tests
         public string? CommitMessage { get; set; }
     }
 
-    public class FileAssertionHelper
-    {
-        private readonly List<string> _changedFiles;
-        private readonly TrackerManager _trackerManager;
-
-        public FileAssertionHelper(List<string> changedFiles, TrackerManager trackerManager)
-        {
-            _changedFiles = changedFiles;
-            _trackerManager = trackerManager;
-        }
-
-        public void AssertInChangedList(TestFileData fileData, bool shouldExist = true)
-        {
-            AssertInChangedList(fileData.Filename, shouldExist);
-        }
-
-        public void AssertInChangedList(string filename, bool shouldExist = true)
-        {
-            var exists = _changedFiles.Any(f => f.EndsWith(filename, StringComparison.OrdinalIgnoreCase));
-            Assert.AreEqual(shouldExist, exists, shouldExist ? $"Should include {filename}" : $"Should not include {filename}");
-        }
-
-        public void AssertInTracker(string filePath, bool shouldExist = true)
-        {
-            var exists = _trackerManager.Contains(filePath);
-            Assert.AreEqual(shouldExist, exists, shouldExist ? "File should be in tracker" : "File should not be in tracker");
-        }
-    }
-
     public class FakeAsyncTaskScheduler : IAsyncTaskScheduler
     {
         public void Schedule(Func<Task> asyncWork)
@@ -490,83 +461,6 @@ namespace Codescene.VSExtension.Core.Tests
 #pragma warning disable CS8619
             return Task.FromResult(_contentByPath.TryGetValue(filePath, out var content) ? content : null);
 #pragma warning restore CS8619
-        }
-    }
-
-    public class FakeGitChangeLister : IGitChangeLister
-    {
-        public event EventHandler<HashSet<string>> FilesDetected;
-
-        public bool ThrowOnCollectFiles { get; set; }
-
-        public HashSet<string> FilesToReturn { get; set; } = new HashSet<string>();
-
-        public Task<HashSet<string>> GetAllChangedFilesAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(new HashSet<string>());
-        }
-
-        public Task<HashSet<string>> GetChangedFilesVsMergeBaseAsync(string gitRootPath, string workspacePath, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(new HashSet<string>());
-        }
-
-        public void Initialize(string gitRootPath, IReadOnlyCollection<string> workspacePaths)
-        {
-        }
-
-        public void SetWorkspacePaths(IReadOnlyCollection<string> workspacePaths)
-        {
-        }
-
-        public void StartPeriodicScanning(CancellationToken cancellationToken)
-        {
-        }
-
-        public void StopPeriodicScanning()
-        {
-        }
-
-        public Task<HashSet<string>> CollectFilesFromRepoStateAsync(string gitRootPath, IReadOnlyCollection<string> workspacePaths, CancellationToken cancellationToken = default)
-        {
-            if (ThrowOnCollectFiles)
-            {
-                throw new Exception("Simulated error in CollectFilesFromRepoStateAsync");
-            }
-
-            return Task.FromResult(FilesToReturn);
-        }
-
-        public void SimulateFilesDetected(HashSet<string> files)
-        {
-            FilesDetected?.Invoke(this, files);
-        }
-    }
-
-    internal class TestableGitChangeObserverCore : GitChangeObserverCore
-    {
-        public TestableGitChangeObserverCore(
-            ILogger logger,
-            ICodeReviewer codeReviewer,
-            ISupportedFileChecker supportedFileChecker,
-            IAsyncTaskScheduler taskScheduler,
-            IGitChangeLister gitChangeLister,
-            IGitService gitService)
-            : base(logger, codeReviewer, supportedFileChecker, taskScheduler, gitChangeLister, gitService)
-        {
-        }
-
-        public int GetChangedFilesCallCount { get; private set; }
-
-        public void ResetCallCount()
-        {
-            GetChangedFilesCallCount = 0;
-        }
-
-        public override async Task<List<string>> GetChangedFilesVsBaselineAsync(string baselineCommit)
-        {
-            GetChangedFilesCallCount++;
-            return await base.GetChangedFilesVsBaselineAsync(baselineCommit);
         }
     }
 }
