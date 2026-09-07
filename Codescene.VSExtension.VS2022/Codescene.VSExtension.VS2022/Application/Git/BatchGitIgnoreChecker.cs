@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Git;
@@ -99,7 +100,7 @@ namespace Codescene.VSExtension.VS2022.Application.Git
                     relativePath = ".";
                 }
 
-                if (!repo.Ignore.IsPathIgnored(relativePath))
+                if (!GitIgnoreSemantics.IsPathIgnoredConsideringIndex(repo, relativePath))
                 {
                     result.Add(absolutePath);
                 }

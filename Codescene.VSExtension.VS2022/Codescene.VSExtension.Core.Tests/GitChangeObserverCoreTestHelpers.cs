@@ -389,7 +389,7 @@ namespace Codescene.VSExtension.Core.Tests
 
                     relativePath = relativePath.Replace('\\', '/');
 
-                    return repo.Ignore.IsPathIgnored(relativePath);
+                    return GitIgnoreSemantics.IsPathIgnoredConsideringIndex(repo, relativePath);
                 }
             }
             catch

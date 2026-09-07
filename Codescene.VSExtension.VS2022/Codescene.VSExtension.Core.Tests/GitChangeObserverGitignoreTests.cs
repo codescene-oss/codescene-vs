@@ -57,6 +57,38 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task TrackedGitignoredFile_IsReviewedAndShown()
+        {
+            _gitChangeObserverCore.Dispose();
+            _fakeGitService = new FakeGitServiceWithGitignoreSupport(_testRepoPath);
+            _gitChangeObserverCore = CreateGitChangeObserverCore();
+
+            var fileName = "tracked-but-ignored.cs";
+            var filePath = CommitFile(fileName, "public class Tracked {}", "Add file");
+
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            File.WriteAllText(gitignorePath, fileName + "\n");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                LibGit2Sharp.Commands.Stage(repo, new[] { ".gitignore", fileName });
+                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
+                repo.Commit("Keep file tracked under gitignore", signature, signature);
+            }
+
+            File.WriteAllText(filePath, "public class Tracked { /* modified */ }");
+
+            var changedFiles = await _gitChangeObserverCore.GetChangedFilesVsBaselineAsync(string.Empty);
+            AssertFileInChangedList(changedFiles, fileName);
+
+            var shouldProcess = _gitChangeObserverCore.ShouldProcessFileForTesting(filePath, changedFiles);
+            Assert.IsTrue(shouldProcess, "Tracked file matching gitignore should be processed for review");
+
+            await TriggerFileChangeAsync(filePath);
+            AssertFileInTracker(filePath);
+        }
+
+        [TestMethod]
         public async Task FileBecomesTracked_AfterGitignoreRemoval()
         {
             var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");

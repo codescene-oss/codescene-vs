@@ -410,18 +410,17 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task CollectFilesFromRepoStateAsync_IgnoredFilesExcluded()
+        public async Task CollectFilesFromRepoStateAsync_UntrackedIgnoredFilesExcluded()
         {
             var trackedFile = Path.Combine(_testRepoPath, "tracked.cs");
-            var ignoredFile = Path.Combine(_testRepoPath, "tracked.ignored");
+            var ignoredFile = Path.Combine(_testRepoPath, "secret.ignored");
             CommitFile("tracked.cs", "original", "Add tracked file");
-            CommitFile("tracked.ignored", "original", "Add ignored file");
 
             var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
             File.WriteAllText(gitignorePath, "*.ignored\n");
 
             File.WriteAllText(trackedFile, "modified content");
-            File.WriteAllText(ignoredFile, "modified content");
+            File.WriteAllText(ignoredFile, "untracked ignored content");
 
             var gitServiceWithIgnore = new FakeGitServiceWithGitignoreSupport(_testRepoPath);
             using (var listerWithIgnore = new GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, gitServiceWithIgnore))
@@ -430,7 +429,32 @@ namespace Codescene.VSExtension.Core.Tests
 
                 Assert.HasCount(1, result, "Should only include the non-ignored file");
                 Assert.Contains(trackedFile, result, "Should contain the non-ignored file");
-                Assert.DoesNotContain(ignoredFile, result, "Should not contain the ignored file");
+                Assert.DoesNotContain(ignoredFile, result, "Should not contain the untracked ignored file");
+            }
+        }
+
+        [TestMethod]
+        public async Task CollectFilesFromRepoStateAsync_TrackedGitignoredFilesIncluded()
+        {
+            var trackedFile = Path.Combine(_testRepoPath, "tracked.cs");
+            var trackedIgnoredFile = Path.Combine(_testRepoPath, "force-added.cs");
+            CommitFile("tracked.cs", "original", "Add tracked file");
+            CommitFile("force-added.cs", "original", "Add file that will match gitignore");
+
+            var gitignorePath = Path.Combine(_testRepoPath, ".gitignore");
+            File.WriteAllText(gitignorePath, "force-added.cs\n");
+
+            File.WriteAllText(trackedFile, "modified content");
+            File.WriteAllText(trackedIgnoredFile, "modified content");
+
+            var gitServiceWithIgnore = new FakeGitServiceWithGitignoreSupport(_testRepoPath);
+            using (var listerWithIgnore = new GitChangeLister(_fakeSavedFilesTracker, _fakeSupportedFileChecker, _fakeLogger, gitServiceWithIgnore))
+            {
+                var result = await listerWithIgnore.CollectFilesFromRepoStateAsync(_testRepoPath, new[] { _testRepoPath });
+
+                Assert.HasCount(2, result, "Tracked files should be included even when they match gitignore");
+                Assert.Contains(trackedFile, result, "Should contain the non-ignored file");
+                Assert.Contains(trackedIgnoredFile, result, "Should contain the tracked file that matches gitignore");
             }
         }
 
