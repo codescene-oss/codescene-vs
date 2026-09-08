@@ -126,6 +126,7 @@
     <Compile Include="ToolWindows\WebComponent\WebComponentUserControl.xaml.cs">
       <DependentUpon>WebComponentUserControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ToolWindows\WebComponent\WebView2AirspaceGuard.cs" />
     <Compile Include="Tagger\AceRefactorSuggestedAction.cs" />
     <Compile Include="Tagger\AceRefactorSuggestedActionsNotifier.cs" />
     <Compile Include="Tagger\AceRefactorSuggestedActionsSource.cs" />
