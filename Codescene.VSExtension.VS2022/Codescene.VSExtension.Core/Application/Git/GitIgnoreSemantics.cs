@@ -8,7 +8,7 @@ namespace Codescene.VSExtension.Core.Application.Git
     {
         public static bool IsPathIgnoredConsideringIndex(Repository repo, string relativePath)
         {
-            if (repo.Index[relativePath] != null)
+            if (repo.Index[relativePath] != null || repo.Index.Conflicts[relativePath] != null)
             {
                 return false;
             }
