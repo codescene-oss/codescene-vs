@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Application.Util;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Git;
@@ -42,7 +43,7 @@ public class LibGit2SharpIgnoreChecker : IGitIgnoreChecker
                     relativePath = ".";
                 }
 
-                return repo.Ignore.IsPathIgnored(relativePath);
+                return GitIgnoreSemantics.IsPathIgnoredConsideringIndex(repo, relativePath);
             }
         }
         catch (LibGit2SharpException)

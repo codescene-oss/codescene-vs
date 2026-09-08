@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using LibGit2Sharp;
@@ -66,6 +67,27 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.HasCount(1, result);
             CollectionAssert.Contains(result.ToList(), filePath);
+        }
+
+        [TestMethod]
+        public void FilterIgnored_TrackedFileMatchingGitignore_IsIncluded()
+        {
+            var trackedPath = Path.Combine(_testRepoPath, "tracked.log");
+            File.WriteAllText(trackedPath, "content");
+
+            using (var repo = new Repository(_testRepoPath))
+            {
+                Commands.Stage(repo, "tracked.log");
+                var signature = new Signature("Test User", "test@example.com", DateTimeOffset.Now);
+                repo.Commit("Track log file", signature, signature);
+            }
+
+            File.WriteAllText(Path.Combine(_testRepoPath, ".gitignore"), "*.log\n");
+
+            var result = _checker.FilterIgnored(new[] { trackedPath });
+
+            Assert.HasCount(1, result);
+            CollectionAssert.Contains(result.ToList(), trackedPath);
         }
 
         [TestMethod]
@@ -277,7 +299,7 @@ namespace Codescene.VSExtension.Core.Tests
                         relativePath = ".";
                     }
 
-                    if (!repo.Ignore.IsPathIgnored(relativePath))
+                    if (!GitIgnoreSemantics.IsPathIgnoredConsideringIndex(repo, relativePath))
                     {
                         result.Add(absolutePath);
                     }
