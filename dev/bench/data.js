@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788878306478,
+  "lastUpdate": 1788878444021,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -6156,6 +6156,66 @@ window.BENCHMARK_DATA = {
             "value": 294405892.85714287,
             "unit": "ns",
             "range": "± 2656282.898211271"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5f9e3e8bd24aa0bf53de9e8fe399c57a50dfc082",
+          "message": "fix: hide WebView2 when auto-hidden tool windows overlay it (#322)\n\nWebView2 HWNDs paint over VS auto-hide flyouts when CodeScene windows sit in the document well. Unmap the browser surface while those flyouts are visible.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-09-08T16:31:22+02:00",
+          "tree_id": "7274ddad5fe3dfff5f8771b1d00e59513a3c5a52",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/5f9e3e8bd24aa0bf53de9e8fe399c57a50dfc082"
+        },
+        "date": 1788878442303,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 129465570,
+            "unit": "ns",
+            "range": "± 853200.2649269564"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 119804009.23076923,
+            "unit": "ns",
+            "range": "± 562667.6417812671"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 249329371.42857143,
+            "unit": "ns",
+            "range": "± 1356228.2177923685"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 219257164.44444445,
+            "unit": "ns",
+            "range": "± 1241564.1830168362"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 349981230.7692308,
+            "unit": "ns",
+            "range": "± 5140707.839131464"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 298048191.6666667,
+            "unit": "ns",
+            "range": "± 4123380.1725831097"
           }
         ]
       }
