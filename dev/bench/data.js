@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788878015322,
+  "lastUpdate": 1788878197294,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -6054,6 +6054,66 @@ window.BENCHMARK_DATA = {
             "value": 298778483.3333333,
             "unit": "ns",
             "range": "± 3481532.774905055"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9a08077e9f6a00393f202e43a6ed7aa591dde918",
+          "message": "Review tracked files that match gitignore (#321)\n\n* Treat tracked gitignored files as reviewable.\n\nLibGit2Sharp ignore checks now respect the index so force-added files stay in ACE review and the tool window.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* Treat merge-conflict paths as tracked for ignore checks.\n\nStage-0 index lookup misses unresolved conflicts, which would hide gitignored files during a merge.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-09-08T16:29:02+02:00",
+          "tree_id": "aedf6ab1002383cfb488d934c2d73e0812161af7",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/9a08077e9f6a00393f202e43a6ed7aa591dde918"
+        },
+        "date": 1788878195833,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 131730111.66666667,
+            "unit": "ns",
+            "range": "± 2250825.9038126003"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 120546409.33333333,
+            "unit": "ns",
+            "range": "± 1255213.6460349613"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 247114359.52380952,
+            "unit": "ns",
+            "range": "± 2981939.042701827"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 220120840,
+            "unit": "ns",
+            "range": "± 2777439.72280971"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 352565857.14285713,
+            "unit": "ns",
+            "range": "± 5127824.011847864"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 294405892.85714287,
+            "unit": "ns",
+            "range": "± 2656282.898211271"
           }
         ]
       }
