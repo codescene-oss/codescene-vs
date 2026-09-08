@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788878444021,
+  "lastUpdate": 1788878524063,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -9094,6 +9094,54 @@ window.BENCHMARK_DATA = {
             "value": 19246.053859165735,
             "unit": "ns",
             "range": "± 235.24375929658643"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5f9e3e8bd24aa0bf53de9e8fe399c57a50dfc082",
+          "message": "fix: hide WebView2 when auto-hidden tool windows overlay it (#322)\n\nWebView2 HWNDs paint over VS auto-hide flyouts when CodeScene windows sit in the document well. Unmap the browser surface while those flyouts are visible.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-09-08T16:31:22+02:00",
+          "tree_id": "7274ddad5fe3dfff5f8771b1d00e59513a3c5a52",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/5f9e3e8bd24aa0bf53de9e8fe399c57a50dfc082"
+        },
+        "date": 1788878522517,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 129710842.85714285,
+            "unit": "ns",
+            "range": "± 1372629.0004329905"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5465.534591674805,
+            "unit": "ns",
+            "range": "± 22.46544554243711"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 422798113.3333333,
+            "unit": "ns",
+            "range": "± 3323219.290702201"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 19166.882934570312,
+            "unit": "ns",
+            "range": "± 112.38083539651203"
           }
         ]
       }
