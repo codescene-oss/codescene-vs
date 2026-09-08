@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
@@ -36,6 +37,7 @@ public partial class WebComponentUserControl : UserControl
     private string _host;
     private bool _initialized;
     private string _pendingMessage;
+    private WebView2AirspaceGuard _airspaceGuard;
 
     public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
     {
@@ -208,9 +210,25 @@ public partial class WebComponentUserControl : UserControl
     private void Initialize<T>(T payload, string view)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
         OnThemeChanged(null);
         _ = InitializeWebView2Async(payload, view);
         VSColorTheme.ThemeChanged += OnThemeChanged;
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        _airspaceGuard?.Dispose();
+        _airspaceGuard = new WebView2AirspaceGuard(this, webView, _logger);
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        _airspaceGuard?.Dispose();
+        _airspaceGuard = null;
     }
 
     private void OnThemeChanged(ThemeChangedEventArgs e)
