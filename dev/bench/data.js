@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788878197294,
+  "lastUpdate": 1788878264906,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2516,6 +2516,48 @@ window.BENCHMARK_DATA = {
             "value": 67963177.5,
             "unit": "ns",
             "range": "± 955457.6302933135"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5f9e3e8bd24aa0bf53de9e8fe399c57a50dfc082",
+          "message": "fix: hide WebView2 when auto-hidden tool windows overlay it (#322)\n\nWebView2 HWNDs paint over VS auto-hide flyouts when CodeScene windows sit in the document well. Unmap the browser surface while those flyouts are visible.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-09-08T16:31:22+02:00",
+          "tree_id": "7274ddad5fe3dfff5f8771b1d00e59513a3c5a52",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/5f9e3e8bd24aa0bf53de9e8fe399c57a50dfc082"
+        },
+        "date": 1788878257747,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 114775436.1904762,
+            "unit": "ns",
+            "range": "± 1073350.2282781522"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 101830592.85714285,
+            "unit": "ns",
+            "range": "± 570327.867842141"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 66586354.166666664,
+            "unit": "ns",
+            "range": "± 715653.3051430716"
           }
         ]
       }
