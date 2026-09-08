@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788774451528,
+  "lastUpdate": 1788878015322,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2474,6 +2474,48 @@ window.BENCHMARK_DATA = {
             "value": 69346016.07142857,
             "unit": "ns",
             "range": "± 764306.6643683033"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9a08077e9f6a00393f202e43a6ed7aa591dde918",
+          "message": "Review tracked files that match gitignore (#321)\n\n* Treat tracked gitignored files as reviewable.\n\nLibGit2Sharp ignore checks now respect the index so force-added files stay in ACE review and the tool window.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n* Treat merge-conflict paths as tracked for ignore checks.\n\nStage-0 index lookup misses unresolved conflicts, which would hide gitignored files during a merge.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n\n---------\n\nCo-authored-by: Cursor <cursoragent@cursor.com>",
+          "timestamp": "2026-09-08T16:29:02+02:00",
+          "tree_id": "aedf6ab1002383cfb488d934c2d73e0812161af7",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/9a08077e9f6a00393f202e43a6ed7aa591dde918"
+        },
+        "date": 1788878011969,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 114672312.5,
+            "unit": "ns",
+            "range": "± 3965746.094893472"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 104344950.66666667,
+            "unit": "ns",
+            "range": "± 1291665.1739267565"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 67963177.5,
+            "unit": "ns",
+            "range": "± 955457.6302933135"
           }
         ]
       }
