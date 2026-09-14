@@ -9,6 +9,27 @@ on:
   pull_request:
 
 jobs:
+  metadata:
+    name: Validate Release Metadata
+    runs-on: windows-2025-vs2026
+    outputs:
+      is_release: ${{ steps.release.outputs.is_release }}
+      is_test: ${{ steps.release.outputs.is_test }}
+      tag: ${{ steps.release.outputs.tag }}
+      package_version: ${{ steps.release.outputs.package_version }}
+      notes_start_tag: ${{ steps.release.outputs.notes_start_tag }}
+      latest_stable_tag: ${{ steps.release.outputs.latest_stable_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate release metadata
+        id: release
+        shell: pwsh
+        run: pwsh.exe -NoProfile -File .github/get-release-metadata.ps1
+
   # -------------------------------
   # Job 1: Fetch required assets
   # -------------------------------
@@ -43,7 +64,9 @@ jobs:
   build-test:
     name: Build and Test VSIX
     runs-on: windows-2025-vs2026
-    needs: fetch-docs
+    needs:
+      - metadata
+      - fetch-docs
     # env:
       # Feature flags here. Example:
       # FEATURE_INITIAL_GIT_OBSERVER: true
@@ -52,6 +75,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Inject test release version
+        if: needs.metadata.outputs.is_test == 'true'
+        shell: pwsh
+        run: |
+          Import-Module .github/release-version.psm1 -Force
+          Set-PackageVersion -RepositoryPath . -Version '${{ needs.metadata.outputs.package_version }}'
 
       - name: Check PR size
         if: github.event_name == 'pull_request'
@@ -115,7 +145,18 @@ jobs:
           path: |
             **/*.trx
             **/coverage-report/lcov.info
-            
+
+      - name: Name test VSIX artifact
+        if: needs.metadata.outputs.is_test == 'true'
+        shell: pwsh
+        run: |
+          $files = @(Get-ChildItem -Recurse -Filter *.vsix)
+          if ($files.Count -ne 1) {
+            throw "Expected exactly one VSIX file, found $($files.Count)."
+          }
+          $target = Join-Path $files[0].DirectoryName "codescene-vs-${{ needs.metadata.outputs.tag }}.vsix"
+          Move-Item $files[0].FullName $target
+
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
@@ -136,9 +177,16 @@ jobs:
   release:
     name: Create GitHub Release
     runs-on: windows-2025-vs2026
-    needs: build-test
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - metadata
+      - build-test
+    if: needs.metadata.outputs.is_release == 'true'
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Download VSIX artifact
         uses: actions/download-artifact@v4
         with:
@@ -146,11 +194,38 @@ jobs:
           path: .
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          body: "Automated build for ${{ github.ref_name }}"
-          files: '**/*.vsix'
+        shell: pwsh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $files = @(Get-ChildItem -Recurse -Filter *.vsix | ForEach-Object FullName)
+          if ($files.Count -eq 0) {
+            throw "No VSIX files found."
+          }
+
+          $arguments = @(
+            "release",
+            "create",
+            "${{ needs.metadata.outputs.tag }}"
+          )
+          $arguments += $files
+          $arguments += @("--generate-notes", "--verify-tag")
+
+          $notesStartTag = "${{ needs.metadata.outputs.notes_start_tag }}"
+          if ($notesStartTag) {
+            $arguments += @("--notes-start-tag", $notesStartTag)
+          }
+
+          if ("${{ needs.metadata.outputs.is_test }}" -eq "true") {
+            $arguments += @("--prerelease", "--latest=false")
+            $latestStableTag = "${{ needs.metadata.outputs.latest_stable_tag }}"
+            if ($latestStableTag) {
+              $compareUrl = "https://github.com/${{ github.repository }}/compare/$latestStableTag...${{ needs.metadata.outputs.tag }}"
+              $arguments += @("--notes", "[Changes since $latestStableTag]($compareUrl)")
+            }
+          }
+
+          & gh @arguments
+          if ($LASTEXITCODE -ne 0) {
+            throw "GitHub release creation failed."
+          }
