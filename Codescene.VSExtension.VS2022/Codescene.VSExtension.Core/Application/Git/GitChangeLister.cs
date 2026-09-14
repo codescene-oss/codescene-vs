@@ -439,8 +439,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             string gitRootPath,
             IReadOnlyCollection<string> workspacePaths)
         {
-            var diff = repo.Diff.Compare<TreeChanges>(mergeBase.Tree, repo.Head.Tip.Tree);
-            var candidates = CollectDiffCandidates(diff, gitRootPath, workspacePaths);
+            var changedPaths = FirstParentChangeCollector.CollectChangedPaths(repo, mergeBase);
+            var candidates = CollectDiffCandidates(changedPaths, gitRootPath, workspacePaths);
 
             var candidatePaths = candidates.Select(c => c.FullPath);
             var nonIgnored = _gitService.FilterIgnoredFiles(candidatePaths);
@@ -455,15 +455,14 @@ namespace Codescene.VSExtension.Core.Application.Git
         }
 
         private List<(string RelativePath, string FullPath)> CollectDiffCandidates(
-            TreeChanges diff,
+            IEnumerable<string> changedPaths,
             string gitRootPath,
             IReadOnlyCollection<string> workspacePaths)
         {
             var candidates = new List<(string RelativePath, string FullPath)>();
 
-            foreach (var change in diff)
+            foreach (var relativePath in changedPaths)
             {
-                var relativePath = change.Path;
                 var fullPath = Path.Combine(gitRootPath, relativePath);
 
                 if (!File.Exists(fullPath))
