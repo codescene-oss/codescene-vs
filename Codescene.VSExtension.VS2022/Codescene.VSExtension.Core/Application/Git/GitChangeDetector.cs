@@ -266,8 +266,8 @@ namespace Codescene.VSExtension.Core.Application.Git
                     return changes;
                 }
 
-                var diff = repo.Diff.Compare<TreeChanges>(baseCommit.Tree, repo.Head.Tip.Tree);
-                var relativePaths = diff.Where(c => ShouldIncludeCommittedChange(c.Path, gitRootPath)).Select(c => c.Path).ToList();
+                var changedPaths = FirstParentChangeCollector.CollectChangedPaths(repo, baseCommit);
+                var relativePaths = changedPaths.Where(path => ShouldIncludeCommittedChange(path, gitRootPath)).ToList();
                 AddGitRelativePathsInWorkspace(relativePaths, gitRootPath, workspacePaths, changes);
 
                 #if FEATURE_INITIAL_GIT_OBSERVER
