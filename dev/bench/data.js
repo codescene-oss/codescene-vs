@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788878524063,
+  "lastUpdate": 1789399527544,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2558,6 +2558,48 @@ window.BENCHMARK_DATA = {
             "value": 66586354.166666664,
             "unit": "ns",
             "range": "± 715653.3051430716"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "403a41931c554e2bed5a141a824effccfdb59001",
+          "message": "fix: exclude merge-commit files from Code Health Monitor (#323)\n\nCommitted changes vs the baseline were computed as a tree diff between the\r\nbase commit and HEAD, so merging an advanced baseline into a feature branch\r\nlisted every file brought in by the merge. Walk the first-parent path\r\ninstead and skip merge commits, so only the branch's own work is reported.\r\n\r\nPort of codescene-vscode#345 / issue #343.",
+          "timestamp": "2026-09-14T17:19:53+02:00",
+          "tree_id": "d38592d56be7ca6f337fea0ad2fd7b13bcc7a532",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/403a41931c554e2bed5a141a824effccfdb59001"
+        },
+        "date": 1789399524698,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 115787488.20512821,
+            "unit": "ns",
+            "range": "± 2446183.075838842"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 102265007.14285715,
+            "unit": "ns",
+            "range": "± 535569.1602316258"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 66491974.166666664,
+            "unit": "ns",
+            "range": "± 381996.0465876983"
           }
         ]
       }
