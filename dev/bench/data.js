@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789399527544,
+  "lastUpdate": 1789399728200,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -6258,6 +6258,66 @@ window.BENCHMARK_DATA = {
             "value": 298048191.6666667,
             "unit": "ns",
             "range": "± 4123380.1725831097"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "403a41931c554e2bed5a141a824effccfdb59001",
+          "message": "fix: exclude merge-commit files from Code Health Monitor (#323)\n\nCommitted changes vs the baseline were computed as a tree diff between the\r\nbase commit and HEAD, so merging an advanced baseline into a feature branch\r\nlisted every file brought in by the merge. Walk the first-parent path\r\ninstead and skip merge commits, so only the branch's own work is reported.\r\n\r\nPort of codescene-vscode#345 / issue #343.",
+          "timestamp": "2026-09-14T17:19:53+02:00",
+          "tree_id": "d38592d56be7ca6f337fea0ad2fd7b13bcc7a532",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/403a41931c554e2bed5a141a824effccfdb59001"
+        },
+        "date": 1789399725271,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 133989596.42857143,
+            "unit": "ns",
+            "range": "± 1026194.6959171888"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 123916635.71428572,
+            "unit": "ns",
+            "range": "± 1936957.9628523546"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 256066871.42857143,
+            "unit": "ns",
+            "range": "± 3549799.748507723"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 228245491.11111107,
+            "unit": "ns",
+            "range": "± 2387317.9243617356"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 361415433.3333333,
+            "unit": "ns",
+            "range": "± 4988024.68298777"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 328251124.3902439,
+            "unit": "ns",
+            "range": "± 17285329.503550444"
           }
         ]
       }
