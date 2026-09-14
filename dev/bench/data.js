@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789399728200,
+  "lastUpdate": 1789399825415,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -9244,6 +9244,54 @@ window.BENCHMARK_DATA = {
             "value": 19166.882934570312,
             "unit": "ns",
             "range": "± 112.38083539651203"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "403a41931c554e2bed5a141a824effccfdb59001",
+          "message": "fix: exclude merge-commit files from Code Health Monitor (#323)\n\nCommitted changes vs the baseline were computed as a tree diff between the\r\nbase commit and HEAD, so merging an advanced baseline into a feature branch\r\nlisted every file brought in by the merge. Walk the first-parent path\r\ninstead and skip merge commits, so only the branch's own work is reported.\r\n\r\nPort of codescene-vscode#345 / issue #343.",
+          "timestamp": "2026-09-14T17:19:53+02:00",
+          "tree_id": "d38592d56be7ca6f337fea0ad2fd7b13bcc7a532",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/403a41931c554e2bed5a141a824effccfdb59001"
+        },
+        "date": 1789399823132,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 139696472.2222222,
+            "unit": "ns",
+            "range": "± 2948104.0650267294"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 5707.6678139822825,
+            "unit": "ns",
+            "range": "± 36.06173155431674"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 448031434.7826087,
+            "unit": "ns",
+            "range": "± 10542750.917815464"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 20343.732125418526,
+            "unit": "ns",
+            "range": "± 120.80962258543074"
           }
         ]
       }
