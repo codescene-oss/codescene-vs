@@ -203,10 +203,11 @@ jobs:
             throw "No VSIX files found."
           }
 
+          $tag = "${{ needs.metadata.outputs.tag }}"
           $arguments = @(
             "release",
             "create",
-            "${{ needs.metadata.outputs.tag }}"
+            $tag
           )
           $arguments += $files
           $arguments += @("--generate-notes", "--verify-tag")
@@ -225,7 +226,16 @@ jobs:
             }
           }
 
-          & gh @arguments
-          if ($LASTEXITCODE -ne 0) {
-            throw "GitHub release creation failed."
+          & gh release view $tag --json id 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            & gh release upload $tag $files --clobber
+            if ($LASTEXITCODE -ne 0) {
+              throw "GitHub release asset upload failed."
+            }
+          }
+          else {
+            & gh @arguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "GitHub release creation failed."
+            }
           }

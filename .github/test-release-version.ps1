@@ -347,6 +347,10 @@ try {
     Assert-Equal "true" $tagOutput.Values.is_test "Tag test output"
     Assert-Equal "1.2.4.$secondRevision" $tagOutput.Values.package_version "Tag package output"
     Assert-Equal $firstTag $tagOutput.Values.notes_start_tag "Tag baseline output"
+
+    $workflow = Get-Content (Join-Path $PSScriptRoot "workflows\github-release.yml") -Raw
+    Assert-Match $workflow '& gh release view \$tag --json id' "Existing release detection"
+    Assert-Match $workflow '& gh release upload \$tag \$files --clobber' "Existing release asset replacement"
 }
 finally {
     foreach ($path in $temporaryPaths) {
