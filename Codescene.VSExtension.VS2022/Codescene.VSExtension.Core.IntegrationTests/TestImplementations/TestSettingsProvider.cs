@@ -15,5 +15,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
         public bool ShowDebugLogs => Mock.Object.ShowDebugLogs;
 
         public string AuthToken => Mock.Object.AuthToken;
+
+        public int ServerWorkerThreads => Mock.Object.ServerWorkerThreads;
     }
 }

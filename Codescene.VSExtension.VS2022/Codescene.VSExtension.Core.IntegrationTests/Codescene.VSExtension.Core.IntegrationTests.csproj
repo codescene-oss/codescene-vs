@@ -6,6 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);VSTHRD002;VSTHRD003;VSTHRD103;VSTHRD110;VSTHRD200</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

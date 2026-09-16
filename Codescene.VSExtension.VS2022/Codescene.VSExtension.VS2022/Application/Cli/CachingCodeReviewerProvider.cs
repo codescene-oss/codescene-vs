@@ -21,10 +21,10 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CachingCodeReviewerProvider : ICodeReviewer
     {
-        private readonly CachingCodeReviewer _inner;
+        private readonly ICodeReviewer _inner;
         private readonly CodeHealthMonitorNotifier _notifier;
         private readonly IAsyncTaskScheduler _scheduler;
-        private readonly IPreflightManager _preflightManager;
+        private readonly ReviewQueueProgress _queueProgress;
 
         [ImportingConstructor]
         public CachingCodeReviewerProvider(
@@ -34,20 +34,20 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
             ITelemetryManager telemetryManager,
             IGitService git,
             IAsyncTaskScheduler scheduler,
-            IPreflightManager preflightManager)
+            IPreflightManager preflightManager,
+            IReviewPipeline pipeline,
+            IIdeServerClient client,
+            CodeHealthMonitorNotifier notifier)
         {
             _scheduler = scheduler;
-            _preflightManager = preflightManager;
-            _notifier = new CodeHealthMonitorNotifier();
+            _notifier = notifier;
             _notifier.ViewUpdateRequested += OnViewUpdateRequested;
-
-            var baseReviewer = new CodeReviewer(logger, mapper, executor, telemetryManager, git, _notifier, _preflightManager);
-            _inner = new CachingCodeReviewer(
-                innerReviewer: baseReviewer,
-                logger: logger,
-                git: git,
-                telemetryManager: telemetryManager,
-                notifier: _notifier);
+            _queueProgress = new ReviewQueueProgress(queue =>
+            {
+                _notifier.ApplyQueue(queue);
+            });
+            client.QueueChanged += (_, queue) => _queueProgress.Update(queue);
+            _inner = new CodeReviewer(logger, mapper, executor, telemetryManager, git, _notifier, preflightManager, pipeline);
         }
 
         public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)

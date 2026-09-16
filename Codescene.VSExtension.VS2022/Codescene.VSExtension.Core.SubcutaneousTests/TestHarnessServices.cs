@@ -35,64 +35,6 @@ public sealed class TestLogger : ILogger
     }
 }
 
-public sealed class TestSavedFilesTracker : ISavedFilesTracker
-{
-    private readonly HashSet<string> _savedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    private readonly EventJournal _journal;
-
-    public TestSavedFilesTracker(EventJournal journal)
-    {
-        _journal = journal;
-    }
-
-    public IEnumerable<string> GetSavedFiles()
-    {
-        lock (_savedFiles)
-        {
-            return _savedFiles.ToArray();
-        }
-    }
-
-    public void ClearSavedFiles()
-    {
-        lock (_savedFiles)
-        {
-            _savedFiles.Clear();
-        }
-    }
-
-    public void RemoveFromTracker(string filePath)
-    {
-        lock (_savedFiles)
-        {
-            _savedFiles.Remove(filePath);
-        }
-    }
-
-    public void MarkSaved(string filePath)
-    {
-        lock (_savedFiles)
-        {
-            _savedFiles.Add(filePath);
-        }
-
-        _journal.Record("saved-file.added", filePath);
-    }
-}
-
-public sealed class TestOpenFilesObserver : IOpenFilesObserver
-{
-    public IEnumerable<string> GetAllVisibleFileNames()
-    {
-        return Array.Empty<string>();
-    }
-
-    public string GetActiveDocumentPath()
-    {
-        return string.Empty;
-    }
-}
-
 public sealed class TestSupportedFileChecker : ISupportedFileChecker
 {
     private static readonly HashSet<string> SupportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -109,22 +51,6 @@ public sealed class TestSupportedFileChecker : ISupportedFileChecker
     {
         return SupportedExtensions.Contains(Path.GetExtension(filePath));
     }
-}
-
-public sealed class TestCliServices : ICliServices
-{
-    public TestCliServices(ICliCommandProvider commandProvider, IProcessExecutor processExecutor, ICacheStorageService cacheStorage)
-    {
-        CommandProvider = commandProvider;
-        ProcessExecutor = processExecutor;
-        CacheStorage = cacheStorage;
-    }
-
-    public ICliCommandProvider CommandProvider { get; }
-
-    public IProcessExecutor ProcessExecutor { get; }
-
-    public ICacheStorageService CacheStorage { get; }
 }
 
 public sealed class TestCacheStorageService : ICacheStorageService
@@ -162,4 +88,6 @@ public sealed class TestSettingsProvider : ISettingsProvider
     public bool ShowDebugLogs => false;
 
     public string AuthToken => string.Empty;
+
+    public int ServerWorkerThreads => 0;
 }

@@ -8,8 +8,8 @@ using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
+using Codescene.VSExtension.Core.Models.Cli.Rpc;
 using Moq;
-using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Tests
 {
@@ -21,9 +21,7 @@ namespace Codescene.VSExtension.Core.Tests
         private const string TestFileContent = "public class Test { }";
 
         private Mock<ILogger> _mockLogger;
-        private Mock<ICliServices> _mockCliServices;
-        private Mock<ICliCommandProvider> _mockCommandProvider;
-        private Mock<IProcessExecutor> _mockProcessExecutor;
+        private Mock<IIdeServerClient> _mockClient;
         private Mock<ICacheStorageService> _mockCacheStorage;
         private Mock<ISettingsProvider> _mockSettingsProvider;
         private CliExecutor _cliExecutor;
@@ -32,19 +30,11 @@ namespace Codescene.VSExtension.Core.Tests
         public void Setup()
         {
             _mockLogger = new Mock<ILogger>();
-            _mockCommandProvider = new Mock<ICliCommandProvider>();
-            _mockProcessExecutor = new Mock<IProcessExecutor>();
+            _mockClient = new Mock<IIdeServerClient>();
             _mockCacheStorage = new Mock<ICacheStorageService>();
             _mockSettingsProvider = new Mock<ISettingsProvider>();
-
-            _mockCliServices = new Mock<ICliServices>();
-            _mockCliServices.Setup(x => x.CommandProvider).Returns(_mockCommandProvider.Object);
-            _mockCliServices.Setup(x => x.ProcessExecutor).Returns(_mockProcessExecutor.Object);
-            _mockCliServices.Setup(x => x.CacheStorage).Returns(_mockCacheStorage.Object);
             _mockCacheStorage.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
-            _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
-
-            _cliExecutor = new CliExecutor(_mockLogger.Object, _mockCliServices.Object, _mockSettingsProvider.Object, null);
+            _cliExecutor = new CliExecutor(_mockLogger.Object, _mockClient.Object, _mockCacheStorage.Object, _mockSettingsProvider.Object, null);
         }
 
         [TestMethod]
@@ -52,18 +42,21 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var fnToRefactor = new FnToRefactorModel { Name = "TestMethod", Body = "public void Test() { }", FileType = "cs" };
             var expectedResponse = new RefactorResponseModel { Code = "public void Test() { /* refactored */ }", TraceId = "trace-123" };
-            var jsonResponse = JsonConvert.SerializeObject(expectedResponse);
             var token = "test-token";
             _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
-            _mockCommandProvider.Setup(x => x.RefactorPostCommand).Returns("run-command refactor");
-            _mockCommandProvider.Setup(x => x.GetRefactorPostPayload(fnToRefactor, false, token)).Returns("{\"token\":\"test-token\"}");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("run-command refactor", It.IsAny<string>(), null, default, It.IsAny<string>())).ReturnsAsync(jsonResponse);
+            _mockClient.Setup(x => x.RefactorAsync(It.IsAny<RefactorPostRequestModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResponse);
 
             var result = await _cliExecutor.PostRefactoringAsync(fnToRefactor, skipCache: false);
 
             Assert.IsNotNull(result);
             Assert.AreEqual(expectedResponse.Code, result.Code);
             Assert.AreEqual(expectedResponse.TraceId, result.TraceId);
+            _mockClient.Verify(
+                x => x.RefactorAsync(
+                    It.Is<RefactorPostRequestModel>(r => r.Token == token && r.FnToRefactor == fnToRefactor && r.SkipCache == null),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [TestMethod]
@@ -87,39 +80,26 @@ namespace Codescene.VSExtension.Core.Tests
             var fnToRefactor = new FnToRefactorModel { Name = "Test" };
             var providedToken = "provided-token";
             var response = new RefactorResponseModel { Code = "refactored" };
-            var jsonResponse = JsonConvert.SerializeObject(response);
-            _mockCommandProvider.Setup(x => x.RefactorPostCommand).Returns("run-command refactor");
-            _mockCommandProvider.Setup(x => x.GetRefactorPostPayload(fnToRefactor, false, providedToken)).Returns("{\"token\":\"provided-token\"}");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>())).ReturnsAsync(jsonResponse);
+            _mockClient.Setup(x => x.RefactorAsync(It.IsAny<RefactorPostRequestModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
 
             var result = await _cliExecutor.PostRefactoringAsync(fnToRefactor, skipCache: false, token: providedToken);
 
             Assert.IsNotNull(result);
-            _mockCommandProvider.Verify(x => x.GetRefactorPostPayload(fnToRefactor, false, providedToken), Times.Once);
-            _mockProcessExecutor.Verify(x => x.ExecuteAsync("run-command refactor", It.IsAny<string>(), null, It.IsAny<CancellationToken>(), It.IsAny<string>()), Times.Once);
+            _mockClient.Verify(
+                x => x.RefactorAsync(
+                    It.Is<RefactorPostRequestModel>(r => r.Token == providedToken && r.FnToRefactor == fnToRefactor),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [TestMethod]
-        public async Task PostRefactoring_WithEmptyArguments_ReturnsNull()
+        public async Task PostRefactoring_WhenClientThrowsException_ReturnsNull()
         {
             var fnToRefactor = new FnToRefactorModel { Name = "Test" };
             _mockSettingsProvider.Setup(x => x.AuthToken).Returns("test-token");
-            _mockCommandProvider.Setup(x => x.RefactorPostCommand).Returns(string.Empty);
-
-            var result = await _cliExecutor.PostRefactoringAsync(fnToRefactor);
-
-            Assert.IsNull(result);
-            _mockLogger.Verify(x => x.Warn("Skipping refactoring. Arguments were not defined."), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task PostRefactoring_WhenProcessExecutorThrowsException_ReturnsNull()
-        {
-            var fnToRefactor = new FnToRefactorModel { Name = "Test" };
-            _mockSettingsProvider.Setup(x => x.AuthToken).Returns("test-token");
-            _mockCommandProvider.Setup(x => x.RefactorPostCommand).Returns("run-command refactor");
-            _mockCommandProvider.Setup(x => x.GetRefactorPostPayload(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>())).Returns("{\"token\":\"test-token\"}");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>())).ThrowsAsync(new Exception("Error"));
+            _mockClient.Setup(x => x.RefactorAsync(It.IsAny<RefactorPostRequestModel>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception("Error"));
 
             var result = await _cliExecutor.PostRefactoringAsync(fnToRefactor);
 
@@ -133,16 +113,18 @@ namespace Codescene.VSExtension.Core.Tests
             var fnToRefactor = new FnToRefactorModel { Name = "Test" };
             var token = "test-token";
             var response = new RefactorResponseModel { Code = "refactored" };
-            var jsonResponse = JsonConvert.SerializeObject(response);
             _mockSettingsProvider.Setup(x => x.AuthToken).Returns(token);
-            _mockCommandProvider.Setup(x => x.RefactorPostCommand).Returns("run-command refactor");
-            _mockCommandProvider.Setup(x => x.GetRefactorPostPayload(fnToRefactor, true, token)).Returns("{\"token\":\"test-token\",\"skip-cache\":true}");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>())).ReturnsAsync(jsonResponse);
+            _mockClient.Setup(x => x.RefactorAsync(It.IsAny<RefactorPostRequestModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
 
             var result = await _cliExecutor.PostRefactoringAsync(fnToRefactor, skipCache: true);
 
             Assert.IsNotNull(result);
-            _mockCommandProvider.Verify(x => x.GetRefactorPostPayload(fnToRefactor, true, token), Times.Once);
+            _mockClient.Verify(
+                x => x.RefactorAsync(
+                    It.Is<RefactorPostRequestModel>(r => r.SkipCache == true && r.Token == token),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [TestMethod]
@@ -151,10 +133,8 @@ namespace Codescene.VSExtension.Core.Tests
             var codeSmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Complex Method" } };
             var preflight = new PreFlightResponseModel { Version = 1.0m };
             var expectedFunctions = new List<FnToRefactorModel> { new FnToRefactorModel { Name = "Function1", Body = "code" } };
-            var jsonResponse = JsonConvert.SerializeObject(expectedFunctions);
-            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(TestFileName, TestFileContent, TestCachePath, codeSmells, preflight)).Returns("payload");
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("refactor", "payload", null, default, It.IsAny<string>())).ReturnsAsync(jsonResponse);
+            _mockClient.Setup(x => x.FnsToRefactorAsync(It.IsAny<FnsToRefactorRequestModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedFunctions);
 
             var result = await _cliExecutor.FnsToRefactorFromCodeSmellsAsync(TestFileName, TestFileContent, codeSmells, preflight);
 
@@ -182,25 +162,11 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task FnsToRefactorFromCodeSmells_WithEmptyPayload_ReturnsNull()
-        {
-            var codeSmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } };
-            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>())).Returns(string.Empty);
-
-            var result = await _cliExecutor.FnsToRefactorFromCodeSmellsAsync(TestFileName, TestFileContent, codeSmells, null);
-
-            Assert.IsNull(result);
-            _mockLogger.Verify(x => x.Warn("Skipping refactoring functions check. Payload content was not defined."), Times.Once);
-        }
-
-        [TestMethod]
         public async Task FnsToRefactorFromCodeSmells_RemovesOldCacheEntries()
         {
             var codeSmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } };
-            var jsonResponse = JsonConvert.SerializeObject(new List<FnToRefactorModel>());
-            _mockCommandProvider.Setup(x => x.GetRefactorWithCodeSmellsPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IList<CliCodeSmellModel>>(), It.IsAny<PreFlightResponseModel>())).Returns("payload");
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>())).ReturnsAsync(jsonResponse);
+            _mockClient.Setup(x => x.FnsToRefactorAsync(It.IsAny<FnsToRefactorRequestModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<FnToRefactorModel>());
 
             await _cliExecutor.FnsToRefactorFromCodeSmellsAsync(TestFileName, TestFileContent, codeSmells, null);
 
@@ -213,10 +179,8 @@ namespace Codescene.VSExtension.Core.Tests
             var deltaResult = new DeltaResponseModel { NewScore = 8.0m, OldScore = 7.0m };
             var preflight = new PreFlightResponseModel { Version = 1.0m };
             var expectedFunctions = new List<FnToRefactorModel> { new FnToRefactorModel { Name = "Function1", Body = "code" } };
-            var jsonResponse = JsonConvert.SerializeObject(expectedFunctions);
-            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, TestCachePath, deltaResult, preflight)).Returns("payload");
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("refactor", "payload", null, default, It.IsAny<string>())).ReturnsAsync(jsonResponse);
+            _mockClient.Setup(x => x.FnsToRefactorAsync(It.IsAny<FnsToRefactorRequestModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedFunctions);
 
             var result = await _cliExecutor.FnsToRefactorFromDeltaAsync(TestFileName, TestFileContent, deltaResult, preflight);
 
@@ -235,25 +199,11 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task FnsToRefactorFromDelta_WithEmptyPayload_ReturnsNull()
-        {
-            var deltaResult = new DeltaResponseModel { NewScore = 8.0m, OldScore = 7.0m };
-            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>())).Returns(string.Empty);
-
-            var result = await _cliExecutor.FnsToRefactorFromDeltaAsync(TestFileName, TestFileContent, deltaResult, null);
-
-            Assert.IsNull(result);
-            _mockLogger.Verify(x => x.Warn("Skipping refactoring functions check. Payload content was not defined."), Times.Once);
-        }
-
-        [TestMethod]
         public async Task FnsToRefactorFromDelta_RemovesOldCacheEntries()
         {
             var deltaResult = new DeltaResponseModel { NewScore = 8.0m, OldScore = 7.0m };
-            var jsonResponse = JsonConvert.SerializeObject(new List<FnToRefactorModel>());
-            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DeltaResponseModel>(), It.IsAny<PreFlightResponseModel>())).Returns("payload");
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<System.Threading.CancellationToken>(), It.IsAny<string>())).ReturnsAsync(jsonResponse);
+            _mockClient.Setup(x => x.FnsToRefactorAsync(It.IsAny<FnsToRefactorRequestModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<FnToRefactorModel>());
 
             await _cliExecutor.FnsToRefactorFromDeltaAsync(TestFileName, TestFileContent, deltaResult, null);
 
@@ -261,22 +211,19 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task FnsToRefactorFromDelta_ConcurrentIdenticalRequests_CallsProcessExecutorOnce()
+        public async Task FnsToRefactorFromDelta_ConcurrentIdenticalRequests_CallsClientOnce()
         {
             var deltaResult = new DeltaResponseModel { NewScore = 8.0m, OldScore = 7.0m };
             var functions = new List<FnToRefactorModel> { new FnToRefactorModel { Name = "Function1", Body = "code" } };
-            var jsonResponse = JsonConvert.SerializeObject(functions);
             var completion = new TaskCompletionSource<bool>();
             var callCount = 0;
 
-            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, TestCachePath, deltaResult, null)).Returns("payload");
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("refactor", "payload", null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .Returns<string, string, TimeSpan?, CancellationToken, string>(async (_, _, _, _, __) =>
+            _mockClient.Setup(x => x.FnsToRefactorAsync(It.IsAny<FnsToRefactorRequestModel>(), It.IsAny<CancellationToken>()))
+                .Returns<FnsToRefactorRequestModel, CancellationToken>(async (_, __) =>
                 {
                     Interlocked.Increment(ref callCount);
                     await completion.Task;
-                    return jsonResponse;
+                    return functions;
                 });
 
             var firstTask = _cliExecutor.FnsToRefactorFromDeltaAsync(TestFileName, TestFileContent, deltaResult, null);
@@ -299,15 +246,12 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var deltaResult = new DeltaResponseModel { NewScore = 8.0m, OldScore = 7.0m };
             var functions = new List<FnToRefactorModel> { new FnToRefactorModel { Name = "Function1", Body = "code" } };
-            var jsonResponse = JsonConvert.SerializeObject(functions);
             var entered = new TaskCompletionSource<bool>();
-            var completion = new TaskCompletionSource<string>();
+            var completion = new TaskCompletionSource<IList<FnToRefactorModel>>();
             var capturedToken = CancellationToken.None;
 
-            _mockCommandProvider.Setup(x => x.GetRefactorWithDeltaResultPayload(TestFileName, TestFileContent, TestCachePath, deltaResult, null)).Returns("payload");
-            _mockCommandProvider.Setup(x => x.RefactorCommand).Returns("refactor");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("refactor", "payload", null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .Returns<string, string, TimeSpan?, CancellationToken, string>((_, _, _, token, __) =>
+            _mockClient.Setup(x => x.FnsToRefactorAsync(It.IsAny<FnsToRefactorRequestModel>(), It.IsAny<CancellationToken>()))
+                .Returns<FnsToRefactorRequestModel, CancellationToken>((_, token) =>
                 {
                     capturedToken = token;
                     entered.TrySetResult(true);
@@ -323,31 +267,28 @@ namespace Codescene.VSExtension.Core.Tests
 
             await Assert.ThrowsAsync<OperationCanceledException>(() => canceledCallerTask);
 
-            completion.TrySetResult(jsonResponse);
+            completion.TrySetResult(functions);
             var secondResult = await secondCallerTask;
 
             Assert.HasCount(1, secondResult);
             Assert.AreEqual(CancellationToken.None, capturedToken);
-            _mockProcessExecutor.Verify(x => x.ExecuteAsync("refactor", "payload", null, It.IsAny<CancellationToken>(), It.IsAny<string>()), Times.Once);
+            _mockClient.Verify(x => x.FnsToRefactorAsync(It.IsAny<FnsToRefactorRequestModel>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
         public async Task GetDeviceId_WithValidResponse_ReturnsDeviceId()
         {
-            var expectedDeviceId = "device-id-123";
-            _mockCommandProvider.Setup(x => x.DeviceIdCommand).Returns("device-id");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("device-id", null, null, default, It.IsAny<string>())).ReturnsAsync(expectedDeviceId);
+            _mockClient.Setup(x => x.DeviceIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync("device-id-123");
 
             var result = await _cliExecutor.GetDeviceIdAsync();
 
-            Assert.AreEqual(expectedDeviceId, result);
+            Assert.AreEqual("device-id-123", result);
         }
 
         [TestMethod]
-        public async Task GetDeviceId_WhenProcessExecutorThrowsException_ReturnsEmptyString()
+        public async Task GetDeviceId_WhenClientThrowsException_ReturnsEmptyString()
         {
-            _mockCommandProvider.Setup(x => x.DeviceIdCommand).Returns("device-id");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("device-id", null, null, default, It.IsAny<string>())).ThrowsAsync(new Exception("Error"));
+            _mockClient.Setup(x => x.DeviceIdAsync(It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("Error"));
 
             var result = await _cliExecutor.GetDeviceIdAsync();
 
@@ -358,9 +299,7 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetDeviceId_TrimsWhitespace()
         {
-            var deviceIdWithWhitespace = "  device-id-123  \r\n";
-            _mockCommandProvider.Setup(x => x.DeviceIdCommand).Returns("device-id");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("device-id", null, null, default, It.IsAny<string>())).ReturnsAsync(deviceIdWithWhitespace);
+            _mockClient.Setup(x => x.DeviceIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync("  device-id-123  \r\n");
 
             var result = await _cliExecutor.GetDeviceIdAsync();
 
@@ -370,20 +309,18 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetFileVersion_WithValidResponse_ReturnsVersion()
         {
-            var expectedVersion = "1.2.3";
-            _mockCommandProvider.Setup(x => x.VersionCommand).Returns("version --sha");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("version --sha", null, null, default, It.IsAny<string>())).ReturnsAsync(expectedVersion);
+            _mockClient.Setup(x => x.StartAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ServerMetadata { Sha = "1.2.3" });
 
             var result = await _cliExecutor.GetFileVersionAsync();
 
-            Assert.AreEqual(expectedVersion, result);
+            Assert.AreEqual("1.2.3", result);
         }
 
         [TestMethod]
-        public async Task GetFileVersion_WhenProcessExecutorThrowsException_ReturnsEmptyString()
+        public async Task GetFileVersion_WhenClientThrowsException_ReturnsEmptyString()
         {
-            _mockCommandProvider.Setup(x => x.VersionCommand).Returns("version --sha");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("version --sha", null, null, default, It.IsAny<string>())).ThrowsAsync(new Exception("Error"));
+            _mockClient.Setup(x => x.StartAsync(It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("Error"));
 
             var result = await _cliExecutor.GetFileVersionAsync();
 
@@ -394,9 +331,8 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task GetFileVersion_TrimsWhitespace()
         {
-            var versionWithWhitespace = "  1.2.3  \r\n";
-            _mockCommandProvider.Setup(x => x.VersionCommand).Returns("version --sha");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("version --sha", null, null, default, It.IsAny<string>())).ReturnsAsync(versionWithWhitespace);
+            _mockClient.Setup(x => x.StartAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ServerMetadata { Sha = "  1.2.3  \r\n" });
 
             var result = await _cliExecutor.GetFileVersionAsync();
 

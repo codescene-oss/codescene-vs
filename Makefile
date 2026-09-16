@@ -58,7 +58,7 @@ build: .build-timestamp
 test: quit-vs build
 	$(call call_cached,$(CACHE_KEY),pwsh.exe -File .github/test.ps1)
 
-# make test1 TEST=GitChangeObserverTests
+# make test1 TEST=IdeServerClientTests
 test1: build
 	$(call call_cached,$(CACHE_KEY),pwsh.exe -File .github/test1.ps1 -TestName $(TEST))
 

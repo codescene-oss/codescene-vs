@@ -50,11 +50,6 @@ Also make sure to close the IDE before setting the env variable to ensure that t
 
 If a property is not provided, it defaults to false.
 
-| Flag name                    | Description                                                                                            |
-|------------------------------|--------------------------------------------------------------------------------------------------------|
-| FEATURE_PERIODIC_GIT_SCAN    | Enables detailed logging for periodic git status scanning. Disabled by default.                        |
-| FEATURE_INITIAL_GIT_OBSERVER | Enables detailed logging for initial GitChangeObserver invocation on startup. Disabled by default.     |
-
 ## License
 
 See LICENSE file.

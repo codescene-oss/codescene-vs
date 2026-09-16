@@ -5,6 +5,7 @@
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<Deterministic>true</Deterministic>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);VSTHRD003;VSTHRD011;VSTHRD110;VSTHRD200</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -19,6 +20,9 @@
 		<PackageReference Include="Markdig" Version="0.41.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.5" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="StreamJsonRpc" Version="2.8.28">
+			<ExcludeAssets>analyzers</ExcludeAssets>
+		</PackageReference>
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118" Condition="'$(RunStyleCopAnalyzers)' == 'true'">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -34,14 +38,4 @@
 		<Reference Include="System.Security" />
 	</ItemGroup>
 
-	<PropertyGroup>
-		<EnablePeriodicGitScan Condition="'$(FEATURE_PERIODIC_GIT_SCAN)' == 'true'">true</EnablePeriodicGitScan>
-		<EnablePeriodicGitScan Condition="'$(FEATURE_PERIODIC_GIT_SCAN)' != 'true'">false</EnablePeriodicGitScan>
-		<EnableInitialGitObserver Condition="'$(FEATURE_INITIAL_GIT_OBSERVER)' == 'true'">true</EnableInitialGitObserver>
-		<EnableInitialGitObserver Condition="'$(FEATURE_INITIAL_GIT_OBSERVER)' != 'true'">false</EnableInitialGitObserver>
-	</PropertyGroup>
-	<PropertyGroup>
-		<DefineConstants Condition="'$(EnablePeriodicGitScan)' == 'true'">$(DefineConstants);FEATURE_PERIODIC_GIT_SCAN</DefineConstants>
-		<DefineConstants Condition="'$(EnableInitialGitObserver)' == 'true'">$(DefineConstants);FEATURE_INITIAL_GIT_OBSERVER</DefineConstants>
-	</PropertyGroup>
 </Project>

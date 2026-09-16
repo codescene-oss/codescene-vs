@@ -7,5 +7,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Extension
         bool ShowDebugLogs { get; }
 
         string AuthToken { get; }
+
+        int ServerWorkerThreads { get; }
     }
 }

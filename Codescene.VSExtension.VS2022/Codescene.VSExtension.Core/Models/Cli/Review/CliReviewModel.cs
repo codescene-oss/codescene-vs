@@ -30,5 +30,8 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
         /// </summary>
         [JsonProperty("code-health-rules-error")]
         public CliCodeHealthRulesErrorModel CodeHealthRulesError { get; set; }
+
+        [JsonProperty("git-blob-sha")]
+        public string GitBlobSha { get; set; }
     }
 }

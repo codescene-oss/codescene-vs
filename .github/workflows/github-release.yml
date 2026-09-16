@@ -46,7 +46,7 @@ jobs:
     needs: fetch-docs
     # env:
       # Feature flags here. Example:
-      # FEATURE_INITIAL_GIT_OBSERVER: true
+      # FEATURE_ACE: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

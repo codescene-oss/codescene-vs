@@ -11,6 +11,7 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Util;
+using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Application.Telemetry
 {
@@ -19,23 +20,20 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
     public class TelemetryManager : ITelemetryManager
     {
         private readonly ILogger _logger;
-        private readonly IProcessExecutor _executor;
+        private readonly IIdeServerClient _client;
         private readonly IDeviceIdStore _deviceIdStore;
-        private readonly ICliCommandProvider _cliCommandProvider;
         private readonly IExtensionMetadataProvider _extensionMetadataProvider;
 
         [ImportingConstructor]
         public TelemetryManager(
             ILogger logger,
-            IProcessExecutor executor,
+            IIdeServerClient client,
             IDeviceIdStore deviceIdStore,
-            ICliCommandProvider cliCommandProvider,
             IExtensionMetadataProvider extensionMetadataProvider)
         {
             _logger = logger;
-            _executor = executor;
+            _client = client;
             _deviceIdStore = deviceIdStore;
-            _cliCommandProvider = cliCommandProvider;
             _extensionMetadataProvider = extensionMetadataProvider;
         }
 
@@ -63,8 +61,17 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
                     _extensionMetadataProvider.GetVersion(),
                     _extensionMetadataProvider.GetEditorVersion(),
                     additionalEventData);
-                var arguments = _cliCommandProvider.SendTelemetryCommand(eventJson);
-                await _executor.ExecuteAsync(arguments, null, Constants.Timeout.TELEMETRYTIMEOUT, cancellationToken);
+                if (string.IsNullOrEmpty(eventJson))
+                {
+                    return;
+                }
+
+                var eventPayload = JsonConvert.DeserializeObject(eventJson);
+                using (var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                {
+                    timeoutCts.CancelAfter(Constants.Timeout.TELEMETRYTIMEOUT);
+                    await _client.TelemetryAsync(eventPayload, timeoutCts.Token);
+                }
             }
             catch (Exception e)
             {

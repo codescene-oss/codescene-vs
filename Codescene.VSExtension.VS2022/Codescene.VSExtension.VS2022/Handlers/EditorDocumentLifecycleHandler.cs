@@ -12,6 +12,8 @@ using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli;
+using Codescene.VSExtension.Core.Models.Cli.Rpc;
+using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using Codescene.VSExtension.VS2022.Tagger;
 using Codescene.VSExtension.VS2022.TermsAndPolicies;
@@ -64,6 +66,9 @@ namespace Codescene.VSExtension.VS2022.Handlers
         [Import]
         private readonly IAceRefactorSuggestedActionsNotifier _aceRefactorSuggestedActionsNotifier;
 
+        [Import]
+        private readonly IReviewPipeline _reviewPipeline;
+
         public void TextViewCreated(IWpfTextView textView)
         {
             var buffer = textView.TextBuffer;
@@ -109,8 +114,11 @@ namespace Codescene.VSExtension.VS2022.Handlers
             textView.Closed += (_, _) =>
             {
                 _logger.Debug($"File closed: {filePath}...");
-
-                // TODO: Stop any pending analysis for optimization?
+                var repoRoot = GitPathDiscovery.TryGetWorkingDirectory(filePath);
+                if (!string.IsNullOrEmpty(repoRoot) && _reviewPipeline != null)
+                {
+                    _reviewPipeline.Remove(repoRoot, new ReviewDocument { FilePath = filePath, Content = string.Empty });
+                }
             };
         }
 

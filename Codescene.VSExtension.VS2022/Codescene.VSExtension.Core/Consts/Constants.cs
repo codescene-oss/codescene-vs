@@ -10,6 +10,7 @@ namespace Codescene.VSExtension.Core.Consts
         {
             public static readonly TimeSpan DEFAULTCLITIMEOUT = TimeSpan.FromMilliseconds(60000); // 60s
             public static readonly TimeSpan TELEMETRYTIMEOUT = TimeSpan.FromMilliseconds(5000); // 5s
+            public static readonly TimeSpan SERVERSTARTUPTIMEOUT = TimeSpan.FromMilliseconds(30000);
         }
 
         public class Titles

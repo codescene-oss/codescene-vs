@@ -27,7 +27,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     private uint _cookie;
     private IVsSolution _solution;
     private BranchWatcherService _branchWatcher;
-    private IGitChangeObserver _gitChangeObserver;
+    private IWorkspaceWatchCoordinator _workspaceWatch;
     private IAsyncTaskScheduler _scheduler;
     private IErrorListWindowHandler _errorListWindowHandler;
     private Task _solutionInitializationTask;
@@ -84,12 +84,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 _errorListWindowHandler?.ClearAll();
             });
 
-            _scheduler.Schedule(async ct =>
-            {
-                var savedFilesTracker = await VS.GetMefServiceAsync<ISavedFilesTracker>();
-                savedFilesTracker?.ClearSavedFiles();
-            });
-
             Log(logger =>
             {
                 logger.Info("Solution or folder was closed. Clearing delta cache...");
@@ -123,9 +117,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
         _branchWatcher?.Dispose();
         _branchWatcher = null;
-        _gitChangeObserver?.CancelAndReset();
-        _gitChangeObserver?.Dispose();
-        _gitChangeObserver = null;
+        _workspaceWatch?.StopAll();
         return VSConstants.S_OK;
     }
 
@@ -237,32 +229,19 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         _branchWatcher.StartWatching(solutionPath, (newBranch) =>
             _scheduler.Schedule(ct2 => OnBranchChangedAsync(newBranch)));
 
-        await InitializeGitChangeObserverAsync(solutionPath);
+        await InitializeWorkspaceWatchAsync(solutionPath);
     }
 
-    private async Task InitializeGitChangeObserverAsync(string solutionPath)
+    private async Task InitializeWorkspaceWatchAsync(string solutionPath)
     {
         try
         {
-            _gitChangeObserver = await VS.GetMefServiceAsync<IGitChangeObserver>();
-            if (_gitChangeObserver == null)
+            _workspaceWatch = await VS.GetMefServiceAsync<IWorkspaceWatchCoordinator>();
+            if (_workspaceWatch == null)
             {
                 Log(logger =>
                 {
-                    logger.Warn("Failed to obtain IGitChangeObserver service.");
-                    return Task.CompletedTask;
-                });
-                return;
-            }
-
-            var savedFilesTracker = await VS.GetMefServiceAsync<ISavedFilesTracker>();
-            var openFilesObserver = await VS.GetMefServiceAsync<IOpenFilesObserver>();
-
-            if (savedFilesTracker == null || openFilesObserver == null)
-            {
-                Log(logger =>
-                {
-                    logger.Warn("Failed to obtain required services for GitChangeObserver.");
+                    logger.Warn("Failed to obtain IWorkspaceWatchCoordinator service.");
                     return Task.CompletedTask;
                 });
                 return;
@@ -275,12 +254,11 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
             }
 
-            _gitChangeObserver.Initialize(solutionPath, savedFilesTracker, openFilesObserver, workspacePaths);
-            _gitChangeObserver.Start();
+            await _workspaceWatch.SyncAsync(workspacePaths == null ? Array.Empty<string>() : new List<string>(workspacePaths));
 
             Log(logger =>
             {
-                logger.Info("GitChangeObserver initialized and started.");
+                logger.Info("Workspace watch initialized.");
                 return Task.CompletedTask;
             });
         }
@@ -288,7 +266,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         {
             Log(logger =>
             {
-                logger.Error("Failed to initialize GitChangeObserver.", ex);
+                logger.Error("Failed to initialize workspace watch.", ex);
                 return Task.CompletedTask;
             });
         }
@@ -296,7 +274,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
     private async Task RefreshWorkspacePathsAsync()
     {
-        if (_gitChangeObserver == null)
+        if (_workspaceWatch == null)
         {
             return;
         }
@@ -315,10 +293,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         }
 
         var workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
-        if (workspacePaths != null && workspacePaths.Count > 0)
-        {
-            _gitChangeObserver.UpdateWorkspacePaths(workspacePaths);
-        }
+        await _workspaceWatch.SyncAsync(workspacePaths == null ? Array.Empty<string>() : new List<string>(workspacePaths));
     }
 
     private async Task OnBranchChangedAsync(string newBranch)
@@ -327,11 +302,11 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         {
             Log(logger =>
             {
-                logger.Info($"Branch switched to: '{newBranch}'. Clearing delta cache...");
+                logger.Info($"Branch switched to: '{newBranch}'. Re-seeding workspace watches...");
                 return Task.CompletedTask;
             });
 
-            _gitChangeObserver?.CancelAndReset();
+            await RefreshWorkspacePathsAsync();
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
