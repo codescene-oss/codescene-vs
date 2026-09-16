@@ -42,6 +42,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\Codescene.VSExtension.VS2022.xml</DocumentationFile>
+	<DeployExtension>true</DeployExtension>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -221,7 +222,7 @@
     <PackageReference Include="Microsoft.VisualStudio.SDK">
       <Version>17.0.31902.203</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2094">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="18.5.40034">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
