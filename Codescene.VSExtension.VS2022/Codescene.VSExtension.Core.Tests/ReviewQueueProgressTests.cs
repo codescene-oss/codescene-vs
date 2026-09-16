@@ -24,6 +24,41 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Update_SubsequentPositiveCount_FlushesLatestSnapshot()
+        {
+            var flushed = new ManualResetEventSlim();
+            var snapshots = new List<ReviewQueue>();
+            using (var progress = new ReviewQueueProgress(snapshot =>
+            {
+                snapshots.Add(snapshot);
+                flushed.Set();
+            }))
+            {
+                progress.Update(new ReviewQueue { Count = 1, Files = new[] { "a.cs" } });
+                Assert.IsTrue(flushed.Wait(TimeSpan.FromSeconds(5)));
+                flushed.Reset();
+
+                progress.Update(new ReviewQueue { Count = 2, Files = new[] { "a.cs", "b.cs" } });
+
+                Assert.IsTrue(flushed.Wait(TimeSpan.FromSeconds(5)));
+            }
+
+            Assert.AreEqual(2, snapshots[snapshots.Count - 1].Count);
+        }
+
+        [TestMethod]
+        public void Update_AfterDispose_IsIgnored()
+        {
+            var changes = 0;
+            var progress = new ReviewQueueProgress(_ => changes++);
+            progress.Dispose();
+
+            progress.Update(new ReviewQueue { Count = 1 });
+
+            Assert.AreEqual(0, changes);
+        }
+
+        [TestMethod]
         public void ApplyQueue_MapsRunningAndQueuedJobs()
         {
             DeltaJobTracker.Clear();

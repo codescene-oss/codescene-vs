@@ -354,6 +354,215 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsEmpty(_events.Deltas);
         }
 
+        [TestMethod]
+        public async Task InvalidAndUnmatchedNotifications_AreIgnored()
+        {
+            _client.Raise(x => x.ReviewReceived += null, _client.Object, null);
+            _client.Raise(x => x.DeltaReceived += null, _client.Object, null);
+            _client.Raise(x => x.ReviewFailed += null, _client.Object, null);
+            _client.Raise(
+                x => x.ReviewFailed += null,
+                _client.Object,
+                new ReviewFailedNotification { RepoRoot = RepoRoot, Path = "src/file.ts", Message = "watch failed" });
+            _client.Raise(
+                x => x.ReviewFailed += null,
+                _client.Object,
+                new ReviewFailedNotification { Id = "unknown", RepoRoot = RepoRoot, Path = "src/file.ts", Message = "failed" });
+            _client.Raise(x => x.ServerError += null, _client.Object, null);
+
+            await Task.Delay(50);
+
+            Assert.IsEmpty(_events.Reviews);
+            Assert.IsEmpty(_events.Deltas);
+            Assert.IsEmpty(_events.Failures);
+        }
+
+        [TestMethod]
+        public async Task Submit_IgnoresReviewFailureFromAnotherRepository()
+        {
+            var reviewPromise = _pipeline.SubmitAsync(
+                RepoRoot,
+                Submission(Document("/repo/src/file.ts", "content")));
+
+            _client.Raise(
+                x => x.ReviewFailed += null,
+                _client.Object,
+                new ReviewFailedNotification
+                {
+                    Id = "review-1",
+                    RepoRoot = "/other",
+                    Path = "src/file.ts",
+                    Message = "failed",
+                });
+
+            var result = await reviewPromise;
+
+            Assert.IsNull(result.Review);
+            Assert.IsNull(result.Delta);
+            Assert.IsEmpty(_events.Failures);
+        }
+
+        [TestMethod]
+        public async Task WatchReview_OutsideActiveRepository_IsIgnored()
+        {
+            _pipeline.SetActiveRepos(new[] { "/other" });
+
+            _client.Raise(
+                x => x.ReviewReceived += null,
+                _client.Object,
+                new ReviewNotification { RepoRoot = RepoRoot, Path = "src/file.ts", Result = EmptyReview() });
+            await Task.Delay(50);
+
+            Assert.IsEmpty(_events.Reviews);
+        }
+
+        [TestMethod]
+        public async Task WatchReview_DefaultFileAccessLoadsFileFromDisk()
+        {
+            var repoRoot = Path.Combine(Path.GetTempPath(), "pipeline-disk-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(repoRoot);
+            var filePath = Path.Combine(repoRoot, "file.cs");
+            const string content = "class Example {}";
+            File.WriteAllText(filePath, content);
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events);
+
+            try
+            {
+                _client.Raise(
+                    x => x.ReviewReceived += null,
+                    _client.Object,
+                    new ReviewNotification
+                    {
+                        RepoRoot = repoRoot,
+                        Path = "file.cs",
+                        Result = EmptyReview(GitBlobSha.FromUtf8(content)),
+                    });
+
+                await WaitUntil(() => _events.Reviews.Count == 1);
+                Assert.AreEqual(content, _events.Reviews[0].Content);
+                Assert.IsFalse(_events.Reviews[0].Document.IsDirty);
+            }
+            finally
+            {
+                Directory.Delete(repoRoot, true);
+            }
+        }
+
+        [TestMethod]
+        public async Task DefaultPresentation_HandlesReviewLifecycleAndServerFailure()
+        {
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object);
+            var document = Document("/repo/src/file.ts", "content");
+            var completed = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            var id = _batches[0].Files[0].Id;
+            RaiseReview(id, RepoRoot, "src/file.ts");
+            RaiseDelta(id, RepoRoot, "src/file.ts", new DeltaResponseModel());
+            await completed;
+            _pipeline.Remove(RepoRoot, document);
+
+            var pending = _pipeline.SubmitAsync(
+                RepoRoot,
+                Submission(Document("/repo/src/file.ts", "changed")));
+            _client.Raise(x => x.ServerError += null, _client.Object, new Exception("server failed"));
+
+            await Assert.ThrowsAsync<Exception>(() => pending);
+        }
+
+        [TestMethod]
+        public async Task Submit_IgnoresDeltaFromAnotherRepository()
+        {
+            var pending = _pipeline.SubmitAsync(
+                RepoRoot,
+                Submission(Document("/repo/src/file.ts", "content")));
+
+            RaiseDelta("review-1", "/other", "src/file.ts", new DeltaResponseModel());
+            RaiseReview("review-1", RepoRoot, "src/file.ts");
+
+            var result = await pending;
+            Assert.IsNotNull(result.Review);
+            Assert.IsNull(result.Delta);
+            Assert.IsEmpty(_events.Deltas);
+        }
+
+        [TestMethod]
+        public async Task WatchDelta_MissingDocument_IsIgnored()
+        {
+            _client.Raise(
+                x => x.DeltaReceived += null,
+                _client.Object,
+                new DeltaNotification
+                {
+                    RepoRoot = RepoRoot,
+                    Path = "missing.cs",
+                    Result = new DeltaResponseModel(),
+                });
+
+            await Task.Delay(50);
+            Assert.IsEmpty(_events.Deltas);
+        }
+
+        [TestMethod]
+        public async Task WatchReview_OpenDocumentFailure_IsIgnored()
+        {
+            var fileAccess = new Mock<IReviewPipelineFileAccess>();
+            fileAccess.Setup(x => x.FindOpenDocument(It.IsAny<string>())).Returns((ReviewDocument)null);
+            fileAccess.Setup(x => x.OpenDocumentAsync(It.IsAny<string>())).ThrowsAsync(new IOException("open failed"));
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, fileAccess.Object, () => "review-1", null);
+
+            _client.Raise(
+                x => x.ReviewReceived += null,
+                _client.Object,
+                new ReviewNotification { RepoRoot = RepoRoot, Path = "missing.cs", Result = EmptyReview() });
+
+            await Task.Delay(50);
+            Assert.IsEmpty(_events.Reviews);
+        }
+
+        [TestMethod]
+        public async Task WatchReview_NullContent_PresentsWithoutCaching()
+        {
+            var document = Document("/repo/src/file.ts", null);
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, FileAccess(document, true), () => "review-1", null);
+
+            _client.Raise(
+                x => x.ReviewReceived += null,
+                _client.Object,
+                new ReviewNotification
+                {
+                    RepoRoot = RepoRoot,
+                    Path = "src/file.ts",
+                    Result = EmptyReview(GitBlobSha.FromUtf8(null)),
+                });
+
+            await WaitUntil(() => _events.Reviews.Count == 1);
+            Assert.IsNull(_events.Reviews[0].Content);
+        }
+
+        [TestMethod]
+        public async Task WatchReview_SecondResultForPathReplacesCachedReview()
+        {
+            var document = Document("/repo/src/file.ts", "content");
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, FileAccess(document, true), () => "review-1", null);
+            var notification = new ReviewNotification
+            {
+                RepoRoot = RepoRoot,
+                Path = "src/file.ts",
+                Result = EmptyReview(GitBlobSha.FromUtf8(document.Content)),
+            };
+
+            _client.Raise(x => x.ReviewReceived += null, _client.Object, notification);
+            await WaitUntil(() => _events.Reviews.Count == 1);
+            _client.Raise(x => x.ReviewReceived += null, _client.Object, notification);
+
+            await WaitUntil(() => _events.Reviews.Count == 2);
+            Assert.HasCount(2, _events.Reviews);
+        }
+
         private void CompleteReview(string id, string repoRoot = RepoRoot, string path = "src/file.ts")
         {
             RaiseReview(id, repoRoot, path);

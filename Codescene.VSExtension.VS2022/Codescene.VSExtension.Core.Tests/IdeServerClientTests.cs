@@ -6,6 +6,7 @@ using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
+using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
 using Moq;
@@ -133,6 +134,122 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task RefactoringRpcEndpoints_NormalizeResponses()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+
+            var functions = await harness.Client.FnsToRefactorAsync(new FnsToRefactorCodeSmellRequestModel
+            {
+                FileName = "a.cs",
+                FileContent = "class A {}",
+            });
+            var refactoring = await harness.Client.RefactorAsync(new RefactorPostRequestModel { Token = "token" });
+
+            Assert.AreEqual("Function", functions[0].Name);
+            Assert.AreEqual("refactored", refactoring.Code);
+            Assert.AreEqual("trace-1", refactoring.TraceId);
+        }
+
+        [TestMethod]
+        public async Task RulesRpcEndpoints_NormalizeResponses()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+
+            await harness.Client.TelemetryAsync(new { eventName = "test" });
+            var template = await harness.Client.CodeHealthRulesTemplateAsync();
+            var rules = await harness.Client.CheckRulesAsync("C:/repo", "src/a.cs");
+
+            Assert.AreEqual("rules", template);
+            Assert.AreEqual("ok", rules.Result);
+            Assert.IsFalse(rules.Failed);
+        }
+
+        [TestMethod]
+        public async Task GetWatchInventoryAsync_NormalizesResponse()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+
+            var inventory = await harness.Client.GetWatchInventoryAsync("C:/repo");
+
+            Assert.AreEqual("C:/repo", inventory.RepoRoot);
+            Assert.AreEqual("src/a.cs", inventory.Files[0]);
+        }
+
+        [TestMethod]
+        public async Task StopWatchFiles_BeforeAndAfterStart_DoesNotThrow()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+
+            harness.Client.StopWatchFiles("C:/repo", new[] { "src" });
+            await harness.Client.StartAsync();
+            harness.Client.StopWatchFiles("C:/repo", new[] { "src" });
+
+            var parameters = await WaitForAsync(harness.Server.StopWatchReceived.Task);
+            Assert.AreEqual("C:/repo", (string)parameters["repo-root"]);
+            Assert.AreEqual("src", (string)parameters["relative-paths"][0]);
+        }
+
+        [TestMethod]
+        public async Task DeltaReview_RaisesDeltaAndQueueNotifications()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+            var deltaReceived = new TaskCompletionSource<DeltaNotification>();
+            var queueReceived = new TaskCompletionSource<ReviewQueue>();
+            harness.Client.DeltaReceived += (_, delta) => deltaReceived.TrySetResult(delta);
+            harness.Client.QueueChanged += (_, queue) => queueReceived.TrySetResult(queue);
+
+            await harness.ServerRpc.NotifyWithParameterObjectAsync("cs-ide/deltaReview", new
+            {
+                id = "delta-1",
+                path = "src/a.cs",
+                repoRoot = "C:/repo",
+                result = new
+                {
+                    oldScore = 8.0,
+                    newScore = 9.0,
+                    scoreChange = 1.0,
+                    oldGitBlobSha = "old-sha",
+                    newGitBlobSha = "new-sha",
+                },
+                queue = new { count = 1, files = new[] { "src/b.cs" } },
+            });
+
+            var delta = await WaitForAsync(deltaReceived.Task);
+            var queue = await WaitForAsync(queueReceived.Task);
+            Assert.AreEqual(
+                ("delta-1", "src/a.cs", "C:/repo", 1.0m, "old-sha", "new-sha"),
+                (delta.Id, delta.Path, delta.RepoRoot, delta.Result.ScoreChange, delta.Result.OldGitBlobSha, delta.Result.NewGitBlobSha));
+            Assert.AreEqual((1, Path.Combine("C:/repo", "src", "b.cs")), (queue.Count, queue.Files[0]));
+        }
+
+        [TestMethod]
+        public async Task InboundNotifications_WithMissingIdentity_AreIgnored()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+            var reviewCount = 0;
+            var deltaCount = 0;
+            var failureCount = 0;
+            var inventoryCount = 0;
+            harness.Client.ReviewReceived += (_, __) => reviewCount++;
+            harness.Client.DeltaReceived += (_, __) => deltaCount++;
+            harness.Client.ReviewFailed += (_, __) => failureCount++;
+            harness.Client.WatchInventoryChanged += (_, __) => inventoryCount++;
+
+            await harness.ServerRpc.NotifyWithParameterObjectAsync("cs-ide/fileReview", new { path = "a.cs" });
+            await harness.ServerRpc.NotifyWithParameterObjectAsync("cs-ide/deltaReview", new { repoRoot = "C:/repo" });
+            await harness.ServerRpc.NotifyWithParameterObjectAsync("cs-ide/reviewFailed", new { path = "a.cs" });
+            await harness.ServerRpc.NotifyWithParameterObjectAsync("cs-ide/watchInventoryChanged", new { files = Array.Empty<string>() });
+            await Task.Delay(100);
+
+            Assert.AreEqual((0, 0, 0, 0), (reviewCount, deltaCount, failureCount, inventoryCount));
+        }
+
+        [TestMethod]
         public async Task WatchFiles_RaisesInventoryAndReviewNotifications()
         {
             using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
@@ -146,10 +263,9 @@ namespace Codescene.VSExtension.Core.Tests
 
             var inventory = await WaitForAsync(inventoryReceived.Task);
             var review = await WaitForAsync(reviewReceived.Task);
-            Assert.AreEqual("C:/repo", inventory.RepoRoot);
-            Assert.AreEqual("watched.ts", inventory.Files[0]);
-            Assert.IsNull(review.Id);
-            Assert.AreEqual("watched.ts", review.Path);
+            Assert.AreEqual(
+                ("C:/repo", "watched.ts", null, "watched.ts"),
+                (inventory.RepoRoot, inventory.Files[0], review.Id, review.Path));
         }
 
         [TestMethod]
@@ -167,10 +283,9 @@ namespace Codescene.VSExtension.Core.Tests
 
             var review = await WaitForAsync(reviewReceived.Task);
             var queue = await WaitForAsync(queueReceived.Task);
-            Assert.AreEqual("req-1", review.Id);
-            Assert.AreEqual("src/a.ts", review.Path);
-            Assert.AreEqual(GitBlobSha.FromUtf8("hello"), review.Result.GitBlobSha);
-            Assert.AreEqual(2, queue.Count);
+            Assert.AreEqual(
+                ("req-1", "src/a.ts", GitBlobSha.FromUtf8("hello"), 2),
+                (review.Id, review.Path, review.Result.GitBlobSha, queue.Count));
         }
 
         [TestMethod]
@@ -187,6 +302,33 @@ namespace Codescene.VSExtension.Core.Tests
             var notification = await WaitForAsync(failed.Task);
             Assert.IsNull(notification.Id);
             Assert.AreEqual("src/a.ts", notification.Path);
+        }
+
+        [TestMethod]
+        public async Task NativeProcess_CapturesRedirectedStderr()
+        {
+            var factory = new NativeIdeServerProcessFactory();
+            using (var streamProcess = (NativeIdeServerProcess)factory.Start("cmd.exe", "/d /c exit"))
+            {
+                Assert.IsTrue(
+                    streamProcess.StandardInput != null &&
+                    streamProcess.StandardOutput != null &&
+                    streamProcess.StandardError != null &&
+                    streamProcess.Id > 0 &&
+                    streamProcess.StderrSnapshot == string.Empty);
+            }
+
+            var errorReceived = new TaskCompletionSource<string>();
+            using (var errorProcess = (NativeIdeServerProcess)factory.Start(
+                "cmd.exe",
+                "/d /c \"echo server-error 1>&2\""))
+            {
+                errorProcess.ErrorDataReceived += (_, args) => errorReceived.TrySetResult(args.Data);
+                errorProcess.BeginErrorReadLine();
+
+                var error = await WaitForAsync(errorReceived.Task);
+                Assert.IsTrue(error.Contains("server-error") && errorProcess.StderrSnapshot.Contains("server-error"));
+            }
         }
 
         private IdeServerClient CreateClient(IIdeServerProcessFactory factory)
@@ -221,13 +363,20 @@ namespace Codescene.VSExtension.Core.Tests
 
     internal sealed class IdeServerTestHarness : IDisposable
     {
-        private IdeServerTestHarness(IdeServerClient client, FakeProcessFactory factory, FakeIdeServerProcess process, JsonRpc serverRpc, Stream serverStream)
+        private IdeServerTestHarness(
+            IdeServerClient client,
+            FakeProcessFactory factory,
+            FakeIdeServerProcess process,
+            JsonRpc serverRpc,
+            Stream serverStream,
+            FixtureServer server)
         {
             Client = client;
             Factory = factory;
             Process = process;
             ServerRpc = serverRpc;
             ServerStream = serverStream;
+            Server = server;
         }
 
         public IdeServerClient Client { get; }
@@ -240,6 +389,8 @@ namespace Codescene.VSExtension.Core.Tests
 
         public Stream ServerStream { get; }
 
+        public FixtureServer Server { get; }
+
         public static async Task<IdeServerTestHarness> StartAsync(
             Mock<ICliSettingsProvider> settings,
             Mock<ILogger> logger,
@@ -249,10 +400,11 @@ namespace Codescene.VSExtension.Core.Tests
             var process = new FakeIdeServerProcess(clientStream, clientStream);
             var factory = new FakeProcessFactory(process);
             var serverRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream));
-            serverRpc.AddLocalRpcTarget(new FixtureServer(serverRpc));
+            var server = new FixtureServer(serverRpc);
+            serverRpc.AddLocalRpcTarget(server);
             serverRpc.StartListening();
             var client = new IdeServerClient(settings.Object, logger.Object, factory, userSettings.Object, TimeSpan.FromSeconds(5));
-            var harness = new IdeServerTestHarness(client, factory, process, serverRpc, serverStream);
+            var harness = new IdeServerTestHarness(client, factory, process, serverRpc, serverStream, server);
             _ = Task.Run(async () =>
             {
                 await Task.Yield();
@@ -278,6 +430,8 @@ namespace Codescene.VSExtension.Core.Tests
             _rpc = rpc;
         }
 
+        public TaskCompletionSource<JObject> StopWatchReceived { get; } = new TaskCompletionSource<JObject>();
+
         [JsonRpcMethod("cs-ide/review", UseSingleObjectParameterDeserialization = true)]
         public JObject Review(JObject request)
         {
@@ -288,6 +442,48 @@ namespace Codescene.VSExtension.Core.Tests
         public JObject DeviceId(JObject request)
         {
             return JObject.Parse(@"{""deviceId"":""device-42""}");
+        }
+
+        [JsonRpcMethod("cs-ide/fns-to-refactor", UseSingleObjectParameterDeserialization = true)]
+        public JArray FnsToRefactor(JObject request)
+        {
+            return JArray.Parse(@"[{""name"":""Function"",""nippyB64"":""nippy""}]");
+        }
+
+        [JsonRpcMethod("cs-ide/refactor", UseSingleObjectParameterDeserialization = true)]
+        public JObject Refactor(JObject request)
+        {
+            return JObject.Parse(@"{""code"":""refactored"",""traceId"":""trace-1""}");
+        }
+
+        [JsonRpcMethod("cs-ide/telemetry", UseSingleObjectParameterDeserialization = true)]
+        public object? Telemetry(JObject request)
+        {
+            return null;
+        }
+
+        [JsonRpcMethod("cs-ide/code-health-rules-template", UseSingleObjectParameterDeserialization = true)]
+        public JObject CodeHealthRulesTemplate(JObject request)
+        {
+            return JObject.Parse(@"{""template"":""rules""}");
+        }
+
+        [JsonRpcMethod("cs-ide/check-rules", UseSingleObjectParameterDeserialization = true)]
+        public JObject CheckRules(JObject request)
+        {
+            return JObject.Parse(@"{""result"":""ok"",""failed"":false,""parsingErrors"":[]}");
+        }
+
+        [JsonRpcMethod("cs-ide/getWatchInventory", UseSingleObjectParameterDeserialization = true)]
+        public JObject GetWatchInventory(JObject request)
+        {
+            return JObject.Parse(@"{""files"":[""src/a.cs""]}");
+        }
+
+        [JsonRpcMethod("cs-ide/stopWatchFiles", UseSingleObjectParameterDeserialization = true)]
+        public void StopWatchFiles(JObject parameters)
+        {
+            StopWatchReceived.TrySetResult(parameters);
         }
 
         [JsonRpcMethod("cs-ide/watchFiles", UseSingleObjectParameterDeserialization = true)]

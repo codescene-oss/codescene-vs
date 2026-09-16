@@ -326,6 +326,24 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void SetPresentationDelta_NullOrEmptyPath_DoesNotStore(string path)
+        {
+            _cacheService.SetPresentationDelta(path, CreateDelta(1m));
+
+            Assert.IsEmpty(_cacheService.GetAll());
+        }
+
+        [TestMethod]
+        public void SetPresentationDelta_ValidPath_StoresDelta()
+        {
+            _cacheService.SetPresentationDelta(_tempFile, CreateDelta(2m));
+
+            Assert.AreEqual(2m, _cacheService.GetDeltaForFile(_tempFile).ScoreChange);
+        }
+
+        [TestMethod]
         public void Put_WithStaleOperationGeneration_DoesNotStore()
         {
             CacheGeneration.Reset();

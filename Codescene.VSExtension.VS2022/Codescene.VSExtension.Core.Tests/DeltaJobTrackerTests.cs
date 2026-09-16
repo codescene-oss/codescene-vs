@@ -144,6 +144,29 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Replace_WithJobs_ReplacesCurrentJobs()
+        {
+            var oldJob = CreateJob("old.cs");
+            var newJob = CreateJob("new.cs");
+            DeltaJobTracker.Add(oldJob);
+
+            DeltaJobTracker.Replace(new[] { newJob });
+
+            Assert.IsFalse(DeltaJobTracker.RunningJobs.Contains(oldJob));
+            Assert.IsTrue(DeltaJobTracker.RunningJobs.Contains(newJob));
+        }
+
+        [TestMethod]
+        public void Replace_WithNull_ClearsCurrentJobs()
+        {
+            DeltaJobTracker.Add(CreateJob());
+
+            DeltaJobTracker.Replace(null);
+
+            Assert.IsEmpty(DeltaJobTracker.RunningJobs);
+        }
+
+        [TestMethod]
         public void Clear_WithRunningJobs_RemovesAllJobs()
         {
             DeltaJobTracker.Add(CreateJob("file1.cs"));

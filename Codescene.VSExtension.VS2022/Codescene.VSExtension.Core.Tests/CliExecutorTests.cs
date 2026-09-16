@@ -11,6 +11,7 @@ using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
+using LibGit2Sharp;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -60,6 +61,35 @@ namespace Codescene.VSExtension.Core.Tests
                     It.Is<ReviewRequestModel>(r => r.FilePath == TestFilePath && r.FileContent == TestFileContent && r.CachePath == TestCachePath),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ReviewContentAsync_FileInGitRepository_IncludesRepositoryRoot()
+        {
+            var repositoryRoot = Path.Combine(Path.GetTempPath(), "cli-review-repo-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(repositoryRoot);
+            Repository.Init(repositoryRoot);
+            var filePath = Path.Combine(repositoryRoot, "test.cs");
+            File.WriteAllText(filePath, TestFileContent);
+            ReviewRequestModel request = null;
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
+                .Callback<ReviewRequestModel, CancellationToken>((value, _) => request = value)
+                .ReturnsAsync(new CliReviewModel());
+
+            try
+            {
+                await _cliExecutor.ReviewContentAsync(filePath, TestFileContent);
+
+                var repoPathProperty = typeof(ReviewRequestModel).GetProperty("RepoPath");
+                Assert.IsNotNull(repoPathProperty);
+                Assert.AreEqual(
+                    Path.GetFullPath(repositoryRoot).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                    repoPathProperty.GetValue(request));
+            }
+            finally
+            {
+                Directory.Delete(repositoryRoot, recursive: true);
+            }
         }
 
         [TestMethod]

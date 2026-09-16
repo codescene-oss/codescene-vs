@@ -14,5 +14,8 @@ namespace Codescene.VSExtension.Core.Models.Cli.Review
 
         [JsonProperty("cache-path")]
         public string CachePath { get; set; }
+
+        [JsonProperty("repo-path")]
+        public string RepoPath { get; set; }
     }
 }

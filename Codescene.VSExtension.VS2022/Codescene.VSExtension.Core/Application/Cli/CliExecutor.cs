@@ -99,6 +99,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     FilePath = filePath,
                     FileContent = content,
                     CachePath = _cacheStorage.GetSolutionReviewCacheLocation(),
+                    RepoPath = GitPathDiscovery.TryGetWorkingDirectory(filePath),
                 };
 
                 var (result, elapsedMs) = await ExecuteOnChannelAsync(
