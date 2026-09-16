@@ -13,5 +13,7 @@ namespace Codescene.VSExtension.Core.Interfaces
         void RequestViewUpdate();
 
         void ApplyQueue(ReviewQueue queue);
+
+        void Clear();
     }
 }

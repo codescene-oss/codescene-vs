@@ -38,30 +38,43 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void ApplyInventory_PrunesMonitorAndPreservesDirtyBuffers()
+        public async Task ApplyInventory_PrunesMonitorAndPreservesDirtyBuffers()
         {
-            var client = new Mock<IIdeServerClient>();
-            var pipeline = new Mock<IReviewPipeline>();
-            var host = new Mock<IWorkspaceWatchHost>();
-            ISet<string> keep = null;
-            host.Setup(x => x.GetDirtyDocuments()).Returns(new[]
+            var repo = CreateGitRepo();
+            try
             {
-                new ReviewDocument { FilePath = @"C:\repo\dirty.cs", Content = "x", IsDirty = true },
-            });
-            host.Setup(x => x.PruneMonitor(It.IsAny<IReadOnlyList<string>>(), It.IsAny<ISet<string>>()))
-                .Callback<IReadOnlyList<string>, ISet<string>>((_, paths) => keep = paths);
+                var client = new Mock<IIdeServerClient>();
+                var pipeline = new Mock<IReviewPipeline>();
+                var host = new Mock<IWorkspaceWatchHost>();
+                ISet<string> keep = null;
+                var dirtyPath = Path.Combine(repo, "dirty.cs");
+                host.Setup(x => x.GetDirtyDocuments()).Returns(new[]
+                {
+                    new ReviewDocument { FilePath = dirtyPath, Content = "x", IsDirty = true },
+                });
+                host.Setup(x => x.PruneMonitor(It.IsAny<IReadOnlyList<string>>(), It.IsAny<ISet<string>>()))
+                    .Callback<IReadOnlyList<string>, ISet<string>>((_, paths) => keep = paths);
 
-            using (var coordinator = new WorkspaceWatchCoordinator(client.Object, pipeline.Object, null, host.Object))
-            {
-                client.Raise(
-                    x => x.WatchInventoryChanged += null,
-                    client.Object,
-                    new WatchInventory { RepoRoot = @"C:\repo", Files = new[] { "tracked.cs" } });
+                using (var coordinator = new WorkspaceWatchCoordinator(client.Object, pipeline.Object, null, host.Object))
+                {
+                    await coordinator.SyncAsync(new[] { repo });
+                    client.Raise(
+                        x => x.WatchInventoryChanged += null,
+                        client.Object,
+                        new WatchInventory { RepoRoot = repo, Files = new[] { "tracked.cs" } });
+
+                    Assert.IsNotNull(keep);
+                    Assert.IsTrue(keep.Any(path => path.EndsWith("tracked.cs", StringComparison.OrdinalIgnoreCase)));
+                    Assert.IsTrue(keep.Any(path => path.EndsWith("dirty.cs", StringComparison.OrdinalIgnoreCase)));
+                }
             }
-
-            Assert.IsNotNull(keep);
-            Assert.IsTrue(keep.Any(path => path.EndsWith("tracked.cs", StringComparison.OrdinalIgnoreCase)));
-            Assert.IsTrue(keep.Any(path => path.EndsWith("dirty.cs", StringComparison.OrdinalIgnoreCase)));
+            finally
+            {
+                if (Directory.Exists(repo))
+                {
+                    Directory.Delete(repo, true);
+                }
+            }
         }
 
         [TestMethod]
@@ -113,6 +126,8 @@ namespace Codescene.VSExtension.Core.Tests
                 }
 
                 client.Verify(x => x.StopWatchFiles(It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>()), Times.AtLeastOnce);
+                pipeline.Verify(x => x.Reset(), Times.AtLeastOnce);
+                pipeline.Verify(x => x.SetActiveRepos(It.Is<IReadOnlyCollection<string>>(roots => roots.Count == 0)), Times.AtLeastOnce);
             }
             finally
             {
@@ -148,6 +163,42 @@ namespace Codescene.VSExtension.Core.Tests
 
                 client.Verify(x => x.WatchFiles(It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>()), Times.AtLeastOnce);
                 pipeline.Verify(x => x.SubmitBatchAsync(It.IsAny<string>(), It.IsAny<ReviewSubmission[]>()), Times.AtLeastOnce);
+            }
+            finally
+            {
+                if (Directory.Exists(repo))
+                {
+                    Directory.Delete(repo, true);
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task StopAll_IgnoresLaterInventoryForClosedRepo()
+        {
+            var repo = CreateGitRepo();
+            try
+            {
+                var client = new Mock<IIdeServerClient>();
+                var pipeline = new Mock<IReviewPipeline>();
+                var host = new Mock<IWorkspaceWatchHost>();
+                var pruneKeeps = new List<ISet<string>>();
+                host.Setup(x => x.GetDirtyDocuments()).Returns(Array.Empty<ReviewDocument>());
+                host.Setup(x => x.PruneMonitor(It.IsAny<IReadOnlyList<string>>(), It.IsAny<ISet<string>>()))
+                    .Callback<IReadOnlyList<string>, ISet<string>>((_, paths) => pruneKeeps.Add(paths));
+                using (var coordinator = new WorkspaceWatchCoordinator(client.Object, pipeline.Object, null, host.Object))
+                {
+                    await coordinator.SyncAsync(new[] { repo });
+                    coordinator.StopAll();
+                    var countAfterStop = pruneKeeps.Count;
+                    client.Raise(
+                        x => x.WatchInventoryChanged += null,
+                        client.Object,
+                        new WatchInventory { RepoRoot = repo, Files = new[] { "old.cs" } });
+
+                    Assert.HasCount(countAfterStop, pruneKeeps);
+                    Assert.IsEmpty(pruneKeeps[pruneKeeps.Count - 1]);
+                }
             }
             finally
             {

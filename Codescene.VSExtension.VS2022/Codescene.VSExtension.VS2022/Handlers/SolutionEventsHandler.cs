@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.VS2022.Application.Git;
@@ -28,6 +29,8 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     private IVsSolution _solution;
     private BranchWatcherService _branchWatcher;
     private IWorkspaceWatchCoordinator _workspaceWatch;
+    private IReviewPipeline _reviewPipeline;
+    private ICodeHealthMonitorNotifier _codeHealthMonitorNotifier;
     private IAsyncTaskScheduler _scheduler;
     private IErrorListWindowHandler _errorListWindowHandler;
     private Task _solutionInitializationTask;
@@ -39,6 +42,8 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     {
         _scheduler = await VS.GetMefServiceAsync<IAsyncTaskScheduler>();
         _errorListWindowHandler = await VS.GetMefServiceAsync<IErrorListWindowHandler>();
+        _reviewPipeline = await VS.GetMefServiceAsync<IReviewPipeline>();
+        _codeHealthMonitorNotifier = await VS.GetMefServiceAsync<ICodeHealthMonitorNotifier>();
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var isUiThread = ThreadHelper.CheckAccess();
@@ -73,6 +78,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             new ReviewCacheService().Clear();
             new AceRefactorableFunctionsCacheService().Clear();
             CacheGeneration.Increment();
+            _codeHealthMonitorNotifier?.Clear();
 
             _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
             _scheduler.Schedule(ct => AceToolWindow.CloseAsync());
@@ -118,6 +124,9 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         _branchWatcher?.Dispose();
         _branchWatcher = null;
         _workspaceWatch?.StopAll();
+        _reviewPipeline?.Reset();
+        _reviewPipeline?.SetActiveRepos(Array.Empty<string>());
+        _codeHealthMonitorNotifier?.Clear();
         return VSConstants.S_OK;
     }
 
@@ -221,6 +230,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         new BaselineReviewCacheService().Clear();
         new ReviewCacheService().Clear();
         new AceRefactorableFunctionsCacheService().Clear();
+        _codeHealthMonitorNotifier?.Clear();
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         _errorListWindowHandler?.ClearAll();

@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Review;
@@ -16,5 +17,9 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
         void Remove(string repoRoot, params ReviewDocument[] documents);
 
         void Invalidate();
+
+        void Reset();
+
+        void SetActiveRepos(IReadOnlyCollection<string> repoRoots);
     }
 }

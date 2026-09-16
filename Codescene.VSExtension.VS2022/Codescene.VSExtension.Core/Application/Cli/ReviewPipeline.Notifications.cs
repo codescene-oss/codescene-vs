@@ -128,6 +128,17 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private async Task PresentWatchReviewAsync(ReviewNotification notification)
         {
+            int epoch;
+            lock (_gate)
+            {
+                if (!AcceptsWatchRepoUnlocked(notification.RepoRoot))
+                {
+                    return;
+                }
+
+                epoch = _dedupEpoch;
+            }
+
             var presented = await WatchPresentationAsync(notification.RepoRoot, notification.Path, notification.Result?.GitBlobSha).ConfigureAwait(false);
             if (presented == null)
             {
@@ -136,37 +147,60 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             lock (_gate)
             {
-                CacheWatchReview(PathKey(notification.RepoRoot, presented.RelPath), presented.Content, notification.Result);
-            }
+                if (!AcceptsWatchRepoUnlocked(notification.RepoRoot) || epoch != _dedupEpoch)
+                {
+                    return;
+                }
 
-            _presentation.PresentReview(new PresentedReview
-            {
-                Document = presented.Document,
-                RelPath = presented.RelPath,
-                Content = presented.Content,
-                UpdateDiagnosticsPane = presented.UpdateDiagnosticsPane,
-                UpdateMonitor = presented.UpdateMonitor,
-                Result = notification.Result,
-            });
+                CacheWatchReview(PathKey(notification.RepoRoot, presented.RelPath), presented.Content, notification.Result);
+                _presentation.PresentReview(new PresentedReview
+                {
+                    Document = presented.Document,
+                    RelPath = presented.RelPath,
+                    Content = presented.Content,
+                    UpdateDiagnosticsPane = presented.UpdateDiagnosticsPane,
+                    UpdateMonitor = presented.UpdateMonitor,
+                    Result = notification.Result,
+                });
+            }
         }
 
         private async Task PresentWatchDeltaAsync(DeltaNotification notification)
         {
+            int epoch;
+            lock (_gate)
+            {
+                if (!AcceptsWatchRepoUnlocked(notification.RepoRoot))
+                {
+                    return;
+                }
+
+                epoch = _dedupEpoch;
+            }
+
             var presented = await WatchPresentationAsync(notification.RepoRoot, notification.Path, notification.Result?.NewGitBlobSha).ConfigureAwait(false);
             if (presented == null)
             {
                 return;
             }
 
-            _presentation.PresentDelta(new PresentedDelta
+            lock (_gate)
             {
-                Document = presented.Document,
-                RelPath = presented.RelPath,
-                Content = presented.Content,
-                UpdateDiagnosticsPane = presented.UpdateDiagnosticsPane,
-                UpdateMonitor = presented.UpdateMonitor,
-                Result = notification.Result,
-            });
+                if (!AcceptsWatchRepoUnlocked(notification.RepoRoot) || epoch != _dedupEpoch)
+                {
+                    return;
+                }
+
+                _presentation.PresentDelta(new PresentedDelta
+                {
+                    Document = presented.Document,
+                    RelPath = presented.RelPath,
+                    Content = presented.Content,
+                    UpdateDiagnosticsPane = presented.UpdateDiagnosticsPane,
+                    UpdateMonitor = presented.UpdateMonitor,
+                    Result = notification.Result,
+                });
+            }
         }
 
         private void CacheWatchReview(string pathKey, string content, CliReviewModel result)
@@ -246,6 +280,16 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var bytes = await _fileAccess.ReadFileBytesAsync(filePath).ConfigureAwait(false);
             return bytes != null ? GitBlobSha.FromBytes(bytes) : GitBlobSha.FromUtf8(document.Content);
+        }
+
+        private bool AcceptsWatchRepoUnlocked(string repoRoot)
+        {
+            if (_activeRepos == null)
+            {
+                return true;
+            }
+
+            return _activeRepos.Contains(RpcPath.NormalizeFsPath(repoRoot));
         }
 
         private void FailAll(Exception error)

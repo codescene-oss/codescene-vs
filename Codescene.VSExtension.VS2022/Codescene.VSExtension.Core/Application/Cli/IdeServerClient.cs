@@ -179,6 +179,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     Content = file.Content,
                 }).ToList(),
             };
+            _logger.Info($"[cs-ide] sending reviewFiles count={payload.Files.Count}");
             _ = SendNotificationAsync("cs-ide/reviewFiles", payload);
         }
 
@@ -261,7 +262,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     var trimmed = (e.Data ?? string.Empty).Trim();
                     if (trimmed.Length > 0)
                     {
-                        _logger.Debug("[cs-ide] " + trimmed);
+                        _logger.Info("[cs-ide] " + trimmed);
                     }
                 };
                 process.BeginErrorReadLine();
@@ -422,6 +423,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(notification);
             var queue = ParseQueue(normalized, identity.Item3);
             EmitQueue(queue);
+            _logger.Info($"[cs-ide] received fileReview id={identity.Item1 ?? "(none)"} path={identity.Item2}");
             ReviewReceived?.Invoke(this, new ReviewNotification
             {
                 Id = identity.Item1,
@@ -444,6 +446,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var queue = ParseQueue(normalized, identity.Item3);
             EmitQueue(queue);
             var resultToken = normalized["result"];
+            _logger.Info($"[cs-ide] received deltaReview id={identity.Item1 ?? "(none)"} path={identity.Item2}");
             DeltaReceived?.Invoke(this, new DeltaNotification
             {
                 Id = identity.Item1,

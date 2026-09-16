@@ -332,6 +332,28 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.HasCount(1, _batches);
         }
 
+        [TestMethod]
+        public async Task Reset_DropsLaterWatchDelta()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, FileAccess(document, false), () => "review-1", null);
+            _pipeline.SetActiveRepos(Array.Empty<string>());
+            _pipeline.Reset();
+            _client.Raise(
+                x => x.DeltaReceived += null,
+                _client.Object,
+                new DeltaNotification
+                {
+                    RepoRoot = RepoRoot,
+                    Path = "src/file.ts",
+                    Result = new DeltaResponseModel { OldScore = 10, NewScore = 9 },
+                });
+            await Task.Delay(50);
+
+            Assert.IsEmpty(_events.Deltas);
+        }
+
         private void CompleteReview(string id, string repoRoot = RepoRoot, string path = "src/file.ts")
         {
             RaiseReview(id, repoRoot, path);

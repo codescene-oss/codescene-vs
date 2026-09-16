@@ -40,5 +40,24 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(WebComponentConstants.StateTypes.QUEUED, jobs[1].State);
             DeltaJobTracker.Clear();
         }
+
+        [TestMethod]
+        public void Clear_RemovesJobsAndRequestsViewUpdate()
+        {
+            DeltaJobTracker.Clear();
+            var notifier = new CodeHealthMonitorNotifier();
+            var updates = 0;
+            notifier.ViewUpdateRequested += (sender, args) => updates++;
+            notifier.ApplyQueue(new ReviewQueue
+            {
+                Count = 1,
+                Files = new[] { "C:\\repo\\a.cs" },
+            });
+
+            notifier.Clear();
+
+            Assert.IsEmpty(DeltaJobTracker.RunningJobs);
+            Assert.IsGreaterThan(0, updates);
+        }
     }
 }

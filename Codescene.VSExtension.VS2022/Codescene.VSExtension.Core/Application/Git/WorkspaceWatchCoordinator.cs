@@ -90,7 +90,20 @@ namespace Codescene.VSExtension.Core.Application.Git
                 {
                     StopWatchingUnlocked(repoRoot);
                 }
+
+                _inventories.Clear();
+                _knownRoots.Clear();
+                foreach (var timer in _refreshTimers.Values)
+                {
+                    timer.Dispose();
+                }
+
+                _refreshTimers.Clear();
+                _pipeline.SetActiveRepos(Array.Empty<string>());
             }
+
+            _pipeline.Reset();
+            _host?.PruneMonitor(Array.Empty<string>(), new HashSet<string>(StringComparer.OrdinalIgnoreCase));
         }
 
         public IReadOnlyCollection<string> GetInventoryFiles(string repoRoot)
@@ -195,6 +208,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                 _client.WatchFiles(repoRoot, relativePaths);
                 _watched[key] = scopeKey;
+                PublishActiveReposUnlocked();
             }
 
             Seed(repoRoot);
@@ -210,6 +224,7 @@ namespace Codescene.VSExtension.Core.Application.Git
             var repoRoot = _knownRoots.TryGetValue(normalizedRoot, out var known) ? known : normalizedRoot;
             _client.StopWatchFiles(repoRoot);
             _watched.Remove(normalizedRoot);
+            PublishActiveReposUnlocked();
             ApplyInventoryUnlocked(repoRoot, Array.Empty<string>());
         }
 
@@ -222,6 +237,12 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             lock (_gate)
             {
+                var key = RpcPath.NormalizeFsPath(ResolveRepoRoot(inventory.RepoRoot));
+                if (!_watched.ContainsKey(key))
+                {
+                    return;
+                }
+
                 ApplyInventoryUnlocked(inventory.RepoRoot, inventory.Files ?? Array.Empty<string>());
             }
         }
@@ -397,6 +418,11 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             return keep;
+        }
+
+        private void PublishActiveReposUnlocked()
+        {
+            _pipeline.SetActiveRepos(_watched.Keys.Select(ResolveRepoRoot).ToList());
         }
 
         private string ResolveRepoRoot(string reported)

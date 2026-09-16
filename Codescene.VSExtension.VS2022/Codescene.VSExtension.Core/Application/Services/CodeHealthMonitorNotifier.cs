@@ -81,6 +81,16 @@ namespace Codescene.VSExtension.Core.Application.Services
             }
         }
 
+        public void Clear()
+        {
+            lock (_lock)
+            {
+                _activeJobs.Clear();
+                DeltaJobTracker.Clear();
+                ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
         public void RequestViewUpdate()
         {
             ViewUpdateRequested?.Invoke(this, EventArgs.Empty);

@@ -111,6 +111,17 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task StartAsync_LogsCliStderrToCodeSceneLog()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+
+            harness.Process.RaiseError("nrepl started on 7888");
+
+            _logger.Verify(x => x.Info("[cs-ide] nrepl started on 7888"), Times.Once);
+        }
+
+        [TestMethod]
         public async Task DeviceIdAsync_ReadsCamelCaseOrKebabCase()
         {
             using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
@@ -210,10 +221,11 @@ namespace Codescene.VSExtension.Core.Tests
 
     internal sealed class IdeServerTestHarness : IDisposable
     {
-        private IdeServerTestHarness(IdeServerClient client, FakeProcessFactory factory, JsonRpc serverRpc, Stream serverStream)
+        private IdeServerTestHarness(IdeServerClient client, FakeProcessFactory factory, FakeIdeServerProcess process, JsonRpc serverRpc, Stream serverStream)
         {
             Client = client;
             Factory = factory;
+            Process = process;
             ServerRpc = serverRpc;
             ServerStream = serverStream;
         }
@@ -221,6 +233,8 @@ namespace Codescene.VSExtension.Core.Tests
         public IdeServerClient Client { get; }
 
         public FakeProcessFactory Factory { get; }
+
+        public FakeIdeServerProcess Process { get; }
 
         public JsonRpc ServerRpc { get; }
 
@@ -238,7 +252,7 @@ namespace Codescene.VSExtension.Core.Tests
             serverRpc.AddLocalRpcTarget(new FixtureServer(serverRpc));
             serverRpc.StartListening();
             var client = new IdeServerClient(settings.Object, logger.Object, factory, userSettings.Object, TimeSpan.FromSeconds(5));
-            var harness = new IdeServerTestHarness(client, factory, serverRpc, serverStream);
+            var harness = new IdeServerTestHarness(client, factory, process, serverRpc, serverStream);
             _ = Task.Run(async () =>
             {
                 await Task.Yield();
@@ -386,6 +400,11 @@ namespace Codescene.VSExtension.Core.Tests
 
         public void BeginErrorReadLine()
         {
+        }
+
+        public void RaiseError(string data)
+        {
+            ErrorDataReceived?.Invoke(this, new IdeServerErrorDataEventArgs(data));
         }
 
         public void Kill()

@@ -32,6 +32,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly Dictionary<string, WatchReviewEntry> _watchReviews = new Dictionary<string, WatchReviewEntry>(StringComparer.Ordinal);
         private readonly List<string> _watchReviewOrder = new List<string>();
         private int _dedupEpoch;
+        private HashSet<string> _activeRepos;
         private bool _disposed;
 
         [ImportingConstructor]
@@ -109,6 +110,33 @@ namespace Codescene.VSExtension.Core.Application.Cli
             lock (_gate)
             {
                 _dedupEpoch++;
+            }
+        }
+
+        public void Reset()
+        {
+            lock (_gate)
+            {
+                foreach (var pending in _pendingById.Values.ToList())
+                {
+                    CompletePending(pending);
+                }
+
+                _dedupEpoch++;
+                _latestByPath.Clear();
+                _tombstones.Clear();
+                _watchReviews.Clear();
+                _watchReviewOrder.Clear();
+            }
+        }
+
+        public void SetActiveRepos(IReadOnlyCollection<string> repoRoots)
+        {
+            lock (_gate)
+            {
+                _activeRepos = repoRoots == null
+                    ? null
+                    : new HashSet<string>(repoRoots.Select(RpcPath.NormalizeFsPath), StringComparer.Ordinal);
             }
         }
 
