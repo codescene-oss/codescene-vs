@@ -7,10 +7,6 @@
     <!-- Only enable if explicitly set to 'true' -->
     <EnableAceRefactoring Condition="'$(FEATURE_ACE)' == 'true'">true</EnableAceRefactoring>
     <EnableAceRefactoring Condition="'$(FEATURE_ACE)' != 'true'">false</EnableAceRefactoring>
-    <EnablePeriodicGitScan Condition="'$(FEATURE_PERIODIC_GIT_SCAN)' == 'true' Or '$([System.Environment]::GetEnvironmentVariable(`USERNAME`))' == 'vvcod'">true</EnablePeriodicGitScan>
-    <EnablePeriodicGitScan Condition="'$(FEATURE_PERIODIC_GIT_SCAN)' != 'true' And '$([System.Environment]::GetEnvironmentVariable(`USERNAME`))' != 'vvcod'">false</EnablePeriodicGitScan>
-    <EnableInitialGitObserver Condition="'$(FEATURE_INITIAL_GIT_OBSERVER)' == 'true' Or '$([System.Environment]::GetEnvironmentVariable(`USERNAME`))' == 'vvcod'">true</EnableInitialGitObserver>
-    <EnableInitialGitObserver Condition="'$(FEATURE_INITIAL_GIT_OBSERVER)' != 'true' And '$([System.Environment]::GetEnvironmentVariable(`USERNAME`))' != 'vvcod'">false</EnableInitialGitObserver>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -46,6 +42,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\Codescene.VSExtension.VS2022.xml</DocumentationFile>
+	<DeployExtension>true</DeployExtension>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -59,8 +56,6 @@
   <!-- Add conditional compilation symbol for features -->
   <PropertyGroup>
     <DefineConstants Condition="'$(EnableAceRefactoring)' == 'true'">$(DefineConstants);FEATURE_ACE</DefineConstants>
-    <DefineConstants Condition="'$(EnablePeriodicGitScan)' == 'true'">$(DefineConstants);FEATURE_PERIODIC_GIT_SCAN</DefineConstants>
-    <DefineConstants Condition="'$(EnableInitialGitObserver)' == 'true'">$(DefineConstants);FEATURE_INITIAL_GIT_OBSERVER</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Application\ErrorHandling\Logger.cs" />
@@ -74,16 +69,15 @@
     <Compile Include="Application\Adapters\VsOpenFilesObserver.cs" />
     <Compile Include="Application\Adapters\VsOpenDocumentContentProvider.cs" />
     <Compile Include="Application\Adapters\VsOpenFilesSource.cs" />
+    <Compile Include="Application\Adapters\VisualStudioWorkspaceWatchHost.cs" />
+    <Compile Include="Application\Adapters\VisualStudioReviewPipelinePresentation.cs" />
+    <Compile Include="Application\Adapters\VisualStudioReviewPipelineFileAccess.cs" />
     <Compile Include="Application\Cli\CachingCodeReviewerProvider.cs" />
     <Compile Include="Application\Git\BranchWatcherService.cs" />
-    <Compile Include="Application\Git\GitChangeObserver.cs" />
-    <Compile Include="Application\Git\GitChangeListerService.cs" />
     <Compile Include="Application\Git\GitService.cs" />
-    <Compile Include="Application\Git\IGitChangeObserver.cs" />
     <Compile Include="Application\Git\SolutionProjectDiscovery.cs" />
     <Compile Include="Application\Git\BatchGitIgnoreChecker.cs" />
     <Compile Include="Application\Git\LibGit2SharpIgnoreChecker.cs" />
-    <Compile Include="Application\Git\SavedFilesTracker.cs" />
     <Compile Include="Application\Services\AceAcknowledgementStateService.cs" />
     <Compile Include="Cache\CacheStorageService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />
@@ -225,27 +219,18 @@
     <PackageReference Include="Markdig">
       <Version>0.41.1</Version>
     </PackageReference>
-    <PackageReference Include="MessagePack">
-      <Version>3.1.3</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK">
       <Version>17.0.31902.203</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2094">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="18.5.40034">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Web.WebView2">
       <Version>1.0.1054.31</Version>
     </PackageReference>
-    <PackageReference Include="Nerdbank.Streams">
-      <Version>2.6.81</Version>
-    </PackageReference>
     <PackageReference Include="Newtonsoft.Json.Schema">
       <Version>3.0.14</Version>
-    </PackageReference>
-    <PackageReference Include="StreamJsonRpc">
-      <Version>2.8.28</Version>
     </PackageReference>
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" Condition="'$(RunStyleCopAnalyzers)' == 'true'">
       <PrivateAssets>all</PrivateAssets>

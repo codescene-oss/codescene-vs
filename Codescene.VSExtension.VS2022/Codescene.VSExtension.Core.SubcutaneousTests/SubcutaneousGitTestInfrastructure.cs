@@ -1,12 +1,10 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Diagnostics;
-using System.Reflection;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Application.Git;
 using Codescene.VSExtension.Core.Application.Services;
-using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.Application.Git;
 
@@ -14,25 +12,15 @@ namespace Codescene.VSExtension.Core.SubcutaneousTests;
 
 public abstract class SubcutaneousGitTestBase
 {
+    private IdeServerClient? _ideServerClient;
+
     protected EventJournal Journal { get; private set; } = null!;
 
     protected TestLogger Logger { get; private set; } = null!;
 
-    protected RecordingAsyncTaskScheduler TaskScheduler { get; private set; } = null!;
-
-    protected TestSavedFilesTracker SavedFilesTracker { get; private set; } = null!;
-
-    protected TestOpenFilesObserver OpenFilesObserver { get; private set; } = null!;
-
-    protected TestSupportedFileChecker SupportedFileChecker { get; private set; } = null!;
-
     protected RecordingCliExecutor CliExecutor { get; private set; } = null!;
 
     protected RecordingCodeReviewer CodeReviewer { get; private set; } = null!;
-
-    protected RecordingGitChangeLister GitChangeLister { get; private set; } = null!;
-
-    protected RecordingGitChangeObserverCore Observer { get; private set; } = null!;
 
     protected GitService GitService { get; private set; } = null!;
 
@@ -42,26 +30,16 @@ public abstract class SubcutaneousGitTestBase
 
     protected string CacheDirectory { get; private set; } = string.Empty;
 
-    protected virtual int GitPollingIntervalSeconds => 1;
-
-    protected virtual bool AutoStartObserver => true;
-
     protected virtual int DefaultTimeoutMs => 30000;
 
-    protected virtual int ConditionPollIntervalMs => 100;
-
     [TestInitialize]
-    public virtual async Task InitializeAsync()
+    public virtual Task InitializeAsync()
     {
         CacheGeneration.Reset();
         DeltaJobTracker.Clear();
         MainBranchNames.ClearDefaultBranchCache();
         Journal = new EventJournal();
         Logger = new TestLogger(Journal);
-        TaskScheduler = new RecordingAsyncTaskScheduler(Journal);
-        SavedFilesTracker = new TestSavedFilesTracker(Journal);
-        OpenFilesObserver = new TestOpenFilesObserver();
-        SupportedFileChecker = new TestSupportedFileChecker();
         DeltaCache = new DeltaCacheService();
 
         RepositoryRoot = Path.Combine(Path.GetTempPath(), "codescene-subcutaneous-tests", Guid.NewGuid().ToString("N"));
@@ -86,49 +64,15 @@ public abstract class SubcutaneousGitTestBase
             notifier,
             null);
 
-        var cachingReviewer = new CachingCodeReviewer(
-            innerReviewer,
-            logger: Logger,
-            git: GitService,
-            notifier: notifier,
-            deltaCache: DeltaCache);
-
-        CodeReviewer = new RecordingCodeReviewer(cachingReviewer, Journal);
-        GitChangeLister = new RecordingGitChangeLister(
-            new GitChangeLister(SavedFilesTracker, SupportedFileChecker, Logger, GitService, pollingInterval: GitPollingIntervalSeconds),
-            Journal);
-
-        Observer = new RecordingGitChangeObserverCore(
-            Logger,
-            CodeReviewer,
-            SupportedFileChecker,
-            TaskScheduler,
-            GitChangeLister,
-            GitService,
-            Journal);
-
-        Observer.FileDeletedFromGit += (_, path) => Journal.Record("observer.file-deleted", path);
-        Observer.ViewUpdateRequested += (_, _) => Journal.Record("observer.view-update");
-        Observer.Initialize(RepositoryRoot, SavedFilesTracker, OpenFilesObserver);
-
-        if (AutoStartObserver)
-        {
-            await StartObserverAsync();
-        }
+        CodeReviewer = new RecordingCodeReviewer(innerReviewer, Journal);
+        return Task.CompletedTask;
     }
 
     [TestCleanup]
-    public virtual async Task CleanupAsync()
+    public virtual Task CleanupAsync()
     {
-        if (TaskScheduler != null)
-        {
-            await TaskScheduler.WaitForIdleAsync(DefaultTimeoutMs);
-        }
-
-        Observer?.Dispose();
-        GitChangeLister?.Dispose();
         GitService?.Dispose();
-        TaskScheduler?.Dispose();
+        _ideServerClient?.Dispose();
 
         if (!string.IsNullOrEmpty(RepositoryRoot) && Directory.Exists(RepositoryRoot))
         {
@@ -145,6 +89,7 @@ public abstract class SubcutaneousGitTestBase
 
         CacheGeneration.Reset();
         DeltaJobTracker.Clear();
+        return Task.CompletedTask;
     }
 
     protected string AbsolutePath(string relativePath)
@@ -152,15 +97,7 @@ public abstract class SubcutaneousGitTestBase
         return Path.Combine(RepositoryRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
     }
 
-    protected async Task StartObserverAsync()
-    {
-        Observer.Start();
-        await WaitForConditionAsync(
-            () => Observer.FileWatcher != null && Observer.FileWatcher.EnableRaisingEvents,
-            "The git observer did not finish starting.");
-    }
-
-    protected Task<string> WriteWorkingFileAsync(string relativePath, string content, bool markSaved = false)
+    protected Task<string> WriteWorkingFileAsync(string relativePath, string content)
     {
         var absolutePath = AbsolutePath(relativePath);
         var directory = Path.GetDirectoryName(absolutePath);
@@ -170,43 +107,14 @@ public abstract class SubcutaneousGitTestBase
         }
 
         System.IO.File.WriteAllText(absolutePath, content);
-        if (markSaved)
-        {
-            SavedFilesTracker.MarkSaved(absolutePath);
-        }
-
         Journal.Record("stimulus.file-write", absolutePath, $"length={content.Length}");
         return Task.FromResult(absolutePath);
-    }
-
-    protected Task AppendWorkingFileAsync(string relativePath, string content)
-    {
-        var absolutePath = AbsolutePath(relativePath);
-        System.IO.File.AppendAllText(absolutePath, content);
-        Journal.Record("stimulus.file-append", absolutePath, $"length={content.Length}");
-        return Task.CompletedTask;
-    }
-
-    protected void DeleteWorkingFile(string relativePath)
-    {
-        var absolutePath = AbsolutePath(relativePath);
-        if (System.IO.File.Exists(absolutePath))
-        {
-            System.IO.File.Delete(absolutePath);
-        }
-
-        Journal.Record("stimulus.file-delete", absolutePath);
     }
 
     protected void ExecGit(string arguments)
     {
         var result = RunGitCommand(arguments);
         EnsureGitSucceeded(arguments, result);
-    }
-
-    protected GitCommandResult ExecGitAllowFailure(string arguments)
-    {
-        return RunGitCommand(arguments);
     }
 
     protected void CommitAll(string message)
@@ -228,32 +136,6 @@ public abstract class SubcutaneousGitTestBase
         ExecGit(create ? $"checkout -b {branchName}" : $"checkout {branchName}");
     }
 
-    protected void ResetHard(string target)
-    {
-        ExecGit($"reset --hard {target}");
-    }
-
-    protected void StashPush(string name, bool includeUntracked = false)
-    {
-        var includeUntrackedArg = includeUntracked ? " -u" : string.Empty;
-        ExecGit($"stash push{includeUntrackedArg} -m \"{name}\"");
-    }
-
-    protected void StashPop()
-    {
-        ExecGit("stash pop");
-    }
-
-    protected GitCommandResult StashPopAllowFailure()
-    {
-        return ExecGitAllowFailure("stash pop");
-    }
-
-    protected void RebaseOnto(string target)
-    {
-        ExecGit($"rebase {target}");
-    }
-
     protected void SetOriginHeadToBranch(string branchName)
     {
         ExecGit($"update-ref refs/remotes/origin/{branchName} refs/heads/{branchName}");
@@ -268,99 +150,6 @@ public abstract class SubcutaneousGitTestBase
         var json = $"{{\"baseline_branch\":\"{baselineBranch}\"}}";
         System.IO.File.WriteAllText(configPath, json);
         Journal.Record("stimulus.config-write", configPath, $"baseline_branch={baselineBranch}");
-    }
-
-    protected bool IsTracked(string relativePath)
-    {
-        return Observer.GetTrackerManager().Contains(AbsolutePath(relativePath));
-    }
-
-    protected bool HasDelta(string relativePath)
-    {
-        var abs = AbsolutePath(relativePath);
-        return DeltaCache.GetAll().Keys.Any(k => string.Equals(k, abs, StringComparison.OrdinalIgnoreCase));
-    }
-
-    protected int ReviewCount(string relativePath)
-    {
-        return CodeReviewer.GetReviewWithDeltaCallCount(AbsolutePath(relativePath));
-    }
-
-    protected int MaxParallelReviews(string relativePath)
-    {
-        return CodeReviewer.GetMaxParallelism(AbsolutePath(relativePath));
-    }
-
-    protected int RunningDeltaJobCount()
-    {
-        return DeltaJobTracker.RunningJobs.Count;
-    }
-
-    protected bool HasRunningDeltaJob(string relativePath)
-    {
-        var absolutePath = AbsolutePath(relativePath);
-        return DeltaJobTracker.RunningJobs.Any(job => string.Equals(job.File?.FileName, absolutePath, StringComparison.OrdinalIgnoreCase));
-    }
-
-    protected IReadOnlyCollection<string> DeltaCachePaths()
-    {
-        return DeltaCache.GetAll().Keys.ToList().AsReadOnly();
-    }
-
-    protected async Task WaitForTrackedAsync(string relativePath, string? message = null, int timeoutMs = 30000)
-    {
-        await WaitForConditionAsync(() => IsTracked(relativePath), message ?? $"Expected {relativePath} to be tracked.", timeoutMs);
-    }
-
-    protected async Task WaitForNotTrackedAsync(string relativePath, string? message = null, int timeoutMs = 30000)
-    {
-        await WaitForConditionAsync(() => !IsTracked(relativePath), message ?? $"Expected {relativePath} to be removed from the tracker.", timeoutMs);
-    }
-
-    protected async Task WaitForDeltaAsync(string relativePath, string? message = null, int timeoutMs = 30000)
-    {
-        await WaitForConditionAsync(() => HasDelta(relativePath), message ?? $"Expected {relativePath} to produce a delta result.", timeoutMs);
-    }
-
-    protected async Task WaitForNoDeltaAsync(string relativePath, string? message = null, int timeoutMs = 30000)
-    {
-        await WaitForConditionAsync(() => !HasDelta(relativePath), message ?? $"Expected {relativePath} to be absent from the delta cache.", timeoutMs);
-    }
-
-    protected async Task WaitForReviewCountAsync(string relativePath, int expectedCount, string? message = null, int timeoutMs = 30000)
-    {
-        await WaitForConditionAsync(
-            () => ReviewCount(relativePath) >= expectedCount,
-            message ?? $"Expected at least {expectedCount} review(s) for {relativePath}.",
-            timeoutMs);
-    }
-
-    protected void SnapshotState(string label, params string[] relativePaths)
-    {
-        foreach (var relativePath in relativePaths)
-        {
-            var absolutePath = AbsolutePath(relativePath);
-            Journal.Record(
-                "state.snapshot",
-                absolutePath,
-                $"{label};tracked={Observer.GetTrackerManager().Contains(absolutePath)};delta={HasDelta(relativePath)};reviewCount={CodeReviewer.GetReviewWithDeltaCallCount(absolutePath)}");
-        }
-    }
-
-    protected async Task WaitForConditionAsync(Func<bool> condition, string failureMessage, int timeoutMs = 30000)
-    {
-        var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
-        while (DateTime.UtcNow < deadline)
-        {
-            if (condition())
-            {
-                return;
-            }
-
-            await Task.Delay(ConditionPollIntervalMs);
-        }
-
-        Assert.Fail($"{failureMessage}{Environment.NewLine}{Environment.NewLine}{Journal.Dump()}");
     }
 
     private GitCommandResult RunGitCommand(string arguments)
@@ -398,26 +187,9 @@ public abstract class SubcutaneousGitTestBase
     {
         var settingsProvider = new TestSettingsProvider();
         var cliSettingsProvider = new CliSettingsProvider();
-        var commandProvider = new CliCommandProvider(new CliObjectScoreCreator(Logger));
-        var processExecutor = CreateProcessExecutor(cliSettingsProvider);
-        var cliServices = new TestCliServices(commandProvider, processExecutor, new TestCacheStorageService(CacheDirectory));
-        return new CliExecutor(Logger, cliServices, settingsProvider, null);
-    }
-
-    private IProcessExecutor CreateProcessExecutor(ICliSettingsProvider cliSettingsProvider)
-    {
-        var processExecutorType = typeof(CliSettingsProvider).Assembly.GetType(
-            "Codescene.VSExtension.Core.Application.Cli.ProcessExecutor",
-            throwOnError: true);
-
-        var processExecutor = Activator.CreateInstance(
-            processExecutorType!,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-            null,
-            new object[] { cliSettingsProvider, Logger },
-            null);
-
-        return (IProcessExecutor)processExecutor!;
+        var cacheStorage = new TestCacheStorageService(CacheDirectory);
+        _ideServerClient = new IdeServerClient(cliSettingsProvider, Logger, settingsProvider);
+        return new CliExecutor(Logger, _ideServerClient, cacheStorage, settingsProvider, null);
     }
 
     private void InitializeGitRepository()

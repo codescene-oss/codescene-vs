@@ -8,6 +8,38 @@ namespace Codescene.VSExtension.Core.Util
 {
     public static class GitPathDiscovery
     {
+        public static string TryGetWorkingDirectory(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return null;
+            }
+
+            try
+            {
+                var repoPath = Repository.Discover(path);
+                if (string.IsNullOrEmpty(repoPath))
+                {
+                    return null;
+                }
+
+                using (var repo = new Repository(repoPath))
+                {
+                    var workingDirectory = repo.Info.WorkingDirectory;
+                    if (string.IsNullOrEmpty(workingDirectory))
+                    {
+                        return null;
+                    }
+
+                    return PathNormalization.NormalizeWorkingDirectory(workingDirectory);
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static (string workspacePath, string gitRootPath) Discover(string solutionPath)
         {
             var workspacePath = Directory.Exists(solutionPath)

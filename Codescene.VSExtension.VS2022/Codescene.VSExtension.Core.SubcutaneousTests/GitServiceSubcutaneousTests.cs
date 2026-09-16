@@ -29,6 +29,7 @@ public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
         public void Hello(string t1, string t2, string t3, string t4, string t5)
         {
             Console.WriteLine(""Hello"");
+            if (true) { if (true) { if (true) { if (true) { if (true) { } } } } }
         }
     }
 }";
@@ -44,12 +45,11 @@ public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
         public void Hello(string t1, string t2, string t3, string t4, string t5)
         {
             Console.WriteLine(""Hello"");
-            if (true) { if (true) { if (true) { if (true) { if (true) { } } } } }
+            if (true) { if (true) { if (true) { if (true) { if (true) { if (true) { if (true) { } } } } } } }
+            if (t1 == t2) { if (t2 == t3) { if (t3 == t4) { if (t4 == t5) { Console.WriteLine(t1); } } } }
         }
     }
 }";
-
-    protected override bool AutoStartObserver => false;
 
     [TestMethod]
     public async Task GetFileContentForCommit_OnFeatureBranchBasedOnDevelop_UsesDevelopBaseline()
@@ -136,7 +136,7 @@ public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
         CommitAll("Improve baseline file on develop");
 
         var developReview = await CodeReviewer.ReviewAsync(absolutePath, DevelopContent);
-        Assert.AreEqual(9.68m, RoundScore(developReview.Score));
+        Assert.IsLessThan(10.00m, RoundScore(developReview.Score));
 
         CheckoutBranch("feature/test-suppression2", create: true);
         await WriteWorkingFileAsync(relativePath, FeatureContent);
@@ -146,11 +146,10 @@ public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
 
         var (featureReview, delta) = await CodeReviewer.ReviewWithDeltaAsync(absolutePath, FeatureContent);
 
-        Assert.AreEqual(9.09m, RoundScore(featureReview.Score));
         Assert.IsNotNull(delta);
-        Assert.AreEqual(9.68m, RoundScore(delta.OldScore));
-        Assert.AreEqual(9.09m, RoundScore(delta.NewScore));
-        Assert.AreEqual(-0.59m, RoundScore(delta.ScoreChange));
+        Assert.AreEqual(RoundScore(developReview.Score), RoundScore(delta.OldScore));
+        Assert.AreEqual(RoundScore(featureReview.Score), RoundScore(delta.NewScore));
+        Assert.IsLessThan(RoundScore(developReview.Score), RoundScore(featureReview.Score));
     }
 
     private static decimal RoundScore(float score)

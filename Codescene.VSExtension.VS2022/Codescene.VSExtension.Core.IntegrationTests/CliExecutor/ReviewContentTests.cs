@@ -36,6 +36,10 @@ public class Calculator
                 Assert.IsTrue(result.Score.HasValue, "Review should have a score");
                 Assert.IsTrue(result.Score >= 0 && result.Score <= 10, "Score should be between 0 and 10");
                 Assert.IsFalse(string.IsNullOrEmpty(result.RawScore), "Review should have a raw score for delta calculations");
+
+                var second = await cliExecutor.ReviewContentAsync(filePath, content);
+                Assert.IsNotNull(second, "Repeated reviews should reuse the persistent server");
+                Assert.IsFalse(string.IsNullOrEmpty(second.RawScore));
             }
             finally
             {

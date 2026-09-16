@@ -108,6 +108,16 @@ namespace Codescene.VSExtension.Core.Application.Cache.Review
             return null;
         }
 
+        public void SetPresentationDelta(string filePath, DeltaResponseModel delta)
+        {
+            if (string.IsNullOrEmpty(filePath))
+            {
+                return;
+            }
+
+            Cache[GetCacheKey(filePath)] = new DeltaCacheItem(filePath, string.Empty, string.Empty, delta, CacheGeneration.Current);
+        }
+
         public override void Invalidate(string key)
         {
             base.Invalidate(GetCacheKey(key));

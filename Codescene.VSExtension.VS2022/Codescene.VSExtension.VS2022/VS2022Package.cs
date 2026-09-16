@@ -42,6 +42,7 @@ public sealed class VS2022Package : ToolkitPackage
     private ILogger _logger;
     private SolutionEventsHandler _solutionEventsHandler;
     private IAsyncTaskScheduler _scheduler;
+    private IIdeServerClient _ideServerClient;
 
     public static VS2022Package Instance { get; private set; }
 
@@ -71,6 +72,7 @@ public sealed class VS2022Package : ToolkitPackage
 
             // Cli file
             await CheckCliFileAsync();
+            await StartIdeServerAsync(cancellationToken);
 
             // Subscribe on active document change event
             await SubscribeOnActiveWindowChangeAsync();
@@ -111,6 +113,7 @@ public sealed class VS2022Package : ToolkitPackage
             UnsubscribeFromGlobalExceptionHandlers();
             _solutionEventsHandler?.Dispose();
             (_scheduler as IDisposable)?.Dispose();
+            _ideServerClient?.Dispose();
         }
 
         base.Dispose(disposing);
@@ -259,6 +262,15 @@ public sealed class VS2022Package : ToolkitPackage
         if (cliFileChecker != null)
         {
             await cliFileChecker.CheckAsync();
+        }
+    }
+
+    private async Task StartIdeServerAsync(CancellationToken cancellationToken)
+    {
+        _ideServerClient = await VS.GetMefServiceAsync<IIdeServerClient>();
+        if (_ideServerClient != null)
+        {
+            await _ideServerClient.StartAsync(cancellationToken);
         }
     }
 

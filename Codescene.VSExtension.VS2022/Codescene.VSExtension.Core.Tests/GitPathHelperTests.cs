@@ -165,6 +165,20 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void TryGetWorkingDirectory_NullPath_ReturnsNull()
+        {
+            Assert.IsNull(GitPathDiscovery.TryGetWorkingDirectory(null));
+        }
+
+        [TestMethod]
+        public void TryGetWorkingDirectory_PathOutsideRepository_ReturnsNull()
+        {
+            var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "file.cs");
+
+            Assert.IsNull(GitPathDiscovery.TryGetWorkingDirectory(path));
+        }
+
+        [TestMethod]
         public void IsFileInWorkspace_FileExistsOutsideWorkspace_ReturnsFalse()
         {
             var outsideDir = Path.Combine(_tempDir, "outside");

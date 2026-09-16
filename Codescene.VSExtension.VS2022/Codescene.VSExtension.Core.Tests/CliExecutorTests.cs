@@ -11,10 +11,8 @@ using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
-using Codescene.VSExtension.Core.Util;
 using LibGit2Sharp;
 using Moq;
-using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Tests
 {
@@ -26,9 +24,7 @@ namespace Codescene.VSExtension.Core.Tests
         private static readonly string TestFilePath = $"{TestCachePath}/test.cs";
 
         private Mock<ILogger> _mockLogger;
-        private Mock<ICliServices> _mockCliServices;
-        private Mock<ICliCommandProvider> _mockCommandProvider;
-        private Mock<IProcessExecutor> _mockProcessExecutor;
+        private Mock<IIdeServerClient> _mockClient;
         private Mock<ICacheStorageService> _mockCacheStorage;
         private Mock<ISettingsProvider> _mockSettingsProvider;
         private Mock<ITelemetryManager> _mockTelemetryManager;
@@ -39,58 +35,91 @@ namespace Codescene.VSExtension.Core.Tests
         public void Setup()
         {
             _mockLogger = new Mock<ILogger>();
-            _mockCommandProvider = new Mock<ICliCommandProvider>();
-            _mockProcessExecutor = new Mock<IProcessExecutor>();
+            _mockClient = new Mock<IIdeServerClient>();
             _mockCacheStorage = new Mock<ICacheStorageService>();
             _mockSettingsProvider = new Mock<ISettingsProvider>();
             _mockTelemetryManager = new Mock<ITelemetryManager>();
             _lazyTelemetryManager = new Lazy<ITelemetryManager>(() => _mockTelemetryManager.Object);
-
-            _mockCliServices = new Mock<ICliServices>();
-            _mockCliServices.Setup(x => x.CommandProvider).Returns(_mockCommandProvider.Object);
-            _mockCliServices.Setup(x => x.ProcessExecutor).Returns(_mockProcessExecutor.Object);
-            _mockCliServices.Setup(x => x.CacheStorage).Returns(_mockCacheStorage.Object);
-
             _mockCacheStorage.Setup(x => x.GetSolutionReviewCacheLocation()).Returns(TestCachePath);
-            _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
-
-            _cliExecutor = new CliExecutor(
-                _mockLogger.Object,
-                _mockCliServices.Object,
-                _mockSettingsProvider.Object,
-                _lazyTelemetryManager);
+            _cliExecutor = CreateExecutor();
         }
 
         [TestMethod]
         public async Task ReviewContentAsync_WithValidResponse_ReturnsCliReviewModel()
         {
-            var expectedReview = new CliReviewModel
-            {
-                Score = 7.5f,
-                RawScore = "base64encoded",
-            };
-            var jsonResponse = JsonConvert.SerializeObject(expectedReview);
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFilePath, TestFileContent, TestCachePath))
-                .Returns("payload");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name test.cs", "payload", null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .ReturnsAsync(jsonResponse);
+            var expectedReview = new CliReviewModel { Score = 7.5f, RawScore = "base64encoded" };
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedReview);
 
             var result = await _cliExecutor.ReviewContentAsync(TestFilePath, TestFileContent);
 
             Assert.IsNotNull(result);
             Assert.AreEqual(expectedReview.Score, result.Score);
             Assert.AreEqual(expectedReview.RawScore, result.RawScore);
-            _mockProcessExecutor.Verify(x => x.ExecuteAsync("review --file-name test.cs", "payload", null, It.IsAny<CancellationToken>(), It.IsAny<string>()), Times.Once);
+            _mockClient.Verify(
+                x => x.ReviewAsync(
+                    It.Is<ReviewRequestModel>(r => r.FilePath == TestFilePath && r.FileContent == TestFileContent && r.CachePath == TestCachePath),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [TestMethod]
-        public async Task ReviewContentAsync_WhenProcessExecutorThrowsDevtoolsException_ThrowsException()
+        public async Task ReviewContentAsync_FileInGitRepository_IncludesRepositoryRoot()
         {
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFilePath, TestFileContent, TestCachePath))
-                .Returns("payload");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name test.cs", "payload", null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
+            var repositoryRoot = Path.Combine(Path.GetTempPath(), "cli-review-repo-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(repositoryRoot);
+            Repository.Init(repositoryRoot);
+            var filePath = Path.Combine(repositoryRoot, "test.cs");
+            File.WriteAllText(filePath, TestFileContent);
+            ReviewRequestModel request = null;
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
+                .Callback<ReviewRequestModel, CancellationToken>((value, _) => request = value)
+                .ReturnsAsync(new CliReviewModel());
+
+            try
+            {
+                await _cliExecutor.ReviewContentAsync(filePath, TestFileContent);
+
+                var repoPathProperty = typeof(ReviewRequestModel).GetProperty("RepoPath");
+                Assert.IsNotNull(repoPathProperty);
+                Assert.AreEqual(
+                    Path.GetFullPath(repositoryRoot).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                    repoPathProperty.GetValue(request));
+            }
+            finally
+            {
+                Directory.Delete(repositoryRoot, recursive: true);
+            }
+        }
+
+        [TestMethod]
+        public async Task ReviewContentAsync_FileOutsideGitRepository_IncludesContainingDirectory()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "cli-review-file-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directory);
+            var filePath = Path.Combine(directory, "test.cs");
+            File.WriteAllText(filePath, TestFileContent);
+            ReviewRequestModel request = null;
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
+                .Callback<ReviewRequestModel, CancellationToken>((value, _) => request = value)
+                .ReturnsAsync(new CliReviewModel());
+
+            try
+            {
+                await _cliExecutor.ReviewContentAsync(filePath, TestFileContent);
+
+                Assert.AreEqual(directory, request.RepoPath);
+            }
+            finally
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+
+        [TestMethod]
+        public async Task ReviewContentAsync_WhenClientThrowsDevtoolsException_ThrowsException()
+        {
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new DevtoolsException("CLI error", 500, "trace-123"));
 
             var exception = await Assert.ThrowsAsync<DevtoolsException>(() =>
@@ -101,14 +130,11 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task ReviewContentAsync_WhenProcessExecutorThrowsRefactoringCreditsDevtoolsException_LogsWarningNotError()
+        public async Task ReviewContentAsync_WhenClientThrowsRefactoringCreditsDevtoolsException_LogsWarningNotError()
         {
             const string creditsMessage =
                 "Your credits of refactoring functionality ran out. Buy a bigger plan.";
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFilePath, TestFileContent, TestCachePath))
-                .Returns("payload");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name test.cs", "payload", null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new DevtoolsException(creditsMessage, 402, "trace-xyz"));
 
             var exception = await Assert.ThrowsAsync<DevtoolsException>(() =>
@@ -121,12 +147,9 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task ReviewContentAsync_WhenProcessExecutorThrowsGenericException_ReturnsNull()
+        public async Task ReviewContentAsync_WhenClientThrowsGenericException_ReturnsNull()
         {
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFilePath, TestFileContent, TestCachePath))
-                .Returns("payload");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name test.cs", "payload", null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("Generic error"));
             var result = await _cliExecutor.ReviewContentAsync(TestFilePath, TestFileContent);
 
@@ -135,13 +158,11 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task ReviewContentAsync_WithInvalidJson_ReturnsNull()
+        public async Task ReviewContentAsync_WhenClientReturnsNull_ReturnsNull()
         {
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFilePath, TestFileContent, TestCachePath))
-                .Returns("payload");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name test.cs", "payload", null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .ReturnsAsync("invalid json");
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((CliReviewModel)null);
+
             var result = await _cliExecutor.ReviewContentAsync(TestFilePath, TestFileContent);
 
             Assert.IsNull(result);
@@ -150,21 +171,17 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task ReviewDeltaAsync_WithValidResponse_ReturnsDeltaResponseModel()
         {
-            var oldScore = "old-score-b64";
-            var newScore = "new-score-b64";
-            var expectedDelta = new DeltaResponseModel
-            {
-                NewScore = 8.5m,
-                OldScore = 7.0m,
-                ScoreChange = 1.5m,
-            };
-            var jsonResponse = JsonConvert.SerializeObject(expectedDelta);
-            _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand(oldScore, newScore))
-                .Returns("delta command");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .ReturnsAsync(jsonResponse);
+            var expectedDelta = new DeltaResponseModel { NewScore = 8.5m, OldScore = 7.0m, ScoreChange = 1.5m };
+            _mockClient.Setup(x => x.DeltaAsync("old-score-b64", "new-score-b64", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedDelta);
 
-            var result = await _cliExecutor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = oldScore, NewScore = newScore, FilePath = TestFilePath, FileContent = TestFileContent });
+            var result = await _cliExecutor.ReviewDeltaAsync(new ReviewDeltaRequest
+            {
+                OldScore = "old-score-b64",
+                NewScore = "new-score-b64",
+                FilePath = TestFilePath,
+                FileContent = TestFileContent,
+            });
 
             Assert.IsNotNull(result);
             Assert.AreEqual(expectedDelta.NewScore, result.NewScore);
@@ -173,35 +190,9 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task ReviewDeltaAsync_WithEmptyArguments_ReturnsNull()
+        public async Task ReviewDeltaAsync_WhenClientThrowsException_ReturnsNull()
         {
-            _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(string.Empty);
-
-            var result = await _cliExecutor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = "old", NewScore = "new" });
-
-            Assert.IsNull(result);
-            _mockLogger.Verify(x => x.Warn("Skipping delta review. Arguments were not defined."), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task ReviewDeltaAsync_WithNullArguments_ReturnsNull()
-        {
-            _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((string)null);
-
-            var result = await _cliExecutor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = "old", NewScore = "new" });
-
-            Assert.IsNull(result);
-            _mockLogger.Verify(x => x.Warn("Skipping delta review. Arguments were not defined."), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task ReviewDeltaAsync_WhenProcessExecutorThrowsException_ReturnsNull()
-        {
-            _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns("delta command");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
+            _mockClient.Setup(x => x.DeltaAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("Error"));
 
             var result = await _cliExecutor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = "old", NewScore = "new" });
@@ -213,16 +204,9 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task PreflightAsync_WithValidResponse_ReturnsPreFlightResponseModel()
         {
-            var expectedPreflight = new PreFlightResponseModel
-            {
-                Version = 1.0m,
-                FileTypes = new[] { ".cs", ".js" },
-            };
-            var jsonResponse = JsonConvert.SerializeObject(expectedPreflight);
-            _mockCommandProvider.Setup(x => x.GetPreflightSupportInformationCommand(It.IsAny<bool>()))
-                .Returns("refactor preflight --force");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .ReturnsAsync(jsonResponse);
+            var expectedPreflight = new PreFlightResponseModel { Version = 1.0m, FileTypes = new[] { ".cs", ".js" } };
+            _mockClient.Setup(x => x.PreflightAsync(true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedPreflight);
 
             var result = await _cliExecutor.PreflightAsync(force: true);
 
@@ -232,23 +216,9 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task PreflightAsync_WithEmptyArguments_ReturnsNull()
+        public async Task PreflightAsync_WhenClientThrowsException_ReturnsNull()
         {
-            _mockCommandProvider.Setup(x => x.GetPreflightSupportInformationCommand(It.IsAny<bool>()))
-                .Returns(string.Empty);
-
-            var result = await _cliExecutor.PreflightAsync();
-
-            Assert.IsNull(result);
-            _mockLogger.Verify(x => x.Warn("Skipping preflight. Arguments were not defined."), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task PreflightAsync_WhenProcessExecutorThrowsException_ReturnsNull()
-        {
-            _mockCommandProvider.Setup(x => x.GetPreflightSupportInformationCommand(It.IsAny<bool>()))
-                .Returns("refactor preflight");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
+            _mockClient.Setup(x => x.PreflightAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception("Error"));
 
             var result = await _cliExecutor.PreflightAsync();
@@ -258,33 +228,30 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task PreflightAsync_WithForceFalse_UsesCorrectCommand()
+        public async Task PreflightAsync_WithForceFalse_UsesCorrectFlag()
         {
             var preflight = new PreFlightResponseModel { Version = 1.0m };
-            var jsonResponse = JsonConvert.SerializeObject(preflight);
-            _mockCommandProvider.Setup(x => x.GetPreflightSupportInformationCommand(false))
-                .Returns("refactor preflight");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .ReturnsAsync(jsonResponse);
+            _mockClient.Setup(x => x.PreflightAsync(false, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(preflight);
 
             var result = await _cliExecutor.PreflightAsync(force: false);
 
             Assert.IsNotNull(result);
-            _mockCommandProvider.Verify(x => x.GetPreflightSupportInformationCommand(false), Times.Once);
+            _mockClient.Verify(x => x.PreflightAsync(false, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
         public void Constructor_WithNullLogger_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new CliExecutor(null, _mockCliServices.Object, _mockSettingsProvider.Object));
+                new CliExecutor(null, _mockClient.Object, _mockCacheStorage.Object, _mockSettingsProvider.Object));
         }
 
         [TestMethod]
-        public void Constructor_WithNullCliServices_ThrowsArgumentNullException()
+        public void Constructor_WithNullClient_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                new CliExecutor(_mockLogger.Object, null, _mockSettingsProvider.Object));
+                new CliExecutor(_mockLogger.Object, null, _mockCacheStorage.Object, _mockSettingsProvider.Object));
         }
 
         [TestMethod]
@@ -292,7 +259,8 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var executor = new CliExecutor(
                 _mockLogger.Object,
-                _mockCliServices.Object,
+                _mockClient.Object,
+                _mockCacheStorage.Object,
                 _mockSettingsProvider.Object);
 
             Assert.IsNotNull(executor);
@@ -301,12 +269,9 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task ReviewContentAsync_WhenCancelled_ReturnsNull()
         {
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFilePath, TestFileContent, TestCachePath))
-                .Returns("payload");
-            var completion = new TaskCompletionSource<string>();
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name test.cs", "payload", null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .Returns<string, string, TimeSpan?, CancellationToken, string>((_, _, _, ct, __) =>
+            var completion = new TaskCompletionSource<CliReviewModel>();
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
+                .Returns<ReviewRequestModel, CancellationToken>((_, ct) =>
                 {
                     ct.Register(() => completion.TrySetCanceled(ct));
                     return completion.Task;
@@ -324,13 +289,10 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task ReviewContentAsync_WhenSecondCallCancelsFirst_FirstReturnsNull()
         {
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name test.cs");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(TestFilePath, TestFileContent, TestCachePath))
-                .Returns("payload");
-            var firstCompletion = new TaskCompletionSource<string>();
+            var firstCompletion = new TaskCompletionSource<CliReviewModel>();
             var callCount = 0;
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name test.cs", "payload", null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .Returns<string, string, TimeSpan?, CancellationToken, string>((cmd, payload, timeout, ct, _) =>
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
+                .Returns<ReviewRequestModel, CancellationToken>((_, ct) =>
                 {
                     callCount++;
                     if (callCount == 1)
@@ -338,7 +300,7 @@ namespace Codescene.VSExtension.Core.Tests
                         return firstCompletion.Task;
                     }
 
-                    return Task.FromResult(JsonConvert.SerializeObject(new CliReviewModel { Score = 7.5f, RawScore = "raw" }));
+                    return Task.FromResult(new CliReviewModel { Score = 7.5f, RawScore = "raw" });
                 });
 
             var firstTask = _cliExecutor.ReviewContentAsync(TestFilePath, TestFileContent, false);
@@ -362,16 +324,13 @@ namespace Codescene.VSExtension.Core.Tests
             var startedSignal = new TaskCompletionSource<bool>();
             var callCount = 0;
 
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review --file-name");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(It.IsAny<string>(), It.IsAny<string>(), TestCachePath))
-                .Returns((string filePath, string _, string _) => "payload-" + filePath);
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync("review --file-name", It.IsAny<string>(), null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .Returns<string, string, TimeSpan?, CancellationToken, string>(async (_, payload, _, _, __) =>
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
+                .Returns<ReviewRequestModel, CancellationToken>(async (request, _) =>
                 {
                     Interlocked.Increment(ref callCount);
                     startedSignal.TrySetResult(true);
                     await completion.Task;
-                    return JsonConvert.SerializeObject(new CliReviewModel { Score = 7.5f, RawScore = payload });
+                    return new CliReviewModel { Score = 7.5f, RawScore = request.FilePath };
                 });
 
             var firstTask = _cliExecutor.ReviewContentAsync(firstFile, TestFileContent);
@@ -391,93 +350,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void GetCliWorkingDirectoryForFile_NullOrWhitespace_ReturnsNullWhenNoWorkspace()
-        {
-            _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
-            var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.IsNotNull(method);
-            var rNull = (string)method.Invoke(_cliExecutor, new object[] { null });
-            var rBlank = (string)method.Invoke(_cliExecutor, new object[] { "  \t  " });
-            Assert.IsNull(rNull);
-            Assert.IsNull(rBlank);
-        }
-
-        [TestMethod]
-        public void GetCliWorkingDirectoryForFile_NullOrWhitespace_ReturnsNormalizedWorkspaceWhenConfigured()
-        {
-            var ws = Path.Combine(Path.GetTempPath(), "cli-ws-" + Guid.NewGuid().ToString("N"));
-            try
-            {
-                Directory.CreateDirectory(ws);
-                _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(ws);
-                var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
-                var r = (string)method.Invoke(_cliExecutor, new object[] { null });
-                Assert.AreEqual(PathNormalization.NormalizeWorkingDirectory(ws), r);
-            }
-            finally
-            {
-                if (Directory.Exists(ws))
-                {
-                    Directory.Delete(ws, true);
-                }
-            }
-        }
-
-        [TestMethod]
-        public void GetCliWorkingDirectoryForFile_FileInsideGitRepo_ReturnsNormalizedRepoRoot()
-        {
-            var repoPath = Path.Combine(Path.GetTempPath(), "cli-git-" + Guid.NewGuid().ToString("N"));
-            try
-            {
-                Directory.CreateDirectory(repoPath);
-                Repository.Init(repoPath);
-                var fileInRepo = Path.Combine(repoPath, "file.cs");
-                File.WriteAllText(fileInRepo, "//");
-                _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
-                var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
-                var wd = (string)method.Invoke(_cliExecutor, new object[] { fileInRepo });
-                Assert.AreEqual(PathNormalization.NormalizeWorkingDirectory(Path.GetFullPath(repoPath)), wd);
-            }
-            finally
-            {
-                if (Directory.Exists(repoPath))
-                {
-                    Directory.Delete(repoPath, true);
-                }
-            }
-        }
-
-        [TestMethod]
-        public void GetCliWorkingDirectoryForFile_FileOutsideGitWithExistingWorkspace_ReturnsWorkspace()
-        {
-            var outside = Path.Combine(Path.GetTempPath(), "cli-out-" + Guid.NewGuid().ToString("N"));
-            var ws = Path.Combine(Path.GetTempPath(), "cli-ws2-" + Guid.NewGuid().ToString("N"));
-            try
-            {
-                Directory.CreateDirectory(outside);
-                Directory.CreateDirectory(ws);
-                var filePath = Path.Combine(outside, "orphan.cs");
-                File.WriteAllText(filePath, "//");
-                _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(ws);
-                var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
-                var wd = (string)method.Invoke(_cliExecutor, new object[] { filePath });
-                Assert.AreEqual(PathNormalization.NormalizeWorkingDirectory(ws), wd);
-            }
-            finally
-            {
-                if (Directory.Exists(outside))
-                {
-                    Directory.Delete(outside, true);
-                }
-
-                if (Directory.Exists(ws))
-                {
-                    Directory.Delete(ws, true);
-                }
-            }
-        }
-
-        [TestMethod]
         public void GetReviewCancellationPathIdentity_WhenGetFullPathThrows_ReturnsOriginalPath()
         {
             var method = typeof(CliExecutor).GetMethod("GetReviewCancellationPathIdentity", BindingFlags.NonPublic | BindingFlags.Static);
@@ -485,69 +357,6 @@ namespace Codescene.VSExtension.Core.Tests
             var tooLong = new string('a', 40000);
             var result = (string)method.Invoke(null, new object[] { tooLong });
             Assert.AreEqual(tooLong, result);
-        }
-
-        [TestMethod]
-        public void GetCliWorkingDirectoryForFile_WhenGetFullPathThrows_UsesPathForFallback()
-        {
-            _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
-            var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
-            Assert.IsNotNull(method);
-            var pathWithIllegalName = Path.Combine(Path.GetTempPath(), "bad*name.cs");
-            var wd = (string)method.Invoke(_cliExecutor, new object[] { pathWithIllegalName });
-            Assert.AreEqual(Path.GetDirectoryName(pathWithIllegalName), wd);
-        }
-
-        [TestMethod]
-        public void GetCliWorkingDirectoryForFile_BareRepository_SkipsNormalizeWhenWorkingDirectoryEmpty()
-        {
-            var bareRepoPath = Path.Combine(Path.GetTempPath(), "cli-bare-" + Guid.NewGuid().ToString("N"));
-            try
-            {
-                Directory.CreateDirectory(bareRepoPath);
-                Repository.Init(bareRepoPath, isBare: true);
-                var fileInBare = Path.Combine(bareRepoPath, "marker.cs");
-                File.WriteAllText(fileInBare, "//");
-                _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
-                var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
-                Assert.IsNotNull(method);
-                var wd = (string)method.Invoke(_cliExecutor, new object[] { fileInBare });
-                var expectedDir = Path.GetDirectoryName(Path.GetFullPath(fileInBare));
-                Assert.AreEqual(expectedDir, wd);
-            }
-            finally
-            {
-                if (Directory.Exists(bareRepoPath))
-                {
-                    Directory.Delete(bareRepoPath, true);
-                }
-            }
-        }
-
-        [TestMethod]
-        public void GetCliWorkingDirectoryForFile_WhenGitResolutionFails_LogsDebugAndUsesFileDirectory()
-        {
-            var bad = Path.Combine(Path.GetTempPath(), "cli-badgit-" + Guid.NewGuid().ToString("N"));
-            try
-            {
-                Directory.CreateDirectory(bad);
-                File.WriteAllText(Path.Combine(bad, ".git"), "invalid");
-                var fp = Path.Combine(bad, "x.cs");
-                File.WriteAllText(fp, "//");
-                _mockCacheStorage.Setup(x => x.GetWorkspaceDirectory()).Returns(string.Empty);
-                var method = typeof(CliExecutor).GetMethod("GetCliWorkingDirectoryForFile", BindingFlags.NonPublic | BindingFlags.Instance);
-                var wd = (string)method.Invoke(_cliExecutor, new object[] { fp });
-                var expectedDir = Path.GetDirectoryName(Path.GetFullPath(fp));
-                Assert.AreEqual(expectedDir, wd);
-                _mockLogger.Verify(x => x.Debug(It.Is<string>(s => s.Contains("Could not resolve git working directory"))), Times.Once);
-            }
-            finally
-            {
-                if (Directory.Exists(bad))
-                {
-                    Directory.Delete(bad, true);
-                }
-            }
         }
 
         [TestMethod]
@@ -570,19 +379,9 @@ namespace Codescene.VSExtension.Core.Tests
                     await cpuCheckSignal.Task;
                 });
 
-            var executor = new CliExecutor(
-                _mockLogger.Object,
-                _mockCliServices.Object,
-                _mockSettingsProvider.Object,
-                _lazyTelemetryManager,
-                mockThrottler.Object,
-                cliCommandConcurrencyLimit: 1);
-
-            _mockCommandProvider.Setup(x => x.ReviewFileContentCommand).Returns("review");
-            _mockCommandProvider.Setup(x => x.GetReviewFileContentPayload(It.IsAny<string>(), It.IsAny<string>(), TestCachePath))
-                .Returns("payload");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), null, It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .ReturnsAsync(JsonConvert.SerializeObject(new CliReviewModel { Score = 1 }));
+            var executor = CreateExecutor(mockThrottler.Object, 1);
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CliReviewModel { Score = 1 });
 
             var task1 = executor.ReviewContentAsync("/file1.cs", "content1");
             var task2 = executor.ReviewContentAsync("/file2.cs", "content2");
@@ -625,20 +424,9 @@ namespace Codescene.VSExtension.Core.Tests
                     await cpuCheckSignal.Task;
                 });
 
-            var executor = new CliExecutor(
-                _mockLogger.Object,
-                _mockCliServices.Object,
-                _mockSettingsProvider.Object,
-                _lazyTelemetryManager,
-                mockThrottler.Object,
-                cliCommandConcurrencyLimit: 1);
-
-            var expectedDelta = new DeltaResponseModel { NewScore = 8.5m, OldScore = 7.0m };
-            var jsonResponse = JsonConvert.SerializeObject(expectedDelta);
-            _mockCommandProvider.Setup(x => x.GetReviewDeltaCommand(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns("delta command");
-            _mockProcessExecutor.Setup(x => x.ExecuteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>(), It.IsAny<CancellationToken>(), It.IsAny<string>()))
-                .ReturnsAsync(jsonResponse);
+            var executor = CreateExecutor(mockThrottler.Object, 1);
+            _mockClient.Setup(x => x.DeltaAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DeltaResponseModel { NewScore = 8.5m, OldScore = 7.0m });
 
             var task1 = executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = "old1", NewScore = "new1", FilePath = "/file1.cs" });
             var task2 = executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = "old2", NewScore = "new2", FilePath = "/file2.cs" });
@@ -659,6 +447,18 @@ namespace Codescene.VSExtension.Core.Tests
 
             cpuCheckSignal.SetResult(true);
             await Task.WhenAll(task1, task2);
+        }
+
+        private CliExecutor CreateExecutor(ICpuUsageThrottler throttler = null, int concurrency = 1)
+        {
+            return new CliExecutor(
+                _mockLogger.Object,
+                _mockClient.Object,
+                _mockCacheStorage.Object,
+                _mockSettingsProvider.Object,
+                _lazyTelemetryManager,
+                throttler,
+                concurrency);
         }
     }
 }

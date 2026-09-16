@@ -12,5 +12,7 @@ namespace Codescene.VSExtension.VS2022.Options
         public bool ShowDebugLogs => General.Instance.ShowDebugLogs;
 
         public string AuthToken => General.Instance.AuthToken;
+
+        public int ServerWorkerThreads => General.Instance.ServerWorkerThreads;
     }
 }

@@ -22,8 +22,6 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Util;
-using LibGit2Sharp;
-using Newtonsoft.Json;
 using static Codescene.VSExtension.Core.Consts.Constants;
 
 namespace Codescene.VSExtension.Core.Application.Cli
@@ -33,7 +31,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
     public class CliExecutor : ICliExecutor
     {
         private readonly ILogger _logger;
-        private readonly ICliServices _cliServices;
+        private readonly IIdeServerClient _client;
+        private readonly ICacheStorageService _cacheStorage;
         private readonly ISettingsProvider _settingsProvider;
         private readonly Lazy<ITelemetryManager> _telemetryManagerLazy;
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _inFlightReviewCancellation = new ConcurrentDictionary<string, CancellationTokenSource>();
@@ -45,24 +44,27 @@ namespace Codescene.VSExtension.Core.Application.Cli
         [ImportingConstructor]
         public CliExecutor(
             ILogger logger,
-            ICliServices cliServices,
+            IIdeServerClient client,
+            ICacheStorageService cacheStorage,
             ISettingsProvider settingsProvider,
             [Import(AllowDefault = true)] Lazy<ITelemetryManager> telemetryManagerLazy = null,
             [Import(AllowDefault = true)] ICpuUsageThrottler cpuUsageThrottler = null)
-            : this(logger, cliServices, settingsProvider, telemetryManagerLazy, cpuUsageThrottler, 1)
+            : this(logger, client, cacheStorage, settingsProvider, telemetryManagerLazy, cpuUsageThrottler, 1)
         {
         }
 
         internal CliExecutor(
             ILogger logger,
-            ICliServices cliServices,
+            IIdeServerClient client,
+            ICacheStorageService cacheStorage,
             ISettingsProvider settingsProvider,
             Lazy<ITelemetryManager> telemetryManagerLazy,
             ICpuUsageThrottler cpuUsageThrottler,
             int cliCommandConcurrencyLimit)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _cliServices = cliServices ?? throw new ArgumentNullException(nameof(cliServices));
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _cacheStorage = cacheStorage ?? throw new ArgumentNullException(nameof(cacheStorage));
             _settingsProvider = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
             _telemetryManagerLazy = telemetryManagerLazy;
             _cpuUsageThrottler = cpuUsageThrottler ?? new NoOpCpuUsageThrottler();
@@ -70,21 +72,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _cliCommandChannel = new SemaphoreSlim(effectiveLimit, effectiveLimit);
         }
 
-        /// <summary>
-        /// Reviews a file's content by invoking the CLI with the appropriate arguments.
-        /// </summary>
-        /// <param name="filePath">The path of the file being reviewed.</param>
-        /// <param name="content">The content (code) of the file to be reviewed.</param>
-        /// <param name="isBaseline">True when reviewing baseline (committed) content for delta; used to avoid cancelling in-flight current-content reviews.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>A <see cref="CliReviewModel"/> containing the review results, or null if the review fails.</returns>
         public async Task<CliReviewModel> ReviewContentAsync(string filePath, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
         {
             var fileName = Path.GetFileName(filePath);
             var key = GetReviewCancellationKey(GetReviewCancellationPathIdentity(filePath), isBaseline);
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            var oldCts = _inFlightReviewCancellation.AddOrUpdate(key, cts, (_, existing) =>
+            _inFlightReviewCancellation.AddOrUpdate(key, cts, (_, existing) =>
             {
                 try
                 {
@@ -92,7 +86,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 }
                 catch (ObjectDisposedException)
                 {
-                    // ignored
                 }
 
                 existing.Dispose();
@@ -101,16 +94,20 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             try
             {
-                var command = _cliServices.CommandProvider.ReviewFileContentCommand;
-                var payload = _cliServices.CommandProvider.GetReviewFileContentPayload(filePath, content, _cliServices.CacheStorage.GetSolutionReviewCacheLocation());
-                var workingDirectory = GetCliWorkingDirectoryForFile(filePath);
+                var request = new ReviewRequestModel
+                {
+                    FilePath = filePath,
+                    FileContent = content,
+                    CachePath = _cacheStorage.GetSolutionReviewCacheLocation(),
+                    RepoPath = GetReviewRepoPath(filePath),
+                };
 
                 var (result, elapsedMs) = await ExecuteOnChannelAsync(
                     _cliCommandChannel,
                     cts.Token,
-                    () => ExecuteWithTimingAndLoggingAsync<CliReviewModel>(
+                    () => ExecuteWithTimingAndLoggingAsync(
                         "CLI file review",
-                        () => _cliServices.ProcessExecutor.ExecuteAsync(command, payload, null, cts.Token, workingDirectory),
+                        () => _client.ReviewAsync(request, cts.Token),
                         $"Review of file {fileName} failed"));
 
                 if (result != null)
@@ -150,22 +147,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public async Task<DeltaResponseModel> ReviewDeltaAsync(ReviewDeltaRequest request, CancellationToken cancellationToken = default)
         {
-            var arguments = _cliServices.CommandProvider.GetReviewDeltaCommand(request.OldScore, request.NewScore);
-
-            if (string.IsNullOrEmpty(arguments))
-            {
-                _logger.Warn("Skipping delta review. Arguments were not defined.");
-                return null;
-            }
-
             await _deltaChannel.WaitAsync(cancellationToken);
             try
             {
                 await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
-                var workingDirectory = GetCliWorkingDirectoryForFile(request.FilePath);
-                var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync<DeltaResponseModel>(
+                var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync(
                     "CLI file delta review",
-                    () => _cliServices.ProcessExecutor.ExecuteAsync(Titles.DELTA, arguments, null, cancellationToken, workingDirectory),
+                    () => _client.DeltaAsync(request.OldScore, request.NewScore, cancellationToken),
                     "Delta for file failed.");
 
                 if (result != null && !string.IsNullOrEmpty(request.FilePath))
@@ -197,16 +185,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
         public async Task<PreFlightResponseModel> PreflightAsync(bool force = true, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var arguments = _cliServices.CommandProvider.GetPreflightSupportInformationCommand(force: force);
-            if (string.IsNullOrEmpty(arguments))
-            {
-                _logger.Warn("Skipping preflight. Arguments were not defined.");
-                return null;
-            }
-
-            var taskResult = await ExecuteWithTimingAndLoggingAsync<PreFlightResponseModel>(
+            var taskResult = await ExecuteWithTimingAndLoggingAsync(
                 "ACE preflight",
-                () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, null, Codescene.VSExtension.Core.Consts.Constants.Timeout.TELEMETRYTIMEOUT, cancellationToken),
+                () => _client.PreflightAsync(force, cancellationToken),
                 "Preflight failed.");
             return taskResult.Result;
         }
@@ -226,17 +207,23 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 throw missingTokenEx;
             }
 
-            var arguments = _cliServices.CommandProvider.RefactorPostCommand;
-            var payload = _cliServices.CommandProvider.GetRefactorPostPayload(fnToRefactor, skipCache, effectiveToken);
-            if (string.IsNullOrEmpty(arguments) || string.IsNullOrEmpty(payload))
+            var request = new RefactorPostRequestModel
             {
-                _logger.Warn("Skipping refactoring. Arguments were not defined.");
-                return null;
+                Token = effectiveToken,
+                SkipCache = skipCache ? true : (bool?)null,
+            };
+            if (!string.IsNullOrEmpty(fnToRefactor?.NippyB64))
+            {
+                request.FnToRefactorNippyB64 = fnToRefactor.NippyB64;
+            }
+            else
+            {
+                request.FnToRefactor = fnToRefactor;
             }
 
-            var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync<RefactorResponseModel>(
+            var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync(
                 "ACE refactoring",
-                () => _cliServices.ProcessExecutor.ExecuteAsync(arguments, payload, null, cancellationToken),
+                () => _client.RefactorAsync(request, cancellationToken),
                 "Refactoring failed.");
 
             if (result != null && fnToRefactor != null)
@@ -262,7 +249,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return await ExecuteFnsToRefactorAsync(
                 isValid: codeSmells != null && codeSmells.Count > 0,
                 skipMessage: "Skipping refactoring functions from code smells. Code smells list was null or empty.",
-                getPayload: cachePath => _cliServices.CommandProvider.GetRefactorWithCodeSmellsPayload(fileName, fileContent, cachePath, codeSmells, preflight),
+                createRequest: cachePath => new FnsToRefactorCodeSmellRequestModel
+                {
+                    FileName = fileName,
+                    FileContent = fileContent,
+                    CachePath = cachePath,
+                    Preflight = preflight,
+                    CodeSmells = codeSmells,
+                },
                 operationLabel: "ACE refactoring functions from code smells check",
                 cancellationToken: cancellationToken);
         }
@@ -272,25 +266,34 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return await ExecuteFnsToRefactorAsync(
                 isValid: deltaResult != null,
                 skipMessage: "Skipping refactoring functions from delta. Delta result was null.",
-                getPayload: cachePath => _cliServices.CommandProvider.GetRefactorWithDeltaResultPayload(fileName, fileContent, cachePath, deltaResult, preflight),
+                createRequest: cachePath => new FnsToRefactorDeltaRequestModel
+                {
+                    FileName = fileName,
+                    FileContent = fileContent,
+                    CachePath = cachePath,
+                    Preflight = preflight,
+                    DeltaResult = deltaResult,
+                },
                 operationLabel: "ACE refactoring functions from delta check",
                 cancellationToken: cancellationToken);
         }
 
-        public async Task<string> GetDeviceIdAsync(CancellationToken cancellationToken = default)
+        public Task<string> GetDeviceIdAsync(CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            return await ExecuteSimpleCommandAsync(
-                _cliServices.CommandProvider.DeviceIdCommand,
+            return TryReadServerValueAsync(
+                async token => await _client.DeviceIdAsync(token),
                 "Could not get device ID",
                 cancellationToken);
         }
 
-        public async Task<string> GetFileVersionAsync(CancellationToken cancellationToken = default)
+        public Task<string> GetFileVersionAsync(CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            return await ExecuteSimpleCommandAsync(
-                _cliServices.CommandProvider.VersionCommand,
+            return TryReadServerValueAsync(
+                async token =>
+                {
+                    var metadata = await _client.StartAsync(token);
+                    return metadata?.Sha;
+                },
                 "Could not get CLI version",
                 cancellationToken);
         }
@@ -310,12 +313,15 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private static string GetReviewCancellationKey(string filePathIdentity, bool isBaseline) =>
           string.IsNullOrEmpty(filePathIdentity) ? string.Empty : filePathIdentity + (isBaseline ? ":baseline" : ":current");
 
-        private async Task<string> ExecuteSimpleCommandAsync(string command, string errorMessage, CancellationToken cancellationToken = default)
+        private async Task<string> TryReadServerValueAsync(
+            Func<CancellationToken, Task<string>> read,
+            string errorMessage,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                var result = await _cliServices.ProcessExecutor.ExecuteAsync(command, null, null, cancellationToken);
-                return result?.Trim().TrimEnd('\r', '\n');
+                return (await read(cancellationToken))?.Trim() ?? string.Empty;
             }
             catch (Exception e)
             {
@@ -352,12 +358,42 @@ namespace Codescene.VSExtension.Core.Application.Cli
             });
         }
 
+        private string GetReviewRepoPath(string filePath)
+        {
+            var gitRoot = GitPathDiscovery.TryGetWorkingDirectory(filePath);
+            if (!string.IsNullOrEmpty(gitRoot))
+            {
+                return gitRoot;
+            }
+
+            var workspace = _cacheStorage.GetWorkspaceDirectory();
+            if (!string.IsNullOrWhiteSpace(workspace) && Directory.Exists(workspace))
+            {
+                return PathNormalization.NormalizeWorkingDirectory(workspace);
+            }
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return null;
+            }
+
+            try
+            {
+                return Path.GetDirectoryName(Path.GetFullPath(filePath));
+            }
+            catch (Exception ex)
+            {
+                _logger.Debug($"Could not resolve review repository path: {ex.Message}");
+                return null;
+            }
+        }
+
         private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorAsync(
-    bool isValid,
-    string skipMessage,
-    Func<string, string> getPayload,
-    string operationLabel,
-    CancellationToken cancellationToken = default)
+            bool isValid,
+            string skipMessage,
+            Func<string, FnsToRefactorRequestModel> createRequest,
+            string operationLabel,
+            CancellationToken cancellationToken = default)
         {
             if (!isValid)
             {
@@ -365,19 +401,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            var cachePath = _cliServices.CacheStorage.GetSolutionReviewCacheLocation();
-            var payloadContent = getPayload(cachePath);
-            if (string.IsNullOrEmpty(payloadContent))
-            {
-                _logger.Warn("Skipping refactoring functions check. Payload content was not defined.");
-                return null;
-            }
-
-            var pendingKey = GetPendingRefactorRequestKey(operationLabel, payloadContent);
+            var cachePath = _cacheStorage.GetSolutionReviewCacheLocation();
+            var request = createRequest(cachePath);
+            var pendingKey = GetPendingRefactorRequestKey(operationLabel, request);
             var lazyTask = _pendingRefactorRequests.GetOrAdd(
                 pendingKey,
                 __ => new Lazy<Task<IList<FnToRefactorModel>>>(() =>
-                    ExecuteFnsToRefactorCommandAsync(payloadContent, operationLabel, operationLabel + " failed.", CancellationToken.None)));
+                    ExecuteFnsToRefactorCommandAsync(request, operationLabel, operationLabel + " failed.", CancellationToken.None)));
             var pendingTask = lazyTask.Value;
             _ = pendingTask.ContinueWith(
                 __ =>
@@ -393,24 +423,22 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return await AwaitWithCancellationAsync(pendingTask, cancellationToken);
         }
 
-        private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorCommandAsync(string payloadContent, string operationLabel, string errorMessage, CancellationToken cancellationToken = default)
+        private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorCommandAsync(FnsToRefactorRequestModel request, string operationLabel, string errorMessage, CancellationToken cancellationToken = default)
         {
-            _cliServices.CacheStorage.RemoveOldReviewCacheEntries();
-
-            var command = _cliServices.CommandProvider.RefactorCommand;
-
-            var (result, _) = await ExecuteWithTimingAndLoggingAsync<IList<FnToRefactorModel>>(
+            _cacheStorage.RemoveOldReviewCacheEntries();
+            var (result, _) = await ExecuteWithTimingAndLoggingAsync(
                 operationLabel,
-                () => _cliServices.ProcessExecutor.ExecuteAsync(command, payloadContent, null, cancellationToken),
+                () => _client.FnsToRefactorAsync(request, cancellationToken),
                 errorMessage);
             return result;
         }
 
-        private string GetPendingRefactorRequestKey(string operationLabel, string payloadContent)
+        private string GetPendingRefactorRequestKey(string operationLabel, FnsToRefactorRequestModel request)
         {
             using (var sha = SHA256.Create())
             {
-                var bytes = Encoding.UTF8.GetBytes(payloadContent ?? string.Empty);
+                var payload = (request.FileName ?? string.Empty) + "|" + (request.FileContent ?? string.Empty) + "|" + (request.CachePath ?? string.Empty);
+                var bytes = Encoding.UTF8.GetBytes(payload);
                 var hashBytes = sha.ComputeHash(bytes);
                 var hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
                 return operationLabel + "|" + hash;
@@ -451,7 +479,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return await task;
         }
 
-        private async Task<(T Result, long ElapsedMs)> ExecuteWithTimingAndLoggingAsync<T>(string label, Func<Task<string>> execute, string errorMessage)
+        private async Task<(T Result, long ElapsedMs)> ExecuteWithTimingAndLoggingAsync<T>(string label, Func<Task<T>> execute, string errorMessage)
         {
             long elapsedMs = 0;
             try
@@ -462,7 +490,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 elapsedMs = stopwatch.ElapsedMilliseconds;
 
                 _logger.Debug($"{Titles.CODESCENE} {label} completed in {elapsedMs} ms.");
-                return (JsonConvert.DeserializeObject<T>(result), elapsedMs);
+                return (result, elapsedMs);
             }
             catch (DevtoolsException e)
             {
@@ -486,64 +514,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 _logger.Error(errorMessage, e);
                 return (default, elapsedMs);
             }
-        }
-
-        private string GetCliWorkingDirectoryForFile(string filePath)
-        {
-            if (string.IsNullOrWhiteSpace(filePath))
-            {
-                return GetCliWorkingDirectoryWithoutFilePath();
-            }
-
-            string fullPath;
-            try
-            {
-                fullPath = Path.GetFullPath(filePath);
-            }
-            catch
-            {
-                fullPath = filePath;
-            }
-
-            try
-            {
-                var discovered = Repository.Discover(fullPath);
-                if (!string.IsNullOrEmpty(discovered))
-                {
-                    using (var repo = new Repository(discovered))
-                    {
-                        var wd = repo.Info.WorkingDirectory;
-                        if (!string.IsNullOrEmpty(wd))
-                        {
-                            return PathNormalization.NormalizeWorkingDirectory(wd);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Debug($"Could not resolve git working directory for CLI: {ex.Message}");
-            }
-
-            var workspace = _cliServices.CacheStorage.GetWorkspaceDirectory();
-            if (!string.IsNullOrWhiteSpace(workspace) && Directory.Exists(workspace))
-            {
-                return PathNormalization.NormalizeWorkingDirectory(workspace);
-            }
-
-            var dir = Path.GetDirectoryName(fullPath);
-            return string.IsNullOrEmpty(dir) ? null : dir;
-        }
-
-        private string GetCliWorkingDirectoryWithoutFilePath()
-        {
-            var workspace = _cliServices.CacheStorage.GetWorkspaceDirectory();
-            if (!string.IsNullOrWhiteSpace(workspace) && Directory.Exists(workspace))
-            {
-                return PathNormalization.NormalizeWorkingDirectory(workspace);
-            }
-
-            return null;
         }
     }
 }

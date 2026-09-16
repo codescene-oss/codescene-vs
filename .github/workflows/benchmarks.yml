@@ -107,20 +107,3 @@ jobs:
           comment-on-alert: true
           fail-on-alert: true
           alert-comment-cc-users: '@martinsafsten-codescene'
-
-      - name: Run CachingCodeReviewer benchmarks
-        shell: pwsh
-        working-directory: Codescene.VSExtension.VS2022
-        run: dotnet run --project Codescene.VSExtension.Core.Benchmarks/Codescene.VSExtension.Core.Benchmarks.csproj -c Release --no-build -- --filter "*CachingCodeReviewerBenchmarks*" --exporters json
-
-      - name: Store CachingCodeReviewer benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          name: Code Review - CachingCodeReviewer
-          tool: 'benchmarkdotnet'
-          output-file-path: Codescene.VSExtension.VS2022/BenchmarkDotNet.Artifacts/results/Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks-report-full-compressed.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: true
-          comment-on-alert: true
-          fail-on-alert: true
-          alert-comment-cc-users: '@martinsafsten-codescene'

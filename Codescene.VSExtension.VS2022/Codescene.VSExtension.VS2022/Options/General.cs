@@ -61,6 +61,11 @@ public class General : BaseOptionModel<General>
     [PasswordPropertyText(true)]
     public string AuthToken { get; set; } = string.Empty;
 
+    [Category("Performance")]
+    [DisplayName("Server Worker Threads")]
+    [Description("Number of worker threads for the CodeScene CLI server. Use 0 to choose automatically (half of the logical processors).")]
+    public int ServerWorkerThreads { get; set; } = 0;
+
     public override async Task LoadAsync()
     {
         await base.LoadAsync();

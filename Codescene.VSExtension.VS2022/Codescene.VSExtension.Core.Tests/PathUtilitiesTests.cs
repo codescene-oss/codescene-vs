@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using Codescene.VSExtension.Core.Application.Util;
+using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Tests
 {
@@ -53,6 +54,14 @@ namespace Codescene.VSExtension.Core.Tests
             var result = PathUtilities.AppendDirectorySeparatorChar(pathWithoutSeparator);
             Assert.EndsWith(Path.DirectorySeparatorChar.ToString(), result);
             Assert.AreEqual(pathWithoutSeparator + Path.DirectorySeparatorChar, result);
+        }
+
+        [TestMethod]
+        public void NormalizeFsPath_InvalidPath_FallsBackToNormalizedInput()
+        {
+            var result = RpcPath.NormalizeFsPath("\0Invalid/Path/");
+
+            Assert.AreEqual("\0invalid\\path", result);
         }
 
         [TestMethod]

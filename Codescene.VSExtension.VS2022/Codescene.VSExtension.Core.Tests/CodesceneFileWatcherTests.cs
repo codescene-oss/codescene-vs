@@ -128,7 +128,7 @@ namespace Codescene.VSExtension.Core.Tests
                 }
 
                 Assert.IsTrue(
-                    _logger.SnapshotErrorMessages().Any(m => m.Item1.Contains("Could not create watcher")),
+                    _logger.SnapshotErrorMessages().Any(m => m.Contains("Could not create watcher")),
                     "Should log error when FileSystemWatcher creation fails");
             }
             finally
@@ -180,7 +180,7 @@ namespace Codescene.VSExtension.Core.Tests
                 var deadline = DateTime.UtcNow.AddMilliseconds(3000);
                 while (DateTime.UtcNow < deadline)
                 {
-                    if (_logger.SnapshotErrorMessages().Any(m => m.Item1.Contains("Error in FileChanged handler")))
+                    if (_logger.SnapshotErrorMessages().Any(m => m.Contains("Error in FileChanged handler")))
                     {
                         break;
                     }
@@ -189,7 +189,7 @@ namespace Codescene.VSExtension.Core.Tests
                 }
 
                 Assert.IsTrue(
-                    _logger.SnapshotErrorMessages().Any(m => m.Item1.Contains("Error in FileChanged handler")),
+                    _logger.SnapshotErrorMessages().Any(m => m.Contains("Error in FileChanged handler")),
                     "Error should be logged when handler throws");
             }
         }
