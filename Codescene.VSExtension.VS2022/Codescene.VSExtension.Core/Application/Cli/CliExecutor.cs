@@ -99,7 +99,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     FilePath = filePath,
                     FileContent = content,
                     CachePath = _cacheStorage.GetSolutionReviewCacheLocation(),
-                    RepoPath = GitPathDiscovery.TryGetWorkingDirectory(filePath),
+                    RepoPath = GetReviewRepoPath(filePath),
                 };
 
                 var (result, elapsedMs) = await ExecuteOnChannelAsync(
@@ -356,6 +356,36 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     _logger?.Debug($"Failed to send performance telemetry asynchronously: {e.Message}");
                 }
             });
+        }
+
+        private string GetReviewRepoPath(string filePath)
+        {
+            var gitRoot = GitPathDiscovery.TryGetWorkingDirectory(filePath);
+            if (!string.IsNullOrEmpty(gitRoot))
+            {
+                return gitRoot;
+            }
+
+            var workspace = _cacheStorage.GetWorkspaceDirectory();
+            if (!string.IsNullOrWhiteSpace(workspace) && Directory.Exists(workspace))
+            {
+                return PathNormalization.NormalizeWorkingDirectory(workspace);
+            }
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return null;
+            }
+
+            try
+            {
+                return Path.GetDirectoryName(Path.GetFullPath(filePath));
+            }
+            catch (Exception ex)
+            {
+                _logger.Debug($"Could not resolve review repository path: {ex.Message}");
+                return null;
+            }
         }
 
         private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorAsync(

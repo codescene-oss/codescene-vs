@@ -93,6 +93,30 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task ReviewContentAsync_FileOutsideGitRepository_IncludesContainingDirectory()
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "cli-review-file-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directory);
+            var filePath = Path.Combine(directory, "test.cs");
+            File.WriteAllText(filePath, TestFileContent);
+            ReviewRequestModel request = null;
+            _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
+                .Callback<ReviewRequestModel, CancellationToken>((value, _) => request = value)
+                .ReturnsAsync(new CliReviewModel());
+
+            try
+            {
+                await _cliExecutor.ReviewContentAsync(filePath, TestFileContent);
+
+                Assert.AreEqual(directory, request.RepoPath);
+            }
+            finally
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+
+        [TestMethod]
         public async Task ReviewContentAsync_WhenClientThrowsDevtoolsException_ThrowsException()
         {
             _mockClient.Setup(x => x.ReviewAsync(It.IsAny<ReviewRequestModel>(), It.IsAny<CancellationToken>()))
