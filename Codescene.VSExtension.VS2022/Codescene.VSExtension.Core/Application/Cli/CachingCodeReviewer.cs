@@ -54,61 +54,25 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _notifier = notifier;
         }
 
-        public async Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(content) || string.IsNullOrWhiteSpace(path))
-            {
-                return null;
-            }
-
-            var normalizedPath = path.ToLowerInvariant();
-            var query = new ReviewCacheQuery(content, normalizedPath, isBaseline);
-            var cached = _cache.Get(query);
-
-            if (cached != null)
-            {
-                _logger?.Debug($"CachingCodeReviewer: Cache hit for '{path}'.");
-                return cached;
-            }
-
-            var pendingKey = GetPendingKey(content, path, isBaseline);
-
-            var lazyTask = _pendingReviews.GetOrAdd(pendingKey, _ =>
-                new Lazy<Task<FileReviewModel>>(() =>
-                    ReviewInternalAsync(path, content, isBaseline, operationGeneration, CancellationToken.None)));
-
-            var pendingTask = lazyTask.Value;
-
-            try
-            {
-                var result = await pendingTask.ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-                return result;
-            }
-            finally
-            {
-                _pendingReviews.TryRemove(pendingKey, out _);
-            }
+            return ReviewWithAnnouncementAsync(path, content, isBaseline, operationGeneration, cancellationToken, announcement: null);
         }
 
-        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
+        public Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            var review = await this.ReviewAsync(path, currentCode, isBaseline: false, operationGeneration, cancellationToken);
-            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, null, operationGeneration, cancellationToken, baselineCommit);
-
-            return (review, baselineRawScore ?? string.Empty);
+            return ReviewAndBaselineWithAnnouncementAsync(path, currentCode, operationGeneration, cancellationToken, baselineCommit, announcement: null);
         }
 
-        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
+        public Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
-            if (review?.RawScore == null)
-            {
-                return (review, null);
-            }
-
-            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
-            return (review, delta);
+            var announcement = new ReviewAnnouncement();
+            return ReviewStatusBarLogger.RunAsync(
+                _logger,
+                path,
+                announcement,
+                cancellationToken,
+                () => ExecuteReviewWithDeltaAsync(path, content, operationGeneration, cancellationToken, baselineCommit, announcement));
         }
 
         public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
@@ -180,6 +144,71 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 _pendingDeltas.TryRemove(pendingKey, out _);
             }
+        }
+
+        private async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineWithAnnouncementAsync(string path, string currentCode, long? operationGeneration, CancellationToken cancellationToken, string baselineCommit, ReviewAnnouncement announcement)
+        {
+            var review = await ReviewWithAnnouncementAsync(path, currentCode, isBaseline: false, operationGeneration, cancellationToken, announcement);
+            var baselineRawScore = await GetOrComputeBaselineRawScoreAsync(path, null, operationGeneration, cancellationToken, baselineCommit);
+
+            return (review, baselineRawScore ?? string.Empty);
+        }
+
+        private async Task<FileReviewModel> ReviewWithAnnouncementAsync(string path, string content, bool isBaseline, long? operationGeneration, CancellationToken cancellationToken, ReviewAnnouncement announcement)
+        {
+            if (string.IsNullOrWhiteSpace(content) || string.IsNullOrWhiteSpace(path))
+            {
+                return null;
+            }
+
+            var normalizedPath = path.ToLowerInvariant();
+            var query = new ReviewCacheQuery(content, normalizedPath, isBaseline);
+            var cached = _cache.Get(query);
+
+            if (cached != null)
+            {
+                _logger?.Debug($"CachingCodeReviewer: Cache hit for '{path}'.");
+                return cached;
+            }
+
+            if (!isBaseline)
+            {
+                if (announcement != null)
+                {
+                    announcement.Announced = true;
+                }
+            }
+
+            var pendingKey = GetPendingKey(content, path, isBaseline);
+
+            var lazyTask = _pendingReviews.GetOrAdd(pendingKey, _ =>
+                new Lazy<Task<FileReviewModel>>(() =>
+                    ReviewInternalAsync(path, content, isBaseline, operationGeneration, CancellationToken.None)));
+
+            var pendingTask = lazyTask.Value;
+
+            try
+            {
+                var result = await pendingTask.ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                return result;
+            }
+            finally
+            {
+                _pendingReviews.TryRemove(pendingKey, out _);
+            }
+        }
+
+        private async Task<(FileReviewModel review, DeltaResponseModel delta)> ExecuteReviewWithDeltaAsync(string path, string content, long? operationGeneration, CancellationToken cancellationToken, string baselineCommit, ReviewAnnouncement announcement)
+        {
+            var (review, baselineRawScore) = await ReviewAndBaselineWithAnnouncementAsync(path, content, operationGeneration, cancellationToken, baselineCommit, announcement);
+            if (review?.RawScore == null)
+            {
+                return (review, null);
+            }
+
+            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
+            return (review, delta);
         }
 
         private string GetBaselineContent(string path, string baselineContent, string baselineCommit = null)
