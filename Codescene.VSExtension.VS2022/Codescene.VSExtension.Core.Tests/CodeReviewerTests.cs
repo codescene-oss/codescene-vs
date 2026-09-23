@@ -580,5 +580,101 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNotNull(result);
             Assert.IsNull(result.FunctionLevelFindings[0].RefactorableFn);
         }
+
+        [TestMethod]
+        public async Task ReviewAsync_NonBaseline_LogsReviewingFileOnStatusBar()
+        {
+            var path = "C:/project/test.cs";
+            var content = "public class Test { }";
+
+            _mockExecutor.Setup(x => x.ReviewContentAsync(path, content, false, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CliReviewModel());
+            _mockMapper.Setup(x => x.Map(path, It.IsAny<CliReviewModel>())).Returns(new FileReviewModel { FilePath = path });
+
+            await _codeReviewer.ReviewAsync(path, content);
+
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Reviewing file") && s.Contains(path)), true), Times.Once);
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Reviewing file")), false), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task ReviewAsync_Baseline_DoesNotLogReviewingFileOnStatusBar()
+        {
+            var path = "C:/project/test.cs";
+            var content = "public class Test { }";
+
+            _mockExecutor.Setup(x => x.ReviewContentAsync(path, content, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CliReviewModel());
+            _mockMapper.Setup(x => x.Map(path, It.IsAny<CliReviewModel>())).Returns(new FileReviewModel { FilePath = path });
+
+            await _codeReviewer.ReviewAsync(path, content, isBaseline: true);
+
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Reviewing file") && s.Contains(path)), false), Times.Once);
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Reviewing file")), true), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task ReviewWithDeltaAsync_LogsCompletionOnStatusBar()
+        {
+            var path = "C:/project/test.cs";
+            var content = "public class Test { }";
+            var oldCode = "public class OldTest { }";
+            var review = new FileReviewModel { FilePath = path, RawScore = "current-raw" };
+            var cliReview = new CliReviewModel { RawScore = "current-raw" };
+            var baselineCliReview = new CliReviewModel { RawScore = "baseline-raw" };
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, It.IsAny<string>())).Returns(oldCode);
+            _mockExecutor.Setup(x => x.ReviewContentAsync(path, content, false, It.IsAny<CancellationToken>())).ReturnsAsync(cliReview);
+            _mockExecutor.Setup(x => x.ReviewContentAsync(path, oldCode, true, It.IsAny<CancellationToken>())).ReturnsAsync(baselineCliReview);
+            _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(review);
+            _mockMapper.Setup(x => x.Map(path, baselineCliReview)).Returns(new FileReviewModel { FilePath = path, RawScore = "baseline-raw" });
+            _mockExecutor.Setup(x => x.ReviewDeltaAsync(It.IsAny<ReviewDeltaRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DeltaResponseModel());
+
+            await _codeReviewer.ReviewWithDeltaAsync(path, content);
+
+            _mockLogger.Verify(l => l.Info("Review complete for test.cs.", true), Times.Once);
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Review failed")), It.IsAny<bool>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task ReviewWithDeltaAsync_WhenCanceled_DoesNotLogCompletion()
+        {
+            var path = "test.cs";
+            var content = "public class Test { }";
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, It.IsAny<string>())).Returns("old code");
+            _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .Returns<string, string, bool, CancellationToken>((_, _, _, ct) =>
+                {
+                    ct.ThrowIfCancellationRequested();
+                    return Task.FromResult(new CliReviewModel { RawScore = "raw" });
+                });
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _codeReviewer.ReviewWithDeltaAsync(path, content, cancellationToken: cts.Token));
+
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Review complete")), It.IsAny<bool>()), Times.Never);
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Review failed")), It.IsAny<bool>()), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task ReviewWithDeltaAsync_WhenReviewThrows_LogsFailureOnStatusBar()
+        {
+            var path = "C:/project/test.cs";
+            var content = "public class Test { }";
+
+            _mockGitService.Setup(x => x.GetFileContentForCommit(path, It.IsAny<string>())).Returns("old");
+            _mockExecutor.Setup(x => x.ReviewContentAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new InvalidOperationException("CLI failed"));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _codeReviewer.ReviewWithDeltaAsync(path, content));
+
+            _mockLogger.Verify(l => l.Info("Review failed for test.cs.", true), Times.Once);
+            _mockLogger.Verify(l => l.Info(It.Is<string>(s => s.Contains("Review complete")), It.IsAny<bool>()), Times.Never);
+        }
     }
 }

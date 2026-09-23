@@ -54,7 +54,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            _logger?.Info($"Reviewing file {path}...", true);
+            _logger?.Info($"Reviewing file {path}...", !isBaseline);
 
             var review = await _executor.ReviewContentAsync(path, content, isBaseline, cancellationToken);
             return _mapper.Map(path, review);
@@ -71,16 +71,18 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return (review, baselineRawScore);
         }
 
-        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
+        public Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
-            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
-            if (review?.RawScore == null)
+            var announcement = new ReviewAnnouncement
             {
-                return (review, null);
-            }
-
-            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
-            return (review, delta);
+                Announced = ReviewStatusBarLogger.HasReviewableContent(path, content),
+            };
+            return ReviewStatusBarLogger.RunAsync(
+                _logger,
+                path,
+                announcement,
+                cancellationToken,
+                () => ReviewWithDeltaCoreAsync(path, content, operationGeneration, cancellationToken, baselineCommit));
         }
 
         public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
@@ -167,6 +169,18 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             return oldRawScore;
+        }
+
+        private async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaCoreAsync(string path, string content, long? operationGeneration, CancellationToken cancellationToken, string baselineCommit)
+        {
+            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
+            if (review?.RawScore == null)
+            {
+                return (review, null);
+            }
+
+            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
+            return (review, delta);
         }
     }
 }
