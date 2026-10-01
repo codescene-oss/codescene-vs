@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790866245096,
+  "lastUpdate": 1790866425255,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -6564,6 +6564,66 @@ window.BENCHMARK_DATA = {
             "value": 307830536.6666667,
             "unit": "ns",
             "range": "± 4395380.564519116"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f0354abf6195c084cd52a735617fdeab4fdb71f2",
+          "message": "ci: publish to Visual Studio Marketplace with Entra ID instead of a PAT (#328)\n\n* ci: publish to Visual Studio Marketplace with Entra ID instead of a PAT\n\nGlobal Azure DevOps PATs are retired on December 1, 2026. The publish\njob now signs in through GitHub OIDC, requests a Microsoft Entra token\nfor Azure DevOps, and hands it to VsixPublisher login in place of a PAT.\nThe publish step then reuses that session.\n\nA dry_run input stops after the Marketplace login, which proves the\nidentity can act for the CodeScene publisher without publishing.\n\n* Update Azure login credentials for marketplace publishing",
+          "timestamp": "2026-10-01T16:45:38+02:00",
+          "tree_id": "82b55d0c5eaf95bc2bf41fc6655e3b87a9d0a796",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/f0354abf6195c084cd52a735617fdeab4fdb71f2"
+        },
+        "date": 1790866423894,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 125976802.08333333,
+            "unit": "ns",
+            "range": "± 724263.345615449"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 117810513.33333333,
+            "unit": "ns",
+            "range": "± 1539867.5855997985"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 242098662.22222224,
+            "unit": "ns",
+            "range": "± 1597504.1664683057"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 214931459.52380952,
+            "unit": "ns",
+            "range": "± 2031203.1339783608"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 342909860,
+            "unit": "ns",
+            "range": "± 3199638.1261457857"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 285667429.1666667,
+            "unit": "ns",
+            "range": "± 806909.2289995801"
           }
         ]
       }
