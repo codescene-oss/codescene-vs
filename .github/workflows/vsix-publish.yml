@@ -7,6 +7,13 @@ on:
         type: boolean
         default: true
         description: Publish to Visual Studio Marketplace
+      dry_run:
+        type: boolean
+        default: false
+        description: Prepare the package and sign in to the Marketplace without publishing
+
+permissions:
+  contents: read
 
 jobs:
   # ------------------------
@@ -71,6 +78,9 @@ jobs:
     runs-on: windows-2025-vs2026
     needs: prepare
     if: ${{ github.event.inputs.publish_vs_marketplace == 'true' }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Download VSIX artifact
         uses: actions/download-artifact@v4
@@ -94,7 +104,27 @@ jobs:
           echo "path=$vsix" >> $env:GITHUB_OUTPUT
           Write-Host "Found VsixPublisher at: $vsix"
 
+      - name: Azure login (OIDC)
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_PUBLISHING_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_PUBLISHING_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      - name: Sign in to Visual Studio Marketplace
+        shell: pwsh
+        run: |
+          $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+          if (-not $token) { throw "Failed to obtain a Microsoft Entra access token for the Marketplace." }
+          Write-Output "::add-mask::$token"
+
+          & "${{ steps.find-vsixpub.outputs.path }}" login `
+            -personalAccessToken "$token" `
+            -publisherName "CodeScene"
+          if ($LASTEXITCODE -ne 0) { throw "VsixPublisher login failed with exit code $LASTEXITCODE." }
+
       - name: Publish to Visual Studio Marketplace
+        if: ${{ github.event.inputs.dry_run != 'true' }}
         shell: pwsh
         run: |
           $file = (Get-ChildItem *.vsix | Select-Object -First 1).FullName
@@ -106,5 +136,4 @@ jobs:
 
           & "${{ steps.find-vsixpub.outputs.path }}" publish `
             -payload "$file" `
-            -publishManifest "$manifest" `
-            -personalAccessToken "${{ secrets.VISUAL_STUDIO_MARKETPLACE_PUBLISHING_TOKEN }}"
+            -publishManifest "$manifest"
