@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790172903295,
+  "lastUpdate": 1790866245096,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2684,6 +2684,48 @@ window.BENCHMARK_DATA = {
             "value": 68367727.5,
             "unit": "ns",
             "range": "± 759455.5367081125"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f0354abf6195c084cd52a735617fdeab4fdb71f2",
+          "message": "ci: publish to Visual Studio Marketplace with Entra ID instead of a PAT (#328)\n\n* ci: publish to Visual Studio Marketplace with Entra ID instead of a PAT\n\nGlobal Azure DevOps PATs are retired on December 1, 2026. The publish\njob now signs in through GitHub OIDC, requests a Microsoft Entra token\nfor Azure DevOps, and hands it to VsixPublisher login in place of a PAT.\nThe publish step then reuses that session.\n\nA dry_run input stops after the Marketplace login, which proves the\nidentity can act for the CodeScene publisher without publishing.\n\n* Update Azure login credentials for marketplace publishing",
+          "timestamp": "2026-10-01T16:45:38+02:00",
+          "tree_id": "82b55d0c5eaf95bc2bf41fc6655e3b87a9d0a796",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/f0354abf6195c084cd52a735617fdeab4fdb71f2"
+        },
+        "date": 1790866240923,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 109341181.33333333,
+            "unit": "ns",
+            "range": "± 1661146.2154525653"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 98378505.95238097,
+            "unit": "ns",
+            "range": "± 828587.4291336144"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 64673449.30555555,
+            "unit": "ns",
+            "range": "± 2713340.644409156"
           }
         ]
       }
