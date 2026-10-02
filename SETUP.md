@@ -13,6 +13,8 @@ The Centralized Webviews Framework (CWF) used by the extension, which provides s
 
 **Note:** Access to the CWF repository requires appropriate permissions.
 
+A normal build downloads the latest GitHub release. `make updatecwf` builds the sibling checkout at `../cs-webview` and copies it into the extension instead.
+
 ## Feature Flags
 
 This plugin supports simple feature flags that can be controlled at build time using environment variables. 
