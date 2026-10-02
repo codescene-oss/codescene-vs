@@ -22,7 +22,32 @@ namespace Codescene.VSExtension.Core.Application.Git
             string repoRoot;
             string posixPath;
             string key;
-            Task refresh;
+            if (AlreadyAdmitted(reportedRoot, relPath, out repoRoot, out posixPath, out key))
+            {
+                return true;
+            }
+
+            if (!TryScheduleRefresh(repoRoot, posixPath, key, out var refresh))
+            {
+                return true;
+            }
+
+            await refresh.ConfigureAwait(false);
+            if (AdmittedAfterRefresh(repoRoot, posixPath))
+            {
+                return true;
+            }
+
+            _logger?.Debug("[watch] delta rejected " + LogFields.Format(
+                LogFields.Field("repo", repoRoot),
+                LogFields.Field("path", posixPath),
+                LogFields.Field("reason", "not-in-inventory")));
+            return false;
+        }
+
+        private bool AlreadyAdmitted(string reportedRoot, string relPath, out string repoRoot, out string posixPath, out string key)
+        {
+            var missingInventory = false;
             lock (_gate)
             {
                 repoRoot = ResolveRepoRoot(reportedRoot);
@@ -30,16 +55,34 @@ namespace Codescene.VSExtension.Core.Application.Git
                 key = RpcPath.NormalizeFsPath(repoRoot);
                 if (!_inventories.ContainsKey(key))
                 {
-                    _logger?.Debug("[watch] delta admitted " + LogFields.Format(
-                        LogFields.Field("repo", repoRoot),
-                        LogFields.Field("path", posixPath),
-                        LogFields.Field("reason", "no-inventory")));
-                    return true;
+                    missingInventory = true;
                 }
-
-                if (IsMonitoredPathUnlocked(repoRoot, posixPath))
+                else if (InventoryContainsUnlocked(repoRoot, posixPath))
                 {
                     return true;
+                }
+            }
+
+            if (missingInventory)
+            {
+                _logger?.Debug("[watch] delta admitted " + LogFields.Format(
+                    LogFields.Field("repo", repoRoot),
+                    LogFields.Field("path", posixPath),
+                    LogFields.Field("reason", "no-inventory")));
+                return true;
+            }
+
+            return IsDirty(repoRoot, posixPath);
+        }
+
+        private bool TryScheduleRefresh(string repoRoot, string posixPath, string key, out Task refresh)
+        {
+            lock (_gate)
+            {
+                if (InventoryContainsUnlocked(repoRoot, posixPath))
+                {
+                    refresh = Task.CompletedTask;
+                    return false;
                 }
 
                 _logger?.Debug("[watch] delta reconcile scheduled " + LogFields.Format(
@@ -47,22 +90,19 @@ namespace Codescene.VSExtension.Core.Application.Git
                     LogFields.Field("path", posixPath),
                     LogFields.Field("reason", "not-in-inventory")));
                 refresh = ScheduleInventoryRefreshUnlocked(repoRoot, key);
+                return true;
             }
+        }
 
-            await refresh.ConfigureAwait(false);
+        private bool AdmittedAfterRefresh(string repoRoot, string posixPath)
+        {
+            var inInventory = false;
             lock (_gate)
             {
-                var admitted = _enabled && IsMonitoredPathUnlocked(repoRoot, posixPath);
-                if (!admitted)
-                {
-                    _logger?.Debug("[watch] delta rejected " + LogFields.Format(
-                        LogFields.Field("repo", repoRoot),
-                        LogFields.Field("path", posixPath),
-                        LogFields.Field("reason", "not-in-inventory")));
-                }
-
-                return admitted;
+                inInventory = _enabled && InventoryContainsUnlocked(repoRoot, posixPath);
             }
+
+            return inInventory || IsDirty(repoRoot, posixPath);
         }
 
         private void OnQueueChanged(object sender, ReviewQueue queue)
@@ -79,20 +119,18 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _queueIdleTimer = new Timer(
                     _ =>
                     {
+                        var prune = false;
                         lock (_gate)
                         {
                             _queueIdleTimer?.Dispose();
                             _queueIdleTimer = null;
-                            if (_disposed || !_enabled)
-                            {
-                                return;
-                            }
+                            prune = !_disposed && _enabled;
+                        }
 
-                            var keep = PathsToKeepUnlocked();
-                            _host?.PruneMonitor(_inventories.Keys.Select(ResolveRepoRoot).ToList(), keep);
-                            _logger?.Debug("[watch] queue idle, monitor re-pruned " + LogFields.Format(
-                                LogFields.Field("repos", _inventories.Count),
-                                LogFields.Field("keepPaths", keep.Count)));
+                        if (prune)
+                        {
+                            PruneMonitor();
+                            _logger?.Debug("[watch] queue idle, monitor re-pruned");
                         }
                     },
                     null,
@@ -137,15 +175,10 @@ namespace Codescene.VSExtension.Core.Application.Git
             _host?.PruneMonitor(Array.Empty<string>(), new HashSet<string>(StringComparer.OrdinalIgnoreCase));
         }
 
-        private bool IsMonitoredPathUnlocked(string repoRoot, string relPath)
+        private bool InventoryContainsUnlocked(string repoRoot, string relPath)
         {
             var key = RpcPath.NormalizeFsPath(repoRoot);
-            if (_inventories.TryGetValue(key, out var inventory) && inventory.Contains(relPath))
-            {
-                return true;
-            }
-
-            return IsDirty(repoRoot, relPath);
+            return _inventories.TryGetValue(key, out var inventory) && inventory.Contains(relPath);
         }
 
         private Task ScheduleInventoryRefreshUnlocked(string repoRoot, string key)

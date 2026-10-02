@@ -39,6 +39,7 @@ namespace Codescene.VSExtension.VS2022;
 [ProvideToolWindow(typeof(CodeSceneToolWindow.Pane), Style = VsDockStyle.Tabbed, Window = WindowGuids.SolutionExplorer)]
 public sealed class VS2022Package : ToolkitPackage
 {
+    private readonly TaskCompletionSource<object> _initialized = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
     private ILogger _logger;
     private SolutionEventsHandler _solutionEventsHandler;
     private IAsyncTaskScheduler _scheduler;
@@ -47,6 +48,8 @@ public sealed class VS2022Package : ToolkitPackage
     public static VS2022Package Instance { get; private set; }
 
     public CancellationToken PackageDisposalToken => DisposalToken;
+
+    internal Task Initialized => _initialized.Task;
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
@@ -102,6 +105,10 @@ public sealed class VS2022Package : ToolkitPackage
             // (e.g. if the extension hasn't fully loaded or the CLI hasn't been downloaded yet).
             JoinableTaskFactory.RunAsync(() => SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR, DisposalToken)).FileAndForget("VS2022Package/SendTelemetry");
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
+        }
+        finally
+        {
+            _initialized.TrySetResult(null);
         }
     }
 

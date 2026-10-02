@@ -71,22 +71,9 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             var targets = ResolveTargets(_workspaceDirectories);
             _logger?.Debug("[watch] syncing " + LogFields.Format(LogFields.Field("count", targets.Count)));
-            lock (_gate)
+            if (ReplaceWatchedRoots(targets))
             {
-                _knownRoots.Clear();
-                foreach (var target in targets)
-                {
-                    _knownRoots[RpcPath.NormalizeFsPath(target)] = target;
-                }
-
-                var keep = new HashSet<string>(targets.Select(RpcPath.NormalizeFsPath), StringComparer.Ordinal);
-                foreach (var existing in _watched.Keys.ToList())
-                {
-                    if (!keep.Contains(existing))
-                    {
-                        StopWatchingUnlocked(existing);
-                    }
-                }
+                PruneMonitor();
             }
 
             foreach (var target in targets)
@@ -214,6 +201,31 @@ namespace Codescene.VSExtension.Core.Application.Git
             return relative.Count == 0 || relative.Any(path => string.IsNullOrEmpty(path) || path == ".");
         }
 
+        private bool ReplaceWatchedRoots(IReadOnlyList<string> targets)
+        {
+            var stopped = false;
+            lock (_gate)
+            {
+                _knownRoots.Clear();
+                foreach (var target in targets)
+                {
+                    _knownRoots[RpcPath.NormalizeFsPath(target)] = target;
+                }
+
+                var keep = new HashSet<string>(targets.Select(RpcPath.NormalizeFsPath), StringComparer.Ordinal);
+                foreach (var existing in _watched.Keys.ToList())
+                {
+                    if (!keep.Contains(existing))
+                    {
+                        StopWatchingUnlocked(existing);
+                        stopped = true;
+                    }
+                }
+            }
+
+            return stopped;
+        }
+
         private void EnsureWatch(string repoRoot, IReadOnlyList<string> relativePaths)
         {
             var key = RpcPath.NormalizeFsPath(repoRoot);
@@ -227,17 +239,17 @@ namespace Codescene.VSExtension.Core.Application.Git
                         LogFields.Field("repo", repoRoot),
                         LogFields.Field("reason", "scope-unchanged"),
                         LogFields.Field("scopeKey", scopeKey)));
-                    Seed(repoRoot);
-                    return;
                 }
-
-                _logger?.Info("[watch] ensureWatch " + LogFields.Format(
-                    LogFields.Field("action", "startWatch"),
-                    LogFields.Field("repo", repoRoot),
-                    LogFields.Field("paths", relativePaths ?? (IReadOnlyList<string>)new[] { "(whole repository)" })));
-                _client.WatchFiles(repoRoot, relativePaths);
-                _watched[key] = scopeKey;
-                PublishActiveReposUnlocked();
+                else
+                {
+                    _logger?.Info("[watch] ensureWatch " + LogFields.Format(
+                        LogFields.Field("action", "startWatch"),
+                        LogFields.Field("repo", repoRoot),
+                        LogFields.Field("paths", relativePaths ?? (IReadOnlyList<string>)new[] { "(whole repository)" })));
+                    _client.WatchFiles(repoRoot, relativePaths);
+                    _watched[key] = scopeKey;
+                    PublishActiveReposUnlocked();
+                }
             }
 
             Seed(repoRoot);
@@ -267,6 +279,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return;
             }
 
+            var applied = false;
             lock (_gate)
             {
                 var key = RpcPath.NormalizeFsPath(ResolveRepoRoot(inventory.RepoRoot));
@@ -275,27 +288,53 @@ namespace Codescene.VSExtension.Core.Application.Git
                     return;
                 }
 
-                ApplyInventoryUnlocked(inventory.RepoRoot, inventory.Files ?? Array.Empty<string>());
+                applied = ApplyInventoryUnlocked(inventory.RepoRoot, inventory.Files ?? Array.Empty<string>());
+            }
+
+            if (applied)
+            {
+                PruneMonitor();
             }
         }
 
-        private void ApplyInventoryUnlocked(string repoRoot, IReadOnlyList<string> files)
+        private bool ApplyInventoryUnlocked(string repoRoot, IReadOnlyList<string> files)
         {
             if (!_enabled)
             {
-                return;
+                return false;
             }
 
             var resolved = ResolveRepoRoot(repoRoot);
             var key = RpcPath.NormalizeFsPath(resolved);
             var relPaths = new HashSet<string>(files.Select(RpcPath.ToPosixRelPath), StringComparer.Ordinal);
             _inventories[key] = relPaths;
-            var keep = PathsToKeepUnlocked();
             _logger?.Debug("[watch] inventory applied " + LogFields.Format(
                 LogFields.Field("repo", resolved),
-                LogFields.Field("files", relPaths.Count),
-                LogFields.Field("keepPaths", keep.Count)));
-            _host?.PruneMonitor(_inventories.Keys.Select(ResolveRepoRoot).ToList(), keep);
+                LogFields.Field("files", relPaths.Count)));
+            return true;
+        }
+
+        private void PruneMonitor()
+        {
+            IReadOnlyList<string> repoRoots;
+            ISet<string> keep;
+            lock (_gate)
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                repoRoots = _inventories.Keys.Select(ResolveRepoRoot).ToList();
+                keep = PathsToKeepUnlocked();
+            }
+
+            foreach (var document in _host?.GetDirtyDocuments() ?? Array.Empty<ReviewDocument>())
+            {
+                keep.Add(document.FilePath);
+            }
+
+            _host?.PruneMonitor(repoRoots, keep);
         }
 
         private void OnServerStarted(object sender, ServerStartEvent startEvent)
@@ -392,11 +431,6 @@ namespace Codescene.VSExtension.Core.Application.Git
                 {
                     keep.Add(RpcPath.CombineRepo(repoRoot, relPath));
                 }
-            }
-
-            foreach (var document in _host?.GetDirtyDocuments() ?? Array.Empty<ReviewDocument>())
-            {
-                keep.Add(document.FilePath);
             }
 
             return keep;
