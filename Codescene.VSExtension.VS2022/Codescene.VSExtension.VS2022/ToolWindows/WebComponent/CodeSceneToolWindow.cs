@@ -40,7 +40,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
         if (_updateViewDebounceService != null && _scheduler != null)
         {
-            _updateViewDebounceService.Debounce(
+            _updateViewDebounceService.Throttle(
                 "CodeSceneToolWindow.UpdateView",
                 () => _scheduler.Schedule(ct => RunActualUpdateAsync()),
                 TimeSpan.FromMilliseconds(UpdateViewDebounceMs));

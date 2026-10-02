@@ -13,6 +13,8 @@ namespace Codescene.VSExtension.Core.Application.Services
         private readonly object _gate = new object();
         private ReviewQueue _latest = new ReviewQueue();
         private Timer _timer;
+        private bool _windowOpen;
+        private bool _trailing;
         private bool _disposed;
 
         public ReviewQueueProgress(Action<ReviewQueue> onChange)
@@ -22,6 +24,7 @@ namespace Codescene.VSExtension.Core.Application.Services
 
         public void Update(ReviewQueue snapshot)
         {
+            Action emit = null;
             lock (_gate)
             {
                 if (_disposed)
@@ -32,20 +35,25 @@ namespace Codescene.VSExtension.Core.Application.Services
                 _latest = snapshot ?? new ReviewQueue();
                 if (_latest.Count == 0)
                 {
-                    _timer?.Change(Timeout.Infinite, Timeout.Infinite);
-                    _onChange(_latest);
-                    return;
+                    CloseWindow();
+                    var cleared = _latest;
+                    emit = () => _onChange(cleared);
                 }
-
-                if (_timer == null)
+                else if (!_windowOpen)
                 {
-                    _timer = new Timer(_ => Flush(), null, 0, Timeout.Infinite);
+                    _windowOpen = true;
+                    _trailing = false;
+                    var leading = _latest;
+                    Arm(ThrottleMs);
+                    emit = () => _onChange(leading);
                 }
                 else
                 {
-                    _timer.Change(ThrottleMs, Timeout.Infinite);
+                    _trailing = true;
                 }
             }
+
+            emit?.Invoke();
         }
 
         public void Dispose()
@@ -53,6 +61,8 @@ namespace Codescene.VSExtension.Core.Application.Services
             lock (_gate)
             {
                 _disposed = true;
+                _windowOpen = false;
+                _trailing = false;
                 _timer?.Dispose();
                 _timer = null;
             }
@@ -60,18 +70,42 @@ namespace Codescene.VSExtension.Core.Application.Services
 
         private void Flush()
         {
-            ReviewQueue snapshot;
+            ReviewQueue snapshot = null;
             lock (_gate)
             {
-                if (_disposed)
+                if (_disposed || !_trailing)
                 {
+                    _windowOpen = false;
                     return;
                 }
 
+                _trailing = false;
+                _windowOpen = false;
                 snapshot = _latest;
             }
 
-            _onChange(snapshot);
+            if (snapshot != null)
+            {
+                _onChange(snapshot);
+            }
+        }
+
+        private void CloseWindow()
+        {
+            _windowOpen = false;
+            _trailing = false;
+            _timer?.Change(Timeout.Infinite, Timeout.Infinite);
+        }
+
+        private void Arm(int dueMs)
+        {
+            if (_timer == null)
+            {
+                _timer = new Timer(_ => Flush(), null, dueMs, Timeout.Infinite);
+                return;
+            }
+
+            _timer.Change(dueMs, Timeout.Infinite);
         }
     }
 }

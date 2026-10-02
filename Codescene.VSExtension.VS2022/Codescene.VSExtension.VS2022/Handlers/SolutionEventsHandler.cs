@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
@@ -22,7 +24,9 @@ namespace Codescene.VSExtension.VS2022.Handlers;
 /// Handles solution-level events in Visual Studio (e.g. when a solution is opened or closed).
 /// Used to trigger cleanup or updates tied to the lifecycle of a loaded solution.
 /// </summary>
-public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
+[ComVisible(true)]
+[ClassInterface(ClassInterfaceType.None)]
+public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDisposable
 {
     private readonly object _initGate = new object();
     private uint _cookie;
@@ -34,6 +38,8 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     private IAsyncTaskScheduler _scheduler;
     private IErrorListWindowHandler _errorListWindowHandler;
     private Task _solutionInitializationTask;
+    private string _initializedWorkspacePath;
+    private int _initGeneration;
 
     /// <summary>
     /// Subscribes to solution events using the Visual Studio shell service.
@@ -62,7 +68,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
             VS.Events.SolutionEvents.OnAfterOpenFolder += SolutionEvents_OnAfterOpenFolder;
         }
 
-        _scheduler.Schedule(ct => EnsureSolutionInitializationAsync());
+        ScheduleWorkspaceInitialization(null);
     }
 
     /// <summary>
@@ -110,7 +116,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
     public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
     {
-        _scheduler.Schedule(ct => EnsureSolutionInitializationAsync());
+        ScheduleWorkspaceInitialization(null);
         return VSConstants.S_OK;
     }
 
@@ -119,6 +125,8 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         lock (_initGate)
         {
             _solutionInitializationTask = null;
+            _initializedWorkspacePath = null;
+            _initGeneration++;
         }
 
         _branchWatcher?.Dispose();
@@ -132,6 +140,12 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
 
     public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
     {
+        if (_workspaceWatch == null)
+        {
+            ScheduleWorkspaceInitialization(null);
+            return VSConstants.S_OK;
+        }
+
         _scheduler.Schedule(ct => RefreshWorkspacePathsAsync());
         return VSConstants.S_OK;
     }
@@ -151,6 +165,31 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
     public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy) => VSConstants.S_OK;
 
     public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel) => VSConstants.S_OK;
+
+    void IVsSolutionEvents7.OnAfterOpenFolder(string folderPath)
+    {
+        SolutionEvents_OnAfterOpenFolder(folderPath);
+    }
+
+    void IVsSolutionEvents7.OnBeforeCloseFolder(string folderPath)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        SolutionEvents_OnBeforeCloseFolder(folderPath);
+    }
+
+    void IVsSolutionEvents7.OnQueryCloseFolder(string folderPath, ref int pfCancel)
+    {
+    }
+
+    void IVsSolutionEvents7.OnAfterCloseFolder(string folderPath)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        SolutionEvents_OnAfterCloseFolder(folderPath);
+    }
+
+    void IVsSolutionEvents7.OnAfterLoadAllDeferredProjects()
+    {
+    }
 
     public void Dispose()
     {
@@ -180,10 +219,35 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         });
     }
 
-    private void SolutionEvents_OnAfterOpenFolder(string obj)
+    private void ScheduleWorkspaceInitialization(string explicitPath)
     {
-        ThreadHelper.ThrowIfNotOnUIThread();
-        OnAfterOpenSolution(null, 0);
+        _scheduler.Schedule(ct => InitializeWorkspaceSafeAsync(explicitPath));
+    }
+
+    private async Task InitializeWorkspaceSafeAsync(string explicitPath)
+    {
+        try
+        {
+            await EnsureSolutionInitializationAsync(explicitPath);
+        }
+        catch (Exception ex)
+        {
+            Log(logger =>
+            {
+                logger.Error("Failed to initialize workspace.", ex);
+                return Task.CompletedTask;
+            });
+        }
+    }
+
+    private void SolutionEvents_OnAfterOpenFolder(string folderPath)
+    {
+        Log(logger =>
+        {
+            logger.Info($"Folder opened: '{folderPath}'.");
+            return Task.CompletedTask;
+        });
+        ScheduleWorkspaceInitialization(folderPath);
     }
 
     private void SolutionEvents_OnAfterCloseFolder(string obj)
@@ -198,25 +262,45 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         OnBeforeCloseSolution(null);
     }
 
-    private async Task EnsureSolutionInitializationAsync()
+    private async Task EnsureSolutionInitializationAsync(string explicitPath)
     {
-        var solution = await VS.Solutions.GetCurrentSolutionAsync();
-        var solutionPath = solution?.FullPath;
+        var solutionPath = explicitPath;
         if (string.IsNullOrEmpty(solutionPath))
         {
+            var solution = await VS.Solutions.GetCurrentSolutionAsync();
+            solutionPath = solution?.FullPath;
+        }
+
+        if (string.IsNullOrEmpty(solutionPath))
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            solutionPath = GetOpenFolderPath();
+        }
+
+        if (string.IsNullOrEmpty(solutionPath))
+        {
+            Log(logger =>
+            {
+                logger.Debug("No workspace open; workspace watch not started.");
+                return Task.CompletedTask;
+            });
             return;
         }
 
+        var folderWorkspace = Directory.Exists(solutionPath);
         Task task;
         lock (_initGate)
         {
-            if (_solutionInitializationTask != null)
+            if (_solutionInitializationTask != null
+                && string.Equals(_initializedWorkspacePath, solutionPath, StringComparison.OrdinalIgnoreCase))
             {
                 task = _solutionInitializationTask;
             }
             else
             {
-                _solutionInitializationTask = RunSolutionInitializationAsync(solutionPath);
+                var generation = ++_initGeneration;
+                _initializedWorkspacePath = solutionPath;
+                _solutionInitializationTask = RunSolutionInitializationAsync(solutionPath, folderWorkspace, generation);
                 task = _solutionInitializationTask;
             }
         }
@@ -224,13 +308,21 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         await task;
     }
 
-    private async Task RunSolutionInitializationAsync(string solutionPath)
+    private async Task RunSolutionInitializationAsync(string solutionPath, bool folderWorkspace, int generation)
     {
-        new DeltaCacheService().Clear();
-        new BaselineReviewCacheService().Clear();
-        new ReviewCacheService().Clear();
-        new AceRefactorableFunctionsCacheService().Clear();
-        _codeHealthMonitorNotifier?.Clear();
+        if (!IsCurrentInitialization(generation))
+        {
+            return;
+        }
+
+        ResetWorkspaceForInitialization();
+        ClearAnalysisCaches();
+        _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
+
+        if (!IsCurrentInitialization(generation))
+        {
+            return;
+        }
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         _errorListWindowHandler?.ClearAll();
@@ -239,32 +331,26 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         _branchWatcher.StartWatching(solutionPath, (newBranch) =>
             _scheduler.Schedule(ct2 => OnBranchChangedAsync(newBranch)));
 
-        await InitializeWorkspaceWatchAsync(solutionPath);
+        await InitializeWorkspaceWatchAsync(solutionPath, folderWorkspace, generation);
     }
 
-    private async Task InitializeWorkspaceWatchAsync(string solutionPath)
+    private async Task InitializeWorkspaceWatchAsync(string solutionPath, bool folderWorkspace, int generation)
     {
         try
         {
-            _workspaceWatch = await VS.GetMefServiceAsync<IWorkspaceWatchCoordinator>();
-            if (_workspaceWatch == null)
+            var coordinator = await PrepareWorkspaceWatchAsync(generation);
+            if (coordinator == null)
             {
-                Log(logger =>
-                {
-                    logger.Warn("Failed to obtain IWorkspaceWatchCoordinator service.");
-                    return Task.CompletedTask;
-                });
                 return;
             }
 
-            IReadOnlyCollection<string> workspacePaths = null;
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            if (_solution != null)
+            var workspacePaths = await ResolveWorkspacePathsAsync(solutionPath, folderWorkspace, generation);
+            if (workspacePaths == null)
             {
-                workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
+                return;
             }
 
-            await _workspaceWatch.SyncAsync(workspacePaths == null ? Array.Empty<string>() : new List<string>(workspacePaths));
+            await coordinator.SyncAsync(new List<string>(workspacePaths));
 
             Log(logger =>
             {
@@ -282,6 +368,53 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         }
     }
 
+    private async Task<IWorkspaceWatchCoordinator> PrepareWorkspaceWatchAsync(int generation)
+    {
+        if (!IsCurrentInitialization(generation))
+        {
+            return null;
+        }
+
+        _workspaceWatch = await VS.GetMefServiceAsync<IWorkspaceWatchCoordinator>();
+        if (_workspaceWatch == null)
+        {
+            Log(logger =>
+            {
+                logger.Warn("Failed to obtain IWorkspaceWatchCoordinator service.");
+                return Task.CompletedTask;
+            });
+            return null;
+        }
+
+        if (!IsCurrentInitialization(generation))
+        {
+            return null;
+        }
+
+        return _workspaceWatch;
+    }
+
+    private async Task<IReadOnlyCollection<string>> ResolveWorkspacePathsAsync(string solutionPath, bool folderWorkspace, int generation)
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        IReadOnlyCollection<string> workspacePaths = Array.Empty<string>();
+        if (folderWorkspace)
+        {
+            workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(null, solutionPath);
+        }
+        else if (_solution != null)
+        {
+            workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
+        }
+
+        if (!IsCurrentInitialization(generation))
+        {
+            return null;
+        }
+
+        return workspacePaths;
+    }
+
     private async Task RefreshWorkspacePathsAsync()
     {
         if (_workspaceWatch == null)
@@ -293,16 +426,29 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
         var solutionPath = solution?.FullPath;
         if (string.IsNullOrEmpty(solutionPath))
         {
-            return;
+            solutionPath = _initializedWorkspacePath;
         }
 
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        if (_solution == null)
+        if (string.IsNullOrEmpty(solutionPath))
         {
             return;
         }
 
-        var workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        IReadOnlyCollection<string> workspacePaths;
+        if (Directory.Exists(solutionPath))
+        {
+            workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(null, solutionPath);
+        }
+        else if (_solution != null)
+        {
+            workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
+        }
+        else
+        {
+            return;
+        }
+
         await _workspaceWatch.SyncAsync(workspacePaths == null ? Array.Empty<string>() : new List<string>(workspacePaths));
     }
 
@@ -329,5 +475,53 @@ public class SolutionEventsHandler : IVsSolutionEvents, IDisposable
                 return Task.CompletedTask;
             });
         }
+    }
+
+    private string GetOpenFolderPath()
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        if (_solution == null)
+        {
+            return null;
+        }
+
+        _solution.GetSolutionInfo(out var directory, out var solutionFile, out _);
+        if (!string.IsNullOrEmpty(solutionFile))
+        {
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
+        {
+            return null;
+        }
+
+        return directory;
+    }
+
+    private bool IsCurrentInitialization(int generation)
+    {
+        lock (_initGate)
+        {
+            return generation == _initGeneration;
+        }
+    }
+
+    private void ResetWorkspaceForInitialization()
+    {
+        _branchWatcher?.Dispose();
+        _branchWatcher = null;
+        _workspaceWatch?.StopAll();
+        _reviewPipeline?.Reset();
+        _reviewPipeline?.SetActiveRepos(Array.Empty<string>());
+    }
+
+    private void ClearAnalysisCaches()
+    {
+        new DeltaCacheService().Clear();
+        new BaselineReviewCacheService().Clear();
+        new ReviewCacheService().Clear();
+        new AceRefactorableFunctionsCacheService().Clear();
+        _codeHealthMonitorNotifier?.Clear();
     }
 }

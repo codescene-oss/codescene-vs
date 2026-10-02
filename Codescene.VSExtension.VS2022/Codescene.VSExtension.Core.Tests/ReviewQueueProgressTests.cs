@@ -47,6 +47,34 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task Update_WhileBusy_EmitsAgainBeforeTheBurstEnds()
+        {
+            var emissions = 0;
+            var second = new TaskCompletionSource<int>();
+            using (var progress = new ReviewQueueProgress(queue =>
+            {
+                emissions++;
+                if (emissions == 2)
+                {
+                    second.TrySetResult(queue.Count);
+                }
+            }))
+            {
+                progress.Update(new ReviewQueue { Count = 10, Files = new[] { "a.cs" } });
+                var next = 9;
+                var started = DateTime.UtcNow;
+                while (!second.Task.IsCompleted && (DateTime.UtcNow - started).TotalMilliseconds < 2000)
+                {
+                    progress.Update(new ReviewQueue { Count = next, Files = new[] { "a.cs" } });
+                    next = Math.Max(1, next - 1);
+                    await Task.Delay(20);
+                }
+
+                Assert.IsTrue(second.Task.IsCompleted);
+            }
+        }
+
+        [TestMethod]
         public void Update_AfterDispose_IsIgnored()
         {
             var changes = 0;

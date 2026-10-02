@@ -125,6 +125,36 @@ public class DebounceServiceTests
     }
 
     [TestMethod]
+    public async Task Throttle_EmitsLeadingImmediatelyAndTrailingWhileBusy()
+    {
+        var emissions = 0;
+        var second = new TaskCompletionSource<bool>();
+        var interval = TimeSpan.FromMilliseconds(200);
+
+        _debounceService.Throttle("view", () => emissions++, interval);
+        Assert.AreEqual(1, emissions);
+
+        var started = DateTime.UtcNow;
+        while (!second.Task.IsCompleted && (DateTime.UtcNow - started).TotalMilliseconds < 2000)
+        {
+            _debounceService.Throttle(
+                "view",
+                () =>
+                {
+                    emissions++;
+                    if (emissions >= 2)
+                    {
+                        second.TrySetResult(true);
+                    }
+                },
+                interval);
+            await Task.Delay(20);
+        }
+
+        Assert.IsTrue(second.Task.IsCompleted);
+    }
+
+    [TestMethod]
     public void Dispose_CanBeCalledMultipleTimes()
     {
         // Act & Assert - should not throw
