@@ -2,6 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Ace;
 using Codescene.VSExtension.Core.Interfaces;
@@ -30,6 +31,8 @@ namespace Codescene.VSExtension.VS2022.Handlers
     [TextViewRole(PredefinedTextViewRoles.Document)] // Only when it's a regular document (not e.g. an output window)
     public class EditorDocumentLifecycleHandler : IWpfTextViewCreationListener
     {
+        private static readonly ConditionalWeakTable<ITextBuffer, OpenViewCount> OpenViews = new ConditionalWeakTable<ITextBuffer, OpenViewCount>();
+
         [Import]
         private readonly ILogger _logger;
 
@@ -77,7 +80,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
             if (!isSupportedForReview)
             {
-                _logger.Debug($"File '{filePath}' is not supported. Skipping review.");
+                _logger.Debug("[editor] skipped " + LogFields.Format(LogFields.Field("path", filePath), LogFields.Field("reason", "unsupported")));
                 return;
             }
 
@@ -85,13 +88,16 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
             if (isIgnored)
             {
-                _logger.Debug($"File '{filePath}' is ignored by Git. Skipping review.");
+                _logger.Debug("[editor] skipped " + LogFields.Format(LogFields.Field("path", filePath), LogFields.Field("reason", "gitignored")));
                 return;
             }
 
             _logger.Debug($"File opened: {filePath}. ");
             buffer.CurrentSnapshot.GetText();
 
+            var openViews = OpenViews.GetOrCreateValue(buffer);
+            openViews.Value++;
+            SubscribeToSave(buffer, filePath);
             _scheduler.Schedule(ct => ReviewContentAsync(filePath, buffer));
 
             buffer.Changed += (_, _) =>
@@ -113,13 +119,84 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
             textView.Closed += (_, _) =>
             {
-                _logger.Debug($"File closed: {filePath}...");
-                var repoRoot = GitPathDiscovery.TryGetWorkingDirectory(filePath);
-                if (!string.IsNullOrEmpty(repoRoot) && _reviewPipeline != null)
+                openViews.Value--;
+                if (openViews.Value > 0)
                 {
-                    _reviewPipeline.Remove(repoRoot, new ReviewDocument { FilePath = filePath, Content = string.Empty });
+                    return;
                 }
+
+                _logger.Debug("[editor] closed " + LogFields.Format(LogFields.Field("path", filePath), LogFields.Field("reason", "last-view")));
+                OnLastViewClosed(filePath);
             };
+        }
+
+        private void SubscribeToSave(ITextBuffer buffer, string filePath)
+        {
+            if (!buffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document))
+            {
+                return;
+            }
+
+            if (buffer.Properties.ContainsProperty(typeof(TextDocumentFileActionEventArgs)))
+            {
+                return;
+            }
+
+            buffer.Properties.AddProperty(typeof(TextDocumentFileActionEventArgs), true);
+            document.FileActionOccurred += (_, args) =>
+            {
+                if (args.FileActionType != FileActionTypes.ContentSavedToDisk || _reviewPipeline == null)
+                {
+                    return;
+                }
+
+                var savedPath = string.IsNullOrEmpty(args.FilePath) ? filePath : args.FilePath;
+                var repoRoot = GitPathDiscovery.TryGetWorkingDirectory(savedPath);
+                if (string.IsNullOrEmpty(repoRoot))
+                {
+                    return;
+                }
+
+                _reviewPipeline.ReleaseBufferMonitorOwnership(repoRoot, new ReviewDocument { FilePath = savedPath });
+            };
+        }
+
+        private void OnLastViewClosed(string filePath)
+        {
+            _debounceService.Cancel(filePath);
+            ClearEditorDiagnostics(filePath);
+            RestoreOwnedBuffer(filePath);
+        }
+
+        private void RestoreOwnedBuffer(string filePath)
+        {
+            var repoRoot = GitPathDiscovery.TryGetWorkingDirectory(filePath);
+            if (string.IsNullOrEmpty(repoRoot) || _reviewPipeline == null)
+            {
+                return;
+            }
+
+            _reviewPipeline.RestoreFromDiskIfBufferOwned(repoRoot, new ReviewDocument { FilePath = filePath, Content = string.Empty });
+        }
+
+        private void ClearEditorDiagnostics(string filePath)
+        {
+            _scheduler.Schedule(async ct =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                _errorListWindowHandler.Handle(new FileReviewModel
+                {
+                    FilePath = filePath,
+                    FileLevel = new System.Collections.Generic.List<CodeSmellModel>(),
+                    FunctionLevel = new System.Collections.Generic.List<CodeSmellModel>(),
+                });
+                _marginSettings.NotifyScoreUpdated();
+            });
+        }
+
+        private bool HasOpenViews(ITextBuffer buffer)
+        {
+            return OpenViews.TryGetValue(buffer, out var openViews) && openViews.Value > 0;
         }
 
         /// <summary>
@@ -128,7 +205,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
         /// </summary>
         /// <param name="filePath">The path of the file being edited.</param>
         /// <returns>True if the expensive stale check should be performed.</returns>
-        private static bool ShouldCheckAceStaleStatus(string filePath)
+        private bool ShouldCheckAceStaleStatus(string filePath)
         {
             // Skip if ACE tool window is not open or already marked as stale
             if (!AceToolWindow.IsCreated() || AceToolWindow.IsStale)
@@ -216,6 +293,11 @@ namespace Codescene.VSExtension.VS2022.Handlers
                 await ApplyReviewResultsAsync(result, buffer);
                 await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(result, code);
                 _aceRefactorSuggestedActionsNotifier.NotifyAceRefactorableDataChanged(buffer);
+                if (!HasOpenViews(buffer))
+                {
+                    ClearEditorDiagnostics(path);
+                    RestoreOwnedBuffer(path);
+                }
             }
             catch (Exception e)
             {
@@ -247,6 +329,11 @@ namespace Codescene.VSExtension.VS2022.Handlers
                 _logger.Warn("Could not get the file path. Aborting review...");
                 return string.Empty;
             }
+        }
+
+        private sealed class OpenViewCount
+        {
+            public int Value { get; set; }
         }
     }
 }

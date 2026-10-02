@@ -147,7 +147,8 @@ public class GitServiceSubcutaneousTests : SubcutaneousGitTestBase
         var (featureReview, delta) = await CodeReviewer.ReviewWithDeltaAsync(absolutePath, FeatureContent);
 
         Assert.IsNotNull(delta);
-        Assert.AreEqual(RoundScore(developReview.Score), RoundScore(delta.OldScore));
+        Assert.IsNotNull(delta.OldScore);
+        Assert.AreEqual(RoundScore(developReview.Score), RoundScore(delta.OldScore.GetValueOrDefault()));
         Assert.AreEqual(RoundScore(featureReview.Score), RoundScore(delta.NewScore));
         Assert.IsLessThan(RoundScore(developReview.Score), RoundScore(featureReview.Score));
     }

@@ -9,6 +9,7 @@ using Codescene.VSExtension.Core.Application.Services;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
@@ -37,7 +38,8 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
             IPreflightManager preflightManager,
             IReviewPipeline pipeline,
             IIdeServerClient client,
-            CodeHealthMonitorNotifier notifier)
+            CodeHealthMonitorNotifier notifier,
+            ISettingsProvider settings)
         {
             _scheduler = scheduler;
             _notifier = notifier;
@@ -47,7 +49,8 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
                 _notifier.ApplyQueue(queue);
             });
             client.QueueChanged += (_, queue) => _queueProgress.Update(queue);
-            _inner = new CodeReviewer(logger, mapper, executor, telemetryManager, git, _notifier, preflightManager, pipeline);
+            _notifier.SetAutomaticAnalysisEnabled(settings?.EnableAutomaticAnalysis ?? true);
+            _inner = new CodeReviewer(logger, mapper, executor, telemetryManager, git, _notifier, preflightManager, pipeline, settings);
         }
 
         public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)

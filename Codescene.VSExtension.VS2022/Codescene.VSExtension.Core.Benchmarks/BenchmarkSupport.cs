@@ -175,6 +175,8 @@ internal sealed class FixedSettingsProvider : ISettingsProvider
     public string AuthToken => string.Empty;
 
     public int ServerWorkerThreads => 0;
+
+    public bool EnableAutomaticAnalysis => true;
 }
 
 internal sealed class FixedGitService : IGitService

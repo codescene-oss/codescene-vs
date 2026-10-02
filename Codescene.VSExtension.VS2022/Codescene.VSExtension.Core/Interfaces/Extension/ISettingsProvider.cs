@@ -9,5 +9,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Extension
         string AuthToken { get; }
 
         int ServerWorkerThreads { get; }
+
+        bool EnableAutomaticAnalysis { get; }
     }
 }

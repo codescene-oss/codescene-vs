@@ -72,7 +72,7 @@ public sealed class VS2022Package : ToolkitPackage
 
             // Cli file
             await CheckCliFileAsync();
-            await StartIdeServerAsync(cancellationToken);
+            JoinableTaskFactory.RunAsync(() => StartIdeServerAsync(cancellationToken)).FileAndForget("VS2022Package/StartIdeServer");
 
             // Subscribe on active document change event
             await SubscribeOnActiveWindowChangeAsync();

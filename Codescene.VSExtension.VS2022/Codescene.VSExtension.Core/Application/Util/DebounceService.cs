@@ -68,6 +68,21 @@ namespace Codescene.VSExtension.Core.Application.Util
             }
         }
 
+        public void Cancel(string key)
+        {
+            lock (_lock)
+            {
+                if (!_timers.TryGetValue(key, out var existingCts))
+                {
+                    return;
+                }
+
+                existingCts.Cancel();
+                existingCts.Dispose();
+                _timers.Remove(key);
+            }
+        }
+
         public void Dispose()
         {
             lock (_lock)

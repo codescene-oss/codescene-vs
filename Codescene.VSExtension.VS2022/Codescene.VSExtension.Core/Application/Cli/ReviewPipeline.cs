@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
@@ -24,7 +25,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly IReviewPipelineFileAccess _fileAccess;
         private readonly Func<string> _createId;
         private readonly ILogger _logger;
+        private readonly ISettingsProvider _settings;
         private readonly object _gate = new object();
+        private readonly HashSet<string> _bufferOwnedPaths = new HashSet<string>(StringComparer.Ordinal);
         private readonly Dictionary<string, PendingReview> _pendingById = new Dictionary<string, PendingReview>(StringComparer.Ordinal);
         private readonly Dictionary<string, PendingReview> _latestByPath = new Dictionary<string, PendingReview>(StringComparer.Ordinal);
         private readonly Dictionary<string, int> _tombstones = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -34,14 +37,16 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private int _dedupEpoch;
         private HashSet<string> _activeRepos;
         private bool _disposed;
+        private Func<string, string, Task<bool>> _watchDeltaFilter = (_, __) => Task.FromResult(true);
 
         [ImportingConstructor]
         public ReviewPipeline(
             IIdeServerClient client,
             [Import(AllowDefault = true)] IReviewPipelinePresentation presentation = null,
             [Import(AllowDefault = true)] IReviewPipelineFileAccess fileAccess = null,
-            [Import(AllowDefault = true)] ILogger logger = null)
-            : this(client, presentation, fileAccess, null, logger)
+            [Import(AllowDefault = true)] ILogger logger = null,
+            [Import(AllowDefault = true)] ISettingsProvider settings = null)
+            : this(client, presentation, fileAccess, null, logger, settings)
         {
         }
 
@@ -50,13 +55,15 @@ namespace Codescene.VSExtension.Core.Application.Cli
             IReviewPipelinePresentation presentation,
             IReviewPipelineFileAccess fileAccess,
             Func<string> createId,
-            ILogger logger)
+            ILogger logger,
+            ISettingsProvider settings = null)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _presentation = presentation ?? NoOpPresentation.Instance;
             _fileAccess = fileAccess ?? DiskFileAccess.Instance;
             _createId = createId ?? (() => Guid.NewGuid().ToString("N"));
             _logger = logger;
+            _settings = settings;
             _client.ReviewReceived += OnReviewReceived;
             _client.DeltaReceived += OnDeltaReceived;
             _client.ReviewFailed += OnReviewFailed;
@@ -100,9 +107,56 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     _tombstones[pathKey] = generation;
                     _latestByPath.Remove(pathKey);
                     RemoveWatchReview(pathKey);
+                    _bufferOwnedPaths.Remove(pathKey);
                     _presentation.Remove(document);
                 }
             }
+        }
+
+        public void ReleaseBufferMonitorOwnership(string repoRoot, ReviewDocument document)
+        {
+            if (document == null)
+            {
+                return;
+            }
+
+            lock (_gate)
+            {
+                _bufferOwnedPaths.Remove(PathKeyForDocument(repoRoot, document));
+            }
+        }
+
+        public void RestoreFromDiskIfBufferOwned(string repoRoot, ReviewDocument document)
+        {
+            if (document == null || string.IsNullOrEmpty(document.FilePath))
+            {
+                return;
+            }
+
+            var owned = false;
+            lock (_gate)
+            {
+                owned = _bufferOwnedPaths.Contains(PathKeyForDocument(repoRoot, document));
+            }
+
+            if (!owned)
+            {
+                return;
+            }
+
+            Remove(repoRoot, document);
+            _ = SubmitAsync(repoRoot, new ReviewSubmission
+            {
+                Document = document,
+                RelPath = RpcPath.RelativePosix(repoRoot, document.FilePath),
+                UpdateDiagnosticsPane = false,
+                UpdateMonitor = true,
+            });
+        }
+
+        public void SetWatchDeltaFilter(Func<string, string, Task<bool>> filter)
+        {
+            _watchDeltaFilter = filter ?? ((_, __) => Task.FromResult(true));
         }
 
         public void Invalidate()
@@ -110,6 +164,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             lock (_gate)
             {
                 _dedupEpoch++;
+                _logger?.Debug("[pipeline] epochInvalidated dedupEpoch=" + _dedupEpoch);
             }
         }
 
@@ -127,6 +182,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 _tombstones.Clear();
                 _watchReviews.Clear();
                 _watchReviewOrder.Clear();
+                _bufferOwnedPaths.Clear();
             }
         }
 
@@ -159,6 +215,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 _tombstones.Clear();
                 _watchReviews.Clear();
                 _watchReviewOrder.Clear();
+                _bufferOwnedPaths.Clear();
             }
         }
 
@@ -170,6 +227,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private static string PathKey(string repoRoot, string relPath)
         {
             return RpcPath.NormalizeFsPath(repoRoot) + "\0" + RpcPath.ToPosixRelPath(relPath);
+        }
+
+        private static string PathKeyForDocument(string repoRoot, ReviewDocument document)
+        {
+            return PathKey(repoRoot, RpcPath.RelativePosix(repoRoot, document.FilePath));
         }
 
         private static PresentedReview ToPresentedReview(PendingReview pending, CliReviewModel result)
@@ -199,6 +261,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
             };
         }
 
+        private bool AutomaticAnalysisEnabled()
+        {
+            return _settings?.EnableAutomaticAnalysis ?? true;
+        }
+
         private Task<(CliReviewModel Review, DeltaResponseModel Delta)[]> SubmitBatchInternalAsync(string repoRoot, IReadOnlyList<ReviewSubmission> submissions)
         {
             var newReviews = new List<PendingReview>();
@@ -212,7 +279,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     var submission = submissions[i];
                     if (submission.Content == null)
                     {
-                        diskFiles.Add(new ReviewFile { RelPath = RpcPath.ToPosixRelPath(submission.RelPath) });
+                        var relPath = RpcPath.ToPosixRelPath(submission.RelPath);
+                        diskFiles.Add(new ReviewFile { RelPath = relPath });
+                        _logger?.Debug("[pipeline] submit " + LogFields.Format(
+                            LogFields.Field("path", relPath),
+                            LogFields.Field("repo", repoRoot),
+                            LogFields.Field("source", "disk"),
+                            LogFields.Field("updateMonitor", submission.UpdateMonitor),
+                            LogFields.Field("updateDiagnostics", submission.UpdateDiagnosticsPane)));
                         tasks[i] = Task.FromResult<(CliReviewModel, DeltaResponseModel)>((null, null));
                         continue;
                     }
@@ -235,6 +309,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 .ToList();
             if (files.Count > 0)
             {
+                _logger?.Debug("[pipeline] submitBatch " + LogFields.Format(
+                    LogFields.Field("repo", repoRoot),
+                    LogFields.Field("count", files.Count),
+                    LogFields.Field("buffer", newReviews.Count),
+                    LogFields.Field("disk", diskFiles.Count)));
                 _client.ReviewFiles(repoRoot, files);
             }
 
@@ -269,7 +348,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _latestByPath.TryGetValue(pathKey, out var latest);
             if (latest != null && latest.DedupKey == context.DedupKey)
             {
+                _logger?.Debug("[pipeline] submit reused pending " + LogFields.Format(
+                    LogFields.Field("id", latest.Id),
+                    LogFields.Field("path", normalized.RelPath),
+                    LogFields.Field("repo", repoRoot),
+                    LogFields.Field("reason", "dedup")));
                 MergePresentation(latest, normalized);
+                RememberBufferOwnership(pathKey, latest.UpdateMonitor);
                 return latest;
             }
 
@@ -285,8 +370,16 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             var pending = CreatePending(context, normalized);
+            _logger?.Debug("[pipeline] submit " + LogFields.Format(
+                LogFields.Field("id", pending.Id),
+                LogFields.Field("path", pending.RelPath),
+                LogFields.Field("repo", repoRoot),
+                LogFields.Field("source", "buffer"),
+                LogFields.Field("updateMonitor", pending.UpdateMonitor),
+                LogFields.Field("updateDiagnostics", pending.UpdateDiagnosticsPane)));
             _tombstones.Remove(pathKey);
             _latestByPath[pathKey] = pending;
+            RememberBufferOwnership(pathKey, pending.UpdateMonitor);
             _presentation.ReviewStarted(normalized.Document);
             _presentation.DeltaStarted(normalized.Document);
             return pending;
@@ -385,7 +478,23 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             if (replay && pending.DeltaDone)
             {
+                PresentOwnedDelta(pending);
+            }
+        }
+
+        private void PresentOwnedDelta(PendingReview pending)
+        {
+            if (AutomaticAnalysisEnabled())
+            {
                 _presentation.PresentDelta(ToPresentedDelta(pending, pending.DeltaResult));
+            }
+        }
+
+        private void RememberBufferOwnership(string pathKey, bool updateMonitor)
+        {
+            if (updateMonitor)
+            {
+                _bufferOwnedPaths.Add(pathKey);
             }
         }
 

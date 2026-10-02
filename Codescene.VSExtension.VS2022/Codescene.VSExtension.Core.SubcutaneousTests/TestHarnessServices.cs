@@ -90,4 +90,6 @@ public sealed class TestSettingsProvider : ISettingsProvider
     public string AuthToken => string.Empty;
 
     public int ServerWorkerThreads => 0;
+
+    public bool EnableAutomaticAnalysis => true;
 }

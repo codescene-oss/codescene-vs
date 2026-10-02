@@ -1,8 +1,9 @@
-// Copyright (c) CodeScene. All rights reserved.
+﻿// Copyright (c) CodeScene. All rights reserved.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -16,6 +17,7 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
+using Codescene.VSExtension.Core.Util;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -25,7 +27,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 {
     [Export(typeof(IIdeServerClient))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public sealed class IdeServerClient : IIdeServerClient
+    public sealed partial class IdeServerClient : IIdeServerClient
     {
         private static readonly JsonSerializer Serializer = JsonSerializer.CreateDefault();
         private readonly ICliSettingsProvider _cliSettingsProvider;
@@ -40,6 +42,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private JsonRpc _rpc;
         private IIdeServerProcess _process;
         private int _startCount;
+        private int _requestSeq;
         private bool _disposed;
         private bool _integrityVerified;
         private string _verifiedCliPath;
@@ -96,6 +99,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public async Task RestartAsync(CancellationToken cancellationToken = default)
         {
+            _logger.Info("[cs-ide] restarting");
             StopProcess(new Exception("CodeScene IDE server restarted"));
             await StartAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -179,7 +183,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     Content = file.Content,
                 }).ToList(),
             };
-            _logger.Info($"[cs-ide] sending reviewFiles count={payload.Files.Count}");
+            var reviewFiles = payload.Files;
+            _logger.Info("[cs-ide] sending reviewFiles " + LogFields.Format(
+                LogFields.Field("repo", repoRoot),
+                LogFields.Field("count", reviewFiles.Count),
+                LogFields.Field("files", reviewFiles.Select(file => file.RelPath).ToArray()),
+                LogFields.Field("withContent", reviewFiles.Count(file => file.Content != null)),
+                LogFields.Field("withId", reviewFiles.Count(file => file.Id != null))));
             _ = SendNotificationAsync("cs-ide/reviewFiles", payload);
         }
 
@@ -190,7 +200,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 RepoRoot = repoRoot,
                 RelativePaths = relativePaths?.ToArray(),
             };
-            _logger.Debug($"[cs-ide] sending watchFiles repo-root={repoRoot} relative-paths={(relativePaths == null ? "(whole repository)" : string.Join(", ", relativePaths))}");
+            _logger.Info("[cs-ide] sending watchFiles " + LogFields.Format(
+                LogFields.Field("repo", repoRoot),
+                LogFields.Field("relativePaths", relativePaths ?? (IReadOnlyList<string>)new[] { "(whole repository)" })));
             _ = SendNotificationAsync("cs-ide/watchFiles", payload);
         }
 
@@ -198,9 +210,15 @@ namespace Codescene.VSExtension.Core.Application.Cli
         {
             if (_rpc == null)
             {
+                _logger.Info("[cs-ide] skip stopWatchFiles " + LogFields.Format(
+                    LogFields.Field("repo", repoRoot),
+                    LogFields.Field("reason", "not-running")));
                 return;
             }
 
+            _logger.Info("[cs-ide] sending stopWatchFiles " + LogFields.Format(
+                LogFields.Field("repo", repoRoot),
+                LogFields.Field("relativePaths", relativePaths ?? (IReadOnlyList<string>)new[] { "(whole repository)" })));
             var payload = new WatchFilesParams
             {
                 RepoRoot = repoRoot,
@@ -256,17 +274,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             try
             {
-                process = _processFactory.Start(cliFilePath, arguments);
-                process.ErrorDataReceived += (_, e) =>
-                {
-                    var trimmed = (e.Data ?? string.Empty).Trim();
-                    if (trimmed.Length > 0)
-                    {
-                        _logger.Info("[cs-ide] " + trimmed);
-                    }
-                };
-                process.BeginErrorReadLine();
-                process.Exited += (_, __) => HandleProcessFailure(new Exception("cs-ide server exited"), process);
+                process = StartLoggedProcess(cliFilePath, arguments);
 
                 rpc = CreateRpc(process);
                 rpc.AddLocalRpcTarget(_notifications);
@@ -307,6 +315,28 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
         }
 
+        private IIdeServerProcess StartLoggedProcess(string cliFilePath, string arguments)
+        {
+            _logger.Info("[cs-ide] starting " + LogFields.Format(
+                LogFields.Field("path", cliFilePath),
+                LogFields.Field("args", arguments)));
+            var process = _processFactory.Start(cliFilePath, arguments);
+            _logger.Info("[cs-ide] started " + LogFields.Format(
+                LogFields.Field("pid", process.Id),
+                LogFields.Field("path", cliFilePath)));
+            process.ErrorDataReceived += (_, e) =>
+            {
+                var trimmed = (e.Data ?? string.Empty).Trim();
+                if (trimmed.Length > 0)
+                {
+                    _logger.Info("[cs-ide] " + trimmed);
+                }
+            };
+            process.BeginErrorReadLine();
+            process.Exited += (_, __) => HandleProcessFailure(new Exception("cs-ide server exited"), process);
+            return process;
+        }
+
         private JsonRpc CreateRpc(IIdeServerProcess process)
         {
             var formatter = new JsonMessageFormatter();
@@ -319,6 +349,27 @@ namespace Codescene.VSExtension.Core.Application.Cli
         }
 
         private async Task<T> SendRequestAsync<T>(string method, object argument, CancellationToken cancellationToken)
+        {
+            var id = Interlocked.Increment(ref _requestSeq);
+            var started = Stopwatch.StartNew();
+            var requestSummary = IdeServerLog.SummarizeRequest(method, argument);
+            _logger.Info(IdeServerLog.Sending(id, method, requestSummary));
+            try
+            {
+                var result = await InvokeRequestAsync<T>(method, argument, cancellationToken).ConfigureAwait(false);
+                _logger.Info(IdeServerLog.Received(id, method, started.ElapsedMilliseconds, IdeServerLog.SummarizeResponse(method, result)));
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(
+                    "[cs-ide] request failed id=" + id + " method=" + method + " durationMs=" + started.ElapsedMilliseconds + ": " + ex.Message,
+                    ex);
+                throw;
+            }
+        }
+
+        private async Task<T> InvokeRequestAsync<T>(string method, object argument, CancellationToken cancellationToken)
         {
             await StartAsync(cancellationToken).ConfigureAwait(false);
             JsonRpc rpc;
@@ -369,6 +420,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
             catch (Exception ex)
             {
+                _logger.Error("[cs-ide] notification failed method=" + method + ": " + ex.Message, ex);
                 HandleError(ex);
             }
         }
@@ -389,173 +441,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             return obj.ToObject<Dictionary<string, object>>(Serializer);
-        }
-
-        private void HandleStart(JObject metadata)
-        {
-            var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(metadata ?? new JObject());
-            var parsed = new ServerMetadata
-            {
-                Sha = (string)normalized["sha"],
-                Version = (string)normalized["version"],
-            };
-            Metadata = parsed;
-            TaskCompletionSource<ServerMetadata> pendingStart;
-            lock (_gate)
-            {
-                pendingStart = _pendingStart;
-                _pendingStart = null;
-            }
-
-            pendingStart?.TrySetResult(parsed);
-            var restart = Interlocked.Increment(ref _startCount) > 1;
-            ServerStarted?.Invoke(this, new ServerStartEvent { Metadata = parsed, Restart = restart });
-        }
-
-        private void HandleReview(JObject notification)
-        {
-            var identity = ParseIdentity(notification);
-            if (identity == null)
-            {
-                return;
-            }
-
-            var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(notification);
-            var queue = ParseQueue(normalized, identity.Item3);
-            EmitQueue(queue);
-            _logger.Info($"[cs-ide] received fileReview id={identity.Item1 ?? "(none)"} path={identity.Item2}");
-            ReviewReceived?.Invoke(this, new ReviewNotification
-            {
-                Id = identity.Item1,
-                Path = identity.Item2,
-                RepoRoot = identity.Item3,
-                Result = normalized["result"]?.ToObject<CliReviewModel>(Serializer),
-                Queue = queue,
-            });
-        }
-
-        private void HandleDelta(JObject notification)
-        {
-            var identity = ParseIdentity(notification);
-            if (identity == null)
-            {
-                return;
-            }
-
-            var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(notification);
-            var queue = ParseQueue(normalized, identity.Item3);
-            EmitQueue(queue);
-            var resultToken = normalized["result"];
-            _logger.Info($"[cs-ide] received deltaReview id={identity.Item1 ?? "(none)"} path={identity.Item2}");
-            DeltaReceived?.Invoke(this, new DeltaNotification
-            {
-                Id = identity.Item1,
-                Path = identity.Item2,
-                RepoRoot = identity.Item3,
-                Result = resultToken == null || resultToken.Type == JTokenType.Null
-                    ? null
-                    : resultToken.ToObject<DeltaResponseModel>(Serializer),
-                Queue = queue,
-            });
-        }
-
-        private void HandleReviewFailure(JObject notification)
-        {
-            var identity = ParseIdentity(notification);
-            if (identity == null)
-            {
-                return;
-            }
-
-            var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(notification);
-            var queue = ParseQueue(normalized, identity.Item3);
-            EmitQueue(queue);
-            ReviewFailed?.Invoke(this, new ReviewFailedNotification
-            {
-                Id = identity.Item1,
-                Path = identity.Item2,
-                RepoRoot = identity.Item3,
-                Message = (string)normalized["message"],
-                Queue = queue,
-            });
-        }
-
-        private void HandleWatchInventory(JObject notification)
-        {
-            var inventory = ParseWatchInventory(notification, null);
-            if (string.IsNullOrEmpty(inventory.RepoRoot))
-            {
-                return;
-            }
-
-            _logger.Info($"[cs-ide] received watchInventoryChanged repo={inventory.RepoRoot} count={inventory.Files.Count}");
-            WatchInventoryChanged?.Invoke(this, inventory);
-        }
-
-        private Tuple<string, string, string> ParseIdentity(JObject notification)
-        {
-            if (notification == null)
-            {
-                return null;
-            }
-
-            var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(notification);
-            var path = (string)normalized["path"];
-            var repoRoot = (string)normalized["repo-root"];
-            if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(repoRoot))
-            {
-                return null;
-            }
-
-            var idToken = normalized["id"];
-            string id = null;
-            if (idToken != null && idToken.Type != JTokenType.Null)
-            {
-                id = (string)idToken;
-            }
-
-            return Tuple.Create(id, path, repoRoot);
-        }
-
-        private WatchInventory ParseWatchInventory(JObject notification, string fallbackRepoRoot)
-        {
-            var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(notification ?? new JObject());
-            var files = normalized["files"] as JArray;
-            return new WatchInventory
-            {
-                RepoRoot = (string)normalized["repo-root"] ?? fallbackRepoRoot,
-                Files = files == null ? new List<string>() : files.Select(token => (string)token).Where(value => value != null).ToList(),
-            };
-        }
-
-        private ReviewQueue ParseQueue(JObject notification, string repoRoot)
-        {
-            var queueToken = notification?["queue"] as JObject;
-            if (queueToken == null)
-            {
-                return null;
-            }
-
-            var files = queueToken["files"] as JArray;
-            return new ReviewQueue
-            {
-                Count = queueToken["count"]?.Value<int>() ?? 0,
-                Files = (files ?? new JArray())
-                    .Select(token => (string)token)
-                    .Where(value => !string.IsNullOrEmpty(value))
-                    .Select(relPath => Path.Combine(repoRoot ?? string.Empty, relPath.Replace('/', Path.DirectorySeparatorChar)))
-                    .ToList(),
-            };
-        }
-
-        private void EmitQueue(ReviewQueue queue)
-        {
-            if (queue == null)
-            {
-                return;
-            }
-
-            QueueChanged?.Invoke(this, queue);
         }
 
         private void EnsureCliIntegrity(string cliFilePath)

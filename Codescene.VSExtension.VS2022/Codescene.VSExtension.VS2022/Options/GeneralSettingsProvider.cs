@@ -14,5 +14,7 @@ namespace Codescene.VSExtension.VS2022.Options
         public string AuthToken => General.Instance.AuthToken;
 
         public int ServerWorkerThreads => General.Instance.ServerWorkerThreads;
+
+        public bool EnableAutomaticAnalysis => General.Instance.EnableAutomaticAnalysis;
     }
 }

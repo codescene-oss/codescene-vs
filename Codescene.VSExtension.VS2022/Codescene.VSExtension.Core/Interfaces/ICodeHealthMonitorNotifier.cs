@@ -6,6 +6,12 @@ namespace Codescene.VSExtension.Core.Interfaces
 {
     public interface ICodeHealthMonitorNotifier
     {
+        string AnalysisState { get; }
+
+        int? TotalCount { get; }
+
+        int RemainingCount { get; }
+
         void OnDeltaStarting(string filePath);
 
         void OnDeltaCompleted(string filePath);
@@ -15,5 +21,7 @@ namespace Codescene.VSExtension.Core.Interfaces
         void ApplyQueue(ReviewQueue queue);
 
         void Clear();
+
+        void SetAutomaticAnalysisEnabled(bool enabled);
     }
 }

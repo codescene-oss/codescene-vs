@@ -315,15 +315,7 @@ namespace Codescene.VSExtension.Core.Tests
                     client.Object,
                     new WatchInventory { RepoRoot = repo, Files = new[] { "known.cs" } });
 
-                client.Raise(
-                    x => x.DeltaReceived += null,
-                    client.Object,
-                    new DeltaNotification
-                    {
-                        RepoRoot = repo,
-                        Path = "new.cs",
-                        Result = new DeltaResponseModel(),
-                    });
+                await coordinator.AdmitsDeltaAsync(repo, "new.cs");
 
                 await WaitUntilAsync(() => coordinator.GetInventoryFiles(repo).Contains("new.cs"));
                 client.Verify(x => x.GetWatchInventoryAsync(repo, It.IsAny<CancellationToken>()), Times.Once);
@@ -356,14 +348,8 @@ namespace Codescene.VSExtension.Core.Tests
                     client.Object,
                     new WatchInventory { RepoRoot = repo, Files = new[] { "known.cs" } });
 
-                client.Raise(
-                    x => x.DeltaReceived += null,
-                    client.Object,
-                    new DeltaNotification { RepoRoot = repo, Path = "known.cs", Result = new DeltaResponseModel() });
-                client.Raise(
-                    x => x.DeltaReceived += null,
-                    client.Object,
-                    new DeltaNotification { RepoRoot = repo, Path = "dirty.cs", Result = new DeltaResponseModel() });
+                Assert.IsTrue(await coordinator.AdmitsDeltaAsync(repo, "known.cs"));
+                Assert.IsTrue(await coordinator.AdmitsDeltaAsync(repo, "dirty.cs"));
                 await Task.Delay(WorkspaceWatchCoordinator.InventoryRefreshDelayMs + 100);
 
                 client.Verify(x => x.GetWatchInventoryAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -457,15 +443,10 @@ namespace Codescene.VSExtension.Core.Tests
                     x => x.WatchInventoryChanged += null,
                     client.Object,
                     new WatchInventory { RepoRoot = repo, Files = Array.Empty<string>() });
-                var delta = new DeltaNotification
-                {
-                    RepoRoot = repo,
-                    Path = "new.cs",
-                    Result = new DeltaResponseModel(),
-                };
 
-                client.Raise(x => x.DeltaReceived += null, client.Object, delta);
-                client.Raise(x => x.DeltaReceived += null, client.Object, delta);
+                var first = coordinator.AdmitsDeltaAsync(repo, "new.cs");
+                var second = coordinator.AdmitsDeltaAsync(repo, "new.cs");
+                await Task.WhenAll(first, second);
 
                 await Task.Delay(WorkspaceWatchCoordinator.InventoryRefreshDelayMs + 200);
                 logger.Verify(
@@ -494,17 +475,75 @@ namespace Codescene.VSExtension.Core.Tests
                     x => x.WatchInventoryChanged += null,
                     client.Object,
                     new WatchInventory { RepoRoot = repo, Files = Array.Empty<string>() });
-                client.Raise(
-                    x => x.DeltaReceived += null,
-                    client.Object,
-                    new DeltaNotification { RepoRoot = repo, Path = "new.cs", Result = new DeltaResponseModel() });
-
+                var admission = coordinator.AdmitsDeltaAsync(repo, "new.cs");
                 coordinator.StopAll();
+                await admission;
                 await Task.Delay(WorkspaceWatchCoordinator.InventoryRefreshDelayMs + 100);
 
                 client.Verify(
                     x => x.GetWatchInventoryAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
                     Times.Never);
+            }
+            finally
+            {
+                Directory.Delete(repo, true);
+            }
+        }
+
+        [TestMethod]
+        public async Task SetEnabled_StopsWatchesUntilAnalysisStartsAgain()
+        {
+            var repo = CreateGitRepo();
+            try
+            {
+                var client = new Mock<IIdeServerClient>();
+                var pipeline = new Mock<IReviewPipeline>();
+                var host = new Mock<IWorkspaceWatchHost>();
+                host.Setup(x => x.GetDirtyDocuments()).Returns(Array.Empty<ReviewDocument>());
+                using var coordinator = new WorkspaceWatchCoordinator(client.Object, pipeline.Object, null, host.Object);
+                await coordinator.SyncAsync(new[] { repo });
+                client.Invocations.Clear();
+
+                coordinator.SetEnabled(false);
+                await coordinator.SyncAsync(new[] { repo });
+
+                client.Verify(x => x.StopWatchFiles(It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>()), Times.AtLeastOnce);
+                client.Verify(x => x.WatchFiles(It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>()), Times.Never);
+
+                coordinator.SetEnabled(true);
+                client.Verify(x => x.WatchFiles(It.IsAny<string>(), It.IsAny<IReadOnlyList<string>>()), Times.AtLeastOnce);
+            }
+            finally
+            {
+                Directory.Delete(repo, true);
+            }
+        }
+
+        [TestMethod]
+        public async Task QueueIdle_ReprunesMonitor()
+        {
+            var repo = CreateGitRepo();
+            try
+            {
+                var client = new Mock<IIdeServerClient>();
+                var pipeline = new Mock<IReviewPipeline>();
+                var host = new Mock<IWorkspaceWatchHost>();
+                var pruneCount = 0;
+                host.Setup(x => x.GetDirtyDocuments()).Returns(Array.Empty<ReviewDocument>());
+                host.Setup(x => x.PruneMonitor(It.IsAny<IReadOnlyList<string>>(), It.IsAny<ISet<string>>()))
+                    .Callback(() => pruneCount++);
+                using var coordinator = new WorkspaceWatchCoordinator(client.Object, pipeline.Object, null, host.Object);
+                await coordinator.SyncAsync(new[] { repo });
+                client.Raise(
+                    x => x.WatchInventoryChanged += null,
+                    client.Object,
+                    new WatchInventory { RepoRoot = repo, Files = new[] { "tracked.cs" } });
+                var afterInventory = pruneCount;
+
+                client.Raise(x => x.QueueChanged += null, client.Object, new ReviewQueue { Count = 0, Files = Array.Empty<string>() });
+                await Task.Delay(WorkspaceWatchCoordinator.QueueIdlePruneDelayMs + 150);
+
+                Assert.IsGreaterThan(afterInventory, pruneCount);
             }
             finally
             {

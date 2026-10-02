@@ -131,7 +131,7 @@ internal class WebComponentMessageHandler
                     await HandleOpenLogOutputAsync();
                     break;
                 default:
-                    logger.Debug($"Unknown message type: {msgObject.MessageType}");
+                    await HandleUnmatchedMessageAsync(msgObject, logger);
                     break;
             }
         }
@@ -302,12 +302,36 @@ internal class WebComponentMessageHandler
             AceConstants.AceEntryPoint.CODEVISION);
     }
 
+    private async Task HandleUnmatchedMessageAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        if (msgObject.MessageType == MessageTypes.STOPANALYSIS)
+        {
+            await SetAutomaticAnalysisAsync(false);
+            return;
+        }
+
+        if (msgObject.MessageType == MessageTypes.STARTANALYSIS)
+        {
+            await SetAutomaticAnalysisAsync(true);
+            return;
+        }
+
+        logger.Debug($"Unknown message type: {msgObject.MessageType}");
+    }
+
     private async Task HandleOpenSettingsAsync()
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         await VS.Settings.OpenAsync<OptionsProvider.GeneralOptions>();
 
         SendTelemetry(Constants.Telemetry.OPENSETTINGS);
+    }
+
+    private async Task SetAutomaticAnalysisAsync(bool enabled)
+    {
+        var general = General.Instance;
+        general.EnableAutomaticAnalysis = enabled;
+        await general.SaveAsync();
     }
 
     // Currently, we only receive this message from the ACE view if the content is marked as 'stale'.

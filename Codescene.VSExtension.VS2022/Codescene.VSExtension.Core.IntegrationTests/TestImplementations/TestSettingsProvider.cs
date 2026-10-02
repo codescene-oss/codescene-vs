@@ -17,5 +17,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
         public string AuthToken => Mock.Object.AuthToken;
 
         public int ServerWorkerThreads => Mock.Object.ServerWorkerThreads;
+
+        public bool EnableAutomaticAnalysis => true;
     }
 }

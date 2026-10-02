@@ -24,6 +24,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (string.IsNullOrEmpty(notification.Id))
             {
+                if (!AutomaticAnalysisEnabled())
+                {
+                    return;
+                }
+
                 _ = PresentWatchReviewAsync(notification);
                 return;
             }
@@ -40,15 +45,46 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 if (!IsCurrent(pending, notification.RepoRoot, notification.Path) ||
                     !MatchesHash(notification.Result?.GitBlobSha, pending.ContentHash))
                 {
-                    _logger?.Warn($"[pipeline] ignoring fileReview id={notification.Id} path={notification.Path} repo={notification.RepoRoot}");
+                    _logger?.Warn("[pipeline] ignoring fileReview " + LogFields.Format(
+                        LogFields.Field("id", notification.Id),
+                        LogFields.Field("path", notification.Path),
+                        LogFields.Field("repo", notification.RepoRoot),
+                        LogFields.Field("pendingPath", pending.RelPath),
+                        LogFields.Field("pendingRepo", pending.RepoRoot),
+                        LogFields.Field("reason", MismatchReason(pending, notification.RepoRoot, notification.Path, notification.Result?.GitBlobSha))));
                     IgnorePending(pending);
                     return;
                 }
 
                 pending.ReviewResult = notification.Result;
+                _logger?.Debug("[pipeline] completed review " + LogFields.Format(
+                    LogFields.Field("id", pending.Id),
+                    LogFields.Field("path", pending.RelPath),
+                    LogFields.Field("repo", pending.RepoRoot)));
                 _presentation.PresentReview(ToPresentedReview(pending, notification.Result));
                 TryComplete(pending);
             }
+        }
+
+        private void QueueWatchDelta(DeltaNotification notification)
+        {
+            if (AutomaticAnalysisEnabled())
+            {
+                _ = PresentWatchDeltaAsync(notification);
+            }
+        }
+
+        private void PresentCurrentDelta(PendingReview pending, DeltaResponseModel result)
+        {
+            var presented = ToPresentedDelta(pending, result);
+            if (AutomaticAnalysisEnabled())
+            {
+                _presentation.PresentDelta(presented);
+                return;
+            }
+
+            presented.UpdateMonitor = false;
+            _presentation.PresentDelta(presented);
         }
 
         private void OnDeltaReceived(object sender, DeltaNotification notification)
@@ -60,7 +96,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (string.IsNullOrEmpty(notification.Id))
             {
-                _ = PresentWatchDeltaAsync(notification);
+                QueueWatchDelta(notification);
                 return;
             }
 
@@ -77,11 +113,17 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 if (IsCurrent(pending, notification.RepoRoot, notification.Path) && MatchesHash(hash, pending.ContentHash))
                 {
                     pending.DeltaResult = notification.Result;
-                    _presentation.PresentDelta(ToPresentedDelta(pending, notification.Result));
+                    PresentCurrentDelta(pending, notification.Result);
                 }
                 else
                 {
-                    _logger?.Warn($"[pipeline] ignoring deltaReview id={notification.Id} path={notification.Path} repo={notification.RepoRoot}");
+                    _logger?.Warn("[pipeline] ignoring deltaReview " + LogFields.Format(
+                        LogFields.Field("id", notification.Id),
+                        LogFields.Field("path", notification.Path),
+                        LogFields.Field("repo", notification.RepoRoot),
+                        LogFields.Field("pendingPath", pending.RelPath),
+                        LogFields.Field("pendingRepo", pending.RepoRoot),
+                        LogFields.Field("reason", MismatchReason(pending, notification.RepoRoot, notification.Path, hash))));
                 }
 
                 TryComplete(pending);
@@ -167,6 +209,15 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private async Task PresentWatchDeltaAsync(DeltaNotification notification)
         {
+            if (notification.Result != null && !await _watchDeltaFilter(notification.RepoRoot, notification.Path).ConfigureAwait(false))
+            {
+                _logger?.Debug("[pipeline] ignoring watch delta " + LogFields.Format(
+                    LogFields.Field("path", RpcPath.ToPosixRelPath(notification.Path)),
+                    LogFields.Field("repo", notification.RepoRoot),
+                    LogFields.Field("reason", "outside-watch-inventory")));
+                return;
+            }
+
             int epoch;
             lock (_gate)
             {
@@ -251,13 +302,22 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             if (document == null)
             {
+                _logger?.Debug("[pipeline] watchPresentation skipped " + LogFields.Format(
+                    LogFields.Field("path", posixPath),
+                    LogFields.Field("repo", repoRoot),
+                    LogFields.Field("reason", "no-document")));
                 return null;
             }
 
             var expectedSha = await CurrentShaAsync(document, filePath).ConfigureAwait(false);
             if (receivedSha != null && receivedSha != expectedSha)
             {
-                _logger?.Warn($"[pipeline] ignoring watch result path={posixPath} repo={repoRoot} stale sha");
+                _logger?.Warn("[pipeline] ignoring watch result " + LogFields.Format(
+                    LogFields.Field("path", posixPath),
+                    LogFields.Field("repo", repoRoot),
+                    LogFields.Field("reason", "stale-sha"),
+                    LogFields.Field("receivedSha", receivedSha),
+                    LogFields.Field("expectedSha", expectedSha)));
                 return null;
             }
 
@@ -354,12 +414,48 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private bool IsCurrent(PendingReview pending, string repoRoot, string relPath)
         {
-            return RpcPath.PathsEqual(pending.RepoRoot, repoRoot)
-                && RpcPath.ToPosixRelPath(pending.RelPath) == RpcPath.ToPosixRelPath(relPath)
-                && _latestByPath.TryGetValue(pending.PathKey, out var latest)
-                && ReferenceEquals(latest, pending)
-                && GitBlobSha.FromUtf8(pending.Document.Content) == pending.ContentHash
-                && (!_tombstones.TryGetValue(pending.PathKey, out var tombstone) || tombstone < pending.Generation);
+            return MismatchReason(pending, repoRoot, relPath) == null;
+        }
+
+        private string MismatchReason(PendingReview pending, string repoRoot, string relPath, string receivedSha)
+        {
+            var reason = MismatchReason(pending, repoRoot, relPath);
+            if (reason != null)
+            {
+                return reason;
+            }
+
+            return MatchesHash(receivedSha, pending.ContentHash) ? null : "sha-mismatch";
+        }
+
+        private string MismatchReason(PendingReview pending, string repoRoot, string relPath)
+        {
+            if (!RpcPath.PathsEqual(pending.RepoRoot, repoRoot))
+            {
+                return "repo-mismatch";
+            }
+
+            if (RpcPath.ToPosixRelPath(pending.RelPath) != RpcPath.ToPosixRelPath(relPath))
+            {
+                return "path-mismatch";
+            }
+
+            if (!_latestByPath.TryGetValue(pending.PathKey, out var latest) || !ReferenceEquals(latest, pending))
+            {
+                return "superseded";
+            }
+
+            if (GitBlobSha.FromUtf8(pending.Document.Content) != pending.ContentHash)
+            {
+                return "content-changed";
+            }
+
+            if (_tombstones.TryGetValue(pending.PathKey, out var tombstone) && tombstone >= pending.Generation)
+            {
+                return "tombstoned";
+            }
+
+            return null;
         }
 
         private sealed class PendingReview

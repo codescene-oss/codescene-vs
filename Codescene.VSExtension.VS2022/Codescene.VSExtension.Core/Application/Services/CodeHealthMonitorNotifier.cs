@@ -19,14 +19,51 @@ namespace Codescene.VSExtension.Core.Application.Services
     public class CodeHealthMonitorNotifier : ICodeHealthMonitorNotifier
     {
         private readonly ConcurrentDictionary<string, Job> _activeJobs = new ConcurrentDictionary<string, Job>();
+        private readonly AnalysisBatchTracker _batch = new AnalysisBatchTracker();
         private readonly object _lock = new object();
+        private bool _automaticAnalysisEnabled = true;
 
         public event EventHandler ViewUpdateRequested;
+
+        public string AnalysisState { get; private set; } = "idle";
+
+        public int? TotalCount { get; private set; }
+
+        public int RemainingCount { get; private set; }
+
+        public void SetAutomaticAnalysisEnabled(bool enabled)
+        {
+            lock (_lock)
+            {
+                if (_automaticAnalysisEnabled == enabled)
+                {
+                    return;
+                }
+
+                _automaticAnalysisEnabled = enabled;
+                if (!enabled)
+                {
+                    SetStoppedUnlocked();
+                    return;
+                }
+
+                if (AnalysisState == "stopped")
+                {
+                    AnalysisState = "idle";
+                    ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
 
         public void OnDeltaStarting(string filePath)
         {
             lock (_lock)
             {
+                if (!_automaticAnalysisEnabled)
+                {
+                    return;
+                }
+
                 if (_activeJobs.TryGetValue(filePath, out var existingJob))
                 {
                     DeltaJobTracker.Remove(existingJob);
@@ -60,6 +97,12 @@ namespace Codescene.VSExtension.Core.Application.Services
         {
             lock (_lock)
             {
+                if (!_automaticAnalysisEnabled)
+                {
+                    SetStoppedUnlocked();
+                    return;
+                }
+
                 _activeJobs.Clear();
                 var files = queue?.Files ?? Array.Empty<string>();
                 var jobs = new List<Job>();
@@ -77,6 +120,11 @@ namespace Codescene.VSExtension.Core.Application.Services
                 }
 
                 DeltaJobTracker.Replace(jobs);
+                var remaining = Math.Max(jobs.Count, queue?.Count ?? 0);
+                var progress = _batch.Update(remaining);
+                RemainingCount = progress.RemainingCount;
+                TotalCount = progress.TotalCount > 0 ? progress.TotalCount : (int?)null;
+                AnalysisState = RemainingCount > 0 ? "running" : "idle";
                 ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -87,12 +135,31 @@ namespace Codescene.VSExtension.Core.Application.Services
             {
                 _activeJobs.Clear();
                 DeltaJobTracker.Clear();
+                _batch.Reset();
+                if (_automaticAnalysisEnabled)
+                {
+                    AnalysisState = "idle";
+                    TotalCount = null;
+                    RemainingCount = 0;
+                }
+
                 ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
             }
         }
 
         public void RequestViewUpdate()
         {
+            ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void SetStoppedUnlocked()
+        {
+            _activeJobs.Clear();
+            DeltaJobTracker.Clear();
+            _batch.Reset();
+            AnalysisState = "stopped";
+            TotalCount = null;
+            RemainingCount = 0;
             ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
         }
     }

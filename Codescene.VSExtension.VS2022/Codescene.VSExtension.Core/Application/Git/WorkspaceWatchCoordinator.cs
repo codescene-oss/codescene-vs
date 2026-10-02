@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
 using Codescene.VSExtension.Core.Util;
@@ -18,9 +19,10 @@ namespace Codescene.VSExtension.Core.Application.Git
 {
     [Export(typeof(IWorkspaceWatchCoordinator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public sealed class WorkspaceWatchCoordinator : IWorkspaceWatchCoordinator, IDisposable
+    public sealed partial class WorkspaceWatchCoordinator : IWorkspaceWatchCoordinator, IDisposable
     {
         internal const int InventoryRefreshDelayMs = 250;
+        internal const int QueueIdlePruneDelayMs = 1000;
         private readonly IIdeServerClient _client;
         private readonly IReviewPipeline _pipeline;
         private readonly ILogger _logger;
@@ -28,8 +30,11 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly object _gate = new object();
         private readonly Dictionary<string, string> _watched = new Dictionary<string, string>(StringComparer.Ordinal);
         private readonly Dictionary<string, HashSet<string>> _inventories = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-        private readonly Dictionary<string, Timer> _refreshTimers = new Dictionary<string, Timer>(StringComparer.Ordinal);
+        private readonly Dictionary<string, PendingRefresh> _pendingRefreshes = new Dictionary<string, PendingRefresh>(StringComparer.Ordinal);
         private readonly Dictionary<string, string> _knownRoots = new Dictionary<string, string>(StringComparer.Ordinal);
+        private IReadOnlyList<string> _workspaceDirectories = Array.Empty<string>();
+        private Timer _queueIdleTimer;
+        private volatile bool _enabled = true;
         private bool _disposed;
 
         [ImportingConstructor]
@@ -37,15 +42,18 @@ namespace Codescene.VSExtension.Core.Application.Git
             IIdeServerClient client,
             IReviewPipeline pipeline,
             ILogger logger,
-            [Import(AllowDefault = true)] IWorkspaceWatchHost host = null)
+            [Import(AllowDefault = true)] IWorkspaceWatchHost host = null,
+            [Import(AllowDefault = true)] ISettingsProvider settings = null)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
             _logger = logger;
             _host = host;
+            _enabled = settings?.EnableAutomaticAnalysis ?? true;
+            _pipeline.SetWatchDeltaFilter((repoRoot, relPath) => AdmitsDeltaAsync(repoRoot, relPath));
             _client.WatchInventoryChanged += OnWatchInventoryChanged;
             _client.ServerStarted += OnServerStarted;
-            _client.DeltaReceived += OnDeltaReceived;
+            _client.QueueChanged += OnQueueChanged;
         }
 
         public Task SyncAsync(IReadOnlyList<string> workspaceDirectories)
@@ -55,7 +63,14 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return Task.CompletedTask;
             }
 
-            var targets = ResolveTargets(workspaceDirectories ?? Array.Empty<string>());
+            _workspaceDirectories = workspaceDirectories ?? Array.Empty<string>();
+            if (!_enabled)
+            {
+                return Task.CompletedTask;
+            }
+
+            var targets = ResolveTargets(_workspaceDirectories);
+            _logger?.Debug("[watch] syncing " + LogFields.Format(LogFields.Field("count", targets.Count)));
             lock (_gate)
             {
                 _knownRoots.Clear();
@@ -82,6 +97,25 @@ namespace Codescene.VSExtension.Core.Application.Git
             return Task.CompletedTask;
         }
 
+        public void SetEnabled(bool enabled)
+        {
+            if (_disposed || _enabled == enabled)
+            {
+                return;
+            }
+
+            _enabled = enabled;
+            if (enabled)
+            {
+                _logger?.Info("[watch] automatic analysis started");
+                _ = SyncAsync(_workspaceDirectories);
+                return;
+            }
+
+            _logger?.Info("[watch] automatic analysis stopped");
+            PauseWatching();
+        }
+
         public void StopAll()
         {
             lock (_gate)
@@ -93,12 +127,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
                 _inventories.Clear();
                 _knownRoots.Clear();
-                foreach (var timer in _refreshTimers.Values)
-                {
-                    timer.Dispose();
-                }
-
-                _refreshTimers.Clear();
+                CancelPendingRefreshesUnlocked();
                 _pipeline.SetActiveRepos(Array.Empty<string>());
             }
 
@@ -129,17 +158,8 @@ namespace Codescene.VSExtension.Core.Application.Git
             _disposed = true;
             _client.WatchInventoryChanged -= OnWatchInventoryChanged;
             _client.ServerStarted -= OnServerStarted;
-            _client.DeltaReceived -= OnDeltaReceived;
+            _client.QueueChanged -= OnQueueChanged;
             StopAll();
-            lock (_gate)
-            {
-                foreach (var timer in _refreshTimers.Values)
-                {
-                    timer.Dispose();
-                }
-
-                _refreshTimers.Clear();
-            }
         }
 
         private static List<string> ResolveTargets(IReadOnlyList<string> directories)
@@ -202,10 +222,19 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 if (_watched.TryGetValue(key, out var existingScope) && existingScope == scopeKey)
                 {
+                    _logger?.Debug("[watch] ensureWatch " + LogFields.Format(
+                        LogFields.Field("action", "skip"),
+                        LogFields.Field("repo", repoRoot),
+                        LogFields.Field("reason", "scope-unchanged"),
+                        LogFields.Field("scopeKey", scopeKey)));
                     Seed(repoRoot);
                     return;
                 }
 
+                _logger?.Info("[watch] ensureWatch " + LogFields.Format(
+                    LogFields.Field("action", "startWatch"),
+                    LogFields.Field("repo", repoRoot),
+                    LogFields.Field("paths", relativePaths ?? (IReadOnlyList<string>)new[] { "(whole repository)" })));
                 _client.WatchFiles(repoRoot, relativePaths);
                 _watched[key] = scopeKey;
                 PublishActiveReposUnlocked();
@@ -222,6 +251,9 @@ namespace Codescene.VSExtension.Core.Application.Git
             }
 
             var repoRoot = _knownRoots.TryGetValue(normalizedRoot, out var known) ? known : normalizedRoot;
+            _logger?.Info("[watch] stopped " + LogFields.Format(
+                LogFields.Field("repo", repoRoot),
+                LogFields.Field("reason", "unspecified")));
             _client.StopWatchFiles(repoRoot);
             _watched.Remove(normalizedRoot);
             PublishActiveReposUnlocked();
@@ -230,7 +262,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private void OnWatchInventoryChanged(object sender, WatchInventory inventory)
         {
-            if (inventory == null)
+            if (inventory == null || !_enabled)
             {
                 return;
             }
@@ -249,81 +281,21 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private void ApplyInventoryUnlocked(string repoRoot, IReadOnlyList<string> files)
         {
+            if (!_enabled)
+            {
+                return;
+            }
+
             var resolved = ResolveRepoRoot(repoRoot);
             var key = RpcPath.NormalizeFsPath(resolved);
             var relPaths = new HashSet<string>(files.Select(RpcPath.ToPosixRelPath), StringComparer.Ordinal);
             _inventories[key] = relPaths;
             var keep = PathsToKeepUnlocked();
+            _logger?.Debug("[watch] inventory applied " + LogFields.Format(
+                LogFields.Field("repo", resolved),
+                LogFields.Field("files", relPaths.Count),
+                LogFields.Field("keepPaths", keep.Count)));
             _host?.PruneMonitor(_inventories.Keys.Select(ResolveRepoRoot).ToList(), keep);
-        }
-
-        private void OnDeltaReceived(object sender, DeltaNotification notification)
-        {
-            if (notification?.Result == null)
-            {
-                return;
-            }
-
-            lock (_gate)
-            {
-                var repoRoot = ResolveRepoRoot(notification.RepoRoot);
-                var key = RpcPath.NormalizeFsPath(repoRoot);
-                if (!_inventories.TryGetValue(key, out var inventory))
-                {
-                    return;
-                }
-
-                var relPath = RpcPath.ToPosixRelPath(notification.Path);
-                if (inventory.Contains(relPath) || IsDirty(repoRoot, relPath))
-                {
-                    return;
-                }
-
-                ScheduleInventoryRefresh(repoRoot, key);
-            }
-        }
-
-        private void ScheduleInventoryRefresh(string repoRoot, string key)
-        {
-            if (_refreshTimers.TryGetValue(key, out var existing))
-            {
-                existing.Change(InventoryRefreshDelayMs, Timeout.Infinite);
-                return;
-            }
-
-            _refreshTimers[key] = new Timer(
-                _ =>
-                {
-                    lock (_gate)
-                    {
-                        if (_refreshTimers.TryGetValue(key, out var timer))
-                        {
-                            timer.Dispose();
-                            _refreshTimers.Remove(key);
-                        }
-                    }
-
-                    _ = RefreshInventoryAsync(repoRoot);
-                },
-                null,
-                InventoryRefreshDelayMs,
-                Timeout.Infinite);
-        }
-
-        private async Task RefreshInventoryAsync(string repoRoot)
-        {
-            try
-            {
-                var inventory = await _client.GetWatchInventoryAsync(repoRoot).ConfigureAwait(false);
-                lock (_gate)
-                {
-                    ApplyInventoryUnlocked(repoRoot, inventory?.Files ?? Array.Empty<string>());
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger?.Debug($"[watch] inventory refresh skipped for {repoRoot}: {ex.Message}");
-            }
         }
 
         private void OnServerStarted(object sender, ServerStartEvent startEvent)
@@ -349,11 +321,21 @@ namespace Codescene.VSExtension.Core.Application.Git
                 return false;
             }
 
+            if (!_enabled)
+            {
+                return false;
+            }
+
             return startEvent.Restart;
         }
 
         private void Seed(string repoRoot)
         {
+            if (!_enabled)
+            {
+                return;
+            }
+
             var submissions = DirtySubmissions(repoRoot);
             if (submissions.Count == 0)
             {

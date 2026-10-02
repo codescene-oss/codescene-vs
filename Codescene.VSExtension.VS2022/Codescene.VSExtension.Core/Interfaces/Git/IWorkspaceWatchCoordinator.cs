@@ -11,6 +11,8 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
 
         void StopAll();
 
+        void SetEnabled(bool enabled);
+
         IReadOnlyCollection<string> GetInventoryFiles(string repoRoot);
     }
 }

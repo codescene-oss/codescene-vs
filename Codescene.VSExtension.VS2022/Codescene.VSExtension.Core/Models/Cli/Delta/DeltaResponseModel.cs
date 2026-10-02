@@ -25,7 +25,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Delta
         /// Gets or sets if the file was not recently created, the old file score.
         /// </summary>
         [JsonProperty("old-score")]
-        public decimal OldScore { get; set; }
+        public decimal? OldScore { get; set; }
 
         /// <summary>
         /// Gets or sets represents the change in score for this Delta. An empty old- or new score is assumed to be 10.0 when comparing.

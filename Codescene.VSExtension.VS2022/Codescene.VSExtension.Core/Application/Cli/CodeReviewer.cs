@@ -9,6 +9,7 @@ using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
@@ -28,6 +29,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ICodeHealthMonitorNotifier _notifier;
         private readonly IPreflightManager _preflightManager;
         private readonly IReviewPipeline _pipeline;
+        private readonly ISettingsProvider _settings;
 
         public CodeReviewer(
             ILogger logger,
@@ -37,7 +39,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
             IGitService git,
             ICodeHealthMonitorNotifier notifier = null,
             IPreflightManager preflightManager = null,
-            IReviewPipeline pipeline = null)
+            IReviewPipeline pipeline = null,
+            ISettingsProvider settings = null)
         {
             _logger = logger;
             _mapper = mapper;
@@ -47,6 +50,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _notifier = notifier;
             _preflightManager = preflightManager;
             _pipeline = pipeline;
+            _settings = settings;
         }
 
         public async Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)
@@ -158,7 +162,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     RelPath = RpcPath.RelativePosix(repoRoot, path),
                     Content = content,
                     UpdateDiagnosticsPane = true,
-                    UpdateMonitor = true,
+                    UpdateMonitor = ShouldUpdateMonitor(path, content),
                 });
 
             if (cliReview == null)
@@ -174,6 +178,33 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var enriched = await EnrichDeltaAsync(path, content, delta, cancellationToken);
             return (review, enriched);
+        }
+
+        private bool ShouldUpdateMonitor(string path, string content)
+        {
+            if (!(_settings?.EnableAutomaticAnalysis ?? true))
+            {
+                return false;
+            }
+
+            return BufferDiffersFromDisk(path, content);
+        }
+
+        private bool BufferDiffersFromDisk(string path, string content)
+        {
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+                return true;
+            }
+
+            try
+            {
+                return !string.Equals(File.ReadAllText(path), content, StringComparison.Ordinal);
+            }
+            catch (Exception)
+            {
+                return true;
+            }
         }
 
         private async Task<DeltaResponseModel> EnrichDeltaAsync(string path, string currentCode, DeltaResponseModel delta, CancellationToken cancellationToken)

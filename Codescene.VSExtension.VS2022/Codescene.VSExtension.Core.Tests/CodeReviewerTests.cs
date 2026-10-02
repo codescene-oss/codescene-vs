@@ -632,7 +632,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             try
             {
-                var result = await reviewer.ReviewWithDeltaAsync(path, "content");
+                var result = await reviewer.ReviewWithDeltaAsync(path, "changed");
 
                 Assert.IsNotNull(result.review);
                 Assert.AreEqual(path, result.review.FilePath);
@@ -645,7 +645,7 @@ namespace Codescene.VSExtension.Core.Tests
                             submission.Document.FilePath == path &&
                             submission.Document.IsDirty &&
                             submission.RelPath == "test.cs" &&
-                            submission.Content == "content" &&
+                            submission.Content == "changed" &&
                             submission.UpdateDiagnosticsPane &&
                             submission.UpdateMonitor)),
                     Times.Once);
