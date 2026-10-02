@@ -16,5 +16,7 @@ namespace Codescene.VSExtension.VS2022.Options
         public int ServerWorkerThreads => General.Instance.ServerWorkerThreads;
 
         public bool EnableAutomaticAnalysis => General.Instance.EnableAutomaticAnalysis;
+
+        public bool EnableTelemetry => General.Instance.EnableTelemetry;
     }
 }

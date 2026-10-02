@@ -23,18 +23,21 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
         private readonly IIdeServerClient _client;
         private readonly IDeviceIdStore _deviceIdStore;
         private readonly IExtensionMetadataProvider _extensionMetadataProvider;
+        private readonly ISettingsProvider _settingsProvider;
 
         [ImportingConstructor]
         public TelemetryManager(
             ILogger logger,
             IIdeServerClient client,
             IDeviceIdStore deviceIdStore,
-            IExtensionMetadataProvider extensionMetadataProvider)
+            IExtensionMetadataProvider extensionMetadataProvider,
+            [Import(AllowDefault = true)] ISettingsProvider settingsProvider = null)
         {
             _logger = logger;
             _client = client;
             _deviceIdStore = deviceIdStore;
             _extensionMetadataProvider = extensionMetadataProvider;
+            _settingsProvider = settingsProvider;
         }
 
         /// <summary>
@@ -48,7 +51,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
         /// </remarks>
         public async Task SendTelemetryAsync(string eventName, Dictionary<string, object> additionalEventData = null, CancellationToken cancellationToken = default)
         {
-            if (!TelemetryUtils.IsTelemetryEnabled(_logger, _extensionMetadataProvider.GetEditorVersion()))
+            if (!IsTelemetryAllowed())
             {
                 return;
             }
@@ -81,7 +84,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
 
         public async Task SendErrorTelemetryAsync(Exception ex, string context, Dictionary<string, object> extraData = null, CancellationToken cancellationToken = default)
         {
-            if (!TelemetryUtils.IsTelemetryEnabled(_logger, _extensionMetadataProvider.GetEditorVersion()))
+            if (!IsTelemetryAllowed())
             {
                 return;
             }
@@ -110,6 +113,21 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
             {
                 _logger.Debug($"Unable to send error telemetry: {e.Message}");
             }
+        }
+
+        private bool IsTelemetryAllowed()
+        {
+            if (TelemetryUtils.TelemetryEnabledOverrideForTests.HasValue)
+            {
+                return TelemetryUtils.TelemetryEnabledOverrideForTests.Value;
+            }
+
+            if (_settingsProvider != null && !_settingsProvider.EnableTelemetry)
+            {
+                return false;
+            }
+
+            return TelemetryUtils.IsTelemetryEnabled(_logger, _extensionMetadataProvider.GetEditorVersion());
         }
     }
 }

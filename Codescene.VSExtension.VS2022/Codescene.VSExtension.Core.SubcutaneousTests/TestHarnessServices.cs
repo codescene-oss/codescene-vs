@@ -92,4 +92,6 @@ public sealed class TestSettingsProvider : ISettingsProvider
     public int ServerWorkerThreads => 0;
 
     public bool EnableAutomaticAnalysis => true;
+
+    public bool EnableTelemetry => true;
 }

@@ -11,5 +11,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Extension
         int ServerWorkerThreads { get; }
 
         bool EnableAutomaticAnalysis { get; }
+
+        bool EnableTelemetry { get; }
     }
 }

@@ -177,6 +177,8 @@ internal sealed class FixedSettingsProvider : ISettingsProvider
     public int ServerWorkerThreads => 0;
 
     public bool EnableAutomaticAnalysis => true;
+
+    public bool EnableTelemetry => true;
 }
 
 internal sealed class FixedGitService : IGitService

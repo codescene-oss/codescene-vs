@@ -17,7 +17,6 @@ using Codescene.VSExtension.Core.Models.Cli.Rpc;
 using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using Codescene.VSExtension.VS2022.Tagger;
-using Codescene.VSExtension.VS2022.TermsAndPolicies;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -50,9 +49,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
         [Import]
         private readonly IErrorListWindowHandler _errorListWindowHandler;
-
-        [Import]
-        private readonly TermsAndPoliciesService _termsAndPoliciesService;
 
         [Import]
         private readonly AceStaleChecker _aceStaleChecker;
@@ -280,14 +276,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
         {
             try
             {
-                var termsAccepted = await _termsAndPoliciesService.EvaluateTermsAndPoliciesAcceptanceAsync();
-
-                if (!termsAccepted)
-                {
-                    _logger.Warn("Skipping CodeScene analysis, Terms & Policies have not been accepted.", true);
-                    return;
-                }
-
                 var code = buffer.CurrentSnapshot.GetText();
                 var (result, _) = await _reviewer.ReviewWithDeltaAsync(path, code);
                 await ApplyReviewResultsAsync(result, buffer);

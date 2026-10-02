@@ -72,6 +72,11 @@ public class General : BaseOptionModel<General>
     public int ServerWorkerThreads { get; set; } = 0;
 
     [Category("General")]
+    [DisplayName("Enable Telemetry")]
+    [Description("Enable sending usage telemetry to CodeScene")]
+    public bool EnableTelemetry { get; set; } = true;
+
+    [Category("General")]
     [DisplayName("Enable Automatic Analysis")]
     [Description("Automatically analyze file changes in the workspace. Open editors are still reviewed for diagnostics when this is off.")]
     public bool EnableAutomaticAnalysis { get; set; } = true;

@@ -41,6 +41,25 @@ namespace Codescene.VSExtension.Core.Tests
             TelemetryUtils.TelemetryEnabledOverrideForTests = true;
         }
 
+        [TestMethod]
+        public async Task SendTelemetryAsync_WhenEnableTelemetryIsFalse_DoesNotCallCli()
+        {
+            TelemetryUtils.TelemetryEnabledOverrideForTests = null;
+            var settings = new Mock<ISettingsProvider>();
+            settings.Setup(x => x.EnableTelemetry).Returns(false);
+            var manager = new TelemetryManager(
+                _mockLogger.Object,
+                _mockClient.Object,
+                _mockDeviceIdStore.Object,
+                _mockMetadataProvider.Object,
+                settings.Object);
+
+            await manager.SendTelemetryAsync("event");
+
+            _mockDeviceIdStore.Verify(x => x.GetDeviceIdAsync(It.IsAny<CancellationToken>()), Times.Never);
+            _mockClient.Verify(x => x.TelemetryAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
         [TestCleanup]
         public void TearDown()
         {

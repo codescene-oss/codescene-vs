@@ -86,7 +86,7 @@
     <Compile Include="Tagger\UnderlineTaggerTooltipParams.cs" />
     <Compile Include="Handlers\AceStateChangeHandler.cs" />
     <Compile Include="Options\GeneralSettingsProvider.cs" />
-    <Compile Include="TermsAndPolicies\TermsAndPoliciesService.cs" />
+    <Compile Include="Telemetry\TelemetryNoticeService.cs" />
     <Compile Include="Handlers\SolutionEventsHandler.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />

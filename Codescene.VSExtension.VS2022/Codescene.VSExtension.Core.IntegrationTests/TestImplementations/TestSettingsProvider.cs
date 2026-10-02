@@ -19,5 +19,7 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
         public int ServerWorkerThreads => Mock.Object.ServerWorkerThreads;
 
         public bool EnableAutomaticAnalysis => true;
+
+        public bool EnableTelemetry => true;
     }
 }

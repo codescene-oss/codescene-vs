@@ -12,6 +12,7 @@ using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
 using Codescene.VSExtension.VS2022.Handlers;
+using Codescene.VSExtension.VS2022.Notices;
 using Codescene.VSExtension.VS2022.Options;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
@@ -73,9 +74,9 @@ public sealed class VS2022Package : ToolkitPackage
             // Commands
             await this.RegisterCommandsAsync();
 
-            // Cli file
             await CheckCliFileAsync();
             JoinableTaskFactory.RunAsync(() => StartIdeServerAsync(cancellationToken)).FileAndForget("VS2022Package/StartIdeServer");
+            JoinableTaskFactory.RunAsync(ShowTelemetryNoticeAsync).FileAndForget("VS2022Package/TelemetryNotice");
 
             // Subscribe on active document change event
             await SubscribeOnActiveWindowChangeAsync();
@@ -260,6 +261,22 @@ public sealed class VS2022Package : ToolkitPackage
         {
             _logger?.Error("Unhandled UI exception", e.Exception);
             e.Handled = true;
+        }
+    }
+
+    private async Task ShowTelemetryNoticeAsync()
+    {
+        try
+        {
+            var notice = await VS.GetMefServiceAsync<TelemetryNoticeService>();
+            if (notice != null)
+            {
+                await notice.ShowOnceAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error("Failed to show telemetry notice.", ex);
         }
     }
 
