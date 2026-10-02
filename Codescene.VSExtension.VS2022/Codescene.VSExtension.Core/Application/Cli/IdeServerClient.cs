@@ -38,6 +38,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly object _gate = new object();
         private readonly RpcNotifications _notifications;
         private Task<ServerMetadata> _startTask;
+        private Task _notificationChain = Task.CompletedTask;
         private TaskCompletionSource<ServerMetadata> _pendingStart;
         private JsonRpc _rpc;
         private IIdeServerProcess _process;
@@ -190,7 +191,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 LogFields.Field("files", reviewFiles.Select(file => file.RelPath).ToArray()),
                 LogFields.Field("withContent", reviewFiles.Count(file => file.Content != null)),
                 LogFields.Field("withId", reviewFiles.Count(file => file.Id != null))));
-            _ = SendNotificationAsync("cs-ide/reviewFiles", payload);
+            EnqueueNotification("cs-ide/reviewFiles", payload);
         }
 
         public void WatchFiles(string repoRoot, IReadOnlyList<string> relativePaths = null)
@@ -203,7 +204,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _logger.Info("[cs-ide] sending watchFiles " + LogFields.Format(
                 LogFields.Field("repo", repoRoot),
                 LogFields.Field("relativePaths", relativePaths ?? (IReadOnlyList<string>)new[] { "(whole repository)" })));
-            _ = SendNotificationAsync("cs-ide/watchFiles", payload);
+            EnqueueNotification("cs-ide/watchFiles", payload);
         }
 
         public void StopWatchFiles(string repoRoot, IReadOnlyList<string> relativePaths = null)
@@ -224,7 +225,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 RepoRoot = repoRoot,
                 RelativePaths = relativePaths?.ToArray(),
             };
-            _ = SendNotificationAsync("cs-ide/stopWatchFiles", payload);
+            EnqueueNotification("cs-ide/stopWatchFiles", payload);
         }
 
         public void Dispose()
@@ -397,6 +398,19 @@ namespace Codescene.VSExtension.Core.Application.Cli
             catch (RemoteInvocationException ex)
             {
                 throw new DevtoolsException(ex.Message, ex.ErrorCode, null);
+            }
+        }
+
+        private void EnqueueNotification(string method, object argument)
+        {
+            lock (_gate)
+            {
+                var prior = _notificationChain;
+                _notificationChain = prior.ContinueWith(
+                    _ => SendNotificationAsync(method, argument),
+                    CancellationToken.None,
+                    TaskContinuationOptions.None,
+                    TaskScheduler.Default).Unwrap();
             }
         }
 

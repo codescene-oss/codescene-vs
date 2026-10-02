@@ -33,6 +33,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly Dictionary<string, PendingRefresh> _pendingRefreshes = new Dictionary<string, PendingRefresh>(StringComparer.Ordinal);
         private readonly Dictionary<string, string> _knownRoots = new Dictionary<string, string>(StringComparer.Ordinal);
         private IReadOnlyList<string> _workspaceDirectories = Array.Empty<string>();
+        private long _watchSession;
         private Timer _queueIdleTimer;
         private volatile bool _enabled = true;
         private bool _disposed;
@@ -56,32 +57,25 @@ namespace Codescene.VSExtension.Core.Application.Git
             _client.QueueChanged += OnQueueChanged;
         }
 
+        public long WatchSession
+        {
+            get
+            {
+                lock (_gate)
+                {
+                    return _watchSession;
+                }
+            }
+        }
+
+        public Task SyncAsync(IReadOnlyList<string> workspaceDirectories, long watchSession)
+        {
+            return ApplySync(workspaceDirectories, watchSession);
+        }
+
         public Task SyncAsync(IReadOnlyList<string> workspaceDirectories)
         {
-            if (_disposed)
-            {
-                return Task.CompletedTask;
-            }
-
-            _workspaceDirectories = workspaceDirectories ?? Array.Empty<string>();
-            if (!_enabled)
-            {
-                return Task.CompletedTask;
-            }
-
-            var targets = ResolveTargets(_workspaceDirectories);
-            _logger?.Debug("[watch] syncing " + LogFields.Format(LogFields.Field("count", targets.Count)));
-            if (ReplaceWatchedRoots(targets))
-            {
-                PruneMonitor();
-            }
-
-            foreach (var target in targets)
-            {
-                EnsureWatch(target, ScopePaths(target, workspaceDirectories));
-            }
-
-            return Task.CompletedTask;
+            return ApplySync(workspaceDirectories, null);
         }
 
         public void SetEnabled(bool enabled)
@@ -107,6 +101,8 @@ namespace Codescene.VSExtension.Core.Application.Git
         {
             lock (_gate)
             {
+                _watchSession++;
+                _workspaceDirectories = Array.Empty<string>();
                 foreach (var repoRoot in _watched.Keys.ToList())
                 {
                     StopWatchingUnlocked(repoRoot);
@@ -177,10 +173,12 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
 
                 var posix = RpcPath.RelativePosix(repoRoot, directory);
-                if (IsNestedScope(posix))
+                if (!IsNestedScope(posix))
                 {
-                    relative.Add(posix);
+                    return null;
                 }
+
+                relative.Add(posix);
             }
 
             return CoversEntireRepo(relative) ? null : relative;
@@ -201,11 +199,70 @@ namespace Codescene.VSExtension.Core.Application.Git
             return relative.Count == 0 || relative.Any(path => string.IsNullOrEmpty(path) || path == ".");
         }
 
-        private bool ReplaceWatchedRoots(IReadOnlyList<string> targets)
+        private Task ApplySync(IReadOnlyList<string> workspaceDirectories, long? watchSession)
+        {
+            if (_disposed)
+            {
+                return Task.CompletedTask;
+            }
+
+            var directories = workspaceDirectories ?? Array.Empty<string>();
+            if (!SessionMatches(watchSession))
+            {
+                return Task.CompletedTask;
+            }
+
+            if (!_enabled)
+            {
+                RememberDirectories(directories, watchSession);
+                return Task.CompletedTask;
+            }
+
+            var targets = ResolveTargets(directories);
+            _logger?.Debug("[watch] syncing " + LogFields.Format(LogFields.Field("count", targets.Count)));
+            if (ReplaceWatchedRoots(targets, watchSession))
+            {
+                PruneMonitor();
+            }
+
+            foreach (var target in targets)
+            {
+                EnsureWatch(target, ScopePaths(target, directories), watchSession);
+            }
+
+            RememberDirectories(directories, watchSession);
+            return Task.CompletedTask;
+        }
+
+        private void RememberDirectories(IReadOnlyList<string> directories, long? watchSession)
+        {
+            lock (_gate)
+            {
+                if (!watchSession.HasValue || watchSession.Value == _watchSession)
+                {
+                    _workspaceDirectories = directories;
+                }
+            }
+        }
+
+        private bool SessionMatches(long? watchSession)
+        {
+            lock (_gate)
+            {
+                return !watchSession.HasValue || watchSession.Value == _watchSession;
+            }
+        }
+
+        private bool ReplaceWatchedRoots(IReadOnlyList<string> targets, long? watchSession)
         {
             var stopped = false;
             lock (_gate)
             {
+                if (!SessionMatches(watchSession))
+                {
+                    return false;
+                }
+
                 _knownRoots.Clear();
                 foreach (var target in targets)
                 {
@@ -226,12 +283,18 @@ namespace Codescene.VSExtension.Core.Application.Git
             return stopped;
         }
 
-        private void EnsureWatch(string repoRoot, IReadOnlyList<string> relativePaths)
+        private void EnsureWatch(string repoRoot, IReadOnlyList<string> relativePaths, long? watchSession)
         {
             var key = RpcPath.NormalizeFsPath(repoRoot);
             var scopeKey = relativePaths == null ? "*" : string.Join("|", relativePaths);
+            var replacedScope = false;
             lock (_gate)
             {
+                if (!SessionMatches(watchSession))
+                {
+                    return;
+                }
+
                 if (_watched.TryGetValue(key, out var existingScope) && existingScope == scopeKey)
                 {
                     _logger?.Debug("[watch] ensureWatch " + LogFields.Format(
@@ -242,6 +305,16 @@ namespace Codescene.VSExtension.Core.Application.Git
                 }
                 else
                 {
+                    if (_watched.ContainsKey(key))
+                    {
+                        replacedScope = true;
+                        _logger?.Info("[watch] stopped " + LogFields.Format(
+                            LogFields.Field("repo", repoRoot),
+                            LogFields.Field("reason", "scope-changed")));
+                        _client.StopWatchFiles(repoRoot);
+                        ApplyInventoryUnlocked(repoRoot, Array.Empty<string>());
+                    }
+
                     _logger?.Info("[watch] ensureWatch " + LogFields.Format(
                         LogFields.Field("action", "startWatch"),
                         LogFields.Field("repo", repoRoot),
@@ -250,6 +323,11 @@ namespace Codescene.VSExtension.Core.Application.Git
                     _watched[key] = scopeKey;
                     PublishActiveReposUnlocked();
                 }
+            }
+
+            if (replacedScope)
+            {
+                PruneMonitor();
             }
 
             Seed(repoRoot);

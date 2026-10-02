@@ -28,5 +28,9 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
         void Reset();
 
         void SetActiveRepos(IReadOnlyCollection<string> repoRoots);
+
+        void SuspendBufferReviews();
+
+        void ResumeBufferReviews();
     }
 }

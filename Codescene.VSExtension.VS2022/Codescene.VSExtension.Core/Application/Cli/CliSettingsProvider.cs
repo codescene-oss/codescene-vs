@@ -13,7 +13,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
     {
         // single point of truth for CLI version
         // used by the build pipeline to bundle the CLI with the extension
-        public string RequiredDevToolVersion => "fbf6c11101be5b35288d64b9aee9a3c97573667a";
+        public string RequiredDevToolVersion => "6f48030998bf5566ec7ae4e430d2cf9b43d06744";
 
         public string RequiredCliBinarySha256 => "eff7759f0c23b54938df6bbf4ce0a11bd1690097ad9b167fe8df602dcb3d820e";
 

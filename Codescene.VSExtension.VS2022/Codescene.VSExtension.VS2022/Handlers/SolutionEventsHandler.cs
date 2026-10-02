@@ -127,6 +127,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
             _solutionInitializationTask = null;
             _initializedWorkspacePath = null;
             _initGeneration++;
+            _reviewPipeline?.SuspendBufferReviews();
         }
 
         _branchWatcher?.Dispose();
@@ -140,14 +141,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
 
     public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
     {
-        if (_workspaceWatch == null)
-        {
-            ScheduleWorkspaceInitialization(null);
-            return VSConstants.S_OK;
-        }
-
-        _scheduler.Schedule(ct => RefreshWorkspacePathsAsync());
-        return VSConstants.S_OK;
+        return ScheduleWorkspaceRefresh();
     }
 
     public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel) => VSConstants.S_OK;
@@ -158,7 +152,10 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
         return VSConstants.S_OK;
     }
 
-    public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy) => VSConstants.S_OK;
+    public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+    {
+        return ScheduleWorkspaceRefresh();
+    }
 
     public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel) => VSConstants.S_OK;
 
@@ -189,6 +186,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
 
     void IVsSolutionEvents7.OnAfterLoadAllDeferredProjects()
     {
+        ScheduleWorkspaceRefresh();
     }
 
     public void Dispose()
@@ -217,6 +215,18 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
             var logger = await VS.GetMefServiceAsync<ILogger>();
             await logAction(logger);
         });
+    }
+
+    private int ScheduleWorkspaceRefresh()
+    {
+        if (_workspaceWatch == null)
+        {
+            ScheduleWorkspaceInitialization(null);
+            return VSConstants.S_OK;
+        }
+
+        _scheduler.Schedule(ct => RefreshWorkspacePathsAsync());
+        return VSConstants.S_OK;
     }
 
     private void ScheduleWorkspaceInitialization(string explicitPath)
@@ -315,6 +325,7 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
             return;
         }
 
+        ResumeBufferReviewsIfCurrent(generation);
         ResetWorkspaceForInitialization();
         ClearAnalysisCaches();
         _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
@@ -422,11 +433,12 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
             return;
         }
 
-        var solution = await VS.Solutions.GetCurrentSolutionAsync();
-        var solutionPath = solution?.FullPath;
-        if (string.IsNullOrEmpty(solutionPath))
+        string solutionPath;
+        int generation;
+        lock (_initGate)
         {
             solutionPath = _initializedWorkspacePath;
+            generation = _initGeneration;
         }
 
         if (string.IsNullOrEmpty(solutionPath))
@@ -434,22 +446,53 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
             return;
         }
 
+        var watchSession = _workspaceWatch.WatchSession;
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-        IReadOnlyCollection<string> workspacePaths;
-        if (Directory.Exists(solutionPath))
-        {
-            workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(null, solutionPath);
-        }
-        else if (_solution != null)
-        {
-            workspacePaths = SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
-        }
-        else
+        var workspacePaths = CurrentProjectDirectories(solutionPath, generation, watchSession);
+        if (workspacePaths == null)
         {
             return;
         }
 
-        await _workspaceWatch.SyncAsync(workspacePaths == null ? Array.Empty<string>() : new List<string>(workspacePaths));
+        await _workspaceWatch.SyncAsync(new List<string>(workspacePaths), watchSession);
+    }
+
+    private IReadOnlyCollection<string> CurrentProjectDirectories(string solutionPath, int generation, long watchSession)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        if (!RefreshStillCurrent(generation, watchSession))
+        {
+            return null;
+        }
+
+        var workspacePaths = ProjectDirectories(solutionPath);
+        if (workspacePaths == null || !RefreshStillCurrent(generation, watchSession))
+        {
+            return null;
+        }
+
+        return workspacePaths;
+    }
+
+    private bool RefreshStillCurrent(int generation, long watchSession)
+    {
+        return IsCurrentInitialization(generation) && watchSession == _workspaceWatch.WatchSession;
+    }
+
+    private IReadOnlyCollection<string> ProjectDirectories(string solutionPath)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        if (Directory.Exists(solutionPath))
+        {
+            return SolutionProjectDiscovery.GetProjectDirectories(null, solutionPath);
+        }
+
+        if (_solution == null)
+        {
+            return null;
+        }
+
+        return SolutionProjectDiscovery.GetProjectDirectories(_solution, solutionPath);
     }
 
     private async Task OnBranchChangedAsync(string newBranch)
@@ -504,6 +547,19 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
         lock (_initGate)
         {
             return generation == _initGeneration;
+        }
+    }
+
+    private void ResumeBufferReviewsIfCurrent(int generation)
+    {
+        lock (_initGate)
+        {
+            if (generation != _initGeneration)
+            {
+                return;
+            }
+
+            _reviewPipeline?.ResumeBufferReviews();
         }
     }
 

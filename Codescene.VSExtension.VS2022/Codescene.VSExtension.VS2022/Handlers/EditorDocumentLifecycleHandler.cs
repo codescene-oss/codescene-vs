@@ -98,6 +98,11 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
             buffer.Changed += (_, _) =>
             {
+                if (!HasOpenViews(buffer))
+                {
+                    return;
+                }
+
                 if (ShouldCheckAceStaleStatus(filePath))
                 {
                     _scheduler.Schedule(async ct =>
@@ -274,6 +279,11 @@ namespace Codescene.VSExtension.VS2022.Handlers
         /// </summary>
         private async Task ReviewContentAsync(string path, ITextBuffer buffer)
         {
+            if (!HasOpenViews(buffer))
+            {
+                return;
+            }
+
             try
             {
                 var code = buffer.CurrentSnapshot.GetText();

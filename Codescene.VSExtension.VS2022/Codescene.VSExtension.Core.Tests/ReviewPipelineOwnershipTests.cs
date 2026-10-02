@@ -56,6 +56,19 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void SuspendBufferReviews_SkipsDiskRestoreOfOwnedBuffer()
+        {
+            var document = Sample();
+            _ = _pipeline.SubmitAsync(_repo, Submission(document));
+            _pipeline.SuspendBufferReviews();
+
+            _pipeline.RestoreFromDiskIfBufferOwned(_repo, document);
+
+            Assert.HasCount(1, _batches);
+            Assert.HasCount(0, _events.Removed);
+        }
+
+        [TestMethod]
         public void ReleaseBufferMonitorOwnership_SkipsDiskRestore()
         {
             var document = Sample();

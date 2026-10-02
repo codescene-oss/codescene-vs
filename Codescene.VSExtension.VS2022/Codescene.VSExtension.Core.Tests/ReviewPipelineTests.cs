@@ -38,6 +38,27 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task SuspendBufferReviews_SkipsContentUntilResumed()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            _pipeline.SuspendBufferReviews();
+            _pipeline.Reset();
+
+            var skipped = await _pipeline.SubmitAsync(RepoRoot, Submission(document));
+
+            Assert.IsNull(skipped.Review);
+            Assert.IsNull(skipped.Delta);
+            Assert.HasCount(0, _batches);
+
+            _pipeline.ResumeBufferReviews();
+            var pending = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            Assert.HasCount(1, _batches);
+            Assert.AreEqual("const value = 1;", _batches[0].Files[0].Content);
+            CompleteReview("review-1");
+            await pending;
+        }
+
+        [TestMethod]
         public void SubmitBatch_DeduplicatesRepoPathAndContent()
         {
             var document = Document("/repo/src/file.ts", "const value = 1;");

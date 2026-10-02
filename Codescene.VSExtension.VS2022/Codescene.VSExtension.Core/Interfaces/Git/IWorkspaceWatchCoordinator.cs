@@ -7,7 +7,11 @@ namespace Codescene.VSExtension.Core.Interfaces.Git
 {
     public interface IWorkspaceWatchCoordinator
     {
+        long WatchSession { get; }
+
         Task SyncAsync(IReadOnlyList<string> workspaceDirectories);
+
+        Task SyncAsync(IReadOnlyList<string> workspaceDirectories, long watchSession);
 
         void StopAll();
 

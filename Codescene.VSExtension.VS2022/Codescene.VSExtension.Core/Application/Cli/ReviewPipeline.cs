@@ -35,6 +35,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly Dictionary<string, WatchReviewEntry> _watchReviews = new Dictionary<string, WatchReviewEntry>(StringComparer.Ordinal);
         private readonly List<string> _watchReviewOrder = new List<string>();
         private int _dedupEpoch;
+        private bool _bufferReviewsSuspended;
         private HashSet<string> _activeRepos;
         private bool _disposed;
         private Func<string, string, Task<bool>> _watchDeltaFilter = (_, __) => Task.FromResult(true);
@@ -136,6 +137,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
             var owned = false;
             lock (_gate)
             {
+                if (_bufferReviewsSuspended)
+                {
+                    return;
+                }
+
                 owned = _bufferOwnedPaths.Contains(PathKeyForDocument(repoRoot, document));
             }
 
@@ -193,6 +199,22 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 _activeRepos = repoRoots == null
                     ? null
                     : new HashSet<string>(repoRoots.Select(RpcPath.NormalizeFsPath), StringComparer.Ordinal);
+            }
+        }
+
+        public void SuspendBufferReviews()
+        {
+            lock (_gate)
+            {
+                _bufferReviewsSuspended = true;
+            }
+        }
+
+        public void ResumeBufferReviews()
+        {
+            lock (_gate)
+            {
+                _bufferReviewsSuspended = false;
             }
         }
 
@@ -277,17 +299,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 for (var i = 0; i < submissions.Count; i++)
                 {
                     var submission = submissions[i];
-                    if (submission.Content == null)
+                    if (TryQueueWithoutBufferReview(repoRoot, submission, diskFiles, out var immediate))
                     {
-                        var relPath = RpcPath.ToPosixRelPath(submission.RelPath);
-                        diskFiles.Add(new ReviewFile { RelPath = relPath });
-                        _logger?.Debug("[pipeline] submit " + LogFields.Format(
-                            LogFields.Field("path", relPath),
-                            LogFields.Field("repo", repoRoot),
-                            LogFields.Field("source", "disk"),
-                            LogFields.Field("updateMonitor", submission.UpdateMonitor),
-                            LogFields.Field("updateDiagnostics", submission.UpdateDiagnosticsPane)));
-                        tasks[i] = Task.FromResult<(CliReviewModel, DeltaResponseModel)>((null, null));
+                        tasks[i] = immediate;
                         continue;
                     }
 
@@ -318,6 +332,34 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             return Task.WhenAll(tasks);
+        }
+
+        private bool TryQueueWithoutBufferReview(
+            string repoRoot,
+            ReviewSubmission submission,
+            List<ReviewFile> diskFiles,
+            out Task<(CliReviewModel, DeltaResponseModel)> task)
+        {
+            if (submission.Content != null && !_bufferReviewsSuspended)
+            {
+                task = null;
+                return false;
+            }
+
+            if (submission.Content == null)
+            {
+                var relPath = RpcPath.ToPosixRelPath(submission.RelPath);
+                diskFiles.Add(new ReviewFile { RelPath = relPath });
+                _logger?.Debug("[pipeline] submit " + LogFields.Format(
+                    LogFields.Field("path", relPath),
+                    LogFields.Field("repo", repoRoot),
+                    LogFields.Field("source", "disk"),
+                    LogFields.Field("updateMonitor", submission.UpdateMonitor),
+                    LogFields.Field("updateDiagnostics", submission.UpdateDiagnosticsPane)));
+            }
+
+            task = Task.FromResult<(CliReviewModel, DeltaResponseModel)>((null, null));
+            return true;
         }
 
         private PendingReview PrepareSubmission(string repoRoot, ReviewSubmission submission)
