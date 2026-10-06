@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791293153142,
+  "lastUpdate": 1791293259192,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -9994,6 +9994,54 @@ window.BENCHMARK_DATA = {
             "value": 20077.774047851562,
             "unit": "ns",
             "range": "± 215.0526940639602"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "distinct": true,
+          "id": "6dd293cd150f20b9987cd0ba0f5813b898c32609",
+          "message": "fix: bump MessagePack to clear NuGet audit failures",
+          "timestamp": "2026-10-06T15:17:28+02:00",
+          "tree_id": "67cd0fc5bc5afd6ba99d62e9827665a443d64f72",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/6dd293cd150f20b9987cd0ba0f5813b898c32609"
+        },
+        "date": 1791293257338,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 101901687.6923077,
+            "unit": "ns",
+            "range": "± 912449.657516821"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 4230.804824829102,
+            "unit": "ns",
+            "range": "± 26.574975157498766"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 356006898.0392157,
+            "unit": "ns",
+            "range": "± 14530527.984577714"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 15211.867268880209,
+            "unit": "ns",
+            "range": "± 619.431272785827"
           }
         ]
       }
