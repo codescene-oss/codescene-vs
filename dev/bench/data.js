@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791291450808,
+  "lastUpdate": 1791292945084,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2768,6 +2768,48 @@ window.BENCHMARK_DATA = {
             "value": 64064756.666666664,
             "unit": "ns",
             "range": "± 947526.5533862488"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "distinct": true,
+          "id": "6dd293cd150f20b9987cd0ba0f5813b898c32609",
+          "message": "fix: bump MessagePack to clear NuGet audit failures",
+          "timestamp": "2026-10-06T15:17:28+02:00",
+          "tree_id": "67cd0fc5bc5afd6ba99d62e9827665a443d64f72",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/6dd293cd150f20b9987cd0ba0f5813b898c32609"
+        },
+        "date": 1791292941348,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 88548586.66666666,
+            "unit": "ns",
+            "range": "± 921201.734929167"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 78744663.35403726,
+            "unit": "ns",
+            "range": "± 1774725.2424982307"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 53213189.333333336,
+            "unit": "ns",
+            "range": "± 539333.5314794503"
           }
         ]
       }
