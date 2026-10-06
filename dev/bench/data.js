@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791293259192,
+  "lastUpdate": 1791293594983,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2810,6 +2810,48 @@ window.BENCHMARK_DATA = {
             "value": 53213189.333333336,
             "unit": "ns",
             "range": "± 539333.5314794503"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "distinct": true,
+          "id": "087c7b32c8f5c5f6b4869a723f168669bb6ac738",
+          "message": "ci: build coverage tests with Visual Studio MSBuild",
+          "timestamp": "2026-10-06T15:28:13+02:00",
+          "tree_id": "ab0540cdf6d24348054376da6ddd3e80ddb26013",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/087c7b32c8f5c5f6b4869a723f168669bb6ac738"
+        },
+        "date": 1791293591201,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 111039913,
+            "unit": "ns",
+            "range": "± 800369.2037355042"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 99351325.55555557,
+            "unit": "ns",
+            "range": "± 749217.1005023747"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 64521263.39285714,
+            "unit": "ns",
+            "range": "± 528427.8700611036"
           }
         ]
       }
