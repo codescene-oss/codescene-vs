@@ -25,7 +25,6 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
         private readonly ICodeReviewer _inner;
         private readonly CodeHealthMonitorNotifier _notifier;
         private readonly IAsyncTaskScheduler _scheduler;
-        private readonly ReviewQueueProgress _queueProgress;
 
         [ImportingConstructor]
         public CachingCodeReviewerProvider(
@@ -44,11 +43,7 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
             _scheduler = scheduler;
             _notifier = notifier;
             _notifier.ViewUpdateRequested += OnViewUpdateRequested;
-            _queueProgress = new ReviewQueueProgress(queue =>
-            {
-                _notifier.ApplyQueue(queue);
-            });
-            client.QueueChanged += (_, queue) => _queueProgress.Update(queue);
+            client.QueueChanged += (_, queue) => _notifier.ApplyQueue(queue);
             _notifier.SetAutomaticAnalysisEnabled(settings?.EnableAutomaticAnalysis ?? true);
             _inner = new CodeReviewer(logger, mapper, executor, telemetryManager, git, _notifier, preflightManager, pipeline, settings);
         }

@@ -570,6 +570,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
             [JsonRpcMethod("cs-ide/reviewFailed", UseSingleObjectParameterDeserialization = true)]
             public void OnReviewFailed(JObject notification) => _client.HandleReviewFailure(notification);
 
+            [JsonRpcMethod("cs-ide/reviewProgress", UseSingleObjectParameterDeserialization = true)]
+            public void OnReviewProgress(JObject notification) => _client.HandleReviewProgress(notification);
+
             [JsonRpcMethod("cs-ide/watchInventoryChanged", UseSingleObjectParameterDeserialization = true)]
             public void OnWatchInventoryChanged(JObject notification) => _client.HandleWatchInventory(notification);
         }

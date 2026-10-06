@@ -19,7 +19,6 @@ namespace Codescene.VSExtension.Core.Application.Services
     public class CodeHealthMonitorNotifier : ICodeHealthMonitorNotifier
     {
         private readonly ConcurrentDictionary<string, Job> _activeJobs = new ConcurrentDictionary<string, Job>();
-        private readonly AnalysisBatchTracker _batch = new AnalysisBatchTracker();
         private readonly object _lock = new object();
         private bool _automaticAnalysisEnabled = true;
 
@@ -120,11 +119,20 @@ namespace Codescene.VSExtension.Core.Application.Services
                 }
 
                 DeltaJobTracker.Replace(jobs);
-                var remaining = Math.Max(jobs.Count, queue?.Count ?? 0);
-                var progress = _batch.Update(remaining);
-                RemainingCount = progress.RemainingCount;
-                TotalCount = progress.TotalCount > 0 ? progress.TotalCount : (int?)null;
-                AnalysisState = RemainingCount > 0 ? "running" : "idle";
+                var remaining = queue?.Count ?? 0;
+                if (remaining <= 0)
+                {
+                    RemainingCount = 0;
+                    TotalCount = null;
+                    AnalysisState = "idle";
+                }
+                else
+                {
+                    RemainingCount = remaining;
+                    TotalCount = (queue?.Done ?? 0) + remaining;
+                    AnalysisState = "running";
+                }
+
                 ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -135,7 +143,6 @@ namespace Codescene.VSExtension.Core.Application.Services
             {
                 _activeJobs.Clear();
                 DeltaJobTracker.Clear();
-                _batch.Reset();
                 if (_automaticAnalysisEnabled)
                 {
                     AnalysisState = "idle";
@@ -156,7 +163,6 @@ namespace Codescene.VSExtension.Core.Application.Services
         {
             _activeJobs.Clear();
             DeltaJobTracker.Clear();
-            _batch.Reset();
             AnalysisState = "stopped";
             TotalCount = null;
             RemainingCount = 0;

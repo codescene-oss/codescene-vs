@@ -193,14 +193,14 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task DeltaReview_RaisesDeltaAndQueueNotifications()
+        public async Task DeltaReview_RaisesDeltaNotification()
         {
             using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
             await harness.Client.StartAsync();
             var deltaReceived = new TaskCompletionSource<DeltaNotification>();
-            var queueReceived = new TaskCompletionSource<ReviewQueue>();
+            var queueCount = 0;
             harness.Client.DeltaReceived += (_, delta) => deltaReceived.TrySetResult(delta);
-            harness.Client.QueueChanged += (_, queue) => queueReceived.TrySetResult(queue);
+            harness.Client.QueueChanged += (_, __) => queueCount++;
 
             await harness.ServerRpc.NotifyWithParameterObjectAsync("cs-ide/deltaReview", new
             {
@@ -215,15 +215,14 @@ namespace Codescene.VSExtension.Core.Tests
                     oldGitBlobSha = "old-sha",
                     newGitBlobSha = "new-sha",
                 },
-                queue = new { count = 1, files = new[] { "src/b.cs" } },
             });
 
             var delta = await WaitForAsync(deltaReceived.Task);
-            var queue = await WaitForAsync(queueReceived.Task);
+            await Task.Delay(100);
             Assert.AreEqual(
                 ("delta-1", "src/a.cs", "C:/repo", 1.0m, "old-sha", "new-sha"),
                 (delta.Id, delta.Path, delta.RepoRoot, delta.Result.ScoreChange, delta.Result.OldGitBlobSha, delta.Result.NewGitBlobSha));
-            Assert.AreEqual((1, Path.Combine("C:/repo", "src", "b.cs")), (queue.Count, queue.Files[0]));
+            Assert.AreEqual(0, queueCount);
         }
 
         [TestMethod]
@@ -284,8 +283,9 @@ namespace Codescene.VSExtension.Core.Tests
             var review = await WaitForAsync(reviewReceived.Task);
             var queue = await WaitForAsync(queueReceived.Task);
             Assert.AreEqual(
-                ("req-1", "src/a.ts", GitBlobSha.FromUtf8("hello"), 2),
-                (review.Id, review.Path, review.Result.GitBlobSha, queue.Count));
+                ("req-1", "src/a.ts", GitBlobSha.FromUtf8("hello"), 2, 1, "b.ts"),
+                (review.Id, review.Path, review.Result.GitBlobSha, queue.Count, queue.Done, queue.Files[0]));
+            Assert.AreEqual("c.ts", queue.Files[1]);
         }
 
         [TestMethod]
@@ -510,6 +510,12 @@ namespace Codescene.VSExtension.Core.Tests
                 var id = file["id"]?.Type == JTokenType.Null ? null : (string)file["id"];
                 if (content == "fail")
                 {
+                    await _rpc.NotifyWithParameterObjectAsync("cs-ide/reviewProgress", new
+                    {
+                        count = 0,
+                        done = 3,
+                        files = Array.Empty<string>(),
+                    });
                     var failed = new JObject
                     {
                         ["id"] = null,
@@ -521,6 +527,12 @@ namespace Codescene.VSExtension.Core.Tests
                     continue;
                 }
 
+                await _rpc.NotifyWithParameterObjectAsync("cs-ide/reviewProgress", new
+                {
+                    count = 2,
+                    done = 1,
+                    files = new[] { "b.ts", "c.ts" },
+                });
                 var payload = new JObject
                 {
                     ["path"] = relPath,
@@ -530,11 +542,6 @@ namespace Codescene.VSExtension.Core.Tests
                         ["rawScore"] = "raw",
                         ["score"] = 9.68,
                         ["gitBlobSha"] = GitBlobSha.FromUtf8(content),
-                    },
-                    ["queue"] = new JObject
-                    {
-                        ["count"] = 2,
-                        ["files"] = new JArray("b.ts", "c.ts"),
                     },
                 };
                 if (!string.IsNullOrEmpty(id))

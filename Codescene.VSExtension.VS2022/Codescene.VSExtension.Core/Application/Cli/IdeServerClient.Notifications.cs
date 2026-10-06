@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,8 +50,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(notification);
-            var queue = ParseQueue(normalized, identity.Item3);
-            EmitQueue(queue);
             var result = normalized["result"]?.ToObject<CliReviewModel>(Serializer);
             _logger.Info("[cs-ide] received fileReview " + LogFields.Format(
                 LogFields.Field("id", identity.Item1 ?? "(none)"),
@@ -64,7 +61,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 Path = identity.Item2,
                 RepoRoot = identity.Item3,
                 Result = result,
-                Queue = queue,
             });
         }
 
@@ -77,8 +73,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(notification);
-            var queue = ParseQueue(normalized, identity.Item3);
-            EmitQueue(queue);
             var resultToken = normalized["result"];
             var delta = resultToken == null || resultToken.Type == JTokenType.Null
                 ? null
@@ -93,7 +87,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 Path = identity.Item2,
                 RepoRoot = identity.Item3,
                 Result = delta,
-                Queue = queue,
             });
         }
 
@@ -106,16 +99,28 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(notification);
-            var queue = ParseQueue(normalized, identity.Item3);
-            EmitQueue(queue);
             ReviewFailed?.Invoke(this, new ReviewFailedNotification
             {
                 Id = identity.Item1,
                 Path = identity.Item2,
                 RepoRoot = identity.Item3,
                 Message = (string)normalized["message"],
-                Queue = queue,
             });
+        }
+
+        private void HandleReviewProgress(JObject notification)
+        {
+            var progress = ParseReviewProgress(notification);
+            if (progress == null)
+            {
+                return;
+            }
+
+            _logger.Info("[cs-ide] received reviewProgress " + LogFields.Format(
+                LogFields.Field("count", progress.Count),
+                LogFields.Field("done", progress.Done),
+                LogFields.Field("files", progress.Files)));
+            QueueChanged?.Invoke(this, progress);
         }
 
         private void HandleWatchInventory(JObject notification)
@@ -172,34 +177,43 @@ namespace Codescene.VSExtension.Core.Application.Cli
             };
         }
 
-        private ReviewQueue ParseQueue(JObject notification, string repoRoot)
+        private ReviewQueue ParseReviewProgress(JObject notification)
         {
-            var queueToken = notification?["queue"] as JObject;
-            if (queueToken == null)
+            if (notification == null)
             {
                 return null;
             }
 
-            var files = queueToken["files"] as JArray;
+            var files = notification["files"] as JArray;
             return new ReviewQueue
             {
-                Count = queueToken["count"]?.Value<int>() ?? 0,
+                Count = ReadCount(notification["count"]),
+                Done = ReadCount(notification["done"]),
                 Files = (files ?? new JArray())
+                    .Where(token => token != null && token.Type == JTokenType.String)
                     .Select(token => (string)token)
-                    .Where(value => !string.IsNullOrEmpty(value))
-                    .Select(relPath => Path.Combine(repoRoot ?? string.Empty, relPath.Replace('/', Path.DirectorySeparatorChar)))
                     .ToList(),
             };
         }
 
-        private void EmitQueue(ReviewQueue queue)
+        private int ReadCount(JToken token)
         {
-            if (queue == null)
+            if (token == null)
             {
-                return;
+                return 0;
             }
 
-            QueueChanged?.Invoke(this, queue);
+            if (token.Type == JTokenType.Integer)
+            {
+                return token.Value<int>();
+            }
+
+            if (token.Type == JTokenType.Float)
+            {
+                return token.Value<int>();
+            }
+
+            return 0;
         }
     }
 }

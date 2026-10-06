@@ -11,7 +11,5 @@ namespace Codescene.VSExtension.Core.Models.Cli.Rpc
         public string RepoRoot { get; set; }
 
         public string Message { get; set; }
-
-        public ReviewQueue Queue { get; set; }
     }
 }

@@ -8,6 +8,8 @@ namespace Codescene.VSExtension.Core.Models.Cli.Rpc
     {
         public int Count { get; set; }
 
+        public int Done { get; set; }
+
         public IReadOnlyList<string> Files { get; set; } = new List<string>();
     }
 }
