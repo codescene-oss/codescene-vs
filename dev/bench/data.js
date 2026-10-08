@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791293870455,
+  "lastUpdate": 1791442504460,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2852,6 +2852,48 @@ window.BENCHMARK_DATA = {
             "value": 64521263.39285714,
             "unit": "ns",
             "range": "± 528427.8700611036"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "29df14632d0350d4df7c40f43e0c67b8e9c18458",
+          "message": "chore: bump cli (#329)",
+          "timestamp": "2026-10-08T08:49:56+02:00",
+          "tree_id": "daea2b002db6e07ab6b5ce1a172c9fe90d89ac68",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/29df14632d0350d4df7c40f43e0c67b8e9c18458"
+        },
+        "date": 1791442501342,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 113845892,
+            "unit": "ns",
+            "range": "± 1586135.5963977354"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 104285448.92857143,
+            "unit": "ns",
+            "range": "± 4306784.427643807"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 65397116.34615385,
+            "unit": "ns",
+            "range": "± 782097.0599663015"
           }
         ]
       }
