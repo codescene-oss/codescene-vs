@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791548864814,
+  "lastUpdate": 1791549136041,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -2978,6 +2978,48 @@ window.BENCHMARK_DATA = {
             "value": 53356742.121212125,
             "unit": "ns",
             "range": "± 1662263.820599331"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "17555fa1ccbd0cdd9160b1e43fbf2c0e743250a1",
+          "message": "chore(release): prepare v0.8.5 (#332)\n\n* chore(release): prepare v0.8.5\n\n* Update CHANGELOG for version 0.8.5 release\n\nUpdated release date for version 0.8.5 and added a new fix.",
+          "timestamp": "2026-10-09T14:28:26+02:00",
+          "tree_id": "4c6e9c1351f15e10273f7f9d7821a328d6782b8d",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/17555fa1ccbd0cdd9160b1e43fbf2c0e743250a1"
+        },
+        "date": 1791549133429,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 111784256,
+            "unit": "ns",
+            "range": "± 1078312.7831994891"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 99156184.28571428,
+            "unit": "ns",
+            "range": "± 1408599.8252094951"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 63738316.071428575,
+            "unit": "ns",
+            "range": "± 574310.0589894417"
           }
         ]
       }
