@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.8.5] - 2026-10-08
+## [0.8.5] - 2026-10-09
+### Fixed
+- bump CLI version with bugfixes
+
+## [0.8.4] - 2026-10-08
 ### Fixed
 - bump MessagePack to clear NuGet audit failures
 - bump CLI version with updated Bouncycastle version
