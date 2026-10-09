@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791549136041,
+  "lastUpdate": 1791549318112,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -7278,6 +7278,66 @@ window.BENCHMARK_DATA = {
             "value": 239237167.56756756,
             "unit": "ns",
             "range": "± 11920727.832565922"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "17555fa1ccbd0cdd9160b1e43fbf2c0e743250a1",
+          "message": "chore(release): prepare v0.8.5 (#332)\n\n* chore(release): prepare v0.8.5\n\n* Update CHANGELOG for version 0.8.5 release\n\nUpdated release date for version 0.8.5 and added a new fix.",
+          "timestamp": "2026-10-09T14:28:26+02:00",
+          "tree_id": "4c6e9c1351f15e10273f7f9d7821a328d6782b8d",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/17555fa1ccbd0cdd9160b1e43fbf2c0e743250a1"
+        },
+        "date": 1791549316570,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 124950910,
+            "unit": "ns",
+            "range": "± 1742307.6517495485"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 115069412.85714285,
+            "unit": "ns",
+            "range": "± 1046385.7045779319"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 239323220,
+            "unit": "ns",
+            "range": "± 2041624.7924491065"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 213271282.22222224,
+            "unit": "ns",
+            "range": "± 1749952.1739889567"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 337477513.3333333,
+            "unit": "ns",
+            "range": "± 4807853.219007815"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 285111432.14285713,
+            "unit": "ns",
+            "range": "± 1712746.0268648148"
           }
         ]
       }
