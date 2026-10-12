@@ -17,6 +17,7 @@ namespace Codescene.VSExtension.Core.Tests
         private const string RepoRoot = "/repo";
         private Mock<IIdeServerClient> _client;
         private ReviewPipelinePresentationEvents _events;
+        private List<(string RepoRoot, IReadOnlyList<ReviewFile> Files)> _batches;
         private ReviewPipeline _pipeline;
 
         [TestInitialize]
@@ -24,6 +25,9 @@ namespace Codescene.VSExtension.Core.Tests
         {
             _client = new Mock<IIdeServerClient>();
             _events = new ReviewPipelinePresentationEvents();
+            _batches = new List<(string, IReadOnlyList<ReviewFile>)>();
+            _client.Setup(x => x.ReviewFiles(It.IsAny<string>(), It.IsAny<IReadOnlyList<ReviewFile>>()))
+                .Callback<string, IReadOnlyList<ReviewFile>>((root, files) => _batches.Add((root, files.ToList())));
             _pipeline = new ReviewPipeline(_client.Object, _events, null, () => "review-1", null);
         }
 
@@ -111,6 +115,37 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task WatchDelta_WhenEpochInvalidatedDuringPresentation_IsDropped()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var slowAccess = new Mock<IReviewPipelineFileAccess>();
+            slowAccess.Setup(x => x.FindOpenDocument(It.IsAny<string>())).Returns((ReviewDocument)null);
+            slowAccess.Setup(x => x.OpenDocumentAsync(It.IsAny<string>()))
+                .Returns(async () =>
+                {
+                    await Task.Delay(200);
+                    return document;
+                });
+            slowAccess.Setup(x => x.ReadFileBytesAsync(It.IsAny<string>()))
+                .ReturnsAsync(System.Text.Encoding.UTF8.GetBytes(document.Content));
+            slowAccess.Setup(x => x.IsVisible(It.IsAny<string>())).Returns(true);
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, slowAccess.Object, () => "review-1", null);
+            _client.Raise(
+                x => x.DeltaReceived += null,
+                _client.Object,
+                new DeltaNotification
+                {
+                    RepoRoot = RepoRoot,
+                    Path = "src/file.ts",
+                    Result = new DeltaResponseModel { NewGitBlobSha = GitBlobSha.FromUtf8(document.Content) },
+                });
+            _pipeline.Invalidate();
+            await Task.Delay(300);
+            Assert.IsEmpty(_events.Deltas);
+        }
+
+        [TestMethod]
         public async Task WatchReview_WhenEpochInvalidatedDuringPresentation_IsDropped()
         {
             var document = Document("/repo/src/file.ts", "const value = 1;");
@@ -185,6 +220,29 @@ namespace Codescene.VSExtension.Core.Tests
         public void Remove_WithNullDocuments_DoesNotThrow()
         {
             _pipeline.Remove(RepoRoot, null);
+        }
+
+        [TestMethod]
+        public async Task Submit_ReusesPendingSubmissionForIdenticalContent()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var first = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            var second = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+
+            Assert.HasCount(1, _batches);
+            RaiseReview("review-1", RepoRoot, "src/file.ts");
+            RaiseDelta("review-1", RepoRoot, "src/file.ts", new DeltaResponseModel());
+            await first;
+            await second;
+        }
+
+        [TestMethod]
+        public void ReleaseBufferMonitorOwnership_AllowsResubmitWithMonitor()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            _pipeline.ReleaseBufferMonitorOwnership(RepoRoot, document);
+            _ = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            Assert.HasCount(1, _batches);
         }
 
         [TestMethod]

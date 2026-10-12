@@ -10,6 +10,36 @@ namespace Codescene.VSExtension.Core.Tests
     public class RpcPathTests
     {
         [TestMethod]
+        public void RememberLocalRepoRoot_IgnoresNullOrEmpty()
+        {
+            RpcPath.RememberLocalRepoRoot(null);
+            RpcPath.RememberLocalRepoRoot(string.Empty);
+        }
+
+        [TestMethod]
+        public void ToLocalRepoRoot_EmptyInputs_ReturnEmpty()
+        {
+            Assert.AreEqual(string.Empty, RpcPath.ToLocalRepoRoot(null));
+            Assert.AreEqual(string.Empty, RpcPath.ToLocalRepoRoot(string.Empty));
+        }
+
+        [TestMethod]
+        public void NormalizeFsPath_InvalidPath_FallsBackWithoutThrowing()
+        {
+            var result = RpcPath.NormalizeFsPath("::not-a-valid-path::");
+            Assert.IsFalse(string.IsNullOrEmpty(result));
+        }
+
+        [TestMethod]
+        public void RelativePosixAndCombineRepo_NormalizeSeparators()
+        {
+            var repoRoot = @"C:\repo";
+            Assert.AreEqual("src/a.cs", RpcPath.RelativePosix(repoRoot, @"C:\repo\src\a.cs"));
+            Assert.AreEqual(Path.Combine(repoRoot, "src", "a.cs"), RpcPath.CombineRepo(repoRoot, "src/a.cs"));
+            Assert.AreEqual("a/b.cs", RpcPath.ToPosixRelPath(@"a\b.cs"));
+        }
+
+        [TestMethod]
         public void CanonicalRepoRoot_NonExistentPath_FallsBackToNormalizeFsPath()
         {
             var missing = Path.Combine(Path.GetTempPath(), "rpc-path-missing-" + Guid.NewGuid().ToString("N"));

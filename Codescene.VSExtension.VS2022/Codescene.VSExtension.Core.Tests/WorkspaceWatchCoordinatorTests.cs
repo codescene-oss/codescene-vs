@@ -520,6 +520,34 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task AdmitsDeltaAsync_AfterRefreshStillMissing_RejectsDelta()
+        {
+            var repo = CreateGitRepo();
+            try
+            {
+                var client = new Mock<IIdeServerClient>();
+                client.Setup(x => x.GetWatchInventoryAsync(repo, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new WatchInventory { RepoRoot = repo, Files = new[] { "known.cs" } });
+                var pipeline = new Mock<IReviewPipeline>();
+                var host = new Mock<IWorkspaceWatchHost>();
+                host.Setup(x => x.GetDirtyDocuments()).Returns(Array.Empty<ReviewDocument>());
+                using var coordinator = new WorkspaceWatchCoordinator(client.Object, pipeline.Object, null, host.Object);
+                await coordinator.SyncAsync(new[] { repo });
+                client.Raise(
+                    x => x.WatchInventoryChanged += null,
+                    client.Object,
+                    new WatchInventory { RepoRoot = repo, Files = new[] { "known.cs" } });
+
+                Assert.IsFalse(await coordinator.AdmitsDeltaAsync(repo, "missing.cs"));
+                client.Verify(x => x.GetWatchInventoryAsync(repo, It.IsAny<CancellationToken>()), Times.Once);
+            }
+            finally
+            {
+                Directory.Delete(repo, true);
+            }
+        }
+
+        [TestMethod]
         public async Task AdmitsDeltaAsync_WhenCoordinatorDisabled_ReturnsTrueWithoutRefresh()
         {
             var repo = CreateGitRepo();
