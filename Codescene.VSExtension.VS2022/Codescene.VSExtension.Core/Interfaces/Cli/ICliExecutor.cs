@@ -11,10 +11,6 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
 {
     public interface ICliExecutor
     {
-        Task<DeltaResponseModel> ReviewDeltaAsync(ReviewDeltaRequest request, CancellationToken cancellationToken = default);
-
-        Task<CliReviewModel> ReviewContentAsync(string filePath, string content, bool isBaseLine = false, CancellationToken cancellationToken = default);
-
         Task<string> GetFileVersionAsync(CancellationToken cancellationToken = default);
 
         Task<string> GetDeviceIdAsync(CancellationToken cancellationToken = default);

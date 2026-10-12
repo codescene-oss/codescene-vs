@@ -139,6 +139,25 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task RefactorAsync_WhenCancelled_DoesNotSetErrorOrLogError()
+        {
+            var path = "test.cs";
+            var fnToRefactor = new FnToRefactorModel { Name = "TestMethod" };
+            var entryPoint = "toolbar";
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+
+            _mockExecutor.Setup(x => x.PostRefactoringAsync(It.IsAny<FnToRefactorModel>(), It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new OperationCanceledException(cancellation.Token));
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() =>
+                _aceManager.RefactorAsync(path, fnToRefactor, entryPoint, cancellationToken: cancellation.Token));
+
+            _mockAceStateService.Verify(s => s.SetError(It.IsAny<Exception>()), Times.Never);
+            _mockLogger.Verify(l => l.Error(It.IsAny<string>(), It.IsAny<Exception>()), Times.Never);
+        }
+
+        [TestMethod]
         public void GetCachedRefactoredCode_WhenNoCachedResult_ReturnsNull()
         {
             // Arrange

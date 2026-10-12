@@ -63,9 +63,7 @@
     <Compile Include="Application\ErrorHandling\OutputPaneManager.cs" />
     <Compile Include="Application\ErrorListWindowHandler\ErrorListWindowHandler.cs" />
     <Compile Include="Application\ErrorListWindowHandler\HierarchyHelper.cs" />
-    <Compile Include="Application\Adapters\IdeActivityTracker.cs" />
     <Compile Include="Application\Adapters\VsAsyncTaskScheduler.cs" />
-    <Compile Include="Application\Adapters\VsDocumentSaveEventSource.cs" />
     <Compile Include="Application\Adapters\VsOpenFilesObserver.cs" />
     <Compile Include="Application\Adapters\VsOpenDocumentContentProvider.cs" />
     <Compile Include="Application\Adapters\VsOpenFilesSource.cs" />
@@ -76,7 +74,6 @@
     <Compile Include="Application\Git\BranchWatcherService.cs" />
     <Compile Include="Application\Git\GitService.cs" />
     <Compile Include="Application\Git\SolutionProjectDiscovery.cs" />
-    <Compile Include="Application\Git\BatchGitIgnoreChecker.cs" />
     <Compile Include="Application\Git\LibGit2SharpIgnoreChecker.cs" />
     <Compile Include="Application\Services\AceAcknowledgementStateService.cs" />
     <Compile Include="Application\Services\CodeHealthMonitorBinder.cs" />

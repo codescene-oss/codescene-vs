@@ -95,6 +95,10 @@ namespace Codescene.VSExtension.Core.Application.Ace
                     return cacheItem;
                 }
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception e)
             {
                 _logger.Error($"Error during refactoring of method {refactorableFunction.Name}", e);

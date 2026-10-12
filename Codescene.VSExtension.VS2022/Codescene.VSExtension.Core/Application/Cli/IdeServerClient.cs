@@ -106,19 +106,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             await StartAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<CliReviewModel> ReviewAsync(ReviewRequestModel request, CancellationToken cancellationToken = default)
-        {
-            return SendRequestAsync<CliReviewModel>("cs-ide/review", request, cancellationToken);
-        }
-
-        public Task<DeltaResponseModel> DeltaAsync(string oldScore, string newScore, CancellationToken cancellationToken = default)
-        {
-            return SendRequestAsync<DeltaResponseModel>(
-                "cs-ide/delta",
-                new DeltaRequestParams { OldScore = oldScore, NewScore = newScore },
-                cancellationToken);
-        }
-
         public Task<PreFlightResponseModel> PreflightAsync(bool force = false, CancellationToken cancellationToken = default)
         {
             return SendRequestAsync<PreFlightResponseModel>(
@@ -361,6 +348,12 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 var result = await InvokeRequestAsync<T>(method, argument, cancellationToken).ConfigureAwait(false);
                 _logger.Info(IdeServerLog.Received(id, method, started.ElapsedMilliseconds, IdeServerLog.SummarizeResponse(method, result)));
                 return result;
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.Debug(
+                    "[cs-ide] request canceled id=" + id + " method=" + method + " durationMs=" + started.ElapsedMilliseconds);
+                throw;
             }
             catch (Exception ex)
             {

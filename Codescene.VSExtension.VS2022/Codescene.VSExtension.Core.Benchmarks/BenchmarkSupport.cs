@@ -1,12 +1,10 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
-using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using AutoRefactorConfig = Codescene.VSExtension.Core.Models.WebComponent.Data.AutoRefactorConfig;
 
@@ -50,18 +48,6 @@ internal sealed class BenchmarkEnvironment : IDisposable
             _cacheStorageService,
             _settingsProvider,
             null);
-    }
-
-    public CodeReviewer CreateCodeReviewer(IGitService gitService, IPreflightManager? preflightManager = null)
-    {
-        return new CodeReviewer(
-            _logger,
-            _modelMapper,
-            CreateCliExecutor(),
-            null,
-            gitService,
-            null,
-            preflightManager);
     }
 
     public void Dispose()
@@ -179,53 +165,6 @@ internal sealed class FixedSettingsProvider : ISettingsProvider
     public bool EnableAutomaticAnalysis => true;
 
     public bool EnableTelemetry => true;
-}
-
-internal sealed class FixedGitService : IGitService
-{
-    private readonly string _defaultBaselineContent;
-    private readonly Dictionary<string, string> _pathContents = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-    public FixedGitService(string defaultBaselineContent)
-    {
-        _defaultBaselineContent = defaultBaselineContent;
-    }
-
-    public void SetContent(string path, string content)
-    {
-        _pathContents[path] = content;
-    }
-
-    public string GetBaselineCommit(string repoRootPath)
-    {
-        return string.Empty;
-    }
-
-    public string GetFileContentForCommit(string path)
-    {
-        return GetFileContentForCommit(path, string.Empty);
-    }
-
-    public string GetFileContentForCommit(string path, string baselineCommit)
-    {
-        if (path != null && _pathContents.TryGetValue(path, out var content))
-        {
-            return content;
-        }
-
-        return _defaultBaselineContent;
-    }
-
-    public bool IsFileIgnored(string filePath) => false;
-
-    public HashSet<string> FilterIgnoredFiles(IEnumerable<string> absolutePaths)
-    {
-        return new HashSet<string>(absolutePaths, StringComparer.OrdinalIgnoreCase);
-    }
-
-    public void Dispose()
-    {
-    }
 }
 
 internal sealed class FixedPreflightManager : IPreflightManager

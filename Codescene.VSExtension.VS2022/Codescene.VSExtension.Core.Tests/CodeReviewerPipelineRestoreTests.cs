@@ -3,8 +3,6 @@
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
-using Codescene.VSExtension.Core.Interfaces.Git;
-using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Review;
@@ -19,8 +17,6 @@ namespace Codescene.VSExtension.Core.Tests
         private Mock<ILogger> _mockLogger;
         private Mock<IModelMapper> _mockMapper;
         private Mock<ICliExecutor> _mockExecutor;
-        private Mock<ITelemetryManager> _mockTelemetryManager;
-        private Mock<IGitService> _mockGitService;
 
         [TestInitialize]
         public void Setup()
@@ -28,8 +24,6 @@ namespace Codescene.VSExtension.Core.Tests
             _mockLogger = new Mock<ILogger>();
             _mockMapper = new Mock<IModelMapper>();
             _mockExecutor = new Mock<ICliExecutor>();
-            _mockTelemetryManager = new Mock<ITelemetryManager>();
-            _mockGitService = new Mock<IGitService>();
         }
 
         [TestMethod]
@@ -50,9 +44,7 @@ namespace Codescene.VSExtension.Core.Tests
                 _mockLogger.Object,
                 _mockMapper.Object,
                 _mockExecutor.Object,
-                _mockTelemetryManager.Object,
-                _mockGitService.Object,
-                pipeline: pipeline.Object);
+                pipeline.Object);
 
             try
             {
@@ -88,9 +80,7 @@ namespace Codescene.VSExtension.Core.Tests
                 _mockLogger.Object,
                 _mockMapper.Object,
                 _mockExecutor.Object,
-                _mockTelemetryManager.Object,
-                _mockGitService.Object,
-                pipeline: pipeline.Object);
+                pipeline.Object);
 
             try
             {

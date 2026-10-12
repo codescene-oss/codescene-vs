@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
@@ -32,10 +31,6 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
         Task<ServerMetadata> StartAsync(CancellationToken cancellationToken = default);
 
         Task RestartAsync(CancellationToken cancellationToken = default);
-
-        Task<CliReviewModel> ReviewAsync(ReviewRequestModel request, CancellationToken cancellationToken = default);
-
-        Task<DeltaResponseModel> DeltaAsync(string oldScore, string newScore, CancellationToken cancellationToken = default);
 
         Task<PreFlightResponseModel> PreflightAsync(bool force = false, CancellationToken cancellationToken = default);
 

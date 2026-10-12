@@ -18,8 +18,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private static readonly Dictionary<string, Func<object, string>> RequestSummaries =
             new Dictionary<string, Func<object, string>>
             {
-                { "cs-ide/review", SummarizeReviewRequest },
-                { "cs-ide/delta", SummarizeDeltaRequest },
                 { "cs-ide/preflight", SummarizePreflightRequest },
                 { "cs-ide/fns-to-refactor", argument => SummarizeFnsRequest(argument as FnsToRefactorRequestModel) },
                 { "cs-ide/refactor", argument => SummarizeRefactorRequest(argument as RefactorPostRequestModel) },
@@ -31,8 +29,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private static readonly Dictionary<string, Func<object, string>> ResponseSummaries =
             new Dictionary<string, Func<object, string>>
             {
-                { "cs-ide/review", argument => ReviewSummary(argument as CliReviewModel) },
-                { "cs-ide/delta", argument => DeltaSummary(argument as DeltaResponseModel) },
                 { "cs-ide/preflight", SummarizePreflightResponse },
                 { "cs-ide/refactor", SummarizeRefactorResponse },
                 { "cs-ide/device-id", argument => LogFields.Format(LogFields.Field("ok", true)) },
@@ -109,33 +105,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             return string.Empty;
-        }
-
-        private static string SummarizeReviewRequest(object argument)
-        {
-            var review = argument as ReviewRequestModel;
-            if (review == null)
-            {
-                return string.Empty;
-            }
-
-            return LogFields.Format(
-                LogFields.Field("path", review.FilePath),
-                LogFields.Field("hasContent", review.FileContent != null),
-                LogFields.Field("hasCachePath", review.CachePath != null));
-        }
-
-        private static string SummarizeDeltaRequest(object argument)
-        {
-            var delta = argument as DeltaRequestParams;
-            if (delta == null)
-            {
-                return string.Empty;
-            }
-
-            return LogFields.Format(
-                LogFields.Field("hasOldScore", delta.OldScore != null),
-                LogFields.Field("hasNewScore", delta.NewScore != null));
         }
 
         private static string SummarizePreflightRequest(object argument)

@@ -84,35 +84,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task ReviewAsync_NormalizesCamelCaseResponse()
-        {
-            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
-            await harness.Client.StartAsync();
-
-            var review = await harness.Client.ReviewAsync(new ReviewRequestModel
-            {
-                FilePath = "src/a.cs",
-                FileContent = "class A {}",
-            });
-
-            Assert.AreEqual("raw", review.RawScore);
-            Assert.AreEqual(9.68f, review.Score);
-            Assert.AreEqual("review-sha", review.GitBlobSha);
-        }
-
-        [TestMethod]
-        public async Task RepeatedReviews_UseSingleProcess()
-        {
-            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
-            await harness.Client.StartAsync();
-
-            await harness.Client.ReviewAsync(new ReviewRequestModel { FilePath = "src/a.cs", FileContent = "class A {}" });
-            await harness.Client.ReviewAsync(new ReviewRequestModel { FilePath = "src/b.cs", FileContent = "class B {}" });
-
-            Assert.AreEqual(1, harness.Factory.StartCount);
-        }
-
-        [TestMethod]
         public async Task StartAsync_LogsCliStderrToCodeSceneLog()
         {
             using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
@@ -135,22 +106,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task ReviewAsync_HttpFailureMessage_UsesHttpStatusInDevtoolsException()
-        {
-            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
-            await harness.Client.StartAsync();
-
-            var exception = await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.ReviewAsync(new ReviewRequestModel
-            {
-                FilePath = "src/a.cs",
-                FileContent = "trigger-http-401",
-            }));
-
-            Assert.AreEqual(401, exception.Status);
-            Assert.Contains("Request failed [401]", exception.Message);
-        }
-
-        [TestMethod]
         public async Task RefactorAsync_WhenCancelled_DoesNotThrowDevtoolsException()
         {
             using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
@@ -161,6 +116,26 @@ namespace Codescene.VSExtension.Core.Tests
             await Assert.ThrowsAsync<OperationCanceledException>(() => harness.Client.RefactorAsync(
                 new RefactorPostRequestModel { Token = "delay-cancel" },
                 cancellation.Token));
+        }
+
+        [TestMethod]
+        public async Task SendRequestAsync_WhenCancelled_LogsDebugNotError()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() => harness.Client.RefactorAsync(
+                new RefactorPostRequestModel { Token = "delay-cancel" },
+                cancellation.Token));
+
+            _logger.Verify(
+                x => x.Debug(It.Is<string>(message => message.Contains("request canceled"))),
+                Times.AtLeastOnce);
+            _logger.Verify(
+                x => x.Error(It.Is<string>(message => message.Contains("request failed")), It.IsAny<Exception>()),
+                Times.Never);
         }
 
         [TestMethod]

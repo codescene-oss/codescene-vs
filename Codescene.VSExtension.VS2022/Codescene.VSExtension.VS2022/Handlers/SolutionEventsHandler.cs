@@ -80,7 +80,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
         {
             var cache = new DeltaCacheService();
             cache.Clear();
-            new BaselineReviewCacheService().Clear();
             new ReviewCacheService().Clear();
             new AceRefactorableFunctionsCacheService().Clear();
             CacheGeneration.Increment();
@@ -575,7 +574,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
     private void ClearAnalysisCaches()
     {
         new DeltaCacheService().Clear();
-        new BaselineReviewCacheService().Clear();
         new ReviewCacheService().Clear();
         new AceRefactorableFunctionsCacheService().Clear();
         _codeHealthMonitorNotifier?.Clear();

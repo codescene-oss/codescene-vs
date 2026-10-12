@@ -2,9 +2,7 @@
 
 using System.Diagnostics;
 using Codescene.VSExtension.Core.Application.Cache.Review;
-using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Application.Git;
-using Codescene.VSExtension.Core.Application.Services;
 using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.Application.Git;
 
@@ -12,19 +10,11 @@ namespace Codescene.VSExtension.Core.SubcutaneousTests;
 
 public abstract class SubcutaneousGitTestBase
 {
-    private IdeServerClient? _ideServerClient;
-
     protected EventJournal Journal { get; private set; } = null!;
 
     protected TestLogger Logger { get; private set; } = null!;
 
-    protected RecordingCliExecutor CliExecutor { get; private set; } = null!;
-
-    protected RecordingCodeReviewer CodeReviewer { get; private set; } = null!;
-
     protected GitService GitService { get; private set; } = null!;
-
-    protected DeltaCacheService DeltaCache { get; private set; } = null!;
 
     protected string RepositoryRoot { get; private set; } = string.Empty;
 
@@ -37,10 +27,8 @@ public abstract class SubcutaneousGitTestBase
     {
         CacheGeneration.Reset();
         DeltaJobTracker.Clear();
-        MainBranchNames.ClearDefaultBranchCache();
         Journal = new EventJournal();
         Logger = new TestLogger(Journal);
-        DeltaCache = new DeltaCacheService();
 
         RepositoryRoot = Path.Combine(Path.GetTempPath(), "codescene-subcutaneous-tests", Guid.NewGuid().ToString("N"));
         CacheDirectory = Path.Combine(RepositoryRoot, ".cache");
@@ -50,21 +38,6 @@ public abstract class SubcutaneousGitTestBase
         InitializeGitRepository();
 
         GitService = new GitService(Logger);
-        CliExecutor = new RecordingCliExecutor(CreateCliExecutor(), Journal);
-
-        var notifier = new CodeHealthMonitorNotifier();
-        notifier.ViewUpdateRequested += (_, _) => Journal.Record("notifier.view-update");
-
-        var innerReviewer = new CodeReviewer(
-            Logger,
-            new ModelMapper(),
-            CliExecutor,
-            null,
-            GitService,
-            notifier,
-            null);
-
-        CodeReviewer = new RecordingCodeReviewer(innerReviewer, Journal);
         return Task.CompletedTask;
     }
 
@@ -72,12 +45,9 @@ public abstract class SubcutaneousGitTestBase
     public virtual Task CleanupAsync()
     {
         GitService?.Dispose();
-        _ideServerClient?.Dispose();
 
         if (!string.IsNullOrEmpty(RepositoryRoot) && Directory.Exists(RepositoryRoot))
         {
-            ReviewCacheCleanup.CleanupCaches(RepositoryRoot);
-
             try
             {
                 Directory.Delete(RepositoryRoot, recursive: true);
@@ -181,15 +151,6 @@ public abstract class SubcutaneousGitTestBase
             throw new AssertFailedException(
                 $"Git command failed: git {arguments}{Environment.NewLine}stdout:{Environment.NewLine}{result.StandardOutput}{Environment.NewLine}stderr:{Environment.NewLine}{result.StandardError}");
         }
-    }
-
-    private CliExecutor CreateCliExecutor()
-    {
-        var settingsProvider = new TestSettingsProvider();
-        var cliSettingsProvider = new CliSettingsProvider();
-        var cacheStorage = new TestCacheStorageService(CacheDirectory);
-        _ideServerClient = new IdeServerClient(cliSettingsProvider, Logger, settingsProvider);
-        return new CliExecutor(Logger, _ideServerClient, cacheStorage, settingsProvider, null);
     }
 
     private void InitializeGitRepository()

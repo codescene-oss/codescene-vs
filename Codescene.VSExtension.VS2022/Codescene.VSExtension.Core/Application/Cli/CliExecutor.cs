@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -16,7 +15,6 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
-using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
@@ -28,18 +26,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
 {
     [Export(typeof(ICliExecutor))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class CliExecutor : ICliExecutor
+    public partial class CliExecutor : ICliExecutor
     {
         private readonly ILogger _logger;
         private readonly IIdeServerClient _client;
         private readonly ICacheStorageService _cacheStorage;
         private readonly ISettingsProvider _settingsProvider;
         private readonly Lazy<ITelemetryManager> _telemetryManagerLazy;
-        private readonly ConcurrentDictionary<string, CancellationTokenSource> _inFlightReviewCancellation = new ConcurrentDictionary<string, CancellationTokenSource>();
         private readonly ConcurrentDictionary<string, Lazy<Task<IList<FnToRefactorModel>>>> _pendingRefactorRequests = new ConcurrentDictionary<string, Lazy<Task<IList<FnToRefactorModel>>>>();
-        private readonly SemaphoreSlim _cliCommandChannel;
-        private readonly SemaphoreSlim _deltaChannel = new SemaphoreSlim(1, 1);
-        private readonly ICpuUsageThrottler _cpuUsageThrottler;
 
         [ImportingConstructor]
         public CliExecutor(
@@ -47,139 +41,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
             IIdeServerClient client,
             ICacheStorageService cacheStorage,
             ISettingsProvider settingsProvider,
-            [Import(AllowDefault = true)] Lazy<ITelemetryManager> telemetryManagerLazy = null,
-            [Import(AllowDefault = true)] ICpuUsageThrottler cpuUsageThrottler = null)
-            : this(logger, client, cacheStorage, settingsProvider, telemetryManagerLazy, cpuUsageThrottler, 1)
-        {
-        }
-
-        internal CliExecutor(
-            ILogger logger,
-            IIdeServerClient client,
-            ICacheStorageService cacheStorage,
-            ISettingsProvider settingsProvider,
-            Lazy<ITelemetryManager> telemetryManagerLazy,
-            ICpuUsageThrottler cpuUsageThrottler,
-            int cliCommandConcurrencyLimit)
+            [Import(AllowDefault = true)] Lazy<ITelemetryManager> telemetryManagerLazy = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _cacheStorage = cacheStorage ?? throw new ArgumentNullException(nameof(cacheStorage));
             _settingsProvider = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
             _telemetryManagerLazy = telemetryManagerLazy;
-            _cpuUsageThrottler = cpuUsageThrottler ?? new NoOpCpuUsageThrottler();
-            var effectiveLimit = Math.Max(1, cliCommandConcurrencyLimit);
-            _cliCommandChannel = new SemaphoreSlim(effectiveLimit, effectiveLimit);
-        }
-
-        public async Task<CliReviewModel> ReviewContentAsync(string filePath, string content, bool isBaseline = false, CancellationToken cancellationToken = default)
-        {
-            var fileName = Path.GetFileName(filePath);
-            var key = GetReviewCancellationKey(GetReviewCancellationPathIdentity(filePath), isBaseline);
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-            _inFlightReviewCancellation.AddOrUpdate(key, cts, (_, existing) =>
-            {
-                try
-                {
-                    existing.Cancel();
-                }
-                catch (ObjectDisposedException)
-                {
-                }
-
-                existing.Dispose();
-                return cts;
-            });
-
-            try
-            {
-                var request = new ReviewRequestModel
-                {
-                    FilePath = filePath,
-                    FileContent = content,
-                    CachePath = _cacheStorage.GetSolutionReviewCacheLocation(),
-                    RepoPath = GetReviewRepoPath(filePath),
-                };
-
-                var (result, elapsedMs) = await ExecuteOnChannelAsync(
-                    _cliCommandChannel,
-                    cts.Token,
-                    () => ExecuteWithTimingAndLoggingAsync(
-                        "CLI file review",
-                        () => _client.ReviewAsync(request, cts.Token),
-                        $"Review of file {fileName} failed"));
-
-                if (result != null)
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        var loc = PerformanceTelemetryHelper.CalculateLineCount(content);
-                        var language = PerformanceTelemetryHelper.ExtractLanguage(fileName);
-                        var telemetryData = new PerformanceTelemetryData
-                        {
-                            Type = Titles.REVIEW,
-                            ElapsedMs = elapsedMs,
-                            FilePath = fileName,
-                            Loc = loc,
-                            Language = language,
-                        };
-                        await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(GetTelemetryManager(), _logger, telemetryData);
-                    });
-                }
-
-                return result;
-            }
-            catch (OperationCanceledException)
-            {
-                return null;
-            }
-            finally
-            {
-                if (_inFlightReviewCancellation.TryGetValue(key, out var currentCts) && currentCts == cts)
-                {
-                    _inFlightReviewCancellation.TryRemove(key, out _);
-                }
-
-                cts.Dispose();
-            }
-        }
-
-        public async Task<DeltaResponseModel> ReviewDeltaAsync(ReviewDeltaRequest request, CancellationToken cancellationToken = default)
-        {
-            await _deltaChannel.WaitAsync(cancellationToken);
-            try
-            {
-                await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
-                var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync(
-                    "CLI file delta review",
-                    () => _client.DeltaAsync(request.OldScore, request.NewScore, cancellationToken),
-                    "Delta for file failed.");
-
-                if (result != null && !string.IsNullOrEmpty(request.FilePath))
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        var loc = PerformanceTelemetryHelper.CalculateLineCount(request.FileContent);
-                        var language = PerformanceTelemetryHelper.ExtractLanguage(request.FilePath);
-                        var telemetryData = new PerformanceTelemetryData
-                        {
-                            Type = Titles.DELTA,
-                            ElapsedMs = elapsedMs,
-                            FilePath = request.FilePath,
-                            Loc = loc,
-                            Language = language,
-                        };
-                        await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(GetTelemetryManager(), _logger, telemetryData);
-                    });
-                }
-
-                return result;
-            }
-            finally
-            {
-                _deltaChannel.Release();
-            }
         }
 
         public async Task<PreFlightResponseModel> PreflightAsync(bool force = true, CancellationToken cancellationToken = default)
@@ -244,40 +112,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return result;
         }
 
-        public async Task<IList<FnToRefactorModel>> FnsToRefactorFromCodeSmellsAsync(string fileName, string fileContent, IList<CliCodeSmellModel> codeSmells, PreFlightResponseModel preflight, CancellationToken cancellationToken = default)
-        {
-            return await ExecuteFnsToRefactorAsync(
-                isValid: codeSmells != null && codeSmells.Count > 0,
-                skipMessage: "Skipping refactoring functions from code smells. Code smells list was null or empty.",
-                createRequest: cachePath => new FnsToRefactorCodeSmellRequestModel
-                {
-                    FileName = fileName,
-                    FileContent = fileContent,
-                    CachePath = cachePath,
-                    Preflight = preflight,
-                    CodeSmells = codeSmells,
-                },
-                operationLabel: "ACE refactoring functions from code smells check",
-                cancellationToken: cancellationToken);
-        }
-
-        public async Task<IList<FnToRefactorModel>> FnsToRefactorFromDeltaAsync(string fileName, string fileContent, DeltaResponseModel deltaResult, PreFlightResponseModel preflight, CancellationToken cancellationToken = default)
-        {
-            return await ExecuteFnsToRefactorAsync(
-                isValid: deltaResult != null,
-                skipMessage: "Skipping refactoring functions from delta. Delta result was null.",
-                createRequest: cachePath => new FnsToRefactorDeltaRequestModel
-                {
-                    FileName = fileName,
-                    FileContent = fileContent,
-                    CachePath = cachePath,
-                    Preflight = preflight,
-                    DeltaResult = deltaResult,
-                },
-                operationLabel: "ACE refactoring functions from delta check",
-                cancellationToken: cancellationToken);
-        }
-
         public Task<string> GetDeviceIdAsync(CancellationToken cancellationToken = default)
         {
             return TryReadServerValueAsync(
@@ -297,21 +131,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 "Could not get CLI version",
                 cancellationToken);
         }
-
-        private static string GetReviewCancellationPathIdentity(string filePath)
-        {
-            try
-            {
-                return string.IsNullOrEmpty(filePath) ? string.Empty : Path.GetFullPath(filePath);
-            }
-            catch
-            {
-                return filePath ?? string.Empty;
-            }
-        }
-
-        private static string GetReviewCancellationKey(string filePathIdentity, bool isBaseline) =>
-          string.IsNullOrEmpty(filePathIdentity) ? string.Empty : filePathIdentity + (isBaseline ? ":baseline" : ":current");
 
         private async Task<string> TryReadServerValueAsync(
             Func<CancellationToken, Task<string>> read,
@@ -356,36 +175,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     _logger?.Debug($"Failed to send performance telemetry asynchronously: {e.Message}");
                 }
             });
-        }
-
-        private string GetReviewRepoPath(string filePath)
-        {
-            var gitRoot = GitPathDiscovery.TryGetWorkingDirectory(filePath);
-            if (!string.IsNullOrEmpty(gitRoot))
-            {
-                return gitRoot;
-            }
-
-            var workspace = _cacheStorage.GetWorkspaceDirectory();
-            if (!string.IsNullOrWhiteSpace(workspace) && Directory.Exists(workspace))
-            {
-                return PathNormalization.NormalizeWorkingDirectory(workspace);
-            }
-
-            if (string.IsNullOrWhiteSpace(filePath))
-            {
-                return null;
-            }
-
-            try
-            {
-                return Path.GetDirectoryName(Path.GetFullPath(filePath));
-            }
-            catch (Exception ex)
-            {
-                _logger.Debug($"Could not resolve review repository path: {ex.Message}");
-                return null;
-            }
         }
 
         private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorAsync(
@@ -442,20 +231,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 var hashBytes = sha.ComputeHash(bytes);
                 var hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
                 return operationLabel + "|" + hash;
-            }
-        }
-
-        private async Task<T> ExecuteOnChannelAsync<T>(SemaphoreSlim channel, CancellationToken cancellationToken, Func<Task<T>> operation)
-        {
-            await channel.WaitAsync(cancellationToken);
-            try
-            {
-                await _cpuUsageThrottler.WaitForCpuAsync(cancellationToken);
-                return await operation();
-            }
-            finally
-            {
-                channel.Release();
             }
         }
 
