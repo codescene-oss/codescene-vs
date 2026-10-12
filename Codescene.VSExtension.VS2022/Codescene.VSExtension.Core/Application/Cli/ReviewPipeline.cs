@@ -248,7 +248,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private static string PathKey(string repoRoot, string relPath)
         {
-            return RpcPath.NormalizeFsPath(repoRoot) + "\0" + RpcPath.ToPosixRelPath(relPath);
+            return RpcPath.CanonicalRepoRoot(repoRoot) + "\0" + RpcPath.ToPosixRelPath(relPath);
         }
 
         private static string PathKeyForDocument(string repoRoot, ReviewDocument document)
@@ -290,6 +290,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         private Task<(CliReviewModel Review, DeltaResponseModel Delta)[]> SubmitBatchInternalAsync(string repoRoot, IReadOnlyList<ReviewSubmission> submissions)
         {
+            RpcPath.RememberLocalRepoRoot(repoRoot);
             var newReviews = new List<PendingReview>();
             var diskFiles = new List<ReviewFile>();
             var tasks = new Task<(CliReviewModel, DeltaResponseModel)>[submissions.Count];

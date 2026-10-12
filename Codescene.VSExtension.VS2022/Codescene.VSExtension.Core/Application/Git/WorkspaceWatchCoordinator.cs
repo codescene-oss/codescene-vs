@@ -266,6 +266,7 @@ namespace Codescene.VSExtension.Core.Application.Git
                 _knownRoots.Clear();
                 foreach (var target in targets)
                 {
+                    RpcPath.RememberLocalRepoRoot(target);
                     _knownRoots[RpcPath.NormalizeFsPath(target)] = target;
                 }
 
@@ -521,9 +522,18 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private string ResolveRepoRoot(string reported)
         {
-            return _knownRoots.TryGetValue(RpcPath.NormalizeFsPath(reported), out var known)
-                ? known
-                : Path.GetFullPath(reported ?? string.Empty);
+            if (_knownRoots.TryGetValue(RpcPath.NormalizeFsPath(reported), out var known))
+            {
+                return known;
+            }
+
+            var local = RpcPath.ToLocalRepoRoot(reported);
+            if (!string.Equals(local, reported, StringComparison.Ordinal))
+            {
+                return local;
+            }
+
+            return Path.GetFullPath(reported ?? string.Empty);
         }
     }
 }

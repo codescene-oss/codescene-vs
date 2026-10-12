@@ -286,7 +286,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private async Task<ReviewSubmission> WatchPresentationAsync(string repoRoot, string relPath, string receivedSha)
         {
             var posixPath = RpcPath.ToPosixRelPath(relPath);
-            var filePath = RpcPath.CombineRepo(repoRoot, posixPath);
+            var filePath = RpcPath.CombineRepo(RpcPath.ToLocalRepoRoot(repoRoot), posixPath);
             var document = _fileAccess.FindOpenDocument(filePath);
             if (document == null)
             {

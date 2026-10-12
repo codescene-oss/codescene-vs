@@ -165,6 +165,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     UpdateMonitor = ShouldUpdateMonitor(path, content),
                 });
 
+            if (!BufferDiffersFromDisk(path, content))
+            {
+                _pipeline.RestoreFromDiskIfBufferOwned(repoRoot, document);
+            }
+
             if (cliReview == null)
             {
                 return (null, null);

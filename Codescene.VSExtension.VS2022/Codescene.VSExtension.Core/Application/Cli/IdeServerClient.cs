@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
@@ -397,7 +398,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
             catch (RemoteInvocationException ex)
             {
-                throw new DevtoolsException(ex.Message, ex.ErrorCode, null);
+                var status = ex.ErrorCode;
+                var match = Regex.Match(ex.Message ?? string.Empty, @"^Request failed \[(\d{3})\]");
+                if (match.Success && int.TryParse(match.Groups[1].Value, out var httpStatus))
+                {
+                    status = httpStatus;
+                }
+
+                throw new DevtoolsException(ex.Message, status, null);
             }
         }
 

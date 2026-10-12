@@ -3,6 +3,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using Codescene.VSExtension.Core.Application.Cli;
+using Codescene.VSExtension.Core.Exceptions;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
@@ -131,6 +132,35 @@ namespace Codescene.VSExtension.Core.Tests
             var deviceId = await harness.Client.DeviceIdAsync();
 
             Assert.AreEqual("device-42", deviceId);
+        }
+
+        [TestMethod]
+        public async Task ReviewAsync_HttpFailureMessage_UsesHttpStatusInDevtoolsException()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+
+            var exception = await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.ReviewAsync(new ReviewRequestModel
+            {
+                FilePath = "src/a.cs",
+                FileContent = "trigger-http-401",
+            }));
+
+            Assert.AreEqual(401, exception.Status);
+            Assert.Contains("Request failed [401]", exception.Message);
+        }
+
+        [TestMethod]
+        public async Task RefactorAsync_WhenCancelled_DoesNotThrowDevtoolsException()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+            using var cancellation = new CancellationTokenSource();
+            cancellation.CancelAfter(50);
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() => harness.Client.RefactorAsync(
+                new RefactorPostRequestModel { Token = "delay-cancel" },
+                cancellation.Token));
         }
 
         [TestMethod]
@@ -435,6 +465,11 @@ namespace Codescene.VSExtension.Core.Tests
         [JsonRpcMethod("cs-ide/review", UseSingleObjectParameterDeserialization = true)]
         public JObject Review(JObject request)
         {
+            if (string.Equals((string)request["file-content"], "trigger-http-401", StringComparison.Ordinal))
+            {
+                throw new LocalRpcException("Request failed [401]");
+            }
+
             return JObject.Parse(@"{""fileLevelCodeSmells"":[],""functionLevelCodeSmells"":[],""rawScore"":""raw"",""score"":9.68,""gitBlobSha"":""review-sha""}");
         }
 
@@ -451,8 +486,13 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [JsonRpcMethod("cs-ide/refactor", UseSingleObjectParameterDeserialization = true)]
-        public JObject Refactor(JObject request)
+        public async Task<JObject> Refactor(JObject request, CancellationToken cancellationToken)
         {
+            if (string.Equals((string)request["token"], "delay-cancel", StringComparison.Ordinal))
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken).ConfigureAwait(false);
+            }
+
             return JObject.Parse(@"{""code"":""refactored"",""traceId"":""trace-1""}");
         }
 

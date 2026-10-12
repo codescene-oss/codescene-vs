@@ -14,7 +14,7 @@ namespace Codescene.VSExtension.Core.Tests
     {
         private const string RepoRoot = "/repo";
         private Mock<IIdeServerClient> _client;
-        private PresentationEvents _events;
+        private ReviewPipelinePresentationEvents _events;
         private List<(string RepoRoot, IReadOnlyList<ReviewFile> Files)> _batches;
         private int _nextId;
         private ReviewPipeline _pipeline;
@@ -23,7 +23,7 @@ namespace Codescene.VSExtension.Core.Tests
         public void Setup()
         {
             _client = new Mock<IIdeServerClient>();
-            _events = new PresentationEvents();
+            _events = new ReviewPipelinePresentationEvents();
             _batches = new List<(string, IReadOnlyList<ReviewFile>)>();
             _nextId = 1;
             _client.Setup(x => x.ReviewFiles(It.IsAny<string>(), It.IsAny<IReadOnlyList<ReviewFile>>()))
@@ -658,53 +658,6 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             throw new TimeoutException("timed out waiting for pipeline presentation");
-        }
-
-        private sealed class PresentationEvents : IReviewPipelinePresentation
-        {
-            public List<PresentedReview> Reviews { get; } = new List<PresentedReview>();
-
-            public List<PresentedDelta> Deltas { get; } = new List<PresentedDelta>();
-
-            public List<ReviewDocument> Removed { get; } = new List<ReviewDocument>();
-
-            public List<Exception> Failures { get; } = new List<Exception>();
-
-            public void ReviewStarted(ReviewDocument document)
-            {
-            }
-
-            public void ReviewFinished(ReviewDocument document)
-            {
-            }
-
-            public void DeltaStarted(ReviewDocument document)
-            {
-            }
-
-            public void DeltaFinished(ReviewDocument document)
-            {
-            }
-
-            public void PresentReview(PresentedReview review)
-            {
-                Reviews.Add(review);
-            }
-
-            public void PresentDelta(PresentedDelta delta)
-            {
-                Deltas.Add(delta);
-            }
-
-            public void Remove(ReviewDocument document)
-            {
-                Removed.Add(document);
-            }
-
-            public void Failed(Exception error)
-            {
-                Failures.Add(error);
-            }
         }
     }
 }
