@@ -1,11 +1,37 @@
 ﻿## Table of contents
 
 - [Getting started](#getting-started)
+- [Test releases](#test-releases)
 - [Webview Framework (CWF) management](#webview-framework-cwf-management)
 - [Feature Flags](#feature-flags)
 - [License](#license)
 
 ## Getting started
+
+## Test releases
+
+GitHub test builds use a tag that includes the commit SHA; the VSIX keeps a numeric `X.Y.Z` version only.
+
+| | Example |
+|---|---------|
+| Git tag | `v0.9.0-test.9c31e24` |
+| VSIX `Identity` version | `0.9.0` |
+
+Before tagging, set the manifest (and `source.extension.cs`) to the target `X.Y.Z` on the branch you want to ship. Merge `main` into that branch first so the tagged commit includes the current release workflow.
+
+Create and push a test tag from that commit:
+
+```text
+make tag-test-release
+```
+
+Or dry-run: `pwsh -File tag-test-release.ps1 -WhatIf`. Use `-NoPush` to create the tag locally only.
+
+CI validates that the tag matches `vX.Y.Z-test.<sha>`, that `<sha>` prefixes the tagged commit, and that `X.Y.Z` matches the VSIX manifest. The GitHub release is marked **Pre-release** and attaches the `.vsix`.
+
+Production releases are unchanged: `release.ps1` and tag `vX.Y.Z`. Marketplace publish (`vsix-publish.yml`) uses the latest non–pre-release.
+
+Repeated test tags may reuse the same VSIX version; Visual Studio may not treat that as an upgrade between builds.
 
 ## Webview Framework (CWF) management
 
