@@ -60,6 +60,11 @@ jobs:
           git fetch origin main:main
           powershell.exe -File .github/pr-size.ps1
 
+      - name: Validate test release tag
+        if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref_name, '-test.')
+        shell: pwsh
+        run: powershell.exe -File .github/validate-test-release-tag.ps1
+
       - name: Download fetched assets
         uses: actions/download-artifact@v4
         with:
@@ -138,19 +143,42 @@ jobs:
     runs-on: windows-2025-vs2026
     needs: build-test
     if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Write release notes
+        if: contains(github.ref_name, '-test.')
+        shell: pwsh
+        run: powershell.exe -File .github/write-test-release-notes.ps1
+
       - name: Download VSIX artifact
         uses: actions/download-artifact@v4
         with:
           name: vsix-package
-          path: .
+          path: vsix
 
-      - name: Publish GitHub Release
+      - name: Publish GitHub test release
+        if: contains(github.ref_name, '-test.')
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body_path: release-notes.md
+          prerelease: true
+          files: vsix/**/*.vsix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish GitHub release
+        if: ${{ !contains(github.ref_name, '-test.') }}
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           body: "Automated build for ${{ github.ref_name }}"
-          files: '**/*.vsix'
+          files: vsix/**/*.vsix
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
