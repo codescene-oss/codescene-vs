@@ -84,6 +84,30 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void CanonicalRepoRoot_ExistingDirectory_OnWindows_ResolvesPath()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Assert.Inconclusive();
+                return;
+            }
+
+            var repoRoot = Path.Combine(Path.GetTempPath(), "rpc-path-resolve-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(repoRoot);
+
+            try
+            {
+                var canonical = RpcPath.CanonicalRepoRoot(repoRoot);
+                Assert.IsFalse(string.IsNullOrEmpty(canonical));
+                Assert.AreEqual(canonical, RpcPath.CanonicalRepoRoot(repoRoot));
+            }
+            finally
+            {
+                Directory.Delete(repoRoot, true);
+            }
+        }
+
+        [TestMethod]
         public void PathsEqual_WindowsShortPathMatchesLongPath()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

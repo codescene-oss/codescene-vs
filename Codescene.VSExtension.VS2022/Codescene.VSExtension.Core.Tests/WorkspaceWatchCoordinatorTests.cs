@@ -491,6 +491,15 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void SetEnabled_WhenStateUnchanged_IsNoOp()
+        {
+            var client = new Mock<IIdeServerClient>();
+            var pipeline = new Mock<IReviewPipeline>();
+            using var coordinator = new WorkspaceWatchCoordinator(client.Object, pipeline.Object, null);
+            coordinator.SetEnabled(true);
+        }
+
+        [TestMethod]
         public async Task SetEnabled_StopsWatchesUntilAnalysisStartsAgain()
         {
             var repo = CreateGitRepo();

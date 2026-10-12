@@ -46,9 +46,8 @@ $totalLines = 0
 $coveredLines = 0
 
 foreach ($package in $coverage.coverage.packages.package) {
-    $packageName = $package.name
     foreach ($class in $package.classes.class) {
-        $filename = Join-Path $packageName $class.filename
+        $filename = ($class.filename -replace '/', '\')
 
         if ($changedFilesSet.ContainsKey($filename)) {
             $classLines = 0

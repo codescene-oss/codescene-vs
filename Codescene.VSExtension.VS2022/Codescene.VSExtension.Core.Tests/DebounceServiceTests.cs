@@ -200,6 +200,27 @@ public class DebounceServiceTests
     }
 
     [TestMethod]
+    public void Cancel_UnknownKey_DoesNotThrow()
+    {
+        _debounceService.Cancel("missing-key");
+    }
+
+    [TestMethod]
+    public async Task Throttle_TimerWithNoTrailingAction_CompletesSafely()
+    {
+        _debounceService.Throttle("view", () => { }, TimeSpan.FromMilliseconds(50));
+        await Task.Delay(150);
+    }
+
+    [TestMethod]
+    public void Cancel_AfterThrottle_ClearsPendingTrailing()
+    {
+        _debounceService.Throttle("view", () => { }, TimeSpan.FromSeconds(30));
+        _debounceService.Throttle("view", () => { }, TimeSpan.FromSeconds(30));
+        _debounceService.Cancel("view");
+    }
+
+    [TestMethod]
     public void Dispose_CanBeCalledMultipleTimes()
     {
         // Act & Assert - should not throw

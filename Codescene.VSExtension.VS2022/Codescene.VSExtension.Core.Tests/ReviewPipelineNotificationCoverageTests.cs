@@ -1,5 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.IO;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -337,6 +338,134 @@ namespace Codescene.VSExtension.Core.Tests
 
             await WaitUntil(() => _events.Reviews.Count >= 250, attempts: 500);
             Assert.IsGreaterThanOrEqualTo(250, _events.Reviews.Count);
+        }
+
+        [TestMethod]
+        public async Task PendingReview_WithRepoMismatch_IgnoresReview()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var pending = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            RaiseReview("review-1", "/other", "src/file.ts");
+
+            var result = await pending;
+            Assert.IsNull(result.Review);
+            Assert.IsEmpty(_events.Reviews);
+        }
+
+        [TestMethod]
+        public async Task PendingReview_WithPathMismatch_IgnoresReview()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var pending = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            RaiseReview("review-1", RepoRoot, "src/other.ts");
+
+            var result = await pending;
+            Assert.IsNull(result.Review);
+            Assert.IsEmpty(_events.Reviews);
+        }
+
+        [TestMethod]
+        public async Task PendingReview_WhenSuperseded_IgnoresStaleNotification()
+        {
+            var idSource = 0;
+            var document = Document("/repo/src/file.ts", "first");
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(
+                _client.Object,
+                _events,
+                FileAccess(document, true),
+                () => $"review-{++idSource}",
+                null);
+
+            var pendingFirst = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            var updated = Document("/repo/src/file.ts", "second");
+            _ = _pipeline.SubmitAsync(
+                RepoRoot,
+                new ReviewSubmission
+                {
+                    Document = updated,
+                    RelPath = "src/file.ts",
+                    Content = updated.Content,
+                    UpdateDiagnosticsPane = true,
+                    UpdateMonitor = true,
+                });
+
+            _client.Raise(
+                x => x.ReviewReceived += null,
+                _client.Object,
+                new ReviewNotification
+                {
+                    Id = "review-1",
+                    RepoRoot = RepoRoot,
+                    Path = "src/file.ts",
+                    Result = EmptyReview(GitBlobSha.FromUtf8(document.Content)),
+                });
+
+            var result = await pendingFirst;
+            Assert.IsNull(result.Review);
+            Assert.IsEmpty(_events.Reviews);
+        }
+
+        [TestMethod]
+        public async Task PendingReview_AfterDocumentMutation_IgnoresReview()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var pending = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            document.Content = "const value = 2;";
+            RaiseReview("review-1", RepoRoot, "src/file.ts");
+
+            var result = await pending;
+            Assert.IsNull(result.Review);
+            Assert.IsEmpty(_events.Reviews);
+        }
+
+        [TestMethod]
+        public async Task PendingReview_AfterRemove_IgnoresReview()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var pending = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            _pipeline.Remove(RepoRoot, document);
+            RaiseReview("review-1", RepoRoot, "src/file.ts");
+
+            var result = await pending;
+            Assert.IsNull(result.Review);
+            Assert.IsEmpty(_events.Reviews);
+        }
+
+        [TestMethod]
+        public async Task WatchReview_WithDiskFileAccess_PresentsFromDisk()
+        {
+            var repoRoot = Path.Combine(Path.GetTempPath(), "pipeline-disk-" + Guid.NewGuid().ToString("N"));
+            var filePath = Path.Combine(repoRoot, "src", "file.ts");
+            var parentDir = Path.GetDirectoryName(filePath) ?? throw new InvalidOperationException();
+            Directory.CreateDirectory(parentDir);
+            const string content = "const disk = 1;";
+            File.WriteAllText(filePath, content);
+
+            try
+            {
+                _pipeline.Dispose();
+                _pipeline = new ReviewPipeline(_client.Object, _events, null, () => "review-1", null);
+                _client.Raise(
+                    x => x.ReviewReceived += null,
+                    _client.Object,
+                    new ReviewNotification
+                    {
+                        RepoRoot = repoRoot,
+                        Path = "src/file.ts",
+                        Result = EmptyReview(GitBlobSha.FromUtf8(content)),
+                    });
+
+                await WaitUntil(() => _events.Reviews.Count >= 1);
+                Assert.AreEqual(content, _events.Reviews[0].Content);
+            }
+            finally
+            {
+                if (Directory.Exists(repoRoot))
+                {
+                    Directory.Delete(repoRoot, true);
+                }
+            }
         }
 
         [TestMethod]
