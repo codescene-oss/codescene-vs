@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791814663789,
+  "lastUpdate": 1791815088761,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -7380,6 +7380,66 @@ window.BENCHMARK_DATA = {
             "value": 285111432.14285713,
             "unit": "ns",
             "range": "± 1712746.0268648148"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "96d6f00f4b55fcf976db0a9522235f002f21810f",
+          "message": "chore: add test GitHub releases with SHA-suffixed tags (#333)\n\nSupport vX.Y.Z-test.<sha> tags with CI validation, pre-releases, and a local tag helper while VSIX keeps numeric X.Y.Z.",
+          "timestamp": "2026-10-12T16:12:37+02:00",
+          "tree_id": "5d79963154e97c5c76566c064fee197c42286920",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/96d6f00f4b55fcf976db0a9522235f002f21810f"
+        },
+        "date": 1791815087586,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAsync",
+            "value": 104188268.20512821,
+            "unit": "ns",
+            "range": "± 5330891.842040786"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.GetOrComputeBaselineRawScoreAsync",
+            "value": 92513231.99999999,
+            "unit": "ns",
+            "range": "± 2394741.155346284"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewAndBaselineAsync",
+            "value": 178191865.27777776,
+            "unit": "ns",
+            "range": "± 12474408.332658216"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsync",
+            "value": 175480353.24675325,
+            "unit": "ns",
+            "range": "± 8922546.567354951"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.ReviewWithDeltaAsync",
+            "value": 252810008.5,
+            "unit": "ns",
+            "range": "± 22266819.06795748"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CodeReviewerBenchmarks.DeltaAsyncWithRefactorDiscovery",
+            "value": 227034952.08333334,
+            "unit": "ns",
+            "range": "± 8923728.815019784"
           }
         ]
       }
