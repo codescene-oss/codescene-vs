@@ -48,6 +48,24 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void CanonicalRepoRoot_SecondCall_UsesCachedValue()
+        {
+            var repoRoot = Path.Combine(Path.GetTempPath(), "rpc-path-cache-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(repoRoot);
+
+            try
+            {
+                var first = RpcPath.CanonicalRepoRoot(repoRoot);
+                var second = RpcPath.CanonicalRepoRoot(repoRoot);
+                Assert.AreEqual(first, second);
+            }
+            finally
+            {
+                Directory.Delete(repoRoot, true);
+            }
+        }
+
+        [TestMethod]
         public void ToLocalRepoRoot_RoundTripsRememberedRoot()
         {
             var repoRoot = Path.Combine(Path.GetTempPath(), "rpc-path-roundtrip-" + Guid.NewGuid().ToString("N"));

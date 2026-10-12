@@ -7,6 +7,7 @@ using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
+using Codescene.VSExtension.Core.Util;
 using Moq;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -256,6 +257,89 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task Submit_NullDocument_Throws()
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _pipeline.SubmitAsync(
+                RepoRoot,
+                new ReviewSubmission { Document = null, RelPath = "src/file.ts", Content = "x" }));
+        }
+
+        [TestMethod]
+        public void RestoreFromDiskIfBufferOwned_NullDocument_NoOp()
+        {
+            _pipeline.RestoreFromDiskIfBufferOwned(RepoRoot, null);
+        }
+
+        [TestMethod]
+        public async Task Reset_CompletesPendingReviews()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var pending = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            _pipeline.Reset();
+            var result = await pending;
+            Assert.IsNull(result.Review);
+            Assert.IsNull(result.Delta);
+        }
+
+        [TestMethod]
+        public async Task PendingDelta_WithRepoMismatch_IgnoresDelta()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var pending = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            RaiseReview("review-1", RepoRoot, "src/file.ts");
+            RaiseDelta("review-1", "/other", "src/file.ts", new DeltaResponseModel { NewGitBlobSha = GitBlobSha.FromUtf8(document.Content) });
+
+            var result = await pending;
+            Assert.IsNotNull(result.Review);
+            Assert.IsNull(result.Delta);
+        }
+
+        [TestMethod]
+        public async Task WatchReview_EvictsOldestCachedEntries()
+        {
+            var documents = new Dictionary<string, ReviewDocument>(StringComparer.OrdinalIgnoreCase);
+            for (var i = 0; i < 252; i++)
+            {
+                var relPath = $"src/file{i}.ts";
+                var path = RpcPath.CombineRepo(RpcPath.ToLocalRepoRoot(RepoRoot), relPath);
+                documents[path] = Document(path, $"content-{i}");
+            }
+
+            var access = new Mock<IReviewPipelineFileAccess>();
+            access.Setup(x => x.FindOpenDocument(It.IsAny<string>()))
+                .Returns((string path) => documents.ContainsKey(path) ? documents[path] : null!);
+            access.Setup(x => x.OpenDocumentAsync(It.IsAny<string>()))
+                .Returns((string path) => Task.FromResult(documents.ContainsKey(path) ? documents[path] : null!));
+            access.Setup(x => x.ReadFileBytesAsync(It.IsAny<string>()))
+                .Returns<string>(path => Task.FromResult(
+                    documents.TryGetValue(path, out var document)
+                        ? System.Text.Encoding.UTF8.GetBytes(document.Content)
+                        : null));
+            access.Setup(x => x.IsVisible(It.IsAny<string>())).Returns(true);
+
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, access.Object, () => "review-1", null);
+
+            for (var i = 0; i < 252; i++)
+            {
+                var relPath = $"src/file{i}.ts";
+                var content = $"content-{i}";
+                _client.Raise(
+                    x => x.ReviewReceived += null,
+                    _client.Object,
+                    new ReviewNotification
+                    {
+                        RepoRoot = RepoRoot,
+                        Path = relPath,
+                        Result = EmptyReview(GitBlobSha.FromUtf8(content)),
+                    });
+            }
+
+            await WaitUntil(() => _events.Reviews.Count >= 250, attempts: 500);
+            Assert.IsGreaterThanOrEqualTo(250, _events.Reviews.Count);
+        }
+
+        [TestMethod]
         public async Task PendingReview_IgnoresMismatchedGitBlobSha()
         {
             var document = Document("/repo/src/file.ts", "const value = 1;");
@@ -329,6 +413,21 @@ namespace Codescene.VSExtension.Core.Tests
                 .ReturnsAsync(System.Text.Encoding.UTF8.GetBytes(document.Content ?? string.Empty));
             mock.Setup(x => x.IsVisible(It.IsAny<string>())).Returns(visible);
             return mock.Object;
+        }
+
+        private async Task WaitUntil(Func<bool> predicate, int attempts = 100)
+        {
+            for (var attempt = 0; attempt < attempts; attempt++)
+            {
+                if (predicate())
+                {
+                    return;
+                }
+
+                await Task.Delay(20);
+            }
+
+            throw new TimeoutException("Timed out waiting for pipeline presentation.");
         }
     }
 }
