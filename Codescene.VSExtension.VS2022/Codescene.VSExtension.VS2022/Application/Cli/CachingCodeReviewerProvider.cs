@@ -1,6 +1,5 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using Codescene.VSExtension.Core.Interfaces.Git;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
-using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
 namespace Codescene.VSExtension.VS2022.Application.Cli
 {
@@ -23,8 +21,6 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
     public class CachingCodeReviewerProvider : ICodeReviewer
     {
         private readonly ICodeReviewer _inner;
-        private readonly CodeHealthMonitorNotifier _notifier;
-        private readonly IAsyncTaskScheduler _scheduler;
 
         [ImportingConstructor]
         public CachingCodeReviewerProvider(
@@ -33,19 +29,12 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
             ICliExecutor executor,
             ITelemetryManager telemetryManager,
             IGitService git,
-            IAsyncTaskScheduler scheduler,
             IPreflightManager preflightManager,
             IReviewPipeline pipeline,
-            IIdeServerClient client,
             CodeHealthMonitorNotifier notifier,
             ISettingsProvider settings)
         {
-            _scheduler = scheduler;
-            _notifier = notifier;
-            _notifier.ViewUpdateRequested += OnViewUpdateRequested;
-            client.QueueChanged += (_, queue) => _notifier.ApplyQueue(queue);
-            _notifier.SetAutomaticAnalysisEnabled(settings?.EnableAutomaticAnalysis ?? true);
-            _inner = new CodeReviewer(logger, mapper, executor, telemetryManager, git, _notifier, preflightManager, pipeline, settings);
+            _inner = new CodeReviewer(logger, mapper, executor, telemetryManager, git, notifier, preflightManager, pipeline, settings);
         }
 
         public Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)
@@ -71,11 +60,6 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
         public Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
         {
             return _inner.GetOrComputeBaselineRawScoreAsync(path, baselineContent, operationGeneration, cancellationToken, baselineCommit);
-        }
-
-        private void OnViewUpdateRequested(object sender, EventArgs e)
-        {
-            _scheduler.Schedule(ct => CodeSceneToolWindow.UpdateViewAsync());
         }
     }
 }

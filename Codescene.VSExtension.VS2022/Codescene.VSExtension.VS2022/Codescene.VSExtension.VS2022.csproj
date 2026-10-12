@@ -79,6 +79,7 @@
     <Compile Include="Application\Git\BatchGitIgnoreChecker.cs" />
     <Compile Include="Application\Git\LibGit2SharpIgnoreChecker.cs" />
     <Compile Include="Application\Services\AceAcknowledgementStateService.cs" />
+    <Compile Include="Application\Services\CodeHealthMonitorBinder.cs" />
     <Compile Include="Cache\CacheStorageService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />
     <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />

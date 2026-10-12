@@ -11,6 +11,7 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
+using Codescene.VSExtension.VS2022.Application.Services;
 using Codescene.VSExtension.VS2022.Handlers;
 using Codescene.VSExtension.VS2022.Notices;
 using Codescene.VSExtension.VS2022.Options;
@@ -75,6 +76,7 @@ public sealed class VS2022Package : ToolkitPackage
             await this.RegisterCommandsAsync();
 
             await CheckCliFileAsync();
+            await GetServiceAsync<CodeHealthMonitorBinder>();
             JoinableTaskFactory.RunAsync(() => StartIdeServerAsync(cancellationToken)).FileAndForget("VS2022Package/StartIdeServer");
             JoinableTaskFactory.RunAsync(ShowTelemetryNoticeAsync).FileAndForget("VS2022Package/TelemetryNotice");
 
