@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791549403157,
+  "lastUpdate": 1791814663789,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3020,6 +3020,48 @@ window.BENCHMARK_DATA = {
             "value": 63738316.071428575,
             "unit": "ns",
             "range": "± 574310.0589894417"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "96d6f00f4b55fcf976db0a9522235f002f21810f",
+          "message": "chore: add test GitHub releases with SHA-suffixed tags (#333)\n\nSupport vX.Y.Z-test.<sha> tags with CI validation, pre-releases, and a local tag helper while VSIX keeps numeric X.Y.Z.",
+          "timestamp": "2026-10-12T16:12:37+02:00",
+          "tree_id": "5d79963154e97c5c76566c064fee197c42286920",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/96d6f00f4b55fcf976db0a9522235f002f21810f"
+        },
+        "date": 1791814661591,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewContentAsync",
+            "value": 90325025.36443152,
+            "unit": "ns",
+            "range": "± 3341746.884486728"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.ReviewDeltaAsync",
+            "value": 80349955.63909777,
+            "unit": "ns",
+            "range": "± 1742968.433513459"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 54601346.92307692,
+            "unit": "ns",
+            "range": "± 705953.6037208183"
           }
         ]
       }
