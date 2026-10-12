@@ -41,32 +41,21 @@ namespace Codescene.VSExtension.Core.Application.Cli
             ServerStarted?.Invoke(this, new ServerStartEvent { Metadata = parsed, Restart = restart });
         }
 
-        private void HandleReview(JObject notification)
-        {
-            var identity = ParseIdentity(notification, "fileReview");
-            if (identity == null)
-            {
-                return;
-            }
+        private void HandleReview(JObject notification) =>
+            HandleResultNotification<ReviewNotification, CliReviewModel>(notification, "fileReview", IdeServerLog.ReviewSummary, ReviewReceived);
 
-            var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(notification);
-            var result = normalized["result"]?.ToObject<CliReviewModel>(Serializer);
-            _logger.Info("[cs-ide] received fileReview " + LogFields.Format(
-                LogFields.Field("id", identity.Item1 ?? "(none)"),
-                LogFields.Field("path", identity.Item2),
-                LogFields.Field("repo", identity.Item3)) + " " + IdeServerLog.ReviewSummary(result));
-            ReviewReceived?.Invoke(this, new ReviewNotification
-            {
-                Id = identity.Item1,
-                Path = identity.Item2,
-                RepoRoot = identity.Item3,
-                Result = result,
-            });
-        }
+        private void HandleDelta(JObject notification) =>
+            HandleResultNotification<DeltaNotification, DeltaResponseModel>(notification, "deltaReview", IdeServerLog.DeltaSummary, DeltaReceived);
 
-        private void HandleDelta(JObject notification)
+        private void HandleResultNotification<TNotification, TResult>(
+            JObject notification,
+            string kind,
+            Func<TResult, string> summarize,
+            EventHandler<TNotification> handler)
+            where TNotification : ResultNotification<TResult>, new()
+            where TResult : class
         {
-            var identity = ParseIdentity(notification, "deltaReview");
+            var identity = ParseIdentity(notification, kind);
             if (identity == null)
             {
                 return;
@@ -74,19 +63,19 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(notification);
             var resultToken = normalized["result"];
-            var delta = resultToken == null || resultToken.Type == JTokenType.Null
+            var result = resultToken == null || resultToken.Type == JTokenType.Null
                 ? null
-                : resultToken.ToObject<DeltaResponseModel>(Serializer);
-            _logger.Info("[cs-ide] received deltaReview " + LogFields.Format(
+                : resultToken.ToObject<TResult>(Serializer);
+            _logger.Info("[cs-ide] received " + kind + " " + LogFields.Format(
                 LogFields.Field("id", identity.Item1 ?? "(none)"),
                 LogFields.Field("path", identity.Item2),
-                LogFields.Field("repo", identity.Item3)) + " " + IdeServerLog.DeltaSummary(delta));
-            DeltaReceived?.Invoke(this, new DeltaNotification
+                LogFields.Field("repo", identity.Item3)) + " " + summarize(result));
+            handler?.Invoke(this, new TNotification
             {
                 Id = identity.Item1,
                 Path = identity.Item2,
                 RepoRoot = identity.Item3,
-                Result = delta,
+                Result = result,
             });
         }
 

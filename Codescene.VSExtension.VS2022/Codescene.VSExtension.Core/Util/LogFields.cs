@@ -61,12 +61,6 @@ namespace Codescene.VSExtension.Core.Util
 
         private static string FormatValue(object value)
         {
-            if (value is bool || value is byte || value is short || value is int || value is long
-                || value is float || value is double || value is decimal)
-            {
-                return Convert.ToString(value, CultureInfo.InvariantCulture);
-            }
-
             if (value is string text)
             {
                 return text.IndexOf(' ') >= 0 ? JsonConvert.SerializeObject(text) : text;

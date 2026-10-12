@@ -4,14 +4,7 @@ using Codescene.VSExtension.Core.Models.Cli.Review;
 
 namespace Codescene.VSExtension.Core.Models.Cli.Rpc
 {
-    public class ReviewNotification
+    public class ReviewNotification : ResultNotification<CliReviewModel>
     {
-        public string Id { get; set; }
-
-        public string Path { get; set; }
-
-        public string RepoRoot { get; set; }
-
-        public CliReviewModel Result { get; set; }
     }
 }

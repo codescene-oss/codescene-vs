@@ -4,14 +4,7 @@ using Codescene.VSExtension.Core.Models.Cli.Delta;
 
 namespace Codescene.VSExtension.Core.Models.Cli.Rpc
 {
-    public class DeltaNotification
+    public class DeltaNotification : ResultNotification<DeltaResponseModel>
     {
-        public string Id { get; set; }
-
-        public string Path { get; set; }
-
-        public string RepoRoot { get; set; }
-
-        public DeltaResponseModel Result { get; set; }
     }
 }
