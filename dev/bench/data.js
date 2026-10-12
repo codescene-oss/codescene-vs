@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791815088761,
+  "lastUpdate": 1791815220819,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -10894,6 +10894,54 @@ window.BENCHMARK_DATA = {
             "value": 20222.7300008138,
             "unit": "ns",
             "range": "± 308.1950871838389"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "96d6f00f4b55fcf976db0a9522235f002f21810f",
+          "message": "chore: add test GitHub releases with SHA-suffixed tags (#333)\n\nSupport vX.Y.Z-test.<sha> tags with CI validation, pre-releases, and a local tag helper while VSIX keeps numeric X.Y.Z.",
+          "timestamp": "2026-10-12T16:12:37+02:00",
+          "tree_id": "5d79963154e97c5c76566c064fee197c42286920",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/96d6f00f4b55fcf976db0a9522235f002f21810f"
+        },
+        "date": 1791815219700,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncCold",
+            "value": 91017972.70833331,
+            "unit": "ns",
+            "range": "± 4763385.879772385"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewAsyncWarm",
+            "value": 3179.0909903390066,
+            "unit": "ns",
+            "range": "± 23.355443470386998"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncCold",
+            "value": 322072611.1111111,
+            "unit": "ns",
+            "range": "± 8961384.916109757"
+          },
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CachingCodeReviewerBenchmarks.ReviewWithDeltaAsyncWarm",
+            "value": 10729.358418782553,
+            "unit": "ns",
+            "range": "± 225.6823902460699"
           }
         ]
       }
