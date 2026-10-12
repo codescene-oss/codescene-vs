@@ -139,7 +139,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         {
             try
             {
-                await package.Initialized;
+                await package.WaitForInitializationAsync();
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.PackageDisposalToken);
                 if (_userControl == null)
                 {
