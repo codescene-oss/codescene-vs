@@ -44,7 +44,6 @@ internal class WebComponentMessageHandler
     public async Task HandleAsync(string message)
     {
         _logger ??= await VS.GetMefServiceAsync<ILogger>();
-        _showDocsHandler ??= await VS.GetMefServiceAsync<ShowDocumentationHandler>();
 
         MessageObj<JToken> msgObject;
         try
@@ -153,6 +152,11 @@ internal class WebComponentMessageHandler
 
         // Mark the window as initialized, which will process any pending messages
         await _control.MarkAsInitializedAsync();
+
+        if (source == ViewTypes.HOME)
+        {
+            await CodeSceneToolWindow.UpdateViewAsync();
+        }
     }
 
     private async Task HandleCopyCodeAsync(MessageObj<JToken> msgObject, ILogger logger)
@@ -257,6 +261,7 @@ internal class WebComponentMessageHandler
     {
         var payload = msgObject.Payload.ToObject<OpenDocsForFunctionPayload>();
         _logger.Debug($"Opening '{payload.DocType}'...");
+        _showDocsHandler ??= await VS.GetMefServiceAsync<ShowDocumentationHandler>();
 
         var category = DocumentationMappings.DocNameMap[payload.DocType] ?? string.Empty;
         var fn = await AceUtils.GetRefactorableFunctionDeltaAsync(new GetRefactorableFunctionsModel

@@ -336,7 +336,6 @@ public partial class WebComponentUserControl : UserControl
         webView.NavigationCompleted += (_, _) =>
         {
             loadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
-            TryFlushPendingWebMessage();
         };
 
         webView.CoreWebView2.WebMessageReceived += (sender, e) =>
@@ -381,6 +380,7 @@ public partial class WebComponentUserControl : UserControl
         // Allow navigation to our local app host
         if (!string.IsNullOrEmpty(_host) && uri.Equals($"https://{_host}/index.html", StringComparison.OrdinalIgnoreCase))
         {
+            _initialized = false;
             return;
         }
 
