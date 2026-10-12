@@ -129,7 +129,7 @@ namespace Codescene.VSExtension.Core.Application.Services
                 else
                 {
                     RemainingCount = remaining;
-                    TotalCount = (queue?.Done ?? 0) + remaining;
+                    TotalCount = NextTotalCount(queue?.Done ?? 0, remaining);
                     AnalysisState = "running";
                 }
 
@@ -157,6 +157,17 @@ namespace Codescene.VSExtension.Core.Application.Services
         public void RequestViewUpdate()
         {
             ViewUpdateRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        private int NextTotalCount(int done, int remaining)
+        {
+            var total = done + remaining;
+            if (!TotalCount.HasValue)
+            {
+                return total;
+            }
+
+            return Math.Min(total, Math.Max(TotalCount.Value, remaining));
         }
 
         private void SetStoppedUnlocked()

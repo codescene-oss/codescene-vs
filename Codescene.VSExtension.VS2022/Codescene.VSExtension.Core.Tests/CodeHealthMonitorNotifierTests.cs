@@ -135,6 +135,41 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void ApplyQueue_RequeueDuringBatch_KeepsTotalAtQueueSize()
+        {
+            ApplyCounts(19, 1);
+            Assert.AreEqual(20, _notifier.TotalCount);
+
+            ApplyCounts(23, 17);
+            Assert.AreEqual(23, _notifier.TotalCount);
+
+            ApplyCounts(23, 37);
+            Assert.AreEqual(23, _notifier.TotalCount);
+            Assert.AreEqual(23, _notifier.RemainingCount);
+        }
+
+        [TestMethod]
+        public void ApplyQueue_QueueShrinksDuringBatch_LowersTotal()
+        {
+            ApplyCounts(448, 1);
+            Assert.AreEqual(449, _notifier.TotalCount);
+
+            ApplyCounts(27, 10);
+            Assert.AreEqual(37, _notifier.TotalCount);
+        }
+
+        [TestMethod]
+        public void ApplyQueue_NewBatchAfterDrain_StartsFromDoneAndRemaining()
+        {
+            ApplyCounts(19, 1);
+            ApplyCounts(0, 20);
+
+            ApplyCounts(3, 1);
+
+            Assert.AreEqual(4, _notifier.TotalCount);
+        }
+
+        [TestMethod]
         public void Clear_RemovesJobsAndRequestsViewUpdate()
         {
             var updates = 0;
@@ -149,6 +184,16 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.IsEmpty(DeltaJobTracker.RunningJobs);
             Assert.IsGreaterThan(0, updates);
+        }
+
+        private void ApplyCounts(int count, int done)
+        {
+            _notifier.ApplyQueue(new ReviewQueue
+            {
+                Count = count,
+                Done = done,
+                Files = count > 0 ? new[] { "a.cs" } : Array.Empty<string>(),
+            });
         }
     }
 }
