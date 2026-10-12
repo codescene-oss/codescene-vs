@@ -7,6 +7,7 @@ using FileModel = Codescene.VSExtension.Core.Models.WebComponent.Data.File;
 namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
+    [DoNotParallelize]
     public class DeltaJobTrackerTests
     {
         [TestInitialize]

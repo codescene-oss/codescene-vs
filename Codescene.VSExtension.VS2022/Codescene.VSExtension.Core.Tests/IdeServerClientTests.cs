@@ -157,6 +157,48 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task PreflightAsync_ReturnsResponse()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+
+            var response = await harness.Client.PreflightAsync(force: true);
+
+            Assert.AreEqual(1m, response.Version);
+            Assert.Contains("cs", response.FileTypes);
+        }
+
+        [TestMethod]
+        public async Task CheckRulesAsync_WhenRpcFails_ThrowsDevtoolsExceptionAndLogsError()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+
+            var exception = await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.CheckRulesAsync("C:/repo", "fail-401"));
+
+            Assert.AreEqual(401, exception.Status);
+            _logger.Verify(
+                x => x.Error(It.Is<string>(message => message.Contains("request failed")), It.IsAny<Exception>()),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task OutboundNotification_WhenServerStops_LogsError()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+            harness.Process.Kill();
+            await Task.Delay(200);
+
+            harness.Client.WatchFiles("C:/repo", new[] { "src" });
+            await Task.Delay(500);
+
+            _logger.Verify(
+                x => x.Error(It.Is<string>(message => message.Contains("notification failed")), It.IsAny<Exception>()),
+                Times.AtLeastOnce);
+        }
+
+        [TestMethod]
         public async Task RulesRpcEndpoints_NormalizeResponses()
         {
             using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
@@ -448,6 +490,12 @@ namespace Codescene.VSExtension.Core.Tests
             return JObject.Parse(@"{""fileLevelCodeSmells"":[],""functionLevelCodeSmells"":[],""rawScore"":""raw"",""score"":9.68,""gitBlobSha"":""review-sha""}");
         }
 
+        [JsonRpcMethod("cs-ide/preflight", UseSingleObjectParameterDeserialization = true)]
+        public JObject Preflight(JObject request)
+        {
+            return JObject.Parse(@"{""version"":1,""file-types"":[""cs""],""language-common"":{""code-smells"":[""smell""],""max-input-loc"":1000}}");
+        }
+
         [JsonRpcMethod("cs-ide/device-id", UseSingleObjectParameterDeserialization = true)]
         public JObject DeviceId(JObject request)
         {
@@ -486,6 +534,11 @@ namespace Codescene.VSExtension.Core.Tests
         [JsonRpcMethod("cs-ide/check-rules", UseSingleObjectParameterDeserialization = true)]
         public JObject CheckRules(JObject request)
         {
+            if (string.Equals((string)request["path"], "fail-401", StringComparison.Ordinal))
+            {
+                throw new LocalRpcException("Request failed [401]");
+            }
+
             return JObject.Parse(@"{""result"":""ok"",""failed"":false,""parsingErrors"":[]}");
         }
 

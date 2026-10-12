@@ -8,6 +8,7 @@ using Codescene.VSExtension.Core.Util;
 namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
+    [DoNotParallelize]
     public class CodeHealthMonitorNotifierTests
     {
         private CodeHealthMonitorNotifier _notifier;
@@ -167,6 +168,61 @@ namespace Codescene.VSExtension.Core.Tests
             ApplyCounts(3, 1);
 
             Assert.AreEqual(4, _notifier.TotalCount);
+        }
+
+        [TestMethod]
+        public void SetAutomaticAnalysisEnabled_WhenDisabled_StopsAndClearsJobs()
+        {
+            _notifier.ApplyQueue(new ReviewQueue { Count = 1, Files = new[] { "a.cs" } });
+            _notifier.SetAutomaticAnalysisEnabled(false);
+
+            Assert.AreEqual("stopped", _notifier.AnalysisState);
+            Assert.IsEmpty(DeltaJobTracker.RunningJobs);
+        }
+
+        [TestMethod]
+        public void SetAutomaticAnalysisEnabled_WhenReenabledFromStopped_ReturnsToIdle()
+        {
+            _notifier.SetAutomaticAnalysisEnabled(false);
+            var eventFired = false;
+            _notifier.ViewUpdateRequested += (_, __) => eventFired = true;
+
+            _notifier.SetAutomaticAnalysisEnabled(true);
+
+            Assert.AreEqual("idle", _notifier.AnalysisState);
+            Assert.IsTrue(eventFired);
+        }
+
+        [TestMethod]
+        public void SetAutomaticAnalysisEnabled_NoOpWhenValueUnchanged()
+        {
+            _notifier.SetAutomaticAnalysisEnabled(true);
+            _notifier.ApplyQueue(new ReviewQueue { Count = 1, Files = new[] { "a.cs" } });
+
+            _notifier.SetAutomaticAnalysisEnabled(true);
+
+            Assert.AreEqual("running", _notifier.AnalysisState);
+            Assert.HasCount(1, DeltaJobTracker.RunningJobs);
+        }
+
+        [TestMethod]
+        public void OnDeltaStarting_WhenAutomaticAnalysisDisabled_DoesNotTrackJob()
+        {
+            _notifier.SetAutomaticAnalysisEnabled(false);
+            _notifier.OnDeltaStarting("file.cs");
+
+            Assert.IsEmpty(DeltaJobTracker.RunningJobs);
+        }
+
+        [TestMethod]
+        public void ApplyQueue_WhenAutomaticAnalysisDisabled_Stops()
+        {
+            _notifier.SetAutomaticAnalysisEnabled(false);
+
+            _notifier.ApplyQueue(new ReviewQueue { Count = 2, Files = new[] { "a.cs", "b.cs" } });
+
+            Assert.AreEqual("stopped", _notifier.AnalysisState);
+            Assert.IsEmpty(DeltaJobTracker.RunningJobs);
         }
 
         [TestMethod]
