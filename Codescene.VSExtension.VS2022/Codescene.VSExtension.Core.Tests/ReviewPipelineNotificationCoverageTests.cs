@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using Codescene.VSExtension.Core.Application.Cli;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
@@ -70,6 +71,120 @@ namespace Codescene.VSExtension.Core.Tests
             await pending;
             Assert.HasCount(1, _events.Deltas);
             Assert.IsFalse(_events.Deltas[0].UpdateMonitor);
+        }
+
+        [TestMethod]
+        public async Task WatchReviewFailed_WithoutId_LogsWarning()
+        {
+            var logger = new Mock<ILogger>();
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, null, () => "review-1", logger.Object);
+            _client.Raise(
+                x => x.ReviewFailed += null,
+                _client.Object,
+                new ReviewFailedNotification { RepoRoot = RepoRoot, Path = "src/file.ts", Message = "watch failed" });
+
+            logger.Verify(
+                x => x.Warn(It.Is<string>(message => message.Contains("watch reviewFailed"))),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public async Task WatchDelta_WhenFilterRejects_IsIgnored()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, FileAccess(document, true), () => "review-1", null);
+            _pipeline.SetWatchDeltaFilter((_, __) => Task.FromResult(false));
+            _client.Raise(
+                x => x.DeltaReceived += null,
+                _client.Object,
+                new DeltaNotification
+                {
+                    RepoRoot = RepoRoot,
+                    Path = "src/file.ts",
+                    Result = new DeltaResponseModel { NewGitBlobSha = GitBlobSha.FromUtf8(document.Content) },
+                });
+
+            await Task.Delay(50);
+            Assert.IsEmpty(_events.Deltas);
+        }
+
+        [TestMethod]
+        public async Task WatchReview_WhenEpochInvalidatedDuringPresentation_IsDropped()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var slowAccess = new Mock<IReviewPipelineFileAccess>();
+            slowAccess.Setup(x => x.FindOpenDocument(It.IsAny<string>())).Returns((ReviewDocument)null);
+            slowAccess.Setup(x => x.OpenDocumentAsync(It.IsAny<string>()))
+                .Returns(async () =>
+                {
+                    await Task.Delay(200);
+                    return document;
+                });
+            slowAccess.Setup(x => x.ReadFileBytesAsync(It.IsAny<string>()))
+                .ReturnsAsync(System.Text.Encoding.UTF8.GetBytes(document.Content));
+            slowAccess.Setup(x => x.IsVisible(It.IsAny<string>())).Returns(true);
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, slowAccess.Object, () => "review-1", null);
+            _client.Raise(
+                x => x.ReviewReceived += null,
+                _client.Object,
+                new ReviewNotification
+                {
+                    RepoRoot = RepoRoot,
+                    Path = "src/file.ts",
+                    Result = EmptyReview(GitBlobSha.FromUtf8(document.Content)),
+                });
+            _pipeline.Invalidate();
+            await Task.Delay(300);
+            Assert.IsEmpty(_events.Reviews);
+        }
+
+        [TestMethod]
+        public async Task PendingReviewFailed_WithRepoMismatch_IgnoresPending()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var pending = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            _client.Raise(
+                x => x.ReviewFailed += null,
+                _client.Object,
+                new ReviewFailedNotification
+                {
+                    Id = "review-1",
+                    RepoRoot = "/other",
+                    Path = "src/file.ts",
+                    Message = "failed",
+                });
+
+            var result = await pending;
+            Assert.IsNull(result.Review);
+            Assert.IsNull(result.Delta);
+        }
+
+        [TestMethod]
+        public async Task PendingReviewFailed_WithMatchingIdentity_PropagatesFailure()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var pending = _pipeline.SubmitAsync(RepoRoot, Submission(document));
+            _client.Raise(
+                x => x.ReviewFailed += null,
+                _client.Object,
+                new ReviewFailedNotification
+                {
+                    Id = "review-1",
+                    RepoRoot = RepoRoot,
+                    Path = "src/file.ts",
+                    Message = "failed",
+                });
+
+            await Assert.ThrowsAsync<Exception>(() => pending);
+        }
+
+        [TestMethod]
+        public void Remove_WithNullDocuments_DoesNotThrow()
+        {
+            _pipeline.Remove(RepoRoot, null);
         }
 
         [TestMethod]

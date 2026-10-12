@@ -183,6 +183,20 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task StartAsync_WhenProcessExits_RaisesServerError()
+        {
+            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
+            await harness.Client.StartAsync();
+            var errorReceived = new TaskCompletionSource<Exception>();
+            harness.Client.ServerError += (_, error) => errorReceived.TrySetResult(error);
+
+            harness.Process.Kill();
+
+            var error = await WaitForAsync(errorReceived.Task);
+            Assert.Contains("exited", error.Message);
+        }
+
+        [TestMethod]
         public async Task OutboundNotification_WhenServerStops_LogsError()
         {
             using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);

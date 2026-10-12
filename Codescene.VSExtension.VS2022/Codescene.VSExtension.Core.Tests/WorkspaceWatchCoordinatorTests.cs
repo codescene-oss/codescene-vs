@@ -520,6 +520,29 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task AdmitsDeltaAsync_WhenCoordinatorDisabled_ReturnsTrueWithoutRefresh()
+        {
+            var repo = CreateGitRepo();
+            try
+            {
+                var client = new Mock<IIdeServerClient>();
+                var pipeline = new Mock<IReviewPipeline>();
+                var host = new Mock<IWorkspaceWatchHost>();
+                host.Setup(x => x.GetDirtyDocuments()).Returns(Array.Empty<ReviewDocument>());
+                using var coordinator = new WorkspaceWatchCoordinator(client.Object, pipeline.Object, null, host.Object);
+                await coordinator.SyncAsync(new[] { repo });
+                coordinator.SetEnabled(false);
+
+                Assert.IsTrue(await coordinator.AdmitsDeltaAsync(repo, "unknown.cs"));
+                client.Verify(x => x.GetWatchInventoryAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            }
+            finally
+            {
+                Directory.Delete(repo, true);
+            }
+        }
+
+        [TestMethod]
         public async Task QueueIdle_ReprunesMonitor()
         {
             var repo = CreateGitRepo();
