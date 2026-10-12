@@ -40,7 +40,7 @@ namespace Codescene.VSExtension.VS2022;
 [ProvideToolWindow(typeof(CodeSceneToolWindow.Pane), Style = VsDockStyle.Tabbed, Window = WindowGuids.SolutionExplorer)]
 public sealed class VS2022Package : ToolkitPackage
 {
-    private readonly TaskCompletionSource<object> _initialized = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly AsyncManualResetEvent _initialized = new AsyncManualResetEvent();
     private ILogger _logger;
     private SolutionEventsHandler _solutionEventsHandler;
     private IAsyncTaskScheduler _scheduler;
@@ -50,7 +50,7 @@ public sealed class VS2022Package : ToolkitPackage
 
     public CancellationToken PackageDisposalToken => DisposalToken;
 
-    internal Task Initialized => _initialized.Task;
+    internal Task WaitForInitializationAsync() => _initialized.WaitAsync();
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
@@ -109,7 +109,7 @@ public sealed class VS2022Package : ToolkitPackage
         }
         finally
         {
-            _initialized.TrySetResult(null);
+            _initialized.Set();
         }
     }
 
