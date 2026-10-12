@@ -8,8 +8,8 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class CliSettingsProviderTests
     {
-        private readonly string expectedVersion = "6f48030998bf5566ec7ae4e430d2cf9b43d06744";
-        private readonly string expectedCliBinarySha256 = "4319a985dd0b2741d8a96e50446988cb63c0242827d3e1ff472097faab122968";
+        private readonly string expectedVersion = "efcaeed1f35ec099062c9e30bc98f092aed16b6f";
+        private readonly string expectedCliBinarySha256 = "30c327de224913db8f0e3253ad5bcd8671f2428821986aec11f06d2cc732fbd6";
 
         [TestMethod]
         public void RequiredDevToolVersion_ShouldReturnExpectedValue()
