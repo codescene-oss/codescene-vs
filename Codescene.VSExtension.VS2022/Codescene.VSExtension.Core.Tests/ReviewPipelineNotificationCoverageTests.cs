@@ -237,6 +237,16 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void Invalidate_LogsEpochChange()
+        {
+            var logger = new Mock<ILogger>();
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, null, () => "review-1", logger.Object);
+            _pipeline.Invalidate();
+            logger.Verify(x => x.Debug(It.Is<string>(message => message.Contains("epochInvalidated"))), Times.Once);
+        }
+
+        [TestMethod]
         public void ReleaseBufferMonitorOwnership_AllowsResubmitWithMonitor()
         {
             var document = Document("/repo/src/file.ts", "const value = 1;");
