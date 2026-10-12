@@ -7,9 +7,12 @@ using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
+using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
+using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
+using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.EditorMargin;
 using Microsoft.VisualStudio.Shell;
 
@@ -24,6 +27,7 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
         private readonly ICodeHealthMonitorNotifier _notifier;
         private readonly IAsyncTaskScheduler _scheduler;
         private readonly CodeSceneMarginSettingsManager _marginSettings;
+        private readonly ITelemetryManager _telemetryManager;
 
         [ImportingConstructor]
         public VisualStudioReviewPipelinePresentation(
@@ -31,13 +35,15 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
             IErrorListWindowHandler errorListWindowHandler,
             ICodeHealthMonitorNotifier notifier,
             IAsyncTaskScheduler scheduler,
-            CodeSceneMarginSettingsManager marginSettings)
+            CodeSceneMarginSettingsManager marginSettings,
+            ITelemetryManager telemetryManager)
         {
             _mapper = mapper;
             _errorListWindowHandler = errorListWindowHandler;
             _notifier = notifier;
             _scheduler = scheduler;
             _marginSettings = marginSettings;
+            _telemetryManager = telemetryManager;
         }
 
         public void ReviewStarted(ReviewDocument document)
@@ -90,7 +96,14 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
                 return;
             }
 
-            new DeltaCacheService().SetPresentationDelta(delta.Document.FilePath, delta.Result);
+            var cache = new DeltaCacheService();
+            var snapshot = cache.GetAll();
+            cache.SetPresentationDelta(delta.Document.FilePath, delta.Result);
+            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(
+                snapshot,
+                cache.GetAll(),
+                new DeltaCacheEntry(delta.Document.FilePath, string.Empty, string.Empty, delta.Result),
+                _telemetryManager);
             _notifier.RequestViewUpdate();
         }
 

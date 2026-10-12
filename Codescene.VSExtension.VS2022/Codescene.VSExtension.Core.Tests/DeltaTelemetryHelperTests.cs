@@ -115,6 +115,23 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task HandleDeltaTelemetryEvent_FileRemovedWithNullDelta_SendsMonitorFileRemovedEvent()
+        {
+            var (previousSnapshot, currentCache) = CreateSnapshots(new[] { "removedfile.cs" }, new string[] { });
+            var entry = new DeltaCacheEntry("removedfile.cs", "old", "new", null);
+
+            var callReceived = new ManualResetEventSlim(false);
+            _mockTelemetryManager
+                .Setup(t => t.SendTelemetryAsync(Constants.Telemetry.MONITORFILEREMOVED, It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
+                .Callback(() => callReceived.Set());
+
+            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
+
+            var signaled = await Task.Run(() => callReceived.Wait(AsyncTimeoutMs));
+            Assert.IsTrue(signaled, "Timed out waiting for SendTelemetry(file_removed) to be called");
+        }
+
+        [TestMethod]
         public void HandleDeltaTelemetryEvent_NullTelemetryManager_DoesNotThrow()
         {
             // Arrange

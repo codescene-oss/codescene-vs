@@ -41,14 +41,13 @@ namespace Codescene.VSExtension.Core.Util
             Task.Run(async () =>
             {
                 var delta = entry.Delta;
-                if (delta == null)
+                var hasAdditionalData = eventName == Constants.Telemetry.MONITORFILEADDED || eventName == Constants.Telemetry.MONITORFILEUPDATED;
+                if (hasAdditionalData && delta == null)
                 {
                     return;
                 }
 
                 Dictionary<string, object> additionalData = null;
-
-                var hasAdditionalData = eventName == Constants.Telemetry.MONITORFILEADDED || eventName == Constants.Telemetry.MONITORFILEUPDATED;
                 if (hasAdditionalData)
                 {
                     additionalData = new Dictionary<string, object>
