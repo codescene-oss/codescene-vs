@@ -13,5 +13,11 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
         public List<FileDeltaData> FileDeltaData { get; set; }
 
         public List<Job> Jobs { get; set; }
+
+        public string AnalysisState { get; set; }
+
+        public int? TotalCount { get; set; }
+
+        public int RemainingCount { get; set; }
     }
 }

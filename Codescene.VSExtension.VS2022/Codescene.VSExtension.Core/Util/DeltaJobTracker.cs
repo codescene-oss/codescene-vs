@@ -68,6 +68,31 @@ namespace Codescene.VSExtension.Core.Util
             }
         }
 
+        public static void Replace(IEnumerable<Job> jobs)
+        {
+            lock (Running)
+            {
+                foreach (var job in Running.ToList())
+                {
+                    Running.Remove(job);
+                    JobFinished?.Invoke(job);
+                }
+
+                if (jobs == null)
+                {
+                    return;
+                }
+
+                foreach (var job in jobs)
+                {
+                    if (Running.Add(job))
+                    {
+                        JobStarted?.Invoke(job);
+                    }
+                }
+            }
+        }
+
         public static void Clear()
         {
             lock (Running)

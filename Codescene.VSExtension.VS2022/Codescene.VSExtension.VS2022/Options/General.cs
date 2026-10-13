@@ -4,7 +4,10 @@ using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Security;
+using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Git;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 
@@ -24,6 +27,7 @@ public class General : BaseOptionModel<General>
 {
     private byte[] _previousAuthToken;
     private bool _previousShowDebugLogs;
+    private bool _previousEnableAutomaticAnalysis = true;
 
     public General()
     {
@@ -31,6 +35,7 @@ public class General : BaseOptionModel<General>
 
         _previousAuthToken = SecretBuffer.FromString(AuthToken);
         _previousShowDebugLogs = ShowDebugLogs;
+        _previousEnableAutomaticAnalysis = EnableAutomaticAnalysis;
 
         Saved += OnSettingsSaved;
     }
@@ -60,6 +65,21 @@ public class General : BaseOptionModel<General>
     [Description("Authentication token for CodeScene ACE. The token is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
     [PasswordPropertyText(true)]
     public string AuthToken { get; set; } = string.Empty;
+
+    [Category("Performance")]
+    [DisplayName("Server Worker Threads")]
+    [Description("Number of worker threads for the CodeScene CLI server. Use 0 to choose automatically (half of the logical processors).")]
+    public int ServerWorkerThreads { get; set; } = 0;
+
+    [Category("General")]
+    [DisplayName("Enable Telemetry")]
+    [Description("Enable sending usage telemetry to CodeScene")]
+    public bool EnableTelemetry { get; set; } = true;
+
+    [Category("General")]
+    [DisplayName("Enable Automatic Analysis")]
+    [Description("Automatically analyze file changes in the workspace. Open editors are still reviewed for diagnostics when this is off.")]
+    public bool EnableAutomaticAnalysis { get; set; } = true;
 
     public override async Task LoadAsync()
     {
@@ -101,5 +121,28 @@ public class General : BaseOptionModel<General>
             _previousShowDebugLogs = ShowDebugLogs;
             ShowDebugLogsChanged?.Invoke(this, EventArgs.Empty);
         }
+
+        if (_previousEnableAutomaticAnalysis != EnableAutomaticAnalysis)
+        {
+            _previousEnableAutomaticAnalysis = EnableAutomaticAnalysis;
+            ApplyAutomaticAnalysis(EnableAutomaticAnalysis);
+        }
+    }
+
+    private void ApplyAutomaticAnalysis(bool enabled)
+    {
+        var package = VS2022Package.Instance;
+        package?.JoinableTaskFactory.RunAsync(async () =>
+        {
+            var coordinator = await VS.GetMefServiceAsync<IWorkspaceWatchCoordinator>();
+            coordinator?.SetEnabled(enabled);
+            var notifier = await VS.GetMefServiceAsync<ICodeHealthMonitorNotifier>();
+            notifier?.SetAutomaticAnalysisEnabled(enabled);
+            if (!enabled)
+            {
+                new DeltaCacheService().Clear();
+                notifier?.RequestViewUpdate();
+            }
+        }).FileAndForget("General/AutomaticAnalysis");
     }
 }

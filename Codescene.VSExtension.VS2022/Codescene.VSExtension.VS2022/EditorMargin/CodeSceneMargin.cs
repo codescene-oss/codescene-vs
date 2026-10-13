@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cache.Review;
+using Codescene.VSExtension.Core.Util;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
@@ -84,8 +85,7 @@ public class CodeSceneMargin : IWpfTextViewMargin
 
     private static string GetDeltaScore(string path)
     {
-        var delta = new DeltaCacheService().GetDeltaForFile(path);
-        return delta != null ? $"{delta.OldScore} → {delta.NewScore}" : null;
+        return DeltaScoreText.Format(new DeltaCacheService().GetDeltaForFile(path));
     }
 
     private static string GetReviewScore(string code, string path)

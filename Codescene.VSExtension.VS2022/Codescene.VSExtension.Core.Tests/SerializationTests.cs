@@ -95,29 +95,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void ReviewRequestModel_Serialize_ProducesCorrectPropertyNames()
-        {
-            var model = new ReviewRequestModel { FilePath = "test.cs", FileContent = "public class Test {}", CachePath = "/cache/path" };
-
-            var json = JsonConvert.SerializeObject(model);
-
-            AssertJsonContainsProperties(json, "path", "file-content", "cache-path");
-        }
-
-        [TestMethod]
-        public void ReviewRequestModel_RoundTrip_PreservesData()
-        {
-            var model = new ReviewRequestModel { FilePath = "test.cs", FileContent = "code content", CachePath = "/cache" };
-
-            var json = JsonConvert.SerializeObject(model);
-            var deserialized = JsonConvert.DeserializeObject<ReviewRequestModel>(json);
-
-            Assert.AreEqual(model.FilePath, deserialized?.FilePath);
-            Assert.AreEqual(model.FileContent, deserialized?.FileContent);
-            Assert.AreEqual(model.CachePath, deserialized?.CachePath);
-        }
-
-        [TestMethod]
         public void CliRangeModel_Deserialize_WithKebabCaseProperties()
         {
             var json = @"{ ""start-line"": 10, ""start-column"": 5, ""end-line"": 20, ""end-column"": 15 }";

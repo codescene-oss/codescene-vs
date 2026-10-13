@@ -5,14 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
-using Codescene.VSExtension.Core.Interfaces.Git;
-using Codescene.VSExtension.Core.Interfaces.Telemetry;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
+using Codescene.VSExtension.Core.Models.Cli.Rpc;
+using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
@@ -21,152 +21,124 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ILogger _logger;
         private readonly IModelMapper _mapper;
         private readonly ICliExecutor _executor;
-        private readonly ITelemetryManager _telemetryManager;
-        private readonly IGitService _git;
-        private readonly ICodeHealthMonitorNotifier _notifier;
         private readonly IPreflightManager _preflightManager;
+        private readonly IReviewPipeline _pipeline;
+        private readonly ISettingsProvider _settings;
 
         public CodeReviewer(
             ILogger logger,
             IModelMapper mapper,
             ICliExecutor executor,
-            ITelemetryManager telemetryManager,
-            IGitService git,
-            ICodeHealthMonitorNotifier notifier = null,
-            IPreflightManager preflightManager = null)
+            IReviewPipeline pipeline,
+            IPreflightManager preflightManager = null,
+            ISettingsProvider settings = null)
         {
             _logger = logger;
             _mapper = mapper;
             _executor = executor;
-            _telemetryManager = telemetryManager;
-            _git = git;
-            _notifier = notifier;
+            _pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
             _preflightManager = preflightManager;
+            _settings = settings;
         }
 
-        public async Task<FileReviewModel> ReviewAsync(string path, string content, bool isBaseline = false, long? operationGeneration = null, CancellationToken cancellationToken = default)
+        public Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, CancellationToken cancellationToken = default)
         {
-            var fileName = Path.GetFileName(path);
+            return ReviewWithPipelineAsync(path, content, cancellationToken);
+        }
 
-            if (string.IsNullOrWhiteSpace(fileName) || string.IsNullOrWhiteSpace(content))
+        private async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithPipelineAsync(string path, string content, CancellationToken cancellationToken)
+        {
+            var repoRoot = GitPathDiscovery.TryGetWorkingDirectory(path);
+            if (string.IsNullOrEmpty(repoRoot))
             {
-                _logger.Debug($"Skipping review for '{path}'. Missing content or file path.");
-                return null;
+                _logger.Debug($"Skipping pipeline review for '{path}'. Repository root was not found.");
+                return (null, null);
             }
 
-            _logger?.Info($"Reviewing file {path}...", true);
+            cancellationToken.ThrowIfCancellationRequested();
+            var document = new ReviewDocument { FilePath = path, Content = content, IsDirty = true };
+            var (cliReview, delta) = await _pipeline.SubmitAsync(
+                repoRoot,
+                new ReviewSubmission
+                {
+                    Document = document,
+                    RelPath = RpcPath.RelativePosix(repoRoot, path),
+                    Content = content,
+                    UpdateDiagnosticsPane = true,
+                    UpdateMonitor = ShouldUpdateMonitor(path, content),
+                });
 
-            var review = await _executor.ReviewContentAsync(path, content, isBaseline, cancellationToken);
-            return _mapper.Map(path, review);
-        }
+            if (!BufferDiffersFromDisk(path, content))
+            {
+                _pipeline.RestoreFromDiskIfBufferOwned(repoRoot, document);
+            }
 
-        public async Task<(FileReviewModel review, string baselineRawScore)> ReviewAndBaselineAsync(string path, string currentCode, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
-        {
-            var oldCode = _git.GetFileContentForCommit(path, baselineCommit) ?? string.Empty;
-            var reviewTask = ReviewAsync(path, currentCode, false, operationGeneration, cancellationToken);
-            var baselineTask = GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, operationGeneration, cancellationToken);
-            await Task.WhenAll(reviewTask, baselineTask).ConfigureAwait(false);
-            var review = await reviewTask;
-            var baselineRawScore = (await baselineTask) ?? string.Empty;
-            return (review, baselineRawScore);
-        }
+            if (cliReview == null)
+            {
+                return (null, null);
+            }
 
-        public async Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
-        {
-            var (review, baselineRawScore) = await ReviewAndBaselineAsync(path, content, operationGeneration, cancellationToken, baselineCommit);
+            var review = _mapper.Map(path, cliReview);
             if (review?.RawScore == null)
             {
                 return (review, null);
             }
 
-            var delta = await DeltaAsync(review, content, baselineRawScore, operationGeneration, cancellationToken, baselineCommit);
-            return (review, delta);
+            var enriched = await EnrichDeltaAsync(path, content, delta, cancellationToken);
+            return (review, enriched);
         }
 
-        public async Task<DeltaResponseModel> DeltaAsync(FileReviewModel review, string currentCode, string precomputedBaselineRawScore = null, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
+        private bool ShouldUpdateMonitor(string path, string content)
         {
-            var path = review.FilePath;
-            var currentRawScore = review.RawScore ?? string.Empty;
-
-            if (string.IsNullOrWhiteSpace(path))
+            if (!(_settings?.EnableAutomaticAnalysis ?? true))
             {
-                _logger.Warn("Could not review file, missing file path.");
-                return null;
+                return false;
+            }
+
+            return BufferDiffersFromDisk(path, content);
+        }
+
+        private bool BufferDiffersFromDisk(string path, string content)
+        {
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+                return true;
             }
 
             try
             {
-                var oldCode = _git.GetFileContentForCommit(path, baselineCommit);
-                var oldRawScore = precomputedBaselineRawScore ?? await GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, operationGeneration, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
+                return !string.Equals(File.ReadAllText(path), content, StringComparison.Ordinal);
+            }
+            catch (Exception)
+            {
+                return true;
+            }
+        }
 
-                var delta = await _executor.ReviewDeltaAsync(new ReviewDeltaRequest { OldScore = oldRawScore, NewScore = currentRawScore, FilePath = path, FileContent = currentCode }, cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-                if (_preflightManager == null)
-                {
-                    return delta;
-                }
-
-                var preflight = await _preflightManager.GetPreflightResponseAsync(cancellationToken);
-                var refactorableFunctions = await _executor.FnsToRefactorFromDeltaAsync(path, currentCode, delta, preflight, cancellationToken);
-                if (refactorableFunctions is not { Count: > 0 })
-                {
-                    return delta;
-                }
-
-                foreach (var refactorableFunction in refactorableFunctions)
-                {
-                    var function = delta?.FunctionLevelFindings?.FirstOrDefault(x => x.Function.Name == refactorableFunction.Name);
-                    if (function != null)
-                    {
-                        function.RefactorableFn = refactorableFunction;
-                    }
-                }
-
+        private async Task<DeltaResponseModel> EnrichDeltaAsync(string path, string currentCode, DeltaResponseModel delta, CancellationToken cancellationToken)
+        {
+            if (_preflightManager == null || delta == null)
+            {
                 return delta;
             }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Could not perform delta analysis on file {path}", e);
-                return null;
-            }
-        }
 
-        public async Task<string> GetOrComputeBaselineRawScoreAsync(string path, string baselineContent, long? operationGeneration = null, CancellationToken cancellationToken = default, string baselineCommit = null)
-        {
-            var oldCode = !string.IsNullOrEmpty(baselineContent)
-                ? baselineContent
-                : (_git?.GetFileContentForCommit(path, baselineCommit) ?? string.Empty);
-
-            if (string.IsNullOrEmpty(oldCode))
+            var preflight = await _preflightManager.GetPreflightResponseAsync(cancellationToken);
+            var refactorableFunctions = await _executor.FnsToRefactorFromDeltaAsync(path, currentCode, delta, preflight, cancellationToken);
+            if (refactorableFunctions is not { Count: > 0 })
             {
-                return string.Empty;
+                return delta;
             }
 
-            return await GetOrComputeBaselineRawScoreInternalAsync(path, oldCode, operationGeneration, cancellationToken);
-        }
-
-        private async Task<string> GetOrComputeBaselineRawScoreInternalAsync(string path, string oldCode, long? operationGeneration = null, CancellationToken cancellationToken = default)
-        {
-            var baselineCache = new BaselineReviewCacheService();
-            var baselineEntry = baselineCache.Get(path, oldCode);
-            if (baselineEntry.Found)
+            foreach (var refactorableFunction in refactorableFunctions)
             {
-                return baselineEntry.RawScore ?? string.Empty;
+                var function = delta.FunctionLevelFindings?.FirstOrDefault(x => x.Function.Name == refactorableFunction.Name);
+                if (function != null)
+                {
+                    function.RefactorableFn = refactorableFunction;
+                }
             }
 
-            var oldCodeReview = await ReviewAsync(path, oldCode, isBaseline: true, operationGeneration, cancellationToken);
-            var oldRawScore = oldCodeReview?.RawScore ?? string.Empty;
-            if (oldCodeReview?.RawScore != null)
-            {
-                baselineCache.Put(path, oldCode, oldCodeReview.RawScore, operationGeneration);
-            }
-
-            return oldRawScore;
+            return delta;
         }
     }
 }

@@ -23,6 +23,7 @@ namespace Codescene.VSExtension.Core.Consts
         public class StateTypes
         {
             public const string RUNNING = "running";
+            public const string QUEUED = "queued";
         }
 
         public class JobTypes
@@ -48,6 +49,8 @@ namespace Codescene.VSExtension.Core.Consts
             public const string OPENDOCSFORFUNCTION = "open-docs-for-function";
             public const string CANCEL = "cancel";
             public const string OPENSETTINGS = "open-settings";
+            public const string STOPANALYSIS = "stop-analysis";
+            public const string STARTANALYSIS = "start-analysis";
         }
     }
 }

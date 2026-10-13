@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
@@ -16,11 +17,15 @@ namespace Codescene.VSExtension.Core.Application.Mappers
     public class CodeHealthMonitorMapper
     {
         private readonly IPreflightManager _preflightManager;
+        private readonly ICodeHealthMonitorNotifier _notifier;
 
         [ImportingConstructor]
-        public CodeHealthMonitorMapper(IPreflightManager preflightManager)
+        public CodeHealthMonitorMapper(
+            IPreflightManager preflightManager,
+            [Import(AllowDefault = true)] ICodeHealthMonitorNotifier notifier = null)
         {
             _preflightManager = preflightManager;
+            _notifier = notifier;
         }
 
         public CodeHealthMonitorComponentData Map(Dictionary<string, DeltaResponseModel> fileDeltas)
@@ -34,7 +39,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 Delta = new Delta
                 {
                     ScoreChange = pair.Value.ScoreChange,
-                    OldScore = pair.Value.OldScore,
+                    OldScore = pair.Value.OldScore ?? 0m,
                     NewScore = pair.Value.NewScore,
                     FileLevelFindings = ToChangeDetails(pair.Value.FileLevelFindings),
                     FunctionLevelFindings = ToFunctionFinding(pair.Value.FunctionLevelFindings),
@@ -46,6 +51,9 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 AutoRefactor = _preflightManager.GetAutoRefactorConfig(),
                 FileDeltaData = files,
                 Jobs = DeltaJobTracker.RunningJobs.ToList(),
+                AnalysisState = _notifier?.AnalysisState,
+                TotalCount = _notifier?.TotalCount,
+                RemainingCount = _notifier?.RemainingCount ?? 0,
             };
         }
 

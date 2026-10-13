@@ -68,6 +68,25 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void NormalizeLineEndings_LfDocument_KeepsSnippetOnLf()
+        {
+            var document = "line1\nline2\n";
+            var snippet = "refactored\r\nblock\r\n";
+
+            var ending = TextUtils.DominantLineEnding(document);
+            var normalized = TextUtils.NormalizeLineEndings(snippet, ending);
+
+            Assert.AreEqual("\n", ending);
+            Assert.AreEqual("refactored\nblock\n", normalized);
+        }
+
+        [TestMethod]
+        public void DominantLineEnding_CrlfDocument_ReturnsCrlf()
+        {
+            Assert.AreEqual("\r\n", TextUtils.DominantLineEnding("line1\r\nline2\r\n"));
+        }
+
+        [TestMethod]
         public void TrimForLogging_NullInput_ReturnsNull()
             => Assert.IsNull(TextUtils.TrimForLogging(null));
 

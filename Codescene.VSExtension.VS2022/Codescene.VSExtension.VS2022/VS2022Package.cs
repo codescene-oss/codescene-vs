@@ -11,7 +11,9 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Util;
 using Codescene.VSExtension.VS2022.Application.ErrorHandling;
+using Codescene.VSExtension.VS2022.Application.Services;
 using Codescene.VSExtension.VS2022.Handlers;
+using Codescene.VSExtension.VS2022.Notices;
 using Codescene.VSExtension.VS2022.Options;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
@@ -39,13 +41,17 @@ namespace Codescene.VSExtension.VS2022;
 [ProvideToolWindow(typeof(CodeSceneToolWindow.Pane), Style = VsDockStyle.Tabbed, Window = WindowGuids.SolutionExplorer)]
 public sealed class VS2022Package : ToolkitPackage
 {
+    private readonly AsyncManualResetEvent _initialized = new AsyncManualResetEvent();
     private ILogger _logger;
     private SolutionEventsHandler _solutionEventsHandler;
     private IAsyncTaskScheduler _scheduler;
+    private IIdeServerClient _ideServerClient;
 
     public static VS2022Package Instance { get; private set; }
 
     public CancellationToken PackageDisposalToken => DisposalToken;
+
+    internal Task WaitForInitializationAsync() => _initialized.WaitAsync();
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
@@ -69,8 +75,10 @@ public sealed class VS2022Package : ToolkitPackage
             // Commands
             await this.RegisterCommandsAsync();
 
-            // Cli file
             await CheckCliFileAsync();
+            await GetServiceAsync<CodeHealthMonitorBinder>();
+            JoinableTaskFactory.RunAsync(() => StartIdeServerAsync(cancellationToken)).FileAndForget("VS2022Package/StartIdeServer");
+            JoinableTaskFactory.RunAsync(ShowTelemetryNoticeAsync).FileAndForget("VS2022Package/TelemetryNotice");
 
             // Subscribe on active document change event
             await SubscribeOnActiveWindowChangeAsync();
@@ -101,6 +109,10 @@ public sealed class VS2022Package : ToolkitPackage
             JoinableTaskFactory.RunAsync(() => SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR, DisposalToken)).FileAndForget("VS2022Package/SendTelemetry");
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
         }
+        finally
+        {
+            _initialized.Set();
+        }
     }
 
     protected override void Dispose(bool disposing)
@@ -111,6 +123,7 @@ public sealed class VS2022Package : ToolkitPackage
             UnsubscribeFromGlobalExceptionHandlers();
             _solutionEventsHandler?.Dispose();
             (_scheduler as IDisposable)?.Dispose();
+            _ideServerClient?.Dispose();
         }
 
         base.Dispose(disposing);
@@ -253,12 +266,37 @@ public sealed class VS2022Package : ToolkitPackage
         }
     }
 
+    private async Task ShowTelemetryNoticeAsync()
+    {
+        try
+        {
+            var notice = await VS.GetMefServiceAsync<TelemetryNoticeService>();
+            if (notice != null)
+            {
+                await notice.ShowOnceAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error("Failed to show telemetry notice.", ex);
+        }
+    }
+
     private async Task CheckCliFileAsync()
     {
         var cliFileChecker = await GetServiceAsync<ICliFileChecker>();
         if (cliFileChecker != null)
         {
             await cliFileChecker.CheckAsync();
+        }
+    }
+
+    private async Task StartIdeServerAsync(CancellationToken cancellationToken)
+    {
+        _ideServerClient = await VS.GetMefServiceAsync<IIdeServerClient>();
+        if (_ideServerClient != null)
+        {
+            await _ideServerClient.StartAsync(cancellationToken);
         }
     }
 
