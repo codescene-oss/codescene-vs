@@ -13,9 +13,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
     {
         // single point of truth for CLI version
         // used by the build pipeline to bundle the CLI with the extension
-        public string RequiredDevToolVersion => "efcaeed1f35ec099062c9e30bc98f092aed16b6f"; // 1.0.75
+        public string RequiredDevToolVersion => "6a8e86c814724b2d8719909bc96e5eb36b1d7a6c"; // 1.0.76
 
-        public string RequiredCliBinarySha256 => "30c327de224913db8f0e3253ad5bcd8671f2428821986aec11f06d2cc732fbd6";
+        public string RequiredCliBinarySha256 => "745d62c1428b8d3715d50b02edbd7a0c5f24381e3bfcfeaacde42e9949973bb5";
 
         public string CliArtifactName => $"cs-ide-windows-amd64-{RequiredDevToolVersion}.zip";
 
