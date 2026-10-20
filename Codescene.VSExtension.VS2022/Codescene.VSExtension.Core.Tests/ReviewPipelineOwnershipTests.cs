@@ -82,6 +82,35 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task WatchReview_DroppedForStaleBuffer_RestoresFromDiskOnceBufferMatches()
+        {
+            var document = Sample();
+            UsePipelineWithOpenDocument(document, System.Text.Encoding.UTF8.GetBytes("const value = 2;"));
+
+            RaiseWatchReview(GitBlobSha.FromUtf8("const value = 2;"));
+            await Task.Delay(50);
+            _pipeline.RestoreFromDiskIfBufferOwned(_repo, document);
+
+            Assert.HasCount(0, _events.Reviews);
+            Assert.HasCount(1, _batches);
+            Assert.IsNull(_batches[0].Files[0].Content);
+        }
+
+        [TestMethod]
+        public async Task WatchReview_DroppedForStaleDisk_DoesNotClaimBufferOwnership()
+        {
+            var document = Sample();
+            UsePipelineWithOpenDocument(document, System.Text.Encoding.UTF8.GetBytes(document.Content));
+
+            RaiseWatchReview(GitBlobSha.FromUtf8("const value = 2;"));
+            await Task.Delay(50);
+            _pipeline.RestoreFromDiskIfBufferOwned(_repo, document);
+
+            Assert.HasCount(0, _events.Reviews);
+            Assert.HasCount(0, _batches);
+        }
+
+        [TestMethod]
         public async Task WatchDelta_OutsideInventory_IsIgnored()
         {
             _pipeline.SetWatchDeltaFilter((_, __) => Task.FromResult(false));
@@ -92,6 +121,33 @@ namespace Codescene.VSExtension.Core.Tests
 
             await Task.Delay(50);
             Assert.HasCount(0, _events.Deltas);
+        }
+
+        private void UsePipelineWithOpenDocument(ReviewDocument document, byte[] diskBytes)
+        {
+            var fileAccess = new Mock<IReviewPipelineFileAccess>();
+            fileAccess.Setup(x => x.FindOpenDocument(It.IsAny<string>())).Returns(document);
+            fileAccess.Setup(x => x.ReadFileBytesAsync(It.IsAny<string>())).ReturnsAsync(diskBytes);
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, fileAccess.Object, () => "review-1", null);
+        }
+
+        private void RaiseWatchReview(string gitBlobSha)
+        {
+            _client.Raise(
+                x => x.ReviewReceived += null,
+                _client.Object,
+                new ReviewNotification
+                {
+                    RepoRoot = _repo,
+                    Path = "src/file.ts",
+                    Result = new CliReviewModel
+                    {
+                        FileLevelCodeSmells = new List<CliCodeSmellModel>(),
+                        FunctionLevelCodeSmells = new List<CliReviewFunctionModel>(),
+                        GitBlobSha = gitBlobSha,
+                    },
+                });
         }
 
         private ReviewDocument Sample()

@@ -256,6 +256,26 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task WatchReview_OpenUnmodifiedDocumentWithBom_IsPresented()
+        {
+            var document = Document("/repo/src/file.ts", "const value = 1;");
+            var diskBytes = new byte[] { 0xEF, 0xBB, 0xBF }.Concat(System.Text.Encoding.UTF8.GetBytes(document.Content)).ToArray();
+            var fileAccess = new Mock<IReviewPipelineFileAccess>();
+            fileAccess.Setup(x => x.FindOpenDocument(It.IsAny<string>())).Returns(document);
+            fileAccess.Setup(x => x.ReadFileBytesAsync(It.IsAny<string>())).ReturnsAsync(diskBytes);
+            _pipeline.Dispose();
+            _pipeline = new ReviewPipeline(_client.Object, _events, fileAccess.Object, () => "review-1", null);
+
+            _client.Raise(
+                x => x.ReviewReceived += null,
+                _client.Object,
+                new ReviewNotification { RepoRoot = RepoRoot, Path = "src/file.ts", Result = EmptyReview(GitBlobSha.FromBytes(diskBytes)) });
+
+            await WaitUntil(() => _events.Reviews.Count == 1);
+            Assert.IsTrue(_events.Reviews[0].UpdateMonitor);
+        }
+
+        [TestMethod]
         public async Task WatchReview_ServesDiagnosticsOnlySubmissionWithoutResubmitting()
         {
             var document = Document("/repo/src/file.ts", "const value = 1;");

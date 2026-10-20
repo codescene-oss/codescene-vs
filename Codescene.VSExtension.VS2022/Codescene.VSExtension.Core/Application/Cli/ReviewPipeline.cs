@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -244,6 +246,24 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private static bool MatchesHash(string received, string expected)
         {
             return received == null || received == expected;
+        }
+
+        private static bool BufferDiffersFromDisk(ReviewDocument document, byte[] diskBytes)
+        {
+            if (diskBytes == null)
+            {
+                return true;
+            }
+
+            if (!document.IsDirty)
+            {
+                return false;
+            }
+
+            using (var reader = new StreamReader(new MemoryStream(diskBytes), Encoding.UTF8, true))
+            {
+                return !string.Equals(reader.ReadToEnd(), document.Content ?? string.Empty, StringComparison.Ordinal);
+            }
         }
 
         private static string PathKey(string repoRoot, string relPath)

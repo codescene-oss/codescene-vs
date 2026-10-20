@@ -309,7 +309,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return null;
             }
 
-            var expectedSha = await CurrentShaAsync(document, filePath).ConfigureAwait(false);
+            var (expectedSha, fromBuffer) = await CurrentShaAsync(document, filePath).ConfigureAwait(false);
             if (receivedSha != null && receivedSha != expectedSha)
             {
                 _logger?.Warn("[pipeline] ignoring watch result " + LogFields.Format(
@@ -318,6 +318,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     LogFields.Field("reason", "stale-sha"),
                     LogFields.Field("receivedSha", receivedSha),
                     LogFields.Field("expectedSha", expectedSha)));
+                if (fromBuffer)
+                {
+                    ClaimBufferOwnership(repoRoot, posixPath);
+                }
+
                 return null;
             }
 
@@ -331,15 +336,23 @@ namespace Codescene.VSExtension.Core.Application.Cli
             };
         }
 
-        private async Task<string> CurrentShaAsync(ReviewDocument document, string filePath)
+        private async Task<(string Sha, bool FromBuffer)> CurrentShaAsync(ReviewDocument document, string filePath)
         {
-            if (document.IsDirty)
+            var bytes = await _fileAccess.ReadFileBytesAsync(filePath).ConfigureAwait(false);
+            if (BufferDiffersFromDisk(document, bytes))
             {
-                return GitBlobSha.FromUtf8(document.Content);
+                return (GitBlobSha.FromUtf8(document.Content), true);
             }
 
-            var bytes = await _fileAccess.ReadFileBytesAsync(filePath).ConfigureAwait(false);
-            return bytes != null ? GitBlobSha.FromBytes(bytes) : GitBlobSha.FromUtf8(document.Content);
+            return (GitBlobSha.FromBytes(bytes), false);
+        }
+
+        private void ClaimBufferOwnership(string repoRoot, string relPath)
+        {
+            lock (_gate)
+            {
+                _bufferOwnedPaths.Add(PathKey(repoRoot, relPath));
+            }
         }
 
         private bool AcceptsWatchRepoUnlocked(string repoRoot)
