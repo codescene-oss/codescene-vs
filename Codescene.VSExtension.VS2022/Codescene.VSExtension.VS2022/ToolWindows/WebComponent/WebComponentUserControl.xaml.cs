@@ -20,6 +20,7 @@ using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
+using Microsoft.Web.WebView2.Wpf;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -37,6 +38,10 @@ public partial class WebComponentUserControl : UserControl
     private string _host;
     private bool _initialized;
     private string _pendingMessage;
+    private object _payload;
+    private string _view;
+    private Task _webViewInitTask;
+    private bool _recreating;
     private WebView2AirspaceGuard _airspaceGuard;
 
     public WebComponentUserControl(WebComponentPayload<AceComponentData> payload, ILogger logger)
@@ -94,7 +99,13 @@ public partial class WebComponentUserControl : UserControl
             {
                 _pendingMessage = messageString;
                 _logger.Debug("WebView2 is unavailable; view update queued for retry.");
-                SchedulePendingMessageRetry();
+                if (IsWebViewDead())
+                {
+                    _logger.Info("WebView2 is dead; recreating control.");
+                    ThreadHelper.JoinableTaskFactory.RunAsync(RecreateWebViewAsync)
+                        .FileAndForget("WebComponentUserControl/RecreateWebView");
+                }
+
                 return;
             }
 
@@ -162,10 +173,21 @@ public partial class WebComponentUserControl : UserControl
         {
             return webView.CoreWebView2;
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException ex)
         {
+            _logger.Debug($"WebView2 CoreWebView2 unavailable: {ex.Message}");
             return null;
         }
+    }
+
+    private bool IsWebViewDead()
+    {
+        if (_webViewInitTask == null || !_webViewInitTask.IsCompleted)
+        {
+            return false;
+        }
+
+        return TryGetCoreWebView2() == null;
     }
 
     private void TryFlushPendingWebMessage()
@@ -192,28 +214,73 @@ public partial class WebComponentUserControl : UserControl
         }
     }
 
-    private void SchedulePendingMessageRetry()
+    private async Task RecreateWebViewAsync()
     {
-        if (string.IsNullOrEmpty(_pendingMessage))
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        if (_recreating)
         {
             return;
         }
 
-        ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+        if (_payload == null)
         {
-            await Task.Yield();
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            TryFlushPendingWebMessage();
-        }).FileAndForget("WebComponentUserControl/SchedulePendingMessageRetry");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_view))
+        {
+            return;
+        }
+
+        _recreating = true;
+        try
+        {
+            _airspaceGuard?.Dispose();
+            _airspaceGuard = null;
+
+            if (webView.Parent is Grid grid)
+            {
+                grid.Children.Remove(webView);
+                try
+                {
+                    webView.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error("Failed to dispose WebView2 during recreate.", ex);
+                }
+
+                var replacement = new WebView2 { Margin = new Thickness(0) };
+                grid.Children.Insert(0, replacement);
+                webView = replacement;
+            }
+
+            OnThemeChanged(null);
+            loadingOverlay.Visibility = Visibility.Visible;
+            _initialized = false;
+            _webViewInitTask = InitializeWebView2Async(_payload, _view);
+
+            if (IsLoaded)
+            {
+                _airspaceGuard = new WebView2AirspaceGuard(this, webView, _logger);
+            }
+        }
+        finally
+        {
+            _recreating = false;
+        }
     }
 
     private void Initialize<T>(T payload, string view)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
+        _payload = payload;
+        _view = view;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         OnThemeChanged(null);
-        _ = InitializeWebView2Async(payload, view);
+        _webViewInitTask = InitializeWebView2Async(payload, view);
         VSColorTheme.ThemeChanged += OnThemeChanged;
     }
 
@@ -325,20 +392,22 @@ public partial class WebComponentUserControl : UserControl
         return await CoreWebView2Environment.CreateAsync(userDataFolder: cachePath);
     }
 
-    private async Task InitializeWebView2Async<T>(T payload, string view)
+    private async Task InitializeWebView2Async(object payload, string view)
     {
         var env = await CreatePerWindowEnvAsync(view);
 
         await webView.EnsureCoreWebView2Async(env);
 
-        webView.CoreWebView2.NavigationStarting += HandleNavigationStarting;
+        var core = webView.CoreWebView2;
+        core.NavigationStarting += HandleNavigationStarting;
+        core.ProcessFailed += HandleProcessFailed;
 
         webView.NavigationCompleted += (_, _) =>
         {
-            loadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
+            loadingOverlay.Visibility = Visibility.Collapsed;
         };
 
-        webView.CoreWebView2.WebMessageReceived += (sender, e) =>
+        core.WebMessageReceived += (_, e) =>
         {
             _ = OnWebMessageReceivedAsync(e);
         };
@@ -348,15 +417,39 @@ public partial class WebComponentUserControl : UserControl
         var localFolder = Path.Combine(exeFolder, FOLDERLOCATION);
 
         _host = GetHost(view);
-        webView.CoreWebView2.SetVirtualHostNameToFolderMapping(_host, localFolder, CoreWebView2HostResourceAccessKind.Allow);
+        core.SetVirtualHostNameToFolderMapping(_host, localFolder, CoreWebView2HostResourceAccessKind.Allow);
 
         // Generate and inject the initialization script BEFORE navigation
         // This ensures window.ideContext is set before React components initialize and check for it
         // AddScriptToExecuteOnDocumentCreatedAsync runs the script before any page scripts execute
         var initialScript = await GenerateInitialScriptAsync(payload);
-        await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(initialScript);
+        await core.AddScriptToExecuteOnDocumentCreatedAsync(initialScript);
 
         webView.Source = new Uri($"https://{_host}/index.html");
+    }
+
+    private void HandleProcessFailed(object sender, CoreWebView2ProcessFailedEventArgs e)
+    {
+        _logger.Info($"WebView2 process failed: {e.ProcessFailedKind}.");
+
+        ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            if (e.ProcessFailedKind == CoreWebView2ProcessFailedKind.BrowserProcessExited)
+            {
+                await RecreateWebViewAsync();
+                return;
+            }
+
+            if (e.ProcessFailedKind == CoreWebView2ProcessFailedKind.RenderProcessExited
+                || e.ProcessFailedKind == CoreWebView2ProcessFailedKind.RenderProcessUnresponsive)
+            {
+                _initialized = false;
+                var core = TryGetCoreWebView2();
+                core?.Reload();
+            }
+        }).FileAndForget("WebComponentUserControl/HandleProcessFailed");
     }
 
     /// <summary>
