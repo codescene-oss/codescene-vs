@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.6] - 2026-10-19
+### Changed
+- bump IDE CLI to 1.0.76 (#334)
+
 ## [0.8.5] - 2026-10-09
 ### Fixed
 - bump CLI version with bugfixes
