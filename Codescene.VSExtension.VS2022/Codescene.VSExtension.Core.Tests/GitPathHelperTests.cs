@@ -1,5 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
+using System.Security.AccessControl;
+using System.Security.Principal;
 using Codescene.VSExtension.Core.Util;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -162,6 +164,49 @@ namespace Codescene.VSExtension.Core.Tests
             var invalidRelative = "file*.cs";
             var result = GitPathHelper.ConvertToAbsolutePath(invalidRelative, _tempDir);
             Assert.AreEqual(Path.Combine(_tempDir, invalidRelative), result);
+        }
+
+        [TestMethod]
+        public void FindNestedRepositories_MissingDirectory_ReturnsEmpty()
+        {
+            Assert.AreEqual(0, GitPathDiscovery.FindNestedRepositories(null).Count);
+            Assert.AreEqual(0, GitPathDiscovery.FindNestedRepositories(string.Empty).Count);
+            Assert.AreEqual(0, GitPathDiscovery.FindNestedRepositories(Path.Combine(_tempDir, "missing")).Count);
+        }
+
+        [TestMethod]
+        public void FindNestedRepositories_SkipsHiddenChild()
+        {
+            Directory.CreateDirectory(Path.Combine(_workspaceDir, ".hidden"));
+
+            Assert.AreEqual(0, GitPathDiscovery.FindNestedRepositories(_workspaceDir).Count);
+        }
+
+        [TestMethod]
+        public void FindNestedRepositories_WhenListingFails_ReturnsEmpty()
+        {
+            var blocked = new DirectoryInfo(Path.Combine(_tempDir, "blocked"));
+            blocked.Create();
+            var identity = WindowsIdentity.GetCurrent().User;
+            var rule = new FileSystemAccessRule(
+                identity,
+                FileSystemRights.ListDirectory,
+                InheritanceFlags.None,
+                PropagationFlags.None,
+                AccessControlType.Deny);
+            var security = blocked.GetAccessControl();
+            security.AddAccessRule(rule);
+            blocked.SetAccessControl(security);
+            try
+            {
+                Assert.Throws<UnauthorizedAccessException>(() => Directory.GetDirectories(blocked.FullName));
+                Assert.AreEqual(0, GitPathDiscovery.FindNestedRepositories(blocked.FullName).Count);
+            }
+            finally
+            {
+                security.RemoveAccessRule(rule);
+                blocked.SetAccessControl(security);
+            }
         }
 
         [TestMethod]
