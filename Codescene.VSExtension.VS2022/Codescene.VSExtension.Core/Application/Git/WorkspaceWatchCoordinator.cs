@@ -153,6 +153,11 @@ namespace Codescene.VSExtension.Core.Application.Git
                 var repoRoot = GitPathDiscovery.TryGetWorkingDirectory(directory);
                 if (string.IsNullOrEmpty(repoRoot))
                 {
+                    foreach (var nested in GitPathDiscovery.FindNestedRepositories(directory))
+                    {
+                        targets[RpcPath.NormalizeFsPath(nested)] = nested;
+                    }
+
                     continue;
                 }
 
