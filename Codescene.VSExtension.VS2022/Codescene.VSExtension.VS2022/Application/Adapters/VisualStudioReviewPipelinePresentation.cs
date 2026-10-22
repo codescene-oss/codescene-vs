@@ -105,6 +105,7 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
                 new DeltaCacheEntry(delta.Document.FilePath, string.Empty, string.Empty, delta.Result),
                 _telemetryManager);
             _notifier.RequestViewUpdate();
+            _marginSettings.NotifyScoreUpdated();
         }
 
         public void Remove(ReviewDocument document)
