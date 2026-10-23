@@ -27,6 +27,7 @@ namespace Codescene.VSExtension.Core.Application.Git
         private readonly IReviewPipeline _pipeline;
         private readonly ILogger _logger;
         private readonly IWorkspaceWatchHost _host;
+        private readonly IGitService _gitService;
         private readonly object _gate = new object();
         private readonly Dictionary<string, string> _watched = new Dictionary<string, string>(StringComparer.Ordinal);
         private readonly Dictionary<string, HashSet<string>> _inventories = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
@@ -44,12 +45,14 @@ namespace Codescene.VSExtension.Core.Application.Git
             IReviewPipeline pipeline,
             ILogger logger,
             [Import(AllowDefault = true)] IWorkspaceWatchHost host = null,
-            [Import(AllowDefault = true)] ISettingsProvider settings = null)
+            [Import(AllowDefault = true)] ISettingsProvider settings = null,
+            [Import(AllowDefault = true)] IGitService gitService = null)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
             _logger = logger;
             _host = host;
+            _gitService = gitService;
             _enabled = settings?.EnableAutomaticAnalysis ?? true;
             _pipeline.SetWatchDeltaFilter((repoRoot, relPath) => AdmitsDeltaAsync(repoRoot, relPath));
             _client.WatchInventoryChanged += OnWatchInventoryChanged;
@@ -415,7 +418,10 @@ namespace Codescene.VSExtension.Core.Application.Git
 
             foreach (var document in _host?.GetDirtyDocuments() ?? Array.Empty<ReviewDocument>())
             {
-                keep.Add(document.FilePath);
+                if (!IsGitIgnoredDocument(document))
+                {
+                    keep.Add(document.FilePath);
+                }
             }
 
             _host?.PruneMonitor(repoRoots, keep);
@@ -479,6 +485,11 @@ namespace Codescene.VSExtension.Core.Application.Git
                     continue;
                 }
 
+                if (IsGitIgnoredDocument(document))
+                {
+                    continue;
+                }
+
                 submissions.Add(new ReviewSubmission
                 {
                     Document = document,
@@ -498,11 +509,18 @@ namespace Codescene.VSExtension.Core.Application.Git
             {
                 if (RpcPath.ToPosixRelPath(RpcPath.RelativePosix(repoRoot, document.FilePath)) == relPath)
                 {
-                    return true;
+                    return !IsGitIgnoredDocument(document);
                 }
             }
 
             return false;
+        }
+
+        private bool IsGitIgnoredDocument(ReviewDocument document)
+        {
+            return _gitService != null
+                && !string.IsNullOrEmpty(document?.FilePath)
+                && _gitService.IsFileIgnored(document.FilePath);
         }
 
         private ISet<string> PathsToKeepUnlocked()

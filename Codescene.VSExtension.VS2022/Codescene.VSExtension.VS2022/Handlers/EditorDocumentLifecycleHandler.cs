@@ -103,6 +103,12 @@ namespace Codescene.VSExtension.VS2022.Handlers
                     return;
                 }
 
+                if (_gitService.IsFileIgnored(filePath))
+                {
+                    RemoveGitIgnoredOpenFile(filePath);
+                    return;
+                }
+
                 if (ShouldCheckAceStaleStatus(filePath))
                 {
                     _scheduler.Schedule(async ct =>
@@ -167,6 +173,18 @@ namespace Codescene.VSExtension.VS2022.Handlers
             _debounceService.Cancel(filePath);
             ClearEditorDiagnostics(filePath);
             RestoreOwnedBuffer(filePath);
+        }
+
+        private void RemoveGitIgnoredOpenFile(string filePath)
+        {
+            _debounceService.Cancel(filePath);
+            var repoRoot = GitPathDiscovery.TryGetWorkingDirectory(filePath);
+            if (string.IsNullOrEmpty(repoRoot) || _reviewPipeline == null)
+            {
+                return;
+            }
+
+            _reviewPipeline.Remove(repoRoot, new ReviewDocument { FilePath = filePath });
         }
 
         private void RestoreOwnedBuffer(string filePath)
@@ -281,6 +299,12 @@ namespace Codescene.VSExtension.VS2022.Handlers
         {
             if (!HasOpenViews(buffer))
             {
+                return;
+            }
+
+            if (_gitService.IsFileIgnored(path))
+            {
+                RemoveGitIgnoredOpenFile(path);
                 return;
             }
 
