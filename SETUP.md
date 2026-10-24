@@ -39,6 +39,8 @@ The Centralized Webviews Framework (CWF) used by the extension, which provides s
 
 **Note:** Access to the CWF repository requires appropriate permissions.
 
+A normal build downloads the latest GitHub release. `make updatecwf` builds the sibling checkout at `../cs-webview` and copies it into the extension instead.
+
 ## Feature Flags
 
 This plugin supports simple feature flags that can be controlled at build time using environment variables. 
@@ -75,11 +77,6 @@ Also make sure to close the IDE before setting the env variable to ensure that t
 
 
 If a property is not provided, it defaults to false.
-
-| Flag name                    | Description                                                                                            |
-|------------------------------|--------------------------------------------------------------------------------------------------------|
-| FEATURE_PERIODIC_GIT_SCAN    | Enables detailed logging for periodic git status scanning. Disabled by default.                        |
-| FEATURE_INITIAL_GIT_OBSERVER | Enables detailed logging for initial GitChangeObserver invocation on startup. Disabled by default.     |
 
 ## License
 

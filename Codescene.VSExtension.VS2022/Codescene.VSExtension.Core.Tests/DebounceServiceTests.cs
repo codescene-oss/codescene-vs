@@ -125,6 +125,102 @@ public class DebounceServiceTests
     }
 
     [TestMethod]
+    public async Task Throttle_EmitsLeadingImmediatelyAndTrailingWhileBusy()
+    {
+        var emissions = 0;
+        var second = new TaskCompletionSource<bool>();
+        var interval = TimeSpan.FromMilliseconds(200);
+
+        _debounceService.Throttle("view", () => emissions++, interval);
+        Assert.AreEqual(1, emissions);
+
+        var started = DateTime.UtcNow;
+        while (!second.Task.IsCompleted && (DateTime.UtcNow - started).TotalMilliseconds < 2000)
+        {
+            _debounceService.Throttle(
+                "view",
+                () =>
+                {
+                    emissions++;
+                    if (emissions >= 2)
+                    {
+                        second.TrySetResult(true);
+                    }
+                },
+                interval);
+            await Task.Delay(20);
+        }
+
+        Assert.IsTrue(second.Task.IsCompleted);
+    }
+
+    [TestMethod]
+    public void Throttle_LogsErrorWhenLeadingActionThrows()
+    {
+        _debounceService.Throttle("view", () => throw new InvalidOperationException("leading"), TimeSpan.FromSeconds(1));
+
+        _mockLogger.Verify(
+            l => l.Error("Unable to perform throttled action", It.IsAny<Exception>()),
+            Times.Once);
+    }
+
+    [TestMethod]
+    public async Task Throttle_LogsErrorWhenTrailingActionThrows()
+    {
+        var interval = TimeSpan.FromMilliseconds(100);
+        _debounceService.Throttle("view", () => { }, interval);
+        var trailingStarted = new TaskCompletionSource<bool>();
+        _debounceService.Throttle(
+            "view",
+            () =>
+            {
+                trailingStarted.TrySetResult(true);
+                throw new InvalidOperationException("trailing");
+            },
+            interval);
+
+        await trailingStarted.Task;
+        await Task.Delay(interval + SafetyBuffer);
+
+        _mockLogger.Verify(
+            l => l.Error("Unable to perform throttled action", It.IsAny<Exception>()),
+            Times.AtLeastOnce);
+    }
+
+    [TestMethod]
+    public async Task Cancel_PreventsDebouncedAction()
+    {
+        var executed = false;
+        _debounceService.Debounce("test-key", () => executed = true, TimeSpan.FromMilliseconds(200));
+        _debounceService.Cancel("test-key");
+
+        await WaitForDebounce(TimeSpan.FromMilliseconds(200));
+
+        Assert.IsFalse(executed);
+    }
+
+    [TestMethod]
+    public void Cancel_UnknownKey_DoesNotThrow()
+    {
+        _debounceService.Cancel("missing-key");
+    }
+
+    [TestMethod]
+    public async Task Throttle_TimerWithNoTrailingAction_CompletesSafely()
+    {
+        _debounceService.Throttle("view", () => { }, TimeSpan.FromMilliseconds(50));
+        await Task.Delay(150);
+    }
+
+    [TestMethod]
+    public void Cancel_AfterThrottle_ClearsPendingTrailing()
+    {
+        _debounceService.Throttle("view", () => { }, TimeSpan.FromSeconds(30));
+        _debounceService.Throttle("view", () => { }, TimeSpan.FromSeconds(30));
+        _debounceService.Cancel("view");
+    }
+
+    [TestMethod]
     public void Dispose_CanBeCalledMultipleTimes()
     {
         // Act & Assert - should not throw

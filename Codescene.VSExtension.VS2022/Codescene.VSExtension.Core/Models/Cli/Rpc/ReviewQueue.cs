@@ -1,0 +1,15 @@
+// Copyright (c) CodeScene. All rights reserved.
+
+using System.Collections.Generic;
+
+namespace Codescene.VSExtension.Core.Models.Cli.Rpc
+{
+    public class ReviewQueue
+    {
+        public int Count { get; set; }
+
+        public int Done { get; set; }
+
+        public IReadOnlyList<string> Files { get; set; } = new List<string>();
+    }
+}

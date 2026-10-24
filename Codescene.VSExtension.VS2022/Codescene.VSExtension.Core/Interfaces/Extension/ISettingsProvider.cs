@@ -7,5 +7,11 @@ namespace Codescene.VSExtension.Core.Interfaces.Extension
         bool ShowDebugLogs { get; }
 
         string AuthToken { get; }
+
+        int ServerWorkerThreads { get; }
+
+        bool EnableAutomaticAnalysis { get; }
+
+        bool EnableTelemetry { get; }
     }
 }

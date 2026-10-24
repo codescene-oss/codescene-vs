@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -12,18 +11,20 @@ namespace Codescene.VSExtension.VS2022.Application.Git;
 
 public static class SolutionProjectDiscovery
 {
+    private static readonly Guid SolutionFolderGuid = new Guid("2150E333-8FDC-42A3-9474-1A3956D46DE8");
+
     public static HashSet<string> GetProjectDirectories(IVsSolution solution, string solutionPath)
     {
         var directories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         TryAddSolutionDirectory(directories, solutionPath);
         if (solution == null)
         {
-            return DeduplicatePaths(directories);
+            return NormalizePaths(directories);
         }
 
         ThreadHelper.ThrowIfNotOnUIThread();
         AddProjectDirectoriesFromSolution(solution, directories);
-        return DeduplicatePaths(directories);
+        return NormalizePaths(directories);
     }
 
     public static string GetProjectDirectory(IVsHierarchy hierarchy)
@@ -34,20 +35,12 @@ public static class SolutionProjectDiscovery
         }
 
         ThreadHelper.ThrowIfNotOnUIThread();
-
-        var hr = hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectDir, out var value);
-        if (hr != VSConstants.S_OK || value == null)
+        if (IsSolutionFolder(hierarchy))
         {
             return null;
         }
 
-        var dir = value as string;
-        if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
-        {
-            return null;
-        }
-
-        return Path.GetFullPath(dir).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return NormalizeExistingDirectory(TryGetProjectDirProperty(hierarchy) ?? TryGetCanonicalDirectory(hierarchy));
     }
 
     private static void TryAddSolutionDirectory(HashSet<string> directories, string solutionPath)
@@ -85,7 +78,8 @@ public static class SolutionProjectDiscovery
     {
         ThreadHelper.ThrowIfNotOnUIThread();
         var guid = Guid.Empty;
-        var hr = solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref guid, out var enumHierarchies);
+        var flags = (uint)(__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION | __VSENUMPROJFLAGS.EPF_UNLOADEDINSOLUTION);
+        var hr = solution.GetProjectEnum(flags, ref guid, out var enumHierarchies);
         if (hr != VSConstants.S_OK || enumHierarchies == null)
         {
             return;
@@ -102,17 +96,59 @@ public static class SolutionProjectDiscovery
         }
     }
 
-    private static HashSet<string> DeduplicatePaths(HashSet<string> paths)
+    private static string TryGetProjectDirProperty(IVsHierarchy hierarchy)
     {
-        var normalizedList = paths
-            .Select(p => p.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar))
-            .Select(p => p.EndsWith(Path.DirectorySeparatorChar.ToString()) ? p : p + Path.DirectorySeparatorChar)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        var filtered = normalizedList
-            .Where(p => !normalizedList.Any(o => !string.Equals(p, o, StringComparison.OrdinalIgnoreCase) && p.StartsWith(o, StringComparison.OrdinalIgnoreCase)))
-            .Select(p => p.TrimEnd(Path.DirectorySeparatorChar))
-            .Distinct(StringComparer.OrdinalIgnoreCase);
-        return new HashSet<string>(filtered, StringComparer.OrdinalIgnoreCase);
+        ThreadHelper.ThrowIfNotOnUIThread();
+        var hr = hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ProjectDir, out var value);
+        if (hr != VSConstants.S_OK)
+        {
+            return null;
+        }
+
+        return value as string;
+    }
+
+    private static string TryGetCanonicalDirectory(IVsHierarchy hierarchy)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        var hr = hierarchy.GetCanonicalName(VSConstants.VSITEMID_ROOT, out var name);
+        if (hr != VSConstants.S_OK || string.IsNullOrEmpty(name))
+        {
+            return null;
+        }
+
+        return Directory.Exists(name) ? name : Path.GetDirectoryName(name);
+    }
+
+    private static bool IsSolutionFolder(IVsHierarchy hierarchy)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        var hr = hierarchy.GetGuidProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_TypeGuid, out var typeGuid);
+        return hr == VSConstants.S_OK && typeGuid == SolutionFolderGuid;
+    }
+
+    private static string NormalizeExistingDirectory(string directory)
+    {
+        if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
+        {
+            return null;
+        }
+
+        return Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+    }
+
+    private static HashSet<string> NormalizePaths(HashSet<string> paths)
+    {
+        var normalized = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var path in paths)
+        {
+            var directory = NormalizeExistingDirectory(path);
+            if (directory != null)
+            {
+                normalized.Add(directory);
+            }
+        }
+
+        return normalized;
     }
 }
