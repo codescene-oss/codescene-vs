@@ -19,6 +19,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using static Codescene.VSExtension.Core.Consts.Constants;
 using static Codescene.VSExtension.Core.Consts.WebComponentConstants;
 
@@ -30,6 +31,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
     private static WebComponentUserControl _userControl;
     private static IDebounceService _updateViewDebounceService;
     private static IAsyncTaskScheduler _scheduler;
+    private static int _showScheduled;
 
     public override Type PaneType => typeof(Pane);
 
@@ -40,7 +42,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
         if (_updateViewDebounceService != null && _scheduler != null)
         {
-            _updateViewDebounceService.Debounce(
+            _updateViewDebounceService.Throttle(
                 "CodeSceneToolWindow.UpdateView",
                 () => _scheduler.Schedule(ct => RunActualUpdateAsync()),
                 TimeSpan.FromMilliseconds(UpdateViewDebounceMs));
@@ -97,8 +99,7 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
     {
         if (_userControl == null)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            await ShowAsync();
+            ScheduleShowAfterInitialization();
             return;
         }
 
@@ -118,6 +119,38 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         await VS.GetMefServiceAsync<ILogger>();
         _scheduler ??= await VS.GetMefServiceAsync<IAsyncTaskScheduler>();
         _scheduler.Schedule(ct => _userControl.UpdateViewAsync(message));
+    }
+
+    private static void ScheduleShowAfterInitialization()
+    {
+        if (Interlocked.Exchange(ref _showScheduled, 1) == 1)
+        {
+            return;
+        }
+
+        var package = VS2022Package.Instance;
+        if (package == null)
+        {
+            Interlocked.Exchange(ref _showScheduled, 0);
+            return;
+        }
+
+        package.JoinableTaskFactory.RunAsync(async () =>
+        {
+            try
+            {
+                await package.WaitForInitializationAsync();
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.PackageDisposalToken);
+                if (_userControl == null)
+                {
+                    await ShowAsync();
+                }
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _showScheduled, 0);
+            }
+        }).FileAndForget("CodeSceneToolWindow/Show");
     }
 
     [Guid("A9FF6E0A-51FE-4713-8123-6B75EFC3E2C5")]

@@ -33,12 +33,32 @@ namespace Codescene.VSExtension.Core.Util
         /// null, returns null.</returns>
         public static string NormalizeLineEndings(string input)
         {
+            return NormalizeLineEndings(input, Environment.NewLine);
+        }
+
+        /// <summary>
+        /// Replaces every line ending in <paramref name="input"/> with <paramref name="lineEnding"/>.
+        /// </summary>
+        public static string NormalizeLineEndings(string input, string lineEnding)
+        {
             if (input == null)
             {
                 return null;
             }
 
-            return Regex.Replace(input, @"\r\n|\r|\n", Environment.NewLine);
+            var ending = string.IsNullOrEmpty(lineEnding) ? Environment.NewLine : lineEnding;
+            return Regex.Replace(input, @"\r\n|\r|\n", ending);
+        }
+
+        public static string DominantLineEnding(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return Environment.NewLine;
+            }
+
+            CountLineEndings(text, out var crlf, out var lf, out var cr);
+            return ChooseLineEnding(crlf, lf, cr);
         }
 
         public static string TrimForLogging(string value, int maxLength = 120)
@@ -96,6 +116,73 @@ namespace Codescene.VSExtension.Core.Util
             }
 
             return FormatJsonProperties(jsonObject, maxValueLength);
+        }
+
+        private static void CountLineEndings(string text, out int crlf, out int lf, out int cr)
+        {
+            crlf = 0;
+            lf = 0;
+            cr = 0;
+            for (var i = 0; i < text.Length; i++)
+            {
+                if (IsCrlfAt(text, i))
+                {
+                    crlf++;
+                    i++;
+                    continue;
+                }
+
+                if (text[i] == '\n')
+                {
+                    lf++;
+                    continue;
+                }
+
+                if (text[i] == '\r')
+                {
+                    cr++;
+                }
+            }
+        }
+
+        private static bool IsCrlfAt(string text, int index)
+        {
+            if (text[index] != '\r' || index + 1 >= text.Length)
+            {
+                return false;
+            }
+
+            return text[index + 1] == '\n';
+        }
+
+        private static string ChooseLineEnding(int crlf, int lf, int cr)
+        {
+            if (PrefersCrlf(crlf, lf, cr))
+            {
+                return "\r\n";
+            }
+
+            if (lf > 0 && lf >= cr)
+            {
+                return "\n";
+            }
+
+            if (cr > 0)
+            {
+                return "\r";
+            }
+
+            return Environment.NewLine;
+        }
+
+        private static bool PrefersCrlf(int crlf, int lf, int cr)
+        {
+            if (crlf == 0)
+            {
+                return false;
+            }
+
+            return crlf >= lf && crlf >= cr;
         }
 
         private static bool ShouldSkipLoggableJsonProperty(string propertyName) =>

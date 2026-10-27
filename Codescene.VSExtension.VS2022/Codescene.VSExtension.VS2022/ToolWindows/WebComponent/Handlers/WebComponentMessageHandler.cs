@@ -44,7 +44,6 @@ internal class WebComponentMessageHandler
     public async Task HandleAsync(string message)
     {
         _logger ??= await VS.GetMefServiceAsync<ILogger>();
-        _showDocsHandler ??= await VS.GetMefServiceAsync<ShowDocumentationHandler>();
 
         MessageObj<JToken> msgObject;
         try
@@ -131,7 +130,7 @@ internal class WebComponentMessageHandler
                     await HandleOpenLogOutputAsync();
                     break;
                 default:
-                    logger.Debug($"Unknown message type: {msgObject.MessageType}");
+                    await HandleUnmatchedMessageAsync(msgObject, logger);
                     break;
             }
         }
@@ -153,6 +152,11 @@ internal class WebComponentMessageHandler
 
         // Mark the window as initialized, which will process any pending messages
         await _control.MarkAsInitializedAsync();
+
+        if (source == ViewTypes.HOME)
+        {
+            await CodeSceneToolWindow.UpdateViewAsync();
+        }
     }
 
     private async Task HandleCopyCodeAsync(MessageObj<JToken> msgObject, ILogger logger)
@@ -257,6 +261,7 @@ internal class WebComponentMessageHandler
     {
         var payload = msgObject.Payload.ToObject<OpenDocsForFunctionPayload>();
         _logger.Debug($"Opening '{payload.DocType}'...");
+        _showDocsHandler ??= await VS.GetMefServiceAsync<ShowDocumentationHandler>();
 
         var category = DocumentationMappings.DocNameMap[payload.DocType] ?? string.Empty;
         var fn = await AceUtils.GetRefactorableFunctionDeltaAsync(new GetRefactorableFunctionsModel
@@ -302,12 +307,36 @@ internal class WebComponentMessageHandler
             AceConstants.AceEntryPoint.CODEVISION);
     }
 
+    private async Task HandleUnmatchedMessageAsync(MessageObj<JToken> msgObject, ILogger logger)
+    {
+        if (msgObject.MessageType == MessageTypes.STOPANALYSIS)
+        {
+            await SetAutomaticAnalysisAsync(false);
+            return;
+        }
+
+        if (msgObject.MessageType == MessageTypes.STARTANALYSIS)
+        {
+            await SetAutomaticAnalysisAsync(true);
+            return;
+        }
+
+        logger.Debug($"Unknown message type: {msgObject.MessageType}");
+    }
+
     private async Task HandleOpenSettingsAsync()
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         await VS.Settings.OpenAsync<OptionsProvider.GeneralOptions>();
 
         SendTelemetry(Constants.Telemetry.OPENSETTINGS);
+    }
+
+    private async Task SetAutomaticAnalysisAsync(bool enabled)
+    {
+        var general = General.Instance;
+        general.EnableAutomaticAnalysis = enabled;
+        await general.SaveAsync();
     }
 
     // Currently, we only receive this message from the ACE view if the content is marked as 'stale'.

@@ -14,7 +14,6 @@ public class CliExecutorBenchmarks
 {
     private BenchmarkEnvironment _environment = null!;
     private CliExecutor _cliExecutor = null!;
-    private ReviewDeltaRequest _deltaRequest = null!;
     private DeltaResponseModel _deltaResponse = null!;
     private PreFlightResponseModel _preflightResponse = null!;
 
@@ -24,26 +23,7 @@ public class CliExecutorBenchmarks
         _environment = new BenchmarkEnvironment();
         _cliExecutor = _environment.CreateCliExecutor();
 
-        var baselineReview = _cliExecutor.ReviewContentAsync(_environment.ExistingFilePath, BenchmarkInputs.BaselineCode).GetAwaiter().GetResult();
-        var currentReview = _cliExecutor.ReviewContentAsync(_environment.ExistingFilePath, BenchmarkInputs.CurrentCode).GetAwaiter().GetResult();
-        if (string.IsNullOrWhiteSpace(baselineReview?.RawScore) || string.IsNullOrWhiteSpace(currentReview?.RawScore))
-        {
-            throw new InvalidOperationException("Unable to obtain review raw scores for delta benchmarks.");
-        }
-
-        _deltaRequest = new ReviewDeltaRequest
-        {
-            OldScore = baselineReview!.RawScore!,
-            NewScore = currentReview!.RawScore!,
-            FilePath = _environment.ExistingFilePath,
-            FileContent = BenchmarkInputs.CurrentCode,
-        };
-
-        _deltaResponse = _cliExecutor.ReviewDeltaAsync(_deltaRequest).GetAwaiter().GetResult();
-        if (_deltaResponse == null)
-        {
-            throw new InvalidOperationException("Unable to obtain a delta response for refactor benchmarks.");
-        }
+        _deltaResponse = new DeltaResponseModel { NewScore = 8.5m, OldScore = 7.0m, ScoreChange = 1.5m };
 
         _preflightResponse = _cliExecutor.PreflightAsync(force: true).GetAwaiter().GetResult();
         if (_preflightResponse == null)
@@ -56,18 +36,6 @@ public class CliExecutorBenchmarks
     public void Cleanup()
     {
         _environment?.Dispose();
-    }
-
-    [Benchmark]
-    public Task<CliReviewModel> ReviewContentAsync()
-    {
-        return _cliExecutor.ReviewContentAsync(_environment.ExistingFilePath, BenchmarkInputs.CurrentCode);
-    }
-
-    [Benchmark]
-    public Task<DeltaResponseModel> ReviewDeltaAsync()
-    {
-        return _cliExecutor.ReviewDeltaAsync(_deltaRequest);
     }
 
     [Benchmark]

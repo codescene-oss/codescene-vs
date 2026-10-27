@@ -1,0 +1,617 @@
+// Copyright (c) CodeScene. All rights reserved.
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Interfaces.Cli;
+using Codescene.VSExtension.Core.Models.Cli.Delta;
+using Codescene.VSExtension.Core.Models.Cli.Review;
+using Codescene.VSExtension.Core.Models.Cli.Rpc;
+using Codescene.VSExtension.Core.Util;
+
+namespace Codescene.VSExtension.Core.Application.Cli
+{
+    public sealed partial class ReviewPipeline
+    {
+        private void OnReviewReceived(object sender, ReviewNotification notification)
+        {
+            if (notification == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(notification.Id))
+            {
+                if (!AutomaticAnalysisEnabled())
+                {
+                    return;
+                }
+
+                _ = PresentWatchReviewAsync(notification);
+                return;
+            }
+
+            lock (_gate)
+            {
+                if (!_pendingById.TryGetValue(notification.Id, out var pending) || pending.ReviewDone)
+                {
+                    return;
+                }
+
+                pending.ReviewDone = true;
+                _presentation.ReviewFinished(pending.Document);
+                if (!IsCurrent(pending, notification.RepoRoot, notification.Path) ||
+                    !MatchesHash(notification.Result?.GitBlobSha, pending.ContentHash))
+                {
+                    _logger?.Warn("[pipeline] ignoring fileReview " + LogFields.Format(
+                        LogFields.Field("id", notification.Id),
+                        LogFields.Field("path", notification.Path),
+                        LogFields.Field("repo", notification.RepoRoot),
+                        LogFields.Field("pendingPath", pending.RelPath),
+                        LogFields.Field("pendingRepo", pending.RepoRoot),
+                        LogFields.Field("reason", MismatchReason(pending, notification.RepoRoot, notification.Path, notification.Result?.GitBlobSha))));
+                    IgnorePending(pending);
+                    return;
+                }
+
+                pending.ReviewResult = notification.Result;
+                _logger?.Debug("[pipeline] completed review " + LogFields.Format(
+                    LogFields.Field("id", pending.Id),
+                    LogFields.Field("path", pending.RelPath),
+                    LogFields.Field("repo", pending.RepoRoot)));
+                _presentation.PresentReview(ToPresentedReview(pending, notification.Result));
+                TryComplete(pending);
+            }
+        }
+
+        private void QueueWatchDelta(DeltaNotification notification)
+        {
+            if (AutomaticAnalysisEnabled())
+            {
+                _ = PresentWatchDeltaAsync(notification);
+            }
+        }
+
+        private void PresentCurrentDelta(PendingReview pending, DeltaResponseModel result)
+        {
+            var presented = ToPresentedDelta(pending, result);
+            if (AutomaticAnalysisEnabled())
+            {
+                _presentation.PresentDelta(presented);
+                return;
+            }
+
+            presented.UpdateMonitor = false;
+            _presentation.PresentDelta(presented);
+        }
+
+        private void OnDeltaReceived(object sender, DeltaNotification notification)
+        {
+            if (notification == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(notification.Id))
+            {
+                QueueWatchDelta(notification);
+                return;
+            }
+
+            lock (_gate)
+            {
+                if (!_pendingById.TryGetValue(notification.Id, out var pending) || pending.DeltaDone)
+                {
+                    return;
+                }
+
+                pending.DeltaDone = true;
+                _presentation.DeltaFinished(pending.Document);
+                var hash = notification.Result?.NewGitBlobSha;
+                if (IsCurrent(pending, notification.RepoRoot, notification.Path) && MatchesHash(hash, pending.ContentHash))
+                {
+                    pending.DeltaResult = notification.Result;
+                    PresentCurrentDelta(pending, notification.Result);
+                }
+                else
+                {
+                    _logger?.Warn("[pipeline] ignoring deltaReview " + LogFields.Format(
+                        LogFields.Field("id", notification.Id),
+                        LogFields.Field("path", notification.Path),
+                        LogFields.Field("repo", notification.RepoRoot),
+                        LogFields.Field("pendingPath", pending.RelPath),
+                        LogFields.Field("pendingRepo", pending.RepoRoot),
+                        LogFields.Field("reason", MismatchReason(pending, notification.RepoRoot, notification.Path, hash))));
+                }
+
+                TryComplete(pending);
+            }
+        }
+
+        private void OnReviewFailed(object sender, ReviewFailedNotification failure)
+        {
+            if (failure == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(failure.Id))
+            {
+                _logger?.Warn($"[pipeline] watch reviewFailed path={failure.Path} repo={failure.RepoRoot}: {failure.Message}");
+                return;
+            }
+
+            lock (_gate)
+            {
+                if (!_pendingById.TryGetValue(failure.Id, out var pending))
+                {
+                    return;
+                }
+
+                if (!IsCurrent(pending, failure.RepoRoot, failure.Path))
+                {
+                    IgnorePending(pending);
+                    return;
+                }
+
+                var error = new Exception(failure.Message);
+                CompletePending(pending, error);
+                _latestByPath.Remove(pending.PathKey);
+                _presentation.Failed(error);
+            }
+        }
+
+        private void OnServerError(object sender, Exception error)
+        {
+            FailAll(error ?? new Exception("CodeScene IDE server error"));
+        }
+
+        private async Task PresentWatchReviewAsync(ReviewNotification notification)
+        {
+            int epoch;
+            lock (_gate)
+            {
+                if (!AcceptsWatchRepoUnlocked(notification.RepoRoot))
+                {
+                    return;
+                }
+
+                epoch = _dedupEpoch;
+            }
+
+            var presented = await WatchPresentationAsync(notification.RepoRoot, notification.Path, notification.Result?.GitBlobSha).ConfigureAwait(false);
+            if (presented == null)
+            {
+                return;
+            }
+
+            lock (_gate)
+            {
+                if (!AcceptsWatchRepoUnlocked(notification.RepoRoot) || epoch != _dedupEpoch)
+                {
+                    return;
+                }
+
+                CacheWatchReview(PathKey(notification.RepoRoot, presented.RelPath), presented.Content, notification.Result);
+                _presentation.PresentReview(new PresentedReview
+                {
+                    Document = presented.Document,
+                    RelPath = presented.RelPath,
+                    Content = presented.Content,
+                    UpdateDiagnosticsPane = presented.UpdateDiagnosticsPane,
+                    UpdateMonitor = presented.UpdateMonitor,
+                    Result = notification.Result,
+                });
+            }
+        }
+
+        private async Task PresentWatchDeltaAsync(DeltaNotification notification)
+        {
+            if (notification.Result != null && !await _watchDeltaFilter(notification.RepoRoot, notification.Path).ConfigureAwait(false))
+            {
+                _logger?.Debug("[pipeline] ignoring watch delta " + LogFields.Format(
+                    LogFields.Field("path", RpcPath.ToPosixRelPath(notification.Path)),
+                    LogFields.Field("repo", notification.RepoRoot),
+                    LogFields.Field("reason", "outside-watch-inventory")));
+                return;
+            }
+
+            int epoch;
+            lock (_gate)
+            {
+                if (!AcceptsWatchRepoUnlocked(notification.RepoRoot))
+                {
+                    return;
+                }
+
+                epoch = _dedupEpoch;
+            }
+
+            var presented = await WatchPresentationAsync(notification.RepoRoot, notification.Path, notification.Result?.NewGitBlobSha).ConfigureAwait(false);
+            if (presented == null)
+            {
+                return;
+            }
+
+            lock (_gate)
+            {
+                if (!AcceptsWatchRepoUnlocked(notification.RepoRoot) || epoch != _dedupEpoch)
+                {
+                    return;
+                }
+
+                _presentation.PresentDelta(new PresentedDelta
+                {
+                    Document = presented.Document,
+                    RelPath = presented.RelPath,
+                    Content = presented.Content,
+                    UpdateDiagnosticsPane = presented.UpdateDiagnosticsPane,
+                    UpdateMonitor = presented.UpdateMonitor,
+                    Result = notification.Result,
+                });
+            }
+        }
+
+        private void CacheWatchReview(string pathKey, string content, CliReviewModel result)
+        {
+            if (content == null)
+            {
+                return;
+            }
+
+            RemoveWatchReview(pathKey);
+            _watchReviews[pathKey] = new WatchReviewEntry
+            {
+                ContentHash = GitBlobSha.FromUtf8(content),
+                DedupEpoch = _dedupEpoch,
+                Result = result,
+            };
+            _watchReviewOrder.Add(pathKey);
+            if (_watchReviews.Count > MaxWatchReviews)
+            {
+                RemoveWatchReview(_watchReviewOrder[0]);
+            }
+        }
+
+        private void RemoveWatchReview(string pathKey)
+        {
+            if (_watchReviews.Remove(pathKey))
+            {
+                _watchReviewOrder.Remove(pathKey);
+            }
+        }
+
+        private async Task<ReviewSubmission> WatchPresentationAsync(string repoRoot, string relPath, string receivedSha)
+        {
+            var posixPath = RpcPath.ToPosixRelPath(relPath);
+            var filePath = RpcPath.CombineRepo(RpcPath.ToLocalRepoRoot(repoRoot), posixPath);
+            var document = _fileAccess.FindOpenDocument(filePath);
+            if (document == null)
+            {
+                try
+                {
+                    document = await _fileAccess.OpenDocumentAsync(filePath).ConfigureAwait(false);
+                }
+                catch
+                {
+                    document = null;
+                }
+            }
+
+            if (document == null)
+            {
+                _logger?.Debug("[pipeline] watchPresentation skipped " + LogFields.Format(
+                    LogFields.Field("path", posixPath),
+                    LogFields.Field("repo", repoRoot),
+                    LogFields.Field("reason", "no-document")));
+                return null;
+            }
+
+            var (expectedSha, fromBuffer) = await CurrentShaAsync(document, filePath).ConfigureAwait(false);
+            if (receivedSha != null && receivedSha != expectedSha)
+            {
+                _logger?.Warn("[pipeline] ignoring watch result " + LogFields.Format(
+                    LogFields.Field("path", posixPath),
+                    LogFields.Field("repo", repoRoot),
+                    LogFields.Field("reason", "stale-sha"),
+                    LogFields.Field("receivedSha", receivedSha),
+                    LogFields.Field("expectedSha", expectedSha)));
+                if (fromBuffer)
+                {
+                    ClaimBufferOwnership(repoRoot, posixPath);
+                }
+
+                return null;
+            }
+
+            return new ReviewSubmission
+            {
+                Document = document,
+                RelPath = posixPath,
+                Content = document.Content,
+                UpdateDiagnosticsPane = _fileAccess.IsVisible(filePath),
+                UpdateMonitor = true,
+            };
+        }
+
+        private async Task<(string Sha, bool FromBuffer)> CurrentShaAsync(ReviewDocument document, string filePath)
+        {
+            var bytes = await _fileAccess.ReadFileBytesAsync(filePath).ConfigureAwait(false);
+            if (BufferDiffersFromDisk(document, bytes))
+            {
+                return (GitBlobSha.FromUtf8(document.Content), true);
+            }
+
+            return (GitBlobSha.FromBytes(bytes), false);
+        }
+
+        private void ClaimBufferOwnership(string repoRoot, string relPath)
+        {
+            lock (_gate)
+            {
+                _bufferOwnedPaths.Add(PathKey(repoRoot, relPath));
+            }
+        }
+
+        private bool AcceptsWatchRepoUnlocked(string repoRoot)
+        {
+            if (_activeRepos == null)
+            {
+                return true;
+            }
+
+            return _activeRepos.Contains(RpcPath.NormalizeFsPath(repoRoot));
+        }
+
+        private void FailAll(Exception error)
+        {
+            List<PendingReview> pendingReviews;
+            lock (_gate)
+            {
+                pendingReviews = _pendingById.Values.ToList();
+                foreach (var pending in pendingReviews)
+                {
+                    CompletePending(pending, error);
+                }
+
+                _latestByPath.Clear();
+            }
+
+            if (pendingReviews.Count > 0)
+            {
+                _presentation.Failed(error);
+            }
+        }
+
+        private void TryComplete(PendingReview pending)
+        {
+            if (pending.ReviewDone && pending.DeltaDone)
+            {
+                pending.Completion.TrySetResult((pending.ReviewResult, pending.DeltaResult));
+                _pendingById.Remove(pending.Id);
+            }
+        }
+
+        private void CompletePending(PendingReview pending, Exception error = null)
+        {
+            if (!pending.ReviewDone)
+            {
+                pending.ReviewDone = true;
+                _presentation.ReviewFinished(pending.Document);
+            }
+
+            if (!pending.DeltaDone)
+            {
+                pending.DeltaDone = true;
+                _presentation.DeltaFinished(pending.Document);
+            }
+
+            if (error != null)
+            {
+                pending.Completion.TrySetException(error);
+            }
+            else
+            {
+                pending.Completion.TrySetResult((pending.ReviewResult, pending.DeltaResult));
+            }
+
+            _pendingById.Remove(pending.Id);
+        }
+
+        private void IgnorePending(PendingReview pending)
+        {
+            CompletePending(pending);
+        }
+
+        private bool IsCurrent(PendingReview pending, string repoRoot, string relPath)
+        {
+            return MismatchReason(pending, repoRoot, relPath) == null;
+        }
+
+        private string MismatchReason(PendingReview pending, string repoRoot, string relPath, string receivedSha)
+        {
+            var reason = MismatchReason(pending, repoRoot, relPath);
+            if (reason != null)
+            {
+                return reason;
+            }
+
+            return MatchesHash(receivedSha, pending.ContentHash) ? null : "sha-mismatch";
+        }
+
+        private string MismatchReason(PendingReview pending, string repoRoot, string relPath)
+        {
+            if (!RpcPath.PathsEqual(pending.RepoRoot, repoRoot))
+            {
+                return "repo-mismatch";
+            }
+
+            if (RpcPath.ToPosixRelPath(pending.RelPath) != RpcPath.ToPosixRelPath(relPath))
+            {
+                return "path-mismatch";
+            }
+
+            if (!_latestByPath.TryGetValue(pending.PathKey, out var latest) || !ReferenceEquals(latest, pending))
+            {
+                return "superseded";
+            }
+
+            if (GitBlobSha.FromUtf8(pending.Document.Content) != pending.ContentHash)
+            {
+                return "content-changed";
+            }
+
+            if (_tombstones.TryGetValue(pending.PathKey, out var tombstone) && tombstone >= pending.Generation)
+            {
+                return "tombstoned";
+            }
+
+            return null;
+        }
+
+        private sealed class PendingReview
+        {
+            public ReviewDocument Document { get; set; }
+
+            public string RelPath { get; set; }
+
+            public string Content { get; set; }
+
+            public bool UpdateDiagnosticsPane { get; set; }
+
+            public bool UpdateMonitor { get; set; }
+
+            public string Id { get; set; }
+
+            public string RepoRoot { get; set; }
+
+            public string DedupKey { get; set; }
+
+            public string PathKey { get; set; }
+
+            public string ContentHash { get; set; }
+
+            public int Generation { get; set; }
+
+            public bool ReviewDone { get; set; }
+
+            public bool DeltaDone { get; set; }
+
+            public bool Submitted { get; set; }
+
+            public CliReviewModel ReviewResult { get; set; }
+
+            public DeltaResponseModel DeltaResult { get; set; }
+
+            public TaskCompletionSource<(CliReviewModel, DeltaResponseModel)> Completion { get; set; }
+        }
+
+        private sealed class SubmissionContext
+        {
+            public string RepoRoot { get; set; }
+
+            public string PathKey { get; set; }
+
+            public string ContentHash { get; set; }
+
+            public string DedupKey { get; set; }
+        }
+
+        private sealed class WatchReviewEntry
+        {
+            public string ContentHash { get; set; }
+
+            public int DedupEpoch { get; set; }
+
+            public CliReviewModel Result { get; set; }
+        }
+
+        private sealed class NoOpPresentation : IReviewPipelinePresentation
+        {
+            public static readonly NoOpPresentation Instance = new NoOpPresentation();
+
+            public void ReviewStarted(ReviewDocument document)
+            {
+            }
+
+            public void ReviewFinished(ReviewDocument document)
+            {
+            }
+
+            public void DeltaStarted(ReviewDocument document)
+            {
+            }
+
+            public void DeltaFinished(ReviewDocument document)
+            {
+            }
+
+            public void PresentReview(PresentedReview review)
+            {
+            }
+
+            public void PresentDelta(PresentedDelta delta)
+            {
+            }
+
+            public void Remove(ReviewDocument document)
+            {
+            }
+
+            public void Failed(Exception error)
+            {
+            }
+        }
+
+        private sealed class DiskFileAccess : IReviewPipelineFileAccess
+        {
+            public static readonly DiskFileAccess Instance = new DiskFileAccess();
+
+            public ReviewDocument FindOpenDocument(string filePath)
+            {
+                return null;
+            }
+
+            public Task<ReviewDocument> OpenDocumentAsync(string filePath)
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+                    {
+                        return Task.FromResult<ReviewDocument>(null);
+                    }
+
+                    return Task.FromResult(new ReviewDocument
+                    {
+                        FilePath = filePath,
+                        Content = File.ReadAllText(filePath),
+                        IsDirty = false,
+                    });
+                }
+                catch
+                {
+                    return Task.FromResult<ReviewDocument>(null);
+                }
+            }
+
+            public Task<byte[]> ReadFileBytesAsync(string filePath)
+            {
+                try
+                {
+                    return Task.FromResult(File.Exists(filePath) ? File.ReadAllBytes(filePath) : null);
+                }
+                catch
+                {
+                    return Task.FromResult<byte[]>(null);
+                }
+            }
+
+            public bool IsVisible(string filePath)
+            {
+                return false;
+            }
+        }
+    }
+}

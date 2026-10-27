@@ -7,6 +7,7 @@ using FileModel = Codescene.VSExtension.Core.Models.WebComponent.Data.File;
 namespace Codescene.VSExtension.Core.Tests
 {
     [TestClass]
+    [DoNotParallelize]
     public class DeltaJobTrackerTests
     {
         [TestInitialize]
@@ -141,6 +142,29 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert
             Assert.IsInstanceOfType(jobs, typeof(IReadOnlyCollection<Job>));
+        }
+
+        [TestMethod]
+        public void Replace_WithJobs_ReplacesCurrentJobs()
+        {
+            var oldJob = CreateJob("old.cs");
+            var newJob = CreateJob("new.cs");
+            DeltaJobTracker.Add(oldJob);
+
+            DeltaJobTracker.Replace(new[] { newJob });
+
+            Assert.IsFalse(DeltaJobTracker.RunningJobs.Contains(oldJob));
+            Assert.IsTrue(DeltaJobTracker.RunningJobs.Contains(newJob));
+        }
+
+        [TestMethod]
+        public void Replace_WithNull_ClearsCurrentJobs()
+        {
+            DeltaJobTracker.Add(CreateJob());
+
+            DeltaJobTracker.Replace(null);
+
+            Assert.IsEmpty(DeltaJobTracker.RunningJobs);
         }
 
         [TestMethod]

@@ -24,8 +24,6 @@ public class ShowDiffHandler
     {
         var cache = _aceManager.GetCachedRefactoredCode();
         var newCode = cache.Refactored.Code;
-
-        var normalizedNewCode = TextUtils.NormalizeLineEndings(newCode);
         var tempOriginalPath = Path.GetTempFileName();
         var tempRefactoredPath = Path.GetTempFileName();
 
@@ -52,11 +50,13 @@ public class ShowDiffHandler
             snapshot.GetLineFromLineNumber(start).Start.Position, snapshot.GetLineFromLineNumber(end).EndIncludingLineBreak.Position - snapshot.GetLineFromLineNumber(start).Start.Position);
 
         var original = snapshot.GetText();
+        var lineEnding = TextUtils.DominantLineEnding(original);
+        var normalizedNewCode = TextUtils.NormalizeLineEndings(newCode, lineEnding);
         var refactored = original.Remove(span.Start, span.Length).Insert(span.Start, normalizedNewCode);
 
         // Write files (could be moved to background thread if desired, but it's fast)
-        File.WriteAllText(tempOriginalPath, original);
-        File.WriteAllText(tempRefactoredPath, refactored);
+        File.WriteAllText(tempOriginalPath, TextUtils.NormalizeLineEndings(original, lineEnding));
+        File.WriteAllText(tempRefactoredPath, TextUtils.NormalizeLineEndings(refactored, lineEnding));
 
         var diffService = await VS.GetServiceAsync<SVsDifferenceService, IVsDifferenceService>();
 
