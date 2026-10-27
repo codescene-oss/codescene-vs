@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-27
+### Added
+- run cs-ide as a persistent JSON-RPC server (#325)
+
 ## [0.8.7] - 2026-10-24
 ### Changed
 - bump IDE CLI to 1.0.80 (#337)
