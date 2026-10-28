@@ -1,12 +1,14 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using Codescene.VSExtension.Core.Interfaces;
 using EnvDTE;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Web.WebView2.Wpf;
@@ -19,6 +21,7 @@ internal sealed class WebView2AirspaceGuard : IVsWindowFrameEvents, IDisposable
     private readonly FrameworkElement _host;
     private readonly WebView2 _webView;
     private readonly ILogger _logger;
+    private IVsUIShell _shell;
     private IVsUIShell7 _shell7;
     private DTE _dte;
     private WindowEvents _windowEvents;
@@ -37,6 +40,7 @@ internal sealed class WebView2AirspaceGuard : IVsWindowFrameEvents, IDisposable
         ThreadHelper.ThrowIfNotOnUIThread();
 
         var service = ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShell));
+        _shell = service as IVsUIShell;
         _shell7 = service as IVsUIShell7;
         if (_shell7 != null)
         {
@@ -113,6 +117,7 @@ internal sealed class WebView2AirspaceGuard : IVsWindowFrameEvents, IDisposable
             _advised = false;
         }
 
+        _shell = null;
         _shell7 = null;
         _dte = null;
     }
@@ -208,6 +213,48 @@ internal sealed class WebView2AirspaceGuard : IVsWindowFrameEvents, IDisposable
         return rect.Right > rect.Left && rect.Bottom > rect.Top;
     }
 
+    private static bool IsOnScreen(Window window, HashSet<Guid> onScreenKinds)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        return Guid.TryParse(window.ObjectKind, out var kind) && onScreenKinds.Contains(kind);
+    }
+
+    private static bool IsOverlappingFlyout(Window window, RECT ourRect, HashSet<Guid> onScreenKinds)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        if (!IsAutoHideToolWindow(window) || !IsOnScreen(window, onScreenKinds))
+        {
+            return false;
+        }
+
+        return TryGetDteWindowRect(window, ourRect, out var overlay) && Intersects(ourRect, overlay);
+    }
+
+    private static bool IsFrameOnScreen(IVsWindowFrame frame)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        if (frame == null)
+        {
+            return false;
+        }
+
+        return ErrorHandler.Succeeded(frame.IsOnScreen(out var onScreen)) && onScreen != 0;
+    }
+
+    private static bool TryGetOnScreenSlot(IVsWindowFrame frame, out Guid slot)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        slot = Guid.Empty;
+
+        if (!IsFrameOnScreen(frame))
+        {
+            return false;
+        }
+
+        return ErrorHandler.Succeeded(frame.GetGuidProperty((int)__VSFPROPID.VSFPROPID_GuidPersistenceSlot, out slot));
+    }
+
     private void OnDteWindowActivated(Window gotFocus, Window lostFocus)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
@@ -272,7 +319,7 @@ internal sealed class WebView2AirspaceGuard : IVsWindowFrameEvents, IDisposable
                 }
             }
 
-            ApplyWebViewVisibility(HasOverlappingAutoHideWindow(ourRect));
+            ApplyWebViewVisibility(TryFindOverlappingAutoHideWindow(ourRect, out var overlayCaption), overlayCaption);
         }
         catch (Exception ex)
         {
@@ -294,13 +341,17 @@ internal sealed class WebView2AirspaceGuard : IVsWindowFrameEvents, IDisposable
         return _host.ActualWidth > 0 && _host.ActualHeight > 0 && PresentationSource.FromVisual(_host) != null;
     }
 
-    private void ApplyWebViewVisibility(bool hide)
+    private void ApplyWebViewVisibility(bool hide, string overlayCaption)
     {
         var target = hide ? Visibility.Hidden : Visibility.Visible;
         if (_webView.Visibility == target)
         {
             return;
         }
+
+        _logger.Debug(hide
+            ? $"Hiding WebView2 while auto-hidden tool window '{overlayCaption}' overlaps it."
+            : "Showing WebView2; no auto-hidden tool window overlaps it.");
 
         _webView.Visibility = target;
 
@@ -315,29 +366,61 @@ internal sealed class WebView2AirspaceGuard : IVsWindowFrameEvents, IDisposable
         }
     }
 
-    private bool HasOverlappingAutoHideWindow(RECT ourRect)
+    private bool TryFindOverlappingAutoHideWindow(RECT ourRect, out string caption)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
+        caption = null;
 
         if (_dte?.Windows == null)
         {
             return false;
         }
 
+        var onScreenKinds = GetOnScreenToolWindowKinds();
+        if (onScreenKinds.Count == 0)
+        {
+            return false;
+        }
+
         foreach (Window window in _dte.Windows)
         {
-            if (!IsAutoHideToolWindow(window) || !TryGetDteWindowRect(window, ourRect, out var overlay))
+            if (IsOverlappingFlyout(window, ourRect, onScreenKinds))
             {
-                continue;
-            }
-
-            if (Intersects(ourRect, overlay))
-            {
+                caption = window.Caption;
                 return true;
             }
         }
 
         return false;
+    }
+
+    private HashSet<Guid> GetOnScreenToolWindowKinds()
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        var kinds = new HashSet<Guid>();
+
+        if (!TryGetToolWindowFrames(out var frames))
+        {
+            return kinds;
+        }
+
+        var buffer = new IVsWindowFrame[1];
+        while (frames.Next(1, buffer, out var fetched) == VSConstants.S_OK && fetched == 1)
+        {
+            if (TryGetOnScreenSlot(buffer[0], out var slot))
+            {
+                kinds.Add(slot);
+            }
+        }
+
+        return kinds;
+    }
+
+    private bool TryGetToolWindowFrames(out IEnumWindowFrames frames)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        frames = null;
+        return _shell != null && ErrorHandler.Succeeded(_shell.GetToolWindowEnum(out frames)) && frames != null;
     }
 
     private bool TryGetHostRect(out RECT rect)
