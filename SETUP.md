@@ -29,7 +29,7 @@ Or dry-run: `pwsh -File tag-test-release.ps1 -WhatIf`. Use `-NoPush` to create t
 
 CI validates that the tag matches `vX.Y.Z-test.<sha>`, that `<sha>` prefixes the tagged commit, and that `X.Y.Z` matches the VSIX manifest. The GitHub release is marked **Pre-release** and attaches the `.vsix`.
 
-Production releases are unchanged: `release.ps1` and tag `vX.Y.Z`. Marketplace publish (`vsix-publish.yml`) uses the latest non–pre-release.
+Production releases use tag `vX.Y.Z`. Marketplace publish (`vsix-publish.yml`) uses the latest non–pre-release.
 
 Repeated test tags may reuse the same VSIX version; Visual Studio may not treat that as an upgrade between builds.
 
