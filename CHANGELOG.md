@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-10-28
+### Fixed
+- keep WebView2 visible when auto-hide flyouts are collapsed (#341)
+
 ## [0.9.0] - 2026-10-27
 ### Added
 - run cs-ide as a persistent JSON-RPC server (#325)
