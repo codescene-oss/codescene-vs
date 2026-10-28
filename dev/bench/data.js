@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793112252596,
+  "lastUpdate": 1793176409480,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3290,6 +3290,36 @@ window.BENCHMARK_DATA = {
             "value": 1553940.927734375,
             "unit": "ns",
             "range": "± 54658.46426310128"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "06d643fe7fc304a010651e456fd9e43ada794709",
+          "message": "feat(build): pin the CWF release via cwf.version (#340)\n\ncwf.ps1 now resolves the pinned version (cwf.version, or CWF_VERSION override), looks up releases/tags/v<version> and downloads the exact cs-webview-v<version>.zip asset instead of the first asset of releases/latest. The download is skipped when cs-cwf/.cwf-version matches and cs-cwf/index.js exists, and failures name the missing piece. The script is split into small functions with a single Main call. The cs-cwf.zip Makefile target depends on cwf.version, the -Token argument is dropped from the workflows (the token is read from the environment), and SETUP.md documents the pin.",
+          "timestamp": "2026-10-28T09:28:38+01:00",
+          "tree_id": "cbb688132c76fb24caa05a903afdfcfefbfe6dfc",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/06d643fe7fc304a010651e456fd9e43ada794709"
+        },
+        "date": 1793176406901,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 1529768.0930397727,
+            "unit": "ns",
+            "range": "± 47486.006279146946"
           }
         ]
       }
