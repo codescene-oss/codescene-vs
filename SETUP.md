@@ -39,7 +39,14 @@ The Centralized Webviews Framework (CWF) used by the extension, which provides s
 
 **Note:** Access to the CWF repository requires appropriate permissions.
 
-A normal build downloads the latest GitHub release. `make updatecwf` builds the sibling checkout at `../cs-webview` and copies it into the extension instead.
+A normal build downloads the release pinned in `cwf.version` (at the repository root). Bumping the pin is a one-line commit to that file.
+
+`make updatecwf` builds the sibling checkout at `../cs-webview` and copies it into the extension instead.
+
+Limitations to be aware of:
+
+- `CWF_VERSION` overrides the pin only when `.github/cwf.ps1` is run directly (for example `$env:CWF_VERSION = '2.5.9'; pwsh .github/cwf.ps1`). Make does not see environment overrides, so it will not re-run the download when only the variable changes.
+- After `make updatecwf`, returning to the pinned release needs `.github/cwf.ps1` run directly, or `cs-cwf.zip` deleted so Make downloads it again.
 
 ## Feature Flags
 
