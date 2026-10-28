@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793176409480,
+  "lastUpdate": 1793195031956,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3320,6 +3320,36 @@ window.BENCHMARK_DATA = {
             "value": 1529768.0930397727,
             "unit": "ns",
             "range": "± 47486.006279146946"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "198b077f85c25970e3187d712aad2c7f08afb4b3",
+          "message": "Merge pull request #341 from codescene-oss/fix/airspace-guard-collapsed-autohide\n\nfix: keep WebView2 visible when auto-hide flyouts are collapsed",
+          "timestamp": "2026-10-28T14:39:23+01:00",
+          "tree_id": "b78be9ec5cd7138a186ad017c74338c52493acda",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/198b077f85c25970e3187d712aad2c7f08afb4b3"
+        },
+        "date": 1793195029503,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 1440816.650390625,
+            "unit": "ns",
+            "range": "± 43870.90145393442"
           }
         ]
       }
