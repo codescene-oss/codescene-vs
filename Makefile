@@ -27,7 +27,7 @@ PROJ_FILES_RAW := $(wildcard Codescene.VSExtension.VS2022/*.csproj) \
                   $(wildcard Codescene.VSExtension.VS2022/**/**/*.csproj)
 PROJ_FILES := $(filter-out %_wpftmp.csproj,$(PROJ_FILES_RAW))
 
-cs-cwf.zip:
+cs-cwf.zip: cwf.version
 	@pwsh.exe .github/cwf.ps1 > cs-cwf.log 2>&1 && del cs-cwf.log || (type cs-cwf.log && del cs-cwf.log && exit /b 1)
 
 updatecwf:
