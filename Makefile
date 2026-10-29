@@ -6,7 +6,7 @@ include .github/sha.mk
 # Lazy-once cache key - computed on first use, then cached for rest of Make invocation
 CACHE_KEY = $(eval CACHE_KEY := $$(call get_cache_key))$(CACHE_KEY)
 
-.PHONY: test test1 test-mine coverage-mine copy-assets updatecwf restore format format-all format-check class-size-mine no-regions-mine test-cache test-sha install-cli delta pr-size clean prebuild quit-vs benchmark tag-test-release
+.PHONY: test test1 test-mine coverage-mine copy-assets updatecwf restore format format-all format-check class-size-mine no-regions-mine test-cache test-sha install-cli delta pr-size clean prebuild quit-vs benchmark tag-test-release test-release-flow
 
 # You might need something like:
 # export PATH="$PATH:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin:/mnt/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/Extensions/TestPlatform"
@@ -91,7 +91,7 @@ no-regions-mine:
 
 # iter - iterate. Good as a prompt: "iterate to success using `make iter`"
 # `format` temporarily removed.
-iter: build class-size-mine no-regions-mine delta test-mine   
+iter: build class-size-mine no-regions-mine delta test-mine test-release-flow   
 
 install-cli:
 	@pwsh.exe -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; Invoke-WebRequest -Uri 'https://downloads.codescene.io/enterprise/cli/install-cs-tool.ps1' -OutFile install-cs-tool.ps1; .\install-cs-tool.ps1; Remove-Item install-cs-tool.ps1"
@@ -111,4 +111,8 @@ benchmark: restore cs-ide.zip
 	@cd Codescene.VSExtension.VS2022 && dotnet.exe run --project .\Codescene.VSExtension.Core.Benchmarks\Codescene.VSExtension.Core.Benchmarks.csproj -c Release -- $(BENCH_ARGS) > benchmark.log 2>&1 && del benchmark.log || (type benchmark.log && del benchmark.log && exit /b 1)
 
 tag-test-release:
-	@pwsh.exe -File tag-test-release.ps1
+	@pwsh.exe -NoProfile -File tag-test-release.ps1 -Bump $(or $(BUMP),patch)
+
+test-release-flow:
+	@pwsh.exe -NoProfile -File .github/test-release-flow.ps1 > test-release-flow-pwsh.log 2>&1 && del test-release-flow-pwsh.log || (type test-release-flow-pwsh.log && del test-release-flow-pwsh.log && exit /b 1)
+	@powershell.exe -NoProfile -ExecutionPolicy Bypass -File .github/test-release-flow.ps1 > test-release-flow-winps.log 2>&1 && del test-release-flow-winps.log || (type test-release-flow-winps.log && del test-release-flow-winps.log && exit /b 1)
