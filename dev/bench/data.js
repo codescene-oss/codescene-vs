@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793195232688,
+  "lastUpdate": 1793262975288,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3380,6 +3380,36 @@ window.BENCHMARK_DATA = {
             "value": 1523849.7687088817,
             "unit": "ns",
             "range": "± 51448.15842822124"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b1259d1791d72aac307078a4bd4663198f5303fe",
+          "message": "Merge pull request #343 from codescene-oss/feature/tag-driven-release\n\nfeat(release): tag-driven release flow",
+          "timestamp": "2026-10-29T09:31:13+01:00",
+          "tree_id": "e48a74208d618cd54c2a93bc8d7ae3356c43c574",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/b1259d1791d72aac307078a4bd4663198f5303fe"
+        },
+        "date": 1793262972411,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 1517799.6282762096,
+            "unit": "ns",
+            "range": "± 45120.16886770139"
           }
         ]
       }
