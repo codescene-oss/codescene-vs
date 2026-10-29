@@ -1,82 +1,104 @@
-name: Fetch, Build and Test, VSIX (Release on tag)
+name: Release
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-test.[0-9a-f]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        type: string
+        required: true
+        description: Existing release tag to build and publish
+      dry_run:
+        type: boolean
+        default: false
+        description: Resolve the metadata and sign in to the Marketplace without releasing
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-release
+  cancel-in-progress: false
+  queue: max
 
 jobs:
-  # -------------------------------
-  # Job 1: Fetch required assets
-  # -------------------------------
-  fetch-docs:
-    name: Fetch Docs and Web Assets
+  metadata:
+    name: Resolve Release Metadata
     runs-on: windows-2025-vs2026
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download latest cs-webview release (private repo)
-        shell: pwsh
-        run: powershell.exe -File .github/cwf.ps1
-        env:
-          CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
-
-      - name: Get latest Codescene CLI version
-        shell: pwsh
-        run: powershell.exe -File .github/cli.ps1
-
-      - name: Upload fetched assets
-        uses: actions/upload-artifact@v4
-        with:
-          name: fetched-assets
-          path: |
-            cs-cwf/**
-            cs-ide/**
-
-  # -------------------------------
-  # Job 2: Build and Test
-  # -------------------------------
-  build-test:
-    name: Build and Test VSIX
-    runs-on: windows-2025-vs2026
-    needs: fetch-docs
-    # env:
-      # Feature flags here. Example:
-      # FEATURE_ACE: true
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.metadata.outputs.tag }}
+      version: ${{ steps.metadata.outputs.version }}
+      kind: ${{ steps.metadata.outputs.kind }}
+      notes_start: ${{ steps.metadata.outputs.notes_start }}
+      sha: ${{ steps.metadata.outputs.sha }}
+      dry_run: ${{ steps.metadata.outputs.dry_run }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Check PR size
-        if: github.event_name == 'pull_request'
+      - name: Resolve release metadata
+        id: metadata
         shell: pwsh
-        run: |
-          git fetch origin main:main
-          powershell.exe -File .github/pr-size.ps1
+        run: powershell.exe -NoProfile -File .github/release-flow.ps1 metadata
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+          EVENT: ${{ github.event_name }}
+          RUN_REF: ${{ github.ref }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          GH_TOKEN: ${{ github.token }}
 
-      - name: Validate test release tag
-        if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref_name, '-test.')
-        shell: pwsh
-        run: powershell.exe -File .github/validate-test-release-tag.ps1
-
-      - name: Download fetched assets
-        uses: actions/download-artifact@v4
+  build:
+    name: Build VSIX
+    runs-on: windows-2025-vs2026
+    needs: metadata
+    if: ${{ needs.metadata.outputs.dry_run != 'true' }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout tagged code
+        uses: actions/checkout@v4
         with:
-          name: fetched-assets
-          path: .
+          ref: refs/tags/${{ needs.metadata.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Checkout release tooling
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: release-tools
+          sparse-checkout: .github
+          fetch-depth: 1
+
+      - name: Download latest cs-webview release (private repo)
+        shell: pwsh
+        run: powershell.exe -NoProfile -File .github/cwf.ps1
+        env:
+          CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
+
+      - name: Get latest Codescene CLI version
+        shell: pwsh
+        run: powershell.exe -NoProfile -File .github/cli.ps1
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
-      - name: Setup VSTest
-        uses: darenm/Setup-VSTest@v1
-
       - name: Copy web assets into project
         shell: pwsh
-        run: powershell.exe -File .github/copy-assets.ps1
+        run: powershell.exe -NoProfile -File .github/copy-assets.ps1
+
+      - name: Set release version
+        shell: pwsh
+        run: powershell.exe -NoProfile -File release-tools/.github/release-flow.ps1 set-version
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+          REPO_PATH: ${{ github.workspace }}
 
       - name: Restore NuGet packages
         run: dotnet restore Codescene.VSExtension.VS2022/Codescene.VSExtension.sln
@@ -84,72 +106,50 @@ jobs:
       - name: Build solution
         run: msbuild Codescene.VSExtension.VS2022/Codescene.VSExtension.sln /p:Configuration=Release /p:Platform="Any CPU"
 
-      - name: Run unit tests
-        if: ${{ hashFiles('**/*Tests.dll') != '' }}
-        run: dotnet test Codescene.VSExtension.VS2022/Codescene.VSExtension.sln --configuration Release --no-build --results-directory ./Codescene.VSExtension.VS2022/TestResults/ --logger trx --collect "XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=lcov
-          
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: Test Results
-          path: "**/*.trx"
-          reporter: dotnet-trx
+      - name: Verify VSIX version
+        id: verify
+        shell: pwsh
+        run: powershell.exe -NoProfile -File release-tools/.github/release-flow.ps1 verify-vsix
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+          REPO_PATH: ${{ github.workspace }}
 
-      - name: Install ReportGenerator
-        if: always()
-        shell: pwsh
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool   
-      
-      - name: Merge coverage
-        if: always()
-        shell: pwsh
-        run: |
-          reportgenerator `
-          -reports:"**/TestResults/**/coverage.info" `
-          -targetdir:./Codescene.VSExtension.VS2022/TestResults/coverage-report/ `
-          -reporttypes:lcov   
-       
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: |
-            **/*.trx
-            **/coverage-report/lcov.info
-            
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
           name: vsix-package
-          path: '**/*.vsix'
-          
-      - name: Check code coverage
-        uses: ./.github/actions/check-coverage
-        if: always()
-        with:
-          access-token: ${{ secrets.CODESCENE_CODE_COVERAGE_API_TOKEN }}
-          project-url: "https://api.codescene.io/v2/projects/66574"
-          coverage-files: "**/coverage-report/lcov.info"
+          path: ${{ steps.verify.outputs.path }}
 
-  # -------------------------------
-  # Job 3: Release
-  # -------------------------------
-  release:
-    name: Create GitHub Release
+  create-release:
+    name: Create Release
     runs-on: windows-2025-vs2026
-    needs: build-test
-    if: startsWith(github.ref, 'refs/tags/v')
+    needs: metadata
+    if: ${{ needs.metadata.outputs.dry_run != 'true' }}
     permissions:
       contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Write release notes
-        if: contains(github.ref_name, '-test.')
+      - name: Create or update GitHub release
         shell: pwsh
-        run: powershell.exe -File .github/write-test-release-notes.ps1
+        run: powershell.exe -NoProfile -File .github/release-flow.ps1 create-release
+        env:
+          TAG: ${{ needs.metadata.outputs.tag }}
+          KIND: ${{ needs.metadata.outputs.kind }}
+          NOTES_START: ${{ needs.metadata.outputs.notes_start }}
+          SHA: ${{ needs.metadata.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+
+  upload:
+    name: Upload Release Assets
+    runs-on: windows-2025-vs2026
+    needs: [metadata, build, create-release]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Download VSIX artifact
         uses: actions/download-artifact@v4
@@ -157,25 +157,153 @@ jobs:
           name: vsix-package
           path: vsix
 
-      - name: Publish GitHub test release
-        if: contains(github.ref_name, '-test.')
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          body_path: release-notes.md
-          prerelease: true
-          files: vsix/**/*.vsix
+      - name: Upload VSIX to the release
+        shell: pwsh
+        run: powershell.exe -NoProfile -File .github/release-flow.ps1 upload
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.metadata.outputs.tag }}
+          ASSET_DIR: vsix
+          GH_TOKEN: ${{ github.token }}
 
-      - name: Publish GitHub release
-        if: ${{ !contains(github.ref_name, '-test.') }}
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          body: "Automated build for ${{ github.ref_name }}"
-          files: vsix/**/*.vsix
+  test-gate:
+    name: Verify Tests Passed
+    runs-on: windows-2025-vs2026
+    needs: [metadata, upload]
+    if: ${{ needs.metadata.outputs.kind == 'stable' && needs.metadata.outputs.dry_run != 'true' }}
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify the tagged commit passed the tests
+        shell: pwsh
+        run: powershell.exe -NoProfile -File .github/release-flow.ps1 test-gate
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ needs.metadata.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
+
+  publish:
+    name: Publish to Visual Studio Marketplace
+    runs-on: windows-2025-vs2026
+    needs: [metadata, test-gate]
+    if: ${{ !cancelled() && needs.metadata.result == 'success' && needs.metadata.outputs.kind == 'stable' && (needs.metadata.outputs.dry_run == 'true' || needs.test-gate.result == 'success') }}
+    environment: marketplace
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Find VsixPublisher.exe
+        id: find-vsixpub
+        shell: pwsh
+        run: |
+          $vsix = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\18" -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue |
+                  Select-Object -First 1 -ExpandProperty FullName
+          if (-not $vsix) { throw "VsixPublisher.exe not found on runner." }
+          echo "path=$vsix" >> $env:GITHUB_OUTPUT
+          Write-Host "Found VsixPublisher at: $vsix"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_MARKETPLACE_PUBLISHING_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_MARKETPLACE_PUBLISHING_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      - name: Sign in to Visual Studio Marketplace
+        shell: pwsh
+        run: |
+          $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+          if (-not $token) { throw "Failed to obtain a Microsoft Entra access token for the Marketplace." }
+          Write-Output "::add-mask::$token"
+
+          & "$env:VSIX_PUBLISHER" login `
+            -personalAccessToken "$token" `
+            -publisherName "CodeScene"
+          if ($LASTEXITCODE -ne 0) { throw "VsixPublisher login failed with exit code $LASTEXITCODE." }
+        env:
+          VSIX_PUBLISHER: ${{ steps.find-vsixpub.outputs.path }}
+
+      - name: Checkout tagged code
+        if: ${{ needs.metadata.outputs.dry_run != 'true' }}
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ needs.metadata.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Checkout release tooling
+        if: ${{ needs.metadata.outputs.dry_run != 'true' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: release-tools
+          sparse-checkout: .github
+          fetch-depth: 1
+
+      - name: Download VSIX from the release
+        if: ${{ needs.metadata.outputs.dry_run != 'true' }}
+        shell: pwsh
+        run: powershell.exe -NoProfile -File release-tools/.github/release-flow.ps1 download-asset
+        env:
+          TAG: ${{ needs.metadata.outputs.tag }}
+          ASSET_DIR: vsix
+          REPO_PATH: ${{ github.workspace }}
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Write Marketplace overview
+        if: ${{ needs.metadata.outputs.dry_run != 'true' }}
+        shell: pwsh
+        run: powershell.exe -NoProfile -File release-tools/.github/release-flow.ps1 write-overview
+        env:
+          REPO_PATH: ${{ github.workspace }}
+
+      - name: Publish to Visual Studio Marketplace
+        if: ${{ needs.metadata.outputs.dry_run != 'true' }}
+        shell: pwsh
+        run: powershell.exe -NoProfile -File release-tools/.github/release-flow.ps1 publish
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+          VSIX_PUBLISHER: ${{ steps.find-vsixpub.outputs.path }}
+          VSIX_DIR: vsix
+          PUBLISH_MANIFEST: ${{ github.workspace }}\Codescene.VSExtension.VS2022\Codescene.VSExtension.VS2022\publishManifest.json
+          REPO_PATH: ${{ github.workspace }}
+
+  record-version:
+    name: Record Released Version
+    runs-on: windows-2025-vs2026
+    needs: [metadata, publish]
+    if: ${{ needs.metadata.outputs.kind == 'stable' && needs.metadata.outputs.dry_run != 'true' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Record the released version on main
+        shell: pwsh
+        run: powershell.exe -NoProfile -File .github/release-flow.ps1 record-version
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+          REPO_PATH: ${{ github.workspace }}
+
+  promote:
+    name: Mark Release Latest
+    runs-on: windows-2025-vs2026
+    needs: [metadata, record-version]
+    if: ${{ needs.metadata.outputs.kind == 'stable' && needs.metadata.outputs.dry_run != 'true' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Mark the release as latest
+        shell: pwsh
+        run: powershell.exe -NoProfile -File .github/release-flow.ps1 promote
+        env:
+          TAG: ${{ needs.metadata.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}

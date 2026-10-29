@@ -84,3 +84,7 @@ Location: `Code Health Monitor` > `Extension Settings`
 ### Telemetry ###
 
 We collect anonymized telemetry for tracking usage and feature engagement. CodeScene adheres to Visual Studio's privacy settings to enable/disable this.
+
+## Release notes ##
+
+See the [GitHub Releases](https://github.com/codescene-oss/codescene-vs/releases) page for release notes and version history.

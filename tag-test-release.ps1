@@ -1,4 +1,6 @@
 param(
+    [ValidateSet('patch', 'minor', 'major')]
+    [string]$Bump = 'patch',
     [int]$ShaLength = 7,
     [switch]$WhatIf,
     [switch]$NoPush
@@ -6,46 +8,59 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$manifest = Join-Path $PSScriptRoot 'Codescene.VSExtension.VS2022\Codescene.VSExtension.VS2022\source.extension.vsixmanifest'
+$repository = 'codescene-oss/codescene-vs'
 
-function Get-VersionFromManifest {
-    param($path)
-    if (-not (Test-Path $path)) { throw "VSIX manifest not found: $path" }
-    [xml]$xml = Get-Content $path
-    $ver = $xml.PackageManifest.Metadata.Identity.Version
-    if ([string]::IsNullOrWhiteSpace($ver)) { throw 'Could not read Identity/@Version.' }
-    return $ver
+if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+    throw 'GitHub CLI (gh) is required to find the latest release. Install it from https://cli.github.com/.'
+}
+
+Import-Module (Join-Path $PSScriptRoot '.github\release-flow.psm1') -Force
+
+if ((Invoke-Native -FilePath 'gh' -ArgumentList @('auth', 'status')).ExitCode -ne 0) {
+    throw 'gh is not authenticated. Run "gh auth login" first.'
 }
 
 Push-Location $PSScriptRoot
 try {
-    $version = Get-VersionFromManifest $manifest
-    $shortSha = (git rev-parse --short=$ShaLength HEAD).Trim()
-    $tagName = "v$version-test.$shortSha"
-
-    if ($WhatIf) {
-        Write-Host "Would create tag: $tagName (VSIX version $version)"
-        return
+    $dirty = (Invoke-NativeChecked -FilePath 'git' -ArgumentList @('status', '--porcelain')).Output
+    if ($dirty) {
+        throw "Tagging a test release requires a clean worktree. Commit or stash these changes first:`n$dirty"
     }
+
+    $releases = @(Get-GitHubRelease -Repository $repository)
+    $highest = Select-HighestStableRelease -Releases $releases
+    if (-not $highest) {
+        throw "No published stable release found in $repository."
+    }
+
+    $highestInfo = Get-ReleaseTagInfo -Tag $highest.tag_name
+    $nextVersion = Get-NextReleaseVersion -Version $highestInfo.Version -Bump $Bump
+    $shortSha = (git rev-parse --short=$ShaLength HEAD).Trim()
+    $tagName = Get-TestReleaseTagName -Version $nextVersion -ShortSha $shortSha
 
     $localTag = git tag -l $tagName
     if ($localTag) {
         throw "Tag '$tagName' already exists locally."
     }
 
-    git ls-remote --exit-code --tags origin "refs/tags/$tagName" 2>$null
-    if ($LASTEXITCODE -eq 0) {
+    $remoteCheck = Invoke-Native -FilePath 'git' -ArgumentList @('ls-remote', '--exit-code', '--tags', 'origin', "refs/tags/$tagName")
+    if ($remoteCheck.ExitCode -eq 0) {
         throw "Tag '$tagName' already exists on origin."
     }
-    if ($LASTEXITCODE -ne 2) {
-        throw "Failed to check remote for tag '$tagName' (exit code $LASTEXITCODE)."
+    if ($remoteCheck.ExitCode -ne 2) {
+        throw "Failed to check remote for tag '$tagName' (exit code $($remoteCheck.ExitCode)): $($remoteCheck.Output)"
     }
 
-    git tag -a $tagName -m "Test release $version ($shortSha)"
+    if ($WhatIf) {
+        Write-Host "Would create tag: $tagName (next version $nextVersion after $($highest.tag_name))"
+        return
+    }
+
+    Invoke-NativeChecked -FilePath 'git' -ArgumentList @('tag', '-a', $tagName, '-m', "Test release $nextVersion ($shortSha)") | Out-Null
     Write-Host "Created tag $tagName"
 
     if (-not $NoPush) {
-        git push origin $tagName
+        Invoke-NativeChecked -FilePath 'git' -ArgumentList @('push', 'origin', $tagName) | Out-Null
         Write-Host "Pushed $tagName to origin."
     } else {
         Write-Host "Skipped push (-NoPush)."
