@@ -38,7 +38,7 @@ Stable tags run all eight jobs, in this order:
 | 3 | Create Release | `create-release` | Creates or updates the GitHub release with generated notes. The release is created as not latest |
 | 4 | Upload Release Assets | `upload` | Attaches the VSIX to the release; assets already attached are skipped |
 | 5 | Verify Tests Passed | `test-gate` | Requires a successful `Run tests` run for the tagged commit |
-| 6 | Publish to Visual Studio Marketplace | `publish` | Publishes the VSIX attached to the release (runs in the `marketplace` environment) |
+| 6 | Publish to Visual Studio Marketplace | `publish` | Publishes the VSIX attached to the release |
 | 7 | Record Released Version | `record-version` | Bot commit to `main` that sets the released version in the manifest and the version constant |
 | 8 | Mark Release Latest | `promote` | Marks the release as latest, only if no newer release is already latest |
 
@@ -99,7 +99,7 @@ gh workflow run github-release.yml --ref main -f tag=vX.Y.Z
 gh workflow run github-release.yml --ref main -f tag=v0.9.1 -f dry_run=true
 ```
 
-A dry run uses an existing stable tag. It runs `metadata` plus the Azure and publisher logins of the `publish` job only, in the `marketplace` environment. It creates no release, builds nothing, publishes nothing, commits nothing and promotes nothing. It is used to prove the Azure credential and the publish rights. Test tags are rejected.
+A dry run uses an existing stable tag. It runs `metadata` plus the Azure and publisher logins of the `publish` job only. It creates no release, builds nothing, publishes nothing, commits nothing and promotes nothing. It is used to prove the Azure credential and the publish rights. Test tags are rejected.
 
 ## Test releases
 
@@ -139,7 +139,5 @@ pwsh -File .github/migrate-changelog-to-releases.ps1 --apply
 
 ## Environment facts
 
-- The `publish` job runs in the `marketplace` environment. GitHub creates the environment on the first run that names it. It has no required reviewers.
-- The Azure federated credential used for publishing must accept the subject `repo:codescene-oss/codescene-vs:environment:marketplace`. The credential is developer-owned.
-- An optional deployment policy can limit the `marketplace` environment to `main` and `v*` tags.
+- The Azure federated credential used for publishing matches any subject under `repo:codescene-oss/codescene-vs:*` and is pinned to this repository and owner by ID, so tag, branch and dispatch runs can all log in without credential changes. The credential is developer-owned.
 - The `record-version` job pushes to `main` with `GITHUB_TOKEN`. This works because `main` has no branch protection or rulesets. Adding either would break the version record.

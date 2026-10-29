@@ -189,7 +189,6 @@ jobs:
     runs-on: windows-2025-vs2026
     needs: [metadata, test-gate]
     if: ${{ !cancelled() && needs.metadata.result == 'success' && needs.metadata.outputs.kind == 'stable' && (needs.metadata.outputs.dry_run == 'true' || needs.test-gate.result == 'success') }}
-    environment: marketplace
     permissions:
       contents: read
       id-token: write
