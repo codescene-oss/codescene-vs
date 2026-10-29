@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793262975288,
+  "lastUpdate": 1793274751035,
   "repoUrl": "https://github.com/codescene-oss/codescene-vs",
   "entries": {
     "Code Review - CliExecutor": [
@@ -3410,6 +3410,36 @@ window.BENCHMARK_DATA = {
             "value": 1517799.6282762096,
             "unit": "ns",
             "range": "± 45120.16886770139"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "martin.safsten@codescene.com",
+            "name": "Martin Säfsten",
+            "username": "martinsafsten-codescene"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0115e60583b9ce39d2b59a5f856f93357f0bd910",
+          "message": "Merge pull request #344 from codescene-oss/chore/remove-vsix-publish\n\nchore(release): remove the manual vsix-publish workflow",
+          "timestamp": "2026-10-29T12:47:12+01:00",
+          "tree_id": "9bfd0fafc5cc42ae7f17b8f33f64acfa04ae3c8b",
+          "url": "https://github.com/codescene-oss/codescene-vs/commit/0115e60583b9ce39d2b59a5f856f93357f0bd910"
+        },
+        "date": 1793274747322,
+        "tool": "benchmarkdotnet",
+        "benches": [
+          {
+            "name": "Codescene.VSExtension.Core.Benchmarks.CliExecutorBenchmarks.FnsToRefactorFromDeltaAsync",
+            "value": 1111809.6919221699,
+            "unit": "ns",
+            "range": "± 45676.91023470584"
           }
         ]
       }
