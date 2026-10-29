@@ -2,11 +2,8 @@ name: Fetch, Build and Test, VSIX (Release on tag)
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'v*'
-  pull_request:
 
 jobs:
   # -------------------------------
