@@ -6,13 +6,13 @@ namespace Codescene.VSExtension.Core.Models.Cli.Telemetry
 {
     public class TelemetryEvent
     {
-        [JsonProperty("event-name", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("event-name")]
         public string EventName { get; set; }
 
         [JsonProperty("user-id", NullValueHandling = NullValueHandling.Ignore)]
         public string UserId { get; set; }
 
-        [JsonProperty("editor-type", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("editor-type")]
         public string EditorType { get; set; }
 
         [JsonProperty("editor-version", NullValueHandling = NullValueHandling.Ignore)]

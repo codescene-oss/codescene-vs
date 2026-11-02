@@ -389,15 +389,15 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void TelemetryEvent_Serialize_OmitsNullValues()
+        public void TelemetryEvent_Serialize_OmitsOptionalNullValuesButKeepsTheRequiredKeys()
         {
             var telemetryEvent = new TelemetryEvent { EventName = "test" };
 
             var json = JsonConvert.SerializeObject(telemetryEvent);
 
             Assert.Contains("\"event-name\"", json);
+            Assert.Contains("\"editor-type\"", json);
             Assert.DoesNotContain("\"user-id\"", json);
-            Assert.DoesNotContain("\"editor-type\"", json);
             Assert.DoesNotContain("\"editor-version\"", json);
             Assert.DoesNotContain("\"extension-version\"", json);
             Assert.DoesNotContain("\"internal\"", json);
