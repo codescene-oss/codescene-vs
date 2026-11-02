@@ -13,12 +13,17 @@ namespace Codescene.VSExtension.Core.Util
                 return null;
             }
 
-            if (!delta.OldScore.HasValue)
+            if (!delta.NewScore.HasValue)
             {
-                return delta.NewScore.ToString();
+                return null;
             }
 
-            return delta.OldScore.Value + " → " + delta.NewScore;
+            if (!delta.OldScore.HasValue)
+            {
+                return delta.NewScore.Value.ToString();
+            }
+
+            return delta.OldScore.Value + " → " + delta.NewScore.Value;
         }
     }
 }

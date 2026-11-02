@@ -226,6 +226,24 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public void AssertDeclaredFieldsMatch_WithTheSameNumberAsIntegerAndFloat_Passes()
+        {
+            var fixture = JObject.Parse(@"{""score"":8}");
+            var entity = JObject.Parse(@"{""score"":8.0}");
+
+            ContractBundle.AssertDeclaredFieldsMatch(fixture, entity, new[] { "score" });
+        }
+
+        [TestMethod]
+        public void AssertDeclaredFieldsMatch_WithADifferentNumberOfTheOtherNumericKind_Fails()
+        {
+            var fixture = JObject.Parse(@"{""score"":8}");
+            var entity = JObject.Parse(@"{""score"":8.5}");
+
+            Assert.Throws<AssertFailedException>(() => ContractBundle.AssertDeclaredFieldsMatch(fixture, entity, new[] { "score" }));
+        }
+
+        [TestMethod]
         public void AssertDeclaredFieldsMatch_WithADroppedField_Fails()
         {
             var fixture = _bundle.Fixture("review", "full", FixtureForm.Entity);

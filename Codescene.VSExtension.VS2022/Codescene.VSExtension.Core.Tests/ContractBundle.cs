@@ -129,6 +129,12 @@ namespace Codescene.VSExtension.Core.Tests
             return variants.Select(variant => variant.ToString()).ToList();
         }
 
+        public (string SchemaFile, string Definition) FixtureSchema(string root)
+        {
+            var info = FixtureRoot(root);
+            return (RequiredText(info, "schema"), RequiredText(info, "definition"));
+        }
+
         public JToken Fixture(string root, string variant, FixtureForm form)
         {
             var variants = FixtureVariants(root);
@@ -154,6 +160,11 @@ namespace Codescene.VSExtension.Core.Tests
                 var problems = string.Join("\n", errors.Select(error => $"  {error.Path} {error.Kind}: {error}"));
                 Assert.Fail($"Value does not validate against {schemaFile}#{definition}:\n{problems}");
             }
+        }
+
+        private static string RequiredText(JObject info, string key)
+        {
+            return (string?)info[key] ?? throw new InvalidOperationException($"The fixture index has no \"{key}\"");
         }
 
         private static ContractBundle FromEnvironmentValue(string path)
@@ -251,11 +262,26 @@ namespace Codescene.VSExtension.Core.Tests
 
         private static void CompareValues(JToken? expected, JToken? actual, string location, List<string> problems)
         {
-            var equal = expected == null || actual == null ? expected == actual : JToken.DeepEquals(expected, actual);
+            var equal = expected == null || actual == null ? expected == actual : SameValue(expected, actual);
             if (!equal)
             {
                 problems.Add($"{location}: fixture has {Describe(expected)}, entity has {Describe(actual)}");
             }
+        }
+
+        private static bool SameValue(JToken expected, JToken actual)
+        {
+            if (IsNumber(expected) && IsNumber(actual))
+            {
+                return expected.Value<decimal>() == actual.Value<decimal>();
+            }
+
+            return JToken.DeepEquals(expected, actual);
+        }
+
+        private static bool IsNumber(JToken value)
+        {
+            return value.Type == JTokenType.Integer || value.Type == JTokenType.Float;
         }
 
         private static void CompareAt(JToken? expected, JToken? actual, string[] segments, string location, List<string> problems)

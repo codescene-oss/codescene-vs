@@ -39,7 +39,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 Delta = new Delta
                 {
                     ScoreChange = pair.Value.ScoreChange,
-                    OldScore = pair.Value.OldScore ?? 0m,
+                    OldScore = pair.Value.OldScore,
                     NewScore = pair.Value.NewScore,
                     FileLevelFindings = ToChangeDetails(pair.Value.FileLevelFindings),
                     FunctionLevelFindings = ToFunctionFinding(pair.Value.FunctionLevelFindings),

@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 {
@@ -8,9 +9,11 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
     {
         public decimal ScoreChange { get; set; }
 
-        public decimal NewScore { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public decimal? NewScore { get; set; }
 
-        public decimal OldScore { get; set; }
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public decimal? OldScore { get; set; }
 
         public List<ChangeDetail> FileLevelFindings { get; set; }
 
