@@ -162,6 +162,37 @@ namespace Codescene.VSExtension.Core.Tests
             }
         }
 
+        internal static string RepositoryRoot(string startDirectory)
+        {
+            var directory = new DirectoryInfo(startDirectory);
+            while (directory != null)
+            {
+                if (Directory.Exists(Path.Combine(directory.FullName, ".github")) && Directory.Exists(Path.Combine(directory.FullName, "Codescene.VSExtension.VS2022")))
+                {
+                    return directory.FullName;
+                }
+
+                directory = directory.Parent;
+            }
+
+            throw new InvalidOperationException($"Could not find the repository root above {startDirectory}; set {EnvironmentVariable} to the contract bundle.");
+        }
+
+        internal static JToken ParseJson(string text)
+        {
+            using var reader = new JsonTextReader(new StringReader(text)) { DateParseHandling = DateParseHandling.None };
+            return JToken.ReadFrom(reader);
+        }
+
+        /// <summary>
+        /// Compiles a schema document, refusing any keyword the C# validator would silently ignore.
+        /// </summary>
+        internal static JsonSchema Compile(JToken document, string schemaFile)
+        {
+            AssertSupportedKeywords(document, schemaFile, string.Empty);
+            return JsonSchema.FromJsonAsync(document.ToString(Formatting.None)).GetAwaiter().GetResult();
+        }
+
         private static string RequiredText(JObject info, string key)
         {
             return (string?)info[key] ?? throw new InvalidOperationException($"The fixture index has no \"{key}\"");
@@ -182,28 +213,6 @@ namespace Codescene.VSExtension.Core.Tests
             var extracted = Path.Combine(Path.GetTempPath(), DirectoryName + "-" + Guid.NewGuid().ToString("N"));
             ZipFile.ExtractToDirectory(path, extracted);
             return At(extracted);
-        }
-
-        private static string RepositoryRoot(string startDirectory)
-        {
-            var directory = new DirectoryInfo(startDirectory);
-            while (directory != null)
-            {
-                if (Directory.Exists(Path.Combine(directory.FullName, ".github")) && Directory.Exists(Path.Combine(directory.FullName, "Codescene.VSExtension.VS2022")))
-                {
-                    return directory.FullName;
-                }
-
-                directory = directory.Parent;
-            }
-
-            throw new InvalidOperationException($"Could not find the repository root above {startDirectory}; set {EnvironmentVariable} to the contract bundle.");
-        }
-
-        private static JToken ParseJson(string text)
-        {
-            using var reader = new JsonTextReader(new StringReader(text)) { DateParseHandling = DateParseHandling.None };
-            return JToken.ReadFrom(reader);
         }
 
         private static JToken MapKeys(JToken value, Func<string, string> rename)
@@ -413,9 +422,7 @@ namespace Codescene.VSExtension.Core.Tests
 
         private JsonSchema LoadSchema(string schemaFile)
         {
-            var document = ReadJson(Path.Combine("schemas", schemaFile));
-            AssertSupportedKeywords(document, schemaFile, string.Empty);
-            return JsonSchema.FromJsonAsync(document.ToString(Formatting.None)).GetAwaiter().GetResult();
+            return Compile(ReadJson(Path.Combine("schemas", schemaFile)), schemaFile);
         }
     }
 }

@@ -22,7 +22,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 
@@ -78,12 +77,7 @@ public partial class WebComponentUserControl : UserControl
     {
         try
         {
-            var settings = new JsonSerializerSettings
-            {
-                ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
-                Formatting = Formatting.None,
-            };
-            var messageString = JsonConvert.SerializeObject(message, settings);
+            var messageString = WebComponentJson.Serialize(message);
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -364,13 +358,7 @@ public partial class WebComponentUserControl : UserControl
         setContext();
         ";
 
-        var settings = new JsonSerializerSettings
-        {
-            ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() },
-            Formatting = Formatting.None,
-        };
-
-        var ideContext = JsonConvert.SerializeObject(payload, settings);
+        var ideContext = WebComponentJson.Serialize(payload);
 
         if (!ThreadHelper.CheckAccess())
         {

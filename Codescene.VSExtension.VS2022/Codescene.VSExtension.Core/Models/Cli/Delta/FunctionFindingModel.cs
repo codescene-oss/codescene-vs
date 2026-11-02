@@ -16,7 +16,7 @@ namespace Codescene.VSExtension.Core.Models.Cli.Delta
         /// <summary>
         /// Gets or sets present if the function finding is deemed refactorable.
         /// </summary>
-        [JsonProperty("refactorableFn")]
+        [JsonProperty("refactorable-fn")]
         public FnToRefactorModel RefactorableFn { get; set; }
     }
 }
