@@ -14,6 +14,7 @@
 		<PackageReference Include="LibGit2Sharp" Version="0.32.0" />
 		<PackageReference Include="Moq" Version="4.21.0" />
 		<PackageReference Include="MSTest" Version="4.5.1" />
+		<PackageReference Include="NJsonSchema" Version="10.9.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118" Condition="'$(RunStyleCopAnalyzers)' == 'true'">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

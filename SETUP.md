@@ -50,6 +50,12 @@ Limitations to be aware of:
 - `CWF_VERSION` overrides the pin only when `.github/cwf.ps1` is run directly (for example `$env:CWF_VERSION = '2.5.9'; pwsh .github/cwf.ps1`). Make does not see environment overrides, so it will not re-run the download when only the variable changes.
 - After `make updatecwf`, returning to the pinned release needs `.github/cwf.ps1` run directly, or `cs-cwf.zip` deleted so Make downloads it again.
 
+## CS IDE contract bundle
+
+`.github/cli.ps1` also downloads `cs-ide-contract-<RequiredDevToolVersion>.zip` (the schemas, wire manifest and fixtures published next to the CLI zips) and expands it to `cs-ide-contract/` at the repository root. The contract tests (`ContractBundle` in `Codescene.VSExtension.Core.Tests`) read it from there and fail when it is missing.
+
+Set `CS_IDE_CONTRACT_BUNDLE` to an unpacked bundle directory or a bundle zip to use a local bundle (for example `../codescene/cli/target/cs-ide-contract`) instead of the download. `.github/cli.ps1` honours it as well.
+
 ## Feature Flags
 
 This plugin supports simple feature flags that can be controlled at build time using environment variables. 

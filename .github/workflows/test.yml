@@ -34,6 +34,7 @@ jobs:
           path: |
             cs-cwf/**
             cs-ide/**
+            cs-ide-contract/**
 
   # -------------------------------
   # Job 2: Build and Test
