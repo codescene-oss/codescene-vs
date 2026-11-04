@@ -22,28 +22,36 @@ namespace Codescene.VSExtension.Core.Tests
             switch (entity)
             {
                 case JObject obj:
-                    var kept = new JObject();
-                    var fixtureObject = fixture as JObject;
-                    foreach (var property in obj.Properties())
-                    {
-                        JToken? fixtureChild = null;
-                        fixtureObject?.TryGetValue(property.Name, out fixtureChild);
-                        if (property.Value.Type == JTokenType.Null && fixtureChild == null)
-                        {
-                            continue;
-                        }
-
-                        kept[property.Name] = WithoutNullsAbsentFrom(property.Value, fixtureChild);
-                    }
-
-                    return kept;
+                    return ObjectWithoutNullsAbsentFrom(obj, fixture as JObject);
                 case JArray array:
-                    var fixtureItems = fixture as JArray;
-                    return new JArray(array.Select((item, index) =>
-                        WithoutNullsAbsentFrom(item, fixtureItems != null && index < fixtureItems.Count ? fixtureItems[index] : null)));
+                    return ArrayWithoutNullsAbsentFrom(array, fixture as JArray);
                 default:
                     return entity.DeepClone();
             }
+        }
+
+        private static JObject ObjectWithoutNullsAbsentFrom(JObject entity, JObject? fixture)
+        {
+            var kept = new JObject();
+            foreach (var property in entity.Properties())
+            {
+                JToken? fixtureChild = null;
+                fixture?.TryGetValue(property.Name, out fixtureChild);
+                if (property.Value.Type == JTokenType.Null && fixtureChild == null)
+                {
+                    continue;
+                }
+
+                kept[property.Name] = WithoutNullsAbsentFrom(property.Value, fixtureChild);
+            }
+
+            return kept;
+        }
+
+        private static JArray ArrayWithoutNullsAbsentFrom(JArray entity, JArray? fixture)
+        {
+            return new JArray(entity.Select((item, index) =>
+                WithoutNullsAbsentFrom(item, fixture != null && index < fixture.Count ? fixture[index] : null)));
         }
 
         private static void Collect(JToken value, string prefix, ISet<string> paths)

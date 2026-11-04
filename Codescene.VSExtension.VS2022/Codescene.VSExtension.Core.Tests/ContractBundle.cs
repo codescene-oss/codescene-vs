@@ -33,6 +33,12 @@ namespace Codescene.VSExtension.Core.Tests
             "$ref", "$schema", "additionalItems", "additionalProperties", "anyOf", "definitions", "description", "enum", "items", "oneOf", "properties", "required", "title", "type",
         };
 
+        private static readonly HashSet<string> NamedSchemaKeywords = new HashSet<string> { "properties", "definitions" };
+
+        private static readonly HashSet<string> SchemaListKeywords = new HashSet<string> { "oneOf", "anyOf", "items" };
+
+        private static readonly HashSet<string> SingleSchemaKeywords = new HashSet<string> { "items", "additionalItems", "additionalProperties" };
+
         private static readonly Regex UpperCaseLetter = new Regex("[A-Z]", RegexOptions.Compiled);
 
         private readonly ConcurrentDictionary<string, JsonSchema> _schemas = new ConcurrentDictionary<string, JsonSchema>();
@@ -314,14 +320,19 @@ namespace Codescene.VSExtension.Core.Tests
             }
 
             var segment = segments[0];
-            var expectedChild = expectedObject.TryGetValue(segment, out var expectedValue) ? expectedValue : null;
-            var actualChild = actualObject.TryGetValue(segment, out var actualValue) ? actualValue : null;
+            var expectedChild = ChildOrNull(expectedObject, segment);
+            var actualChild = ChildOrNull(actualObject, segment);
             if (expectedChild == null && actualChild == null)
             {
                 return;
             }
 
             CompareAt(expectedChild, actualChild, segments.Skip(1).ToArray(), $"{location}.{segment}", problems);
+        }
+
+        private static JToken? ChildOrNull(JObject parent, string name)
+        {
+            return parent.TryGetValue(name, out var child) ? child : null;
         }
 
         private static void CompareItems(JArray expected, JArray actual, string[] segments, string location, List<string> problems)
@@ -360,37 +371,31 @@ namespace Codescene.VSExtension.Core.Tests
 
         private static void AssertSupportedKeywordsBelow(JProperty keyword, string schemaFile, string location)
         {
-            switch (keyword.Name)
+            foreach (var (nested, nestedLocation) in NestedSchemas(keyword, location))
             {
-                case "properties":
-                case "definitions":
-                    foreach (var named in ((JObject)keyword.Value).Properties())
-                    {
-                        AssertSupportedKeywords(named.Value, schemaFile, $"{location}/{named.Name}");
-                    }
-
-                    break;
-                case "oneOf":
-                case "anyOf":
-                    foreach (var alternative in (JArray)keyword.Value)
-                    {
-                        AssertSupportedKeywords(alternative, schemaFile, location);
-                    }
-
-                    break;
-                case "items" when keyword.Value is JArray tuple:
-                    foreach (var element in tuple)
-                    {
-                        AssertSupportedKeywords(element, schemaFile, location);
-                    }
-
-                    break;
-                case "items":
-                case "additionalItems":
-                case "additionalProperties":
-                    AssertSupportedKeywords(keyword.Value, schemaFile, location);
-                    break;
+                AssertSupportedKeywords(nested, schemaFile, nestedLocation);
             }
+        }
+
+        private static IEnumerable<(JToken Schema, string Location)> NestedSchemas(JProperty keyword, string location)
+        {
+            var name = keyword.Name;
+            if (NamedSchemaKeywords.Contains(name))
+            {
+                return ((JObject)keyword.Value).Properties().Select(named => ((JToken)named.Value, $"{location}/{named.Name}"));
+            }
+
+            if (keyword.Value is JArray schemas && SchemaListKeywords.Contains(name))
+            {
+                return schemas.Select(schema => (schema, location));
+            }
+
+            if (SingleSchemaKeywords.Contains(name))
+            {
+                return new[] { (keyword.Value, location) };
+            }
+
+            return Enumerable.Empty<(JToken, string)>();
         }
 
         private JToken ReadJson(string relativePath)
