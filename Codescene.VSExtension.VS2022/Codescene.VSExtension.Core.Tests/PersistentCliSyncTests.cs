@@ -38,5 +38,13 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.AreEqual(7m + " → " + 8.5m, text);
         }
+
+        [TestMethod]
+        public void DeltaScoreText_ShowsNothingWhenTheNewScoreIsMissing()
+        {
+            var text = DeltaScoreText.Format(new DeltaResponseModel { OldScore = 7m });
+
+            Assert.IsNull(text);
+        }
     }
 }

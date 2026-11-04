@@ -2,6 +2,9 @@ param(
     [switch]$Local
 )
 
+# The schemas the webview (CWF) release ships next to its assets; the contract tests validate against them.
+$CwfSchemaFiles = @("webview-schema.json", "message-schema.json")
+
 function Exit-WithError($Message) {
     Write-Error $Message
     exit 1
@@ -69,6 +72,11 @@ function Copy-LocalBuild($AssetsPath) {
     if (Test-Path cs-cwf) { Remove-Item cs-cwf -Recurse -Force }
     New-Item -ItemType Directory -Path cs-cwf | Out-Null
     Copy-Item (Join-Path $AssetsPath "*") cs-cwf
+    foreach ($name in $CwfSchemaFiles) {
+        $schema = Join-Path (Split-Path $AssetsPath -Parent) $name
+        if (-not (Test-Path $schema)) { Exit-WithError "Local CWF build did not produce $name." }
+        Copy-Item $schema cs-cwf
+    }
     $webDir = "Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/ToolWindows/WebComponent"
     Copy-Item cs-cwf/index.css $webDir -Force
     Copy-Item cs-cwf/index.js $webDir -Force
@@ -96,6 +104,9 @@ function Test-CwfPresent($Version) {
     $stampPath = "cs-cwf/.cwf-version"
     if (-not ((Test-Path $stampPath) -and (Test-Path "cs-cwf/index.js"))) {
         return $false
+    }
+    foreach ($name in $CwfSchemaFiles) {
+        if (-not (Test-Path "cs-cwf/$name")) { return $false }
     }
     return ([string](Get-Content $stampPath -Raw)).Trim() -eq $Version
 }
@@ -157,6 +168,10 @@ function Expand-CwfArchive {
     if (Test-Path $assetsPath) {
         Get-ChildItem $assetsPath -File | Move-Item -Destination cs-cwf
     }
+    foreach ($name in $CwfSchemaFiles) {
+        $schema = Join-Path "cs-cwf-temp" $name
+        if (Test-Path $schema) { Move-Item $schema cs-cwf }
+    }
 
     Remove-Item cs-cwf-temp -Recurse -Force
 }
@@ -172,6 +187,11 @@ function Install-ReleaseCwf($Version) {
     Expand-CwfArchive
     if (-not (Test-Path "cs-cwf/index.js")) {
         Exit-WithError "CWF $Version extraction did not produce cs-cwf/index.js."
+    }
+    foreach ($name in $CwfSchemaFiles) {
+        if (-not (Test-Path "cs-cwf/$name")) {
+            Exit-WithError "CWF $Version does not ship $name; the contract tests need it. Pin a release that does."
+        }
     }
     Set-Content -Path $stampPath -Value $Version -Encoding ascii -NoNewline
 }

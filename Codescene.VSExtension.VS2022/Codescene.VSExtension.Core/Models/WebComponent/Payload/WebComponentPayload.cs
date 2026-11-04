@@ -27,7 +27,10 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Payload
         /// </summary>
         public bool Devmode { get; set; } = false;
 
-        public List<string> FeatureFlags { get; set; } = new List<string>() { "jobs", "open-settings", "ace-status-indicator" }; // Include loaders feature
+        /// <summary>
+        /// Gets or sets the feature flags to enable. Only flags the webview declares (FeatureFlags in cs-webview) are valid in its schema.
+        /// </summary>
+        public List<string> FeatureFlags { get; set; } = new List<string>() { "ace-status-indicator" };
 
         /// <summary>
         /// Helper for creating a Payload for the CWF Web views.

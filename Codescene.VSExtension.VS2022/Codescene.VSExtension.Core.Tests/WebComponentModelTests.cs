@@ -134,8 +134,6 @@ namespace Codescene.VSExtension.Core.Tests
             var model = new WebComponentPayload<string>();
 
             Assert.IsNotNull(model.FeatureFlags);
-            CollectionAssert.Contains(model.FeatureFlags, "jobs");
-            CollectionAssert.Contains(model.FeatureFlags, "open-settings");
             CollectionAssert.Contains(model.FeatureFlags, "ace-status-indicator");
         }
     }

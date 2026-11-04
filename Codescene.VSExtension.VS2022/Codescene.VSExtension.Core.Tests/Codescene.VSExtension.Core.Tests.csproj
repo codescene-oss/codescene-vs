@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<NoWarn>$(NoWarn);VSTHRD002;VSTHRD003;VSTHRD103;VSTHRD110;VSTHRD200;CS8602;CS8604</NoWarn>
+		<NoWarn>$(NoWarn);VSTHRD002;VSTHRD003;VSTHRD103;VSTHRD110;VSTHRD200;CS8602;CS8604;CS8618</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -14,6 +14,7 @@
 		<PackageReference Include="LibGit2Sharp" Version="0.32.0" />
 		<PackageReference Include="Moq" Version="4.21.0" />
 		<PackageReference Include="MSTest" Version="4.5.1" />
+		<PackageReference Include="NJsonSchema" Version="10.9.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118" Condition="'$(RunStyleCopAnalyzers)' == 'true'">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -22,6 +23,11 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Codescene.VSExtension.Core\Codescene.VSExtension.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- The payload classes the webview message handler reads messages into (the handler itself needs the Visual Studio SDK). -->
+		<Compile Include="..\Codescene.VSExtension.VS2022\ToolWindows\WebComponent\Models\*.cs" Link="WebComponentMessageModels\%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup>

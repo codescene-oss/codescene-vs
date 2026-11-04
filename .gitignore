@@ -412,6 +412,8 @@ FodyWeavers.xsd
 /cs-ide
 /cs-ide/vcruntime140.dll
 /cs-ide.zip
+/cs-ide-contract
+/cs-ide-contract.zip
 
 .build-timestamp
 .copy-assets

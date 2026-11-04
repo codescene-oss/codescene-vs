@@ -16,6 +16,14 @@ namespace Codescene.VSExtension.Core.Application.Cli
 {
     public sealed partial class IdeServerClient
     {
+        private static IReadOnlyList<string> ReadCapabilities(JToken token)
+        {
+            var capabilities = token as JArray;
+            return capabilities == null
+                ? new List<string>()
+                : capabilities.Where(item => item.Type == JTokenType.String).Select(item => (string)item).ToList();
+        }
+
         private void HandleStart(JObject metadata)
         {
             var normalized = (JObject)RpcJsonNormalizer.ToKebabCase(metadata ?? new JObject());
@@ -23,6 +31,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 Sha = (string)normalized["sha"],
                 Version = (string)normalized["version"],
+                Capabilities = ReadCapabilities(normalized["capabilities"]),
             };
             Metadata = parsed;
             TaskCompletionSource<ServerMetadata> pendingStart;

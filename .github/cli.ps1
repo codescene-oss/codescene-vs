@@ -27,3 +27,33 @@ $cliExePath = "./cs-ide/cs-ide.exe"
 $cliSha256 = (Get-FileHash $cliExePath -Algorithm SHA256).Hash.ToLowerInvariant()
 Write-Host "Bundled CLI SHA-256: $cliSha256"
 Write-Host "Update RequiredCliBinarySha256 in CliSettingsProvider.cs when RequiredDevToolVersion changes."
+
+$contractDir = "./cs-ide-contract"
+$localContract = $env:CS_IDE_CONTRACT_BUNDLE
+try {
+    if (Test-Path $contractDir) {
+        Remove-Item -Recurse -Force $contractDir
+    }
+    if ($localContract) {
+        if (-not (Test-Path $localContract)) {
+            throw "CS_IDE_CONTRACT_BUNDLE $localContract does not exist"
+        }
+        Write-Host "Using contract bundle $localContract"
+        if ((Get-Item $localContract).PSIsContainer) {
+            Copy-Item -Path $localContract -Destination $contractDir -Recurse -Force
+        } else {
+            Expand-Archive -Path $localContract -DestinationPath $contractDir -Force
+        }
+    } else {
+        $contractUrl = "https://downloads.codescene.io/enterprise/cli/cs-ide-contract-$RequiredDevToolVersion.zip"
+        Write-Host "Downloading from $contractUrl"
+        Invoke-WebRequest -Uri $contractUrl -OutFile cs-ide-contract.zip -ErrorAction Stop
+        Expand-Archive -Path cs-ide-contract.zip -DestinationPath $contractDir -Force
+    }
+    if (-not (Test-Path "$contractDir/wire-manifest.json")) {
+        throw "$contractDir/wire-manifest.json is missing, this is not a contract bundle"
+    }
+} catch {
+    Write-Error "Could not fetch the cs-ide contract bundle: $_"
+    exit 1
+}
