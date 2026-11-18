@@ -253,9 +253,30 @@ namespace Codescene.VSExtension.Core.Tests
             var payload = HomePayload(Deltas());
 
             var flags = ((JArray)At(payload, "featureFlags")).Select(flag => (string?)flag).ToArray();
+            Assert.AreEqual(0, flags.Length);
             CollectionAssert.DoesNotContain(flags, "jobs");
             CollectionAssert.DoesNotContain(flags, "open-settings");
-            CollectionAssert.Contains(flags, "ace-status-indicator");
+        }
+
+        [TestMethod]
+        public void DocsPayload_SendsNoFeatureFlags()
+        {
+            var model = new ShowDocumentationModel(FilePath, "Complex Method", "fakeFunction", new CodeRangeModel(3, 9, 1, 2));
+
+            var payload = DocsPayload(model, hasToken: true, aceAcknowledged: true);
+
+            var flags = ((JArray)At(payload, "featureFlags")).Select(flag => (string?)flag).ToArray();
+            Assert.AreEqual(0, flags.Length);
+        }
+
+        [TestMethod]
+        public void PayloadSchema_RejectsTheRemovedAceStatusIndicatorFlag()
+        {
+            var mapper = new CodeHealthMonitorMapper(RealPreflightManager(), new CodeHealthMonitorNotifier());
+            var payload = Sent(WebComponentPayload<CodeHealthMonitorComponentData>.Create(ViewTypes.HOME, mapper.Map(Deltas()), true));
+            ((JArray)payload["featureFlags"]).Add("ace-status-indicator");
+
+            AssertFails(() => _cwf.ValidatePayload(CwfSchemas.AsTheWebviewReadsIt(payload)), "featureFlags");
         }
 
         [TestMethod]

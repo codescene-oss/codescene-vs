@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using Codescene.VSExtension.Core.Util;
 using EnvDTE;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -60,6 +61,7 @@ public static class StyleHelper
     ///   <item><description><c>--cs-theme-button-background</c>: Primary button background color.</description></item>
     ///   <item><description><c>--cs-theme-button-secondaryForeground</c>: Secondary button text color.</description></item>
     ///   <item><description><c>--cs-theme-button-secondaryBackground</c>: Secondary button background color (may use fallback for dark themes).</description></item>
+    ///   <item><description><c>--cs-theme-success</c>, <c>--cs-theme-warning</c>, <c>--cs-theme-issue</c>: Status and issue colors (see <c>ThemeStatusColors</c>).</description></item>
     /// </list>
     ///
     /// <note>
@@ -85,10 +87,12 @@ public static class StyleHelper
 
             var editorFontFamily = GetEditorFontFamily(dte);
             var colors = GetThemeColors();
+            var statusColors = GetStatusColors();
 
             var sb = new StringBuilder();
 
             AppendRootStart(sb);
+            ThemeStatusColors.AppendStatusVariables(sb, statusColors.SuccessHex, statusColors.WarningHex, statusColors.IssueHex);
             AppendBasicCssVariables(sb, editorFontFamily, colors);
             AppendOpacityVariants(sb, colors);
             AppendRootEnd(sb);
@@ -146,6 +150,19 @@ public static class StyleHelper
         var secondaryButtonBgHex = ToHex(secondaryButtonBackground);
 
         return (textFgHex, editorBgHex, textLinkFgHex, codeBlockBgHex, buttonFgHex, buttonBgHex, secondaryButtonFgHex, secondaryButtonBgHex);
+    }
+
+    private static (string SuccessHex, string WarningHex, string IssueHex) GetStatusColors()
+    {
+        var success = VSColorTheme.GetThemedColor(EnvironmentColors.VizSurfaceGreenMediumColorKey);
+        var warning = VSColorTheme.GetThemedColor(EnvironmentColors.VizSurfaceGoldMediumColorKey);
+        var background = VSColorTheme.GetThemedColor(EnvironmentColors.ToolWindowBackgroundColorKey);
+
+        var successHex = ToHex(success);
+        var warningHex = ToHex(warning);
+        var issueHex = ThemeStatusColors.IssueHex(background.R, background.G, background.B);
+
+        return (successHex, warningHex, issueHex);
     }
 
     private static void AppendRootStart(StringBuilder sb)

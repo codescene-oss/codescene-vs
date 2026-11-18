@@ -30,7 +30,7 @@ namespace Codescene.VSExtension.Core.Tests
 
         private static readonly string[] SupportedSchemaKeywords =
         {
-            "$ref", "$schema", "additionalItems", "additionalProperties", "anyOf", "definitions", "description", "enum", "items", "oneOf", "properties", "required", "title", "type",
+            "$ref", "$schema", "additionalItems", "additionalProperties", "anyOf", "definitions", "description", "enum", "items", "maximum", "minimum", "oneOf", "properties", "required", "title", "type",
         };
 
         private static readonly HashSet<string> NamedSchemaKeywords = new HashSet<string> { "properties", "definitions" };
