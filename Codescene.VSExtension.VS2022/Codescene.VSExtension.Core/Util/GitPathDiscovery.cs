@@ -3,12 +3,35 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using LibGit2Sharp;
 
 namespace Codescene.VSExtension.Core.Util
 {
     public static class GitPathDiscovery
     {
+        public static IReadOnlyList<string> ResolveRepositoryRoots(IReadOnlyList<string> directories)
+        {
+            var targets = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var directory in directories)
+            {
+                var repoRoot = TryGetWorkingDirectory(directory);
+                if (string.IsNullOrEmpty(repoRoot))
+                {
+                    foreach (var nested in FindNestedRepositories(directory))
+                    {
+                        targets[RpcPath.NormalizeFsPath(nested)] = nested;
+                    }
+
+                    continue;
+                }
+
+                targets[RpcPath.NormalizeFsPath(repoRoot)] = repoRoot;
+            }
+
+            return targets.Values.ToList();
+        }
+
         public static IReadOnlyList<string> FindNestedRepositories(string directory)
         {
             var found = new List<string>();

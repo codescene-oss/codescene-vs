@@ -16,10 +16,21 @@ namespace Codescene.VSExtension.Core.Exceptions
             this.TraceId = traceId;
         }
 
+        public DevtoolsException(string message, int status, string traceId, string authErrorCode)
+            : base(message)
+        {
+            this.Message = message;
+            this.Status = status;
+            this.TraceId = traceId;
+            this.AuthErrorCode = authErrorCode;
+        }
+
         public override string Message { get; }
 
         public int Status { get; }
 
         public string TraceId { get; set; }
+
+        public string AuthErrorCode { get; }
     }
 }

@@ -77,6 +77,7 @@ public sealed class VS2022Package : ToolkitPackage
 
             await CheckCliFileAsync();
             await GetServiceAsync<CodeHealthMonitorBinder>();
+            await GetServiceAsync<Codescene.VSExtension.VS2022.Application.Auth.AuthFeatureBinder>();
             JoinableTaskFactory.RunAsync(() => StartIdeServerAsync(cancellationToken)).FileAndForget("VS2022Package/StartIdeServer");
             JoinableTaskFactory.RunAsync(ShowTelemetryNoticeAsync).FileAndForget("VS2022Package/TelemetryNotice");
 

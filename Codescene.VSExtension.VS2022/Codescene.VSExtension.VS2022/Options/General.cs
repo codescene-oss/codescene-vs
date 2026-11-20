@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Auth;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Security;
 using Codescene.VSExtension.Core.Interfaces;
@@ -28,6 +29,9 @@ public class General : BaseOptionModel<General>
     private byte[] _previousAuthToken;
     private bool _previousShowDebugLogs;
     private bool _previousEnableAutomaticAnalysis = true;
+    private bool _previousBrowserSignIn;
+    private string _previousServerUrl;
+    private byte[] _previousPlainAuthToken;
 
     public General()
     {
@@ -36,6 +40,9 @@ public class General : BaseOptionModel<General>
         _previousAuthToken = SecretBuffer.FromString(AuthToken);
         _previousShowDebugLogs = ShowDebugLogs;
         _previousEnableAutomaticAnalysis = EnableAutomaticAnalysis;
+        _previousBrowserSignIn = BrowserSignIn;
+        _previousServerUrl = ServerUrl;
+        _previousPlainAuthToken = SecretBuffer.FromString(AuthToken);
 
         Saved += OnSettingsSaved;
     }
@@ -55,10 +62,22 @@ public class General : BaseOptionModel<General>
     /// </summary>
     public static event EventHandler SettingsSaved;
 
+    public static event EventHandler AuthSettingsChanged;
+
     [Category("General")]
     [DisplayName("Show Debug Logs")]
     [Description("Enable detailed debug logs in the CodeScene Output window")]
     public bool ShowDebugLogs { get; set; } = false;
+
+    [Category("Experimental")]
+    [DisplayName("Browser sign-in")]
+    [Description("Sign in to CodeScene in the browser (experimental). Requires a CodeScene IDE server with sign-in support.")]
+    public bool BrowserSignIn { get; set; } = false;
+
+    [Category("Authentication")]
+    [DisplayName("Server URL")]
+    [Description("CodeScene server for browser sign-in. Leave empty to use CS_ONPREM_URL, then CodeScene Cloud. Used when Browser sign-in (experimental) is on.")]
+    public string ServerUrl { get; set; } = string.Empty;
 
     [Category("Authentication")]
     [DisplayName("Auth Token")]
@@ -85,6 +104,7 @@ public class General : BaseOptionModel<General>
     {
         await base.LoadAsync();
         AuthToken = AuthTokenProtector.Unprotect(AuthToken);
+        RememberAuthSettings(AuthToken);
     }
 
     public override async Task SaveAsync()
@@ -116,6 +136,8 @@ public class General : BaseOptionModel<General>
             AuthTokenChanged?.Invoke(this, EventArgs.Empty);
         }
 
+        DetectAuthSettingsChange();
+
         if (_previousShowDebugLogs != ShowDebugLogs)
         {
             _previousShowDebugLogs = ShowDebugLogs;
@@ -127,6 +149,33 @@ public class General : BaseOptionModel<General>
             _previousEnableAutomaticAnalysis = EnableAutomaticAnalysis;
             ApplyAutomaticAnalysis(EnableAutomaticAnalysis);
         }
+    }
+
+    private void DetectAuthSettingsChange()
+    {
+        var plaintext = AuthTokenProtector.Unprotect(AuthToken);
+        var changes = AuthSettingsComparison.Detect(
+            _previousBrowserSignIn,
+            BrowserSignIn,
+            _previousServerUrl,
+            ServerUrl,
+            _previousPlainAuthToken,
+            plaintext);
+
+        if (!changes.AuthSettingsChanged)
+        {
+            return;
+        }
+
+        RememberAuthSettings(plaintext);
+        AuthSettingsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void RememberAuthSettings(string plaintextToken)
+    {
+        _previousBrowserSignIn = BrowserSignIn;
+        _previousServerUrl = ServerUrl;
+        SecretBuffer.Replace(ref _previousPlainAuthToken, plaintextToken);
     }
 
     private void ApplyAutomaticAnalysis(bool enabled)

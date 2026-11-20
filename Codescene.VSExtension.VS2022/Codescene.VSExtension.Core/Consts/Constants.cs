@@ -90,6 +90,16 @@ namespace Codescene.VSExtension.Core.Consts
             public const string TERMSANDPOLICIESSHOWN = "terms_and_policies_shown";
             public const string TERMSANDPOLICIESRESPONSE = "terms_and_policies_response";
             public const string REVOKETERMS = "revoke_terms";
+
+            public const string AUTHSIGNINSTARTED = "auth/sign-in-started";
+            public const string AUTHSIGNINCOMPLETED = "auth/sign-in-completed";
+            public const string AUTHSIGNINCANCELLED = "auth/sign-in-cancelled";
+            public const string AUTHSIGNINFAILED = "auth/sign-in-failed";
+            public const string AUTHREAUTHORIZESTARTED = "auth/reauthorize-started";
+            public const string AUTHREAUTHORIZEFAILED = "auth/reauthorize-failed";
+            public const string AUTHSIGNOUT = "auth/sign-out";
+            public const string AUTHPATSET = "auth/pat-set";
+            public const string AUTHPATREMOVED = "auth/pat-removed";
         }
     }
 }

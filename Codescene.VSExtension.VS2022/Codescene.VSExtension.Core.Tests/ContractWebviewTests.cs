@@ -430,7 +430,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var all = typeof(MessageTypes).GetFields().Where(field => field.IsLiteral).Select(field => (string)(field.GetRawConstantValue() ?? string.Empty)).ToArray();
 
-            CollectionAssert.AreEquivalent(all, sampled.Concat(ace).Concat(sentToTheWebview).ToArray(), "a new message type must be sampled here, or listed as ACE");
+            CollectionAssert.AreEquivalent(all, sampled.Concat(ace).Concat(sentToTheWebview).Concat(ContractWebviewAuthTests.AuthMessageSamples).ToArray(), "a new message type must be sampled here, or listed as ACE");
         }
 
         private static JToken At(JToken root, string path)

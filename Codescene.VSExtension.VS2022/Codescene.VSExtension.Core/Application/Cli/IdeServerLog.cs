@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Codescene.VSExtension.Core.Application.Cli
 {
-    internal static class IdeServerLog
+    internal static partial class IdeServerLog
     {
         private static readonly Dictionary<string, Func<object, string>> RequestSummaries =
             new Dictionary<string, Func<object, string>>
