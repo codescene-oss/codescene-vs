@@ -17,6 +17,25 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        [DataRow("cs-ide/auth-configure")]
+        [DataRow("cs-ide/auth-cancel-login")]
+        [DataRow("cs-ide/project-link-get")]
+        [DataRow("cs-ide/project-link-set")]
+        public void RequestSummary_ForANonObjectArgument_IsEmpty(string method)
+        {
+            Assert.AreEqual(string.Empty, IdeServerLog.SummarizeRequest(method, "not an object"));
+        }
+
+        [TestMethod]
+        [DataRow("cs-ide/auth-status")]
+        [DataRow("cs-ide/auth-list-accounts")]
+        [DataRow("cs-ide/project-link-get")]
+        public void ResponseSummary_ForAnUnexpectedResult_IsEmpty(string method)
+        {
+            Assert.AreEqual(string.Empty, IdeServerLog.SummarizeResponse(method, "not json"));
+        }
+
+        [TestMethod]
         public void AuthConfigureSummary_RecordsPresenceOnly_NeverTheValues()
         {
             var fixture = (JObject)_bundle.Fixture("auth-configure-params", "full", FixtureForm.Wire);

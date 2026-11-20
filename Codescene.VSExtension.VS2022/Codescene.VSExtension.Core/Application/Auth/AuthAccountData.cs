@@ -15,9 +15,9 @@ namespace Codescene.VSExtension.Core.Application.Auth
             AuthRepo repo,
             ILogger logger)
         {
-            var accountsTask = FetchAccountsAsync(client, logger);
-            var projectsTask = FetchProjectsAsync(client, logger);
-            var linkTask = repo != null ? FetchLinkAsync(client, repo, logger) : Task.FromResult<JObject>(null);
+            var accountsTask = FetchAsync(() => client.AuthListAccountsAsync(), logger);
+            var projectsTask = FetchAsync(() => client.ProjectsListAsync(), logger);
+            var linkTask = repo != null ? FetchAsync(() => client.ProjectLinkGetAsync(repo.Path), logger) : Task.FromResult<JObject>(null);
 
             await Task.WhenAll(accountsTask, projectsTask, linkTask).ConfigureAwait(false);
 
@@ -45,39 +45,12 @@ namespace Codescene.VSExtension.Core.Application.Auth
             return (null, null, reason, candidates);
         }
 
-        private static async Task<JArray> FetchAccountsAsync(IIdeServerAuthClient client, ILogger logger)
+        private static async Task<T> FetchAsync<T>(Func<Task<T>> request, ILogger logger)
+            where T : class
         {
             try
             {
-                return await client.AuthListAccountsAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                var code = AuthErrors.Code(ex) ?? "unknown";
-                logger.Warn($"[auth] account data request failed code={code}");
-                return null;
-            }
-        }
-
-        private static async Task<JArray> FetchProjectsAsync(IIdeServerAuthClient client, ILogger logger)
-        {
-            try
-            {
-                return await client.ProjectsListAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                var code = AuthErrors.Code(ex) ?? "unknown";
-                logger.Warn($"[auth] account data request failed code={code}");
-                return null;
-            }
-        }
-
-        private static async Task<JObject> FetchLinkAsync(IIdeServerAuthClient client, AuthRepo repo, ILogger logger)
-        {
-            try
-            {
-                return await client.ProjectLinkGetAsync(repo.Path).ConfigureAwait(false);
+                return await request().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
