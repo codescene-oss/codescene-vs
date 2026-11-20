@@ -61,7 +61,7 @@ public partial class WebComponentUserControl : UserControl
     {
         _logger = logger;
         InitializeComponent();
-        Initialize(payload, payload.View);
+        Initialize(payload, WebComponentConstants.ViewTypes.HOME);
     }
 
     public WebComponentUserControl(WebComponentPayload<AceAcknowledgeComponentData> payload, ILogger logger)

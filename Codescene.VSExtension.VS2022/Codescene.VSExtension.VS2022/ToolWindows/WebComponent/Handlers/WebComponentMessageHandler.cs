@@ -7,6 +7,7 @@ using System.Windows;
 using Codescene.VSExtension.Core.Application.Ace;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Auth;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -29,6 +30,8 @@ internal class WebComponentMessageHandler
     private readonly WebComponentUserControl _control;
 
     private ILogger _logger;
+
+    private IAuthMessageRouter _authRouter;
 
     private ShowDocumentationHandler _showDocsHandler;
 
@@ -57,6 +60,12 @@ internal class WebComponentMessageHandler
         }
 
         _logger.Debug($"Received message from webview: '{msgObject?.MessageType}'.");
+
+        _authRouter ??= await VS.GetMefServiceAsync<IAuthMessageRouter>();
+        if (await _authRouter.TryRouteAsync(msgObject?.MessageType, msgObject?.Payload))
+        {
+            return;
+        }
 
         await ProcessMessageAsync(msgObject, _logger);
     }
@@ -153,7 +162,7 @@ internal class WebComponentMessageHandler
         // Mark the window as initialized, which will process any pending messages
         await _control.MarkAsInitializedAsync();
 
-        if (source == ViewTypes.HOME)
+        if (source == ViewTypes.HOME || source == ViewTypes.AUTH)
         {
             await CodeSceneToolWindow.UpdateViewAsync();
         }

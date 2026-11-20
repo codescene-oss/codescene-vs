@@ -31,19 +31,40 @@
 				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
 				<Icon guid="ImageCatalogGuid" id="User" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
 				<CommandFlag>DefaultInvisible</CommandFlag>
 				<Strings>
-					<ButtonText>Sign in with CodeScene Tools to use CodeScene</ButtonText>
+					<ButtonText>Sign in</ButtonText>
 				</Strings>
 			</Button>
 			<Button guid="CodeSceneCmdSet" id="SignOutCommand" priority="0x0100" type="Button">
 				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
 				<Icon guid="ImageCatalogGuid" id="User" />
-				<CommandFlag>TextChanges</CommandFlag>
 				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
 				<CommandFlag>DefaultInvisible</CommandFlag>
 				<Strings>
 					<ButtonText>Sign out</ButtonText>
+				</Strings>
+			</Button>
+			<Button guid="CodeSceneCmdSet" id="OpenAccountCommand" priority="0x0100" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
+				<Icon guid="ImageCatalogGuid" id="User" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Open CodeScene account</ButtonText>
+				</Strings>
+			</Button>
+			<Button guid="CodeSceneCmdSet" id="ReauthorizeCommand" priority="0x0100" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
+				<Icon guid="ImageCatalogGuid" id="User" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Re-authorize</ButtonText>
 				</Strings>
 			</Button>
 			<Button guid="CodeSceneCmdSet" id="OpenCodeSceneToolWindow" priority="0x0100" type="Button">
@@ -115,6 +136,8 @@
 			<IDSymbol name="SignInCommand" value="0x0400" />
 			<IDSymbol name="OpenStatusWindowCommand" value="0x0800" />
 			<IDSymbol name="SignOutCommand" value="0x0500" />
+			<IDSymbol name="OpenAccountCommand" value="0x0501" />
+			<IDSymbol name="ReauthorizeCommand" value="0x0502" />
 			<IDSymbol name="OpenCodeSceneToolWindow" value="0x0801" />
 		</GuidSymbol>
 		<!-- External Symbols -->
