@@ -339,7 +339,7 @@ namespace Codescene.VSExtension.Core.Tests
 
             var result = _mapper.MapSession(session);
 
-            Assert.IsFalse(result.Loading);
+            Assert.IsTrue(result.Loading);
             Assert.AreEqual("Analyzing code...", result.ProgressMessage);
         }
 

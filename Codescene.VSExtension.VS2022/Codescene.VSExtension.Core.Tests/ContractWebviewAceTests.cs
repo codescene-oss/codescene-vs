@@ -103,7 +103,7 @@ namespace Codescene.VSExtension.Core.Tests
             var fn = CreateTestFunction("test code");
             var aceData = new AceComponentData
             {
-                Loading = false,
+                Loading = true,
                 Error = null,
                 IsStale = false,
                 FileData = CreateFileData(fn, "test.ts"),

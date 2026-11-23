@@ -50,7 +50,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
 
             return new AceComponentData
             {
-                Loading = session.State == RefactoringSessionState.Running && string.IsNullOrEmpty(session.ProgressMessage),
+                Loading = session.State == RefactoringSessionState.Running,
                 Error = session.Error,
                 IsStale = session.State == RefactoringSessionState.Stale,
                 FileData = fileData,
