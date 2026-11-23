@@ -26,7 +26,7 @@ internal class AceRefactorSuggestedAction : ISuggestedAction
         _refactorableFunction = refactorableFunction;
     }
 
-    public string DisplayText => "Refactor using CodeScene ACE";
+    public string DisplayText => "Refactor using CodeScene Agent";
 
     public bool HasActionSets => false;
 

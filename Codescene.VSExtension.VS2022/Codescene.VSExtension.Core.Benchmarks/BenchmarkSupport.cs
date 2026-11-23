@@ -2,7 +2,6 @@
 
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
@@ -165,35 +164,14 @@ internal sealed class FixedSettingsProvider : ISettingsProvider
     public bool EnableAutomaticAnalysis => true;
 
     public bool EnableTelemetry => true;
-}
 
-internal sealed class FixedPreflightManager : IPreflightManager
-{
-    private readonly PreFlightResponseModel _response;
+    public bool EnableRefactoringAgent => true;
 
-    public FixedPreflightManager(PreFlightResponseModel response)
-    {
-        _response = response;
-    }
+    public string AgentModel => "anthropic/claude-sonnet-5-5";
 
-    public bool IsSupportedLanguage(string extension) => true;
+    public string AgentModelOverride => string.Empty;
 
-    public Task<PreFlightResponseModel> RunPreflightAsync(bool force = false, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(_response);
-    }
+    public string BedrockProfile => string.Empty;
 
-    public Task<PreFlightResponseModel> GetPreflightResponseAsync(CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult(_response);
-    }
-
-    public AutoRefactorConfig GetAutoRefactorConfig()
-    {
-        return new AutoRefactorConfig();
-    }
-
-    public void SetHasAceToken(bool hasAceToken)
-    {
-    }
+    public string BedrockRegion => string.Empty;
 }

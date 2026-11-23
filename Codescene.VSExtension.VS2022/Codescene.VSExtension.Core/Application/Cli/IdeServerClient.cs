@@ -14,7 +14,6 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
 using Codescene.VSExtension.Core.Util;
@@ -106,24 +105,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _logger.Info("[cs-ide] restarting");
             StopProcess(new Exception("CodeScene IDE server restarted"));
             await StartAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        public Task<PreFlightResponseModel> PreflightAsync(bool force = false, CancellationToken cancellationToken = default)
-        {
-            return SendRequestAsync<PreFlightResponseModel>(
-                "cs-ide/preflight",
-                new PreflightRequestParams { Force = force ? true : (bool?)null },
-                cancellationToken);
-        }
-
-        public Task<IList<FnToRefactorModel>> FnsToRefactorAsync(FnsToRefactorRequestModel request, CancellationToken cancellationToken = default)
-        {
-            return SendRequestAsync<IList<FnToRefactorModel>>("cs-ide/fns-to-refactor", request, cancellationToken);
-        }
-
-        public Task<RefactorResponseModel> RefactorAsync(RefactorPostRequestModel request, CancellationToken cancellationToken = default)
-        {
-            return SendRequestAsync<RefactorResponseModel>("cs-ide/refactor", request, cancellationToken);
         }
 
         public Task TelemetryAsync(object eventPayload, CancellationToken cancellationToken = default)

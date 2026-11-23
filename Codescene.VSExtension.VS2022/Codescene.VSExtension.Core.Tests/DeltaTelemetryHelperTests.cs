@@ -84,7 +84,7 @@ namespace Codescene.VSExtension.Core.Tests
         public async Task HandleDeltaTelemetryEvent_FileAdded_IncludesRefactorableFunctionCount()
         {
             var delta = CreateDeltaWithRefactorableFunctions(refactorableCount: 2, nonRefactorableCount: 1);
-            var capturedData = await CaptureAdditionalDataForFileAdded(delta);
+            var capturedData = await CaptureAdditionalDataForFileAdded(delta, agentEnabled: true);
 
             Assert.IsNotNull(capturedData);
             Assert.IsTrue(capturedData.ContainsKey("nRefactorableFunctions"));
@@ -134,7 +134,6 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void HandleDeltaTelemetryEvent_NullTelemetryManager_DoesNotThrow()
         {
-            // Arrange
             var previousSnapshot = new Dictionary<string, DeltaResponseModel>();
             var currentCache = new Dictionary<string, DeltaResponseModel>
             {
@@ -142,8 +141,29 @@ namespace Codescene.VSExtension.Core.Tests
             };
             var entry = new DeltaCacheEntry("file.cs", "old", "new", CreateDeltaResponse(0.0m));
 
-            // Act & Assert - should not throw
             DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, null);
+        }
+
+        [TestMethod]
+        public async Task NRefactorableFunctions_CountsEnrichedFindings_WhenEnabled()
+        {
+            var delta = CreateDeltaWithRefactorableFunctions(refactorableCount: 3, nonRefactorableCount: 2);
+            var capturedData = await CaptureAdditionalDataForFileAdded(delta, agentEnabled: true);
+
+            Assert.IsNotNull(capturedData);
+            Assert.IsTrue(capturedData.ContainsKey("nRefactorableFunctions"));
+            Assert.AreEqual(3, capturedData["nRefactorableFunctions"]);
+        }
+
+        [TestMethod]
+        public async Task Disabled_ReturnsZeroRefactorableFunctions()
+        {
+            var delta = CreateDeltaWithRefactorableFunctions(refactorableCount: 3, nonRefactorableCount: 2);
+            var capturedData = await CaptureAdditionalDataForFileAdded(delta, agentEnabled: false);
+
+            Assert.IsNotNull(capturedData);
+            Assert.IsTrue(capturedData.ContainsKey("nRefactorableFunctions"));
+            Assert.AreEqual(0, capturedData["nRefactorableFunctions"]);
         }
 
         private static DeltaResponseModel CreateDeltaWithFindings(int fileLevelCount, int functionLevelCount)
@@ -236,7 +256,7 @@ namespace Codescene.VSExtension.Core.Tests
             return (previous, current);
         }
 
-        private async Task<Dictionary<string, object>?> CaptureAdditionalDataForFileAdded(DeltaResponseModel delta)
+        private async Task<Dictionary<string, object>?> CaptureAdditionalDataForFileAdded(DeltaResponseModel delta, bool agentEnabled = false)
         {
             var uniqueFile = "newfile_" + Guid.NewGuid() + ".cs";
             var previousSnapshot = new Dictionary<string, DeltaResponseModel>();
@@ -253,7 +273,7 @@ namespace Codescene.VSExtension.Core.Tests
                     callReceived.Set();
                 });
 
-            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object);
+            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(previousSnapshot, currentCache, entry, _mockTelemetryManager.Object, agentEnabled);
 
             var signaled = await Task.Run(() => callReceived.Wait(AsyncTimeoutMs));
             Assert.IsTrue(signaled, "Timed out waiting for SendTelemetry to be called");

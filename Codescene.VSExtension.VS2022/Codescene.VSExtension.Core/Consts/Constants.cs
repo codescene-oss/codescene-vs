@@ -16,10 +16,9 @@ namespace Codescene.VSExtension.Core.Consts
         public class Titles
         {
             public const string CODESCENE = "CodeScene";
-            public const string CODESCENEACE = "CodeScene ACE";
+            public const string CODESCENEAGENT = "CodeScene Agent";
 
             public const string REVIEW = "review";
-            public const string ACE = "ace";
             public const string DELTA = "delta";
 
             public const string BRAINCLASS = "Brain Class";

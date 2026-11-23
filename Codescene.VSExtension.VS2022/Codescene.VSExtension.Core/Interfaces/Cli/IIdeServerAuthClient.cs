@@ -29,6 +29,8 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
 
         Task<JObject> AuthSyncAccountAsync(string repoPath, CancellationToken cancellationToken = default);
 
+        Task<JObject> AuthTokenAsync(CancellationToken cancellationToken = default);
+
         Task<JArray> ProjectsListAsync(CancellationToken cancellationToken = default);
 
         Task<JObject> ProjectLinkGetAsync(string repoPath, CancellationToken cancellationToken = default);

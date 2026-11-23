@@ -9,7 +9,6 @@ using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 
 namespace Codescene.VSExtension.Core.Util
 {
@@ -68,18 +67,12 @@ namespace Codescene.VSExtension.Core.Util
         }
 
         /// <summary>
-        /// Extracts the language from a file path or FnToRefactorModel.
+        /// Extracts the language from a file path.
         /// </summary>
         /// <param name="filePathOrName">The file path or name to extract language from.</param>
-        /// <param name="fnToRefactor">Optional FnToRefactorModel to extract language from.</param>
         /// <returns>The language/file type, or empty string if not found.</returns>
-        public static string ExtractLanguage(string filePathOrName, FnToRefactorModel fnToRefactor = null)
+        public static string ExtractLanguage(string filePathOrName)
         {
-            if (fnToRefactor != null)
-            {
-                return fnToRefactor.FileType ?? string.Empty;
-            }
-
             if (!string.IsNullOrEmpty(filePathOrName))
             {
                 var extension = Path.GetExtension(filePathOrName);

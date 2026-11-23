@@ -21,5 +21,15 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
         public bool EnableAutomaticAnalysis => true;
 
         public bool EnableTelemetry => true;
+
+        public bool EnableRefactoringAgent => true;
+
+        public string AgentModel => "anthropic/claude-sonnet-5-5";
+
+        public string AgentModelOverride => string.Empty;
+
+        public string BedrockProfile => string.Empty;
+
+        public string BedrockRegion => string.Empty;
     }
 }

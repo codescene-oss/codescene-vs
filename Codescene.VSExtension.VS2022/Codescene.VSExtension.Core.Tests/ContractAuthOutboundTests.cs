@@ -136,6 +136,18 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        public async Task AuthToken_SendsEmptyParams()
+        {
+            var fixture = (JObject)_bundle.Fixture("empty-params", _bundle.FixtureVariants("empty-params").First(), FixtureForm.Wire);
+            var (server, harness) = await StartHarnessAsync();
+
+            await harness.Client.AuthTokenAsync();
+            var sent = await WaitForAsync(server.AuthToken.Task);
+
+            AssertSent("empty-params", fixture, sent);
+        }
+
+        [TestMethod]
         [DataRow("cs-ide/auth-status")]
         [DataRow("cs-ide/auth-login")]
         [DataRow("cs-ide/auth-reauthorize")]
@@ -240,6 +252,8 @@ namespace Codescene.VSExtension.Core.Tests
 
             public TaskCompletionSource<JObject> AuthSyncAccount { get; } = new TaskCompletionSource<JObject>();
 
+            public TaskCompletionSource<JObject> AuthToken { get; } = new TaskCompletionSource<JObject>();
+
             public TaskCompletionSource<JObject> ProjectsList { get; } = new TaskCompletionSource<JObject>();
 
             public TaskCompletionSource<JObject> ProjectLinkGet { get; } = new TaskCompletionSource<JObject>();
@@ -307,6 +321,13 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 AuthSyncAccount.TrySetResult(parameters);
                 return new JObject { ["state"] = "signed-in" };
+            }
+
+            [JsonRpcMethod("cs-ide/auth-token", UseSingleObjectParameterDeserialization = true)]
+            public object? OnAuthToken(JObject parameters)
+            {
+                AuthToken.TrySetResult(parameters);
+                return new JObject { ["credential-source"] = "env-token", ["access-token"] = "fake-token" };
             }
 
             [JsonRpcMethod("cs-ide/projects-list", UseSingleObjectParameterDeserialization = true)]

@@ -2,11 +2,9 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models;
@@ -20,8 +18,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
     {
         private readonly ILogger _logger;
         private readonly IModelMapper _mapper;
-        private readonly ICliExecutor _executor;
-        private readonly IPreflightManager _preflightManager;
         private readonly IReviewPipeline _pipeline;
         private readonly ISettingsProvider _settings;
 
@@ -30,14 +26,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
             IModelMapper mapper,
             ICliExecutor executor,
             IReviewPipeline pipeline,
-            IPreflightManager preflightManager = null,
             ISettingsProvider settings = null)
         {
             _logger = logger;
             _mapper = mapper;
-            _executor = executor;
             _pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
-            _preflightManager = preflightManager;
             _settings = settings;
         }
 
@@ -84,8 +77,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 return (review, null);
             }
 
-            var enriched = await EnrichDeltaAsync(path, content, delta, cancellationToken);
-            return (review, enriched);
+            return (review, delta);
         }
 
         private bool ShouldUpdateMonitor(string path, string content)
@@ -113,32 +105,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             {
                 return true;
             }
-        }
-
-        private async Task<DeltaResponseModel> EnrichDeltaAsync(string path, string currentCode, DeltaResponseModel delta, CancellationToken cancellationToken)
-        {
-            if (_preflightManager == null || delta == null)
-            {
-                return delta;
-            }
-
-            var preflight = await _preflightManager.GetPreflightResponseAsync(cancellationToken);
-            var refactorableFunctions = await _executor.FnsToRefactorFromDeltaAsync(path, currentCode, delta, preflight, cancellationToken);
-            if (refactorableFunctions is not { Count: > 0 })
-            {
-                return delta;
-            }
-
-            foreach (var refactorableFunction in refactorableFunctions)
-            {
-                var function = delta.FunctionLevelFindings?.FirstOrDefault(x => x.Function.Name == refactorableFunction.Name);
-                if (function != null)
-                {
-                    function.RefactorableFn = refactorableFunction;
-                }
-            }
-
-            return delta;
         }
     }
 }

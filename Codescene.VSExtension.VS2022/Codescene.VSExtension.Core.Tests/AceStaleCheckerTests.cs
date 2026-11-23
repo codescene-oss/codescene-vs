@@ -1,6 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Application.Refactoring;
 using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 

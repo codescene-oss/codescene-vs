@@ -40,6 +40,8 @@ namespace Codescene.VSExtension.VS2022
         public const int OpenAccountCommand = 0x0501;
         public const int ReauthorizeCommand = 0x0502;
         public const int OpenCodeSceneToolWindow = 0x0801;
+        public const int SetProviderApiKeyCommand = 0x0503;
+        public const int TestConnectivityCommand = 0x0504;
         public const int IDM_VS_MENU_EXTENSIONS = 0x0091;
     }
 }

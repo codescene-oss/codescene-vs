@@ -15,6 +15,10 @@ namespace Codescene.VSExtension.Core.Util
             @"""token""\s*:\s*""[^""]*""",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        private static readonly Regex JsonApiKeyPropertyRegex = new Regex(
+            @"""[^""]*(?:token|api_key)""\s*:\s*""[^""]*""",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private static readonly Regex BearerTokenRegex = new Regex(
             @"Bearer\s+\S+",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -61,6 +65,12 @@ namespace Codescene.VSExtension.Core.Util
 
             var result = RedactCliTokenArguments(value);
             result = JsonTokenPropertyRegex.Replace(result, @"""token"":""***""");
+            result = JsonApiKeyPropertyRegex.Replace(result, m =>
+            {
+                var colonIndex = m.Value.IndexOf(':');
+                var propertyName = m.Value.Substring(0, colonIndex);
+                return propertyName + @":""***""";
+            });
             result = BearerTokenRegex.Replace(result, "Bearer ***");
             result = AuthorizationHeaderRegex.Replace(result, "Authorization: ***");
             result = SensitiveQueryParamRegex.Replace(result, "$1$2=***");

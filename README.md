@@ -6,7 +6,7 @@
 
 CodeScene promotes **healthy, maintainable code** by providing clear, actionable insights and guidance on how to improve your codebase.
 
-With an add-on **Automatic Refactoring with ACE**, CodeScene can even automate parts of the improvement process—helping developers enhance code quality and maintainability faster and more accurately.
+With the bundled **CodeScene Refactoring Agent**, CodeScene can even automate parts of the improvement process—helping developers enhance code quality and maintainability faster and more accurately.
 
 By using CodeScene, developers can spend less time deciphering and refactoring code, and more time focusing on what truly matters: **solving problems and delivering value**.
 
@@ -25,18 +25,20 @@ The **Code Health Monitor** flags for drops in code health in real time and offe
 
 > **_NOTE:_** _The Code Health Monitor is currently available to all users for a limited time period. However, this capability will become accessible only to CodeScene customers in future_.
 
-## Automatic Refactoring in ACE ##
-[CodeScene ACE](https://codescene.io/docs/auto-refactor/index.html) helps you with the hardest part of software development: maintaining and improving existing code. While other AI tools focus on code generation, CodeScene ACE fixes technical debt and refactors code smells directly in your IDE. With fact-based metrics, ACE focuses on the impactful improvements you can do now to simplify your tasks. Maintain momentum, and let ACE handle the heavy lifting for you.
+## Automatic Refactoring with CodeScene Refactoring Agent ##
+The [CodeScene Refactoring Agent](https://codescene.io/docs/auto-refactor/index.html) helps you with the hardest part of software development: maintaining and improving existing code. While other AI tools focus on code generation, the Refactoring Agent fixes technical debt and refactors code smells directly in your IDE. With fact-based metrics, the agent focuses on the impactful improvements you can do now to simplify your tasks.
+
+The extension bundles a local Refactoring Agent (version 1.1.13) that runs on your machine with your own LLM provider key. Sign in to CodeScene with your personal access token or browser-based authentication, then set your provider key using **Extensions > CodeScene > Set Refactoring Agent API key**. Test your setup with **Extensions > CodeScene > Test provider connectivity**.
 
 <img style="margin: 10px 10px 10px 10px;" src="screenshots/auto-refactor-showcase.gif" width="1000">
 
-> **_NOTE:_** _CodeScene ACE is an AI-Powered service that is not accessible by default. All AI technology is hosted seperately, and can only be utilized by consent of your organisation. It must be explicitly activated in order to become available via the CodeScene IDE extension. If you are interested in purchasing ACE for your organisation or just want to conduct a trial, please contact [Sales](https://codescene.com/product/talk-to-sales)_.
+> **_NOTE:_** _The Refactoring Agent is an AI-powered feature that requires your own API key from a supported LLM provider (Anthropic, OpenAI, or Google). The agent runs locally on your machine and communicates directly with your chosen provider. CodeScene does not host or provide LLM services_.
 
 ## Overview of Available Features ##
 | Feature | Description | What it looks like |
 |---------|-------------|--------------------|
 | **Code Health Monitor*** | The Code Health Monitor continuously tracks changes in your code, highlighting any improvements or degradations you introduce. Each file displays both its previous and current Code Health score, along with a clear delta value showing the overall change. You can easily see the impact of your modifications at the file or function level, including the status of any associated Code Smells—whether you’ve introduced new ones or resolved existing issues. With this level of visibility, there’s no longer any excuse for allowing Code Health to decline in your codebase. | <img style="margin: 10px 10px 10px 10px;" src="screenshots/monitor.png" alt="Monitor" width="2000px"/> |
-| **Automatic Refactoring**** | <div>CodeScene ACE enables automatic refactoring within the CodeScene IDE extension. Code Smells detected during code analysis can be flagged for automatic refactoring, and any changes identified by the Code Health Monitor that have refactoring potential are also considered. ACE selects the most suitable AI model for each task and validates the results to ensure that only relevant and high-quality refactorings are presented. Each suggested refactoring includes a confidence evaluation and highlights any potential concerns, giving developers clear guidance and control over improvements to their code.</div><p></p><div>These are the languages that ACE can refactor:</div><ul><li>Java</li><li>C#</li><li>C++</li><li>JavaScript</li><li>TypeScript</li><li>React additional support (works with JavaScript and TypeScript)</li></ul><div>ACE is currently capable to refactor a subset of Code Smells that may be detected:</div><ul><li>Complex Conditional</li><li>Bumpy Road Ahead</li><li>Complex Method</li><li>Deep, Nested Complexity</li><li>Large Method</li></ul> | <img style="margin: 10px 10px 10px 10px;" src="screenshots/ace.png" alt="ACE" width="2000px"/> |
+| **Automatic Refactoring**** | <div>The CodeScene Refactoring Agent enables automatic refactoring within the extension. Code Smells detected during code analysis can be flagged for automatic refactoring, and any changes identified by the Code Health Monitor that have refactoring potential are also considered. The agent uses your configured LLM model and validates the results to ensure that only relevant and high-quality refactorings are presented. Each suggested refactoring includes a confidence evaluation and highlights any potential concerns, giving developers clear guidance and control over improvements to their code.</div><p></p><div>The agent is offered for every Code Smell in every language the extension reviews.</div> | <img style="margin: 10px 10px 10px 10px;" src="screenshots/ace.png" alt="Refactoring Agent" width="2000px"/> |
 | **Inline Code Smell detection** | Code smells often lead to issues such as increased technical debt, more bugs, and reduced overall quality of the software. You can find detailed information for each code smell by either clicking the corresponding inline action notation in the editor, by examining the diagnostics (squigglies or in the Problems view), or by using the Quick Fix action menu (light bulb).| <img style="margin: 10px 10px 10px 10px;" src="screenshots/codesmells.png" alt="Code Smells" width="2000px"/> |
 | **Refactoring Guidance** | Our mission is to educate and raise awareness about Code Health and its impact on your efficiency as a developer. The CodeScene extension equips you with rich insights into Code Smells and provides clear, actionable guidance on how to address issues that may exist in your codebase. We include relevant examples that illustrate the essence of Code Smells, along with common patterns and practical solutions to help you write cleaner, more maintainable code. | <img style="margin: 10px 10px 10px 10px;" src="screenshots/documentation.png" alt="Code Smell Documentation" width="2000px"/> |
 | **Error List View** | When a file is opened in the editor, it is instantly scanned for existing Code Health issues. All discovered issues are then listed as warnings in the IDE Error List View. This way you instantly get an overview of all opportunities a file has for improvements. | <img style="margin: 10px 10px 10px 10px;" src="screenshots/problems.png" alt="Problem View" width="2000px"/> |
@@ -78,8 +80,18 @@ Location: `Code Health Monitor` > `Extension Settings`
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| **Auth Token** | String | - | CodeScene PAT Token for authentication. Used for Automatic Refactoring in ACE |
-| **Show Debug Logs** | Boolean | false | Enable/Disable debug logging in the CodeScene log file, and Output window.
+| **Auth Token** | String | - | Personal access token — an alternative to signing in. Also used for refactoring. The token is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings. |
+| **Show Debug Logs** | Boolean | false | Enable/Disable debug logging in the CodeScene log file, and Output window. |
+
+Location: `Refactoring Agent` > `Extension Settings`
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| **Enable Refactoring Agent** | Boolean | true | Enable CodeScene Refactoring Agent |
+| **Agent Model** | String | anthropic/claude-sonnet-5-5 | Model to use for the Refactoring Agent. |
+| **Agent Model Override** | String | - | Custom model identifier. If set, overrides the dropdown selection above. |
+| **Amazon Bedrock Profile** | String | - | AWS profile name for Amazon Bedrock. Set API keys for Anthropic, OpenAI and Google with Extensions > CodeScene > Set Refactoring Agent API key, and check the setup with Extensions > CodeScene > Test provider connectivity. |
+| **Amazon Bedrock Region** | String | - | AWS region for Amazon Bedrock. Set API keys for Anthropic, OpenAI and Google with Extensions > CodeScene > Set Refactoring Agent API key, and check the setup with Extensions > CodeScene > Test provider connectivity. |
 
 ### Telemetry ###
 

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
@@ -16,15 +15,15 @@ namespace Codescene.VSExtension.Core.Application.Mappers
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeHealthMonitorMapper
     {
-        private readonly IPreflightManager _preflightManager;
+        private readonly IAgentAvailability _availability;
         private readonly ICodeHealthMonitorNotifier _notifier;
 
         [ImportingConstructor]
         public CodeHealthMonitorMapper(
-            IPreflightManager preflightManager,
+            IAgentAvailability availability,
             [Import(AllowDefault = true)] ICodeHealthMonitorNotifier notifier = null)
         {
-            _preflightManager = preflightManager;
+            _availability = availability;
             _notifier = notifier;
         }
 
@@ -48,7 +47,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
 
             return new CodeHealthMonitorComponentData
             {
-                AutoRefactor = _preflightManager.GetAutoRefactorConfig(),
+                AutoRefactor = _availability.AutoRefactor(),
                 FileDeltaData = files,
                 Jobs = DeltaJobTracker.RunningJobs.ToList(),
                 AnalysisState = _notifier?.AnalysisState,
@@ -80,7 +79,7 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                         : null,
                 };
 
-                var refactorableFn = item.RefactorableFn != null
+                var refactorableFn = item.RefactorableFn != null && _availability.Enabled
                     ? new FunctionToRefactor
                     {
                         Name = item.RefactorableFn.Name,
@@ -92,8 +91,8 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                                 item.RefactorableFn.Range.StartColumn,
                                 item.RefactorableFn.Range.EndColumn)
                             : null,
-                        NippyB64 = item.RefactorableFn.NippyB64,
-                        FunctionType = item.RefactorableFn.FileType,
+                        FileType = item.RefactorableFn.FileType,
+                        FunctionType = item.RefactorableFn.FunctionType,
                         RefactoringTargets = item.RefactorableFn.RefactoringTargets?.ToList(),
                     }
                     : null;

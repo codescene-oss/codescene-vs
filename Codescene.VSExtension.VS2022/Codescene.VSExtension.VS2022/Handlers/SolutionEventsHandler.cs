@@ -81,7 +81,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
             var cache = new DeltaCacheService();
             cache.Clear();
             new ReviewCacheService().Clear();
-            new AceRefactorableFunctionsCacheService().Clear();
             CacheGeneration.Increment();
             _codeHealthMonitorNotifier?.Clear();
 
@@ -575,7 +574,6 @@ public class SolutionEventsHandler : IVsSolutionEvents, IVsSolutionEvents7, IDis
     {
         new DeltaCacheService().Clear();
         new ReviewCacheService().Clear();
-        new AceRefactorableFunctionsCacheService().Clear();
         _codeHealthMonitorNotifier?.Clear();
     }
 }

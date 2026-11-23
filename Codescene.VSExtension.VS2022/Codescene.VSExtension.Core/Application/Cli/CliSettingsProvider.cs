@@ -26,5 +26,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
         public string ArtifactBaseUrl => "https://downloads.codescene.io/enterprise/cli/";
 
         public string CliFileFullPath => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), CliFileName);
+
+        public string RequiredAgentVersion => "1.1.13";
+
+        public string RequiredAgentBinarySha256 => "02baa47e48b044a89f936b897e57b63430d45f0dcdfd83fb87485d35df33e855";
+
+        public string AgentFileName => "cs-agent.exe";
+
+        public string AgentFileFullPath => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), AgentFileName);
     }
 }

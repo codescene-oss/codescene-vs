@@ -100,6 +100,26 @@
 					<ButtonText>Copy Device ID</ButtonText>
 				</Strings>
 			</Button>
+			<Button guid="CodeSceneCmdSet" id="SetProviderApiKeyCommand" priority="0x0100" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
+				<Icon guid="ImageCatalogGuid" id="Certificate" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Set Refactoring Agent API key</ButtonText>
+				</Strings>
+			</Button>
+			<Button guid="CodeSceneCmdSet" id="TestConnectivityCommand" priority="0x0101" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
+				<Icon guid="ImageCatalogGuid" id="StatusOK" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Test provider connectivity</ButtonText>
+				</Strings>
+			</Button>
 			<!--
 			<Button guid="CodeSceneCmdSet" id="RevokeTerms" priority="0x9999" type="Button">
 				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
@@ -139,6 +159,8 @@
 			<IDSymbol name="OpenAccountCommand" value="0x0501" />
 			<IDSymbol name="ReauthorizeCommand" value="0x0502" />
 			<IDSymbol name="OpenCodeSceneToolWindow" value="0x0801" />
+			<IDSymbol name="SetProviderApiKeyCommand" value="0x0503" />
+			<IDSymbol name="TestConnectivityCommand" value="0x0504" />
 		</GuidSymbol>
 		<!-- External Symbols -->
 		<GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">

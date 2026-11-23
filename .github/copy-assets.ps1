@@ -7,3 +7,4 @@ Copy-Item cs-cwf/index.css $webDir -Force
 Copy-Item cs-cwf/index.js  $webDir -Force
 
 Copy-Item "./cs-ide/cs-ide.exe" $vsixDir -Force
+Copy-Item "./cs-agent/cs-agent.exe" $vsixDir -Force

@@ -26,11 +26,13 @@ namespace Codescene.VSExtension.Core.Util
         /// <param name="currentCache">The current state of the delta cache after the operation.</param>
         /// <param name="entry">The delta cache entry representing the file being evaluated.</param>
         /// <param name="telemetryManager">The telemetry manager responsible for dispatching the event.</param>
+        /// <param name="agentEnabled">Whether the agent is enabled. When false, nRefactorableFunctions is reported as zero.</param>
         public static void HandleDeltaTelemetryEvent(
             Dictionary<string, DeltaResponseModel> previousSnapshot,
             Dictionary<string, DeltaResponseModel> currentCache,
             DeltaCacheEntry entry,
-            ITelemetryManager telemetryManager)
+            ITelemetryManager telemetryManager,
+            bool agentEnabled = false)
         {
             var eventName = GetTelemetryEventName(previousSnapshot, currentCache, entry.FilePath);
             if (eventName == null)
@@ -50,11 +52,15 @@ namespace Codescene.VSExtension.Core.Util
                 Dictionary<string, object> additionalData = null;
                 if (hasAdditionalData)
                 {
+                    var nRefactorableFunctions = agentEnabled
+                        ? delta.FunctionLevelFindings.Count(finding => finding.RefactorableFn != null)
+                        : 0;
+
                     additionalData = new Dictionary<string, object>
                     {
                         { "scoreChange", delta.ScoreChange },
                         { "nIssues", delta.FunctionLevelFindings.Length + delta.FileLevelFindings.Length },
-                        { "nRefactorableFunctions", delta.FunctionLevelFindings.TakeWhile(finding => finding.RefactorableFn != null).Count() },
+                        { "nRefactorableFunctions", nRefactorableFunctions },
                     };
                 }
 

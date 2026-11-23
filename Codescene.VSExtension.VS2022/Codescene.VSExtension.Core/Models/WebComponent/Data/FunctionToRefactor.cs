@@ -11,7 +11,7 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 
         public string Body { get; set; }
 
-        public string NippyB64 { get; set; }
+        public string FileType { get; set; }
 
         public string FunctionType { get; set; }
 

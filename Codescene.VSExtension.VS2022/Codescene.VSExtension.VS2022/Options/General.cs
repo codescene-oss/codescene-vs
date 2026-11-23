@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application;
 using Codescene.VSExtension.Core.Application.Auth;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Security;
@@ -32,6 +33,7 @@ public class General : BaseOptionModel<General>
     private bool _previousBrowserSignIn;
     private string _previousServerUrl;
     private byte[] _previousPlainAuthToken;
+    private bool _previousEnableRefactoringAgent = true;
 
     public General()
     {
@@ -43,6 +45,7 @@ public class General : BaseOptionModel<General>
         _previousBrowserSignIn = BrowserSignIn;
         _previousServerUrl = ServerUrl;
         _previousPlainAuthToken = SecretBuffer.FromString(AuthToken);
+        _previousEnableRefactoringAgent = EnableRefactoringAgent;
 
         Saved += OnSettingsSaved;
     }
@@ -64,6 +67,8 @@ public class General : BaseOptionModel<General>
 
     public static event EventHandler AuthSettingsChanged;
 
+    public static event EventHandler RefactoringAgentEnabledChanged;
+
     [Category("General")]
     [DisplayName("Show Debug Logs")]
     [Description("Enable detailed debug logs in the CodeScene Output window")]
@@ -81,7 +86,7 @@ public class General : BaseOptionModel<General>
 
     [Category("Authentication")]
     [DisplayName("Auth Token")]
-    [Description("Authentication token for CodeScene ACE. The token is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
+    [Description("Personal access token — an alternative to signing in. Also used for refactoring. The token is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
     [PasswordPropertyText(true)]
     public string AuthToken { get; set; } = string.Empty;
 
@@ -99,6 +104,32 @@ public class General : BaseOptionModel<General>
     [DisplayName("Enable Automatic Analysis")]
     [Description("Automatically analyze file changes in the workspace. Open editors are still reviewed for diagnostics when this is off.")]
     public bool EnableAutomaticAnalysis { get; set; } = true;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("Enable Refactoring Agent")]
+    [Description("Enable CodeScene Refactoring Agent")]
+    public bool EnableRefactoringAgent { get; set; } = true;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("Agent Model")]
+    [Description("Model to use for the Refactoring Agent.")]
+    [TypeConverter(typeof(AgentModelConverter))]
+    public string AgentModel { get; set; } = AgentModels.Default;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("Agent Model Override")]
+    [Description("Custom model identifier. If set, overrides the dropdown selection above.")]
+    public string AgentModelOverride { get; set; } = string.Empty;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("Amazon Bedrock Profile")]
+    [Description("AWS profile name for Amazon Bedrock. Set API keys for Anthropic, OpenAI and Google with Extensions > CodeScene > Set Refactoring Agent API key, and check the setup with Extensions > CodeScene > Test provider connectivity.")]
+    public string BedrockProfile { get; set; } = string.Empty;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("Amazon Bedrock Region")]
+    [Description("AWS region for Amazon Bedrock. Set API keys for Anthropic, OpenAI and Google with Extensions > CodeScene > Set Refactoring Agent API key, and check the setup with Extensions > CodeScene > Test provider connectivity.")]
+    public string BedrockRegion { get; set; } = string.Empty;
 
     public override async Task LoadAsync()
     {
@@ -148,6 +179,12 @@ public class General : BaseOptionModel<General>
         {
             _previousEnableAutomaticAnalysis = EnableAutomaticAnalysis;
             ApplyAutomaticAnalysis(EnableAutomaticAnalysis);
+        }
+
+        if (_previousEnableRefactoringAgent != EnableRefactoringAgent)
+        {
+            _previousEnableRefactoringAgent = EnableRefactoringAgent;
+            RefactoringAgentEnabledChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 

@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Codescene.VSExtension.Core.Application.Cli;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -106,6 +107,41 @@ namespace Codescene.VSExtension.Core.Tests
 
             // ASSERT: Check if the computed full path is correct
             Assert.AreEqual(expectedFullPath, actualFullPath, "CliFileFullPath should return the correct full path to the CLI file.");
+        }
+
+        [TestMethod]
+        public void RequiredAgentVersion_IsSemver()
+        {
+            var provider = new CliSettingsProvider();
+            var version = provider.RequiredAgentVersion;
+
+            var semverPattern = @"^\d+\.\d+\.\d+$";
+            Assert.IsTrue(Regex.IsMatch(version, semverPattern), $"RequiredAgentVersion '{version}' should match semantic versioning format (MAJOR.MINOR.PATCH).");
+        }
+
+        [TestMethod]
+        public void RequiredAgentBinarySha256_Is64LowercaseHex()
+        {
+            var provider = new CliSettingsProvider();
+            var sha = provider.RequiredAgentBinarySha256;
+
+            Assert.AreEqual(64, sha.Length, "RequiredAgentBinarySha256 should be exactly 64 characters long.");
+            var hexPattern = @"^[0-9a-f]{64}$";
+            Assert.IsTrue(Regex.IsMatch(sha, hexPattern), $"RequiredAgentBinarySha256 '{sha}' should consist of 64 lowercase hexadecimal characters.");
+        }
+
+        [TestMethod]
+        public void AgentFileFullPath_IsNextToCliBinary()
+        {
+            var provider = new CliSettingsProvider();
+
+            var cliDirectory = Path.GetDirectoryName(provider.CliFileFullPath);
+            var agentDirectory = Path.GetDirectoryName(provider.AgentFileFullPath);
+
+            Assert.AreEqual(cliDirectory, agentDirectory, "AgentFileFullPath should be in the same directory as CliFileFullPath.");
+
+            var expectedAgentPath = Path.Combine(cliDirectory, provider.AgentFileName);
+            Assert.AreEqual(expectedAgentPath, provider.AgentFileFullPath, "AgentFileFullPath should combine the CLI directory with the agent file name.");
         }
     }
 }

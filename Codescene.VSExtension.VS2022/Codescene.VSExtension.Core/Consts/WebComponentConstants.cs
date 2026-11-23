@@ -12,7 +12,6 @@ namespace Codescene.VSExtension.Core.Consts
             public const string AUTH = "auth";
             public const string DOCS = "docs";
             public const string HOME = "home"; // Code Health Monitor
-            public const string ACEACKNOWLEDGE = "aceAcknowledge";
         }
 
         public class AceViewErrorTypes
@@ -37,7 +36,6 @@ namespace Codescene.VSExtension.Core.Consts
         {
             public const string INIT = "init";
             public const string APPLY = "apply";
-            public const string ACKNOWLEDGED = "acknowledged";
             public const string REJECT = "reject";
             public const string RETRY = "retry";
             public const string CLOSE = "close";

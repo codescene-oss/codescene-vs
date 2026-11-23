@@ -49,9 +49,6 @@ public class ShowDocumentationHandler
         var logger = await VS.GetMefServiceAsync<ILogger>();
         var mapper = await VS.GetMefServiceAsync<CodeSmellDocumentationMapper>();
 
-        var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
-        var aceAcknowledged = acknowledgementStateService.IsAcknowledged();
-
         try
         {
             logger.Info($"Opening doc '{model.Category}' for file {model.Path}");
@@ -61,7 +58,7 @@ public class ShowDocumentationHandler
                 MessageType = MessageTypes.UPDATERENDERER,
                 Payload = WebComponentPayload<CodeSmellDocumentationComponentData>.Create(
                     ViewTypes.DOCS,
-                    mapper.Map(model, fnToRefactor, aceAcknowledged)),
+                    mapper.Map(model, fnToRefactor)),
             });
         }
         catch (Exception e)

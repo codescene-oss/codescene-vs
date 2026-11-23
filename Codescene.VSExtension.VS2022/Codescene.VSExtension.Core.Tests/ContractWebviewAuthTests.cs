@@ -1,12 +1,11 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using Codescene.VSExtension.Core.Application.Ace;
 using Codescene.VSExtension.Core.Application.Auth;
 using Codescene.VSExtension.Core.Application.Mappers;
+using Codescene.VSExtension.Core.Application.Refactoring;
 using Codescene.VSExtension.Core.Application.Services;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models;
@@ -292,12 +291,11 @@ namespace Codescene.VSExtension.Core.Tests
 
         private static WebComponentPayload<CodeHealthMonitorComponentData> HomePayloadObject(AuthSnapshot snapshot)
         {
-            var preflight = new PreflightManager(
-                new Mock<ICliExecutor>().Object,
-                new Mock<ILogger>().Object,
-                new Mock<IAceStateService>().Object,
-                new Mock<ISettingsProvider>().Object);
-            var mapper = new CodeHealthMonitorMapper(preflight, new CodeHealthMonitorNotifier());
+            var availability = new Mock<IAgentAvailability>();
+            availability.Setup(x => x.Enabled).Returns(true);
+            availability.Setup(x => x.Authenticated).Returns(true);
+            availability.Setup(x => x.AutoRefactor()).Returns(new AutoRefactorConfig { Activated = true, Visible = true, Disabled = false });
+            var mapper = new CodeHealthMonitorMapper(availability.Object, new CodeHealthMonitorNotifier());
             return CodeHealthMonitorView.Payload(CodeHealthMonitorView.For(snapshot), mapper.Map(new Dictionary<string, DeltaResponseModel>()));
         }
 
@@ -321,10 +319,16 @@ namespace Codescene.VSExtension.Core.Tests
 
         private static JObject DocsPayload(AuthSnapshot snapshot)
         {
-            var settings = new Mock<ISettingsProvider>();
-            settings.Setup(x => x.AuthToken).Returns("valid-token");
+            var availability = new Mock<IAgentAvailability>();
+            availability.Setup(x => x.Authenticated).Returns(true);
+            availability.Setup(x => x.AutoRefactor()).Returns(new AutoRefactorConfig
+            {
+                Visible = true,
+                Activated = true,
+                Disabled = false,
+            });
             var model = new ShowDocumentationModel("src/fake.js", "Complex Method", "fakeFunction", new CodeRangeModel(3, 9, 1, 2));
-            var data = new CodeSmellDocumentationMapper(settings.Object).Map(model, null!, true);
+            var data = new CodeSmellDocumentationMapper(availability.Object).Map(model, null);
             return Sent(WebComponentPayload<CodeSmellDocumentationComponentData>.Create(WebComponentConstants.ViewTypes.DOCS, data), snapshot);
         }
 

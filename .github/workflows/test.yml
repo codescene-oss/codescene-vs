@@ -27,6 +27,12 @@ jobs:
         shell: pwsh
         run: powershell.exe -File .github/cli.ps1
 
+      - name: Get latest cs-agent version
+        shell: pwsh
+        run: powershell.exe -File .github/cs-agent.ps1
+        env:
+          CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
+
       - name: Upload fetched assets
         uses: actions/upload-artifact@v4
         with:
@@ -35,6 +41,7 @@ jobs:
             cs-cwf/**
             cs-ide/**
             cs-ide-contract/**
+            cs-agent/**
 
   # -------------------------------
   # Job 2: Build and Test
@@ -43,9 +50,6 @@ jobs:
     name: Build and Test VSIX
     runs-on: windows-2025-vs2026
     needs: fetch-docs
-    # env:
-      # Feature flags here. Example:
-      # FEATURE_ACE: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

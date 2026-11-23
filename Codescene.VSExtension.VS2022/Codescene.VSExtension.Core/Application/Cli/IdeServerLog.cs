@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
 using Codescene.VSExtension.Core.Models.Cli.Telemetry;
@@ -18,9 +16,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private static readonly Dictionary<string, Func<object, string>> RequestSummaries =
             new Dictionary<string, Func<object, string>>
             {
-                { "cs-ide/preflight", SummarizePreflightRequest },
-                { "cs-ide/fns-to-refactor", argument => SummarizeFnsRequest(argument as FnsToRefactorRequestModel) },
-                { "cs-ide/refactor", argument => SummarizeRefactorRequest(argument as RefactorPostRequestModel) },
                 { "cs-ide/telemetry", argument => LogFields.Format(LogFields.Field("eventName", TelemetryEventName(argument))) },
                 { "cs-ide/check-rules", SummarizeCheckRulesRequest },
                 { "cs-ide/getWatchInventory", SummarizeInventoryRequest },
@@ -29,8 +24,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private static readonly Dictionary<string, Func<object, string>> ResponseSummaries =
             new Dictionary<string, Func<object, string>>
             {
-                { "cs-ide/preflight", SummarizePreflightResponse },
-                { "cs-ide/refactor", SummarizeRefactorResponse },
                 { "cs-ide/device-id", argument => LogFields.Format(LogFields.Field("ok", true)) },
                 { "cs-ide/code-health-rules-template", argument => LogFields.Format(LogFields.Field("ok", true)) },
                 { "cs-ide/check-rules", SummarizeCheckRulesResponse },
@@ -54,11 +47,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public static string SummarizeResponse(string method, object result)
         {
-            if (method == "cs-ide/fns-to-refactor")
-            {
-                return SummarizeFnsResponse(result);
-            }
-
             if (result == null)
             {
                 return string.Empty;
@@ -107,12 +95,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return string.Empty;
         }
 
-        private static string SummarizePreflightRequest(object argument)
-        {
-            var preflight = argument as PreflightRequestParams;
-            return LogFields.Format(LogFields.Field("force", preflight?.Force == true));
-        }
-
         private static string SummarizeCheckRulesRequest(object argument)
         {
             var rules = argument as CheckRulesRequestParams;
@@ -133,51 +115,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             return LogFields.Format(LogFields.Field("repoRoot", inventory.RepoRoot));
-        }
-
-        private static string SummarizeFnsResponse(object result)
-        {
-            var functions = result as IList<FnToRefactorModel>;
-            if (functions == null)
-            {
-                return string.Empty;
-            }
-
-            return LogFields.Format(
-                LogFields.Field("count", functions.Count),
-                LogFields.Field("functions", functions.Select(SummarizeFunction).ToArray()));
-        }
-
-        private static string SummarizePreflightResponse(object result)
-        {
-            var preflight = result as PreFlightResponseModel;
-            if (preflight == null)
-            {
-                return string.Empty;
-            }
-
-            return LogFields.Format(
-                LogFields.Field("version", preflight.Version),
-                LogFields.Field("fileTypes", preflight.FileTypes),
-                LogFields.Field("codeSmellCount", preflight.LanguageCommon?.CodeSmells?.Length ?? 0),
-                LogFields.Field("maxInputLoc", preflight.LanguageCommon?.MaxInputLoc));
-        }
-
-        private static string SummarizeRefactorResponse(object result)
-        {
-            var refactor = result as RefactorResponseModel;
-            if (refactor == null)
-            {
-                return string.Empty;
-            }
-
-            return LogFields.Format(
-                LogFields.Field("traceId", refactor.TraceId),
-                LogFields.Field("confidence", refactor.Confidence?.Level),
-                LogFields.Field("cached", refactor.Metadata?.Cached == true),
-                LogFields.Field("reasonCount", refactor.Reasons?.Length ?? 0),
-                LogFields.Field("added", refactor.RefactoringProperties?.AddedCodeSmells),
-                LogFields.Field("removed", refactor.RefactoringProperties?.RemovedCodeSmells));
         }
 
         private static string SummarizeCheckRulesResponse(object result)
@@ -206,47 +143,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 LogFields.Field("files", inventory.Files));
         }
 
-        private static string SummarizeFnsRequest(FnsToRefactorRequestModel request)
-        {
-            if (request == null)
-            {
-                return string.Empty;
-            }
-
-            string input = "none";
-            int? smellCount = null;
-            if (request is FnsToRefactorDeltaRequestModel delta && delta.DeltaResult != null)
-            {
-                input = "delta-result";
-            }
-            else if (request is FnsToRefactorCodeSmellRequestModel smells)
-            {
-                input = "code-smells";
-                smellCount = smells.CodeSmells?.Count;
-            }
-
-            return LogFields.Format(
-                LogFields.Field("fileName", request.FileName),
-                LogFields.Field("input", input),
-                LogFields.Field("smellCount", smellCount),
-                LogFields.Field("hasCachePath", request.CachePath != null));
-        }
-
-        private static string SummarizeRefactorRequest(RefactorPostRequestModel request)
-        {
-            if (request == null)
-            {
-                return string.Empty;
-            }
-
-            var format = request.FnToRefactorNippyB64 != null
-                ? "nippy-b64"
-                : request.FnToRefactor != null ? "json" : "none";
-            return LogFields.Format(
-                LogFields.Field("format", format),
-                LogFields.Field("skipCache", request.SkipCache == true));
-        }
-
         private static string TelemetryEventName(object argument)
         {
             var payload = argument is TelemetryRequestParams wrapped ? wrapped.Event : argument;
@@ -261,23 +157,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             return null;
-        }
-
-        private static string SummarizeFunction(FnToRefactorModel function)
-        {
-            if (function == null)
-            {
-                return "(invalid)";
-            }
-
-            var name = string.IsNullOrEmpty(function.Name) ? "(unnamed)" : function.Name;
-            var range = function.Range == null
-                ? string.Empty
-                : "@" + function.Range.StartLine + ":" + function.Range.StartColumn + "-" + function.Range.EndLine + ":" + function.Range.EndColumn;
-            var categories = function.RefactoringTargets == null
-                ? string.Empty
-                : string.Join(", ", function.RefactoringTargets.Select(target => target.Category).Where(category => !string.IsNullOrEmpty(category)));
-            return name + range + (categories.Length == 0 ? string.Empty : "[" + categories + "]");
         }
 
         private static string Suffix(string summary)
