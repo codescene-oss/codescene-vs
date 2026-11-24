@@ -104,4 +104,10 @@ public sealed class TestSettingsProvider : ISettingsProvider
     public string BedrockProfile => string.Empty;
 
     public string BedrockRegion => string.Empty;
+
+    public string AnthropicApiKey => string.Empty;
+
+    public string OpenAIApiKey => string.Empty;
+
+    public string GoogleApiKey => string.Empty;
 }

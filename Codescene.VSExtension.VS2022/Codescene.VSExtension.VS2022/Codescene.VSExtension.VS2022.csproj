@@ -75,7 +75,6 @@
     <Compile Include="Application\Auth\SignInNudgeService.cs" />
     <Compile Include="Application\Auth\VsAuthHost.cs" />
     <Compile Include="Application\Auth\VsAuthSettings.cs" />
-    <Compile Include="Application\VsProviderKeyBackingStore.cs" />
     <Compile Include="Application\VsRefactoringHost.cs" />
     <Compile Include="Application\Cli\CachingCodeReviewerProvider.cs" />
     <Compile Include="Application\Git\BranchWatcherService.cs" />
@@ -85,13 +84,9 @@
     <Compile Include="Application\Services\CodeHealthMonitorBinder.cs" />
     <Compile Include="Cache\CacheStorageService.cs" />
     <Compile Include="Commands\CopyDeviceIdCommand.cs" />
-    <Compile Include="Commands\OpenAccountCommand.cs" />
     <Compile Include="Commands\OpenCodeSceneToolWindowCommand.cs" />
     <Compile Include="Commands\ReauthorizeCommand.cs" />
     <Compile Include="Commands\RevokeTermsCommand.cs" />
-    <Compile Include="Commands\SetProviderApiKeyCommand.cs" />
-    <Compile Include="Commands\SignInCommand.cs" />
-    <Compile Include="Commands\SignOutCommand.cs" />
     <Compile Include="Commands\TestConnectivityCommand.cs" />
     <Compile Include="Tagger\UnderlineTaggerTooltipParams.cs" />
     <Compile Include="Handlers\AgentAvailabilityBinder.cs" />
@@ -101,9 +96,6 @@
     <Compile Include="Handlers\SolutionEventsHandler.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
-    <Compile Include="Controls\ProviderApiKeyDialog.xaml.cs">
-      <DependentUpon>ProviderApiKeyDialog.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Controls\UnderlineTaggerTooltip.xaml.cs">
       <DependentUpon>UnderlineTaggerTooltip.xaml</DependentUpon>
     </Compile>
@@ -249,10 +241,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Controls\ProviderApiKeyDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Controls\UnderlineTaggerTooltip.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

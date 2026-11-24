@@ -23,5 +23,11 @@ namespace Codescene.VSExtension.Core.Interfaces.Extension
         string BedrockProfile { get; }
 
         string BedrockRegion { get; }
+
+        string AnthropicApiKey { get; }
+
+        string OpenAIApiKey { get; }
+
+        string GoogleApiKey { get; }
     }
 }

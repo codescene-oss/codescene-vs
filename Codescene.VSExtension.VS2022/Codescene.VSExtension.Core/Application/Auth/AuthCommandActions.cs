@@ -10,15 +10,10 @@ namespace Codescene.VSExtension.Core.Application.Auth
     public static class AuthCommandActions
     {
         public const string InactiveMessage = "Browser sign-in is experimental. Turn on Tools > Options > CodeScene > General > Browser sign-in to use it.";
-        public const string SettingTokenMessage = "You are signed in with a personal access token. Remove it from Tools > Options > CodeScene > General to sign out.";
-        public const string EnvTokenMessage = "You are signed in with the CS_ACCESS_TOKEN environment variable. Unset it and restart Visual Studio to sign out.";
-        public const string NotSignedInMessage = "Not signed in to CodeScene.";
 
         public enum Command
         {
             SignIn,
-            SignOut,
-            OpenAccount,
             Reauthorize,
         }
 
@@ -47,45 +42,6 @@ namespace Codescene.VSExtension.Core.Application.Auth
             {
                 await service.SignInAsync();
             }
-        }
-
-        public static async Task SignOutAsync(IAuthService service, IAuthHost host)
-        {
-            if (!service.Current.Active)
-            {
-                await host.ShowMessageAsync(InactiveMessage);
-                return;
-            }
-
-            var credentialSource = AuthStatusFields.CredentialSource(service.Current.Status);
-
-            if (credentialSource == "oauth")
-            {
-                await service.SignOutAsync();
-            }
-            else if (credentialSource == "setting-token")
-            {
-                await host.ShowMessageAsync(SettingTokenMessage);
-            }
-            else if (credentialSource == "env-token")
-            {
-                await host.ShowMessageAsync(EnvTokenMessage);
-            }
-            else
-            {
-                await host.ShowMessageAsync(NotSignedInMessage);
-            }
-        }
-
-        public static async Task OpenAccountAsync(IAuthService service, IAuthHost host)
-        {
-            if (!service.Current.Active)
-            {
-                await host.ShowMessageAsync(InactiveMessage);
-                return;
-            }
-
-            service.OpenAuth(null);
         }
 
         public static async Task ReauthorizeAsync(IAuthService service, IAuthHost host)

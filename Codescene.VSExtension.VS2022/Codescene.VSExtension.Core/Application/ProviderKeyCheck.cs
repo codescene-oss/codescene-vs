@@ -53,6 +53,6 @@ public static class ProviderKeyCheck
     {
         var providerKey = ProviderKeys.GetByName(provider);
         var label = providerKey?.Label ?? provider;
-        return $"No {label} API key is set for {model}. Set one with Extensions > CodeScene > Set Refactoring Agent API key.";
+        return $"No {label} API key is set for {model}. Set one in Tools > Options > CodeScene > General > Refactoring Agent.";
     }
 }

@@ -72,17 +72,17 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var anthropicMessage = ProviderKeyCheck.MissingMessage("anthropic", "anthropic/claude-sonnet-5-5");
             Assert.AreEqual(
-                "No Anthropic API key is set for anthropic/claude-sonnet-5-5. Set one with Extensions > CodeScene > Set Refactoring Agent API key.",
+                "No Anthropic API key is set for anthropic/claude-sonnet-5-5. Set one in Tools > Options > CodeScene > General > Refactoring Agent.",
                 anthropicMessage);
 
             var openaiMessage = ProviderKeyCheck.MissingMessage("openai", "openai/gpt-6.1-sol");
             Assert.AreEqual(
-                "No OpenAI API key is set for openai/gpt-6.1-sol. Set one with Extensions > CodeScene > Set Refactoring Agent API key.",
+                "No OpenAI API key is set for openai/gpt-6.1-sol. Set one in Tools > Options > CodeScene > General > Refactoring Agent.",
                 openaiMessage);
 
             var googleMessage = ProviderKeyCheck.MissingMessage("google", "google/gemini-4-carbon");
             Assert.AreEqual(
-                "No Google (Gemini) API key is set for google/gemini-4-carbon. Set one with Extensions > CodeScene > Set Refactoring Agent API key.",
+                "No Google (Gemini) API key is set for google/gemini-4-carbon. Set one in Tools > Options > CodeScene > General > Refactoring Agent.",
                 googleMessage);
         }
 

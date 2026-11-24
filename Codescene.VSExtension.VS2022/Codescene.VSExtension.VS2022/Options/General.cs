@@ -106,42 +106,69 @@ public class General : BaseOptionModel<General>
     public bool EnableAutomaticAnalysis { get; set; } = true;
 
     [Category("Refactoring Agent")]
-    [DisplayName("Enable Refactoring Agent")]
+    [DisplayName("\t\t\t\t\t\t\tEnable Refactoring Agent")]
     [Description("Enable CodeScene Refactoring Agent")]
     public bool EnableRefactoringAgent { get; set; } = true;
 
     [Category("Refactoring Agent")]
-    [DisplayName("Agent Model")]
+    [DisplayName("\t\t\t\t\t\tAgent Model")]
     [Description("Model to use for the Refactoring Agent.")]
     [TypeConverter(typeof(AgentModelConverter))]
     public string AgentModel { get; set; } = AgentModels.Default;
 
     [Category("Refactoring Agent")]
-    [DisplayName("Agent Model Override")]
+    [DisplayName("\t\t\t\t\tAgent Model Override")]
     [Description("Custom model identifier. If set, overrides the dropdown selection above.")]
     public string AgentModelOverride { get; set; } = string.Empty;
 
     [Category("Refactoring Agent")]
-    [DisplayName("Amazon Bedrock Profile")]
-    [Description("AWS profile name for Amazon Bedrock. Set API keys for Anthropic, OpenAI and Google with Extensions > CodeScene > Set Refactoring Agent API key, and check the setup with Extensions > CodeScene > Test provider connectivity.")]
+    [DisplayName("\tAmazon Bedrock Profile")]
+    [Description("AWS profile name for Amazon Bedrock. Check the setup with Extensions > CodeScene > Test provider connectivity.")]
     public string BedrockProfile { get; set; } = string.Empty;
 
     [Category("Refactoring Agent")]
     [DisplayName("Amazon Bedrock Region")]
-    [Description("AWS region for Amazon Bedrock. Set API keys for Anthropic, OpenAI and Google with Extensions > CodeScene > Set Refactoring Agent API key, and check the setup with Extensions > CodeScene > Test provider connectivity.")]
+    [Description("AWS region for Amazon Bedrock. Check the setup with Extensions > CodeScene > Test provider connectivity.")]
     public string BedrockRegion { get; set; } = string.Empty;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("\t\t\t\tAnthropic API Key")]
+    [Description("API key for Anthropic models. The key is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
+    [PasswordPropertyText(true)]
+    public string AnthropicApiKey { get; set; } = string.Empty;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("\t\t\tOpenAI API Key")]
+    [Description("API key for OpenAI models. The key is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
+    [PasswordPropertyText(true)]
+    public string OpenAIApiKey { get; set; } = string.Empty;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("\t\tGoogle API Key")]
+    [Description("API key for Google (Gemini) models. The key is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
+    [PasswordPropertyText(true)]
+    public string GoogleApiKey { get; set; } = string.Empty;
 
     public override async Task LoadAsync()
     {
         await base.LoadAsync();
         AuthToken = AuthTokenProtector.Unprotect(AuthToken);
+        AnthropicApiKey = UnprotectProviderKey(AnthropicApiKey);
+        OpenAIApiKey = UnprotectProviderKey(OpenAIApiKey);
+        GoogleApiKey = UnprotectProviderKey(GoogleApiKey);
         RememberAuthSettings(AuthToken);
     }
 
     public override async Task SaveAsync()
     {
         var plaintext = AuthToken;
+        var anthropicApiKey = AnthropicApiKey;
+        var openAIApiKey = OpenAIApiKey;
+        var googleApiKey = GoogleApiKey;
         AuthToken = AuthTokenProtector.Protect(plaintext);
+        AnthropicApiKey = ProviderKeyProtector.Protect(anthropicApiKey?.Trim());
+        OpenAIApiKey = ProviderKeyProtector.Protect(openAIApiKey?.Trim());
+        GoogleApiKey = ProviderKeyProtector.Protect(googleApiKey?.Trim());
         try
         {
             await base.SaveAsync();
@@ -149,7 +176,15 @@ public class General : BaseOptionModel<General>
         finally
         {
             AuthToken = plaintext;
+            AnthropicApiKey = anthropicApiKey;
+            OpenAIApiKey = openAIApiKey;
+            GoogleApiKey = googleApiKey;
         }
+    }
+
+    private static string UnprotectProviderKey(string stored)
+    {
+        return ProviderKeyProtector.TryUnprotect(stored, out var plaintext) ? plaintext : string.Empty;
     }
 
     private void OnSettingsSaved(General obj)

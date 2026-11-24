@@ -2,8 +2,8 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using Codescene.VSExtension.Core.Application.Security;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Extension;
 
 namespace Codescene.VSExtension.Core.Application;
 
@@ -11,60 +11,12 @@ namespace Codescene.VSExtension.Core.Application;
 [PartCreationPolicy(CreationPolicy.Shared)]
 public class ProviderKeyStore : IProviderKeyStore
 {
-    private readonly IProviderKeyBackingStore _backingStore;
-    private readonly ILogger _logger;
+    private readonly ISettingsProvider _settings;
 
     [ImportingConstructor]
-    public ProviderKeyStore(IProviderKeyBackingStore backingStore, ILogger logger)
+    public ProviderKeyStore(ISettingsProvider settings)
     {
-        _backingStore = backingStore;
-        _logger = logger;
-    }
-
-    public bool IsStored(string provider)
-    {
-        var providerKey = ProviderKeys.GetByName(provider);
-        if (providerKey == null)
-        {
-            return false;
-        }
-
-        var blob = _backingStore.Get(providerKey.StoreKey);
-        if (string.IsNullOrWhiteSpace(blob))
-        {
-            return false;
-        }
-
-        if (ProviderKeyProtector.TryUnprotect(blob, out _))
-        {
-            return true;
-        }
-
-        _logger?.Warn($"Provider key for {provider} could not be decrypted.");
-        return false;
-    }
-
-    public string Get(string provider)
-    {
-        var providerKey = ProviderKeys.GetByName(provider);
-        if (providerKey == null)
-        {
-            return null;
-        }
-
-        var blob = _backingStore.Get(providerKey.StoreKey);
-        if (string.IsNullOrWhiteSpace(blob))
-        {
-            return null;
-        }
-
-        if (ProviderKeyProtector.TryUnprotect(blob, out var plaintext))
-        {
-            return plaintext;
-        }
-
-        _logger?.Warn($"Provider key for {provider} could not be decrypted.");
-        return null;
+        _settings = settings;
     }
 
     public IDictionary<string, string> GetAll()
@@ -73,7 +25,7 @@ public class ProviderKeyStore : IProviderKeyStore
 
         foreach (var providerKey in ProviderKeys.All)
         {
-            var value = Get(providerKey.Name);
+            var value = Read(providerKey.Name)?.Trim();
             if (!string.IsNullOrEmpty(value))
             {
                 result[providerKey.Name] = value;
@@ -83,24 +35,14 @@ public class ProviderKeyStore : IProviderKeyStore
         return result;
     }
 
-    public void Store(string provider, string value)
+    private string Read(string provider)
     {
-        var providerKey = ProviderKeys.GetByName(provider);
-        if (providerKey == null)
+        return provider switch
         {
-            return;
-        }
-
-        var trimmedValue = value?.Trim();
-
-        if (string.IsNullOrWhiteSpace(trimmedValue))
-        {
-            _backingStore.Delete(providerKey.StoreKey);
-        }
-        else
-        {
-            var protectedValue = ProviderKeyProtector.Protect(trimmedValue);
-            _backingStore.Set(providerKey.StoreKey, protectedValue);
-        }
+            "anthropic" => _settings.AnthropicApiKey,
+            "openai" => _settings.OpenAIApiKey,
+            "google" => _settings.GoogleApiKey,
+            _ => null,
+        };
     }
 }

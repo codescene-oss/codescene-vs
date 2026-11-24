@@ -27,36 +27,6 @@
 		</Menus>
 
 		<Buttons>
-			<Button guid="CodeSceneCmdSet" id="SignInCommand" priority="0x0100" type="Button">
-				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
-				<Icon guid="ImageCatalogGuid" id="User" />
-				<CommandFlag>IconIsMoniker</CommandFlag>
-				<CommandFlag>DynamicVisibility</CommandFlag>
-				<CommandFlag>DefaultInvisible</CommandFlag>
-				<Strings>
-					<ButtonText>Sign in</ButtonText>
-				</Strings>
-			</Button>
-			<Button guid="CodeSceneCmdSet" id="SignOutCommand" priority="0x0100" type="Button">
-				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
-				<Icon guid="ImageCatalogGuid" id="User" />
-				<CommandFlag>IconIsMoniker</CommandFlag>
-				<CommandFlag>DynamicVisibility</CommandFlag>
-				<CommandFlag>DefaultInvisible</CommandFlag>
-				<Strings>
-					<ButtonText>Sign out</ButtonText>
-				</Strings>
-			</Button>
-			<Button guid="CodeSceneCmdSet" id="OpenAccountCommand" priority="0x0100" type="Button">
-				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
-				<Icon guid="ImageCatalogGuid" id="User" />
-				<CommandFlag>IconIsMoniker</CommandFlag>
-				<CommandFlag>DynamicVisibility</CommandFlag>
-				<CommandFlag>DefaultInvisible</CommandFlag>
-				<Strings>
-					<ButtonText>Open CodeScene account</ButtonText>
-				</Strings>
-			</Button>
 			<Button guid="CodeSceneCmdSet" id="ReauthorizeCommand" priority="0x0100" type="Button">
 				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
 				<Icon guid="ImageCatalogGuid" id="User" />
@@ -98,16 +68,6 @@
 				<CommandFlag>IconIsMoniker</CommandFlag>
 				<Strings>
 					<ButtonText>Copy Device ID</ButtonText>
-				</Strings>
-			</Button>
-			<Button guid="CodeSceneCmdSet" id="SetProviderApiKeyCommand" priority="0x0100" type="Button">
-				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
-				<Icon guid="ImageCatalogGuid" id="Certificate" />
-				<CommandFlag>IconIsMoniker</CommandFlag>
-				<CommandFlag>DynamicVisibility</CommandFlag>
-				<CommandFlag>DefaultInvisible</CommandFlag>
-				<Strings>
-					<ButtonText>Set Refactoring Agent API key</ButtonText>
 				</Strings>
 			</Button>
 			<Button guid="CodeSceneCmdSet" id="TestConnectivityCommand" priority="0x0101" type="Button">
@@ -153,13 +113,9 @@
 			<IDSymbol name="OpenSettings" value="0x1025" />
 			<IDSymbol name="CopyDeviceId" value="0x1026" />
 			<!--<IDSymbol name="RevokeTerms" value="0x1027" />-->
-			<IDSymbol name="SignInCommand" value="0x0400" />
 			<IDSymbol name="OpenStatusWindowCommand" value="0x0800" />
-			<IDSymbol name="SignOutCommand" value="0x0500" />
-			<IDSymbol name="OpenAccountCommand" value="0x0501" />
 			<IDSymbol name="ReauthorizeCommand" value="0x0502" />
 			<IDSymbol name="OpenCodeSceneToolWindow" value="0x0801" />
-			<IDSymbol name="SetProviderApiKeyCommand" value="0x0503" />
 			<IDSymbol name="TestConnectivityCommand" value="0x0504" />
 		</GuidSymbol>
 		<!-- External Symbols -->

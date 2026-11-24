@@ -28,7 +28,7 @@ The **Code Health Monitor** flags for drops in code health in real time and offe
 ## Automatic Refactoring with CodeScene Refactoring Agent ##
 The [CodeScene Refactoring Agent](https://codescene.io/docs/auto-refactor/index.html) helps you with the hardest part of software development: maintaining and improving existing code. While other AI tools focus on code generation, the Refactoring Agent fixes technical debt and refactors code smells directly in your IDE. With fact-based metrics, the agent focuses on the impactful improvements you can do now to simplify your tasks.
 
-The extension bundles a local Refactoring Agent (version 1.1.13) that runs on your machine with your own LLM provider key. Sign in to CodeScene with your personal access token or browser-based authentication, then set your provider key using **Extensions > CodeScene > Set Refactoring Agent API key**. Test your setup with **Extensions > CodeScene > Test provider connectivity**.
+The extension bundles a local Refactoring Agent (version 1.1.13) that runs on your machine with your own LLM provider key. Sign in to CodeScene with your personal access token or browser-based authentication, then set your provider key in **Tools > Options > CodeScene > General > Refactoring Agent**. Test your setup with **Extensions > CodeScene > Test provider connectivity**.
 
 <img style="margin: 10px 10px 10px 10px;" src="screenshots/auto-refactor-showcase.gif" width="1000">
 
@@ -90,8 +90,11 @@ Location: `Refactoring Agent` > `Extension Settings`
 | **Enable Refactoring Agent** | Boolean | true | Enable CodeScene Refactoring Agent |
 | **Agent Model** | String | anthropic/claude-sonnet-5-5 | Model to use for the Refactoring Agent. |
 | **Agent Model Override** | String | - | Custom model identifier. If set, overrides the dropdown selection above. |
-| **Amazon Bedrock Profile** | String | - | AWS profile name for Amazon Bedrock. Set API keys for Anthropic, OpenAI and Google with Extensions > CodeScene > Set Refactoring Agent API key, and check the setup with Extensions > CodeScene > Test provider connectivity. |
-| **Amazon Bedrock Region** | String | - | AWS region for Amazon Bedrock. Set API keys for Anthropic, OpenAI and Google with Extensions > CodeScene > Set Refactoring Agent API key, and check the setup with Extensions > CodeScene > Test provider connectivity. |
+| **Amazon Bedrock Profile** | String | - | AWS profile name for Amazon Bedrock. Check the setup with Extensions > CodeScene > Test provider connectivity. |
+| **Amazon Bedrock Region** | String | - | AWS region for Amazon Bedrock. Check the setup with Extensions > CodeScene > Test provider connectivity. |
+| **Anthropic API Key** | String | - | API key for Anthropic models. The key is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings. |
+| **OpenAI API Key** | String | - | API key for OpenAI models. The key is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings. |
+| **Google API Key** | String | - | API key for Google (Gemini) models. The key is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings. |
 
 ### Telemetry ###
 

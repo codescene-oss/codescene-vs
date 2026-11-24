@@ -9,6 +9,7 @@ using Codescene.VSExtension.Core.Interfaces.Refactoring;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
 using Codescene.VSExtension.Core.Models.WebComponent.Message;
 using Codescene.VSExtension.Core.Models.WebComponent.Payload;
+using Codescene.VSExtension.VS2022.Options;
 using Codescene.VSExtension.VS2022.ToolWindows;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent;
 using Community.VisualStudio.Toolkit;
@@ -25,13 +26,11 @@ namespace Codescene.VSExtension.VS2022.Application
     public class VsRefactoringHost : IRefactoringHost
     {
         private readonly ILogger _logger;
-        private readonly IProviderKeyStore _providerKeyStore;
 
         [ImportingConstructor]
-        public VsRefactoringHost(ILogger logger, IProviderKeyStore providerKeyStore)
+        public VsRefactoringHost(ILogger logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _providerKeyStore = providerKeyStore ?? throw new ArgumentNullException(nameof(providerKeyStore));
         }
 
         public bool IsDirty(string path)
@@ -104,8 +103,7 @@ namespace Codescene.VSExtension.VS2022.Application
 
             if (result == Microsoft.VisualStudio.VSConstants.MessageBoxResult.IDOK)
             {
-                var dialog = new Controls.ProviderApiKeyDialog(_providerKeyStore);
-                dialog.ShowModal();
+                await VS.Settings.OpenAsync<OptionsProvider.GeneralOptions>();
             }
         }
 

@@ -26,20 +26,16 @@ namespace Codescene.VSExtension.Core.Tests
             var snapshot = AuthSnapshot.Inactive;
 
             Assert.IsFalse(AuthCommandActions.IsVisible(AuthCommandActions.Command.SignIn, snapshot));
-            Assert.IsFalse(AuthCommandActions.IsVisible(AuthCommandActions.Command.SignOut, snapshot));
-            Assert.IsFalse(AuthCommandActions.IsVisible(AuthCommandActions.Command.OpenAccount, snapshot));
             Assert.IsFalse(AuthCommandActions.IsVisible(AuthCommandActions.Command.Reauthorize, snapshot));
         }
 
         [TestMethod]
-        public void IsVisible_Active_SignInSignOutOpenAccountAreTrue()
+        public void IsVisible_Active_SignInIsTrue()
         {
             var status = (JObject)_bundle.Fixture("auth-status", "signed-out", FixtureForm.Wire);
             var snapshot = AuthSnapshot.Inactive.WithActive(true).WithStatus(status);
 
             Assert.IsTrue(AuthCommandActions.IsVisible(AuthCommandActions.Command.SignIn, snapshot));
-            Assert.IsTrue(AuthCommandActions.IsVisible(AuthCommandActions.Command.SignOut, snapshot));
-            Assert.IsTrue(AuthCommandActions.IsVisible(AuthCommandActions.Command.OpenAccount, snapshot));
         }
 
         [TestMethod]
@@ -98,79 +94,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task SignOut_WithOAuth_LogsOut()
-        {
-            var status = (JObject)_bundle.Fixture("auth-status", "signed-in", FixtureForm.Wire);
-            var snapshot = AuthSnapshot.Inactive.WithActive(true).WithStatus(status);
-
-            var service = new Mock<IAuthService>();
-            service.Setup(x => x.Current).Returns(snapshot);
-
-            var host = new Mock<IAuthHost>();
-
-            await AuthCommandActions.SignOutAsync(service.Object, host.Object);
-
-            service.Verify(x => x.SignOutAsync(), Times.Once);
-            host.Verify(x => x.ShowMessageAsync(It.IsAny<string>()), Times.Never);
-        }
-
-        [TestMethod]
-        public async Task SignOut_WithSettingToken_ShowsTheTokenHint()
-        {
-            var status = (JObject)_bundle.Fixture("auth-status", "signed-in", FixtureForm.Wire);
-            status["credential-source"] = "setting-token";
-            var snapshot = AuthSnapshot.Inactive.WithActive(true).WithStatus(status);
-
-            var service = new Mock<IAuthService>();
-            service.Setup(x => x.Current).Returns(snapshot);
-
-            var host = new Mock<IAuthHost>();
-
-            await AuthCommandActions.SignOutAsync(service.Object, host.Object);
-
-            service.Verify(x => x.SignOutAsync(), Times.Never);
-            host.Verify(x => x.ShowMessageAsync(AuthCommandActions.SettingTokenMessage), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task SignOut_WithEnvToken_ShowsTheEnvHint()
-        {
-            var status = (JObject)_bundle.Fixture("auth-status", "signed-in", FixtureForm.Wire);
-            status["credential-source"] = "env-token";
-            var snapshot = AuthSnapshot.Inactive.WithActive(true).WithStatus(status);
-
-            var service = new Mock<IAuthService>();
-            service.Setup(x => x.Current).Returns(snapshot);
-
-            var host = new Mock<IAuthHost>();
-
-            await AuthCommandActions.SignOutAsync(service.Object, host.Object);
-
-            service.Verify(x => x.SignOutAsync(), Times.Never);
-            host.Verify(x => x.ShowMessageAsync(AuthCommandActions.EnvTokenMessage), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task SignOut_NotSignedIn_ShowsNotSignedIn()
-        {
-            var status = (JObject)_bundle.Fixture("auth-status", "signed-out", FixtureForm.Wire);
-            var snapshot = AuthSnapshot.Inactive.WithActive(true).WithStatus(status);
-
-            var service = new Mock<IAuthService>();
-            service.Setup(x => x.Current).Returns(snapshot);
-
-            var host = new Mock<IAuthHost>();
-
-            await AuthCommandActions.SignOutAsync(service.Object, host.Object);
-
-            service.Verify(x => x.SignOutAsync(), Times.Never);
-            host.Verify(x => x.ShowMessageAsync(AuthCommandActions.NotSignedInMessage), Times.Once);
-        }
-
-        [TestMethod]
         [DataRow(nameof(AuthCommandActions.Command.SignIn))]
-        [DataRow(nameof(AuthCommandActions.Command.SignOut))]
-        [DataRow(nameof(AuthCommandActions.Command.OpenAccount))]
         [DataRow(nameof(AuthCommandActions.Command.Reauthorize))]
         public async Task AnyCommand_WhileInactive_ShowsTheExperimentalMessage(string commandName)
         {
@@ -185,12 +109,6 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 case nameof(AuthCommandActions.Command.SignIn):
                     await AuthCommandActions.SignInAsync(service.Object, host.Object);
-                    break;
-                case nameof(AuthCommandActions.Command.SignOut):
-                    await AuthCommandActions.SignOutAsync(service.Object, host.Object);
-                    break;
-                case nameof(AuthCommandActions.Command.OpenAccount):
-                    await AuthCommandActions.OpenAccountAsync(service.Object, host.Object);
                     break;
                 case nameof(AuthCommandActions.Command.Reauthorize):
                     await AuthCommandActions.ReauthorizeAsync(service.Object, host.Object);
@@ -232,23 +150,6 @@ namespace Codescene.VSExtension.Core.Tests
             await AuthCommandActions.ReauthorizeAsync(service.Object, host.Object);
 
             service.Verify(x => x.ReauthorizeAsync(), Times.Once);
-            host.Verify(x => x.ShowMessageAsync(It.IsAny<string>()), Times.Never);
-        }
-
-        [TestMethod]
-        public async Task OpenAccount_Active_OpensAuth()
-        {
-            var status = (JObject)_bundle.Fixture("auth-status", "signed-in", FixtureForm.Wire);
-            var snapshot = AuthSnapshot.Inactive.WithActive(true).WithStatus(status);
-
-            var service = new Mock<IAuthService>();
-            service.Setup(x => x.Current).Returns(snapshot);
-
-            var host = new Mock<IAuthHost>();
-
-            await AuthCommandActions.OpenAccountAsync(service.Object, host.Object);
-
-            service.Verify(x => x.OpenAuth(null), Times.Once);
             host.Verify(x => x.ShowMessageAsync(It.IsAny<string>()), Times.Never);
         }
     }

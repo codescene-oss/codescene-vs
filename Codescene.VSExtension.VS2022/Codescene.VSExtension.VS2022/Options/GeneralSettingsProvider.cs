@@ -28,5 +28,11 @@ namespace Codescene.VSExtension.VS2022.Options
         public string BedrockProfile => General.Instance.BedrockProfile;
 
         public string BedrockRegion => General.Instance.BedrockRegion;
+
+        public string AnthropicApiKey => General.Instance.AnthropicApiKey;
+
+        public string OpenAIApiKey => General.Instance.OpenAIApiKey;
+
+        public string GoogleApiKey => General.Instance.GoogleApiKey;
     }
 }
