@@ -73,6 +73,13 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
                 mapper.Map(deltaCache.GetAll()),
                 true);
 
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (_userControl != null)
+            {
+                return _userControl;
+            }
+
             var ctrl = new WebComponentUserControl(payload, logger)
             {
                 CloseRequested = async () =>

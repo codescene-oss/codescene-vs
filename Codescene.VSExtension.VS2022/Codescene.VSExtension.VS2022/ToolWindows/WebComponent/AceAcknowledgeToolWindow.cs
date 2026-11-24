@@ -92,6 +92,8 @@ public class AceAcknowledgeToolWindow : BaseToolWindow<AceAcknowledgeToolWindow>
                 FnToRefactor = _fnToRefactor,
             });
 
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
         var ctrl = new WebComponentUserControl(payload, logger)
         {
             CloseRequested = async () =>
