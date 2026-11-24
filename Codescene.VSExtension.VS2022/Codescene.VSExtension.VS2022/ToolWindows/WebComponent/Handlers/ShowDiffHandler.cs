@@ -4,7 +4,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Threading.Tasks;
-using Codescene.VSExtension.Core.Interfaces.Ace;
+using Codescene.VSExtension.Core.Interfaces.Refactoring;
 using Codescene.VSExtension.Core.Util;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
@@ -18,28 +18,33 @@ namespace Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 public class ShowDiffHandler
 {
     [Import]
-    private readonly IAceManager _aceManager;
+    private readonly IRefactoringOrchestrator _orchestrator;
 
     public async Task ShowDiffWindowAsync()
     {
-        var cache = _aceManager.GetCachedRefactoredCode();
-        var newCode = cache.Refactored.Code;
+        var session = _orchestrator.Current;
+        if (session?.Response == null || session.Function == null)
+        {
+            return;
+        }
+
+        var newCode = session.Response.Code;
         var tempOriginalPath = Path.GetTempFileName();
         var tempRefactoredPath = Path.GetTempFileName();
 
         // Switch to UI thread only for Visual Studio API calls
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        var docView = await VS.Documents.OpenAsync(cache.Path);
+        var docView = await VS.Documents.OpenAsync(session.Path);
         if (docView?.TextBuffer is not ITextBuffer buffer)
         {
             return;
         }
 
         var snapshot = buffer.CurrentSnapshot;
-        var start = Math.Max(1, cache.RefactorableCandidate.Range.StartLine) - 1;
+        var start = Math.Max(1, session.Function.Range.StartLine) - 1;
         var end = Math.Min(
-            Math.Max(1, cache.RefactorableCandidate.Range.EndLine) - 1,
+            Math.Max(1, session.Function.Range.EndLine) - 1,
             snapshot.LineCount - 1);
         if (start >= snapshot.LineCount)
         {
@@ -66,8 +71,8 @@ public class ShowDiffHandler
             tempRefactoredPath,
             "Code Comparison",
             null,
-            Path.GetFileName(cache.Path) + " (Original)",
-            Path.GetFileName(cache.Path) + " (Refactored)",
+            Path.GetFileName(session.Path) + " (Original)",
+            Path.GetFileName(session.Path) + " (Refactored)",
             null,
             null,
             0);

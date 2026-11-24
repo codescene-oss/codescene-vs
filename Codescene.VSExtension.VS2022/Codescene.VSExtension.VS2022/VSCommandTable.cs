@@ -34,12 +34,10 @@ namespace Codescene.VSExtension.VS2022
         public const int OpenSettings = 0x1025;
         public const int CopyDeviceId = 0x1026;
         //public const int RevokeTerms = 0x1027;
-        public const int SignInCommand = 0x0400;
         public const int OpenStatusWindowCommand = 0x0800;
-        public const int SignOutCommand = 0x0500;
-        public const int OpenAccountCommand = 0x0501;
         public const int ReauthorizeCommand = 0x0502;
         public const int OpenCodeSceneToolWindow = 0x0801;
+        public const int TestConnectivityCommand = 0x0504;
         public const int IDM_VS_MENU_EXTENSIONS = 0x0091;
     }
 }

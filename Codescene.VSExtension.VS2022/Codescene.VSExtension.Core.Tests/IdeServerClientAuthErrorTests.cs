@@ -44,7 +44,7 @@ namespace Codescene.VSExtension.Core.Tests
             var harness = CreateHarness(new AuthErrorServer(errorFixture));
             await harness.Client.StartAsync();
 
-            var ex = await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.PreflightAsync());
+            var ex = await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.DeviceIdAsync());
 
             Assert.AreEqual(-32803, ex.Status);
             Assert.AreEqual((string?)errorFixture["data"]?["code"], ex.AuthErrorCode);
@@ -56,7 +56,7 @@ namespace Codescene.VSExtension.Core.Tests
             var harness = CreateHarness(new MethodNotFoundServer());
             await harness.Client.StartAsync();
 
-            var ex = await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.PreflightAsync());
+            var ex = await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.DeviceIdAsync());
 
             Assert.AreEqual(-32601, ex.Status);
             Assert.IsNull(ex.AuthErrorCode);
@@ -72,7 +72,7 @@ namespace Codescene.VSExtension.Core.Tests
             var harness = CreateHarness(new InternalErrorServer(errorFixture));
             await harness.Client.StartAsync();
 
-            var ex = await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.PreflightAsync());
+            var ex = await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.DeviceIdAsync());
 
             Assert.IsNull(ex.AuthErrorCode);
         }
@@ -84,7 +84,7 @@ namespace Codescene.VSExtension.Core.Tests
             await harness.Client.StartAsync();
             harness.ServerRpc.Dispose();
 
-            var ex = await Assert.ThrowsAsync<ConnectionLostException>(() => harness.Client.PreflightAsync());
+            var ex = await Assert.ThrowsAsync<ConnectionLostException>(() => harness.Client.DeviceIdAsync());
 
             Assert.IsNotNull(ex);
         }
@@ -97,7 +97,7 @@ namespace Codescene.VSExtension.Core.Tests
             var harness = CreateHarness(new AuthErrorServer(errorFixture), logger);
             await harness.Client.StartAsync();
 
-            await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.PreflightAsync());
+            await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.DeviceIdAsync());
 
             Assert.AreEqual(1, logger.Warnings.Count);
             var warning = logger.Warnings[0];
@@ -115,7 +115,7 @@ namespace Codescene.VSExtension.Core.Tests
             var harness = CreateHarness(new InternalErrorServer(errorFixture), logger);
             await harness.Client.StartAsync();
 
-            await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.PreflightAsync());
+            await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.DeviceIdAsync());
 
             Assert.AreEqual(1, logger.Errors.Count);
             StringAssert.Contains(logger.Errors[0], "request failed");
@@ -159,7 +159,7 @@ namespace Codescene.VSExtension.Core.Tests
             var harness = CreateHarness(new MethodNotFoundServer(), logger);
             await harness.Client.StartAsync();
 
-            await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.PreflightAsync());
+            await Assert.ThrowsAsync<DevtoolsException>(() => harness.Client.DeviceIdAsync());
 
             Assert.AreEqual(1, logger.Warnings.Count);
             StringAssert.Contains(logger.Warnings[0], "code=-32601");
@@ -183,8 +183,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _error = error;
             }
 
-            [JsonRpcMethod("cs-ide/preflight", UseSingleObjectParameterDeserialization = true)]
-            public JObject Preflight(JObject request)
+            [JsonRpcMethod("cs-ide/device-id", UseSingleObjectParameterDeserialization = true)]
+            public JObject DeviceId(JObject request)
             {
                 throw new LocalRpcException((string?)_error["message"] ?? "Auth error")
                 {
@@ -196,8 +196,8 @@ namespace Codescene.VSExtension.Core.Tests
 
         private sealed class MethodNotFoundServer
         {
-            [JsonRpcMethod("cs-ide/preflight", UseSingleObjectParameterDeserialization = true)]
-            public JObject Preflight(JObject request)
+            [JsonRpcMethod("cs-ide/device-id", UseSingleObjectParameterDeserialization = true)]
+            public JObject DeviceId(JObject request)
             {
                 throw new LocalRpcException("Method not found")
                 {
@@ -215,8 +215,8 @@ namespace Codescene.VSExtension.Core.Tests
                 _error = error;
             }
 
-            [JsonRpcMethod("cs-ide/preflight", UseSingleObjectParameterDeserialization = true)]
-            public JObject Preflight(JObject request)
+            [JsonRpcMethod("cs-ide/device-id", UseSingleObjectParameterDeserialization = true)]
+            public JObject DeviceId(JObject request)
             {
                 throw new LocalRpcException((string?)_error["message"] ?? "Internal error")
                 {

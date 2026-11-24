@@ -15,12 +15,6 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         [JsonProperty("confidence")]
         public ConfidenceModel Confidence { get; set; }
 
-        /// <summary>
-        /// Gets or sets aCE Credit info.
-        /// </summary>
-        [JsonProperty("credits-info")]
-        public CreditsInfoModel CreditsInfo { get; set; }
-
         [JsonProperty("metadata")]
         public MetadataModel Metadata { get; set; }
 

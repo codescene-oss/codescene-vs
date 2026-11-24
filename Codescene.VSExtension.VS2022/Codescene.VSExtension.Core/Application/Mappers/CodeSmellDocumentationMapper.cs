@@ -1,6 +1,7 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System.ComponentModel.Composition;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
@@ -13,15 +14,15 @@ namespace Codescene.VSExtension.Core.Application.Mappers
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class CodeSmellDocumentationMapper
     {
-        private readonly ISettingsProvider _settingsProvider;
+        private readonly IAgentAvailability _availability;
 
         [ImportingConstructor]
-        public CodeSmellDocumentationMapper(ISettingsProvider settingsProvider)
+        public CodeSmellDocumentationMapper(IAgentAvailability availability)
         {
-            _settingsProvider = settingsProvider;
+            _availability = availability;
         }
 
-        public CodeSmellDocumentationComponentData Map(ShowDocumentationModel model, FnToRefactorModel fnToRefactor, bool aceAcknowledged = false)
+        public CodeSmellDocumentationComponentData Map(ShowDocumentationModel model, FnToRefactorModel fnToRefactor)
         {
             var function = new FunctionModel
             {
@@ -29,17 +30,14 @@ namespace Codescene.VSExtension.Core.Application.Mappers
                 Range = model.Range,
             };
 
-            var hasToken = !string.IsNullOrWhiteSpace(_settingsProvider.AuthToken);
+            var autoRefactor = _availability.AutoRefactor();
+            autoRefactor.Disabled = !_availability.Authenticated || fnToRefactor == null;
+            autoRefactor.Activated = true;
 
             return new CodeSmellDocumentationComponentData
             {
                 DocType = AddDocsPrefix(model.Category),
-                AutoRefactor = new AutoRefactorConfig
-                {
-                    Visible = true,
-                    Activated = AutoRefactorConfigUtils.ComputeActivated(aceAcknowledged, hasToken),
-                    Disabled = !hasToken || fnToRefactor == null,
-                },
+                AutoRefactor = autoRefactor,
                 FileData = new FileDataModel
                 {
                     FileName = model.Path,

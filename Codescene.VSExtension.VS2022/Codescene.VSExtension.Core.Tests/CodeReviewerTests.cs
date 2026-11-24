@@ -2,7 +2,6 @@
 
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models;
@@ -189,41 +188,71 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task ReviewWithDeltaAsync_EnrichesDeltaWithRefactorableFunctions()
+        public async Task Review_PassesThroughWithoutEnrichment()
         {
             var repoRoot = Path.Combine(Path.GetTempPath(), "code-reviewer-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(repoRoot);
             LibGit2Sharp.Repository.Init(repoRoot);
             var path = Path.Combine(repoRoot, "test.cs");
             File.WriteAllText(path, "content");
-            var delta = new DeltaResponseModel
-            {
-                FunctionLevelFindings = new[]
-                {
-                    new FunctionFindingModel { Function = new FunctionInfoModel { Name = "Fn" } },
-                },
-            };
+            var cliReview = new CliReviewModel { RawScore = "8.5" };
+            var review = new FileReviewModel { FilePath = path, RawScore = "8.5" };
             var pipeline = new Mock<IReviewPipeline>();
             pipeline.Setup(x => x.SubmitAsync(It.IsAny<string>(), It.IsAny<ReviewSubmission>()))
-                .ReturnsAsync((new CliReviewModel { RawScore = "raw" }, delta));
-            _mockMapper.Setup(x => x.Map(path, It.IsAny<CliReviewModel>())).Returns(new FileReviewModel { RawScore = "raw" });
-            var preflight = new Mock<IPreflightManager>();
-            preflight.Setup(x => x.GetPreflightResponseAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PreFlightResponseModel());
-            _mockExecutor.Setup(x => x.FnsToRefactorFromDeltaAsync(path, "changed", delta, It.IsAny<PreFlightResponseModel>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<FnToRefactorModel> { new FnToRefactorModel { Name = "Fn" } });
+                .ReturnsAsync((cliReview, (DeltaResponseModel)null));
+            _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(review);
             var reviewer = new CodeReviewer(
                 _mockLogger.Object,
                 _mockMapper.Object,
                 _mockExecutor.Object,
-                pipeline.Object,
-                preflight.Object);
+                pipeline.Object);
 
             try
             {
                 var result = await reviewer.ReviewWithDeltaAsync(path, "changed");
-                Assert.IsNotNull(result.delta?.FunctionLevelFindings[0].RefactorableFn);
-                Assert.AreEqual("Fn", result.delta.FunctionLevelFindings[0].RefactorableFn.Name);
+                Assert.AreSame(review, result.review);
+                Assert.IsNull(result.delta);
+            }
+            finally
+            {
+                Directory.Delete(repoRoot, true);
+            }
+        }
+
+        [TestMethod]
+        public async Task Delta_PassesThroughWithoutEnrichment()
+        {
+            var repoRoot = Path.Combine(Path.GetTempPath(), "code-reviewer-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(repoRoot);
+            LibGit2Sharp.Repository.Init(repoRoot);
+            var path = Path.Combine(repoRoot, "test.cs");
+            File.WriteAllText(path, "content");
+            var cliReview = new CliReviewModel { RawScore = "7.0" };
+            var review = new FileReviewModel { FilePath = path, RawScore = "7.0" };
+            var delta = new DeltaResponseModel
+            {
+                ScoreChange = -1.5m,
+                FunctionLevelFindings = new[]
+                {
+                    new FunctionFindingModel { Function = new FunctionInfoModel { Name = "TestFn" } },
+                },
+            };
+            var pipeline = new Mock<IReviewPipeline>();
+            pipeline.Setup(x => x.SubmitAsync(It.IsAny<string>(), It.IsAny<ReviewSubmission>()))
+                .ReturnsAsync((cliReview, delta));
+            _mockMapper.Setup(x => x.Map(path, cliReview)).Returns(review);
+            var reviewer = new CodeReviewer(
+                _mockLogger.Object,
+                _mockMapper.Object,
+                _mockExecutor.Object,
+                pipeline.Object);
+
+            try
+            {
+                var result = await reviewer.ReviewWithDeltaAsync(path, "changed");
+                Assert.AreSame(review, result.review);
+                Assert.AreSame(delta, result.delta);
+                Assert.IsNull(result.delta.FunctionLevelFindings[0].RefactorableFn);
             }
             finally
             {

@@ -29,7 +29,6 @@ public class RefactoringChangesApplier
             return;
         }
 
-        var newCode = payload.Code;
         var fnStartLine = payload.Fn.Range.StartLine;
         var fnEndLine = payload.Fn.Range.EndLine;
 
@@ -41,20 +40,9 @@ public class RefactoringChangesApplier
 
         var snapshot = buffer.CurrentSnapshot;
 
-        // Check if newCode already starts with whitespace
-        var startsWithSpace = newCode.Length > 0 && char.IsWhiteSpace(newCode[0]);
-
-        IndentationInfo indentationInfo = default;
-        if (!startsWithSpace)
-        {
-            // If it doesn't start with whitespace, we need to determine the indentation level
-            indentationInfo = IndentationUtil.DetectIndentation(snapshot, fnStartLine);
-        }
-
-        if (indentationInfo.Level > 0)
-        {
-            newCode = IndentationUtil.AdjustIndentation(newCode, indentationInfo);
-        }
+        var newCode = Core.Application.Refactoring.RefactoringApplyText.Prepare(
+            payload.Code,
+            () => IndentationUtil.DetectIndentation(snapshot, fnStartLine));
 
         var start = Math.Max(1, fnStartLine) - 1;
         var end = Math.Max(1, fnEndLine) - 1;

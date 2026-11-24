@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
+using Codescene.VSExtension.Core.Application;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
@@ -28,6 +30,8 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
         private readonly IAsyncTaskScheduler _scheduler;
         private readonly CodeSceneMarginSettingsManager _marginSettings;
         private readonly ITelemetryManager _telemetryManager;
+        private readonly RefactorableFunctionEnricher _enricher;
+        private readonly IAgentAvailability _availability;
 
         [ImportingConstructor]
         public VisualStudioReviewPipelinePresentation(
@@ -36,7 +40,9 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
             ICodeHealthMonitorNotifier notifier,
             IAsyncTaskScheduler scheduler,
             CodeSceneMarginSettingsManager marginSettings,
-            ITelemetryManager telemetryManager)
+            ITelemetryManager telemetryManager,
+            RefactorableFunctionEnricher enricher,
+            IAgentAvailability availability)
         {
             _mapper = mapper;
             _errorListWindowHandler = errorListWindowHandler;
@@ -44,6 +50,8 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
             _scheduler = scheduler;
             _marginSettings = marginSettings;
             _telemetryManager = telemetryManager;
+            _enricher = enricher;
+            _availability = availability;
         }
 
         public void ReviewStarted(ReviewDocument document)
@@ -96,6 +104,20 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
                 return;
             }
 
+            var content = delta.Content;
+            if (string.IsNullOrEmpty(content))
+            {
+                try
+                {
+                    content = File.ReadAllText(delta.Document.FilePath);
+                }
+                catch
+                {
+                }
+            }
+
+            _enricher.Enrich(delta.Result, delta.Document.FilePath, content);
+
             var cache = new DeltaCacheService();
             var snapshot = cache.GetAll();
             cache.SetPresentationDelta(delta.Document.FilePath, delta.Result);
@@ -103,7 +125,8 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
                 snapshot,
                 cache.GetAll(),
                 new DeltaCacheEntry(delta.Document.FilePath, string.Empty, string.Empty, delta.Result),
-                _telemetryManager);
+                _telemetryManager,
+                _availability.Enabled);
             _notifier.RequestViewUpdate();
             _marginSettings.NotifyScoreUpdated();
         }

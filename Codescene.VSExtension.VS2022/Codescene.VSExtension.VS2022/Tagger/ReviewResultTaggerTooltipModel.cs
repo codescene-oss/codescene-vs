@@ -2,8 +2,11 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using Codescene.VSExtension.Core.Application;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -11,6 +14,7 @@ using Codescene.VSExtension.VS2022.Commands;
 using Codescene.VSExtension.VS2022.ToolWindows.WebComponent.Handlers;
 using Codescene.VSExtension.VS2022.Util;
 using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Text;
 
 namespace Codescene.VSExtension.VS2022.Tagger
 {
@@ -61,6 +65,22 @@ namespace Codescene.VSExtension.VS2022.Tagger
                 FunctionRange.EndColumn),
         };
 
+        private static async Task<string> GetFileContentAsync(string path)
+        {
+            var docView = await VS.Documents.OpenAsync(path);
+            if (docView?.TextBuffer is ITextBuffer buffer)
+            {
+                return buffer.CurrentSnapshot.GetText();
+            }
+
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+
+            return string.Empty;
+        }
+
         // Bindings are defined in UnderlineTaggerTooltip.xaml
 #pragma warning disable VSTHRD100 // Avoid async void methods - RelayCommand requires void return type
         private async void ExecuteYourCommand(object parameter)
@@ -74,15 +94,14 @@ namespace Codescene.VSExtension.VS2022.Tagger
 
                 if (cmdParam != null && DocumentationMappings.DocNameMap.Values.Contains(cmdParam.Category))
                 {
-                    var fnToRefactor = await AceUtils.GetRefactorableFunctionCodeSmellAsync(new GetRefactorableFunctionsModel
-                    {
-                        Path = cmdParam.Path,
-                        Range = cmdParam.Range,
-                        Details = cmdParam.Details,
-                        Category = cmdParam.Category,
-                        FunctionName = cmdParam.FunctionName,
-                        FunctionRange = cmdParam.FunctionRange,
-                    });
+                    var smell = TooltipSmellBuilder.Build(
+                        cmdParam.Category,
+                        cmdParam.Range,
+                        cmdParam.FunctionName,
+                        cmdParam.FunctionRange);
+
+                    var content = await GetFileContentAsync(cmdParam.Path);
+                    var fnToRefactor = FunctionToRefactorResolver.ForCodeSmell(cmdParam.Path, content, smell);
 
                     await _showDocumentationHandler.HandleAsync(
                         new ShowDocumentationModel(

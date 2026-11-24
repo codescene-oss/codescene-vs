@@ -52,27 +52,18 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void PreFlightResponseModel_Deserialize_WithFileTypes()
-        {
-            var result = DeserializeJson<PreFlightResponseModel>(@"{ ""file-types"": ["".cs"", "".js"", "".py""] }");
-
-            CollectionAssert.AreEqual(new[] { ".cs", ".js", ".py" }, result.FileTypes);
-        }
-
-        [TestMethod]
         public void FnToRefactorModel_Deserialize_WithAllFields()
         {
             var json = @"{
                 ""name"": ""ProcessOrder"",
                 ""body"": ""function body here"",
                 ""file-type"": ""cs"",
-                ""nippy-b64"": ""base64data"",
                 ""range"": { ""start-line"": 10, ""start-column"": 5, ""end-line"": 50, ""end-column"": 5 }
             }";
 
             var result = DeserializeJson<FnToRefactorModel>(json);
 
-            var expected = CreateExpectedFnToRefactor("ProcessOrder", "function body here", "cs", "base64data");
+            var expected = CreateExpectedFnToRefactor("ProcessOrder", "function body here", "cs");
             AssertFnToRefactorModelEquals(result, expected);
             AssertRangeEquals(result.Range, CreateExpectedRange(10, 5, 50, 5));
         }
@@ -92,6 +83,40 @@ namespace Codescene.VSExtension.Core.Tests
             var deserialized = JsonConvert.DeserializeObject<FnToRefactorModel>(json);
 
             AssertFnToRefactorRoundTrip(model, deserialized);
+        }
+
+        [TestMethod]
+        public void FnToRefactorModel_SerializesFunctionType()
+        {
+            var model = new FnToRefactorModel
+            {
+                Name = "TestFunction",
+                Body = "code",
+                FileType = "cs",
+                FunctionType = "cs",
+                Range = new CliRangeModel { StartLine = 1, StartColumn = 1, EndLine = 10, EndColumn = 1 },
+            };
+
+            var json = JsonConvert.SerializeObject(model);
+
+            Assert.Contains("\"function-type\"", json);
+            Assert.Contains("\"cs\"", json);
+        }
+
+        [TestMethod]
+        public void FnToRefactorModel_HasNoNippyB64()
+        {
+            var model = new FnToRefactorModel
+            {
+                Name = "TestFunction",
+                Body = "code",
+                FileType = "cs",
+                Range = new CliRangeModel { StartLine = 1, StartColumn = 1, EndLine = 10, EndColumn = 1 },
+            };
+
+            var json = JsonConvert.SerializeObject(model);
+
+            Assert.IsFalse(json.Contains("nippy"));
         }
 
         [TestMethod]
@@ -126,25 +151,6 @@ namespace Codescene.VSExtension.Core.Tests
             var result = DeserializeJson<CliCodeSmellModel>(json);
 
             AssertCodeSmellFields(result, expectedCategory: "Deep Nesting", expectedDetails: "Depth: 5", expectedRangeStartLine: 15);
-        }
-
-        [TestMethod]
-        public void FnsToRefactorCodeSmellRequestModel_Serialize_IgnoresDefaultValues()
-        {
-            var settings = new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore };
-            var model = new FnsToRefactorCodeSmellRequestModel
-            {
-                FileName = "test.cs",
-                FileContent = "code",
-                CachePath = "/cache",
-                CodeSmells = new List<CliCodeSmellModel> { new CliCodeSmellModel { Category = "Test" } },
-                Preflight = null,
-            };
-
-            var json = JsonConvert.SerializeObject(model, settings);
-
-            Assert.DoesNotContain("\"preflight\"", json, "Null preflight should not appear in JSON");
-            AssertJsonContainsProperties(json, "file-name", "file-content", "code-smells");
         }
 
         private static T DeserializeJson<T>(string json)
@@ -208,8 +214,8 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(expectedNewScore, result.NewScore);
         }
 
-        private static FnToRefactorModel CreateExpectedFnToRefactor(string name, string body, string fileType, string nippyB64) =>
-            new FnToRefactorModel { Name = name, Body = body, FileType = fileType, NippyB64 = nippyB64 };
+        private static FnToRefactorModel CreateExpectedFnToRefactor(string name, string body, string fileType) =>
+            new FnToRefactorModel { Name = name, Body = body, FileType = fileType };
 
         private static void AssertFnToRefactorModelEquals(FnToRefactorModel actual, FnToRefactorModel expected)
         {
@@ -226,7 +232,6 @@ namespace Codescene.VSExtension.Core.Tests
         private static void AssertFnContent(FnToRefactorModel actual, FnToRefactorModel expected)
         {
             Assert.AreEqual(expected.Body, actual.Body);
-            Assert.AreEqual(expected.NippyB64, actual.NippyB64);
         }
 
         private static void AssertFnToRefactorRoundTrip(FnToRefactorModel original, FnToRefactorModel? deserialized)

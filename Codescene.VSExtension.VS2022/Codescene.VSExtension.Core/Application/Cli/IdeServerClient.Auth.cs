@@ -75,6 +75,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
             return SendRequestAsync<JObject>("cs-ide/auth-sync-account", parameters, cancellationToken);
         }
 
+        public Task<JObject> AuthTokenAsync(CancellationToken cancellationToken = default)
+        {
+            return SendRequestAsync<JObject>("cs-ide/auth-token", new JObject(), cancellationToken);
+        }
+
         public Task<JArray> ProjectsListAsync(CancellationToken cancellationToken = default)
         {
             return SendRequestAsync<JArray>("cs-ide/projects-list", new JObject(), cancellationToken);

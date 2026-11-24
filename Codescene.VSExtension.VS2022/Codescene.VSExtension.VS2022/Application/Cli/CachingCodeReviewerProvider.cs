@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models;
@@ -24,11 +23,10 @@ namespace Codescene.VSExtension.VS2022.Application.Cli
             ILogger logger,
             IModelMapper mapper,
             ICliExecutor executor,
-            IPreflightManager preflightManager,
             IReviewPipeline pipeline,
             ISettingsProvider settings)
         {
-            _inner = new CodeReviewer(logger, mapper, executor, pipeline, preflightManager, settings);
+            _inner = new CodeReviewer(logger, mapper, executor, pipeline, settings);
         }
 
         public Task<(FileReviewModel review, DeltaResponseModel delta)> ReviewWithDeltaAsync(string path, string content, CancellationToken cancellationToken = default)

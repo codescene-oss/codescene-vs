@@ -1,12 +1,8 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Application.Util;
@@ -16,8 +12,6 @@ using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cli.Delta;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Util;
 using static Codescene.VSExtension.Core.Consts.Constants;
@@ -33,7 +27,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
         private readonly ICacheStorageService _cacheStorage;
         private readonly ISettingsProvider _settingsProvider;
         private readonly Lazy<ITelemetryManager> _telemetryManagerLazy;
-        private readonly ConcurrentDictionary<string, Lazy<Task<IList<FnToRefactorModel>>>> _pendingRefactorRequests = new ConcurrentDictionary<string, Lazy<Task<IList<FnToRefactorModel>>>>();
 
         [ImportingConstructor]
         public CliExecutor(
@@ -48,68 +41,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _cacheStorage = cacheStorage ?? throw new ArgumentNullException(nameof(cacheStorage));
             _settingsProvider = settingsProvider ?? throw new ArgumentNullException(nameof(settingsProvider));
             _telemetryManagerLazy = telemetryManagerLazy;
-        }
-
-        public async Task<PreFlightResponseModel> PreflightAsync(bool force = true, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var taskResult = await ExecuteWithTimingAndLoggingAsync(
-                "ACE preflight",
-                () => _client.PreflightAsync(force, cancellationToken),
-                "Preflight failed.");
-            return taskResult.Result;
-        }
-
-        public async Task<RefactorResponseModel> PostRefactoringAsync(FnToRefactorModel fnToRefactor, bool skipCache = false, string token = null, CancellationToken cancellationToken = default)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var effectiveToken = string.IsNullOrEmpty(token) ? _settingsProvider.AuthToken : token;
-            if (string.IsNullOrEmpty(effectiveToken))
-            {
-                var missingTokenEx = new MissingAuthTokenException("Authentication token is missing. Please set it in the extension settings.");
-                if (CliExceptionWarnLogging.ShouldLogAsWarning(missingTokenEx))
-                {
-                    _logger.Warn(CliExceptionWarnLogging.FormatWarningMessage(missingTokenEx, "Refactoring failed."));
-                }
-
-                throw missingTokenEx;
-            }
-
-            var request = new RefactorPostRequestModel
-            {
-                Token = effectiveToken,
-                SkipCache = skipCache ? true : (bool?)null,
-            };
-            if (!string.IsNullOrEmpty(fnToRefactor?.NippyB64))
-            {
-                request.FnToRefactorNippyB64 = fnToRefactor.NippyB64;
-            }
-            else
-            {
-                request.FnToRefactor = fnToRefactor;
-            }
-
-            var (result, elapsedMs) = await ExecuteWithTimingAndLoggingAsync(
-                "ACE refactoring",
-                () => _client.RefactorAsync(request, cancellationToken),
-                "Refactoring failed.");
-
-            if (result != null && fnToRefactor != null)
-            {
-                var loc = PerformanceTelemetryHelper.CalculateLineCount(fnToRefactor.Body);
-                var language = PerformanceTelemetryHelper.ExtractLanguage(null, fnToRefactor);
-                var telemetryData = new PerformanceTelemetryData
-                {
-                    Type = Titles.ACE,
-                    ElapsedMs = elapsedMs,
-                    Loc = loc,
-                    Language = language,
-                    FnToRefactor = fnToRefactor,
-                };
-                SendPerformanceTelemetry(telemetryData);
-            }
-
-            return result;
         }
 
         public Task<string> GetDeviceIdAsync(CancellationToken cancellationToken = default)
@@ -175,83 +106,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     _logger?.Debug($"Failed to send performance telemetry asynchronously: {e.Message}");
                 }
             });
-        }
-
-        private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorAsync(
-            bool isValid,
-            string skipMessage,
-            Func<string, FnsToRefactorRequestModel> createRequest,
-            string operationLabel,
-            CancellationToken cancellationToken = default)
-        {
-            if (!isValid)
-            {
-                _logger.Debug(skipMessage);
-                return null;
-            }
-
-            var cachePath = _cacheStorage.GetSolutionReviewCacheLocation();
-            var request = createRequest(cachePath);
-            var pendingKey = GetPendingRefactorRequestKey(operationLabel, request);
-            var lazyTask = _pendingRefactorRequests.GetOrAdd(
-                pendingKey,
-                __ => new Lazy<Task<IList<FnToRefactorModel>>>(() =>
-                    ExecuteFnsToRefactorCommandAsync(request, operationLabel, operationLabel + " failed.", CancellationToken.None)));
-            var pendingTask = lazyTask.Value;
-            _ = pendingTask.ContinueWith(
-                __ =>
-                {
-                    if (_pendingRefactorRequests.TryGetValue(pendingKey, out var currentLazyTask) && ReferenceEquals(currentLazyTask, lazyTask))
-                    {
-                        _pendingRefactorRequests.TryRemove(pendingKey, out _);
-                    }
-                },
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-            return await AwaitWithCancellationAsync(pendingTask, cancellationToken);
-        }
-
-        private async Task<IList<FnToRefactorModel>> ExecuteFnsToRefactorCommandAsync(FnsToRefactorRequestModel request, string operationLabel, string errorMessage, CancellationToken cancellationToken = default)
-        {
-            _cacheStorage.RemoveOldReviewCacheEntries();
-            var (result, _) = await ExecuteWithTimingAndLoggingAsync(
-                operationLabel,
-                () => _client.FnsToRefactorAsync(request, cancellationToken),
-                errorMessage);
-            return result;
-        }
-
-        private string GetPendingRefactorRequestKey(string operationLabel, FnsToRefactorRequestModel request)
-        {
-            using (var sha = SHA256.Create())
-            {
-                var payload = (request.FileName ?? string.Empty) + "|" + (request.FileContent ?? string.Empty) + "|" + (request.CachePath ?? string.Empty);
-                var bytes = Encoding.UTF8.GetBytes(payload);
-                var hashBytes = sha.ComputeHash(bytes);
-                var hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
-                return operationLabel + "|" + hash;
-            }
-        }
-
-        private async Task<T> AwaitWithCancellationAsync<T>(Task<T> task, CancellationToken cancellationToken)
-        {
-            if (!cancellationToken.CanBeCanceled || task.IsCompleted)
-            {
-                return await task;
-            }
-
-            var cancellationTaskSource = new TaskCompletionSource<bool>();
-            using (cancellationToken.Register(() => cancellationTaskSource.TrySetResult(true)))
-            {
-                var completedTask = await Task.WhenAny(task, cancellationTaskSource.Task);
-                if (completedTask != task)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-            }
-
-            return await task;
         }
 
         private async Task<(T Result, long ElapsedMs)> ExecuteWithTimingAndLoggingAsync<T>(string label, Func<Task<T>> execute, string errorMessage)

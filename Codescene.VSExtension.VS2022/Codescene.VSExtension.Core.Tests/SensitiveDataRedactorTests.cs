@@ -129,6 +129,33 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(@"C:\work", method.Invoke(null, new object[] { @"C:\work\" }));
         }
 
+        [TestMethod]
+        public void RedactSecrets_MasksApiKeyAndAccessTokenJsonProperties()
+        {
+            var input1 = @"{""anthropic_api_key"":""sk-ant-1234"",""data"":""value""}";
+            var result1 = SensitiveDataRedactor.RedactSecrets(input1);
+            Assert.IsFalse(result1.Contains("sk-ant-1234"));
+            Assert.IsTrue(result1.Contains(@"""anthropic_api_key"":""***"""));
+            Assert.IsTrue(result1.Contains(@"""data"":""value"""));
+
+            var input2 = @"{""codescene_access_token"":""cs_token_abc""}";
+            var result2 = SensitiveDataRedactor.RedactSecrets(input2);
+            Assert.IsFalse(result2.Contains("cs_token_abc"));
+            Assert.IsTrue(result2.Contains(@"""codescene_access_token"":""***"""));
+
+            var input3 = @"{""openai_api_key"":""sk-proj-xyz"",""google_api_key"":""AIza123""}";
+            var result3 = SensitiveDataRedactor.RedactSecrets(input3);
+            Assert.IsFalse(result3.Contains("sk-proj-xyz"));
+            Assert.IsFalse(result3.Contains("AIza123"));
+            Assert.IsTrue(result3.Contains(@"""openai_api_key"":""***"""));
+            Assert.IsTrue(result3.Contains(@"""google_api_key"":""***"""));
+
+            var input4 = @"{""my_custom_token"":""secret123""}";
+            var result4 = SensitiveDataRedactor.RedactSecrets(input4);
+            Assert.IsFalse(result4.Contains("secret123"));
+            Assert.IsTrue(result4.Contains(@"""my_custom_token"":""***"""));
+        }
+
         private static int CountOccurrences(string source, string substring)
         {
             var count = 0;

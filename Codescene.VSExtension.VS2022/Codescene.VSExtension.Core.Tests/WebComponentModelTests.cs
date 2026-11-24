@@ -11,24 +11,6 @@ namespace Codescene.VSExtension.Core.Tests
     public class WebComponentModelTests
     {
         [TestMethod]
-        public void AceAcknowledgeComponentData_PropertyAssignment_SetsAllProperties()
-        {
-            var fnToRefactor = new FnToRefactorModel { Name = "TestFunction" };
-            var autoRefactor = new AutoRefactorConfig { Activated = true, Visible = true };
-
-            var model = new AceAcknowledgeComponentData
-            {
-                FilePath = "src/test.cs",
-                AutoRefactor = autoRefactor,
-                FnToRefactor = fnToRefactor,
-            };
-
-            Assert.AreEqual("src/test.cs", model.FilePath);
-            Assert.AreEqual(autoRefactor, model.AutoRefactor);
-            Assert.AreEqual(fnToRefactor, model.FnToRefactor);
-        }
-
-        [TestMethod]
         public void WebComponentAction_PropertyAssignment_SetsPayload()
         {
             var payload = new WebComponentFileDataBase { FileName = "test.cs" };

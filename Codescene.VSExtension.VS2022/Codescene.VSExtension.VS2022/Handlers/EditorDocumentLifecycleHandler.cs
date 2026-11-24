@@ -4,9 +4,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Application.Refactoring;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Git;
@@ -57,9 +56,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
         private readonly IGitService _gitService;
 
         [Import]
-        private readonly IAceRefactorService _aceRefactorService;
-
-        [Import]
         private readonly IAsyncTaskScheduler _scheduler;
 
         [Import]
@@ -67,6 +63,9 @@ namespace Codescene.VSExtension.VS2022.Handlers
 
         [Import]
         private readonly IReviewPipeline _reviewPipeline;
+
+        [Import]
+        private readonly Core.Interfaces.Refactoring.IRefactoringOrchestrator _orchestrator;
 
         public void TextViewCreated(IWpfTextView textView)
         {
@@ -219,27 +218,25 @@ namespace Codescene.VSExtension.VS2022.Handlers
         }
 
         /// <summary>
-        /// Quick guard to determine if we should check ACE stale status.
+        /// Quick guard to determine if we should check refactoring stale status.
         /// Performs only fast, cheap checks without accessing buffer snapshot.
         /// </summary>
         /// <param name="filePath">The path of the file being edited.</param>
         /// <returns>True if the expensive stale check should be performed.</returns>
         private bool ShouldCheckAceStaleStatus(string filePath)
         {
-            // Skip if ACE tool window is not open or already marked as stale
-            if (!AceToolWindow.IsCreated() || AceToolWindow.IsStale)
+            if (!AceToolWindow.IsCreated())
             {
                 return false;
             }
 
-            var lastRefactoring = AceManager.LastRefactoring;
-            if (lastRefactoring == null)
+            var session = _orchestrator.Current;
+            if (session == null || session.State != Core.Models.Refactoring.RefactoringSessionState.Presented)
             {
                 return false;
             }
 
-            // Skip if this file is not the one being refactored
-            if (!string.Equals(lastRefactoring.Path, filePath, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(session.Path, filePath, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
@@ -248,21 +245,20 @@ namespace Codescene.VSExtension.VS2022.Handlers
         }
 
         /// <summary>
-        /// Checks if the ACE refactoring has become stale due to function changes.
-        /// Updates the ACE tool window if staleness is detected.
+        /// Checks if the refactoring has become stale due to function changes.
+        /// Updates the Refactoring Agent tool window if staleness is detected.
         /// If the function moved but is unchanged, updates the cached range to the new position.
         /// Note: This method performs expensive text operations and should be called off the UI thread.
         /// </summary>
         private void CheckAndUpdateAceStaleStatus(string filePath, ITextBuffer buffer)
         {
-            // Re-check guard conditions in case state changed between scheduling and execution
-            var lastRefactoring = AceManager.LastRefactoring;
-            if (lastRefactoring == null || AceToolWindow.IsStale)
+            var session = _orchestrator.Current;
+            if (session == null || session.State != Core.Models.Refactoring.RefactoringSessionState.Presented)
             {
                 return;
             }
 
-            if (!string.Equals(lastRefactoring.Path, filePath, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(session.Path, filePath, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
@@ -270,16 +266,14 @@ namespace Codescene.VSExtension.VS2022.Handlers
             var content = buffer.CurrentSnapshot.GetText();
             var result = _aceStaleChecker.IsFunctionUnchangedInDocument(
                 content,
-                lastRefactoring.RefactorableCandidate);
+                session.Function);
 
             if (result.IsStale)
             {
-                _scheduler.Schedule(ct => AceToolWindow.MarkAsStaleAsync());
+                _orchestrator.MarkStale();
             }
             else if (result.RangeUpdated && result.UpdatedRange != null)
             {
-                // Function moved but content is unchanged - update the cached range atomically
-                // Create a new Range instance for atomic assignment to avoid readers seeing partially-updated state
                 var newRange = new CliRangeModel
                 {
                     StartLine = result.UpdatedRange.StartLine,
@@ -287,7 +281,7 @@ namespace Codescene.VSExtension.VS2022.Handlers
                     EndLine = result.UpdatedRange.EndLine,
                     EndColumn = result.UpdatedRange.EndColumn,
                 };
-                lastRefactoring.RefactorableCandidate.Range = newRange;
+                _orchestrator.UpdateRange(newRange);
             }
         }
 
@@ -313,7 +307,6 @@ namespace Codescene.VSExtension.VS2022.Handlers
                 var code = buffer.CurrentSnapshot.GetText();
                 var (result, _) = await _reviewer.ReviewWithDeltaAsync(path, code);
                 await ApplyReviewResultsAsync(result, buffer);
-                await _aceRefactorService.CheckContainsRefactorableFunctionsAsync(result, code);
                 _aceRefactorSuggestedActionsNotifier.NotifyAceRefactorableDataChanged(buffer);
                 if (!HasOpenViews(buffer))
                 {

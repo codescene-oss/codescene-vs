@@ -36,7 +36,10 @@ updatecwf:
 cs-ide.zip:
 	@pwsh.exe .github/cli.ps1 > cs-ide.log 2>&1 && del cs-ide.log || (type cs-ide.log && del cs-ide.log && exit /b 1)
 
-.copy-assets: cs-cwf.zip cs-ide.zip
+cs-agent.zip: Codescene.VSExtension.VS2022/Codescene.VSExtension.Core/Application/Cli/CliSettingsProvider.cs
+	@pwsh.exe .github/cs-agent.ps1 > cs-agent.log 2>&1 && del cs-agent.log || (type cs-agent.log && del cs-agent.log && exit /b 1)
+
+.copy-assets: cs-cwf.zip cs-ide.zip cs-agent.zip
 	@pwsh.exe .github/copy-assets.ps1 > copy-assets.log 2>&1 && del copy-assets.log || (type copy-assets.log && del copy-assets.log && exit /b 1)
 	@type nul > .copy-assets
 

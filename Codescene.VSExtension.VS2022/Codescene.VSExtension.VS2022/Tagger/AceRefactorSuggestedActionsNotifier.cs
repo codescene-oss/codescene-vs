@@ -14,6 +14,8 @@ internal interface IAceRefactorSuggestedActionsNotifier
     void Unregister(ITextBuffer buffer, AceRefactorSuggestedActionsSource source);
 
     void NotifyAceRefactorableDataChanged(ITextBuffer buffer);
+
+    void NotifyAll();
 }
 
 [Export(typeof(IAceRefactorSuggestedActionsNotifier))]
@@ -87,6 +89,20 @@ internal sealed class AceRefactorSuggestedActionsNotifier : IAceRefactorSuggeste
         }
 
         foreach (var source in snapshot)
+        {
+            source.RaiseSuggestedActionsChanged();
+        }
+    }
+
+    public void NotifyAll()
+    {
+        List<AceRefactorSuggestedActionsSource> allSources;
+        lock (_lock)
+        {
+            allSources = _sourcesByBuffer.Values.SelectMany(list => list).ToList();
+        }
+
+        foreach (var source in allSources)
         {
             source.RaiseSuggestedActionsChanged();
         }

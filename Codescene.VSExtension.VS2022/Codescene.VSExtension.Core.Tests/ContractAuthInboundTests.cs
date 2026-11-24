@@ -92,6 +92,22 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
+        [DataRow("env-token")]
+        [DataRow("full")]
+        [DataRow("minimal")]
+        [DataRow("setting-token")]
+        public async Task AuthToken_OverTheClient_KeepsTheFixture(string variant)
+        {
+            var wire = (JObject)_bundle.Fixture("token-result", variant, FixtureForm.Wire);
+            var (server, harness) = await StartHarnessAsync();
+            server.SetAuthTokenResponse(wire);
+
+            var result = await harness.Client.AuthTokenAsync();
+
+            Assert.IsTrue(JToken.DeepEquals(wire, result), $"Returned JObject does not deep-equal the wire fixture for variant {variant}");
+        }
+
+        [TestMethod]
         [DataRow("full")]
         [DataRow("lookup-failed")]
         [DataRow("minimal")]
@@ -183,6 +199,8 @@ namespace Codescene.VSExtension.Core.Tests
 
             private JObject _projectLinkGetResponse = new JObject { ["project"] = JValue.CreateNull(), ["reason"] = "no-remote" };
 
+            private JObject _authTokenResponse = new JObject { ["credential-source"] = "env-token", ["access-token"] = "fake-token" };
+
             public void SetAuthStatusResponse(JObject response)
             {
                 _authStatusResponse = response;
@@ -206,6 +224,11 @@ namespace Codescene.VSExtension.Core.Tests
             public void SetProjectLinkGetResponse(JObject response)
             {
                 _projectLinkGetResponse = response;
+            }
+
+            public void SetAuthTokenResponse(JObject response)
+            {
+                _authTokenResponse = response;
             }
 
             [StreamJsonRpc.JsonRpcMethod("cs-ide/auth-status", UseSingleObjectParameterDeserialization = true)]
@@ -236,6 +259,12 @@ namespace Codescene.VSExtension.Core.Tests
             public object? OnProjectLinkGet(JObject parameters)
             {
                 return _projectLinkGetResponse;
+            }
+
+            [StreamJsonRpc.JsonRpcMethod("cs-ide/auth-token", UseSingleObjectParameterDeserialization = true)]
+            public object? OnAuthToken(JObject parameters)
+            {
+                return _authTokenResponse;
             }
         }
     }
