@@ -121,6 +121,8 @@ public class AceToolWindow : BaseToolWindow<AceToolWindow>
             WebComponentConstants.ViewTypes.ACE,
             mapper.Map(handler.Path, handler.RefactorableFunction));
 
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
         var ctrl = new WebComponentUserControl(payload, logger)
         {
             CloseRequested = async () =>

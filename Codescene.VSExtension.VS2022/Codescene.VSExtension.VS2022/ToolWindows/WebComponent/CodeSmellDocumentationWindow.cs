@@ -94,6 +94,8 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
                 WebComponentConstants.ViewTypes.DOCS,
                 mapper.Map(_model, _fnToRefactor, aceAcknowledged));
 
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             var ctrl = new WebComponentUserControl(payload, logger)
             {
                 CloseRequested = async () =>
