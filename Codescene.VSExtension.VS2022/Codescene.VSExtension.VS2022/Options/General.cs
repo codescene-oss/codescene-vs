@@ -33,7 +33,7 @@ public class General : BaseOptionModel<General>
     private bool _previousBrowserSignIn;
     private string _previousServerUrl;
     private byte[] _previousPlainAuthToken;
-    private bool _previousEnableRefactoringAgent = true;
+    private bool _previousEnableRefactoringAgent;
 
     public General()
     {
@@ -108,7 +108,7 @@ public class General : BaseOptionModel<General>
     [Category("Refactoring Agent")]
     [DisplayName("\t\t\t\t\t\t\tEnable Refactoring Agent")]
     [Description("Enable CodeScene Refactoring Agent")]
-    public bool EnableRefactoringAgent { get; set; } = true;
+    public bool EnableRefactoringAgent { get; set; } = false;
 
     [Category("Refactoring Agent")]
     [DisplayName("\t\t\t\t\t\tAgent Model")]

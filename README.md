@@ -87,7 +87,7 @@ Location: `Refactoring Agent` > `Extension Settings`
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| **Enable Refactoring Agent** | Boolean | true | Enable CodeScene Refactoring Agent |
+| **Enable Refactoring Agent** | Boolean | false | Enable CodeScene Refactoring Agent |
 | **Agent Model** | String | anthropic/claude-sonnet-5-5 | Model to use for the Refactoring Agent. |
 | **Agent Model Override** | String | - | Custom model identifier. If set, overrides the dropdown selection above. |
 | **Amazon Bedrock Profile** | String | - | AWS profile name for Amazon Bedrock. Check the setup with Extensions > CodeScene > Test provider connectivity. |
