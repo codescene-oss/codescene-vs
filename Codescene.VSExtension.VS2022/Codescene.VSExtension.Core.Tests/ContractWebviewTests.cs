@@ -255,7 +255,7 @@ namespace Codescene.VSExtension.Core.Tests
             var flags = ((JArray)At(payload, "featureFlags")).Select(flag => (string?)flag).ToArray();
             CollectionAssert.DoesNotContain(flags, "jobs");
             CollectionAssert.DoesNotContain(flags, "open-settings");
-            CollectionAssert.Contains(flags, "ace-status-indicator");
+            CollectionAssert.DoesNotContain(flags, "ace-status-indicator");
         }
 
         [TestMethod]
