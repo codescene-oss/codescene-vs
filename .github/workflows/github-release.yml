@@ -199,15 +199,23 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Find VsixPublisher.exe
+      - name: Download VsixPublisher.exe
         id: find-vsixpub
         shell: pwsh
         run: |
-          $vsix = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\18" -Recurse -Filter VsixPublisher.exe -ErrorAction SilentlyContinue |
-                  Select-Object -First 1 -ExpandProperty FullName
-          if (-not $vsix) { throw "VsixPublisher.exe not found on runner." }
+          $package = Join-Path $env:RUNNER_TEMP "microsoft.vssdk.buildtools.$env:VSSDK_VERSION.nupkg"
+          $directory = Join-Path $env:RUNNER_TEMP "vssdk-buildtools"
+          Invoke-WebRequest -Uri "https://api.nuget.org/v3-flatcontainer/microsoft.vssdk.buildtools/$env:VSSDK_VERSION/microsoft.vssdk.buildtools.$env:VSSDK_VERSION.nupkg" -OutFile $package
+          $sha512 = [Convert]::ToBase64String([Security.Cryptography.SHA512]::Create().ComputeHash([IO.File]::ReadAllBytes($package)))
+          if ($sha512 -cne $env:VSSDK_SHA512) { throw "Microsoft.VSSDK.BuildTools $env:VSSDK_VERSION has SHA-512 $sha512, expected $env:VSSDK_SHA512." }
+          Expand-Archive -Path $package -DestinationPath $directory -Force
+          $vsix = Join-Path $directory "tools\vssdk\bin\VsixPublisher.exe"
+          if (-not (Test-Path $vsix)) { throw "VsixPublisher.exe not found in Microsoft.VSSDK.BuildTools $env:VSSDK_VERSION." }
           echo "path=$vsix" >> $env:GITHUB_OUTPUT
           Write-Host "Found VsixPublisher at: $vsix"
+        env:
+          VSSDK_VERSION: 18.9.820
+          VSSDK_SHA512: R13VOYo+/h05Aycz6O1RRRblxDL9YTI+TMKsCwAOkoj0S8t0oH1E/9mRLtciTmUQlcvReNpjtmDoqJOAJKXU/Q==
 
       - name: Azure login (OIDC)
         uses: azure/login@v3

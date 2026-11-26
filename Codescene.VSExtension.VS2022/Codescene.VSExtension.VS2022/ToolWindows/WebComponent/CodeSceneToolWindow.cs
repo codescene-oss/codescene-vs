@@ -77,6 +77,13 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
             var view = CodeHealthMonitorView.For(current);
             var payload = CodeHealthMonitorView.Payload(view, mapper.Map(deltaCache.GetAll()));
 
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (_userControl != null)
+            {
+                return _userControl;
+            }
+
             var ctrl = new WebComponentUserControl(payload, logger)
             {
                 CloseRequested = async () =>
