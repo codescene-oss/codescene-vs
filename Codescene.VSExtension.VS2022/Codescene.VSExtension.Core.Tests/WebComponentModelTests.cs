@@ -129,12 +129,12 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void WebComponentPayload_FeatureFlags_HasDefaultValues()
+        public void WebComponentPayload_FeatureFlags_DefaultsToEmpty()
         {
             var model = new WebComponentPayload<string>();
 
             Assert.IsNotNull(model.FeatureFlags);
-            CollectionAssert.Contains(model.FeatureFlags, "ace-status-indicator");
+            Assert.AreEqual(0, model.FeatureFlags.Count);
         }
     }
 }
