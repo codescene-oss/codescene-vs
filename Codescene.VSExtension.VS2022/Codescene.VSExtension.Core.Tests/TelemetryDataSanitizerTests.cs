@@ -99,19 +99,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void SerializeException_WithPathInContext_SanitizesContext()
-        {
-            ErrorTelemetryUtils.ResetErrorCount();
-            var ex = new InvalidOperationException("failure");
-            var context = "Could not review C:\\Users\\alice\\src\\Foo.cs";
-
-            var result = ErrorTelemetryUtils.SerializeException(ex, context);
-
-            var extraData = (Dictionary<string, object>)result["extraData"];
-            Assert.Contains("<path>", (string)extraData["context"]);
-        }
-
-        [TestMethod]
         public void SanitizeJObject_Null_DoesNotThrow()
         {
             TelemetryDataSanitizer.SanitizeJObject(null);

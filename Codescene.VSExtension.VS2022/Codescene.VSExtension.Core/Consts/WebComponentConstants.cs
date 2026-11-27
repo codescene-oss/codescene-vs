@@ -9,9 +9,9 @@ namespace Codescene.VSExtension.Core.Consts
         public class ViewTypes
         {
             public const string ACE = "ace";
+            public const string AUTH = "auth";
             public const string DOCS = "docs";
             public const string HOME = "home"; // Code Health Monitor
-            public const string ACEACKNOWLEDGE = "aceAcknowledge";
         }
 
         public class AceViewErrorTypes
@@ -36,7 +36,6 @@ namespace Codescene.VSExtension.Core.Consts
         {
             public const string INIT = "init";
             public const string APPLY = "apply";
-            public const string ACKNOWLEDGED = "acknowledged";
             public const string REJECT = "reject";
             public const string RETRY = "retry";
             public const string CLOSE = "close";
@@ -51,6 +50,21 @@ namespace Codescene.VSExtension.Core.Consts
             public const string OPENSETTINGS = "open-settings";
             public const string STOPANALYSIS = "stop-analysis";
             public const string STARTANALYSIS = "start-analysis";
+            public const string OPENAUTH = "open-auth";
+            public const string AUTHCLOSE = "auth-close";
+            public const string AUTHSKIPPROJECT = "auth-skip-project";
+            public const string HIDESIGNINBANNER = "hide-sign-in-banner";
+            public const string AUTHSIGNIN = "auth-sign-in";
+            public const string AUTHOPENBROWSERAGAIN = "auth-open-browser-again";
+            public const string AUTHSIGNOUT = "auth-sign-out";
+            public const string AUTHRETRY = "auth-retry";
+            public const string AUTHSELECTACCOUNT = "auth-select-account";
+            public const string AUTHLINKPROJECT = "auth-link-project";
+            public const string AUTHSETACCESSTOKEN = "auth-set-access-token";
+            public const string AUTHREMOVEACCESSTOKEN = "auth-remove-access-token";
+            public const string AUTHOPENSERVERSETTING = "auth-open-server-setting";
+            public const string AUTHOPENPATPAGE = "auth-open-pat-page";
+            public const string AUTHREAUTHORIZE = "auth-reauthorize";
         }
     }
 }

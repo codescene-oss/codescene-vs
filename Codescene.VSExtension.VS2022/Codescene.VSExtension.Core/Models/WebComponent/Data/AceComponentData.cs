@@ -14,8 +14,8 @@ namespace Codescene.VSExtension.Core.Models.WebComponent.Data
 
         public WebComponentFileDataBase FileData { get; set; }
 
-        public FnToRefactorModel FnToRefactor { get; set; }
-
         public RefactorResponseModel AceResultData { get; set; }
+
+        public string ProgressMessage { get; set; }
     }
 }

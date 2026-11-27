@@ -27,23 +27,14 @@
 		</Menus>
 
 		<Buttons>
-			<Button guid="CodeSceneCmdSet" id="SignInCommand" priority="0x0100" type="Button">
+			<Button guid="CodeSceneCmdSet" id="ReauthorizeCommand" priority="0x0100" type="Button">
 				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
 				<Icon guid="ImageCatalogGuid" id="User" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
 				<CommandFlag>DefaultInvisible</CommandFlag>
 				<Strings>
-					<ButtonText>Sign in with CodeScene Tools to use CodeScene</ButtonText>
-				</Strings>
-			</Button>
-			<Button guid="CodeSceneCmdSet" id="SignOutCommand" priority="0x0100" type="Button">
-				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup" />
-				<Icon guid="ImageCatalogGuid" id="User" />
-				<CommandFlag>TextChanges</CommandFlag>
-				<CommandFlag>IconIsMoniker</CommandFlag>
-				<CommandFlag>DefaultInvisible</CommandFlag>
-				<Strings>
-					<ButtonText>Sign out</ButtonText>
+					<ButtonText>Re-authorize</ButtonText>
 				</Strings>
 			</Button>
 			<Button guid="CodeSceneCmdSet" id="OpenCodeSceneToolWindow" priority="0x0100" type="Button">
@@ -79,6 +70,16 @@
 					<ButtonText>Copy Device ID</ButtonText>
 				</Strings>
 			</Button>
+			<Button guid="CodeSceneCmdSet" id="TestConnectivityCommand" priority="0x0101" type="Button">
+				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
+				<Icon guid="ImageCatalogGuid" id="StatusOK" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Test provider connectivity</ButtonText>
+				</Strings>
+			</Button>
 			<!--
 			<Button guid="CodeSceneCmdSet" id="RevokeTerms" priority="0x9999" type="Button">
 				<Parent guid="CodeSceneCmdSet" id="CodeSceneCommandsGroup"/>
@@ -112,10 +113,10 @@
 			<IDSymbol name="OpenSettings" value="0x1025" />
 			<IDSymbol name="CopyDeviceId" value="0x1026" />
 			<!--<IDSymbol name="RevokeTerms" value="0x1027" />-->
-			<IDSymbol name="SignInCommand" value="0x0400" />
 			<IDSymbol name="OpenStatusWindowCommand" value="0x0800" />
-			<IDSymbol name="SignOutCommand" value="0x0500" />
+			<IDSymbol name="ReauthorizeCommand" value="0x0502" />
 			<IDSymbol name="OpenCodeSceneToolWindow" value="0x0801" />
+			<IDSymbol name="TestConnectivityCommand" value="0x0504" />
 		</GuidSymbol>
 		<!-- External Symbols -->
 		<GuidSymbol name="guidSHLMainMenu" value="{d309f791-903f-11d0-9efc-00a0c911004f}">

@@ -8,11 +8,7 @@ namespace Codescene.VSExtension.Core.Application.Cli
 {
     internal static class CliExceptionWarnLogging
     {
-        private static readonly Func<Exception, bool>[] WarnPredicates =
-        {
-            IsMissingAuthToken,
-            IsDevtoolsRefactoringCreditsExhausted,
-        };
+        private static readonly Func<Exception, bool>[] WarnPredicates = { };
 
         internal static bool ShouldLogAsWarning(Exception ex)
         {
@@ -35,25 +31,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
 
             return $"{ctx}: {ex.Message}";
-        }
-
-        private static bool IsMissingAuthToken(Exception ex) => ex is MissingAuthTokenException;
-
-        private static bool IsDevtoolsRefactoringCreditsExhausted(Exception ex) =>
-            ex is DevtoolsException d && IsRefactoringCreditsExhausted(d);
-
-        private static bool IsRefactoringCreditsExhausted(DevtoolsException ex)
-        {
-            var message = ex.Message;
-            if (string.IsNullOrEmpty(message))
-            {
-                return false;
-            }
-
-            return message.IndexOf("credits", StringComparison.OrdinalIgnoreCase) >= 0
-                && message.IndexOf("refactoring", StringComparison.OrdinalIgnoreCase) >= 0
-                && (message.IndexOf("ran out", StringComparison.OrdinalIgnoreCase) >= 0
-                    || message.IndexOf("bigger plan", StringComparison.OrdinalIgnoreCase) >= 0);
         }
     }
 }

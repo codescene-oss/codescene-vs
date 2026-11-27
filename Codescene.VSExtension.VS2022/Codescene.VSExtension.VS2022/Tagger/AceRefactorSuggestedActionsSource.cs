@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.VS2022.Util;
@@ -24,7 +24,6 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
     private readonly ITextBuffer _textBuffer;
     private readonly IAceRefactorSuggestedActionsNotifier _notifier;
     private readonly ReviewCacheService _reviewCache = new ReviewCacheService();
-    private readonly AceRefactorableFunctionsCacheService _aceRefactorableFunctionsCache = new AceRefactorableFunctionsCacheService();
 
     public AceRefactorSuggestedActionsSource(
         AceRefactorSuggestedActionsSourceProvider provider,
@@ -48,7 +47,7 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!HasAuthToken())
+        if (!_provider.AgentAvailability.Usable)
         {
             return Task.FromResult(false);
         }
@@ -62,7 +61,7 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
         SnapshotSpan range,
         CancellationToken cancellationToken)
     {
-        if (!HasAuthToken())
+        if (!_provider.AgentAvailability.Usable)
         {
             return Enumerable.Empty<SuggestedActionSet>();
         }
@@ -102,20 +101,6 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
         SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private static bool SmellOverlapsRange(CodeSmellModel smell, int rangeStartLine, int rangeEndLine)
-    {
-        return smell.Range.StartLine <= rangeEndLine && smell.Range.EndLine >= rangeStartLine;
-    }
-
-    private bool HasAuthToken()
-    {
-        return !string.IsNullOrWhiteSpace(_provider.SettingsProvider?.AuthToken);
-    }
-
-    /// <summary>
-    /// Tries to find a refactorable function within the given range.
-    /// Returns the file path and refactorable function if found, null otherwise.
-    /// </summary>
     private (string FilePath, FnToRefactorModel RefactorableFunction)? TryGetRefactorableFunctionInRange(SnapshotSpan range)
     {
         try
@@ -127,52 +112,33 @@ internal class AceRefactorSuggestedActionsSource : ISuggestedActionsSource
             }
 
             var currentContent = _textBuffer.CurrentSnapshot.GetText();
-            var smells = GetCodeSmellsFromCache(filePath, currentContent);
-            var refactorableFunctions = GetRefactorableFunctionsFromCache(filePath, currentContent);
-
-            if (smells == null || refactorableFunctions == null)
+            var cachedReview = _reviewCache.Get(new ReviewCacheQuery(currentContent, filePath));
+            if (cachedReview == null)
             {
                 return null;
             }
 
-            var refactorableFunction = FindRefactorableFunctionInRange(range, smells, refactorableFunctions);
-            return refactorableFunction != null ? (filePath, refactorableFunction) : null;
+            var smells = cachedReview.FileLevel.Concat(cachedReview.FunctionLevel).ToList();
+            if (smells.Count == 0)
+            {
+                return null;
+            }
+
+            var rangeStartLine = range.Start.GetContainingLine().LineNumber + 1;
+            var rangeEndLine = range.End.GetContainingLine().LineNumber + 1;
+
+            var smell = CodeSmellLookup.FirstOverlapping(smells, rangeStartLine, rangeEndLine);
+            if (smell == null)
+            {
+                return null;
+            }
+
+            var function = FunctionToRefactorResolver.ForCodeSmell(filePath, currentContent, smell);
+            return function != null ? (filePath, function) : null;
         }
         catch
         {
             return null;
         }
-    }
-
-    private FnToRefactorModel FindRefactorableFunctionInRange(
-        SnapshotSpan range,
-        List<CodeSmellModel> smells,
-        IList<FnToRefactorModel> refactorableFunctions)
-    {
-        var rangeStartLine = range.Start.GetContainingLine().LineNumber + 1;
-        var rangeEndLine = range.End.GetContainingLine().LineNumber + 1;
-
-        return smells
-            .Where(smell => SmellOverlapsRange(smell, rangeStartLine, rangeEndLine))
-            .Select(smell => AceUtils.GetRefactorableFunction(smell, refactorableFunctions))
-            .FirstOrDefault(fn => fn != null);
-    }
-
-    private List<CodeSmellModel> GetCodeSmellsFromCache(string filePath, string content)
-    {
-        var cachedReview = _reviewCache.Get(new ReviewCacheQuery(content, filePath));
-        if (cachedReview == null)
-        {
-            return null;
-        }
-
-        var smells = cachedReview.FileLevel.Concat(cachedReview.FunctionLevel).ToList();
-        return smells.Count > 0 ? smells : null;
-    }
-
-    private IList<FnToRefactorModel> GetRefactorableFunctionsFromCache(string filePath, string content)
-    {
-        var functions = _aceRefactorableFunctionsCache.Get(new AceRefactorableFunctionsQuery(filePath, content));
-        return functions?.Count > 0 ? functions : null;
     }
 }

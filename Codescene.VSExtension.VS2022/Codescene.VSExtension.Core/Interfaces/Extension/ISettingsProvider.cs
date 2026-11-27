@@ -13,5 +13,21 @@ namespace Codescene.VSExtension.Core.Interfaces.Extension
         bool EnableAutomaticAnalysis { get; }
 
         bool EnableTelemetry { get; }
+
+        bool EnableRefactoringAgent { get; }
+
+        string AgentModel { get; }
+
+        string AgentModelOverride { get; }
+
+        string BedrockProfile { get; }
+
+        string BedrockRegion { get; }
+
+        string AnthropicApiKey { get; }
+
+        string OpenAIApiKey { get; }
+
+        string GoogleApiKey { get; }
     }
 }

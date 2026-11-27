@@ -29,7 +29,7 @@ namespace Codescene.VSExtension.Core.Tests
 
         public JsonRpc ServerRpc { get; }
 
-        public static ContractClientHarness Create(JObject startWire, object? serverTarget = null)
+        public static ContractClientHarness Create(JObject startWire, object? serverTarget = null, ILogger? logger = null)
         {
             var executable = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".exe");
             System.IO.File.WriteAllText(executable, "dummy-cli");
@@ -50,7 +50,7 @@ namespace Codescene.VSExtension.Core.Tests
             serverRpc.StartListening();
             var client = new IdeServerClient(
                 settings.Object,
-                new Mock<ILogger>().Object,
+                logger ?? new Mock<ILogger>().Object,
                 new FakeProcessFactory(process),
                 userSettings.Object,
                 TimeSpan.FromSeconds(5));

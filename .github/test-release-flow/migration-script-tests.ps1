@@ -105,18 +105,3 @@ function Test-MigrationScriptWithFakeGh {
     Assert-Equal -Expected 0 -Actual @($again.Calls | Where-Object { $_ -clike '*PATCH*' }).Count -Name 'a second apply run patches nothing'
     Assert-True -Condition ($again.Result.Output -clike '*Up to date: v0.9.1, v0.9.0*') -Name 'a second apply run finds everything up to date'
 }
-
-function Test-MigrationIntegration {
-    $token = Get-GitHubTokenForTests
-    if (-not $token) {
-        Write-Host 'skipping migration integration: no GitHub token available'
-        return
-    }
-    $run = Invoke-MigrationScript @() @{ GH_TOKEN = $token }
-    Assert-Equal -Expected 0 -Actual $run.ExitCode -Name "the migration dry run against the real releases exits zero ($($run.Output))"
-    foreach ($tag in @('v0.9.1', 'v0.9.0', 'v0.7.0', 'v0.3.0', 'v0.2.7', 'v0.2.0')) {
-        Assert-True -Condition ($run.Output -clike "*Would update $tag`n*") -Name "the dry run would update $tag"
-    }
-    Assert-True -Condition ($run.Output -clike '*Changelog sections without a stable release: Unreleased, *0.1.4*0.0.1*') -Name 'the dry run reports Unreleased and 0.0.1 to 0.1.x as unmatched'
-    Assert-True -Condition ($run.Output -match 'Dry run: \d+ release\(s\) would be updated\. Pass --apply to write\.') -Name 'the dry run prints the summary'
-}

@@ -150,24 +150,7 @@ namespace Codescene.VSExtension.Core.Application.Git
 
         private static List<string> ResolveTargets(IReadOnlyList<string> directories)
         {
-            var targets = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (var directory in directories)
-            {
-                var repoRoot = GitPathDiscovery.TryGetWorkingDirectory(directory);
-                if (string.IsNullOrEmpty(repoRoot))
-                {
-                    foreach (var nested in GitPathDiscovery.FindNestedRepositories(directory))
-                    {
-                        targets[RpcPath.NormalizeFsPath(nested)] = nested;
-                    }
-
-                    continue;
-                }
-
-                targets[RpcPath.NormalizeFsPath(repoRoot)] = repoRoot;
-            }
-
-            return targets.Values.ToList();
+            return GitPathDiscovery.ResolveRepositoryRoots(directories).ToList();
         }
 
         private static IReadOnlyList<string> ScopePaths(string repoRoot, IReadOnlyList<string> workspaceDirectories)

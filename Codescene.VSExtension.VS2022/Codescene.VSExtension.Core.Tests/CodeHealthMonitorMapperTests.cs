@@ -2,7 +2,7 @@
 
 using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Enums;
-using Codescene.VSExtension.Core.Interfaces.Ace;
+using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
@@ -14,16 +14,17 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class CodeHealthMonitorMapperTests
     {
-        private Mock<IPreflightManager> _mockPreflightManager;
+        private Mock<IAgentAvailability> _mockAvailability;
         private CodeHealthMonitorMapper _mapper;
 
         [TestInitialize]
         public void Setup()
         {
-            _mockPreflightManager = new Mock<IPreflightManager>();
-            _mockPreflightManager.Setup(x => x.GetAutoRefactorConfig())
+            _mockAvailability = new Mock<IAgentAvailability>();
+            _mockAvailability.Setup(x => x.Enabled).Returns(true);
+            _mockAvailability.Setup(x => x.AutoRefactor())
                 .Returns(new AutoRefactorConfig { Activated = true, Visible = true, Disabled = false });
-            _mapper = new CodeHealthMonitorMapper(_mockPreflightManager.Object);
+            _mapper = new CodeHealthMonitorMapper(_mockAvailability.Object);
         }
 
         [TestMethod]
@@ -143,7 +144,6 @@ namespace Codescene.VSExtension.Core.Tests
             {
                 Name = "RefactorMe",
                 Body = "function body",
-                NippyB64 = "encoded",
                 FileType = "cs",
                 Range = new CliRangeModel { StartLine = 10, EndLine = 20, StartColumn = 1, EndColumn = 50 },
                 RefactoringTargets = new[] { new RefactoringTargetModel { Category = "Complex", Line = 15 } },
@@ -154,7 +154,6 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNotNull(mappedRefactorableFn);
             Assert.AreEqual("RefactorMe", mappedRefactorableFn.Name);
             Assert.AreEqual("function body", mappedRefactorableFn.Body);
-            Assert.AreEqual("encoded", mappedRefactorableFn.NippyB64);
         }
 
         [TestMethod]
@@ -165,16 +164,74 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Map_AutoRefactorConfig_ComesFromPreflightManager()
+        public void AutoRefactor_FromAvailability()
         {
             var expectedConfig = new AutoRefactorConfig { Activated = false, Visible = true, Disabled = true };
-            _mockPreflightManager.Setup(x => x.GetAutoRefactorConfig()).Returns(expectedConfig);
+            _mockAvailability.Setup(x => x.AutoRefactor()).Returns(expectedConfig);
 
             var result = _mapper.Map(new Dictionary<string, DeltaResponseModel>());
 
             Assert.AreEqual(expectedConfig.Activated, result.AutoRefactor.Activated);
             Assert.AreEqual(expectedConfig.Visible, result.AutoRefactor.Visible);
             Assert.AreEqual(expectedConfig.Disabled, result.AutoRefactor.Disabled);
+        }
+
+        [TestMethod]
+        public void Disabled_OmitsRefactorableFn()
+        {
+            _mockAvailability.Setup(x => x.Enabled).Returns(false);
+
+            var refactorableFn = new FnToRefactorModel
+            {
+                Name = "RefactorMe",
+                Body = "function body",
+                FileType = "cs",
+            };
+            var result = _mapper.Map(CreateSingleFileDelta("test.cs", CreateDeltaResponseWithFunctionFindings(new[] { CreateFunctionFinding(refactorableFn: refactorableFn) })));
+
+            Assert.IsNull(result.FileDeltaData[0].Delta.FunctionLevelFindings[0].RefactorableFn);
+        }
+
+        [TestMethod]
+        public void RefactorableFn_MapsFileAndFunctionType()
+        {
+            _mockAvailability.Setup(x => x.Enabled).Returns(true);
+
+            var refactorableFn = new FnToRefactorModel
+            {
+                Name = "RefactorMe",
+                Body = "function body",
+                FileType = "cs",
+                FunctionType = "method",
+                Range = new CliRangeModel { StartLine = 10, EndLine = 20, StartColumn = 1, EndColumn = 50 },
+                RefactoringTargets = new[] { new RefactoringTargetModel { Category = "Complex", Line = 15 } },
+            };
+            var result = _mapper.Map(CreateSingleFileDelta("test.cs", CreateDeltaResponseWithFunctionFindings(new[] { CreateFunctionFinding(refactorableFn: refactorableFn) })));
+
+            var mappedRefactorableFn = result.FileDeltaData[0].Delta.FunctionLevelFindings[0].RefactorableFn;
+            Assert.IsNotNull(mappedRefactorableFn);
+            Assert.AreEqual("cs", mappedRefactorableFn.FileType);
+            Assert.AreEqual("method", mappedRefactorableFn.FunctionType);
+        }
+
+        [TestMethod]
+        public void EnableToggle_RefreshesButtonsWithCachedFunctions()
+        {
+            _mockAvailability.Setup(x => x.Enabled).Returns(false);
+
+            var refactorableFn = new FnToRefactorModel
+            {
+                Name = "RefactorMe",
+                Body = "function body",
+                FileType = "cs",
+            };
+            var result = _mapper.Map(CreateSingleFileDelta("test.cs", CreateDeltaResponseWithFunctionFindings(new[] { CreateFunctionFinding(refactorableFn: refactorableFn) })));
+            Assert.IsNull(result.FileDeltaData[0].Delta.FunctionLevelFindings[0].RefactorableFn);
+
+            _mockAvailability.Setup(x => x.Enabled).Returns(true);
+
+            result = _mapper.Map(CreateSingleFileDelta("test.cs", CreateDeltaResponseWithFunctionFindings(new[] { CreateFunctionFinding(refactorableFn: refactorableFn) })));
+            Assert.IsNotNull(result.FileDeltaData[0].Delta.FunctionLevelFindings[0].RefactorableFn);
         }
 
         [TestMethod]

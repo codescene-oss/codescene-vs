@@ -17,9 +17,10 @@ namespace Codescene.VSExtension.Core.IntegrationTests.TestImplementations
             await Mock.Object.SendTelemetryAsync(eventName, additionalEventData, cancellationToken);
         }
 
-        public async Task SendErrorTelemetryAsync(Exception ex, string context, Dictionary<string, object> extraData = null, CancellationToken cancellationToken = default)
-        {
-            await Mock.Object.SendErrorTelemetryAsync(ex, context, extraData, cancellationToken);
-        }
+        public int HoldRouting() => Mock.Object.HoldRouting();
+
+        public void RoutingReady(int generation) => Mock.Object.RoutingReady(generation);
+
+        public Task EndSessionAsync(TimeSpan timeout) => Mock.Object.EndSessionAsync(timeout) ?? Task.CompletedTask;
     }
 }

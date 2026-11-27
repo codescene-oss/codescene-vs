@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
+using Codescene.VSExtension.Core.Interfaces.Agent;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Util;
@@ -36,7 +36,6 @@ namespace Codescene.VSExtension.VS2022;
 [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Codescene", "General", 0, 0, true, SupportsProfiles = true)]
 
 [ProvideToolWindow(typeof(AceToolWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer, Transient = true)]
-[ProvideToolWindow(typeof(AceAcknowledgeToolWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer, Transient = true)]
 [ProvideToolWindow(typeof(CodeSmellDocumentationWindow.Pane), Style = VsDockStyle.Linked, Window = WindowGuids.SolutionExplorer, Transient = true)]
 [ProvideToolWindow(typeof(CodeSceneToolWindow.Pane), Style = VsDockStyle.Tabbed, Window = WindowGuids.SolutionExplorer)]
 public sealed class VS2022Package : ToolkitPackage
@@ -46,6 +45,7 @@ public sealed class VS2022Package : ToolkitPackage
     private SolutionEventsHandler _solutionEventsHandler;
     private IAsyncTaskScheduler _scheduler;
     private IIdeServerClient _ideServerClient;
+    private AgentAvailabilityBinder _agentAvailabilityBinder;
 
     public static VS2022Package Instance { get; private set; }
 
@@ -77,6 +77,7 @@ public sealed class VS2022Package : ToolkitPackage
 
             await CheckCliFileAsync();
             await GetServiceAsync<CodeHealthMonitorBinder>();
+            await GetServiceAsync<Codescene.VSExtension.VS2022.Application.Auth.AuthFeatureBinder>();
             JoinableTaskFactory.RunAsync(() => StartIdeServerAsync(cancellationToken)).FileAndForget("VS2022Package/StartIdeServer");
             JoinableTaskFactory.RunAsync(ShowTelemetryNoticeAsync).FileAndForget("VS2022Package/TelemetryNotice");
 
@@ -92,21 +93,15 @@ public sealed class VS2022Package : ToolkitPackage
             // File-based cache storage for CLI
             await InitializeCacheStorageServiceAsync();
 
-            // Initialize ACE state change handler
-            await InitializeAceStateChangeHandlerAsync();
+            // Initialize agent availability binder
+            await InitializeAgentAvailabilityBinderAsync();
 
             _scheduler = await VS.GetMefServiceAsync<IAsyncTaskScheduler>();
 
-            // Initialize ACE at startup
-            JoinableTaskFactory.RunAsync(() => RunPreflightAsync(DisposalToken)).FileAndForget("VS2022Package/RunPreflight");
-
-            JoinableTaskFactory.RunAsync(() => SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSION, DisposalToken)).FileAndForget("VS2022Package/SendTelemetry");
+            JoinableTaskFactory.RunAsync(() => SendTelemetryAsync(CodeSceneConstants.Telemetry.SESSIONSTARTED, DisposalToken)).FileAndForget("VS2022Package/SendTelemetry");
         }
         catch (Exception e)
         {
-            // Note: we may not be able to report every failure via telemetry
-            // (e.g. if the extension hasn't fully loaded or the CLI hasn't been downloaded yet).
-            JoinableTaskFactory.RunAsync(() => SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR, DisposalToken)).FileAndForget("VS2022Package/SendTelemetry");
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
         }
         finally
@@ -120,10 +115,18 @@ public sealed class VS2022Package : ToolkitPackage
         ThreadHelper.ThrowIfNotOnUIThread();
         if (disposing)
         {
+            EndTelemetrySession();
             UnsubscribeFromGlobalExceptionHandlers();
             _solutionEventsHandler?.Dispose();
             (_scheduler as IDisposable)?.Dispose();
             _ideServerClient?.Dispose();
+            _agentAvailabilityBinder?.Unsubscribe();
+
+            var agentProcessTracker = JoinableTaskFactory.Run(() => VS.GetMefServiceAsync<IAgentProcessTracker>());
+            agentProcessTracker?.KillAll();
+
+            var orchestrator = JoinableTaskFactory.Run(() => VS.GetMefServiceAsync<Core.Interfaces.Refactoring.IRefactoringOrchestrator>());
+            orchestrator?.Cancel();
         }
 
         base.Dispose(disposing);
@@ -135,11 +138,28 @@ public sealed class VS2022Package : ToolkitPackage
         await cacheManager.InitializeAsync();
     }
 
-    private async Task InitializeAceStateChangeHandlerAsync()
+    private async Task InitializeAgentAvailabilityBinderAsync()
     {
-        // Initialize the handler so it's ready to receive state change events
-        // The handler subscribes to IAceStateService.StateChanged in its constructor
-        await GetServiceAsync<AceStateChangeHandler>();
+        _agentAvailabilityBinder = await GetServiceAsync<AgentAvailabilityBinder>();
+    }
+
+    private void EndTelemetrySession()
+    {
+        try
+        {
+            JoinableTaskFactory.Run(async () =>
+            {
+                var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+                if (telemetryManager != null)
+                {
+                    await telemetryManager.EndSessionAsync(TimeSpan.FromSeconds(3));
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger?.Debug($"Unable to end telemetry session: {ex.Message}");
+        }
     }
 
     private async Task SendTelemetryAsync(string eventName, CancellationToken cancellationToken = default)
@@ -148,15 +168,6 @@ public sealed class VS2022Package : ToolkitPackage
         if (telemetryManager != null)
         {
             await telemetryManager.SendTelemetryAsync(eventName, cancellationToken: cancellationToken);
-        }
-    }
-
-    private async Task RunPreflightAsync(CancellationToken cancellationToken = default)
-    {
-        var preflightManager = await VS.GetMefServiceAsync<IPreflightManager>();
-        if (preflightManager != null)
-        {
-            await preflightManager.RunPreflightAsync(true, cancellationToken);
         }
     }
 

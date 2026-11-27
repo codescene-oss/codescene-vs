@@ -4,9 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
-using Codescene.VSExtension.Core.Application.Ace;
+using Codescene.VSExtension.Core.Application.Refactoring;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Auth;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.WebComponent.Model;
@@ -29,6 +30,8 @@ internal class WebComponentMessageHandler
     private readonly WebComponentUserControl _control;
 
     private ILogger _logger;
+
+    private IAuthMessageRouter _authRouter;
 
     private ShowDocumentationHandler _showDocsHandler;
 
@@ -57,6 +60,12 @@ internal class WebComponentMessageHandler
         }
 
         _logger.Debug($"Received message from webview: '{msgObject?.MessageType}'.");
+
+        _authRouter ??= await VS.GetMefServiceAsync<IAuthMessageRouter>();
+        if (await _authRouter.TryRouteAsync(msgObject?.MessageType, msgObject?.Payload))
+        {
+            return;
+        }
 
         await ProcessMessageAsync(msgObject, _logger);
     }
@@ -119,10 +128,6 @@ internal class WebComponentMessageHandler
                     await HandleOpenSettingsAsync();
                     break;
 
-                case MessageTypes.ACKNOWLEDGED:
-                    await HandleAcknowledgedAsync(msgObject, logger);
-                    break;
-
                 case MessageTypes.REQUESTANDPRESENTREFACTORING:
                     await HandleRequestAndPresentRefactoringAsync(msgObject, logger);
                     break;
@@ -153,7 +158,7 @@ internal class WebComponentMessageHandler
         // Mark the window as initialized, which will process any pending messages
         await _control.MarkAsInitializedAsync();
 
-        if (source == ViewTypes.HOME)
+        if (source == ViewTypes.HOME || source == ViewTypes.AUTH)
         {
             await CodeSceneToolWindow.UpdateViewAsync();
         }
@@ -164,7 +169,7 @@ internal class WebComponentMessageHandler
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         var payload = msgObject.Payload.ToObject<CopyCodePayload>();
-        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORCOPYCODE);
+        ReportAceAction(Constants.Telemetry.AISTAGECOPIED);
 
         if (payload.Code == null)
         {
@@ -178,7 +183,7 @@ internal class WebComponentMessageHandler
 
     private async Task HandleShowDiffAsync()
     {
-        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORDIFFSHOWN);
+        ReportAceAction(Constants.Telemetry.AISTAGEDIFFSHOWN);
 
         var diffHandler = await VS.GetMefServiceAsync<ShowDiffHandler>();
         await diffHandler.ShowDiffWindowAsync();
@@ -187,7 +192,7 @@ internal class WebComponentMessageHandler
     private async Task HandleApplyAsync(MessageObj<JToken> msgObject)
     {
         var payload = msgObject.Payload.ToObject<ApplyPayload>();
-        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORAPPLIED);
+        ReportAceAction(Constants.Telemetry.AISTAGEAPPLIED);
 
         var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
         await applier.ApplyAsync(payload);
@@ -216,7 +221,7 @@ internal class WebComponentMessageHandler
 
     private async Task HandleRejectAsync()
     {
-        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORREJECTED);
+        ReportAceAction(Constants.Telemetry.AISTAGEDISCARDED);
 
         if (_control.CloseRequested is not null)
         {
@@ -224,21 +229,18 @@ internal class WebComponentMessageHandler
         }
     }
 
-    private void HandleAceTelemetry(string telemetryEvent)
+    private void ReportAceAction(string stage)
     {
-        var additionalData = new Dictionary<string, object>
-        {
-            { "traceId", AceManager.LastRefactoring.Refactored.TraceId },
-            { "skipCache ", false },
-        };
-        SendTelemetry(telemetryEvent, additionalData);
+        var orchestrator = ThreadHelper.JoinableTaskFactory.Run(async () =>
+            await VS.GetMefServiceAsync<Core.Interfaces.Refactoring.IRefactoringOrchestrator>());
+
+        orchestrator?.ReportUserAction(stage);
     }
 
     private async Task HandleCancelAsync()
     {
-        var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
-
-        onClickRefactoringHandler.HandleCancel();
+        var orchestrator = await VS.GetMefServiceAsync<Core.Interfaces.Refactoring.IRefactoringOrchestrator>();
+        orchestrator?.Cancel();
 
         if (_control.CloseRequested is not null)
         {
@@ -264,13 +266,10 @@ internal class WebComponentMessageHandler
         _showDocsHandler ??= await VS.GetMefServiceAsync<ShowDocumentationHandler>();
 
         var category = DocumentationMappings.DocNameMap[payload.DocType] ?? string.Empty;
-        var fn = await AceUtils.GetRefactorableFunctionDeltaAsync(new GetRefactorableFunctionsModel
-        {
-            Path = payload.FileName,
-            Category = category,
-            FunctionName = payload.Fn?.Name,
-            FunctionRange = payload.Fn?.Range,
-        });
+        var cache = new Core.Application.Cache.Review.DeltaCacheService();
+        var allDeltas = cache.GetAll();
+        var delta = allDeltas.ContainsKey(payload.FileName) ? allDeltas[payload.FileName] : null;
+        var fn = Core.Application.CachedFindingLookup.FindByFunctionName(delta, payload.Fn?.Name);
 
         await _showDocsHandler.HandleAsync(
         new ShowDocumentationModel(
@@ -339,49 +338,13 @@ internal class WebComponentMessageHandler
         await general.SaveAsync();
     }
 
-    // Currently, we only receive this message from the ACE view if the content is marked as 'stale'.
+    // Currently, we only receive this message from the refactoring view if the content is marked as 'stale'.
     private async Task HandleCloseAsync()
     {
         if (_control.CloseRequested is not null)
         {
             await _control.CloseRequested();
         }
-    }
-
-    private async Task HandleAcknowledgedAsync(MessageObj<JToken> msgObject, ILogger logger)
-    {
-        var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
-        acknowledgementStateService.SetAcknowledged();
-
-        _logger?.Info("ACE usage acknowledged.", true);
-
-        var payload = msgObject.Payload.ToObject<AceAcknowledgePayload>();
-        if (payload.FnToRefactor == null)
-        {
-            logger.Info("Current code smell is not refactorable.");
-
-            if (payload.Source == ViewTypes.DOCS)
-            {
-                logger.Debug("Refreshing 'docs' tool window to disable the refactoring button.");
-                await CodeSmellDocumentationWindow.RefreshViewAsync();
-            }
-
-            return;
-        }
-
-        _logger?.Info($"Refactoring function '{payload.FnToRefactor.Name}'...");
-
-        // Close the acknowledgement window
-        if (_control.CloseRequested is not null)
-        {
-            await _control.CloseRequested();
-        }
-
-        var onClickRefactoringHandler = await VS.GetMefServiceAsync<OnClickRefactoringHandler>();
-        await onClickRefactoringHandler.HandleAsync(
-            payload.FilePath,
-            payload.FnToRefactor,
-            AceConstants.AceEntryPoint.ACEACKNOWLEDGEMENT);
     }
 
     private async Task HandleOpenLogOutputAsync()

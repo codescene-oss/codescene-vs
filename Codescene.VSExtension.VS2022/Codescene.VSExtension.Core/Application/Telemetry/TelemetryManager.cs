@@ -1,12 +1,16 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Auth;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Auth;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
@@ -21,24 +25,48 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
     {
         private readonly ILogger _logger;
         private readonly IIdeServerClient _client;
-        private readonly IDeviceIdStore _deviceIdStore;
+        private readonly Lazy<IAuthService> _authService;
         private readonly IExtensionMetadataProvider _extensionMetadataProvider;
         private readonly ISettingsProvider _settingsProvider;
+        private readonly ITelemetryRepositoryPaths _repositoryPaths;
+        private readonly TelemetryRoutingGate<QueuedEvent> _gate;
+        private readonly ConcurrentDictionary<Task, byte> _inFlight = new ConcurrentDictionary<Task, byte>();
+        private readonly string _sessionId = Guid.NewGuid().ToString();
 
         [ImportingConstructor]
         public TelemetryManager(
             ILogger logger,
             IIdeServerClient client,
-            IDeviceIdStore deviceIdStore,
             IExtensionMetadataProvider extensionMetadataProvider,
-            [Import(AllowDefault = true)] ISettingsProvider settingsProvider = null)
+            [Import(AllowDefault = true)] ISettingsProvider settingsProvider = null,
+            [Import(AllowDefault = true)] ITelemetryRepositoryPaths repositoryPaths = null,
+            [Import(AllowDefault = true)] Lazy<IAuthService> authService = null)
+            : this(logger, client, extensionMetadataProvider, settingsProvider, repositoryPaths, authService, null)
+        {
+        }
+
+        internal TelemetryManager(
+            ILogger logger,
+            IIdeServerClient client,
+            IExtensionMetadataProvider extensionMetadataProvider,
+            ISettingsProvider settingsProvider,
+            ITelemetryRepositoryPaths repositoryPaths,
+            Lazy<IAuthService> authService,
+            TimeSpan? routingBound)
         {
             _logger = logger;
             _client = client;
-            _deviceIdStore = deviceIdStore;
+            _authService = authService;
             _extensionMetadataProvider = extensionMetadataProvider;
             _settingsProvider = settingsProvider;
+            _repositoryPaths = repositoryPaths;
+            _gate = new TelemetryRoutingGate<QueuedEvent>(
+                item => _ = TrackAsync(item, CancellationToken.None),
+                item => item.Name == Constants.Telemetry.SESSIONSTARTED,
+                routingBound);
         }
+
+        internal string SessionId => _sessionId;
 
         /// <summary>
         /// Sends a telemetry event with the specified event name and optional additional data.
@@ -56,14 +84,83 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
                 return;
             }
 
+            var item = new QueuedEvent(eventName, additionalEventData, DateTime.UtcNow.ToString("o"));
+            if (_gate.TryEnqueue(item))
+            {
+                return;
+            }
+
+            await TrackAsync(item, cancellationToken).ConfigureAwait(false);
+        }
+
+        public int HoldRouting() => _gate.Hold();
+
+        public void RoutingReady(int generation) => _gate.Ready(generation);
+
+        public async Task EndSessionAsync(TimeSpan timeout)
+        {
+            if (IsTelemetryAllowed())
+            {
+                var item = new QueuedEvent(Constants.Telemetry.SESSIONENDED, null, DateTime.UtcNow.ToString("o"));
+                if (!_gate.TryEnqueue(item))
+                {
+                    _ = TrackAsync(item, CancellationToken.None);
+                }
+            }
+
+            _gate.Close();
+
+            var pending = _inFlight.Keys.ToList();
+            if (pending.Count == 0)
+            {
+                return;
+            }
+
+            await Task.WhenAny(Task.WhenAll(pending), Task.Delay(timeout)).ConfigureAwait(false);
+        }
+
+        private static IReadOnlyList<string> ToPathList(object value)
+        {
+            switch (value)
+            {
+                case string single:
+                    return string.IsNullOrEmpty(single) ? null : new[] { single };
+                case IEnumerable<string> many:
+                    return many.Where(p => !string.IsNullOrEmpty(p)).ToList();
+                default:
+                    return null;
+            }
+        }
+
+        private Task TrackAsync(QueuedEvent item, CancellationToken cancellationToken)
+        {
+            var task = PostAsync(item, cancellationToken);
+            _inFlight.TryAdd(task, 0);
+            _ = task.ContinueWith(t => _inFlight.TryRemove(t, out _), TaskScheduler.Default);
+            return task;
+        }
+
+        private async Task PostAsync(QueuedEvent item, CancellationToken cancellationToken)
+        {
             try
             {
-                string eventJson = TelemetryUtils.GetTelemetryEventJson(
-                    eventName,
-                    await _deviceIdStore.GetDeviceIdAsync(cancellationToken),
+                if (!IsTelemetryAllowed())
+                {
+                    return;
+                }
+
+                var data = item.Data == null ? null : new Dictionary<string, object>(item.Data);
+                var repositoryPaths = await ResolveRepositoryPathsAsync(data).ConfigureAwait(false);
+
+                var telemetryEvent = TelemetryUtils.CreateTelemetryEvent(
+                    item.Name,
+                    CurrentUserId(),
                     _extensionMetadataProvider.GetVersion(),
-                    _extensionMetadataProvider.GetEditorVersion(),
-                    additionalEventData);
+                    _extensionMetadataProvider.GetEditorVersion());
+                telemetryEvent.EventTime = item.EventTime;
+                telemetryEvent.SessionId = _sessionId;
+
+                string eventJson = TelemetryUtils.GetTelemetryEventJson(telemetryEvent, data, repositoryPaths);
                 if (string.IsNullOrEmpty(eventJson))
                 {
                     return;
@@ -82,36 +179,41 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
             }
         }
 
-        public async Task SendErrorTelemetryAsync(Exception ex, string context, Dictionary<string, object> extraData = null, CancellationToken cancellationToken = default)
+        private async Task<IReadOnlyList<string>> ResolveRepositoryPathsAsync(Dictionary<string, object> data)
         {
-            if (!IsTelemetryAllowed())
+            if (data != null && data.TryGetValue(Constants.Telemetry.REPOSITORYPATHS, out var explicitPaths))
             {
-                return;
+                data.Remove(Constants.Telemetry.REPOSITORYPATHS);
+                return ToPathList(explicitPaths);
             }
 
-            if (!ErrorTelemetryUtils.ShouldSendError(ex))
+            if (_repositoryPaths == null)
             {
-                return;
+                return null;
             }
 
             try
             {
-                var errorData = ErrorTelemetryUtils.SerializeException(ex, context);
-
-                if (extraData != null)
-                {
-                    foreach (var kvp in extraData)
-                    {
-                        errorData[kvp.Key] = kvp.Value;
-                    }
-                }
-
-                await SendTelemetryAsync(Constants.Telemetry.UNHANDLEDERROR, errorData, cancellationToken);
-                ErrorTelemetryUtils.IncrementErrorCount();
+                return await _repositoryPaths.GetWorkspaceRepositoryPathsAsync().ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                _logger.Debug($"Unable to send error telemetry: {e.Message}");
+                _logger.Debug($"Unable to resolve telemetry repository paths: {e.Message}");
+                return null;
+            }
+        }
+
+        private string CurrentUserId()
+        {
+            try
+            {
+                var snapshot = _authService?.Value?.Current;
+                return snapshot != null && snapshot.Active ? AuthStatusFields.UserId(snapshot.Status) : null;
+            }
+            catch (Exception e)
+            {
+                _logger.Debug($"Unable to resolve telemetry user id: {e.Message}");
+                return null;
             }
         }
 
@@ -128,6 +230,22 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
             }
 
             return TelemetryUtils.IsTelemetryEnabled(_logger, _extensionMetadataProvider.GetEditorVersion());
+        }
+
+        private sealed class QueuedEvent
+        {
+            public QueuedEvent(string name, Dictionary<string, object> data, string eventTime)
+            {
+                Name = name;
+                Data = data;
+                EventTime = eventTime;
+            }
+
+            public string Name { get; }
+
+            public Dictionary<string, object> Data { get; }
+
+            public string EventTime { get; }
         }
     }
 }

@@ -22,6 +22,8 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
 
         event EventHandler<ServerStartEvent> ServerStarted;
 
+        event EventHandler ServerStopped;
+
         event EventHandler<ReviewQueue> QueueChanged;
 
         event EventHandler<Exception> ServerError;
@@ -31,12 +33,6 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
         Task<ServerMetadata> StartAsync(CancellationToken cancellationToken = default);
 
         Task RestartAsync(CancellationToken cancellationToken = default);
-
-        Task<PreFlightResponseModel> PreflightAsync(bool force = false, CancellationToken cancellationToken = default);
-
-        Task<IList<FnToRefactorModel>> FnsToRefactorAsync(FnsToRefactorRequestModel request, CancellationToken cancellationToken = default);
-
-        Task<RefactorResponseModel> RefactorAsync(RefactorPostRequestModel request, CancellationToken cancellationToken = default);
 
         Task TelemetryAsync(object eventPayload, CancellationToken cancellationToken = default);
 

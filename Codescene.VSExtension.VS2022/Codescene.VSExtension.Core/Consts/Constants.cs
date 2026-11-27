@@ -16,10 +16,9 @@ namespace Codescene.VSExtension.Core.Consts
         public class Titles
         {
             public const string CODESCENE = "CodeScene";
-            public const string CODESCENEACE = "CodeScene ACE";
+            public const string CODESCENEAGENT = "CodeScene Agent";
 
             public const string REVIEW = "review";
-            public const string ACE = "ace";
             public const string DELTA = "delta";
 
             public const string BRAINCLASS = "Brain Class";
@@ -63,33 +62,44 @@ namespace Codescene.VSExtension.Core.Consts
         public class Telemetry
         {
             public const string SOURCEIDE = "vs";
-            public const string ONACTIVATEEXTENSION = "on_activate_extension";
-            public const string ONACTIVATEEXTENSIONERROR = "on_activate_extension_error";
+            public const string SESSIONSTARTED = "session/started";
+            public const string SESSIONENDED = "session/ended";
 
-            public const string OPENDOCSPANEL = "open_interactive_docs_panel";
+            public const string OPENDOCSPANEL = "docs/open-interactive-panel";
 
-            public const string OPENSETTINGS = "control_center/open-settings";
-            public const string OPENLINK = "control_center/open-link";
+            public const string OPENSETTINGS = "control-center/open-settings";
+            public const string OPENLINK = "control-center/open-link";
 
-            public const string MONITORVISIBILITY = "code_health_monitor/visibility";
-            public const string MONITORFILEADDED = "code_health_monitor/file_added";
-            public const string MONITORFILEUPDATED = "code_health_monitor/file_updated";
-            public const string MONITORFILEREMOVED = "code_health_monitor/file_removed";
+            public const string MONITORVISIBILITY = "code-health-monitor/visibility";
 
-            public const string REVIEWORDELTATIMEOUT = "review_or_delta_timeout";
-            public const string UNHANDLEDERROR = "unhandledError";
             public const string ANALYSISPERFORMANCE = "analysis/performance";
 
-            public const string ACEREFACTORREQUESTED = "refactor/requested";
-            public const string ACEREFACTORPRESENTED = "refactor/presented";
-            public const string ACEREFACTORAPPLIED = "refactor/applied";
-            public const string ACEREFACTORREJECTED = "refactor/rejected";
-            public const string ACEREFACTORCOPYCODE = "refactor/copy-code";
-            public const string ACEREFACTORDIFFSHOWN = "refactor/diff_shown";
+            public const string AIREFACTOR = "ai/refactor";
+            public const string AISTAGEREQUESTED = "requested";
+            public const string AISTAGEAGENTINVOKED = "agent-invoked";
+            public const string AISTAGESUGGESTIONPRODUCED = "suggestion-produced";
+            public const string AISTAGENOSUGGESTION = "no-suggestion";
+            public const string AISTAGEPRESENTED = "presented";
+            public const string AISTAGEDIFFSHOWN = "diff-shown";
+            public const string AISTAGECOPIED = "copied";
+            public const string AISTAGEAPPLIED = "applied";
+            public const string AISTAGEDISCARDED = "discarded";
+            public const string AISTAGEFAILED = "failed";
+            public const string AISTAGECANCELLED = "cancelled";
 
-            public const string TERMSANDPOLICIESSHOWN = "terms_and_policies_shown";
-            public const string TERMSANDPOLICIESRESPONSE = "terms_and_policies_response";
-            public const string REVOKETERMS = "revoke_terms";
+            public const string REVOKETERMS = "terms/revoke";
+
+            public const string REPOSITORYPATHS = "repository-paths";
+
+            public const string AUTHSIGNINSTARTED = "auth/sign-in-started";
+            public const string AUTHSIGNINCOMPLETED = "auth/sign-in-completed";
+            public const string AUTHSIGNINCANCELLED = "auth/sign-in-cancelled";
+            public const string AUTHSIGNINFAILED = "auth/sign-in-failed";
+            public const string AUTHREAUTHORIZESTARTED = "auth/reauthorize-started";
+            public const string AUTHREAUTHORIZEFAILED = "auth/reauthorize-failed";
+            public const string AUTHSIGNOUT = "auth/sign-out";
+            public const string AUTHPATSET = "auth/pat-set";
+            public const string AUTHPATREMOVED = "auth/pat-removed";
         }
     }
 }

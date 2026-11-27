@@ -21,10 +21,8 @@ namespace Codescene.VSExtension.Core.Models.Cli.Refactor
         [JsonProperty("file-type")]
         public string FileType { get; set; }
 
-        // [JsonProperty("function-type")]
-        // public string FunctionType { get; set; }
-        [JsonProperty("nippy-b64")]
-        public string NippyB64 { get; set; }
+        [JsonProperty("function-type")]
+        public string FunctionType { get; set; }
 
         /// <summary>
         /// Gets or sets range of the function. Use to keep track of what code to replace in the original file.

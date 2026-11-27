@@ -414,6 +414,9 @@ FodyWeavers.xsd
 /cs-ide.zip
 /cs-ide-contract
 /cs-ide-contract.zip
+/cs-agent
+/cs-agent.zip
+/Codescene.VSExtension.VS2022/Codescene.VSExtension.VS2022/cs-agent.exe
 
 .build-timestamp
 .copy-assets

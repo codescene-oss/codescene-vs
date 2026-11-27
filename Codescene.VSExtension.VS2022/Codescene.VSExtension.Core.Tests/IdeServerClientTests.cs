@@ -106,15 +106,16 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task RefactorAsync_WhenCancelled_DoesNotThrowDevtoolsException()
+        public async Task CheckRulesAsync_WhenCancelled_DoesNotThrowDevtoolsException()
         {
             using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
             await harness.Client.StartAsync();
             using var cancellation = new CancellationTokenSource();
             cancellation.CancelAfter(50);
 
-            await Assert.ThrowsAsync<OperationCanceledException>(() => harness.Client.RefactorAsync(
-                new RefactorPostRequestModel { Token = "delay-cancel" },
+            await Assert.ThrowsAsync<OperationCanceledException>(() => harness.Client.CheckRulesAsync(
+                "C:/repo",
+                "delay-cancel",
                 cancellation.Token));
         }
 
@@ -126,8 +127,7 @@ namespace Codescene.VSExtension.Core.Tests
             using var cancellation = new CancellationTokenSource();
             cancellation.Cancel();
 
-            await Assert.ThrowsAsync<OperationCanceledException>(() => harness.Client.RefactorAsync(
-                new RefactorPostRequestModel { Token = "delay-cancel" },
+            await Assert.ThrowsAsync<OperationCanceledException>(() => harness.Client.DeviceIdAsync(
                 cancellation.Token));
 
             _logger.Verify(
@@ -136,36 +136,6 @@ namespace Codescene.VSExtension.Core.Tests
             _logger.Verify(
                 x => x.Error(It.Is<string>(message => message.Contains("request failed")), It.IsAny<Exception>()),
                 Times.Never);
-        }
-
-        [TestMethod]
-        public async Task RefactoringRpcEndpoints_NormalizeResponses()
-        {
-            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
-            await harness.Client.StartAsync();
-
-            var functions = await harness.Client.FnsToRefactorAsync(new FnsToRefactorCodeSmellRequestModel
-            {
-                FileName = "a.cs",
-                FileContent = "class A {}",
-            });
-            var refactoring = await harness.Client.RefactorAsync(new RefactorPostRequestModel { Token = "token" });
-
-            Assert.AreEqual("Function", functions[0].Name);
-            Assert.AreEqual("refactored", refactoring.Code);
-            Assert.AreEqual("trace-1", refactoring.TraceId);
-        }
-
-        [TestMethod]
-        public async Task PreflightAsync_ReturnsResponse()
-        {
-            using var harness = await IdeServerTestHarness.StartAsync(_settings, _logger, _userSettings);
-            await harness.Client.StartAsync();
-
-            var response = await harness.Client.PreflightAsync(force: true);
-
-            Assert.AreEqual(1m, response.Version);
-            Assert.Contains("cs", response.FileTypes);
         }
 
         [TestMethod]
@@ -482,160 +452,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
     }
 
-    internal sealed class FixtureServer
-    {
-        private readonly JsonRpc _rpc;
-
-        public FixtureServer(JsonRpc rpc)
-        {
-            _rpc = rpc;
-        }
-
-        public TaskCompletionSource<JObject> StopWatchReceived { get; } = new TaskCompletionSource<JObject>();
-
-        [JsonRpcMethod("cs-ide/review", UseSingleObjectParameterDeserialization = true)]
-        public JObject Review(JObject request)
-        {
-            if (string.Equals((string)request["file-content"], "trigger-http-401", StringComparison.Ordinal))
-            {
-                throw new LocalRpcException("Request failed [401]");
-            }
-
-            return JObject.Parse(@"{""fileLevelCodeSmells"":[],""functionLevelCodeSmells"":[],""rawScore"":""raw"",""score"":9.68,""gitBlobSha"":""review-sha""}");
-        }
-
-        [JsonRpcMethod("cs-ide/preflight", UseSingleObjectParameterDeserialization = true)]
-        public JObject Preflight(JObject request)
-        {
-            return JObject.Parse(@"{""version"":1,""file-types"":[""cs""],""language-common"":{""code-smells"":[""smell""],""max-input-loc"":1000}}");
-        }
-
-        [JsonRpcMethod("cs-ide/device-id", UseSingleObjectParameterDeserialization = true)]
-        public JObject DeviceId(JObject request)
-        {
-            return JObject.Parse(@"{""deviceId"":""device-42""}");
-        }
-
-        [JsonRpcMethod("cs-ide/fns-to-refactor", UseSingleObjectParameterDeserialization = true)]
-        public JArray FnsToRefactor(JObject request)
-        {
-            return JArray.Parse(@"[{""name"":""Function"",""nippyB64"":""nippy""}]");
-        }
-
-        [JsonRpcMethod("cs-ide/refactor", UseSingleObjectParameterDeserialization = true)]
-        public async Task<JObject> Refactor(JObject request, CancellationToken cancellationToken)
-        {
-            if (string.Equals((string)request["token"], "delay-cancel", StringComparison.Ordinal))
-            {
-                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken).ConfigureAwait(false);
-            }
-
-            return JObject.Parse(@"{""code"":""refactored"",""traceId"":""trace-1""}");
-        }
-
-        [JsonRpcMethod("cs-ide/telemetry", UseSingleObjectParameterDeserialization = true)]
-        public object? Telemetry(JObject request)
-        {
-            return null;
-        }
-
-        [JsonRpcMethod("cs-ide/code-health-rules-template", UseSingleObjectParameterDeserialization = true)]
-        public JObject CodeHealthRulesTemplate(JObject request)
-        {
-            return JObject.Parse(@"{""template"":""rules""}");
-        }
-
-        [JsonRpcMethod("cs-ide/check-rules", UseSingleObjectParameterDeserialization = true)]
-        public JObject CheckRules(JObject request)
-        {
-            if (string.Equals((string)request["path"], "fail-401", StringComparison.Ordinal))
-            {
-                throw new LocalRpcException("Request failed [401]");
-            }
-
-            return JObject.Parse(@"{""result"":""ok"",""failed"":false,""parsingErrors"":[]}");
-        }
-
-        [JsonRpcMethod("cs-ide/getWatchInventory", UseSingleObjectParameterDeserialization = true)]
-        public JObject GetWatchInventory(JObject request)
-        {
-            return JObject.Parse(@"{""files"":[""src/a.cs""]}");
-        }
-
-        [JsonRpcMethod("cs-ide/stopWatchFiles", UseSingleObjectParameterDeserialization = true)]
-        public void StopWatchFiles(JObject parameters)
-        {
-            StopWatchReceived.TrySetResult(parameters);
-        }
-
-        [JsonRpcMethod("cs-ide/watchFiles", UseSingleObjectParameterDeserialization = true)]
-        public async Task WatchFiles(JObject parameters)
-        {
-            var repoRoot = (string)parameters["repo-root"];
-            await _rpc.NotifyWithParameterObjectAsync("cs-ide/watchInventoryChanged", new { repoRoot, files = new[] { "watched.ts" } });
-            await _rpc.NotifyWithParameterObjectAsync("cs-ide/fileReview", new
-            {
-                path = "watched.ts",
-                repoRoot,
-                result = new { fileLevelCodeSmells = Array.Empty<object>(), functionLevelCodeSmells = Array.Empty<object>(), rawScore = "raw", score = 9.68, gitBlobSha = "watch-sha" },
-            });
-        }
-
-        [JsonRpcMethod("cs-ide/reviewFiles", UseSingleObjectParameterDeserialization = true)]
-        public async Task ReviewFiles(JObject parameters)
-        {
-            var repoRoot = (string)parameters["repo-root"];
-            foreach (var file in (JArray)parameters["files"])
-            {
-                var content = (string)file["content"] ?? string.Empty;
-                var relPath = (string)file["rel-path"];
-                var id = file["id"]?.Type == JTokenType.Null ? null : (string)file["id"];
-                if (content == "fail")
-                {
-                    await _rpc.NotifyWithParameterObjectAsync("cs-ide/reviewProgress", new
-                    {
-                        count = 0,
-                        done = 3,
-                        files = Array.Empty<string>(),
-                    });
-                    var failed = new JObject
-                    {
-                        ["id"] = null,
-                        ["path"] = relPath,
-                        ["repoRoot"] = repoRoot,
-                        ["message"] = "fixture review failed",
-                    };
-                    await _rpc.NotifyAsync("cs-ide/reviewFailed", failed);
-                    continue;
-                }
-
-                await _rpc.NotifyWithParameterObjectAsync("cs-ide/reviewProgress", new
-                {
-                    count = 2,
-                    done = 1,
-                    files = new[] { "b.ts", "c.ts" },
-                });
-                var payload = new JObject
-                {
-                    ["path"] = relPath,
-                    ["repoRoot"] = repoRoot,
-                    ["result"] = new JObject
-                    {
-                        ["rawScore"] = "raw",
-                        ["score"] = 9.68,
-                        ["gitBlobSha"] = GitBlobSha.FromUtf8(content),
-                    },
-                };
-                if (!string.IsNullOrEmpty(id))
-                {
-                    payload["id"] = id;
-                }
-
-                await _rpc.NotifyAsync("cs-ide/fileReview", payload);
-            }
-        }
-    }
-
     internal sealed class FakeProcessFactory : IIdeServerProcessFactory
     {
         private readonly IIdeServerProcess _process;
@@ -657,50 +473,6 @@ namespace Codescene.VSExtension.Core.Tests
             LastArguments = arguments;
             StartCount++;
             return _process;
-        }
-    }
-
-    internal sealed class FakeIdeServerProcess : IIdeServerProcess
-    {
-        public FakeIdeServerProcess(Stream input, Stream output)
-        {
-            StandardInput = input;
-            StandardOutput = output;
-            StandardError = Stream.Null;
-        }
-
-        public event EventHandler Exited;
-
-        public event EventHandler<IdeServerErrorDataEventArgs> ErrorDataReceived;
-
-        public Stream StandardInput { get; }
-
-        public Stream StandardOutput { get; }
-
-        public Stream StandardError { get; }
-
-        public int Id => 1;
-
-        public bool HasExited { get; private set; }
-
-        public void BeginErrorReadLine()
-        {
-        }
-
-        public void RaiseError(string data)
-        {
-            ErrorDataReceived?.Invoke(this, new IdeServerErrorDataEventArgs(data));
-        }
-
-        public void Kill()
-        {
-            HasExited = true;
-            Exited?.Invoke(this, EventArgs.Empty);
-        }
-
-        public void Dispose()
-        {
-            Kill();
         }
     }
 }

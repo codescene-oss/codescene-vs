@@ -1,12 +1,10 @@
 // Copyright (c) CodeScene. All rights reserved.
 
-using Codescene.VSExtension.Core.Application.Ace;
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Application.Services;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models;
@@ -128,12 +126,12 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public void AsTheWebviewReadsIt_ConvertsOnlyTheDeltaOfEachFileToKebabCase()
         {
-            var sent = JObject.Parse(@"{""view"":""home"",""featureFlags"":[""ide-auth""],""data"":{""fileDeltaData"":[{""file"":{""fileName"":""a.js""},""delta"":{""scoreChange"":1,""functionLevelFindings"":[{""refactorableFn"":{""nippyB64"":""x""}}]}}]}}");
+            var sent = JObject.Parse(@"{""view"":""home"",""featureFlags"":[""ide-auth""],""data"":{""fileDeltaData"":[{""file"":{""fileName"":""a.js""},""delta"":{""scoreChange"":1,""functionLevelFindings"":[{""refactorableFn"":{""name"":""fn""}}]}}]}}");
 
             var read = CwfSchemas.AsTheWebviewReadsIt(sent);
 
             Assert.AreEqual(
-                @"{""view"":""home"",""featureFlags"":[""ide-auth""],""data"":{""fileDeltaData"":[{""file"":{""fileName"":""a.js""},""delta"":{""score-change"":1,""function-level-findings"":[{""refactorable-fn"":{""nippy-b64"":""x""}}]}}]}}",
+                @"{""view"":""home"",""featureFlags"":[""ide-auth""],""data"":{""fileDeltaData"":[{""file"":{""fileName"":""a.js""},""delta"":{""score-change"":1,""function-level-findings"":[{""refactorable-fn"":{""name"":""fn""}}]}}]}}",
                 read.ToString(Formatting.None));
             Assert.AreEqual(1, (int)At(sent, "data.fileDeltaData[0].delta.scoreChange"), "the input is not modified");
         }
@@ -221,20 +219,19 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task HomePayload_WithAceEnabled_ValidatesAndIsClosed()
+        public void HomePayload_WithLocallyResolvedRefactorableFn_ValidatesAndIsClosed()
         {
-            var preflight = await PreflightManagerWithAceEnabledAsync();
+            var availability = RealAgentAvailability(enabled: true, authenticated: true);
 
-            var payload = HomePayload(Deltas(DeltaModel("delta", "full")), preflight);
+            var payload = HomePayload(Deltas(DeltaModel("delta", "full")), availability);
 
-            Assert.AreEqual("enabled", (string?)At(payload, "data.autoRefactor.aceStatus.status"));
-            AssertValidAndClosed(payload, copy => (JObject)At(copy, "data.autoRefactor.aceStatus"));
+            AssertValidAndClosed(payload, copy => (JObject)At(copy, "data.autoRefactor"));
         }
 
         [TestMethod]
         public void UpdateRendererMessage_CarriesAPayloadThatValidatesAndIsClosed()
         {
-            var mapper = new CodeHealthMonitorMapper(RealPreflightManager(), new CodeHealthMonitorNotifier());
+            var mapper = new CodeHealthMonitorMapper(RealAgentAvailability(), new CodeHealthMonitorNotifier());
             var message = new WebComponentMessage<CodeHealthMonitorComponentData>
             {
                 MessageType = MessageTypes.UPDATERENDERER,
@@ -253,9 +250,30 @@ namespace Codescene.VSExtension.Core.Tests
             var payload = HomePayload(Deltas());
 
             var flags = ((JArray)At(payload, "featureFlags")).Select(flag => (string?)flag).ToArray();
+            Assert.AreEqual(0, flags.Length);
             CollectionAssert.DoesNotContain(flags, "jobs");
             CollectionAssert.DoesNotContain(flags, "open-settings");
-            CollectionAssert.DoesNotContain(flags, "ace-status-indicator");
+        }
+
+        [TestMethod]
+        public void DocsPayload_SendsNoFeatureFlags()
+        {
+            var model = new ShowDocumentationModel(FilePath, "Complex Method", "fakeFunction", new CodeRangeModel(3, 9, 1, 2));
+
+            var payload = DocsPayload(model, hasToken: true);
+
+            var flags = ((JArray)At(payload, "featureFlags")).Select(flag => (string?)flag).ToArray();
+            Assert.AreEqual(0, flags.Length);
+        }
+
+        [TestMethod]
+        public void PayloadSchema_RejectsTheRemovedAceStatusIndicatorFlag()
+        {
+            var mapper = new CodeHealthMonitorMapper(RealAgentAvailability(), new CodeHealthMonitorNotifier());
+            var payload = Sent(WebComponentPayload<CodeHealthMonitorComponentData>.Create(ViewTypes.HOME, mapper.Map(Deltas()), true));
+            ((JArray)payload["featureFlags"]).Add("ace-status-indicator");
+
+            AssertFails(() => _cwf.ValidatePayload(CwfSchemas.AsTheWebviewReadsIt(payload)), "featureFlags");
         }
 
         [TestMethod]
@@ -289,10 +307,9 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        [DataRow(true, true)]
-        [DataRow(true, false)]
-        [DataRow(false, false)]
-        public void DocsPayload_ForAFunctionLevelSmell_ValidatesAndIsClosed(bool hasToken, bool aceAcknowledged)
+        [DataRow(true)]
+        [DataRow(false)]
+        public void DocsPayload_ForAFunctionLevelSmell_ValidatesAndIsClosed(bool hasToken)
         {
             var smell = (JObject)At(_bundle.Fixture("review", "full", FixtureForm.Entity), "function-level-code-smells[0]");
             var model = new ShowDocumentationModel(
@@ -301,7 +318,7 @@ namespace Codescene.VSExtension.Core.Tests
                 (string)At(smell, "function"),
                 RangeOf(At(smell, "range")));
 
-            var payload = DocsPayload(model, hasToken, aceAcknowledged);
+            var payload = DocsPayload(model, hasToken);
 
             Assert.AreEqual("docs_issues_complex_method", (string?)At(payload, "data.docType"));
             AssertValidAndClosed(payload, copy => (JObject)At(copy, "data.fileData"));
@@ -315,18 +332,18 @@ namespace Codescene.VSExtension.Core.Tests
             var smell = (JObject)At(_bundle.Fixture("review", "full", FixtureForm.Entity), "file-level-code-smells[0]");
             var model = new ShowDocumentationModel(FilePath, (string)At(smell, "category"), null!, null!);
 
-            var payload = DocsPayload(model, hasToken: true, aceAcknowledged: true);
+            var payload = DocsPayload(model, hasToken: true);
 
             Assert.AreEqual("docs_issues_lines_of_code_in_a_single_file", (string?)At(payload, "data.docType"));
             AssertValidAndClosed(payload, copy => (JObject)At(copy, "data.fileData"));
         }
 
         [TestMethod]
-        public void DocsPayload_OpenedFromTheMonitor_ValidatesAndIsClosed()
+        public void DocsPayload_WithFnToRefactor_ValidatesAndIsClosed()
         {
             var model = new ShowDocumentationModel(FilePath, "docs_issues_complex_method", "fakeFunction", new CodeRangeModel(3, 9, 1, 2));
 
-            var payload = DocsPayload(model, hasToken: true, aceAcknowledged: true);
+            var payload = DocsPayload(model, hasToken: true);
 
             AssertValidAndClosed(payload, copy => (JObject)At(copy, "data.fileData.fn.range"));
         }
@@ -338,7 +355,7 @@ namespace Codescene.VSExtension.Core.Tests
             var message = new WebComponentMessage<CodeSmellDocumentationComponentData>
             {
                 MessageType = MessageTypes.UPDATERENDERER,
-                Payload = WebComponentPayload<CodeSmellDocumentationComponentData>.Create(ViewTypes.DOCS, DocsMapper(hasToken: false).Map(model, null!)),
+                Payload = WebComponentPayload<CodeSmellDocumentationComponentData>.Create(ViewTypes.DOCS, DocsMapper(hasToken: false).Map(model, null)),
             };
 
             var sent = Sent(message);
@@ -404,12 +421,12 @@ namespace Codescene.VSExtension.Core.Tests
         public void MessageTypes_AreAllEitherSampledAceOrSentToTheWebview()
         {
             var sampled = new[] { MessageTypes.INIT, MessageTypes.OPENSETTINGS, MessageTypes.SHOWLOGOUTPUT, MessageTypes.STOPANALYSIS, MessageTypes.STARTANALYSIS, MessageTypes.GOTOFUNCTIONLOCATION, MessageTypes.OPENDOCSFORFUNCTION };
-            var ace = new[] { MessageTypes.APPLY, MessageTypes.ACKNOWLEDGED, MessageTypes.REJECT, MessageTypes.RETRY, MessageTypes.CLOSE, MessageTypes.COPYCODE, MessageTypes.SHOWDIFF, MessageTypes.REQUESTANDPRESENTREFACTORING, MessageTypes.CANCEL };
+            var ace = new[] { MessageTypes.APPLY, MessageTypes.REJECT, MessageTypes.RETRY, MessageTypes.CLOSE, MessageTypes.COPYCODE, MessageTypes.SHOWDIFF, MessageTypes.REQUESTANDPRESENTREFACTORING, MessageTypes.CANCEL };
             var sentToTheWebview = new[] { MessageTypes.UPDATERENDERER };
 
             var all = typeof(MessageTypes).GetFields().Where(field => field.IsLiteral).Select(field => (string)(field.GetRawConstantValue() ?? string.Empty)).ToArray();
 
-            CollectionAssert.AreEquivalent(all, sampled.Concat(ace).Concat(sentToTheWebview).ToArray(), "a new message type must be sampled here, or listed as ACE");
+            CollectionAssert.AreEquivalent(all, sampled.Concat(ace).Concat(sentToTheWebview).Concat(ContractWebviewAuthTests.AuthMessageSamples).ToArray(), "a new message type must be sampled here, or listed as ACE");
         }
 
         private static JToken At(JToken root, string path)
@@ -445,28 +462,18 @@ namespace Codescene.VSExtension.Core.Tests
             return JObject.Parse(WebComponentJson.Serialize(payload));
         }
 
-        private static IPreflightManager RealPreflightManager()
+        private static IAgentAvailability RealAgentAvailability(bool enabled = true, bool authenticated = true)
         {
-            return new PreflightManager(
-                new Mock<ICliExecutor>().Object,
-                new Mock<ILogger>().Object,
-                new Mock<IAceStateService>().Object,
-                new Mock<ISettingsProvider>().Object);
-        }
-
-        private static async Task<IPreflightManager> PreflightManagerWithAceEnabledAsync()
-        {
-            var executor = new Mock<ICliExecutor>();
-            executor.Setup(x => x.PreflightAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(new PreFlightResponseModel());
-            var aceState = new Mock<IAceStateService>();
-            aceState.Setup(x => x.CurrentState).Returns(Core.Enums.AceState.Enabled);
-            var settings = new Mock<ISettingsProvider>();
-            settings.Setup(x => x.AuthToken).Returns("valid-token");
-            var preflight = new PreflightManager(executor.Object, new Mock<ILogger>().Object, aceState.Object, settings.Object);
-
-            await preflight.RunPreflightAsync(true);
-
-            return preflight;
+            var availability = new Mock<IAgentAvailability>();
+            availability.Setup(x => x.Enabled).Returns(enabled);
+            availability.Setup(x => x.Authenticated).Returns(authenticated);
+            availability.Setup(x => x.AutoRefactor()).Returns(new AutoRefactorConfig
+            {
+                Visible = true,
+                Activated = true,
+                Disabled = !authenticated,
+            });
+            return availability.Object;
         }
 
         private static CodeRangeModel RangeOf(JToken range)
@@ -485,22 +492,20 @@ namespace Codescene.VSExtension.Core.Tests
             return models.ToDictionary(_ => FilePath);
         }
 
-        private static JObject HomePayload(Dictionary<string, DeltaResponseModel> deltas, IPreflightManager? preflight = null, CodeHealthMonitorNotifier? notifier = null)
+        private static JObject HomePayload(Dictionary<string, DeltaResponseModel> deltas, IAgentAvailability? availability = null, CodeHealthMonitorNotifier? notifier = null)
         {
-            var mapper = new CodeHealthMonitorMapper(preflight ?? RealPreflightManager(), notifier ?? new CodeHealthMonitorNotifier());
+            var mapper = new CodeHealthMonitorMapper(availability ?? RealAgentAvailability(), notifier ?? new CodeHealthMonitorNotifier());
             return Sent(WebComponentPayload<CodeHealthMonitorComponentData>.Create(ViewTypes.HOME, mapper.Map(deltas), true));
         }
 
         private static CodeSmellDocumentationMapper DocsMapper(bool hasToken)
         {
-            var settings = new Mock<ISettingsProvider>();
-            settings.Setup(x => x.AuthToken).Returns(hasToken ? "valid-token" : string.Empty);
-            return new CodeSmellDocumentationMapper(settings.Object);
+            return new CodeSmellDocumentationMapper(RealAgentAvailability(authenticated: hasToken));
         }
 
-        private static JObject DocsPayload(ShowDocumentationModel model, bool hasToken, bool aceAcknowledged)
+        private static JObject DocsPayload(ShowDocumentationModel model, bool hasToken)
         {
-            return Sent(WebComponentPayload<CodeSmellDocumentationComponentData>.Create(ViewTypes.DOCS, DocsMapper(hasToken).Map(model, null!, aceAcknowledged)));
+            return Sent(WebComponentPayload<CodeSmellDocumentationComponentData>.Create(ViewTypes.DOCS, DocsMapper(hasToken).Map(model, null)));
         }
 
         /// <summary>The first file's delta of a home payload (as sent, in camelCase).</summary>

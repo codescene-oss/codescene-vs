@@ -6,9 +6,11 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using Codescene.VSExtension.Core.Application.Auth;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Auth;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Interfaces.Util;
 using Codescene.VSExtension.Core.Models.WebComponent.Data;
@@ -32,6 +34,8 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
     private static IDebounceService _updateViewDebounceService;
     private static IAsyncTaskScheduler _scheduler;
     private static int _showScheduled;
+
+    public static bool IsControlCreated => _userControl != null;
 
     public override Type PaneType => typeof(Pane);
 
@@ -67,11 +71,11 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
         {
             var deltaCache = new DeltaCacheService();
             var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
+            var authService = await VS.GetMefServiceAsync<IAuthService>();
 
-            var payload = WebComponentPayload<CodeHealthMonitorComponentData>.Create(
-                ViewTypes.HOME,
-                mapper.Map(deltaCache.GetAll()),
-                true);
+            var current = authService.Current;
+            var view = CodeHealthMonitorView.For(current);
+            var payload = CodeHealthMonitorView.Payload(view, mapper.Map(deltaCache.GetAll()));
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -112,16 +116,16 @@ public class CodeSceneToolWindow : BaseToolWindow<CodeSceneToolWindow>
 
         var deltaCache = new DeltaCacheService();
         var mapper = await VS.GetMefServiceAsync<CodeHealthMonitorMapper>();
+        var authService = await VS.GetMefServiceAsync<IAuthService>();
 
         var allDeltas = deltaCache.GetAll();
+        var current = authService.Current;
+        var view = CodeHealthMonitorView.For(current);
 
         var message = new WebComponentMessage<CodeHealthMonitorComponentData>
         {
             MessageType = MessageTypes.UPDATERENDERER,
-            Payload = WebComponentPayload<CodeHealthMonitorComponentData>.Create(
-                ViewTypes.HOME,
-                mapper.Map(allDeltas),
-                true),
+            Payload = CodeHealthMonitorView.Payload(view, mapper.Map(allDeltas)),
         };
         await VS.GetMefServiceAsync<ILogger>();
         _scheduler ??= await VS.GetMefServiceAsync<IAsyncTaskScheduler>();

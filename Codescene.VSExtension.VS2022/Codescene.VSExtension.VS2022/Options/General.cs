@@ -4,6 +4,8 @@ using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application;
+using Codescene.VSExtension.Core.Application.Auth;
 using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Application.Security;
 using Codescene.VSExtension.Core.Interfaces;
@@ -28,6 +30,10 @@ public class General : BaseOptionModel<General>
     private byte[] _previousAuthToken;
     private bool _previousShowDebugLogs;
     private bool _previousEnableAutomaticAnalysis = true;
+    private bool _previousBrowserSignIn;
+    private string _previousServerUrl;
+    private byte[] _previousPlainAuthToken;
+    private bool _previousEnableRefactoringAgent;
 
     public General()
     {
@@ -36,6 +42,10 @@ public class General : BaseOptionModel<General>
         _previousAuthToken = SecretBuffer.FromString(AuthToken);
         _previousShowDebugLogs = ShowDebugLogs;
         _previousEnableAutomaticAnalysis = EnableAutomaticAnalysis;
+        _previousBrowserSignIn = BrowserSignIn;
+        _previousServerUrl = ServerUrl;
+        _previousPlainAuthToken = SecretBuffer.FromString(AuthToken);
+        _previousEnableRefactoringAgent = EnableRefactoringAgent;
 
         Saved += OnSettingsSaved;
     }
@@ -55,14 +65,28 @@ public class General : BaseOptionModel<General>
     /// </summary>
     public static event EventHandler SettingsSaved;
 
+    public static event EventHandler AuthSettingsChanged;
+
+    public static event EventHandler RefactoringAgentEnabledChanged;
+
     [Category("General")]
     [DisplayName("Show Debug Logs")]
     [Description("Enable detailed debug logs in the CodeScene Output window")]
     public bool ShowDebugLogs { get; set; } = false;
 
+    [Category("Experimental")]
+    [DisplayName("Browser sign-in")]
+    [Description("Sign in to CodeScene in the browser (experimental). Requires a CodeScene IDE server with sign-in support.")]
+    public bool BrowserSignIn { get; set; } = false;
+
+    [Category("Authentication")]
+    [DisplayName("Server URL")]
+    [Description("CodeScene server for browser sign-in. Leave empty to use CS_ONPREM_URL, then CodeScene Cloud. Used when Browser sign-in (experimental) is on.")]
+    public string ServerUrl { get; set; } = string.Empty;
+
     [Category("Authentication")]
     [DisplayName("Auth Token")]
-    [Description("Authentication token for CodeScene ACE. The token is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
+    [Description("Personal access token — an alternative to signing in. Also used for refactoring. The token is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
     [PasswordPropertyText(true)]
     public string AuthToken { get; set; } = string.Empty;
 
@@ -81,16 +105,70 @@ public class General : BaseOptionModel<General>
     [Description("Automatically analyze file changes in the workspace. Open editors are still reviewed for diagnostics when this is off.")]
     public bool EnableAutomaticAnalysis { get; set; } = true;
 
+    [Category("Refactoring Agent")]
+    [DisplayName("\t\t\t\t\t\t\tEnable Refactoring Agent")]
+    [Description("Enable CodeScene Refactoring Agent")]
+    public bool EnableRefactoringAgent { get; set; } = false;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("\t\t\t\t\t\tAgent Model")]
+    [Description("Model to use for the Refactoring Agent.")]
+    [TypeConverter(typeof(AgentModelConverter))]
+    public string AgentModel { get; set; } = AgentModels.Default;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("\t\t\t\t\tAgent Model Override")]
+    [Description("Custom model identifier. If set, overrides the dropdown selection above.")]
+    public string AgentModelOverride { get; set; } = string.Empty;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("\tAmazon Bedrock Profile")]
+    [Description("AWS profile name for Amazon Bedrock. Check the setup with Extensions > CodeScene > Test provider connectivity.")]
+    public string BedrockProfile { get; set; } = string.Empty;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("Amazon Bedrock Region")]
+    [Description("AWS region for Amazon Bedrock. Check the setup with Extensions > CodeScene > Test provider connectivity.")]
+    public string BedrockRegion { get; set; } = string.Empty;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("\t\t\t\tAnthropic API Key")]
+    [Description("API key for Anthropic models. The key is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
+    [PasswordPropertyText(true)]
+    public string AnthropicApiKey { get; set; } = string.Empty;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("\t\t\tOpenAI API Key")]
+    [Description("API key for OpenAI models. The key is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
+    [PasswordPropertyText(true)]
+    public string OpenAIApiKey { get; set; } = string.Empty;
+
+    [Category("Refactoring Agent")]
+    [DisplayName("\t\tGoogle API Key")]
+    [Description("API key for Google (Gemini) models. The key is encrypted with Windows DPAPI for the current user before being stored in Visual Studio settings.")]
+    [PasswordPropertyText(true)]
+    public string GoogleApiKey { get; set; } = string.Empty;
+
     public override async Task LoadAsync()
     {
         await base.LoadAsync();
         AuthToken = AuthTokenProtector.Unprotect(AuthToken);
+        AnthropicApiKey = UnprotectProviderKey(AnthropicApiKey);
+        OpenAIApiKey = UnprotectProviderKey(OpenAIApiKey);
+        GoogleApiKey = UnprotectProviderKey(GoogleApiKey);
+        RememberAuthSettings(AuthToken);
     }
 
     public override async Task SaveAsync()
     {
         var plaintext = AuthToken;
+        var anthropicApiKey = AnthropicApiKey;
+        var openAIApiKey = OpenAIApiKey;
+        var googleApiKey = GoogleApiKey;
         AuthToken = AuthTokenProtector.Protect(plaintext);
+        AnthropicApiKey = ProviderKeyProtector.Protect(anthropicApiKey?.Trim());
+        OpenAIApiKey = ProviderKeyProtector.Protect(openAIApiKey?.Trim());
+        GoogleApiKey = ProviderKeyProtector.Protect(googleApiKey?.Trim());
         try
         {
             await base.SaveAsync();
@@ -98,7 +176,15 @@ public class General : BaseOptionModel<General>
         finally
         {
             AuthToken = plaintext;
+            AnthropicApiKey = anthropicApiKey;
+            OpenAIApiKey = openAIApiKey;
+            GoogleApiKey = googleApiKey;
         }
+    }
+
+    private static string UnprotectProviderKey(string stored)
+    {
+        return ProviderKeyProtector.TryUnprotect(stored, out var plaintext) ? plaintext : string.Empty;
     }
 
     private void OnSettingsSaved(General obj)
@@ -116,6 +202,8 @@ public class General : BaseOptionModel<General>
             AuthTokenChanged?.Invoke(this, EventArgs.Empty);
         }
 
+        DetectAuthSettingsChange();
+
         if (_previousShowDebugLogs != ShowDebugLogs)
         {
             _previousShowDebugLogs = ShowDebugLogs;
@@ -127,6 +215,39 @@ public class General : BaseOptionModel<General>
             _previousEnableAutomaticAnalysis = EnableAutomaticAnalysis;
             ApplyAutomaticAnalysis(EnableAutomaticAnalysis);
         }
+
+        if (_previousEnableRefactoringAgent != EnableRefactoringAgent)
+        {
+            _previousEnableRefactoringAgent = EnableRefactoringAgent;
+            RefactoringAgentEnabledChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void DetectAuthSettingsChange()
+    {
+        var plaintext = AuthTokenProtector.Unprotect(AuthToken);
+        var changes = AuthSettingsComparison.Detect(
+            _previousBrowserSignIn,
+            BrowserSignIn,
+            _previousServerUrl,
+            ServerUrl,
+            _previousPlainAuthToken,
+            plaintext);
+
+        if (!changes.AuthSettingsChanged)
+        {
+            return;
+        }
+
+        RememberAuthSettings(plaintext);
+        AuthSettingsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void RememberAuthSettings(string plaintextToken)
+    {
+        _previousBrowserSignIn = BrowserSignIn;
+        _previousServerUrl = ServerUrl;
+        SecretBuffer.Replace(ref _previousPlainAuthToken, plaintextToken);
     }
 
     private void ApplyAutomaticAnalysis(bool enabled)

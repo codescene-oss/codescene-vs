@@ -6,7 +6,6 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Consts;
@@ -15,7 +14,6 @@ using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
 using Codescene.VSExtension.Core.Util;
@@ -27,8 +25,9 @@ using StreamJsonRpc;
 namespace Codescene.VSExtension.Core.Application.Cli
 {
     [Export(typeof(IIdeServerClient))]
+    [Export(typeof(IIdeServerAuthClient))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public sealed partial class IdeServerClient : IIdeServerClient
+    public sealed partial class IdeServerClient : IIdeServerClient, IIdeServerAuthClient
     {
         private static readonly JsonSerializer Serializer = JsonSerializer.CreateDefault();
         private readonly ICliSettingsProvider _cliSettingsProvider;
@@ -83,9 +82,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public event EventHandler<ServerStartEvent> ServerStarted;
 
+        public event EventHandler ServerStopped;
+
         public event EventHandler<ReviewQueue> QueueChanged;
 
         public event EventHandler<Exception> ServerError;
+
+        public event EventHandler<JObject> AuthStatusChanged;
 
         public ServerMetadata Metadata { get; private set; }
 
@@ -104,24 +107,6 @@ namespace Codescene.VSExtension.Core.Application.Cli
             _logger.Info("[cs-ide] restarting");
             StopProcess(new Exception("CodeScene IDE server restarted"));
             await StartAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        public Task<PreFlightResponseModel> PreflightAsync(bool force = false, CancellationToken cancellationToken = default)
-        {
-            return SendRequestAsync<PreFlightResponseModel>(
-                "cs-ide/preflight",
-                new PreflightRequestParams { Force = force ? true : (bool?)null },
-                cancellationToken);
-        }
-
-        public Task<IList<FnToRefactorModel>> FnsToRefactorAsync(FnsToRefactorRequestModel request, CancellationToken cancellationToken = default)
-        {
-            return SendRequestAsync<IList<FnToRefactorModel>>("cs-ide/fns-to-refactor", request, cancellationToken);
-        }
-
-        public Task<RefactorResponseModel> RefactorAsync(RefactorPostRequestModel request, CancellationToken cancellationToken = default)
-        {
-            return SendRequestAsync<RefactorResponseModel>("cs-ide/refactor", request, cancellationToken);
         }
 
         public Task TelemetryAsync(object eventPayload, CancellationToken cancellationToken = default)
@@ -355,6 +340,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
                     "[cs-ide] request canceled id=" + id + " method=" + method + " durationMs=" + started.ElapsedMilliseconds);
                 throw;
             }
+            catch (DevtoolsException ex) when (ex.AuthErrorCode != null || ex.Status == -32601)
+            {
+                var code = ex.AuthErrorCode ?? ex.Status.ToString();
+                _logger.Warn(
+                    "[cs-ide] request failed id=" + id + " method=" + method + " durationMs=" + started.ElapsedMilliseconds + " code=" + code);
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.Error(
@@ -389,16 +381,13 @@ namespace Codescene.VSExtension.Core.Application.Cli
                 var normalized = RpcJsonNormalizer.ToKebabCase(raw);
                 return normalized.ToObject<T>(Serializer);
             }
+            catch (RemoteMethodNotFoundException ex)
+            {
+                throw ToDevtoolsException(ex);
+            }
             catch (RemoteInvocationException ex)
             {
-                var status = ex.ErrorCode;
-                var match = Regex.Match(ex.Message ?? string.Empty, @"^Request failed \[(\d{3})\]");
-                if (match.Success && int.TryParse(match.Groups[1].Value, out var httpStatus))
-                {
-                    status = httpStatus;
-                }
-
-                throw new DevtoolsException(ex.Message, status, null);
+                throw ToDevtoolsException(ex);
             }
         }
 
@@ -534,6 +523,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
             catch
             {
             }
+
+            if (process != null)
+            {
+                ServerStopped?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         private void HandleError(Exception error)
@@ -576,6 +570,9 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
             [JsonRpcMethod("cs-ide/watchInventoryChanged", UseSingleObjectParameterDeserialization = true)]
             public void OnWatchInventoryChanged(JObject notification) => _client.HandleWatchInventory(notification);
+
+            [JsonRpcMethod("cs-ide/authStatusChanged", UseSingleObjectParameterDeserialization = true)]
+            public void OnAuthStatusChanged(JObject notification) => _client.HandleAuthStatusChanged(notification);
         }
     }
 }

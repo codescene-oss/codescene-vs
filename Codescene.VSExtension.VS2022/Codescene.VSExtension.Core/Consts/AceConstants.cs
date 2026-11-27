@@ -8,7 +8,6 @@ namespace Codescene.VSExtension.Core.Consts
         {
             public const string INTENTIONACTION = "codeaction";
             public const string CODEVISION = "codelens (code-health-monitor)";
-            public const string ACEACKNOWLEDGEMENT = "ace-acknowledgement";
             public const string RETRY = "retry";
         }
     }

@@ -17,5 +17,13 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
         string CliFileName { get; }
 
         string CliFileFullPath { get; }
+
+        string RequiredAgentVersion { get; }
+
+        string RequiredAgentBinarySha256 { get; }
+
+        string AgentFileName { get; }
+
+        string AgentFileFullPath { get; }
     }
 }

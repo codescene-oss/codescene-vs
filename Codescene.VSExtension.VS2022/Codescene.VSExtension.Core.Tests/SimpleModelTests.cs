@@ -1,7 +1,6 @@
 // Copyright (c) CodeScene. All rights reserved.
 
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cache.AceRefactorableFunctions;
 using Codescene.VSExtension.Core.Models.Git;
 
 namespace Codescene.VSExtension.Core.Tests
@@ -9,15 +8,6 @@ namespace Codescene.VSExtension.Core.Tests
     [TestClass]
     public class SimpleModelTests
     {
-        [TestMethod]
-        public void AceRefactorableFunctionsQuery_Constructor_SetsProperties()
-        {
-            var query = new AceRefactorableFunctionsQuery("test.cs", "public class Test {}");
-
-            Assert.AreEqual("test.cs", query.FilePath);
-            Assert.AreEqual("public class Test {}", query.FileContents);
-        }
-
         [TestMethod]
         public void CodeSmellTooltipModel_PropertyAssignment_SetsAllProperties()
         {
@@ -60,41 +50,6 @@ namespace Codescene.VSExtension.Core.Tests
 
             Assert.AreEqual("test.cs", model.FileName);
             Assert.AreEqual("Code Health Details", model.Title);
-        }
-
-        [TestMethod]
-        public void GetRefactorableFunctionsModel_PropertyAssignment_SetsAllProperties()
-        {
-            var range = new CodeRangeModel(5, 25, 4, 5);
-
-            var model = new GetRefactorableFunctionsModel
-            {
-                Category = "Bumpy Road",
-                Details = "Multiple nested conditions",
-                Path = "src/handler.cs",
-                FunctionName = "HandleRequest",
-                Range = range,
-            };
-
-            Assert.AreEqual("Bumpy Road", model.Category);
-            Assert.AreEqual("Multiple nested conditions", model.Details);
-            Assert.AreEqual("src/handler.cs", model.Path);
-            Assert.AreEqual("HandleRequest", model.FunctionName);
-            Assert.AreEqual(range, model.Range);
-        }
-
-        [TestMethod]
-        public void GetRefactorableFunctionsModel_Details_DefaultsToEmptyString()
-        {
-            var model = new GetRefactorableFunctionsModel();
-            Assert.AreEqual(string.Empty, model.Details);
-        }
-
-        [TestMethod]
-        public void GetRefactorableFunctionsModel_FunctionRange_DefaultsToNull()
-        {
-            var model = new GetRefactorableFunctionsModel();
-            Assert.IsNull(model.FunctionRange);
         }
 
         [TestMethod]

@@ -68,60 +68,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void CreditsInfoModel_Deserialize_WithAllFields()
-        {
-            var json = @"{ ""limit"": 100, ""reset"": ""2024-01-15T00:00:00Z"", ""used"": 25 }";
-
-            var result = DeserializeJson<CreditsInfoModel>(json);
-
-            Assert.AreEqual(100, result.Limit);
-            Assert.AreEqual("2024-01-15T00:00:00Z", result.Reset);
-            Assert.AreEqual(25, result.Used);
-        }
-
-        [TestMethod]
-        public void CreditsInfoModel_Serialize_UsesCorrectPropertyNames()
-        {
-            var model = new CreditsInfoModel { Limit = 50, Reset = "2024-02-01T00:00:00Z", Used = 10 };
-
-            var json = JsonConvert.SerializeObject(model);
-
-            AssertJsonContainsProperties(json, "limit", "reset", "used");
-        }
-
-        [TestMethod]
-        public void CreditsInfoErrorModel_Deserialize_WithAllFields()
-        {
-            var json = @"{
-                ""credits-info"": { ""limit"": 100, ""reset"": ""2024-01-15T00:00:00Z"", ""used"": 100 },
-                ""message"": ""Credit limit exceeded"",
-                ""trace-id"": ""abc-123-def""
-            }";
-
-            var result = DeserializeJson<CreditsInfoErrorModel>(json);
-
-            Assert.AreEqual(100, result.CreditsInfo.Limit);
-            Assert.AreEqual(100, result.CreditsInfo.Used);
-            Assert.AreEqual("Credit limit exceeded", result.Message);
-            Assert.AreEqual("abc-123-def", result.TraceId);
-        }
-
-        [TestMethod]
-        public void CreditsInfoErrorModel_Serialize_UsesKebabCasePropertyNames()
-        {
-            var model = new CreditsInfoErrorModel
-            {
-                CreditsInfo = new CreditsInfoModel { Limit = 50, Used = 50 },
-                Message = "Error",
-                TraceId = "trace-123",
-            };
-
-            var json = JsonConvert.SerializeObject(model);
-
-            AssertJsonContainsProperties(json, "credits-info", "message", "trace-id");
-        }
-
-        [TestMethod]
         public void MetadataModel_Deserialize_WithCachedTrue()
         {
             var json = @"{ ""cached?"": true }";

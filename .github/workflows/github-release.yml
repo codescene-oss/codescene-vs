@@ -86,6 +86,12 @@ jobs:
         shell: pwsh
         run: powershell.exe -NoProfile -File .github/cli.ps1
 
+      - name: Get latest cs-agent version
+        shell: pwsh
+        run: powershell.exe -NoProfile -File .github/cs-agent.ps1
+        env:
+          CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN: ${{ secrets.CODESCENE_IDE_DOCS_AND_WEBVIEW_TOKEN }}
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 

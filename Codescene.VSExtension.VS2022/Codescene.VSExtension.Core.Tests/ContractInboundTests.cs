@@ -3,7 +3,6 @@
 using Codescene.VSExtension.Core.Application.Cli;
 using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Ace;
 using Codescene.VSExtension.Core.Models.Cli.Delta;
 using Codescene.VSExtension.Core.Models.Cli.Review;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
@@ -266,9 +265,10 @@ namespace Codescene.VSExtension.Core.Tests
 
         private static JToken MappedDeltaEntity(DeltaResponseModel model)
         {
-            var preflight = new Mock<IPreflightManager>();
-            preflight.Setup(x => x.GetAutoRefactorConfig()).Returns(new AutoRefactorConfig { Activated = true, Visible = true, Disabled = false });
-            var mapper = new CodeHealthMonitorMapper(preflight.Object);
+            var availability = new Mock<IAgentAvailability>();
+            availability.Setup(x => x.Enabled).Returns(true);
+            availability.Setup(x => x.AutoRefactor()).Returns(new AutoRefactorConfig { Activated = true, Visible = true, Disabled = false });
+            var mapper = new CodeHealthMonitorMapper(availability.Object);
 
             var data = mapper.Map(new Dictionary<string, DeltaResponseModel> { { "src/fake.js", model } });
 

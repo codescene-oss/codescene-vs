@@ -59,9 +59,6 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
 
         var mapper = await VS.GetMefServiceAsync<CodeSmellDocumentationMapper>();
 
-        var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
-        var aceAcknowledged = acknowledgementStateService.IsAcknowledged();
-
         try
         {
             UpdateView(new WebComponentMessage<CodeSmellDocumentationComponentData>
@@ -69,7 +66,7 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
                 MessageType = WebComponentConstants.MessageTypes.UPDATERENDERER,
                 Payload = WebComponentPayload<CodeSmellDocumentationComponentData>.Create(
                     WebComponentConstants.ViewTypes.DOCS,
-                    mapper.Map(_model, _fnToRefactor, aceAcknowledged)),
+                    mapper.Map(_model, _fnToRefactor)),
             });
         }
         catch (Exception e)
@@ -83,16 +80,13 @@ public class CodeSmellDocumentationWindow : BaseToolWindow<CodeSmellDocumentatio
         var logger = await VS.GetMefServiceAsync<ILogger>();
         var mapper = await VS.GetMefServiceAsync<CodeSmellDocumentationMapper>();
 
-        var acknowledgementStateService = await VS.GetMefServiceAsync<AceAcknowledgementStateService>();
-        var aceAcknowledged = acknowledgementStateService.IsAcknowledged();
-
         if (_model != null)
         {
             logger.Info($"Opening doc '{_model.Category}' for file {_model.Path}");
 
             var payload = WebComponentPayload<CodeSmellDocumentationComponentData>.Create(
                 WebComponentConstants.ViewTypes.DOCS,
-                mapper.Map(_model, _fnToRefactor, aceAcknowledged));
+                mapper.Map(_model, _fnToRefactor));
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

@@ -4,7 +4,8 @@ using Codescene.VSExtension.Core.Application.Mappers;
 using Codescene.VSExtension.Core.Models;
 using Codescene.VSExtension.Core.Models.Cli;
 using Codescene.VSExtension.Core.Models.Cli.Refactor;
-using Codescene.VSExtension.Core.Models.WebComponent.Model;
+using Codescene.VSExtension.Core.Models.Refactoring;
+using Codescene.VSExtension.Core.Models.WebComponent.Data;
 
 namespace Codescene.VSExtension.Core.Tests
 {
@@ -20,271 +21,271 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Map_CachedModel_ReturnsComponentData()
+        public void MapSession_ReturnsComponentData()
         {
-            var model = CreateCachedModel();
+            var session = CreateSession();
 
-            var result = _mapper.Map(model);
+            var result = _mapper.MapSession(session);
 
             Assert.IsNotNull(result);
         }
 
         [TestMethod]
-        public void Map_CachedModel_SetsLoadingToFalse()
+        public void MapSession_SetsLoadingToFalse()
         {
-            var model = CreateCachedModel();
+            var session = CreateSession();
 
-            var result = _mapper.Map(model);
+            var result = _mapper.MapSession(session);
 
             Assert.IsFalse(result.Loading);
         }
 
         [TestMethod]
-        public void Map_CachedModel_SetsErrorToNull()
+        public void MapSession_SetsErrorToNull()
         {
-            var model = CreateCachedModel();
+            var session = CreateSession();
 
-            var result = _mapper.Map(model);
+            var result = _mapper.MapSession(session);
 
             Assert.IsNull(result.Error);
         }
 
         [TestMethod]
-        public void Map_CachedModel_SetsFileDataFileName()
+        public void MapSession_SetsFileDataFileName()
         {
-            var model = CreateCachedModel(path: "src/MyClass.cs");
+            var session = CreateSession(path: "src/MyClass.cs");
 
-            var result = _mapper.Map(model);
+            var result = _mapper.MapSession(session);
 
             Assert.AreEqual("src/MyClass.cs", result.FileData.FileName);
         }
 
         [TestMethod]
-        public void Map_CachedModel_SetsAceResultData()
+        public void MapSession_SetsAceResultData()
         {
             var refactored = new RefactorResponseModel { Code = "refactored code" };
-            var model = CreateCachedModel(refactored: refactored);
+            var session = CreateSession(response: refactored);
 
-            var result = _mapper.Map(model);
+            var result = _mapper.MapSession(session);
 
             Assert.AreEqual(refactored, result.AceResultData);
         }
 
         [TestMethod]
-        public void Map_CachedModel_SetsFnToRefactor()
+        public void MapSession_SetsFnToRefactor()
         {
             var fnToRefactor = CreateFnToRefactor("MyFunction");
-            var model = CreateCachedModel(refactorableCandidate: fnToRefactor);
+            var session = CreateSession(function: fnToRefactor);
 
-            var result = _mapper.Map(model);
+            var result = _mapper.MapSession(session);
 
-            Assert.AreEqual(fnToRefactor, result.FnToRefactor);
+            Assert.AreEqual(fnToRefactor, result.FileData.FnToRefactor);
         }
 
         [TestMethod]
-        public void Map_PathAndFn_ReturnsComponentData()
+        public void MapLoading_ReturnsComponentData()
         {
-            var result = _mapper.Map("test.cs", CreateFnToRefactor());
+            var result = _mapper.MapLoading("test.cs", CreateFnToRefactor());
 
             Assert.IsNotNull(result);
         }
 
         [TestMethod]
-        public void Map_PathAndFn_SetsLoadingToTrue()
+        public void MapLoading_SetsLoadingToTrue()
         {
-            var result = _mapper.Map("test.cs", CreateFnToRefactor());
+            var result = _mapper.MapLoading("test.cs", CreateFnToRefactor());
 
             Assert.IsTrue(result.Loading);
         }
 
         [TestMethod]
-        public void Map_PathAndFn_SetsErrorToNull()
+        public void MapLoading_SetsErrorToNull()
         {
-            var result = _mapper.Map("test.cs", CreateFnToRefactor());
+            var result = _mapper.MapLoading("test.cs", CreateFnToRefactor());
 
             Assert.IsNull(result.Error);
         }
 
         [TestMethod]
-        public void Map_PathAndFn_SetsAceResultDataToNull()
+        public void MapLoading_SetsAceResultDataToNull()
         {
-            var result = _mapper.Map("test.cs", CreateFnToRefactor());
+            var result = _mapper.MapLoading("test.cs", CreateFnToRefactor());
 
             Assert.IsNull(result.AceResultData);
         }
 
         [TestMethod]
-        public void Map_PathAndFn_SetsFileDataFileName()
+        public void MapLoading_SetsFileDataFileName()
         {
-            var result = _mapper.Map("src/Component.cs", CreateFnToRefactor());
+            var result = _mapper.MapLoading("src/Component.cs", CreateFnToRefactor());
 
             Assert.AreEqual("src/Component.cs", result.FileData.FileName);
         }
 
         [TestMethod]
-        public void Map_PathFnAndError_ReturnsComponentData()
+        public void MapError_ReturnsComponentData()
         {
-            var result = _mapper.Map("test.cs", CreateFnToRefactor(), "Some error");
+            var result = _mapper.MapError("test.cs", CreateFnToRefactor(), "Some error");
 
             Assert.IsNotNull(result);
         }
 
         [TestMethod]
-        public void Map_PathFnAndError_SetsLoadingToFalse()
+        public void MapError_SetsLoadingToFalse()
         {
-            var result = _mapper.Map("test.cs", CreateFnToRefactor(), "Some error");
+            var result = _mapper.MapError("test.cs", CreateFnToRefactor(), "Some error");
 
             Assert.IsFalse(result.Loading);
         }
 
         [TestMethod]
-        public void Map_PathFnAndError_SetsErrorValue()
+        public void MapError_SetsErrorValue()
         {
-            var result = _mapper.Map("test.cs", CreateFnToRefactor(), "Refactoring failed");
+            var result = _mapper.MapError("test.cs", CreateFnToRefactor(), "Refactoring failed");
 
             Assert.AreEqual("Refactoring failed", result.Error);
         }
 
         [TestMethod]
-        public void Map_PathFnAndError_SetsAceResultDataToNull()
+        public void MapError_SetsAceResultDataToNull()
         {
-            var result = _mapper.Map("test.cs", CreateFnToRefactor(), "Error");
+            var result = _mapper.MapError("test.cs", CreateFnToRefactor(), "Error");
 
             Assert.IsNull(result.AceResultData);
         }
 
         [TestMethod]
-        public void Map_RangeStartLine_MappedCorrectly()
+        public void MapLoading_RangeStartLine_MappedCorrectly()
         {
             var range = CreateRange(startLine: 15);
             var fn = CreateFnToRefactor(range: range);
 
-            var result = _mapper.Map("test.cs", fn);
+            var result = _mapper.MapLoading("test.cs", fn);
 
             Assert.AreEqual(15, result.FileData.Fn.Range.StartLine);
         }
 
         [TestMethod]
-        public void Map_RangeEndLine_MappedCorrectly()
+        public void MapLoading_RangeEndLine_MappedCorrectly()
         {
             var range = CreateRange(endLine: 30);
             var fn = CreateFnToRefactor(range: range);
 
-            var result = _mapper.Map("test.cs", fn);
+            var result = _mapper.MapLoading("test.cs", fn);
 
             Assert.AreEqual(30, result.FileData.Fn.Range.EndLine);
         }
 
         [TestMethod]
-        public void Map_RangeStartColumn_MappedCorrectly()
+        public void MapLoading_RangeStartColumn_MappedCorrectly()
         {
             var range = CreateRange(startColumn: 5);
             var fn = CreateFnToRefactor(range: range);
 
-            var result = _mapper.Map("test.cs", fn);
+            var result = _mapper.MapLoading("test.cs", fn);
 
             Assert.AreEqual(5, result.FileData.Fn.Range.StartColumn);
         }
 
         [TestMethod]
-        public void Map_RangeEndColumn_MappedCorrectly()
+        public void MapLoading_RangeEndColumn_MappedCorrectly()
         {
             var range = CreateRange(endColumn: 80);
             var fn = CreateFnToRefactor(range: range);
 
-            var result = _mapper.Map("test.cs", fn);
+            var result = _mapper.MapLoading("test.cs", fn);
 
             Assert.AreEqual(80, result.FileData.Fn.Range.EndColumn);
         }
 
         [TestMethod]
-        public void Map_FunctionName_MappedToFileDataFn()
+        public void MapLoading_FunctionName_MappedToFileDataFn()
         {
             var fn = CreateFnToRefactor(name: "ProcessData");
 
-            var result = _mapper.Map("test.cs", fn);
+            var result = _mapper.MapLoading("test.cs", fn);
 
             Assert.AreEqual("ProcessData", result.FileData.Fn.Name);
         }
 
         [TestMethod]
-        public void Map_CachedModel_SetsIsStaleToFalse()
+        public void MapSession_SetsIsStaleToFalse()
         {
-            var model = CreateCachedModel();
+            var session = CreateSession();
 
-            var result = _mapper.Map(model);
+            var result = _mapper.MapSession(session);
 
             Assert.IsFalse(result.IsStale);
         }
 
         [TestMethod]
-        public void MapAsStale_ReturnsComponentData()
+        public void MapSession_Stale_ReturnsComponentData()
         {
-            var model = CreateCachedModel();
+            var session = CreateSession(state: RefactoringSessionState.Stale);
 
-            var result = _mapper.MapAsStale(model);
+            var result = _mapper.MapSession(session);
 
             Assert.IsNotNull(result);
         }
 
         [TestMethod]
-        public void MapAsStale_SetsIsStaleToTrue()
+        public void MapSession_Stale_SetsIsStaleToTrue()
         {
-            var model = CreateCachedModel();
+            var session = CreateSession(state: RefactoringSessionState.Stale);
 
-            var result = _mapper.MapAsStale(model);
+            var result = _mapper.MapSession(session);
 
             Assert.IsTrue(result.IsStale);
         }
 
         [TestMethod]
-        public void MapAsStale_PreservesFileData()
+        public void MapSession_Stale_PreservesFileData()
         {
-            var model = CreateCachedModel(path: "src/MyClass.cs");
+            var session = CreateSession(path: "src/MyClass.cs", state: RefactoringSessionState.Stale);
 
-            var result = _mapper.MapAsStale(model);
+            var result = _mapper.MapSession(session);
 
             Assert.AreEqual("src/MyClass.cs", result.FileData.FileName);
         }
 
         [TestMethod]
-        public void MapAsStale_PreservesAceResultData()
+        public void MapSession_Stale_PreservesAceResultData()
         {
             var refactored = new RefactorResponseModel { Code = "refactored code" };
-            var model = CreateCachedModel(refactored: refactored);
+            var session = CreateSession(response: refactored, state: RefactoringSessionState.Stale);
 
-            var result = _mapper.MapAsStale(model);
+            var result = _mapper.MapSession(session);
 
             Assert.AreEqual(refactored, result.AceResultData);
         }
 
         [TestMethod]
-        public void MapAsStale_PreservesFnToRefactor()
+        public void MapSession_Stale_PreservesFnToRefactor()
         {
             var fnToRefactor = CreateFnToRefactor("MyFunction");
-            var model = CreateCachedModel(refactorableCandidate: fnToRefactor);
+            var session = CreateSession(function: fnToRefactor, state: RefactoringSessionState.Stale);
 
-            var result = _mapper.MapAsStale(model);
+            var result = _mapper.MapSession(session);
 
-            Assert.AreEqual(fnToRefactor, result.FnToRefactor);
+            Assert.AreEqual(fnToRefactor, result.FileData.FnToRefactor);
         }
 
         [TestMethod]
-        public void MapAsStale_SetsLoadingToFalse()
+        public void MapSession_Stale_SetsLoadingToFalse()
         {
-            var model = CreateCachedModel();
+            var session = CreateSession(state: RefactoringSessionState.Stale);
 
-            var result = _mapper.MapAsStale(model);
+            var result = _mapper.MapSession(session);
 
             Assert.IsFalse(result.Loading);
         }
 
         [TestMethod]
-        public void MapAsStale_SetsErrorToNull()
+        public void MapSession_Stale_SetsErrorToNull()
         {
-            var model = CreateCachedModel();
+            var session = CreateSession(state: RefactoringSessionState.Stale);
 
-            var result = _mapper.MapAsStale(model);
+            var result = _mapper.MapSession(session);
 
             Assert.IsNull(result.Error);
         }
@@ -294,10 +295,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var range = CreateRange(5, 15, 2, 40);
             var result = AceComponentMapper.MapRange(range);
-            Assert.AreEqual(5, result.StartLine);
-            Assert.AreEqual(15, result.EndLine);
-            Assert.AreEqual(2, result.StartColumn);
-            Assert.AreEqual(40, result.EndColumn);
+            Assert.AreEqual((5, 15, 2, 40), (result.StartLine, result.EndLine, result.StartColumn, result.EndColumn));
         }
 
         [TestMethod]
@@ -312,10 +310,7 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var range = CreateCodeRange(5, 15, 2, 40);
             var result = AceComponentMapper.MapRange(range);
-            Assert.AreEqual(5, result.StartLine);
-            Assert.AreEqual(15, result.EndLine);
-            Assert.AreEqual(2, result.StartColumn);
-            Assert.AreEqual(40, result.EndColumn);
+            Assert.AreEqual((5, 15, 2, 40), (result.StartLine, result.EndLine, result.StartColumn, result.EndColumn));
         }
 
         [TestMethod]
@@ -323,6 +318,121 @@ namespace Codescene.VSExtension.Core.Tests
         {
             var result = AceComponentMapper.MapRange((CodeRangeModel)null);
             Assert.IsNull(result);
+        }
+
+        [TestMethod]
+        public void MapSession_Running_IsLoading()
+        {
+            var session = CreateSession(state: RefactoringSessionState.Running);
+
+            var result = _mapper.MapSession(session);
+
+            Assert.IsTrue(result.Loading);
+            Assert.IsNull(result.ProgressMessage);
+        }
+
+        [TestMethod]
+        public void MapSession_Progress_SetsProgressMessage()
+        {
+            var session = CreateSession(state: RefactoringSessionState.Running);
+            session.SetProgress("Analyzing code...");
+
+            var result = _mapper.MapSession(session);
+
+            Assert.IsTrue(result.Loading);
+            Assert.AreEqual("Analyzing code...", result.ProgressMessage);
+        }
+
+        [TestMethod]
+        public void MapSession_Presented_SetsAceResultData()
+        {
+            var response = new RefactorResponseModel { Code = "refactored code", TraceId = "trace-123" };
+            var session = CreateSession(response: response, state: RefactoringSessionState.Presented);
+
+            var result = _mapper.MapSession(session);
+
+            AssertNotLoadingStaleOrFailed(result);
+            Assert.IsNull(result.ProgressMessage);
+            Assert.AreEqual(response, result.AceResultData);
+        }
+
+        [TestMethod]
+        public void MapSession_AuthError()
+        {
+            var session = CreateSession(state: RefactoringSessionState.Failed);
+            session.SetError("auth");
+
+            var result = _mapper.MapSession(session);
+
+            Assert.IsFalse(result.Loading);
+            Assert.AreEqual("auth", result.Error);
+            Assert.IsNull(result.AceResultData);
+        }
+
+        [TestMethod]
+        public void MapSession_GenericError()
+        {
+            var session = CreateSession(state: RefactoringSessionState.Failed);
+            session.SetError("generic");
+
+            var result = _mapper.MapSession(session);
+
+            Assert.IsFalse(result.Loading);
+            Assert.AreEqual("generic", result.Error);
+            Assert.IsNull(result.AceResultData);
+        }
+
+        [TestMethod]
+        public void MapSession_Stale_SetsIsStale()
+        {
+            var response = new RefactorResponseModel { Code = "old code" };
+            var session = CreateSession(response: response, state: RefactoringSessionState.Presented);
+            session.MarkStale();
+
+            var result = _mapper.MapSession(session);
+
+            Assert.IsTrue(result.IsStale);
+            Assert.IsFalse(result.Loading);
+            Assert.AreEqual(response, result.AceResultData);
+        }
+
+        [TestMethod]
+        public void MapSession_Cancelled_ReturnsAppropriatePayload()
+        {
+            var session = CreateSession(state: RefactoringSessionState.Cancelled);
+
+            var result = _mapper.MapSession(session);
+
+            AssertNotLoadingStaleOrFailed(result);
+            Assert.IsNull(result.AceResultData);
+        }
+
+        [TestMethod]
+        public void MapSession_FileData_CarriesFnToRefactor()
+        {
+            var fnToRefactor = CreateFnToRefactor("TestFunction");
+            var session = CreateSession(function: fnToRefactor);
+
+            var result = _mapper.MapSession(session);
+
+            Assert.IsNotNull(result.FileData);
+            Assert.AreEqual(fnToRefactor, result.FileData.FnToRefactor);
+            Assert.AreEqual("TestFunction", result.FileData.Fn.Name);
+        }
+
+        [TestMethod]
+        public void MapSession_Null_ReturnsNull()
+        {
+            var result = _mapper.MapSession(null);
+
+            Assert.IsNull(result);
+        }
+
+        private static void AssertNotLoadingStaleOrFailed(AceComponentData result)
+        {
+            Assert.IsFalse(result.Loading);
+            Assert.IsFalse(result.IsStale);
+            Assert.IsNull(result.Error);
         }
 
         private static CodeRangeModel CreateCodeRange(int startLine = 10, int endLine = 20, int startColumn = 1, int endColumn = 50)
@@ -350,17 +460,30 @@ namespace Codescene.VSExtension.Core.Tests
             };
         }
 
-        private static CachedRefactoringActionModel CreateCachedModel(
+        private static RefactoringSession CreateSession(
             string path = "test.cs",
-            FnToRefactorModel? refactorableCandidate = null,
-            RefactorResponseModel? refactored = null)
+            FnToRefactorModel? function = null,
+            RefactorResponseModel? response = null,
+            RefactoringSessionState state = RefactoringSessionState.Presented)
         {
-            return new CachedRefactoringActionModel
+            var session = new RefactoringSession(path, function ?? CreateFnToRefactor(), "test-source");
+
+            if (state == RefactoringSessionState.Presented || state == RefactoringSessionState.Stale)
             {
-                Path = path,
-                RefactorableCandidate = refactorableCandidate ?? CreateFnToRefactor(),
-                Refactored = refactored,
-            };
+                session.SetResponse(response ?? new RefactorResponseModel());
+            }
+
+            if (state == RefactoringSessionState.Stale)
+            {
+                session.MarkStale();
+            }
+
+            if (state == RefactoringSessionState.Cancelled)
+            {
+                session.Cancel();
+            }
+
+            return session;
         }
     }
 }

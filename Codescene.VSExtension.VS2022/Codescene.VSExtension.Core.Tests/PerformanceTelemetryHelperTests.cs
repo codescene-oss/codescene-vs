@@ -4,7 +4,6 @@ using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cli.Refactor;
 using Codescene.VSExtension.Core.Util;
 using Moq;
 
@@ -87,10 +86,9 @@ namespace Codescene.VSExtension.Core.Tests
         [TestMethod]
         public async Task SendPerformanceTelemetryAsyncNullLanguage_UsesEmptyString()
         {
-            // Arrange
             var data = new PerformanceTelemetryData
             {
-                Type = Constants.Titles.ACE,
+                Type = Constants.Titles.REVIEW,
                 ElapsedMs = 300,
                 Language = null,
                 Loc = 50,
@@ -101,13 +99,11 @@ namespace Codescene.VSExtension.Core.Tests
                 .Setup(t => t.SendTelemetryAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, object>>(), It.IsAny<CancellationToken>()))
                 .Callback<string, Dictionary<string, object>, CancellationToken>((_, d, __) => capturedData = d);
 
-            // Act
             await PerformanceTelemetryHelper.SendPerformanceTelemetryAsync(
                 _mockTelemetryManager.Object,
                 _mockLogger.Object,
                 data);
 
-            // Assert
             Assert.IsNotNull(capturedData);
             Assert.AreEqual(string.Empty, capturedData["language"]);
         }
@@ -283,39 +279,6 @@ namespace Codescene.VSExtension.Core.Tests
 
             // Assert
             Assert.AreEqual(4, result);
-        }
-
-        // ExtractLanguage Tests
-        [TestMethod]
-        public void ExtractLanguage_WithFnToRefactor_ReturnsFileTypeFromModel()
-        {
-            // Arrange
-            var fnToRefactor = new FnToRefactorModel
-            {
-                FileType = "typescript",
-            };
-
-            // Act
-            var result = PerformanceTelemetryHelper.ExtractLanguage("test.cs", fnToRefactor);
-
-            // Assert
-            Assert.AreEqual("typescript", result);
-        }
-
-        [TestMethod]
-        public void ExtractLanguage_WithFnToRefactorNullFileType_ReturnsEmptyString()
-        {
-            // Arrange
-            var fnToRefactor = new FnToRefactorModel
-            {
-                FileType = null,
-            };
-
-            // Act
-            var result = PerformanceTelemetryHelper.ExtractLanguage("test.cs", fnToRefactor);
-
-            // Assert
-            Assert.AreEqual(string.Empty, result);
         }
 
         [TestMethod]

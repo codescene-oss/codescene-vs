@@ -43,45 +43,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task PreflightAsync_WithValidResponse_ReturnsPreFlightResponseModel()
-        {
-            var expectedPreflight = new PreFlightResponseModel { Version = 1.0m, FileTypes = new[] { ".cs", ".js" } };
-            _mockClient.Setup(x => x.PreflightAsync(true, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(expectedPreflight);
-
-            var result = await _cliExecutor.PreflightAsync(force: true);
-
-            Assert.IsNotNull(result);
-            Assert.AreEqual(expectedPreflight.Version, result.Version);
-            Assert.IsTrue(result.FileTypes.SequenceEqual(expectedPreflight.FileTypes));
-        }
-
-        [TestMethod]
-        public async Task PreflightAsync_WhenClientThrowsException_ReturnsNull()
-        {
-            _mockClient.Setup(x => x.PreflightAsync(It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new Exception("Error"));
-
-            var result = await _cliExecutor.PreflightAsync();
-
-            Assert.IsNull(result);
-            _mockLogger.Verify(x => x.Error(It.Is<string>(s => s.Contains("Preflight failed")), It.IsAny<Exception>()), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task PreflightAsync_WithForceFalse_UsesCorrectFlag()
-        {
-            var preflight = new PreFlightResponseModel { Version = 1.0m };
-            _mockClient.Setup(x => x.PreflightAsync(false, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(preflight);
-
-            var result = await _cliExecutor.PreflightAsync(force: false);
-
-            Assert.IsNotNull(result);
-            _mockClient.Verify(x => x.PreflightAsync(false, It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [TestMethod]
         public void Constructor_WithNullLogger_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() =>
