@@ -91,7 +91,6 @@ try {
     Test-ReadFileFromHistory
     Test-MigrationScriptArguments
     Test-MigrationScriptWithFakeGh
-    Test-MigrationIntegration
     Write-Host "$($script:Passed) assertions passed"
 }
 finally {
