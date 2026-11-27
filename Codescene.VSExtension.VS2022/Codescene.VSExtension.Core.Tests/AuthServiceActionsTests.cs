@@ -262,6 +262,8 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(0, kit.Snapshots.Count);
             Assert.IsFalse(kit.Service.Current.Active);
             kit.Host.VerifyNoOtherCalls();
+            kit.Telemetry.Verify(x => x.HoldRouting(), Times.Exactly(2));
+            kit.Telemetry.Verify(x => x.RoutingReady(It.IsAny<int>()), Times.Once);
             kit.Telemetry.VerifyNoOtherCalls();
             kit.Settings.Verify(x => x.SetAccessTokenAsync(It.IsAny<string>()), Times.Never);
         }

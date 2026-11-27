@@ -11,6 +11,10 @@ namespace Codescene.VSExtension.Core.Interfaces.Telemetry
     {
         Task SendTelemetryAsync(string eventName, Dictionary<string, object> additionalEventData = null, CancellationToken cancellationToken = default);
 
-        Task SendErrorTelemetryAsync(Exception ex, string context, Dictionary<string, object> extraData = null, CancellationToken cancellationToken = default);
+        int HoldRouting();
+
+        void RoutingReady(int generation);
+
+        Task EndSessionAsync(TimeSpan timeout);
     }
 }

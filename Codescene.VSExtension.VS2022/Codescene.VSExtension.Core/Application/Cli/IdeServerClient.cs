@@ -82,6 +82,8 @@ namespace Codescene.VSExtension.Core.Application.Cli
 
         public event EventHandler<ServerStartEvent> ServerStarted;
 
+        public event EventHandler ServerStopped;
+
         public event EventHandler<ReviewQueue> QueueChanged;
 
         public event EventHandler<Exception> ServerError;
@@ -520,6 +522,11 @@ namespace Codescene.VSExtension.Core.Application.Cli
             }
             catch
             {
+            }
+
+            if (process != null)
+            {
+                ServerStopped?.Invoke(this, EventArgs.Empty);
             }
         }
 

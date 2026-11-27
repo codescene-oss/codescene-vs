@@ -98,13 +98,10 @@ public sealed class VS2022Package : ToolkitPackage
 
             _scheduler = await VS.GetMefServiceAsync<IAsyncTaskScheduler>();
 
-            JoinableTaskFactory.RunAsync(() => SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSION, DisposalToken)).FileAndForget("VS2022Package/SendTelemetry");
+            JoinableTaskFactory.RunAsync(() => SendTelemetryAsync(CodeSceneConstants.Telemetry.SESSIONSTARTED, DisposalToken)).FileAndForget("VS2022Package/SendTelemetry");
         }
         catch (Exception e)
         {
-            // Note: we may not be able to report every failure via telemetry
-            // (e.g. if the extension hasn't fully loaded or the CLI hasn't been downloaded yet).
-            JoinableTaskFactory.RunAsync(() => SendTelemetryAsync(CodeSceneConstants.Telemetry.ONACTIVATEEXTENSIONERROR, DisposalToken)).FileAndForget("VS2022Package/SendTelemetry");
             System.Diagnostics.Debug.Fail($"VS2022Package.InitializeAsync failed for CodeScene Extension: {e}");
         }
         finally
@@ -118,6 +115,7 @@ public sealed class VS2022Package : ToolkitPackage
         ThreadHelper.ThrowIfNotOnUIThread();
         if (disposing)
         {
+            EndTelemetrySession();
             UnsubscribeFromGlobalExceptionHandlers();
             _solutionEventsHandler?.Dispose();
             (_scheduler as IDisposable)?.Dispose();
@@ -143,6 +141,25 @@ public sealed class VS2022Package : ToolkitPackage
     private async Task InitializeAgentAvailabilityBinderAsync()
     {
         _agentAvailabilityBinder = await GetServiceAsync<AgentAvailabilityBinder>();
+    }
+
+    private void EndTelemetrySession()
+    {
+        try
+        {
+            JoinableTaskFactory.Run(async () =>
+            {
+                var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
+                if (telemetryManager != null)
+                {
+                    await telemetryManager.EndSessionAsync(TimeSpan.FromSeconds(3));
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger?.Debug($"Unable to end telemetry session: {ex.Message}");
+        }
     }
 
     private async Task SendTelemetryAsync(string eventName, CancellationToken cancellationToken = default)

@@ -9,9 +9,7 @@ using Codescene.VSExtension.Core.Application.Cache.Review;
 using Codescene.VSExtension.Core.Interfaces;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
-using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.Core.Models;
-using Codescene.VSExtension.Core.Models.Cache.Delta;
 using Codescene.VSExtension.Core.Models.Cache.Review;
 using Codescene.VSExtension.Core.Models.Cli.Rpc;
 using Codescene.VSExtension.Core.Util;
@@ -29,9 +27,7 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
         private readonly ICodeHealthMonitorNotifier _notifier;
         private readonly IAsyncTaskScheduler _scheduler;
         private readonly CodeSceneMarginSettingsManager _marginSettings;
-        private readonly ITelemetryManager _telemetryManager;
         private readonly RefactorableFunctionEnricher _enricher;
-        private readonly IAgentAvailability _availability;
 
         [ImportingConstructor]
         public VisualStudioReviewPipelinePresentation(
@@ -40,18 +36,14 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
             ICodeHealthMonitorNotifier notifier,
             IAsyncTaskScheduler scheduler,
             CodeSceneMarginSettingsManager marginSettings,
-            ITelemetryManager telemetryManager,
-            RefactorableFunctionEnricher enricher,
-            IAgentAvailability availability)
+            RefactorableFunctionEnricher enricher)
         {
             _mapper = mapper;
             _errorListWindowHandler = errorListWindowHandler;
             _notifier = notifier;
             _scheduler = scheduler;
             _marginSettings = marginSettings;
-            _telemetryManager = telemetryManager;
             _enricher = enricher;
-            _availability = availability;
         }
 
         public void ReviewStarted(ReviewDocument document)
@@ -118,15 +110,7 @@ namespace Codescene.VSExtension.VS2022.Application.Adapters
 
             _enricher.Enrich(delta.Result, delta.Document.FilePath, content);
 
-            var cache = new DeltaCacheService();
-            var snapshot = cache.GetAll();
-            cache.SetPresentationDelta(delta.Document.FilePath, delta.Result);
-            DeltaTelemetryHelper.HandleDeltaTelemetryEvent(
-                snapshot,
-                cache.GetAll(),
-                new DeltaCacheEntry(delta.Document.FilePath, string.Empty, string.Empty, delta.Result),
-                _telemetryManager,
-                _availability.Enabled);
+            new DeltaCacheService().SetPresentationDelta(delta.Document.FilePath, delta.Result);
             _notifier.RequestViewUpdate();
             _marginSettings.NotifyScoreUpdated();
         }

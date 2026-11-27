@@ -18,5 +18,7 @@ namespace Codescene.VSExtension.Core.Interfaces.Refactoring
         void MarkStale();
 
         void UpdateRange(CliRangeModel range);
+
+        void ReportUserAction(string stage);
     }
 }

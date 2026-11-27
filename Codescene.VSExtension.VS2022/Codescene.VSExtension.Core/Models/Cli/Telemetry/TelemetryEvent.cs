@@ -24,6 +24,12 @@ namespace Codescene.VSExtension.Core.Models.Cli.Telemetry
         [JsonProperty("internal", NullValueHandling = NullValueHandling.Ignore)]
         public bool? Internal { get; set; }
 
+        [JsonProperty("event-time", NullValueHandling = NullValueHandling.Ignore)]
+        public string EventTime { get; set; }
+
+        [JsonProperty("session-id", NullValueHandling = NullValueHandling.Ignore)]
+        public string SessionId { get; set; }
+
         public TelemetryEvent WithEventName(string eventName)
         {
             this.EventName = eventName;

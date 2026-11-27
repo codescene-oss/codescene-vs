@@ -178,9 +178,9 @@ namespace Codescene.VSExtension.Core.Tests
             await _orchestrator.RequestAsync(source, "C:/test/file.cs", fn);
             await _scheduler.WaitForAllAsync();
 
-            var evt = SingleEvent(Constants.Telemetry.ACEREFACTORREQUESTED);
+            var evt = SingleEvent("ai/refactor/requested");
             Assert.AreEqual(source, evt.Data["source"]);
-            Assert.AreEqual(false, evt.Data["skipCache"]);
+            Assert.AreEqual(false, evt.Data["skip-cache"]);
         }
 
         [TestMethod]
@@ -221,9 +221,8 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.IsNotNull(response);
             Assert.AreEqual(("function body\nnew code\nmore code", 3), (response.Code, response.Confidence.Level));
 
-            var evt = SingleEvent(Constants.Telemetry.ACEREFACTORPRESENTED);
-            Assert.AreEqual(3, evt.Data["confidence"]);
-            Assert.AreEqual(false, evt.Data["isCached"]);
+            var evt = SingleEvent("ai/refactor/presented");
+            Assert.AreEqual(_orchestrator.Current.TaskId, evt.Data["trace-id"]);
         }
 
         [TestMethod]
@@ -327,7 +326,7 @@ namespace Codescene.VSExtension.Core.Tests
             await _scheduler.WaitForAllAsync();
 
             AssertCancelledWithoutUpdates(session);
-            Assert.IsFalse(_telemetry.Events.Any(e => e.Name == Constants.Telemetry.ACEREFACTORPRESENTED));
+            Assert.IsFalse(_telemetry.Events.Any(e => e.Name == "ai/refactor/presented"));
         }
 
         [TestMethod]

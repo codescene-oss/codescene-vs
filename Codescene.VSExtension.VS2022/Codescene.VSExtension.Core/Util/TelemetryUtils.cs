@@ -27,7 +27,12 @@ namespace Codescene.VSExtension.Core.Util
 
         public static string GetTelemetryEventJson(string eventName, string deviceId, string version, string editorVersion = null, Dictionary<string, object> additionalEventData = null)
         {
-            var telemetryEvent = new TelemetryEvent
+            return GetTelemetryEventJson(CreateTelemetryEvent(eventName, deviceId, version, editorVersion), additionalEventData, null);
+        }
+
+        public static TelemetryEvent CreateTelemetryEvent(string eventName, string deviceId, string version, string editorVersion = null)
+        {
+            return new TelemetryEvent
             {
                 UserId = deviceId,
                 EditorType = Constants.Telemetry.SOURCEIDE,
@@ -35,10 +40,11 @@ namespace Codescene.VSExtension.Core.Util
                 EventName = $"{Constants.Telemetry.SOURCEIDE}/{eventName}",
                 ExtensionVersion = version,
             };
+        }
 
-            string eventJson = Serialize(telemetryEvent, additionalEventData);
-
-            return eventJson;
+        public static string GetTelemetryEventJson(TelemetryEvent telemetryEvent, Dictionary<string, object> additionalEventData, IReadOnlyList<string> repositoryPaths)
+        {
+            return Serialize(telemetryEvent, additionalEventData, repositoryPaths);
         }
 
         /// <summary>
@@ -144,7 +150,7 @@ namespace Codescene.VSExtension.Core.Util
             }
         }
 
-        private static string Serialize(TelemetryEvent telemetryEvent, Dictionary<string, object> additionalProps = null)
+        private static string Serialize(TelemetryEvent telemetryEvent, Dictionary<string, object> additionalProps, IReadOnlyList<string> repositoryPaths)
         {
             try
             {
@@ -159,6 +165,11 @@ namespace Codescene.VSExtension.Core.Util
                 }
 
                 TelemetryDataSanitizer.SanitizeJObject(jObject);
+
+                if (repositoryPaths != null && repositoryPaths.Count > 0)
+                {
+                    jObject[Constants.Telemetry.REPOSITORYPATHS] = JArray.FromObject(repositoryPaths);
+                }
 
                 return jObject.ToString(Formatting.None);
             }

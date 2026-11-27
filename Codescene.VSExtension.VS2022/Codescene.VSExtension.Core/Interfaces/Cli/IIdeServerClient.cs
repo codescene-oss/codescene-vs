@@ -22,6 +22,8 @@ namespace Codescene.VSExtension.Core.Interfaces.Cli
 
         event EventHandler<ServerStartEvent> ServerStarted;
 
+        event EventHandler ServerStopped;
+
         event EventHandler<ReviewQueue> QueueChanged;
 
         event EventHandler<Exception> ServerError;

@@ -117,7 +117,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public async Task Timeout_KillsTreeAndThrowsGenericWithMessage()
+        public async Task Timeout_KillsTreeAndThrowsTimeoutWithMessage()
         {
             var process = new FakeAgentProcess(new List<string>(), new List<string>(), 0, exitsOnItsOwn: false);
             var factory = new FakeAgentProcessFactory(process);
@@ -144,7 +144,7 @@ namespace Codescene.VSExtension.Core.Tests
             }
             catch (AgentFailure ex)
             {
-                Assert.AreEqual(AgentFailureKind.Generic, ex.Kind);
+                Assert.AreEqual(AgentFailureKind.Timeout, ex.Kind);
                 Assert.IsTrue(ex.Message.Contains("did not finish within"));
                 Assert.IsTrue(ex.Message.Contains("minutes"));
                 Assert.IsTrue(process.WasKilled);

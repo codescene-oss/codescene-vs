@@ -9,6 +9,7 @@ namespace Codescene.VSExtension.Core.Exceptions
         Auth,
         Generic,
         Cancelled,
+        Timeout,
     }
 
     public class AgentFailure : Exception

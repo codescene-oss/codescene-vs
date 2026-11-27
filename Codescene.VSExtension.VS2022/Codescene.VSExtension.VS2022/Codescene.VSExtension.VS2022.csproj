@@ -93,6 +93,7 @@
     <Compile Include="Options\AgentModelConverter.cs" />
     <Compile Include="Options\GeneralSettingsProvider.cs" />
     <Compile Include="Telemetry\TelemetryNoticeService.cs" />
+    <Compile Include="Util\VisualStudioTelemetryRepositoryPaths.cs" />
     <Compile Include="Handlers\SolutionEventsHandler.cs" />
     <Compile Include="Commands\OpenSettingsCommand.cs" />
     <Compile Include="Commands\RelayCommand.cs" />

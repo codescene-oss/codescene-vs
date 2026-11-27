@@ -118,11 +118,7 @@ namespace Codescene.VSExtension.Core.Application.Refactoring
 
             oldSession?.Cancel();
 
-            SendTelemetry(Constants.Telemetry.ACEREFACTORREQUESTED, new Dictionary<string, object>
-            {
-                { "source", source },
-                { "skipCache", false },
-            });
+            SendAiStage(newSession, Constants.Telemetry.AISTAGEREQUESTED);
 
             await _host.ShowReviewAsync(_mapper.MapLoading(path, fn));
 
@@ -159,6 +155,15 @@ namespace Codescene.VSExtension.Core.Application.Refactoring
             }
         }
 
+        public void ReportUserAction(string stage)
+        {
+            var session = Current;
+            if (session?.Response != null)
+            {
+                SendAiStage(session, stage);
+            }
+        }
+
         public void UpdateRange(CliRangeModel range)
         {
             RefactoringSession session;
@@ -173,8 +178,15 @@ namespace Codescene.VSExtension.Core.Application.Refactoring
             }
         }
 
+        private static bool IsNoSuggestion(AgentOutput output, RefactorResponseModel response, FnToRefactorModel function)
+        {
+            return output?.FixResult == "unable_to_fix" || response.Code == function.Body;
+        }
+
         private async Task RunAsync(RefactoringSession session)
         {
+            SendAiStage(session, Constants.Telemetry.AISTAGEAGENTINVOKED);
+
             try
             {
                 var workDir = AgentWorkingDirectory.ForFile(session.Path);
@@ -194,25 +206,12 @@ namespace Codescene.VSExtension.Core.Application.Refactoring
                     },
                     session.CancellationTokenSource.Token);
 
-                if (!IsActive(session))
-                {
-                    return;
-                }
-
-                var documentText = _host.ReadDocumentText(session.Path);
-                var response = AgentOutputMapper.Map(output, documentText, session.Function, session.Path, _logger);
-
-                session.SetResponse(response);
-                await _host.UpdateReviewAsync(_mapper.MapSession(session));
-
-                _scheduler.Schedule(async ct => await _telemetry.SendTelemetryAsync(Constants.Telemetry.ACEREFACTORPRESENTED, new Dictionary<string, object>
-                {
-                    { "confidence", response.Confidence.Level },
-                    { "isCached", false },
-                }));
+                await PresentOutputAsync(session, output);
             }
             catch (AgentFailure ex)
             {
+                ReportRunFailure(session, ex);
+
                 if (!IsActive(session))
                 {
                     return;
@@ -224,6 +223,8 @@ namespace Codescene.VSExtension.Core.Application.Refactoring
             }
             catch (Exception ex)
             {
+                ReportRunFailure(session, ex);
+
                 if (!IsActive(session))
                 {
                     return;
@@ -244,9 +245,72 @@ namespace Codescene.VSExtension.Core.Application.Refactoring
             }
         }
 
-        private void SendTelemetry(string eventName, Dictionary<string, object> data)
+        private async Task PresentOutputAsync(RefactoringSession session, AgentOutput output)
         {
-            _scheduler.Schedule(async ct => await _telemetry.SendTelemetryAsync(eventName, data));
+            if (!IsActive(session))
+            {
+                if (session.CancellationTokenSource.IsCancellationRequested)
+                {
+                    SendAiStage(session, Constants.Telemetry.AISTAGECANCELLED);
+                }
+
+                return;
+            }
+
+            var documentText = _host.ReadDocumentText(session.Path);
+            var response = AgentOutputMapper.Map(output, documentText, session.Function, session.Path, _logger);
+            var noSuggestion = IsNoSuggestion(output, response, session.Function);
+
+            SendAiStage(session, noSuggestion ? Constants.Telemetry.AISTAGENOSUGGESTION : Constants.Telemetry.AISTAGESUGGESTIONPRODUCED);
+
+            session.SetResponse(response);
+            await _host.UpdateReviewAsync(_mapper.MapSession(session));
+
+            if (!noSuggestion)
+            {
+                SendAiStage(session, Constants.Telemetry.AISTAGEPRESENTED);
+            }
+        }
+
+        private void ReportRunFailure(RefactoringSession session, Exception ex)
+        {
+            if (RefactoringFailureReason.IsCancellation(ex))
+            {
+                SendAiStage(session, Constants.Telemetry.AISTAGECANCELLED);
+                return;
+            }
+
+            SendAiStage(session, Constants.Telemetry.AISTAGEFAILED, RefactoringFailureReason.For(ex));
+        }
+
+        private void SendAiStage(RefactoringSession session, string stage, string reason = null)
+        {
+            _scheduler.Schedule(async ct =>
+            {
+                var data = new Dictionary<string, object>
+                {
+                    { "trace-id", session.TaskId },
+                    { "skip-cache", false },
+                };
+
+                if (!string.IsNullOrEmpty(session.Source))
+                {
+                    data["source"] = session.Source;
+                }
+
+                if (reason != null)
+                {
+                    data["reason"] = reason;
+                }
+
+                var repositoryRoot = GitPathDiscovery.TryGetWorkingDirectory(session.Path);
+                if (!string.IsNullOrEmpty(repositoryRoot))
+                {
+                    data[Constants.Telemetry.REPOSITORYPATHS] = new[] { repositoryRoot };
+                }
+
+                await _telemetry.SendTelemetryAsync($"{Constants.Telemetry.AIREFACTOR}/{stage}", data);
+            });
         }
     }
 }

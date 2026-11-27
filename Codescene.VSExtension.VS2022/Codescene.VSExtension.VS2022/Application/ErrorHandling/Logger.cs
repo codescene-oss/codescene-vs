@@ -3,10 +3,8 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using Codescene.VSExtension.Core.Interfaces;
-using Codescene.VSExtension.Core.Interfaces.Telemetry;
 using Codescene.VSExtension.VS2022.Options;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
@@ -56,12 +54,6 @@ public class Logger : ILogger
     {
         var fullMessage = $"{message}: {ex.Message}";
         _scheduler.Schedule(ct => WriteLogAsync(fullMessage, ERROR));
-        _scheduler.Schedule(ct => SendErrorTelemetryAsync(ex, message, ct));
-
-        if (ex.Message.ToLowerInvariant().Contains("timeout"))
-        {
-            _scheduler.Schedule(ct => SendTimeoutTelemetryAsync(ct));
-        }
     }
 
     public void Info(string message, bool statusBar = false) =>
@@ -109,24 +101,6 @@ public class Logger : ILogger
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         _outputPaneManager.Pane?.OutputStringThreadSafe($"{message}{Environment.NewLine}");
-    }
-
-    private async Task SendErrorTelemetryAsync(Exception ex, string context, CancellationToken cancellationToken = default)
-    {
-        var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-        if (telemetryManager != null)
-        {
-            await telemetryManager.SendErrorTelemetryAsync(ex, context, cancellationToken: cancellationToken);
-        }
-    }
-
-    private async Task SendTimeoutTelemetryAsync(CancellationToken cancellationToken = default)
-    {
-        var telemetryManager = await VS.GetMefServiceAsync<ITelemetryManager>();
-        if (telemetryManager != null)
-        {
-            await telemetryManager.SendTelemetryAsync(Telemetry.REVIEWORDELTATIMEOUT, cancellationToken: cancellationToken);
-        }
     }
 
     private void WriteToFile(string message)

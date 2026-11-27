@@ -74,7 +74,7 @@ namespace Codescene.VSExtension.Core.Application.Agent
                         var message = $"The Refactoring Agent did not finish within {timeoutMinutes} minutes.";
                         _logger.Warn(message);
                         process.KillTree();
-                        throw new AgentFailure(AgentFailureKind.Generic, message);
+                        throw new AgentFailure(AgentFailureKind.Timeout, message);
                     }
                 }
 

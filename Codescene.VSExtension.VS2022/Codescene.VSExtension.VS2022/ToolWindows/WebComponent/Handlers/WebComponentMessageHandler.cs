@@ -169,7 +169,7 @@ internal class WebComponentMessageHandler
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         var payload = msgObject.Payload.ToObject<CopyCodePayload>();
-        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORCOPYCODE);
+        ReportAceAction(Constants.Telemetry.AISTAGECOPIED);
 
         if (payload.Code == null)
         {
@@ -183,7 +183,7 @@ internal class WebComponentMessageHandler
 
     private async Task HandleShowDiffAsync()
     {
-        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORDIFFSHOWN);
+        ReportAceAction(Constants.Telemetry.AISTAGEDIFFSHOWN);
 
         var diffHandler = await VS.GetMefServiceAsync<ShowDiffHandler>();
         await diffHandler.ShowDiffWindowAsync();
@@ -192,7 +192,7 @@ internal class WebComponentMessageHandler
     private async Task HandleApplyAsync(MessageObj<JToken> msgObject)
     {
         var payload = msgObject.Payload.ToObject<ApplyPayload>();
-        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORAPPLIED);
+        ReportAceAction(Constants.Telemetry.AISTAGEAPPLIED);
 
         var applier = await VS.GetMefServiceAsync<RefactoringChangesApplier>();
         await applier.ApplyAsync(payload);
@@ -221,7 +221,7 @@ internal class WebComponentMessageHandler
 
     private async Task HandleRejectAsync()
     {
-        HandleAceTelemetry(Constants.Telemetry.ACEREFACTORREJECTED);
+        ReportAceAction(Constants.Telemetry.AISTAGEDISCARDED);
 
         if (_control.CloseRequested is not null)
         {
@@ -229,21 +229,12 @@ internal class WebComponentMessageHandler
         }
     }
 
-    private void HandleAceTelemetry(string telemetryEvent)
+    private void ReportAceAction(string stage)
     {
         var orchestrator = ThreadHelper.JoinableTaskFactory.Run(async () =>
             await VS.GetMefServiceAsync<Core.Interfaces.Refactoring.IRefactoringOrchestrator>());
 
-        var session = orchestrator?.Current;
-        if (session?.Response != null)
-        {
-            var additionalData = new Dictionary<string, object>
-            {
-                { "traceId", session.Response.TraceId },
-                { "skipCache ", false },
-            };
-            SendTelemetry(telemetryEvent, additionalData);
-        }
+        orchestrator?.ReportUserAction(stage);
     }
 
     private async Task HandleCancelAsync()

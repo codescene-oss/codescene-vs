@@ -157,10 +157,13 @@ namespace Codescene.VSExtension.Core.Tests
             return Task.CompletedTask;
         }
 
-        public Task SendErrorTelemetryAsync(Exception ex, string context, Dictionary<string, object> extraData = null, CancellationToken cancellationToken = default)
+        public int HoldRouting() => 0;
+
+        public void RoutingReady(int generation)
         {
-            return Task.CompletedTask;
         }
+
+        public Task EndSessionAsync(TimeSpan timeout) => Task.CompletedTask;
     }
 
     internal class FakeTelemetryEvent

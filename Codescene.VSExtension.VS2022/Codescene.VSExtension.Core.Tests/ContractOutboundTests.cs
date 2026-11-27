@@ -62,20 +62,20 @@ namespace Codescene.VSExtension.Core.Tests
                 }
                 : null;
 
-            var eventJson = TelemetryUtils.GetTelemetryEventJson(
+            var telemetryEvent = TelemetryUtils.CreateTelemetryEvent(
                 "fake-event",
                 (string?)fixtureEvent["user-id"],
                 Text(fixtureEvent, "extension-version"),
-                full ? "18.1.1" : null,
-                additionalEventData);
+                full ? "18.1.1" : null);
+            telemetryEvent.SessionId = full ? Text(fixtureEvent, "session-id") : null;
+            var repositoryPaths = full ? Required(fixtureEvent, "repository-paths").ToObject<string[]>() : null;
+            var eventJson = TelemetryUtils.GetTelemetryEventJson(telemetryEvent, additionalEventData, repositoryPaths);
             await harness.Client.TelemetryAsync(JsonConvert.DeserializeObject(eventJson) ?? throw new InvalidOperationException("The event was not built"));
             var sent = await WaitForAsync(server.Telemetry.Task);
 
             var expectedEvent = (JObject)fixtureEvent.DeepClone();
             expectedEvent["event-name"] = Constants.Telemetry.SOURCEIDE + "/fake-event";
             expectedEvent["editor-type"] = Constants.Telemetry.SOURCEIDE;
-            expectedEvent.Remove("session-id");
-            expectedEvent.Remove("repository-paths");
             if (full)
             {
                 expectedEvent["editor-version"] = "18.1.1";

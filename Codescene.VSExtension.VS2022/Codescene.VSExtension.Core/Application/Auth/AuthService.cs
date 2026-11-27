@@ -86,7 +86,10 @@ namespace Codescene.VSExtension.Core.Application.Auth
                 _started = true;
             }
 
+            _telemetry.HoldRouting();
+
             _client.ServerStarted += OnServerStarted;
+            _client.ServerStopped += OnServerStopped;
             _authClient.AuthStatusChanged += OnAuthStatusChanged;
             _settings.Changed += OnSettingsChanged;
 
@@ -122,6 +125,11 @@ namespace Codescene.VSExtension.Core.Application.Auth
             }
         }
 
+        private void OnServerStopped(object sender, EventArgs e)
+        {
+            _telemetry.HoldRouting();
+        }
+
         private void OnAuthStatusChanged(object sender, JObject status)
         {
             if (status == null)
@@ -138,6 +146,19 @@ namespace Codescene.VSExtension.Core.Application.Auth
         }
 
         private async Task HandleServerStartAsync(Models.Cli.Rpc.ServerMetadata metadata, bool isRestart)
+        {
+            var routingGeneration = _telemetry.HoldRouting();
+            try
+            {
+                await HandleServerStartCoreAsync(metadata).ConfigureAwait(false);
+            }
+            finally
+            {
+                _telemetry.RoutingReady(routingGeneration);
+            }
+        }
+
+        private async Task HandleServerStartCoreAsync(Models.Cli.Rpc.ServerMetadata metadata)
         {
             lock (_gate)
             {
