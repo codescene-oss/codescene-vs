@@ -30,7 +30,7 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void ToAuthPayload_DropsAceCredentialAndKeepsNulls()
+        public void ToAuthPayload_KeepsNulls()
         {
             var status = (JObject)_bundle.Fixture("auth-status", "full", FixtureForm.Wire);
             var snapshot = AuthSnapshot.Inactive
@@ -44,8 +44,6 @@ namespace Codescene.VSExtension.Core.Tests
             var result = AuthWebviewFields.ToAuthPayload(snapshot);
 
             Assert.IsNotNull(result);
-            Assert.IsFalse(result["status"].Any(token => token.Path.EndsWith("ace-credential")));
-            Assert.IsTrue(status["ace-credential"] != null, "original status should have ace-credential");
             Assert.IsNull(result["accounts"].Value<JArray>());
             Assert.IsNull(result["projects"].Value<JArray>());
             Assert.IsNull(result["repo"].Value<JObject>());

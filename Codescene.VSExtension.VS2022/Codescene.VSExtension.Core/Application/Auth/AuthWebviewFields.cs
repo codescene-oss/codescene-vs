@@ -16,7 +16,6 @@ namespace Codescene.VSExtension.Core.Application.Auth
             }
 
             var status = (JObject)snapshot.Status.DeepClone();
-            status.Remove("ace-credential");
 
             var repo = snapshot.Repo != null
                 ? new JObject { ["path"] = snapshot.Repo.Path, ["name"] = snapshot.Repo.Name }

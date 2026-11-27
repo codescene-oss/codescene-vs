@@ -163,27 +163,6 @@ namespace Codescene.VSExtension.Core.Tests
         }
 
         [TestMethod]
-        public void Payload_WhileActive_WithAceCredential_WouldFail()
-        {
-            var status = (JObject)_bundle.Fixture("auth-status", "full", FixtureForm.Wire);
-            var snapshot = AuthSnapshot.Inactive
-                .WithActive(true)
-                .WithStatus(status);
-
-            var payload = HomePayload(snapshot);
-            var auth = (JObject)At(payload, "auth");
-            var authStatus = (JObject)At(auth, "status");
-
-            Assert.IsFalse(authStatus.ContainsKey("ace-credential"), "ace-credential should be stripped");
-            Assert.IsTrue(status.ContainsKey("ace-credential"), "fixture should have ace-credential");
-
-            var withAceCredential = (JObject)payload.DeepClone();
-            ((JObject)At(withAceCredential, "auth.status"))["ace-credential"] = false;
-
-            AssertFails(() => _cwf.ValidatePayload(CwfSchemas.AsTheWebviewReadsIt(withAceCredential)), "ace-credential");
-        }
-
-        [TestMethod]
         public void Payload_WithBannerHidden_Validates()
         {
             var status = (JObject)_bundle.Fixture("auth-status", "signed-in", FixtureForm.Wire);

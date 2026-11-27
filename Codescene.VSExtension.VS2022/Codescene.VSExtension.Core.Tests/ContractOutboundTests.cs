@@ -74,6 +74,8 @@ namespace Codescene.VSExtension.Core.Tests
             var expectedEvent = (JObject)fixtureEvent.DeepClone();
             expectedEvent["event-name"] = Constants.Telemetry.SOURCEIDE + "/fake-event";
             expectedEvent["editor-type"] = Constants.Telemetry.SOURCEIDE;
+            expectedEvent.Remove("session-id");
+            expectedEvent.Remove("repository-paths");
             if (full)
             {
                 expectedEvent["editor-version"] = "18.1.1";
