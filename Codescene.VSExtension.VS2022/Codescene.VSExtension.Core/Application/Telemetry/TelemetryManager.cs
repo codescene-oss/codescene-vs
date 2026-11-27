@@ -7,8 +7,10 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Auth;
 using Codescene.VSExtension.Core.Consts;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Auth;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
@@ -23,7 +25,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
     {
         private readonly ILogger _logger;
         private readonly IIdeServerClient _client;
-        private readonly IDeviceIdStore _deviceIdStore;
+        private readonly Lazy<IAuthService> _authService;
         private readonly IExtensionMetadataProvider _extensionMetadataProvider;
         private readonly ISettingsProvider _settingsProvider;
         private readonly ITelemetryRepositoryPaths _repositoryPaths;
@@ -35,26 +37,26 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
         public TelemetryManager(
             ILogger logger,
             IIdeServerClient client,
-            IDeviceIdStore deviceIdStore,
             IExtensionMetadataProvider extensionMetadataProvider,
             [Import(AllowDefault = true)] ISettingsProvider settingsProvider = null,
-            [Import(AllowDefault = true)] ITelemetryRepositoryPaths repositoryPaths = null)
-            : this(logger, client, deviceIdStore, extensionMetadataProvider, settingsProvider, repositoryPaths, null)
+            [Import(AllowDefault = true)] ITelemetryRepositoryPaths repositoryPaths = null,
+            [Import(AllowDefault = true)] Lazy<IAuthService> authService = null)
+            : this(logger, client, extensionMetadataProvider, settingsProvider, repositoryPaths, authService, null)
         {
         }
 
         internal TelemetryManager(
             ILogger logger,
             IIdeServerClient client,
-            IDeviceIdStore deviceIdStore,
             IExtensionMetadataProvider extensionMetadataProvider,
             ISettingsProvider settingsProvider,
             ITelemetryRepositoryPaths repositoryPaths,
+            Lazy<IAuthService> authService,
             TimeSpan? routingBound)
         {
             _logger = logger;
             _client = client;
-            _deviceIdStore = deviceIdStore;
+            _authService = authService;
             _extensionMetadataProvider = extensionMetadataProvider;
             _settingsProvider = settingsProvider;
             _repositoryPaths = repositoryPaths;
@@ -152,7 +154,7 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
 
                 var telemetryEvent = TelemetryUtils.CreateTelemetryEvent(
                     item.Name,
-                    await _deviceIdStore.GetDeviceIdAsync(cancellationToken),
+                    CurrentUserId(),
                     _extensionMetadataProvider.GetVersion(),
                     _extensionMetadataProvider.GetEditorVersion());
                 telemetryEvent.EventTime = item.EventTime;
@@ -197,6 +199,20 @@ namespace Codescene.VSExtension.Core.Application.Telemetry
             catch (Exception e)
             {
                 _logger.Debug($"Unable to resolve telemetry repository paths: {e.Message}");
+                return null;
+            }
+        }
+
+        private string CurrentUserId()
+        {
+            try
+            {
+                var snapshot = _authService?.Value?.Current;
+                return snapshot != null && snapshot.Active ? AuthStatusFields.UserId(snapshot.Status) : null;
+            }
+            catch (Exception e)
+            {
+                _logger.Debug($"Unable to resolve telemetry user id: {e.Message}");
                 return null;
             }
         }

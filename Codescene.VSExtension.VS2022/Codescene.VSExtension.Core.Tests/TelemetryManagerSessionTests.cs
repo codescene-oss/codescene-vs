@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Codescene.VSExtension.Core.Application.Auth;
 using Codescene.VSExtension.Core.Application.Telemetry;
 using Codescene.VSExtension.Core.Interfaces;
+using Codescene.VSExtension.Core.Interfaces.Auth;
 using Codescene.VSExtension.Core.Interfaces.Cli;
 using Codescene.VSExtension.Core.Interfaces.Extension;
 using Codescene.VSExtension.Core.Interfaces.Telemetry;
@@ -24,6 +26,7 @@ namespace Codescene.VSExtension.Core.Tests
 
         private Mock<IIdeServerClient> _client;
         private Mock<ITelemetryRepositoryPaths> _repositoryPaths;
+        private Mock<IAuthService> _authService;
         private List<JObject> _sent;
         private TelemetryManager _manager;
 
@@ -45,6 +48,8 @@ namespace Codescene.VSExtension.Core.Tests
             _repositoryPaths = new Mock<ITelemetryRepositoryPaths>();
             _repositoryPaths.Setup(x => x.GetWorkspaceRepositoryPathsAsync())
                 .ReturnsAsync(new[] { @"C:\Users\alice\src\workspace" });
+            _authService = new Mock<IAuthService>();
+            _authService.SetupGet(x => x.Current).Returns(AuthSnapshot.Inactive);
             _manager = CreateManager(TimeSpan.FromMinutes(5));
         }
 
@@ -65,6 +70,38 @@ namespace Codescene.VSExtension.Core.Tests
             Assert.AreEqual(_manager.SessionId, (string)_sent[1]["session-id"]);
             Assert.IsTrue(Guid.TryParse(_manager.SessionId, out _));
             Assert.IsNotNull(_sent[0]["event-time"]);
+        }
+
+        [TestMethod]
+        public async Task SendTelemetryAsync_WhenSignedIn_SendsTheCodeSceneUserIdAsUserId()
+        {
+            var status = new JObject { ["state"] = "signed-in", ["user"] = new JObject { ["id"] = "1234", ["name"] = "Fake User" } };
+            _authService.SetupGet(x => x.Current).Returns(AuthSnapshot.Inactive.WithActive(true).WithStatus(status));
+
+            await _manager.SendTelemetryAsync("docs/open-interactive-panel");
+
+            Assert.AreEqual("1234", (string)_sent.Single()["user-id"]);
+        }
+
+        [TestMethod]
+        [DataRow("signed-out")]
+        [DataRow("signing-in")]
+        public async Task SendTelemetryAsync_WhenNotSignedIn_OmitsUserId(string state)
+        {
+            var status = new JObject { ["state"] = state, ["user"] = new JObject { ["id"] = "1234" } };
+            _authService.SetupGet(x => x.Current).Returns(AuthSnapshot.Inactive.WithActive(true).WithStatus(status));
+
+            await _manager.SendTelemetryAsync("docs/open-interactive-panel");
+
+            Assert.IsNull(_sent.Single()["user-id"]);
+        }
+
+        [TestMethod]
+        public async Task SendTelemetryAsync_WhenAuthIsInactive_OmitsUserId()
+        {
+            await _manager.SendTelemetryAsync("docs/open-interactive-panel");
+
+            Assert.IsNull(_sent.Single()["user-id"]);
         }
 
         [TestMethod]
@@ -173,8 +210,6 @@ namespace Codescene.VSExtension.Core.Tests
 
         private TelemetryManager CreateManager(TimeSpan routingBound)
         {
-            var deviceIdStore = new Mock<IDeviceIdStore>();
-            deviceIdStore.Setup(x => x.GetDeviceIdAsync(It.IsAny<CancellationToken>())).ReturnsAsync("device-1");
             var metadata = new Mock<IExtensionMetadataProvider>();
             metadata.Setup(x => x.GetVersion()).Returns("1.0.0");
             metadata.Setup(x => x.GetEditorVersion()).Returns("18.1.1");
@@ -182,10 +217,10 @@ namespace Codescene.VSExtension.Core.Tests
             return new TelemetryManager(
                 new Mock<ILogger>().Object,
                 _client.Object,
-                deviceIdStore.Object,
                 metadata.Object,
                 null,
                 _repositoryPaths.Object,
+                new Lazy<IAuthService>(() => _authService.Object),
                 routingBound);
         }
 

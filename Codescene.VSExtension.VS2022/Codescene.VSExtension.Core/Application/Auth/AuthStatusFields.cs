@@ -63,6 +63,23 @@ namespace Codescene.VSExtension.Core.Application.Auth
             return error?["code"]?.Value<string>();
         }
 
+        public static string UserId(JObject status)
+        {
+            if (State(status) != AuthConstants.States.SIGNEDIN)
+            {
+                return null;
+            }
+
+            var userId = status?["user"]?["id"];
+            if (userId == null || userId.Type == JTokenType.Null)
+            {
+                return null;
+            }
+
+            var value = userId.ToString();
+            return string.IsNullOrWhiteSpace(value) ? null : value;
+        }
+
         public static string AccountDataKey(JObject status)
         {
             if (State(status) != AuthConstants.States.SIGNEDIN)
